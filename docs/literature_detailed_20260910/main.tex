@@ -1,0 +1,62 @@
+% Compile from this directory with: latexmk -xelatex -interaction=nonstopmode main.tex
+\documentclass[UTF8,11pt,fontset=fandol]{ctexart}
+\usepackage[a4paper,margin=2.25cm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array,tabularx,longtable,multirow}
+\usepackage{enumitem,graphicx,xcolor,fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=teal!65!black,urlcolor=blue!60!black,bookmarksnumbered=true]{hyperref}
+\hypersetup{pdftitle={配电网拓扑辨识文献逐篇解析},pdfauthor={Topo 研究笔记}}
+\setlist{nosep,leftmargin=2em}
+\setlength{\parskip}{0.25em}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.22}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small 配电网拓扑辨识：文献逐篇解析}
+\fancyhead[R]{\small 2026-09-10}
+\fancyfoot[C]{\thepage}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newtheorem{proposition}{命题}[section]
+\newtheorem{lemma}[proposition]{引理}
+\newtheorem{theorem}[proposition]{定理}
+\theoremstyle{remark}
+\newtheorem{remark}[proposition]{说明}
+\numberwithin{equation}{section}
+\setcounter{tocdepth}{2}
+\title{配电网拓扑辨识文献逐篇解析\\[0.5em]\large 末端量测、主动注入、概率推断与运行应用\\模型、推导、成立条件及研究迁移}
+\author{Topo 研究文档}
+\date{2026年9月10日}
+\begin{document}
+\maketitle
+\begin{abstract}
+本报告围绕此前调研的17篇文献及5篇主动注入补充文献展开。每篇分别说明所解决的问题、所需观测、数学机制、可核实的证据与迁移边界；对关键方法补充独立推导和可检验反例。报告的共同参照系是末端有功、无功与电压量测下，隐藏零注入节点的最简有根径向树辨识。对于只能核实摘要或出版记录的论文，明确保留访问限制，相关教学推导不冒充原文算法。全文区分参数估计、拓扑选择、概率校准、有限候选域优化及实际运行安全这五类不同结论。公式中的额外分析均用于帮助理解，不表示当前项目已实现相应扩展，也不表示已独立复现原论文实验。
+\end{abstract}
+\tableofcontents
+\clearpage
+\input{sections/foundations}
+\clearpage
+\input{sections/core_papers}
+\clearpage
+\input{sections/engineering}
+\clearpage
+\input{sections/probing}
+\clearpage
+\input{sections/statistical}
+\clearpage
+\input{sections/synthesis}
+\clearpage
+\bibliographystyle{unsrtnat}
+\bibliography{refs_core,refs_engineering,refs_probing,refs_statistical}
+\end{document}

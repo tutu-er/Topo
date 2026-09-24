@@ -1,0 +1,938 @@
+\documentclass[UTF8,12pt,openany]{ctexrep}
+
+\usepackage[a4paper,margin=2.6cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{booktabs,array,longtable}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+\ctexset{
+  chapter = {name = {第,章}},
+  section = {format = \Large\bfseries}
+}
+
+\numberwithin{equation}{chapter}
+
+\theoremstyle{definition}
+\newtheorem{definition}{定义}[chapter]
+\newtheorem{example}{例}[chapter]
+\newtheorem{remark}{说明}[chapter]
+
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{proposition}[theorem]{命题}
+\newtheorem{lemma}[theorem]{引理}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\pa}{\operatorname{pa}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\norm}[2][]{\left\lVert #2 \right\rVert_{#1}}
+\newcommand{\ind}[1]{\mathbf{1}\{#1\}}
+\newcommand{\Tcal}{\mathcal{T}}
+\newcommand{\Acal}{\mathcal{A}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Eac}{E_{\mathrm{AC}}}
+\newcommand{\dd}{\,\mathrm{d}}
+
+\floatname{algorithm}{算法}
+\renewcommand{\algorithmicrequire}{\textbf{输入:}}
+\renewcommand{\algorithmicensure}{\textbf{输出:}}
+\renewcommand{\algorithmicif}{\textbf{若}}
+\renewcommand{\algorithmicthen}{\textbf{则}}
+\renewcommand{\algorithmicelse}{\textbf{否则}}
+\renewcommand{\algorithmicfor}{\textbf{对}}
+\renewcommand{\algorithmicdo}{\textbf{执行}}
+\renewcommand{\algorithmicwhile}{\textbf{当}}
+\renewcommand{\algorithmicreturn}{\textbf{返回}}
+
+\title{面向配电网拓扑辨识的贝叶斯树结构建模与边置信度估计理论笔记}
+\author{科研写作辅助稿}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter*{导读}
+\addcontentsline{toc}{chapter}{导读}
+
+本文试图把几个常被混在一起的概念拆开：贝叶斯后验概率、基于模型残差构造的置信度、bootstrap 稳定性，以及由仿真校准得到的经验正确率。它们都可以服务于配电网拓扑辨识，但数学含义并不相同。若不加区分，容易把“某条边的分数高”“某条边在重采样中频繁出现”和“某条边在真实拓扑中出现的后验概率高”误认为同一件事。
+
+本文关注的场景是：候选配电网近似为径向树，根节点和末端智能电表可观测，中间可能存在零注入或低注入的 hidden nodes；距离矩阵、相关性矩阵或互信息矩阵只能给出粗略线索；最终仍希望用 AC 潮流残差判断候选拓扑是否能解释观测到的电压、功率和根节点电压。这个场景比标准的最小生成树或 Chow-Liu tree 更困难，因为 AC 残差通常不是边可加的全局目标。
+
+\chapter{问题背景与基本目标}
+
+\section{配电网拓扑辨识的典型设定}
+
+配电网在正常运行中常被调度为径向结构。也就是说，除根节点或变电站外，每个节点通常只有一条通向上游的路径。这一事实使得“树”成为拓扑辨识的自然数学对象。然而真实量测条件往往并不理想：根节点可观测，末端用户侧智能电表可能记录有功功率、无功功率和电压幅值，中间杆塔、接线箱或分支节点却未必有传感器；这些中间节点还可能近似零注入，使其在量测层面更像隐藏变量。
+
+在这样的系统中，若只根据估计出的距离矩阵或相关性矩阵做最小生成树，得到的树未必能解释 AC 潮流关系。距离矩阵可能受负荷相关性、噪声、公共上游扰动、采样窗口和参数错设影响。本文的核心目标不是把距离最短的边都连起来，而是构造一种概率化框架：工程先验给出候选树的初始偏好，AC 潮流残差给出数据对候选拓扑的支持程度，最后用边后验概率或近似置信度表达每条边的可信程度。
+
+\section{基本符号}
+
+记观测数据为
+\begin{equation}
+D=\left\{P_t^m,Q_t^m,V_t^m,V_{0,t}^m\right\}_{t=1}^N ,
+\end{equation}
+其中 $P_t^m,Q_t^m$ 表示第 $t$ 个时刻末端量测节点的有功、无功注入向量，$V_t^m$ 表示末端电压量测向量，$V_{0,t}^m$ 表示根节点电压量测。上标 $m$ 强调这些量是 measurement，而不一定等于真实物理值。
+
+令 $G=(\mathcal{V},\mathcal{E}_c)$ 为候选图，$\mathcal{E}_c$ 是允许出现的候选边集合。所有候选生成树组成集合
+\begin{equation}
+T\in \Tcal(G).
+\end{equation}
+对一棵给定拓扑 $T$，令
+\begin{equation}
+\theta_T=\text{线路参数或待估计物理参数},
+\end{equation}
+例如支路电阻、电抗、等值负荷修正量，或者隐藏节点消元后的等效参数。
+
+给定拓扑和参数后，AC 潮流模型把功率和根节点电压映射为末端电压预测：
+\begin{equation}
+h_T(P_t,Q_t,V_{0,t};\theta_T)
+=\text{在拓扑 }T\text{ 下的 AC 潮流预测电压}.
+\end{equation}
+如果模型、参数和拓扑都正确，则 $h_T$ 应当接近观测电压 $V_t^m$。若残差系统性偏大，则该拓扑可能与真实网络不一致，或者线路参数、注入量、噪声模型存在错设。
+
+\section{总体目标}
+
+本文最终关心的量是某条边 $e$ 在真实拓扑中出现的后验概率：
+\begin{equation}
+\Prob(e\in T\mid D).
+\end{equation}
+它不是普通边权，也不是最大生成树算法中的分数，而是“在观察到数据 $D$ 之后，综合所有可能拓扑，边 $e$ 被包含在拓扑中的概率”。与只输出一棵树相比，边后验概率能指出哪些局部连接非常可信，哪些位置存在多个近似等价的替代结构，哪些边几乎没有数据支持。
+
+\begin{remark}
+当只观测末端节点且存在 hidden zero-injection nodes 时，$e$ 可能指观测节点之间的 reduced/effective topology 边，而不一定对应一条真实物理导线。本文会反复强调这一解释边界。
+\end{remark}
+
+\chapter{贝叶斯理论基础}
+
+\section{条件概率}
+
+贝叶斯统计从条件概率开始。若 $A$ 和 $B$ 是两个事件，并且 $\Prob(B)>0$，则
+\begin{equation}
+\Prob(A\mid B)=\frac{\Prob(A\cap B)}{\Prob(B)}.
+\label{eq:conditional-prob}
+\end{equation}
+式 \eqref{eq:conditional-prob} 的意思是：在已经知道 $B$ 发生的前提下，$A$ 发生的概率等于“$A$ 和 $B$ 同时发生的概率”除以“$B$ 发生的概率”。条件概率描述的是证据到来以后，事件概率如何变化。
+
+在配电网拓扑辨识中，可以把 $A$ 理解为“某条候选边是正确边”，把 $B$ 理解为“观测到一组电压和功率数据”。在没有观测数据时，我们只能依据工程经验判断边是否可信；一旦观测到某些数据，就需要重新评估该边与数据的一致性。
+
+\section{贝叶斯公式}
+
+由条件概率定义也有
+\begin{equation}
+\Prob(B\mid A)=\frac{\Prob(A\cap B)}{\Prob(A)}.
+\end{equation}
+将 $\Prob(A\cap B)=\Prob(B\mid A)\Prob(A)$ 代入式 \eqref{eq:conditional-prob}，得到贝叶斯公式：
+\begin{equation}
+\Prob(A\mid B)
+=\frac{\Prob(B\mid A)\Prob(A)}{\Prob(B)}.
+\label{eq:bayes-event}
+\end{equation}
+式 \eqref{eq:bayes-event} 把“证据出现后的概率”表示为三个量：证据在假设 $A$ 下出现的可能性、假设 $A$ 的先验可信度，以及证据本身出现的总概率。
+
+推广到连续参数 $\theta$，有
+\begin{equation}
+p(\theta\mid D)
+=\frac{p(D\mid \theta)p(\theta)}{p(D)}.
+\label{eq:bayes-param}
+\end{equation}
+这里有四个核心对象：
+\begin{itemize}[leftmargin=2em]
+  \item $p(\theta)$ 是 prior，即先验，表示观测数据前对参数的认识；
+  \item $p(D\mid\theta)$ 是 likelihood，即似然，表示给定参数后观测数据出现的可能性；
+  \item $p(\theta\mid D)$ 是 posterior，即后验，表示结合数据后对参数的更新认识；
+  \item $p(D)$ 是 evidence 或 marginal likelihood，是归一化常数，使后验密度积分为 $1$。
+\end{itemize}
+
+\section{先验、似然、后验的直观含义}
+
+在配电网问题中，先验可以来自工程经验：地理相邻的节点更可能相连；阻抗估计落在合理范围内的边更可信；距离矩阵短的候选边应有更高初始权重；相位不一致的节点不应被强烈支持。这些信息并不一定来自当前数据，但能在数据不足时约束解空间。
+
+似然则由观测数据驱动。给定拓扑 $T$ 和参数 $\theta_T$ 后，AC 潮流模型会预测末端电压。如果预测值与量测电压高度一致，则 $p(D\mid T,\theta_T)$ 较大；如果残差很大，则似然较小。后验把这两者结合起来：一个拓扑即使 AC 残差略小，但若严重违反工程先验，也未必获得最高后验；反过来，一个距离矩阵看似合理的拓扑，若无法解释电压，也会被数据削弱。
+
+\section{MAP 与 MLE}
+
+最大似然估计只考虑数据对参数的支持：
+\begin{equation}
+\hat{\theta}_{\mathrm{MLE}}
+=\argmax_{\theta}p(D\mid\theta).
+\label{eq:mle}
+\end{equation}
+最大后验估计则同时考虑似然和先验：
+\begin{equation}
+\hat{\theta}_{\mathrm{MAP}}
+=\argmax_{\theta}p(D\mid\theta)p(\theta).
+\label{eq:map}
+\end{equation}
+对式 \eqref{eq:map} 取负对数，得到等价的优化形式
+\begin{equation}
+\hat{\theta}_{\mathrm{MAP}}
+=\argmin_{\theta}
+\left[
+-\log p(D\mid\theta)-\log p(\theta)
+\right].
+\label{eq:map-negative-log}
+\end{equation}
+这说明正则化项可以看成负对数先验。例如若 $\theta\sim\mathcal{N}(0,\sigma^2 I)$，则
+\begin{equation}
+-\log p(\theta)
+=\frac{1}{2\sigma^2}\norm[2]{\theta}^2+\text{常数},
+\end{equation}
+因此 Gaussian prior 对应 $L_2$ 正则。这个观点对线路参数估计很有用：阻抗不应无限大或无限小，可以通过先验把参数限制在工程合理区域。
+
+\chapter{从参数后验到拓扑后验}
+
+\section{拓扑是离散结构变量}
+
+参数后验讨论的是连续变量 $\theta$，而配电网拓扑 $T$ 是离散结构变量。若候选图 $G$ 有许多可能生成树，则每棵树都是一个候选模型。贝叶斯公式可写成
+\begin{equation}
+\Prob(T\mid D)
+=\frac{\Prob(D\mid T)\Prob(T)}{\Prob(D)}.
+\label{eq:tree-posterior}
+\end{equation}
+其中
+\begin{equation}
+\Prob(D)=\sum_{T'\in\Tcal(G)}\Prob(D\mid T')\Prob(T').
+\label{eq:tree-evidence}
+\end{equation}
+式 \eqref{eq:tree-evidence} 是对所有候选拓扑求和。它的作用是归一化：所有候选树的后验概率相加必须为 $1$。
+
+\section{对线路参数的边缘化}
+
+若每棵树 $T$ 还有未知线路参数 $\theta_T$，严格的拓扑似然应当把参数积分掉：
+\begin{equation}
+\Prob(D\mid T)
+=\int \Prob(D\mid T,\theta_T)p(\theta_T\mid T)\dd\theta_T.
+\label{eq:marginal-likelihood-tree}
+\end{equation}
+这个积分的含义是：不是只相信某个单点参数，而是把在拓扑 $T$ 下所有可能参数值对数据的解释能力按先验加权平均。它比单纯拟合一个最佳参数更符合贝叶斯思想，也天然惩罚过于灵活的模型。
+
+实际中，式 \eqref{eq:marginal-likelihood-tree} 可能难以计算。常用近似是 profile likelihood：
+\begin{equation}
+\Prob(D\mid T)
+\approx \Prob(D\mid T,\hat{\theta}_T),
+\label{eq:profile-likelihood}
+\end{equation}
+其中
+\begin{equation}
+\hat{\theta}_T
+=\argmax_{\theta_T}\Prob(D\mid T,\theta_T)
+=\argmin_{\theta_T}E(T,\theta_T).
+\label{eq:theta-profile}
+\end{equation}
+也就是说，对每棵候选树先拟合最能解释数据的参数，再用该最优残差评价拓扑。这个近似计算方便，但会低估参数不确定性；如果不同拓扑具有不同数量或灵活度的参数，还可能偏向更容易过拟合的模型。
+
+\chapter{AC 潮流残差如何形成似然}
+
+\section{高斯测量噪声下的残差似然}
+
+假设末端电压量测满足
+\begin{equation}
+V_t^m
+=h_T(P_t^m,Q_t^m,V_{0,t}^m;\theta_T)+\varepsilon_t,
+\label{eq:voltage-observation}
+\end{equation}
+且
+\begin{equation}
+\varepsilon_t\sim\mathcal{N}(0,\Sigma_V).
+\label{eq:voltage-noise}
+\end{equation}
+若不考虑与 $P,Q,V_0$ 相关的噪声，数据在给定 $T,\theta_T$ 下的似然满足
+\begin{equation}
+\Prob(D\mid T,\theta_T)
+\propto
+\exp\left[
+-\frac{1}{2}
+\sum_{t=1}^{N}
+\norm[\Sigma_V^{-1}]{
+V_t^m-h_T(P_t^m,Q_t^m,V_{0,t}^m;\theta_T)
+}^2
+\right].
+\label{eq:ac-likelihood}
+\end{equation}
+这里
+\begin{equation}
+\norm[\Sigma_V^{-1}]{x}^2=x^\top\Sigma_V^{-1}x
+\end{equation}
+是加权二范数。若某个电压量测噪声大，则对应方差较大、权重较小；若某个节点电压量测可靠，则残差会被更重地惩罚。
+
+定义 AC 加权残差
+\begin{equation}
+E(T,\theta_T)
+=
+\sum_{t=1}^{N}
+\norm[\Sigma_V^{-1}]{
+V_t^m-h_T(P_t^m,Q_t^m,V_{0,t}^m;\theta_T)
+}^2.
+\label{eq:weighted-ac-residual}
+\end{equation}
+于是
+\begin{equation}
+\Prob(D\mid T,\theta_T)
+\propto \exp\left[-\frac{1}{2}E(T,\theta_T)\right].
+\label{eq:likelihood-residual}
+\end{equation}
+这就是“残差越小，似然越大”的数学形式。
+
+\section{温度参数与模型错设补偿}
+
+在真实配电网中，AC 模型可能不完美，线路参数可能未知，负荷注入可能有误差，距离矩阵也不准。此时可以引入温度或误差膨胀参数 $\tau>0$：
+\begin{equation}
+\Prob(D\mid T)
+\propto
+\exp\left[-\frac{E(T)}{2\tau}\right].
+\label{eq:temperature-likelihood}
+\end{equation}
+$\tau$ 小时，后验更尖锐，几乎只支持残差最小的拓扑；$\tau$ 大时，后验更平滑，多个残差相近的候选拓扑都能保留概率质量。
+
+\begin{definition}[模型型置信度]
+由式 \eqref{eq:temperature-likelihood} 或其局部近似导出的分数，可称为 model-based confidence。它依赖残差函数、温度参数、候选集和先验设置。它可以近似后验含义，但只有在目标分布、噪声模型和候选空间都被正确指定时，才可严格解释为贝叶斯后验概率。
+\end{definition}
+
+\section{输入变量也有误差时的 EIV 形式}
+
+若 $P,Q,V_0$ 也存在测量误差，可采用 errors-in-variables 形式。令 $\delta P_t,\delta Q_t,\delta V_{0,t}$ 表示对输入量测的修正，则
+\begin{align}
+J(T,\theta_T)
+=\min_{\{\delta P_t,\delta Q_t,\delta V_{0,t}\}}
+\sum_{t=1}^{N}
+&\norm[\Sigma_P^{-1}]{\delta P_t}^2
++\norm[\Sigma_Q^{-1}]{\delta Q_t}^2
++\norm[\Sigma_0^{-1}]{\delta V_{0,t}}^2 \notag\\
+&+\norm[\Sigma_V^{-1}]{
+V_t^m-h_T(P_t^m+\delta P_t,Q_t^m+\delta Q_t,
+V_{0,t}^m+\delta V_{0,t};\theta_T)
+}^2 .
+\label{eq:eiv-objective}
+\end{align}
+式 \eqref{eq:eiv-objective} 的意义是：允许输入量测在其噪声协方差许可的范围内轻微调整，同时要求调整后的 AC 预测电压解释观测电压。这样可以避免把 $P,Q,V_0$ 的误差全部错误归因于拓扑错误。
+
+\chapter{拓扑先验的常见形式}
+
+\section{先验的角色}
+
+拓扑先验 $\Prob(T)$ 表示在看数据之前对候选拓扑的偏好。在配电网中，它通常不是主观臆断，而是工程知识的概率化表达。先验的强弱需要谨慎设定：如果距离矩阵可靠，可以给较大权重；如果距离矩阵来自不稳定估计，则应作为弱先验，而不是硬约束。
+
+\section{均匀树先验}
+
+最简单的选择是
+\begin{equation}
+\Prob(T)=\frac{1}{|\Tcal(G)|},\qquad T\in\Tcal(G).
+\label{eq:uniform-tree-prior}
+\end{equation}
+它适合完全没有先验信息，或研究者希望让数据主导判断的情况。缺点是候选图较大时，不合理的长距离边、相位不一致边和工程上不可能的边也会获得同等初始概率。
+
+\section{距离矩阵先验}
+
+如果有估计距离 $d_e$，可以定义
+\begin{equation}
+\Prob(T)
+\propto
+\exp\left(-\eta\sum_{e\in T}d_e\right).
+\label{eq:distance-prior}
+\end{equation}
+当 $\eta=0$ 时，距离不起作用；当 $\eta$ 增大时，先验强烈偏向短距离边。若距离矩阵不准，$\eta$ 应保持较小，使距离只提供软偏好。
+
+这种形式的优点是可解释、可调节，并且可以与生成树算法兼容。它的局限是：短距离不一定代表直接电气连接，尤其在负荷相关性强、hidden nodes 多、或路径共享效应明显时，距离估计可能出现系统偏差。
+
+\section{阻抗、地理和工程规则先验}
+
+更一般地，可把多个工程规则写成
+\begin{equation}
+\Prob(T)\propto
+\exp\left[
+-\eta_1\sum_{e\in T}d_e
+-\eta_2\sum_{e\in T}r_e^{\mathrm{imp}}
+-\eta_3\sum_{e\in T}r_e^{\mathrm{phase}}
+\right].
+\label{eq:engineering-prior}
+\end{equation}
+其中 $r_e^{\mathrm{imp}}$ 可以惩罚阻抗范围不合理的边，$r_e^{\mathrm{phase}}$ 可以惩罚相位不一致的边。还可以加入地理距离、道路通道、变压器区域、开关状态记录等。关键原则是：若信息不可靠，就降低对应 $\eta$；若信息近似确定，则可以先在候选图构造阶段删除不可能边。
+
+\chapter{边后验概率}
+
+\section{定义}
+
+给定边事件 $e\in T$，边后验概率定义为
+\begin{equation}
+\Prob(e\in T\mid D)
+=
+\sum_{T\in\Tcal(G):\,e\in T}\Prob(T\mid D).
+\label{eq:edge-posterior}
+\end{equation}
+它是对所有包含边 $e$ 的候选树后验概率求和，因此是结构变量的边缘概率。
+
+如果 $\Prob(e\in T\mid D)\approx 1$，说明该边在几乎所有高后验拓扑中都出现，可信度高。如果该概率约为 $0.5$，说明存在强替代结构，数据无法唯一决定局部连接。如果接近 $0$，说明数据和先验几乎都不支持该边。
+
+\section{边后验与边权的区别}
+
+边权 $s_e$ 或 $w_e$ 是输入到某个模型中的局部分数；边后验概率是对整个树空间归一化和边缘化后的结果。即使某条边的单独分数很高，也可能因为与其他高分边形成环、破坏树约束或导致 AC 残差变差而后验不高。反过来，某条边单独分数不最高，但在所有可行高质量树中稳定出现，也可能具有高边后验。
+
+\begin{proposition}[边缘化带来的全局约束]
+在树结构模型中，边后验概率不仅由单条边的分数决定，还由候选图中所有其他边的竞争关系和生成树约束共同决定。
+\end{proposition}
+
+\begin{proof}
+由式 \eqref{eq:edge-posterior} 可见，$\Prob(e\in T\mid D)$ 对所有包含 $e$ 的树求和；这些树是否高概率取决于整棵树的分数、先验、似然和归一化常数。因此单边分数不能单独决定边后验。
+\end{proof}
+
+\chapter{Matrix-Tree Theorem 与可分解树后验}
+
+\section{边可加分数}
+
+若树的分数可以按边分解：
+\begin{equation}
+S(T)=\sum_{e\in T}s_e,
+\label{eq:additive-tree-score}
+\end{equation}
+则可定义概率分布
+\begin{equation}
+\Prob(T)=\frac{\exp(S(T))}{Z}
+=
+\frac{\prod_{e\in T}\exp(s_e)}{Z}.
+\label{eq:edge-factor-tree}
+\end{equation}
+令
+\begin{equation}
+w_e=\exp(s_e)>0,
+\end{equation}
+则
+\begin{equation}
+\Prob(T)
+=
+\frac{\prod_{e\in T}w_e}
+{\sum_{T'\in\Tcal(G)}\prod_{e\in T'}w_e}.
+\label{eq:weighted-tree-distribution}
+\end{equation}
+
+\section{矩阵树定理}
+
+\begin{theorem}[Matrix-Tree Theorem]
+给定无向连通加权图 $G=(\mathcal{V},\mathcal{E})$，边权为 $w_{ij}>0$。构造加权拉普拉斯矩阵 $L$：
+\begin{equation}
+L_{ij}=
+\begin{cases}
+\sum_{k\ne i}w_{ik}, & i=j,\\
+-w_{ij}, & i\ne j\text{ 且 }(i,j)\in\mathcal{E},\\
+0, & i\ne j\text{ 且 }(i,j)\notin\mathcal{E}.
+\end{cases}
+\label{eq:weighted-laplacian}
+\end{equation}
+删除任意第 $r$ 行和第 $r$ 列得到 $L^{(r)}$，则
+\begin{equation}
+Z=\sum_{T\in\Tcal(G)}\prod_{e\in T}w_e=\det L^{(r)}.
+\label{eq:matrix-tree}
+\end{equation}
+\end{theorem}
+
+矩阵树定理的意义在于：不用枚举指数数量的生成树，只需求一个 $(n-1)\times(n-1)$ 行列式，就能得到所有生成树权重乘积之和。这使得边可分解的概率树模型可以高效计算归一化常数。
+
+\section{边边缘概率}
+
+在边可分解模型中，边边缘概率可由
+\begin{equation}
+\Prob(e\in T)
+=
+w_e\frac{\partial \log Z}{\partial w_e}
+\label{eq:edge-marginal-derivative}
+\end{equation}
+给出。直观上，对某条边权 $w_e$ 求导，会把所有包含该边的生成树项“挑出来”；再乘回 $w_e$ 并除以 $Z$，正好得到包含该边的树的总概率。
+
+\section{局限性}
+
+矩阵树定理要求树分数可写成边分数之和。但 AC 潮流残差
+\begin{equation}
+\Eac(T)=\min_{\theta_T}E(T,\theta_T)
+\end{equation}
+通常是整棵树的全局函数。改变一条边会改变潮流路径、节点电压耦合、参数拟合和隐藏节点等效关系，不能严格写成 $\sum_{e\in T}r_e$。因此 Matrix-Tree 可用于距离、互信息、局部残差等近似边分数模型，却不能直接精确处理全局 AC 残差后验。
+
+\chapter{Chow-Liu Tree 与 Soft Chow-Liu}
+
+\section{树结构概率分布}
+
+Chow-Liu tree 研究如何用树结构分布近似一个高维概率分布。给定随机变量 $X=(X_1,\ldots,X_n)$ 和树 $T$，若选定根节点 $r$，树结构分布可写成
+\begin{equation}
+Q_T(x)=Q(x_r)\prod_{i\ne r}Q(x_i\mid x_{\pa(i)}).
+\label{eq:tree-factor-rooted}
+\end{equation}
+它也可写成无向边乘积形式：
+\begin{equation}
+Q_T(x)
+=
+\prod_i P(x_i)
+\prod_{(i,j)\in T}
+\frac{P(x_i,x_j)}{P(x_i)P(x_j)}.
+\label{eq:tree-factor-pairwise}
+\end{equation}
+式 \eqref{eq:tree-factor-pairwise} 表明，树近似只保留单变量边缘分布和树边上的二元依赖。
+
+\section{Chow-Liu 的目标}
+
+Chow-Liu 的目标是找一棵树，使树分布 $Q_T$ 尽可能接近真实分布 $P$：
+\begin{equation}
+T^\star=\argmin_T \KL(P\|Q_T).
+\label{eq:chow-liu-kl}
+\end{equation}
+经典推导表明，这等价于
+\begin{equation}
+T^\star=\argmax_T \sum_{(i,j)\in T} I(X_i;X_j),
+\label{eq:chow-liu-mst}
+\end{equation}
+其中互信息为
+\begin{equation}
+I(X_i;X_j)
+=
+\sum_{x_i,x_j}P(x_i,x_j)
+\log\frac{P(x_i,x_j)}{P(x_i)P(x_j)}.
+\label{eq:mutual-information}
+\end{equation}
+因此 Chow-Liu 本质上是
+\begin{equation}
+\text{互信息估计}+\text{最大权生成树}.
+\end{equation}
+
+\section{Soft Chow-Liu}
+
+如果不只输出一棵最大权树，而是希望给所有树分配概率，可定义 soft Chow-Liu：
+\begin{equation}
+\Prob(T\mid D)
+=
+\frac{
+\exp\left(\beta\sum_{(i,j)\in T}\hat I_{ij}\right)
+}{
+\sum_{T'\in\Tcal(G)}
+\exp\left(\beta\sum_{(i,j)\in T'}\hat I_{ij}\right)
+}.
+\label{eq:soft-chow-liu}
+\end{equation}
+令
+\begin{equation}
+w_{ij}=\exp(\beta \hat I_{ij}),
+\end{equation}
+即可用矩阵树定理计算归一化常数和边边缘概率。$\beta$ 控制分布尖锐程度：$\beta$ 越大，概率越集中在最大互信息树附近；$\beta$ 越小，树分布越平滑。
+
+\section{在配电网中的解释边界}
+
+Chow-Liu 学到的是统计依赖树，不一定是真实电气拓扑。配电网中两个节点的电压高度相关，可能是因为它们共享长公共路径，也可能是因为上游电压扰动、天气驱动负荷相关或用户行为相关，而不一定代表直接连线。因此 Chow-Liu 更适合作为边分数的一部分，例如提供候选边排序或先验权重，而不宜单独作为完整拓扑辨识结论。
+
+\chapter{AC 残差不可分解时的近似边概率估计}
+
+\section{为什么不能直接用 Matrix-Tree}
+
+如果目标分布为
+\begin{equation}
+\Prob(T\mid D)
+\propto
+\exp\left[-\frac{\Eac(T)}{2\tau}\right]\Prob(T),
+\label{eq:global-ac-posterior}
+\end{equation}
+而 $\Eac(T)$ 不能按边分解，则无法把式 \eqref{eq:global-ac-posterior} 化为 $\prod_{e\in T}w_e$。这时矩阵树定理不能给出精确边后验。下面介绍几类可实现近似。
+
+\section{局部替代树 softmax}
+
+给定初始树 $T^\star$。对树边 $e\in T^\star$，删除它会得到两个连通分量 $A_e$ 和 $B_e$。所有跨越这两个分量的候选替代边为
+\begin{equation}
+\Acal_e
+=
+\left\{f=(u,v)\in\mathcal{E}_c:\ u\in A_e,\ v\in B_e\right\}.
+\label{eq:replacement-set}
+\end{equation}
+替代树定义为
+\begin{equation}
+T_{e\to f}=T^\star-e+f.
+\label{eq:replacement-tree}
+\end{equation}
+计算
+\begin{equation}
+E^\star=\Eac(T^\star),
+\qquad
+E_{e\to f}=\Eac(T_{e\to f}).
+\end{equation}
+局部边概率可定义为
+\begin{equation}
+p_e^{\mathrm{local}}
+=
+\frac{
+\exp[-E^\star/(2\tau)]\Prob(T^\star)
+}{
+\exp[-E^\star/(2\tau)]\Prob(T^\star)
++
+\sum_{f\in\Acal_e}
+\exp[-E_{e\to f}/(2\tau)]\Prob(T_{e\to f})
+}.
+\label{eq:local-softmax}
+\end{equation}
+等价地，
+\begin{equation}
+p_e^{\mathrm{local}}
+=
+\frac{1}{
+1+\sum_{f\in\Acal_e}
+\exp[-(E_{e\to f}-E^\star)/(2\tau)]
+\frac{\Prob(T_{e\to f})}{\Prob(T^\star)}
+}.
+\label{eq:local-softmax-ratio}
+\end{equation}
+若所有替代树的 AC 残差都明显更大，且先验也不强烈偏向替代树，则 $p_e^{\mathrm{local}}$ 接近 $1$。它是局部、模型型置信度，不等于全局贝叶斯边后验，因为它只比较 $T^\star$ 的一跳替代树。
+
+\section{候选树集合归一化}
+
+另一种方法是构造候选树集合
+\begin{equation}
+\Ccal=
+\{T^\star\}
+\cup
+\{T^\star-e+f\}
+\cup
+\{\text{two-swap trees}\}
+\cup
+\{\text{bootstrap trees}\}.
+\label{eq:candidate-tree-set}
+\end{equation}
+在有限集合 $\Ccal$ 上定义归一化分布：
+\begin{equation}
+\widetilde{\Prob}(T\mid D)
+=
+\frac{
+\exp[-\Eac(T)/(2\tau)]\Prob(T)
+}{
+\sum_{T'\in\Ccal}
+\exp[-\Eac(T')/(2\tau)]\Prob(T')
+},
+\qquad T\in\Ccal .
+\label{eq:candidate-normalized}
+\end{equation}
+边概率近似为
+\begin{equation}
+\tilde p_e
+=
+\sum_{T\in\Ccal:\,e\in T}\widetilde{\Prob}(T\mid D).
+\label{eq:candidate-edge-prob}
+\end{equation}
+这种方法比局部替代 softmax 更全局，但结果依赖候选集覆盖度。如果真实高后验树没有进入 $\Ccal$，近似会偏乐观或偏保守。
+
+\section{MCMC over Trees}
+
+更接近全局后验的方法是在树空间上做 MCMC。目标分布仍为
+\begin{equation}
+\pi(T)=\Prob(T\mid D)
+\propto
+\exp[-\Eac(T)/(2\tau)]\Prob(T).
+\label{eq:mcmc-target}
+\end{equation}
+常用 proposal 是加边删边：从当前树 $T$ 出发，随机加入一条非树边 $f$，形成唯一环；再从该环中删除一条边 $g$，得到新树 $T'=T+f-g$。
+
+Metropolis-Hastings 接受率为
+\begin{equation}
+a(T\to T')
+=
+\min\left\{
+1,
+\frac{
+\exp[-\Eac(T')/(2\tau)]\Prob(T')q(T\mid T')
+}{
+\exp[-\Eac(T)/(2\tau)]\Prob(T)q(T'\mid T)
+}
+\right\}.
+\label{eq:mh-acceptance}
+\end{equation}
+采样后，边概率估计为
+\begin{equation}
+\hat p_e^{\mathrm{MCMC}}
+=
+\frac{1}{M}
+\sum_{m=1}^{M}
+\ind{e\in T^{(m)}}.
+\label{eq:mcmc-edge-prob}
+\end{equation}
+MCMC 的优点是原则上可以探索很大的树空间，且适用于全局 AC 残差。缺点是每一步都可能需要拟合参数和计算 AC 残差，代价高；此外还要诊断混合性、burn-in、有效样本量和 proposal 是否覆盖主要后验质量区域。
+
+\chapter{Bootstrap 稳定性不是贝叶斯后验，但很有用}
+
+\section{Block bootstrap 的思想}
+
+Bootstrap 不是先验乘似然的贝叶斯推断，而是数据扰动下算法输出稳定性的经验评估。对时序数据，不能简单独立打乱每个时刻，因为相邻时刻的负荷、电压和天气因素具有相关性。更合理的是 block bootstrap：按时间块重采样，得到
+\begin{equation}
+D^{(1)},D^{(2)},\ldots,D^{(B)}.
+\label{eq:block-bootstrap-data}
+\end{equation}
+每个重采样数据集都运行完整拓扑辨识流程：
+\begin{equation}
+D^{(b)}\to T^{(b)},\qquad b=1,\ldots,B.
+\label{eq:bootstrap-pipeline}
+\end{equation}
+边稳定性定义为
+\begin{equation}
+p_e^{\mathrm{boot}}
+=
+\frac{1}{B}
+\sum_{b=1}^{B}
+\ind{e\in T^{(b)}}.
+\label{eq:bootstrap-edge-stability}
+\end{equation}
+
+\section{解释边界}
+
+$p_e^{\mathrm{boot}}$ 表示在数据扰动下算法是否稳定输出边 $e$。它不是严格的 $\Prob(e\in T\mid D)$，因为没有显式定义先验、似然和后验归一化常数。它也依赖所选算法：若算法本身有偏，bootstrap 会稳定地复现这种偏差。
+
+但在工程上，bootstrap 非常有用。若距离矩阵估计不准，或不同时间窗口产生的边分数波动大，bootstrap 能揭示哪些边只是某个采样窗口的偶然结果。实践中可以把 $p_e^{\mathrm{boot}}$ 与 $p_e^{\mathrm{local}}$ 一起报告：前者描述数据扰动稳定性，后者描述 AC 替代结构竞争下的模型型置信度。
+
+\chapter{Score Gap 与 Replacement Edge 敏感性}
+
+\section{最大生成树中的边敏感度}
+
+给定边分数 $s_e$，最大生成树为
+\begin{equation}
+T^\star=\argmax_{T\in\Tcal(G)}\sum_{e\in T}s_e.
+\label{eq:maximum-spanning-tree}
+\end{equation}
+对树边 $e\in T^\star$，删除后形成两个分量 $A_e,B_e$。最佳替代边为
+\begin{equation}
+f_e^\star
+=
+\argmax_{f\in\delta(A_e,B_e)}s_f,
+\label{eq:best-replacement-edge}
+\end{equation}
+其中 $\delta(A_e,B_e)$ 表示跨越两个分量的候选边集合。score gap 定义为
+\begin{equation}
+\Delta_e=s_e-s_{f_e^\star}.
+\label{eq:score-gap}
+\end{equation}
+若 $\Delta_e$ 大，说明该边不容易被分数接近的边替代；若 $\Delta_e$ 小，说明局部结构存在近似等价选择。
+
+\section{AC 残差 gap}
+
+在 AC 残差框架中，可以定义
+\begin{equation}
+\Delta E_{e\to f}
+=
+E(T_{e\to f})-E(T^\star).
+\label{eq:ac-gap}
+\end{equation}
+若所有 $\Delta E_{e\to f}$ 都为正且较大，则保留 $e$ 更合理；若存在某条替代边 $f$ 使 $\Delta E_{e\to f}\approx 0$ 或更小，则该局部结构不稳定。式 \eqref{eq:local-softmax-ratio} 正是把这些残差差值转化为局部概率的一种方式。
+
+\chapter{仿真校准：把置信指标转成经验正确率}
+
+\section{从指标到经验正确率}
+
+在仿真数据中，真实拓扑 $T_0$ 已知。可以对每条候选边构造置信特征：
+\begin{equation}
+z_e=
+\left[
+p_e^{\mathrm{local}},
+p_e^{\mathrm{boot}},
+\Delta E_e,
+\Delta s_e,
+d_e,
+r_e^{\mathrm{flow}},
+\ldots
+\right].
+\label{eq:calibration-features}
+\end{equation}
+标签为
+\begin{equation}
+y_e=\ind{e\in T_0}.
+\label{eq:calibration-label}
+\end{equation}
+用 logistic regression 或 isotonic regression 学习
+\begin{equation}
+\hat c_e=\Prob(y_e=1\mid z_e).
+\label{eq:simulation-calibrated-correctness}
+\end{equation}
+$\hat c_e$ 表示：在当前仿真设定、扰动分布和算法流程下，具有这些置信特征的边真正正确的经验概率。
+
+\section{与贝叶斯后验的区别}
+
+simulation-calibrated correctness probability 不是同一数据集上的贝叶斯后验，而是跨仿真场景学习出的经验映射。它依赖仿真场景是否覆盖真实系统：若仿真中的负荷相关性、噪声水平、线路参数分布和 hidden-node 模式与真实系统不符，校准概率就会外推失真。
+
+尽管如此，它具有重要工程价值。研究论文中可以同时报告三类量：贝叶斯或近似贝叶斯边概率、bootstrap 稳定性、仿真校准正确率。三者若一致给出高置信，就比单一指标更有说服力；若彼此冲突，则提示模型错设、数据扰动敏感或仿真分布不匹配。
+
+\chapter{综合算法框架}
+
+\begin{algorithm}[H]
+\caption{AC Residual-Calibrated Bayesian Edge Confidence for Radial Distribution Topology Identification}
+\label{alg:ac-residual-calibrated}
+\begin{algorithmic}[1]
+\REQUIRE 观测数据 $D=\{P_t^m,Q_t^m,V_t^m,V_{0,t}^m\}_{t=1}^{N}$；候选图 $G=(\mathcal{V},\mathcal{E}_c)$；距离估计 $d_e$；边分数超参数 $\alpha,\beta,\gamma$；温度 $\tau$。
+\ENSURE 初始树 $T^\star$；每条树边的 AC-local confidence；每条边的 bootstrap stability；低置信边集合；候选替代拓扑集合。
+\STATE 对每条候选边构造初始边分数
+\[
+s_e=-\alpha d_e-\beta r_e^{\mathrm{local}}+\gamma I_e .
+\]
+\STATE 用最大生成树算法求
+\[
+T^\star=\argmax_{T\in\Tcal(G)}\sum_{e\in T}s_e .
+\]
+\STATE 在 $T^\star$ 上拟合 AC 参数 $\hat\theta_{T^\star}$，计算 $E(T^\star)$。
+\FOR{每条树边 $e\in T^\star$}
+  \STATE 删除 $e$ 得到分量 $A_e,B_e$，构造 replacement candidates $\Acal_e$。
+  \FOR{每条替代边 $f\in\Acal_e$}
+    \STATE 构造 $T_{e\to f}=T^\star-e+f$。
+    \STATE 拟合或快速更新 AC 参数，计算 $E(T_{e\to f})$。
+  \ENDFOR
+  \STATE 用式 \eqref{eq:local-softmax} 或 \eqref{eq:local-softmax-ratio} 计算 $p_e^{\mathrm{local}}$。
+\ENDFOR
+\STATE 做 block bootstrap，得到 $D^{(1)},\ldots,D^{(B)}$。
+\FOR{每个 bootstrap 数据集 $D^{(b)}$}
+  \STATE 重复初始打分、生成树和可选 AC 校正，得到 $T^{(b)}$。
+\ENDFOR
+\STATE 用式 \eqref{eq:bootstrap-edge-stability} 计算 $p_e^{\mathrm{boot}}$。
+\STATE 标记低置信边，例如 $p_e^{\mathrm{local}}<\rho_1$ 或 $p_e^{\mathrm{boot}}<\rho_2$。
+\STATE 可选：对低置信子图运行候选树归一化或 MCMC，得到更细的局部后验近似。
+\RETURN $T^\star$，$\{p_e^{\mathrm{local}}\}$，$\{p_e^{\mathrm{boot}}\}$，低置信边集合，候选替代拓扑集合。
+\end{algorithmic}
+\end{algorithm}
+
+\section{算法解释}
+
+该算法的第一阶段用距离、局部残差和互信息构造可分解边分数，从而快速得到初始树。第二阶段不再把初始树当作最终答案，而是用 AC 残差比较局部替代树，给每条树边分配 model-based confidence。第三阶段通过 block bootstrap 评估数据扰动稳定性。若有仿真真值，还可在第四阶段做校准，把多个指标映射为经验正确率。
+
+这个流程体现了本文的基本态度：距离矩阵、Chow-Liu 和生成树算法适合产生候选结构；AC 残差适合检验候选结构的物理一致性；MCMC、候选树归一化和 bootstrap 则用于表达不确定性，而不是强行把一个点估计伪装成确定拓扑。
+
+\chapter{常见误区与解释边界}
+
+\section{后验概率不是客观真理}
+
+贝叶斯后验依赖先验、似然和模型假设。如果电压噪声被错误建模为独立同方差，或线路参数先验过窄，后验概率也会被系统性扭曲。因此论文中应说明后验来自什么模型，而不是把它写成无条件真实概率。
+
+\section{距离权重不是边概率}
+
+距离矩阵不准时，不能把 $\exp(-\eta d_e)$ 或最大生成树中的边分数直接解释为边概率。它们只是先验或局部分数。真正的边概率需要考虑树约束、归一化和其他候选边竞争。
+
+\section{Matrix-Tree 的适用范围}
+
+Matrix-Tree 适合边分数可分解的情形。若目标包含全局 AC 潮流残差，就不能直接用它精确求边后验。可行做法是用 Matrix-Tree 处理近似边分数模型，再用 AC 残差做局部校正、候选树重加权或 MCMC。
+
+\section{Chow-Liu 不是物理拓扑辨识的全部}
+
+Chow-Liu 学到的是统计依赖树。统计依赖强可能来自直接电气连接，也可能来自公共路径和共同扰动。在配电网中，它更适合作为候选边生成器或边分数来源，而不是最终物理拓扑证明。
+
+\section{Bootstrap 稳定性不是贝叶斯后验}
+
+Bootstrap stability 衡量算法对数据扰动是否敏感。若某条边 $p_e^{\mathrm{boot}}$ 高，只说明在重采样窗口中算法经常输出它；若算法本身偏向错误边，它也可能稳定输出错误边。因此 bootstrap 应与 AC 残差、先验合理性和仿真校准一起解释。
+
+\section{Reduced topology 与真实物理线路}
+
+如果只有末端节点可观测而存在 hidden zero-injection nodes，则观测节点上的边概率可能只是 reduced/effective topology 的边概率。举例来说，两个末端节点在 reduced tree 中相邻，可能代表它们通过一个未观测中间节点连接，而不是二者之间有直接导线。
+
+\section{低置信边不等于算法错误}
+
+低置信边可能意味着算法失败，也可能意味着该局部结构在当前量测条件下不可辨识。例如两个替代拓扑的 AC 残差几乎相同，且都符合工程先验，则诚实的输出应当是“不确定”，而不是强行选择一个唯一答案。
+
+\chapter{符号表}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.26\textwidth}>{\raggedright\arraybackslash}p{0.64\textwidth}}
+\toprule
+符号 & 含义 \\
+\midrule
+\endfirsthead
+\toprule
+符号 & 含义 \\
+\midrule
+\endhead
+$D$ & 观测数据集合 $\{P_t^m,Q_t^m,V_t^m,V_{0,t}^m\}_{t=1}^{N}$。\\
+$T$ & 一棵候选拓扑树。\\
+$\Tcal(G)$ & 候选图 $G$ 上所有生成树的集合。\\
+$e$ & 候选边或树边。\\
+$\Prob(T)$ & 拓扑树先验概率。\\
+$\Prob(T\mid D)$ & 给定数据后的拓扑树后验概率。\\
+$\Prob(e\in T\mid D)$ & 边 $e$ 的后验出现概率，对所有包含 $e$ 的树后验求和得到。\\
+$\Eac(T)$ & 在拓扑 $T$ 下拟合参数后得到的 AC 潮流残差。\\
+$\theta_T$ & 拓扑 $T$ 下的线路参数或其他待估计物理参数。\\
+$h_T(\cdot)$ & 拓扑 $T$ 下的 AC 潮流预测映射。\\
+$\tau$ & 温度或模型误差膨胀参数，控制残差似然的尖锐程度。\\
+$d_e$ & 边 $e$ 的距离估计或距离型先验特征。\\
+$s_e$ & 边 $e$ 的可加分数。\\
+$w_e$ & 边权，通常 $w_e=\exp(s_e)$。\\
+$p_e^{\mathrm{local}}$ & 局部替代树 softmax 得到的 model-based confidence。\\
+$p_e^{\mathrm{boot}}$ & bootstrap 重采样下边 $e$ 被输出的稳定性频率。\\
+$T_{e\to f}$ & 用替代边 $f$ 替换树边 $e$ 得到的候选树。\\
+$\Ccal$ & 用于有限归一化或重加权的候选树集合。\\
+\bottomrule
+\end{longtable}
+
+\chapter{总结}
+
+本文的核心逻辑可以概括为
+\begin{equation}
+\text{先验}
++
+\text{AC 潮流似然}
+\Rightarrow
+\text{拓扑后验}
+\Rightarrow
+\text{边后验概率}.
+\label{eq:summary-chain}
+\end{equation}
+先验表达工程知识，似然表达数据与物理模型的一致性，拓扑后验表达整棵树的可信程度，边后验概率则通过结构边缘化表达局部连线的不确定性。
+
+当 AC 残差可按边分解或近似可分解时，Matrix-Tree Theorem 可以高效计算归一化常数和边边缘概率；Chow-Liu 和 soft Chow-Liu 则提供了从统计依赖到概率化树模型的经典路径。但真实配电网拓扑辨识中，AC 残差通常是全局函数，不能直接用 Matrix-Tree 精确处理。因此需要结合
+\begin{equation}
+\text{局部替代树 softmax}
++
+\text{候选树归一化}
++
+\text{MCMC}
++
+\text{Bootstrap}
++
+\text{仿真校准}
+\label{eq:summary-methods}
+\end{equation}
+形成可实现的边置信度估计框架。
+
+最后再次强调四类量的区别：Bayesian posterior probability 是在明确先验和似然后对树空间边缘化得到的概率；model-based confidence 是基于残差模型和有限比较集构造的近似置信度；bootstrap stability 是数据扰动下算法输出的稳定性；simulation-calibrated correctness probability 是在仿真真值上校准出的经验正确率。把它们并列报告并说明边界，比只给一棵树更符合配电网拓扑辨识中的不确定性现实。
+
+\begin{thebibliography}{9}
+
+\bibitem{bayes1763}
+T. Bayes.
+\newblock An Essay towards solving a Problem in the Doctrine of Chances.
+\newblock \emph{Philosophical Transactions of the Royal Society}, 1763.
+
+\bibitem{chowliu1968}
+C. Chow and C. Liu.
+\newblock Approximating discrete probability distributions with dependence trees.
+\newblock \emph{IEEE Transactions on Information Theory}, 1968.
+
+\bibitem{matrix-tree}
+R. P. Stanley.
+\newblock \emph{Enumerative Combinatorics, Volume 2}.
+\newblock Cambridge University Press, 1999.
+
+\bibitem{mcmc}
+W. K. Hastings.
+\newblock Monte Carlo sampling methods using Markov chains and their applications.
+\newblock \emph{Biometrika}, 1970.
+
+\bibitem{efron}
+B. Efron and R. Tibshirani.
+\newblock \emph{An Introduction to the Bootstrap}.
+\newblock Chapman and Hall, 1993.
+
+\bibitem{probgraphical}
+D. Koller and N. Friedman.
+\newblock \emph{Probabilistic Graphical Models: Principles and Techniques}.
+\newblock MIT Press, 2009.
+
+\bibitem{powerflow}
+A. J. Wood, B. F. Wollenberg, and G. B. Sheble.
+\newblock \emph{Power Generation, Operation, and Control}.
+\newblock Wiley, 2013.
+
+\end{thebibliography}
+
+\end{document}

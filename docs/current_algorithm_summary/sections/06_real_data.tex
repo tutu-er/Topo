@@ -1,0 +1,130 @@
+\section{公开真实数据调研与首次辨识}
+
+\subsection{数据源筛选}
+
+\begin{longtable}{p{3.1cm}p{3.2cm}p{4.1cm}p{4.2cm}}
+\caption{与末端量测拓扑辨识相关的开放数据源}\label{tab:datasets}\\
+\toprule
+数据源 & 规模 & 可用信息 & 与当前方法的关系\\
+\midrule
+\endfirsthead
+\toprule
+数据源 & 规模 & 可用信息 & 与当前方法的关系\\
+\midrule
+\endhead
+挪威工业 MV/LV，v2.3\cite{sandell2023}
+& 两条径向，45 个客户，超过三年小时数据
+& 匿名化真实拓扑、公共标幺支路参数、客户有功电量
+& 已接入；无现场 $Q/V$，只能做真实负荷驱动的半实证验证\\
+Iowa Distribution Test Systems\cite{iowa}
+& 3 条馈线、240 节点、1120 客户、2017 全年
+& 真实拓扑和元件参数；二次变压器层聚合小时电量
+& 适合下一批中等规模实验；同样缺少逐客户同步 $Q/V$\\
+Non-Synthetic European LV\cite{arboleya2019}
+& 10290 节点、8087 客户、20 天
+& 真实 GIS、智能表读数、OpenDSS 构建与潮流脚本
+& 规模大且三相细节丰富；需先解析数据许可与相别/中性线模型\\
+挪威城乡 LV reference dataset\cite{norwaylv2024}
+& 约 1.2 GB，多组城乡低压网
+& 网架 CSV 与负荷数据
+& 适合扩展北欧低压场景，尚未接入\\
+SMART-DS\cite{smartds}
+& 可达数千馈线、百万客户
+& 完整合成网、负荷、DER、天气与多场景
+& 不是实测数据；适合扩展性和分布外压力测试\\
+SimBench\cite{simbench}
+& LV 至 EHV 的标准网与全年时序
+& 网络、负荷、发电和储能曲线
+& 真实感基准而非现场 PQV；适合可重复跨电压等级测试\\
+\bottomrule
+\end{longtable}
+
+公开数据的核心缺口非常明确：同时公开“低压客户级拓扑真值、同步 $P/Q/V$、根电压、
+足够长时间序列”的数据极少。许多真实 AMI 数据只提供计费用有功电量，而真实电压数据
+常因隐私和资产安全无法与完整拓扑共同发布。
+
+\subsection{挪威数据的适配}
+
+项目采用 Zenodo v2.3 数据\cite{sandell2023}。数据由 Norgesnett 与 CINELDI 项目
+采集后匿名化、简化并公开，许可证为 CC BY 4.0。适配器
+\texttt{terminal\_case33/data/norwegian\_industrial.py} 完成：
+\begin{enumerate}
+  \item 按 47~kV 根节点分离两条闭合径向分量；
+  \item 剪除没有智能表负荷的死端，但不删除任何通向测量客户的路径；
+  \item 将字符串母线名映射为整数，保留反向映射和来源元数据；
+  \item 将发布的公共标幺 $R/X$ 保持不变，并在 $S_{base}=1$~MVA、
+  $V_{base}=11$~kV 等值基准上转换为欧姆，以复用现有交流潮流器；
+  \item 保留零阻抗理想变压器/连接支路，明确标记为公共标幺平衡等值模型。
+\end{enumerate}
+
+两条径向在剪枝后分别为 54 节点/40 个末端表和 17 节点/5 个末端表，真实客户负荷
+本来就位于叶节点，无需像 case33 那样迁移负荷。
+
+\subsection{半实证量测构造}
+
+源文件只提供小时有功电量。每小时的 \texttt{Load\_kWh} 数值按该小时平均 kW 使用。
+为运行 AC 潮流，统一假设功率因数 $0.95$：
+\[
+Q_i(t)=P_i(t)\tan(\arccos 0.95).
+\]
+根电压设为
+\[
+v_0(t)=1.02+0.0015\sin(2\pi t/24).
+\]
+逐时段 AC 潮流生成末端真值电压，再加入 $P$ 相对噪声 $0.5\%$ 和相对本地电压幅值
+$0.02\%$ 的电压噪声。由于 $Q$ 不是实测，辨识器采用 active-only 模式：
+回归中 $Q$ 列置零，$\Rhat$ 实际吸收了固定功率因数下的有效
+$R+\tan(\phi)X$ 距离。该距离仍为加性距离，但不能解释为独立恢复的物理 $R$。
+
+\subsection{零阻抗 clade 与可辨识真值}
+
+发布模型含大量零阻抗理想连接。若内部边 $e=(u,v)$ 满足 $r_e+x_e=0$，
+收缩前后所有末端距离完全相同。因此实验同时定义：
+\begin{itemize}
+  \item \textbf{physical clade}：发布树中所有内部节点的下游末端集合；
+  \item \textbf{impedance-identifiable clade}：只有父边阻抗严格为正的非平凡下游集合。
+\end{itemize}
+径向 1 有 6 个 physical clades，但仅 3 个阻抗可辨识 clades；径向 2 分别为 2 和 1。
+即使距离完全准确，若直接和未收缩 physical clades 比较，F1 上限也只有 $2/3$。
+
+\subsection{首次结果}
+
+\begin{table}[htbp]
+\centering
+\caption{真实拓扑与真实有功负荷驱动的 active-only RNJ 结果}
+\begin{tabular}{cccccccc}
+\toprule
+径向 & 末端数 & 天数 & 样本数 & 可辨识 clade & 基线 F1 & 聚合 F1 & 完全恢复\\
+\midrule
+1 & 40 & 7  & 168  & 3 & 0.000 & 0.000 & 否\\
+1 & 40 & 30 & 720  & 3 & 0.000 & 0.000 & 否\\
+1 & 40 & 90 & 2160 & 3 & 0.000 & 0.000 & 否\\
+2 & 5  & 7  & 168  & 1 & 1.000 & 1.000 & 是\\
+2 & 5  & 30 & 720  & 1 & 1.000 & 1.000 & 是\\
+2 & 5  & 90 & 2160 & 1 & 1.000 & 1.000 & 是\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+径向 2 的唯一正阻抗 split 在所有窗口均完全恢复。径向 1 则完全失败，并且未选出
+满足 $0.9$ 稳定阈值的 pseudo cluster。该失败不是“样本越多反而必然更差”，而是
+以下因素共同作用：
+\begin{enumerate}
+  \item 40 个客户只对应 3 个正阻抗可辨识内部 split，网络含大规模零阻抗多叉层；
+  \item 多个同一 11~kV 接入点的客户在模型中电压真值相同，独立电压噪声却直接进入
+  40 维回归，逐客户 service sensitivity 实际为零；
+  \item 工业负荷幅值跨越多个数量级且具有共同生产周期，active-only 设计矩阵弱激励；
+  \item 严格 clade F1 只接受整个下游集合完全相等，接近的 34 节点大 clade
+  只要多一个或少一个末端就记为一个 $FP$ 加一个 $FN$。
+\end{enumerate}
+
+因此该实验给出的结论不是“算法已经通过真实系统验证”，而是：
+小规模正阻抗 split 能恢复；大规模、零 service 阻抗、仅有功且相关的工业 AMI
+数据明显超出当前逐客户灵敏度 RNJ 的稳定范围。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{../../outputs/norwegian_real_load_identification/radial_2_topology_comparison.png}
+\caption{挪威径向 2：发布物理树与 90 天 active-only RNJ 距离树。算法树已收缩
+零长度隐藏边，因此节点数不应与发布设备层逐一比较。}
+\end{figure}

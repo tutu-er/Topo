@@ -1,0 +1,130 @@
+\chapter{叶节点距离下的隐藏树重构}
+\label{chap:hidden_tree}
+
+\section*{本章目标}
+本章讨论仅末端量测时如何从叶节点距离恢复隐藏分支结构。我们介绍 terminal nodes、Steiner/hidden nodes、additive phylogeny、neighbor joining 与 recursive grouping 的基本思想，并给出一个小规模数值例子。与\cref{chap:mst_recovery}不同，本章的输出允许包含未观测内部节点。
+
+\section{Terminal nodes 与 hidden nodes}
+
+设可观测节点集合为 $L$，称为 terminal nodes；未量测但可能影响叶间距离结构的内部节点集合为 $H$，称为 hidden nodes 或 Steiner nodes。隐藏树重构的目标是寻找
+\begin{equation}
+  \widetilde T=(L\cup \widetilde H,\widetilde E),\qquad \widetilde w_e>0,
+\end{equation}
+使得对任意 $i,j\in L$，
+\begin{equation}
+  d_{\widetilde T}(i,j)\approx \widehat d_{ij}.
+\end{equation}
+
+\begin{definition}[等效拓扑]
+给定只在 terminal 集合 $L$ 上观测的距离，若两棵加权树在 $L$ 上诱导完全相同的两两距离，则称它们对 $L$ 等效。通常把所有度为 $2$ 的隐藏节点压缩后得到的树称为最简等效拓扑。
+\end{definition}
+
+在配电网中，等效拓扑是一个重要而务实的概念。若某个未量测接线点没有分支，它的位置不可由末端量测唯一确定；但总线路阻抗仍可辨识。对拓扑辨识而言，恢复可观测负荷之间的分支层级通常比恢复每个物理接头更可行。
+
+\section{Additive phylogeny 思想}
+
+Additive phylogeny 来自系统发育树重构。其基本想法是：若叶间距离是精确加性树度量，则可以递归地移除一个叶节点，先重构较小树，再把该叶节点接回适当位置。
+
+对叶节点 $j$，其 limb length 可由
+\begin{equation}
+  \ell_j=\min_{i,k\in L\setminus\{j\}}
+  \frac{d_{ij}+d_{jk}-d_{ik}}{2}
+  \label{eq:limb_length}
+\end{equation}
+给出。在精确加性情形下，$\ell_j$ 是 $j$ 到其父分支点的边长。找到满足最小值的一对 $i,k$ 后，可在 $i$ 到 $k$ 的路径上按距离定位 $j$ 的接入点。
+
+\begin{algorithm}[htbp]
+  \caption{简化 Additive Phylogeny 递归框架}
+  \label{alg:additive_phylogeny}
+  \KwIn{叶集合 $L$ 上的精确加性距离矩阵 $D$}
+  \KwOut{带隐藏节点的加权树 $\widetilde T$}
+  \If{$|L|=2$}{
+    返回一条连接两个叶节点的边，边权为 $d_{12}$\;
+  }
+  选择一个叶节点 $j$，用式\eqref{eq:limb_length}计算 $\ell_j$\;
+  找到 $i,k$ 使 $d_{ik}=d_{ij}+d_{jk}-2\ell_j$\;
+  从距离矩阵中暂时删除 $j$，递归重构 $L\setminus\{j\}$ 上的树\;
+  在 $i$ 到 $k$ 的路径上距离 $i$ 为 $d_{ij}-\ell_j$ 的位置插入接入点 $h$\;
+  添加边 $(h,j)$，权重为 $\ell_j$\;
+  压缩或合并不必要的度为 $2$ 隐藏节点\;
+  \KwRet{$\widetilde T$}
+\end{algorithm}
+
+\section{Neighbor joining 思想}
+
+Neighbor joining 不要求事先指定根。它每次选择一对最可能共享最近父节点的叶子，合并为一个新簇。常用准则为
+\begin{equation}
+  Q(i,j)=(n-2)d_{ij}-\sum_{k\in L}d_{ik}-\sum_{k\in L}d_{jk},
+\end{equation}
+其中 $n=|L|$。选择 $Q(i,j)$ 最小的一对作为邻接叶，再估计它们到新隐藏节点的边长。Neighbor joining 对噪声有一定经验鲁棒性，因此常被用于近似树度量重构。
+
+\section{Recursive grouping 思想}
+
+Recursive grouping 更强调“由局部距离关系识别父子和兄弟簇”。在有根配电网中，如果根节点或台区总表可观测，可利用根到叶的距离辅助判断两个叶节点的最近公共祖先深度：
+\begin{equation}
+  h(\lca(i,j))=\frac{h(i)+h(j)-d_{ij}}{2}.
+  \label{eq:lca_from_distance}
+\end{equation}
+若多个叶对的 $\lca$ 深度相同且大于与其他叶的公共深度，则它们可能共享同一隐藏分支点。
+
+\begin{algorithm}[htbp]
+  \caption{面向配电网的简化 recursive grouping}
+  \label{alg:recursive_grouping}
+  \KwIn{叶节点集合 $L$，根到叶深度估计 $h(i)$，叶间距离 $\widehat d_{ij}$，容差 $\tau$}
+  \KwOut{最简等效隐藏树}
+  对所有叶对计算 $\widehat h_{ij}=(h(i)+h(j)-\widehat d_{ij})/2$\;
+  将 $\widehat h_{ij}$ 较大且彼此接近的叶对聚为候选 sibling group\;
+  \ForEach{候选组 $C$}{
+    若组内 $\widehat h_{ij}$ 的波动小于 $\tau$，创建隐藏父节点 $h_C$\;
+    估计 $h_C$ 到每个叶 $i\in C$ 的边长为 $h(i)-\operatorname{median}_{j\in C}\widehat h_{ij}$\;
+    把 $C$ 压缩为新 terminal $h_C$，更新到其他 terminal 的距离\;
+  }
+  重复分组直到不能产生新的稳定隐藏节点\;
+  压缩所有度为 $2$ 的隐藏节点\;
+  \KwRet{得到的等效树}
+\end{algorithm}
+
+该算法不是工业级实现，但展示了核心逻辑：从 LCA 深度或 quartet 关系中识别“共享分支”的叶节点簇，再递归向上合并。
+
+\section{度为 2 隐藏节点的不可辨识性}
+
+\Cref{prop:degree2_unidentifiable}说明，度为 $2$ 的隐藏节点不会改变 terminal 间距离的结构，只改变某条路径的拆分方式。隐藏树重构通常要求最简性：
+\begin{equation}
+  \deg(h)\ne 2,\qquad \forall h\in \widetilde H.
+\end{equation}
+这不是数学偷懒，而是可辨识性的边界。若需要恢复物理接头或中间杆塔，需要额外 GIS、施工台账或现场巡检信息。
+
+\section{小规模数值例子}
+
+\begin{example}[从四个叶节点恢复两个隐藏分支点]
+\label{ex:hidden_tree_four_leaf}
+设四个末端电表 $a,b,c,d$ 的估计距离为
+\[
+\begin{array}{c|cccc}
+ & a&b&c&d\\ \hline
+a&0&2&5&5\\
+b&2&0&5&5\\
+c&5&5&0&2\\
+d&5&5&2&0
+\end{array}
+\]
+由\cref{chap:four_point}的判别，$d_{ab}+d_{cd}=4$ 小于另外两项 $10$，故 quartet 分裂为 $ab|cd$。内部边长为 $3$。若设叶到各自隐藏父节点的边长均为 $1$，则得到隐藏树
+\[
+  a--u--v--c,\qquad b--u,\qquad d--v,
+\]
+其中 $w_{au}=w_{bu}=w_{cv}=w_{dv}=1$，$w_{uv}=3$。该树精确复现所有叶间距离。
+
+若直接在 $\{a,b,c,d\}$ 上求 MST，会选 $(a,b)$、$(c,d)$ 以及任一条长度为 $5$ 的跨边。输出既没有 $u,v$，也无法表达 $a,b$ 与 $c,d$ 分别共享隐藏分支点。
+\end{example}
+
+\section{本章小结}
+
+仅叶节点可观测时，拓扑辨识的目标应从“在观测节点上求生成树”转为“寻找诱导叶间距离的最简隐藏树”。Additive phylogeny 通过 limb length 递归接回叶节点，neighbor joining 通过邻接准则合并叶对，recursive grouping 利用 LCA 深度或局部分组识别共享分支。度为 $2$ 隐藏节点不可唯一恢复，因此最简等效拓扑是合理输出。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 对\cref{ex:hidden_tree_four_leaf}，如果跨簇距离从 $5$ 变为 $5.2,4.9,5.1,5.0$，应如何设定 quartet 容差？
+  \item 为什么 neighbor joining 适合无根树，而配电网常常具有自然根节点？
+  \item 若台区总表可观测，根到叶距离能给 hidden tree reconstruction 带来什么额外信息？
+  \item 在实际低压台区中，哪些隐藏节点应被视为可辨识分支点，哪些应压缩进线路阻抗？
+\end{enumerate}

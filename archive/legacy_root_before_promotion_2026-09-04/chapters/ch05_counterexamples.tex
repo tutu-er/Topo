@@ -1,0 +1,99 @@
+\chapter{反例：为什么“有距离矩阵”不代表 MST 一定正确}
+\label{chap:counterexamples}
+
+\section*{本章目标}
+本章用五个反例说明 MST 的适用条件不可省略。与\cref{chap:mst_recovery}相比，本章关注条件失效后的具体后果：节点集不完整、距离非加性、公共源端电压模态、负荷高度相关以及通信图与电气图不一致。
+
+\section{反例 1：仅叶节点可观测的星形隐藏中心}
+
+\begin{counterexample}[隐藏中心星形结构]
+\label{cex:leaf_star}
+真实树为一个隐藏中心 $h$ 连接三个可观测叶节点 $1,2,3$，边权均为 $1$。叶间距离为
+\begin{equation}
+  d_{12}=d_{13}=d_{23}=2.
+\end{equation}
+在完全图 $K_{\{1,2,3\}}$ 上求 MST，只能得到三种等价输出之一，例如边集 $\{(1,2),(1,3)\}$。该输出把 $1$ 误当作中心节点，且没有恢复隐藏节点 $h$。
+\end{counterexample}
+
+这个反例不是算法实现问题，而是输出对象不匹配：MST 的节点集被固定为可观测叶节点，不能凭空产生隐藏分支点。正确做法是重构带隐藏节点的等效树，见\cref{chap:hidden_tree}。
+
+\section{反例 2：距离不是加性树距离}
+
+\begin{counterexample}[非加性权重导致选错边]
+\label{cex:nonadditive}
+真实树为 $1$--$2$--$3$，真实边权均为 $1$，因此加性距离应满足 $d_{13}=2$。假设某种经验特征给出
+\begin{equation}
+  \widehat d_{12}=1,\qquad \widehat d_{23}=1,\qquad \widehat d_{13}=0.2.
+\end{equation}
+Kruskal 会先选 $(1,3)$，再选 $(1,2)$ 或 $(2,3)$，得到的树不是真实树。
+\end{counterexample}
+
+非加性可能来自错误归一化、把相似度当距离、相关性未取负号、或使用了与路径阻抗无关的统计量。MST 只保证在输入权重满足割一致性时可靠；“任意距离矩阵”没有这种保证。
+
+\section{反例 3：公共源端电压导致错误连接}
+
+\begin{counterexample}[公共模态污染相关性]
+\label{cex:source_voltage}
+设两个末端节点 $i,j$ 分属不同支路，但都受到源端电压波动 $s(t)$ 的强影响：
+\begin{equation}
+  V_i(t)=s(t)+\eta_i(t),\qquad
+  V_j(t)=s(t)+\eta_j(t),
+\end{equation}
+其中 $\eta_i,\eta_j$ 是较小的局部扰动。即使 $i$ 与 $j$ 在电气拓扑上相距较远，二者电压曲线相关系数也会很高。若用
+\begin{equation}
+  \widehat d_{ij}=1-\operatorname{corr}(V_i,V_j)
+\end{equation}
+作为距离，MST 可能优先连接这些共享源端模态但并不相邻的节点。
+\end{counterexample}
+
+物理上，源端电压波动是全局共同因子。拓扑辨识应使用电压增量对负荷增量的响应、公共模态去除或条件相关，而不能直接把原始电压相关性解释为线路相邻性。
+
+\section{反例 4：负荷高度相关导致距离退化}
+
+\begin{counterexample}[同步负荷曲线]
+\label{cex:correlated_load}
+设两个不同支路上的用户具有几乎同步的有功和无功变化：
+\begin{equation}
+  \Delta P_i(t)\approx \alpha_i z(t),\qquad
+  \Delta P_j(t)\approx \alpha_j z(t).
+\end{equation}
+如果距离估计依赖 $\Delta V$ 与 $\Delta P$ 的协方差或回归，而设计矩阵列高度共线，则多个拓扑模型会解释出相近的电压变化。估计出的 $\widehat d_{ij}$ 可能失去区分度，甚至把不同支路用户聚为一簇。
+\end{counterexample}
+
+这个问题对应统计学中的病态回归和遗漏变量偏差。岭回归可以缓解方差但会引入偏差；Lasso 可能在相关特征中任意选择一个。第\cref{chap:estimation}将讨论这些问题如何影响 MST margin。
+
+\section{反例 5：通信路由图不等于电气拓扑图}
+
+\begin{counterexample}[PLC 路由边不是电气边]
+\label{cex:communication_not_electrical}
+在 HPLC 网络中，电表 $i$ 可能通过通信质量更好的中继电表 $j$ 转发数据，即路由表中存在 $i\to j$。但 $i$ 与 $j$ 的电气连接可能分别位于不同分支，只是载波信道在某个频段上更稳定。若把通信路由边直接当成电气边，得到的图可能含有跨支路边，也可能不满足放射状电气结构。
+\end{counterexample}
+
+通信特征有价值，但更适合作为 noisy prior，而不是硬等式。实际模型应学习
+\begin{equation}
+  \mathbb{P}\{(i,j)\in E_E\mid \text{电气特征},\text{通信特征},\text{GIS 特征}\},
+\end{equation}
+再由生成树约束解码，见\cref{chap:multiview}。
+
+\section{一个统一视角：MST 失败的根源}
+
+上述反例可归纳为三类失配。
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{节点集失配}：真实树含隐藏内部节点，但算法只允许叶节点成树。
+  \item \textbf{权重语义失配}：输入不是树路径可加距离，也不满足 cut-consistency。
+  \item \textbf{数据生成机制失配}：公共模态、相关负荷、通信中继等因素改变了统计相似度与电气相邻性的关系。
+\end{enumerate}
+
+因此，正确的研究问题不是“是否能用 MST”，而是“在哪个节点集上、用何种物理距离、在多大估计误差下使用 MST”。这也是\cref{chap:impedance_distance,chap:estimation}要回答的问题。
+
+\section{本章小结}
+
+MST 是强有力的图算法，但它不会自动把任意相似度矩阵变成真实拓扑。若完整节点集和加性距离条件成立，MST 有严格保证；若只有叶节点、距离非加性或数据受公共模态污染，则应改用隐藏树重构、物理回归、公共因子校正或多视图约束模型。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 对\cref{cex:leaf_star}，如果把隐藏中心 $h$ 加入节点集，MST 会怎样输出？
+  \item 构造一个四节点非加性距离矩阵，使 MST 输出一条跨支路错误边。
+  \item 为什么“电压相关性高”更可能表示共同源端扰动，而不一定表示两节点直接相连？
+  \item 在 PLC 场景中，哪些通信特征更可能与电气距离相关？哪些更容易受非电气因素影响？
+\end{enumerate}

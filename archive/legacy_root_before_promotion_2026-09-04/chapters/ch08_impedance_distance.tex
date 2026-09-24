@@ -1,0 +1,101 @@
+\chapter{配电网中的阻抗距离}
+\label{chap:impedance_distance}
+
+\section*{本章目标}
+本章把图论距离与配电网线性化潮流连接起来。我们从 LinDistFlow 近似出发，解释灵敏度矩阵 $R,X$ 的公共路径意义，构造电阻距离 $d^R$ 与电抗距离 $d^X$，并证明它们在树上是路径距离。因此，全节点可观测时可用 MST，叶节点可观测时则应结合\cref{chap:hidden_tree}的隐藏树重构。
+
+\section{LinDistFlow 近似}
+
+在径向配电网中，忽略二阶损耗项并在标称电压附近线性化，可得到电压幅值变化与功率注入变化之间的近似关系
+\begin{equation}
+  \Delta V \approx R\,\Delta P + X\,\Delta Q,
+  \label{eq:lindistflow_matrix}
+\end{equation}
+其中 $\Delta V,\Delta P,\Delta Q\in\R^n$ 对应非根节点，$R$ 和 $X$ 是电压对有功、无功注入的灵敏度矩阵。不同文献中的常数因子可能因采用电压幅值、电压平方或 per-unit 标幺化而不同；本章关注其树路径结构。
+
+\section{公共路径阻抗和}
+
+设根节点为 $0$，非根节点集合为 $\{1,\ldots,n\}$。对边 $e$ 记电阻、电抗为 $r_e,x_e>0$。在线性化径向模型中，灵敏度矩阵具有公共路径形式：
+\begin{align}
+  R_{ij} &= \sum_{e\in \pathset_{0i}\cap \pathset_{0j}} r_e, \label{eq:R_common_path}\\
+  X_{ij} &= \sum_{e\in \pathset_{0i}\cap \pathset_{0j}} x_e. \label{eq:X_common_path}
+\end{align}
+也就是说，$R_{ij}$ 是从根到 $i$ 与从根到 $j$ 两条路径的公共部分电阻和。公共部分正是从根到 $\lca(i,j)$ 的路径。
+
+\begin{figure}[htbp]
+  \centering
+  \input{figures/impedance_tree.tex}
+  \caption{阻抗距离例子。$R_{ij}$ 等于根到 $\lca(i,j)$ 的公共路径电阻和。}
+  \label{fig:impedance_tree}
+\end{figure}
+
+\section{阻抗距离的构造}
+
+定义电阻距离与电抗距离：
+\begin{align}
+  d^R_{ij} &= R_{ii}+R_{jj}-2R_{ij}, \label{eq:resistance_distance}\\
+  d^X_{ij} &= X_{ii}+X_{jj}-2X_{ij}. \label{eq:reactance_distance}
+\end{align}
+
+\begin{proposition}[阻抗距离是树上路径距离]
+\label{prop:impedance_is_tree_distance}
+若 $R_{ij}$ 与 $X_{ij}$ 满足公共路径形式\eqref{eq:R_common_path}--\eqref{eq:X_common_path}，则 $d^R_{ij}$ 等于 $i$ 到 $j$ 路径上的电阻和，$d^X_{ij}$ 等于 $i$ 到 $j$ 路径上的电抗和。
+\end{proposition}
+
+\begin{proof}
+以电阻为例。$R_{ii}$ 是根到 $i$ 的路径电阻和，$R_{jj}$ 是根到 $j$ 的路径电阻和，$R_{ij}$ 是根到 $\lca(i,j)$ 的公共路径电阻和。因此
+\begin{align}
+  R_{ii}+R_{jj}-2R_{ij}
+  &=
+  \sum_{e\in \pathset_{0i}}r_e+
+  \sum_{e\in \pathset_{0j}}r_e-
+  2\sum_{e\in \pathset_{0i}\cap \pathset_{0j}}r_e\\
+  &=
+  \sum_{e\in \pathset_{ij}}r_e .
+\end{align}
+电抗情形完全相同。
+\end{proof}
+
+\begin{corollary}[阻抗距离与 MST/隐藏树]
+\label{cor:impedance_mst_hidden}
+若所有电气节点均可观测且可精确估计 $R$ 或 $X$，则以 $d^R$ 或 $d^X$ 为边权在完整节点集上求 MST 可恢复真实树。若只观测叶节点，则 $d^R,d^X$ 是叶间树距离，应使用隐藏树重构恢复最简等效拓扑。
+\end{corollary}
+
+\begin{proof}
+由\cref{prop:impedance_is_tree_distance}，$d^R,d^X$ 是正权树路径距离。完整节点集情形应用\cref{thm:additive_mst_recovery}；叶节点情形则属于\cref{chap:hidden_tree}讨论的 terminal-only 重构问题。
+\end{proof}
+
+\section{三节点/四节点算例}
+
+\begin{example}[四节点径向网的电阻距离]
+考虑根节点 $0$，真实树边为 $(0,1)$、$(1,2)$、$(1,3)$，电阻分别为
+\[
+  r_{01}=0.10,\qquad r_{12}=0.08,\qquad r_{13}=0.12 .
+\]
+则
+\[
+R_{11}=0.10,\quad R_{22}=0.18,\quad R_{33}=0.22,\quad
+R_{12}=0.10,\quad R_{13}=0.10,\quad R_{23}=0.10.
+\]
+由式\eqref{eq:resistance_distance}得
+\[
+d^R_{12}=0.08,\qquad d^R_{13}=0.12,\qquad d^R_{23}=0.20.
+\]
+若把根也纳入距离，$d^R_{01}=0.10$、$d^R_{02}=0.18$、$d^R_{03}=0.22$。在完整节点集 $\{0,1,2,3\}$ 上求 MST，会选择 $(1,2)$、$(0,1)$、$(1,3)$，恢复真实拓扑。
+\end{example}
+
+\section{物理意义}
+
+阻抗距离的直观意义是“两个节点之间需要经过多少线路阻抗”。两个同一分支下游节点可能具有很大的源端公共路径，因此 $R_{ij}$ 大；但它们之间的路径距离 $d^R_{ij}$ 只计算从一个节点到另一个节点的非公共部分。直接把 $R_{ij}$ 当距离会把共享上游路径误读为远近关系；正确的距离构造必须使用 $R_{ii}+R_{jj}-2R_{ij}$。
+
+\section{本章小结}
+
+LinDistFlow 近似把电压变化写成 $\Delta V\approx R\Delta P+X\Delta Q$。在径向网络中，$R_{ij}$ 与 $X_{ij}$ 具有公共路径阻抗和结构。由此构造的 $d^R$ 与 $d^X$ 是树上路径距离：全节点可观测时可直接进入 MST 理论，叶节点可观测时进入隐藏树重构理论。这为从 $P/Q/V$ 曲线估计拓扑提供了物理桥梁。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 若某条线路电阻很小，MST margin 会如何变化？
+  \item 为什么 $R_{ij}$ 本身不是距离？请检查它是否满足 $R_{ii}=0$。
+  \item 在线性化模型中，三相不平衡和互阻抗会如何改变公共路径解释？
+  \item 若只能估计 $R$ 而不能稳定估计 $X$，是否仍可辨识拓扑？需要哪些假设？
+\end{enumerate}

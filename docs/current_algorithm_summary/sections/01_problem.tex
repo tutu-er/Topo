@@ -1,0 +1,55 @@
+\section{问题定义与实现边界}
+
+\subsection{严格末端量测场景}
+
+设配电网为以变电站或配变低压侧为根节点 $s$ 的径向树
+$T=(V,E)$。节点集合分为根节点、隐藏内部节点 $H$ 和末端用户节点 $L$：
+\[
+V=\{s\}\cup H\cup L.
+\]
+当前主场景采用如下假设：
+\begin{enumerate}
+  \item 根节点 $s$ 可观测，提供 $v_0(t)$ 以及必要时的总功率；
+  \item 只有 $i\in L$ 具有负荷或分布式电源，并提供同步 $P_i(t),Q_i(t),V_i(t)$；
+  \item 所有 $h\in H$ 为零注入、无智能表的隐藏节点；
+  \item 线路闭合拓扑为单根树，支路阻抗为正；零阻抗支路需要单独讨论；
+  \item 最终目标是恢复包含隐藏分支点的\emph{根向缩减树}，而不是只在末端节点
+  完全图上求一棵最小生成树。
+\end{enumerate}
+
+原始 IEEE case33bw 不满足第二、三条，因为多处非叶母线带有负荷。项目的
+\texttt{hybrid\_leaf} terminalization 将内部负荷迁移到新增服务线末端，
+并保留原始物理叶节点，从而使内部节点严格零注入。
+
+\subsection{当前主线与非主线方法}
+
+需要严格区分三种对象：
+\begin{itemize}
+  \item \textbf{terminal-equivalent MST}：仅在观测末端之间选边，不生成隐藏节点。
+  它可作距离质量诊断，但当前主线不再用它表示物理隐藏树。
+  \item \textbf{RNJ/RG/NJ 隐藏树}：输入末端加性距离，输出算法生成的隐藏节点。
+  当前主线采用已知根约束的 RNJ；普通 NJ 与 recursive grouping（RG）保留为基线。
+  \item \textbf{候选物理图辨识}：隐藏节点和候选边由 GIS 等外部信息给定，
+  只判断边状态。该任务拥有更多先验，不应与 terminal-only latent-tree 结果直接比较。
+\end{itemize}
+
+Soumalas 等假设智能表位于叶节点、根已知且中间节点不监测
+\cite{soumalas2017}；Flynn 等进一步强调配变电压变化必须进入灵敏度估计
+\cite{flynn2023}；Pengwah 等研究智能表覆盖不完整时的阻抗模型与两阶段定位
+\cite{pengwah2024}。当前工程代码完整实现的是“根电压校正、灵敏度距离、RNJ、
+扰动稳定性与一层 pseudo 收缩”这一主线。Prüfer 整数线长枚举、Flynn 原文的完整
+改进 RG 与 Pengwah 的部分覆盖阻抗优化仍属于论文接口或近似复现，不能写成等价复现。
+
+\subsection{数据生成与噪声约定}
+
+所有当前合成算例的真值电压和线路潮流均由平衡单相等值的径向
+backward--forward sweep 交流潮流逐时段计算，而非用 LinDistFlow 直接生成。
+估计阶段再使用线性灵敏度模型，因此实验中保留了交流潮流与线性模型之间的系统误差。
+
+标准噪声设置为：
+\[
+\sigma_P=\sigma_Q=0.5\%\times |P_i(t)|,\qquad
+\sigma_V=0.02\%\times |V_i(t)|.
+\]
+这里电压噪声是相对于\emph{节点本地电压幅值}的标准差，并非相对于电压降或
+电压差分。根节点电压维持日内公共波动，并直接作为已观测模态进入压降目标。

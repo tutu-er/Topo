@@ -1,0 +1,86 @@
+\section{稳定边收缩与一层 pseudo 主干重辨识}
+
+\subsection{以已有噪声数据为基准的稳定性}
+
+稳定性检验不把无噪声真值作为基准。先在实际可获得的有噪声数据 $D$ 上得到基准树
+$\widehat T^{(0)}$，然后对 $D$ 额外叠加一层小扰动：
+\[
+\sigma_{P,Q}^{\rm add}=0.25\%,\qquad
+\sigma_V^{\rm add}=0.01\%,
+\]
+重复估计 $B$ 次。对基准树中的 rooted clade $C$ 定义
+\begin{equation}
+  \pi_C=\frac{1}{B}\sum_{b=1}^{B}
+  \mathbf{1}\{C\in\clade(\widehat T^{(b)})\}.
+  \label{eq:bootstrap-confidence}
+\end{equation}
+同理可统计 sibling pair 的保持频率。当前选择规则为
+$\pi_C\ge0.9$、$2\le |C|\le5$，按 clade 大小从大到小选择互不重叠的候选。
+这里“稳定”表示对附加扰动不敏感，不等价于“必然正确”；系统偏差可使错误边也很稳定。
+
+\subsection{pseudo 节点的功率与电压}
+
+对选中的末端 clade $C$，功率严格守恒聚合：
+\begin{equation}
+  P_C(t)=\sum_{i\in C}P_i(t),\qquad
+  Q_C(t)=\sum_{i\in C}Q_i(t).
+  \label{eq:pseudo-pq}
+\end{equation}
+简单电压代理为
+\[
+\bar v_C^2(t)=\frac{1}{|C|}\sum_{i\in C}v_i^2(t).
+\]
+为了回推 clade 边界电压，代码先从后代 $R/X$ 行估计边界灵敏度行
+$\widehat R_C,\widehat X_C$，再对每个后代构造
+\begin{equation}
+  \widehat v_{C,i}^2(t)=v_i^2(t)
+  +\bigl(\widehat R_i-\widehat R_C\bigr)p(t)
+  +\bigl(\widehat X_i-\widehat X_C\bigr)q(t).
+  \label{eq:deembedding}
+\end{equation}
+多个后代估计取中位数得到 $\widehat v_{C,\rm deembed}^2$。由于灵敏度行相减会放大
+估计误差，当前采用 shrinkage：
+\begin{equation}
+  \widehat v_C^2=
+  \bar v_C^2+\lambda
+  \left(\widehat v_{C,\rm deembed}^2-\bar v_C^2\right),
+  \qquad \lambda=0.25.
+  \label{eq:voltage-shrinkage}
+\end{equation}
+
+\subsection{一层收缩流程}
+
+当前推荐流程如下：
+\begin{enumerate}
+  \item 用末端 $P/Q/V$ 与根电压估计 $\Rhat,\Xhat$；
+  \item 构造混合阻抗距离并运行根约束 RNJ；
+  \item 对已有噪声数据叠加小扰动，统计 clade/sibling 稳定度；
+  \item 选择互不重叠的高置信边缘 clade，冻结其局部 rooted clades；
+  \item 按式\eqref{eq:pseudo-pq}--\eqref{eq:voltage-shrinkage}构造一层 pseudo $P/Q/V$；
+  \item 仅在 pseudo 节点层重新估计灵敏度和 RNJ 主干；
+  \item 展开 pseudo clade，并原样放回冻结的高置信局部结构。
+\end{enumerate}
+
+局部二次重辨识有两种实验选项：以 pseudo 电压作为局部根重新回归，或直接从全局距离
+中减去边界以上公共路径后 reroot。60 个独立噪声日中，冻结方案平均 F1 为
+$0.9898$，distance-reroot 局部重辨识为 $0.9690$；因此局部重辨识保留为实验分支，
+并未替换冻结主线。
+
+\subsection{伪代码}
+
+\begin{center}
+\fbox{\begin{minipage}{0.93\textwidth}
+\textbf{输入：} 多场景末端量测 $\{P_s,Q_s,V_s,v_{0,s}\}$，根 $s$。\\
+\textbf{输出：} 根向隐藏树的 clade 集合 $\widehat{\mathcal C}$。
+\begin{enumerate}
+  \item 逐场景计算 $Y_s=v_{0,s}^2\mathbf1-V_s^2$ 并去均值；
+  \item SVD 回归后投影得到对称非负 $\Rhat,\Xhat$；
+  \item 直接由 $\Rhat,\Xhat$ 计算归一化共享路径分数 $S$ 与根深度 $H=\operatorname{diag}(S)$；
+  \item 运行 RNJ 得到基准隐藏树；
+  \item 对量测重复加扰并重跑步骤 1--4，估计 $\pi_C$；
+  \item 收缩满足阈值的互斥边缘 clade，构造 pseudo $P/Q/V$；
+  \item 在 pseudo 层运行步骤 1--4；
+  \item 展开 pseudo clades，并并入冻结的局部 clades。
+\end{enumerate}
+\end{minipage}}
+\end{center}

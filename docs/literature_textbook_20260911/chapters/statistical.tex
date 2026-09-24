@@ -1,0 +1,840 @@
+\chapter{候选树上的信念、置信集合与预测校准：S14--S17}
+\label{chap:statistical-textbook}
+
+本章按“先定义统计对象，再给能执行的步骤，最后解释保证”的顺序学习四篇文献。它们处理的不是同一个问题：S14 把损失变成分布，S15 用正确的概率密度构造置信集合，S16 在树的组合结构与正边长上抽样，S17 校准未来标签或观测的预测集合。读者应先确定需要哪一种输出，再选择方法。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lXXX}
+\toprule
+文献 & 输入的关键对象 & 直接输出 & 不能由该输出直接得到的结论\\
+\midrule
+S14 & 损失、先验、学习率 & 广义后验权重 & 自动的频率覆盖率\\
+S15 & 正确的观测模型、拆分数据 & 参数或拓扑置信集合 & 模型错设下任意适用\\
+S16 & 高斯树协方差模型、树先验 & 树与边长的后验样本 & 有限迭代已遍历全部模式\\
+S17 & 冻结评分函数、可交换校准样本 & 新观测或标签的预测集合 & 单个未知网络的拓扑必然正确\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{算法来源标记。}
+“原算法”指来源明确给出的流程；“等价整理”指在明确条件下保持其数学对象和更新规则；“教学变体”指为了有限计算、拓扑应用或手算而新增的方案。本章数值例子全部自行构造，只检查算法中间量，不是论文实验复现。物理回归示例用净注入为正的 $p,q$，写成 $v=b\mathbf1+Rp+Xq$；采用净负荷为正时应同时改变符号，幅值与平方电压的比例也须一致。
+
+\section{S14：从损失函数到可计算的树权重}
+\label{sec:textbook-S14}
+
+\subsection{先定义要学习的参数，而不是先选一个概率公式}
+
+\citet{S14} 的基本对象是总体损失最小化参数：
+\[
+ \vartheta_\star\in\arg\min_{\vartheta}
+ \mathbb E_{Z\sim F_\star}\ell(\vartheta;Z).
+\]
+这里不必指定完整的 $F_\star$ 似然。例如平方损失对应均值目标，绝对损失对应中位数目标。把 $\vartheta=(T,\theta_T)$ 作为拓扑和边参数的组合，是本章面向 Topo 的教学应用；原论文不为配电树提供专门似然或专门优化器。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+符号 & 本节含义\\
+\midrule
+$\mathcal T=\{T_1,\ldots,T_K\}$ & 本次声明的有限候选树域\\
+$\theta_T\in\Theta_T$ & 树 $T$ 上的连续或离散边参数\\
+$\pi(T),\pi(d\theta\mid T)$ & 树先验与树内参数先验\\
+$D=(z_1,\ldots,z_n)$ & 用于更新的观测数据\\
+$L_D(T,\theta)=\sum_t\ell(T,\theta;z_t)$ & 累积损失，须记录量纲与缩放\\
+$\eta>0$ & 学习率，即数据损失相对先验的权重\\
+$W(T\mid D)$ & 更新后的树边际权重\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+若目的是末端电压预测，可在训练前定义
+\[
+ \ell(T,\theta;z_t)=
+ \left\|S_t^{-1/2}
+ [v_t-b_t\mathbf1-R_Tp_t-X_Tq_t]\right\|_2^2.
+\]
+这里的 $S_t$ 是正定误差尺度矩阵，并不是拓扑。根电压、功率符号和尺度估计方式都是损失定义的一部分。若把它改为稳健损失，学习的总体目标也随之改变。
+
+\subsection{广义后验的变分推导}
+
+原文第 1.1 节式 (7)--(8) 给出损失与 KL 散度组合；第 3 节讨论尺度。下面把其机制以本章记号展开。对满足 $\nu\ll\pi$ 的概率测度，考虑
+\[
+ J_D(\nu)=\eta\int L_D(\vartheta)\nu(d\vartheta)
+               +\mathrm{KL}(\nu\Vert\pi).
+\]
+假设
+\[
+ 0<Z_D=\int \exp[-\eta L_D(\vartheta)]\pi(d\vartheta)<\infty,
+\]
+并令
+\[
+ \pi_D(d\vartheta)=
+ \frac{\exp[-\eta L_D(\vartheta)]\pi(d\vartheta)}{Z_D}.
+\]
+直接代入对数密度比，有
+\[
+ J_D(\nu)=\mathrm{KL}(\nu\Vert\pi_D)-\log Z_D.
+\]
+因而 $\pi_D$ 是该变分问题的唯一最优概率测度。这个计算解释的是“为何采用指数更新”，并不是任意可信区间具有频率覆盖率的证明。
+
+拓扑权重必须先对树内参数积分：
+\begin{equation}
+ Z_T=\int_{\Theta_T}e^{-\eta L_D(T,\theta)}\pi(d\theta\mid T),
+ \qquad
+ W(T\mid D)=\frac{\pi(T)Z_T}{\sum_{S\in\mathcal T}\pi(S)Z_S}.
+ \label{eq:textbook-S14-integral}
+\end{equation}
+若先优化参数再评分，
+\[
+ \widetilde Z_T=\exp[-\eta\min_{\theta}L_D(T,\theta)],
+\]
+所得是 profile 损失评分，通常不等于 $Z_T$。积分会累加整个参数域的先验质量；最小值只记录最好的那个位置。
+
+\subsection{有限参数域上的完整计算：教学变体}
+
+为了把积分步骤完整写出来，暂设树 $T_k$ 的条件先验有有限支持
+$\theta_{kj}$，质量为 $\rho_{kj}>0$ 且 $\sum_j\rho_{kj}=1$。这是原更新规则在离散参数域上的等价计算，也是连续树问题的教学离散化。若这些点由连续先验独立抽样，取 $\rho_{kj}=1/J_k$ 得到的是 Monte Carlo 积分近似，不能再称精确后验。
+
+定义稳定的对数求和函数
+\[
+ \operatorname{LSE}(a_1,\ldots,a_J)
+ =c+\log\sum_{j=1}^J e^{a_j-c},\qquad c=\max_j a_j.
+\]
+公共平移不改变权重，却能避免极小指数下溢。
+
+\begin{algorithm}[htbp]
+\caption{S14：有限候选树与有限条件先验的指数更新（教学离散化）}
+\label{alg:textbook-S14}
+\begin{algorithmic}[1]
+\Require 数据 $D$；树 $T_k$ 与先验 $\pi_k$；参数点 $\theta_{kj}$、质量 $\rho_{kj}$；损失 $\ell$；$\eta>0$
+\Ensure 树权重 $W_k$、树内条件权重 $H_{kj}$、对数归一化常数
+\For{$k=1,\ldots,K$}
+  \For{$j=1,\ldots,J_k$}
+    \State $L_{kj}\gets\sum_{t=1}^n\ell(T_k,\theta_{kj};z_t)$
+    \State $a_{kj}\gets\log\rho_{kj}-\eta L_{kj}$
+  \EndFor
+  \State $b_k\gets\operatorname{LSE}_j(a_{kj})$
+  \State $g_k\gets\log\pi_k+b_k$
+  \State 若 $b_k>-\infty$，置 $H_{kj}\gets e^{a_{kj}-b_k}$
+\EndFor
+\State 若所有 $g_k=-\infty$，报告归一化失败，不输出伪造的均匀权重
+\State $g\gets\operatorname{LSE}_k(g_k)$
+\State $W_k\gets e^{g_k-g}$；零先验树的权重保持为零
+\State \Return $\{W_k,H_{kj}\}$ 与 $\log Z_D=g$
+\end{algorithmic}
+\end{algorithm}
+
+连续积分若采用重要性抽样，$\theta_j\sim q_T$ 时应使用
+$J^{-1}\sum_j e^{-\eta L(T,\theta_j)}\pi(\theta_j\mid T)/q_T(\theta_j)$。
+不同树的积分需要同样明确的测度和归一化。随意把每个树内重要性权重再归一化，通常会改变证据估计；这类数值近似应单独说明。
+
+\subsection{数值例一：损失大到直接指数下溢}
+
+取三棵树、每棵只有一个参数点：
+\[
+ \pi=(0.5,0.3,0.2),\qquad L=(1002,1001,1003),\qquad\eta=1.
+\]
+对数分数为 $g_k=\log\pi_k-L_k$。最大值
+$c=-1002.203973$ 来自第二棵树。逐步计算如下：
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+树 & $\pi_k$ & $g_k$ & $e^{g_k-c}$ & $W_k$\\
+\midrule
+$T_1$ & 0.5 & $-1002.693147$ & 0.613132 & 0.359956\\
+$T_2$ & 0.3 & $-1002.203973$ & 1.000000 & 0.587076\\
+$T_3$ & 0.2 & $-1004.609438$ & 0.090224 & 0.052968\\
+\bottomrule
+\end{tabular}
+\end{center}
+相对指数的和为 $1.703356$，
+$\log Z_D=c+\log(1.703356)=-1001.671372$。
+最终权重可正常计算，不必直接形成 $e^{-1000}$。
+若三棵树的损失同时减去 $1000$，所有权重不变；归一化常数的对数则增加 $1000$。
+
+\subsection{数值例二：积分与最小损失会选不同的树}
+
+现在只有 $T_A,T_B$，树先验相等，每棵树有四个等先验质量的参数点。令
+\[
+ L_A=(0,9,9,9),\qquad L_B=(1,1,1,1),\qquad\eta=1.
+\]
+profile 评分为 $\widetilde Z_A=1$、$\widetilde Z_B=e^{-1}$，偏好 $A$。
+而精确离散积分为
+\[
+ Z_A=\frac{1+3e^{-9}}4=0.250093,\qquad
+ Z_B=e^{-1}=0.367879.
+\]
+因此
+\[
+ W_A=0.404699,\qquad W_B=0.595301.
+\]
+$A$ 的最佳拟合更好，但只有四分之一先验质量位于该优点；$B$ 的参数域处处具有中等损失。连续情形中，类似差别表现为好拟合区域的宽度。本例不表示积分总是优于 profile，而是说明二者回答不同问题，不能混用名称。
+
+\subsection{顺序更新、停止与成本}
+
+固定 $\eta$、损失和参数域时，处理新批次 $B$ 只需把旧对数未归一化权重加上 $-\eta L_B$：
+\[
+ e^{-\eta L_A}e^{-\eta L_B}\pi
+ \propto e^{-\eta(L_A+L_B)}\pi.
+\]
+这是原文所强调的批次相容性。若第二批重选温度或候选域，得到的是另一个更新规则。
+
+有限域算法遍历所有点后即结束；若单个样本损失计算成本为 $C_\ell$，总成本约为
+$O(nC_\ell\sum_kJ_k)$，保存全部条件权重需 $O(\sum_kJ_k)$ 空间。
+它没有额外的“收敛迭代”。连续积分的停止应依据积分误差或有效样本量，而非只看最佳树是否连续几次不变。
+
+\paragraph{保证对象与迁移边界。}
+输入先验必须支持目标树，损失要定义目标参数，归一化常数必须存在。若 RNJ 候选漏掉真树，指数更新无法恢复域外质量；同一数据生成的 cherry 信息若又当独立先验使用，会重复计权。后验集中也不能解决观测等价。学习率的校准、局部 sandwich 协方差以及旧稿中的敏感性讨论保留在审查记录；这些是使用边界，不能代替本节的更新算法。
+
+\section{S15：用训练预测密度反演逐树置信集合}
+\label{sec:textbook-S15}
+
+\subsection{任务、输入和输出}
+
+\citet{S15} 的 split likelihood ratio 使用一部分数据训练分子，在另一部分上计算似然比。第 2 节的 Theorem 1、Theorem 3 是本节的来源，编号指 arXiv v4。下面的“逐树 profile + 求解器界”是把该构造投影到拓扑域的教学整理。
+
+给定树模型族
+\[
+ \mathcal P_T=\{p_{T,\theta}:\theta\in\Theta_T\},\qquad T\in\mathcal T,
+\]
+其中 $\theta$ 包含边参数和必要的噪声参数。目标是输出集合 $\mathcal C_\alpha$，
+使得在声明的统计条件下，真实树 $T_\star$ 至少以 $1-\alpha$ 的概率被保留。
+输出不是一组加总为一的后验概率。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+输入/中间量 & 要求\\
+\midrule
+$D_1,D_0$ & 训练、检验划分；基础版本中两部分独立\\
+$\widehat q_1$ & 仅用 $D_1$ 构造的归一化预测密度\\
+$L_T(\theta;D_0)$ & 原假设下完整的检验数据似然\\
+$\alpha$ & 预先指定的错误水平，$0<\alpha<1$\\
+$\underline F_T,\overline F_T$ & 负对数似然全域最小值的已验证下界、可行上界\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+基础证明依赖正确观测模型和密度归一化；不需要估计器渐近正态，也不要求训练分子为最佳拟合。反过来，即使拟合误差很小，任意未经归一化的分数也不能直接代替概率密度。
+
+\subsection{先构造一个真值处期望不超过一的统计量}
+
+令
+\[
+ Q_1(D_0)=\prod_{i\in D_0}\widehat q_1(Z_i),\qquad
+ L(T,\theta;D_0)=\prod_{i\in D_0}p_{T,\theta}(Z_i).
+\]
+在独立检验样本模型中，条件于训练数据，
+\[
+ \mathbb E_\star\!\left[
+ \frac{Q_1(D_0)}{L(T_\star,\theta_\star;D_0)}\middle|D_1
+ \right]
+ =\int_{\{L_\star>0\}}Q_1(z)\,dz\le1.
+\]
+这一步允许分子模型不准确，因为它仍然积分为一。Markov 不等式随后给出
+\[
+ \mathbb P_\star\left\{
+ \frac{Q_1(D_0)}{L(T_\star,\theta_\star;D_0)}>1/\alpha
+ \right\}\le\alpha.
+\]
+
+要消除边参数 nuisance，对每棵树使用最有利的原假设似然：
+\begin{equation}
+ U_T=\frac{Q_1(D_0)}{\sup_{\theta\in\Theta_T}L(T,\theta;D_0)},
+ \qquad
+ \mathcal C_\alpha^{\mathrm{exact}}=\{T:U_T\le1/\alpha\}.
+ \label{eq:textbook-S15-profile}
+\end{equation}
+真树的分母至少等于真参数似然，故 $\mathbb E_\star U_{T_\star}\le1$，
+进而 $\mathbb P_\star(T_\star\in\mathcal C_\alpha^{\mathrm{exact}})\ge1-\alpha$。
+这里所谓 profile，是在分母中对整个 $\Theta_T$ 取上确界；局部最优点不能自动替代它。
+
+\subsection{带求解器界的可实施算法：教学整理}
+
+为避免下溢，定义
+\[
+ \ell_Q=\log Q_1(D_0),\qquad
+ F_T^\star=\inf_{\theta\in\Theta_T}[-\log L(T,\theta;D_0)].
+\]
+则 $\log U_T=\ell_Q+F_T^\star$。求解器若返回
+$\underline F_T\le F_T^\star\le\overline F_T$，便知道
+\[
+ \ell_Q+\underline F_T\le\log U_T
+ \le\ell_Q+\overline F_T.
+\]
+注意方向：最小化目标的\emph{下界}产生安全的似然分母上界，因此可用来可靠排除；仅有可行解产生的上界不能支持排除。
+
+\begin{algorithm}[htbp]
+\caption{S15：逐树 profile 检验，数值未定时保守保留（教学整理）}
+\label{alg:textbook-S15}
+\begin{algorithmic}[1]
+\Require $D_1,D_0$；完整树域 $\mathcal T$ 与 $\Theta_T$；正确似然；$\alpha$；每树计算预算
+\Ensure 保守置信集合 $\mathcal C_\alpha$，及每棵树的判定状态
+\State 仅用 $D_1$ 拟合归一化预测密度 $\widehat q_1$
+\State 冻结分子，计算 $\ell_Q\gets\sum_{i\in D_0}\log\widehat q_1(Z_i)$
+\State $c\gets-\log\alpha$；$\mathcal C_\alpha\gets\varnothing$
+\For{每棵 $T\in\mathcal T$}
+  \State 最小化 $F_T(\theta)=-\log L(T,\theta;D_0)$
+  \State 得到已验证界 $\underline F_T\le F_T^\star\le\overline F_T$
+  \If{$\ell_Q+\underline F_T>c$}
+    \State 标记 $T$ 为“已排除”
+  \Else
+    \State $\mathcal C_\alpha\gets\mathcal C_\alpha\cup\{T\}$
+    \If{$\ell_Q+\overline F_T\le c$}
+      \State 标记 $T$ 为“已确认属于精确反演集合”
+    \Else
+      \State 标记 $T$ 为“计算未定，保守保留”
+    \EndIf
+  \EndIf
+\EndFor
+\State 未计算的域内树也作为“未定”保留
+\State \Return $\mathcal C_\alpha$ 与状态、上下界、分子拟合记录
+\end{algorithmic}
+\end{algorithm}
+
+只要下界是对声明完整模型域成立的界，这个集合包含精确反演集合，因而保留其覆盖下界。计算预算只会扩大未定部分。对于最小化问题，求解器的可行目标值通常是 $\overline F_T$，全局松弛或可靠分支定界给出 $\underline F_T$；应按求解器的定义核实，不能只读取一个名为 gap 的数值。
+
+\subsection{完整数值例：三个模型标签、一个均值 nuisance}
+
+为把所有中间量算出来，用一维条件模型代表三种候选结构所允许的响应范围：
+\[
+ Y\mid T_j,\theta\sim N(\theta,1),\qquad
+ \Theta_1=[0,1],\quad\Theta_2=[1,2],\quad\Theta_3=[2,3].
+\]
+这些区间是教学模型，\textbf{不是三棵配电树的物理等价模型}。
+
+独立训练数据为 $D_1=(0,1)$，据此选
+$\widehat q_1=N(0.5,1)$。检验数据为 $D_0=(0,0,1,1)$。
+检验均值也是 $0.5$，但这是例子数值的巧合，分子已经由训练阶段冻结。
+取 $\alpha=0.1$，排除阈值为 $10$。
+
+令公共对数密度常数 $c_0=-2\log(2\pi)$。分子的平方残差和为
+\[
+ (0-0.5)^2+(0-0.5)^2+(1-0.5)^2+(1-0.5)^2=1,
+\]
+所以 $\ell_Q=c_0-0.5$。每棵树的 MLE 为将检验均值投影到相应区间：
+\begin{center}
+\begin{tabular}{lrrrrl}
+\toprule
+模型 & $\widehat\theta_T$ & SSE & $F_T^\star+c_0$ & $U_T$ & 判定\\
+\midrule
+$T_1$ & 0.5 & 1 & 0.5 & 1.000000 & 保留\\
+$T_2$ & 1.0 & 2 & 1.0 & 1.648721 & 保留\\
+$T_3$ & 2.0 & 10 & 5.0 & 90.017131 & 排除\\
+\bottomrule
+\end{tabular}
+\end{center}
+表中的 $F_T^\star=-c_0+\mathrm{SSE}/2$，故
+$\log U_T=\mathrm{SSE}/2-0.5$。最后
+$\mathcal C_{0.1}^{\mathrm{exact}}=\{T_1,T_2\}$。
+这些统计量不是“树的概率”；例如第三个值可以大于一。
+
+\paragraph{继续检查求解器界。}
+对 $T_2$，若局部求解器只找到 $\theta=2$，它得到 SSE $=10$，
+错误地把该可行点用作 profile 分母就会得到 $U=90.017131$，把本应保留的 $T_2$ 排除。
+反之，若证明相对负对数似然下界为 $0.8$，安全统计量为
+$e^{0.8-0.5}=1.349859$，不超过精确值 $1.648721$。
+对 $T_3$，若只取得下界 $2$，安全统计量
+$e^{2-0.5}=4.481689<10$，因此预算结束时必须保守保留；它虽然本可被精确计算排除，但当前证书还不够。
+
+\subsection{条件密度版本如何用于 P/Q/V}
+
+将功率及已知工况记为 $U$，把检验电压记为 $V_0$，训练数据记为 $D_1$。
+合适的对象是
+\[
+ \frac{q_1(V_0\mid U,D_1)}
+ {p_{T,\theta}(V_0\mid U,D_1)}.
+\]
+在相应条件分布下，分子对 $V_0$ 的积分为一，就可以重做期望计算。
+基础高斯回归可写成
+\[
+ v_t\mid p_t,q_t,T,\theta
+ \sim N(b_t\mathbf1+R_Tp_t+X_Tq_t,\Omega).
+\]
+如果时间相关已被建模，应使用检验序列的正确联合条件密度；把它强行写成独立时刻的乘积会改变原假设。若根电压未知，分母可合法地对其参数 profile，但分子不能在看到 $V_0$ 后重新自由选择每时刻的均值而仍声称是冻结的预测密度。
+
+训练模型较差主要降低检验能力；错误的原假设似然则会使保证的对象失去依据。功率测量误差、线性化偏差、噪声相关及根电压过程都应包含在观测模型或明确的近似范围中。
+
+\subsection{停止、成本及保证检查}
+
+有限域共有 $K$ 棵树时，成本为分子训练成本加上
+$\sum_{T\in\mathcal T}C_{\mathrm{solve}}(T)$。
+逐树计算可在证书跨越阈值时提前结束，也可在预算到达时保留“未定”。
+没有普适的多项式树搜索成本；把 RNJ 候选域当成全域只会隐藏组合复杂性。
+
+若多个预先定义的拆分各自产生非负统计量 $E_k$ 且真值处期望不超过一，则平均
+$K^{-1}\sum_kE_k$ 仍有该性质；不应改成看完结果取最大值。固定样本程序也不能在任意停止时直接复用。真正序贯的版本需要在看到当前数据前确定归一化条件预测密度，构造非负超鞅，再使用对应停止时理论。
+
+\paragraph{与最简树的接口。}
+反演保证保留固定真树，不以可辨识性为前提；但是没有可辨识性，集合通常无法稳定缩成唯一结构。隐藏度二节点的多个细分若产生同一观测模型，统计程序无法从相同密度中区分它们。候选域完整性、正确似然与数值证书是三个分别要检查的接口。
+
+\section{S16：把树拓扑和边长作为 MCMC 的真实状态}
+\label{sec:textbook-S16}
+
+\subsection{观测模型与状态：先弄清算法在抽什么}
+
+\citet{S16} 的主文第 5 节采用零均值高斯超度量协方差模型。Algorithm 1 先更新拓扑，再逐条更新全部边长。本节按该顺序整理；矩阵计算、存储规则和数值例子是教学补充。原文公式的版本疑点放在本节末尾与审查记录，不代替算法介绍。
+
+设有 $N$ 个独立样本 $x_t\in\mathbb R^m$：
+\[
+ x_t\mid T,a\sim N_m(0,\Sigma(T,a)),\qquad t=1,\ldots,N.
+\]
+这里零均值是模型条件，不能把估计样本均值后中心化与“均值已知为零”不加区分。
+标记集合为 $\{0,1,\ldots,m\}$；$0$ 是额外的根标记，其余 $m$ 个标记对应观测变量。
+采用带正根边的二叉树，其状态写为
+\[
+ \mathsf s=(\mathcal E,a),\qquad
+ a:\mathcal E\longrightarrow(0,\infty).
+\]
+每个分裂只存不含根标记 $0$ 的那一侧 $A\subseteq\{1,\ldots,m\}$，
+并以排序后的标记集合为唯一键。状态必须同时存“哪个分裂”及“该分裂的边长”，仅存边长数组会在改拓扑时丢掉含义。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+状态组成 & 内容\\
+\midrule
+固定末端分裂 & $\{1\},\ldots,\{m\}$，各自边长严格为正\\
+固定根分裂 & $\{1,\ldots,m\}$，对应共同根边，边长严格为正\\
+内部分裂 $\mathcal E^I$ & $m-2$ 个兼容分裂，大小在 $2$ 到 $m-1$ 之间\\
+长度字典 $a_A$ & 完全二叉状态共有 $2m-1$ 个正值\\
+$\Sigma$、$\ell$ & 当前协方差及数据对数似然的缓存\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+分裂兼容性在这种根向表示中意味着任意两个集合嵌套或不交。
+给 $A$ 的指示向量 $u_A$，协方差为
+\begin{equation}
+ \Sigma(\mathcal E,a)=\sum_{A\in\mathcal E}a_Au_Au_A^\top.
+ \label{eq:textbook-S16-sigma}
+\end{equation}
+它的第 $i,j$ 元是二者共同根路径长度之和。
+末端边为正保证对任意非零 $z$，
+\[
+ z^\top\Sigma z
+ =\sum_Aa_A(u_A^\top z)^2
+ \ge\sum_{i=1}^m a_{\{i\}}z_i^2>0.
+\]
+因此，即使暂时将某条内部边收缩到零，协方差仍然正定。
+这允许拓扑提议经过未分辨树，而不必经过奇异协方差。
+
+\subsection{先验与稳定似然计算}
+
+为给出可直接实施的版本，本节使用主文演示的先验形式：拓扑均匀、所有边长独立且服从同均值的指数分布。具体为
+\[
+ \pi_E(\mathcal E)=\frac1{(2m-3)!!},\qquad
+ \pi_L(a)=\lambda^{-(2m-1)}
+ \exp\!\left[-\frac1\lambda\sum_{A\in\mathcal E}a_A\right],
+ \quad \lambda>0.
+\]
+论文也讨论更一般的树分裂先验；若改变先验，接受比中必须保留相应先验比，不能沿用均匀先验时的简化。
+
+令 $S=N^{-1}\sum_tx_tx_t^\top$。忽略与状态无关的常数，数据对数似然为
+\begin{equation}
+ \ell(\mathcal E,a)
+ =-\frac N2\log\det\Sigma
+  -\frac N2\operatorname{tr}(S\Sigma^{-1}).
+ \label{eq:textbook-S16-loglik}
+\end{equation}
+实现时先作 Cholesky 分解 $\Sigma=LL^\top$，
+用 $2\sum_j\log L_{jj}$ 算 $\log\det\Sigma$，
+并用三角求解计算二次型或 trace；不应为方便反复显式求逆。
+数值分解失败应触发状态和精度检查，不应被静默当成“后验不喜欢这棵树”。
+
+\subsection{一次拓扑提议：只改一个内部分裂}
+
+当 $m\ge3$，从 $\mathcal E^I$ 均匀选择 $A$。
+把该边收缩后，邻接的两个三度节点合并成一个四度节点；
+移开该节点后得到四个连通分支，其叶标记集合为 $C_1,C_2,C_3,C_4$，
+其中恰有一个包含根标记 $0$。四个分支有三种两两连接方式：
+当前方式对应 $A$，另外两种对应两个不同的新分裂。
+
+这一描述给出了 \textsc{OtherTwoNNI} 的实现方式：
+构建当前树的邻接关系，收缩选中边，取得四个分支，枚举另外两种配对，
+最后把每个分裂规范为不含 $0$ 的一侧。不要在完全图上随意选一个子集充当新分裂，
+因为那可能与保留分裂不兼容。
+
+均匀选一个新分裂 $B$ 后，令
+\[
+ \mathcal E'=(\mathcal E\setminus\{A\})\cup\{B\},\qquad
+ a'_B=a_A,
+\]
+其余分裂长度保持不变。这一步“新边继承旧边长度”已由原 Algorithm 1 第 4 步核实。
+当前和反向提议概率都为 $[2(m-2)]^{-1}$，长度重命名的 Jacobian 为一。
+在本节均匀拓扑、同分布长度先验下，接受比只剩
+\[
+ \log r_E=\ell(\mathcal E',a')-\ell(\mathcal E,a).
+\]
+若使用非均匀拓扑先验，应加
+$\log\pi_E(\mathcal E')-\log\pi_E(\mathcal E)$。
+按 $\log U\le\min(0,\log r_E)$ 接受，否则保持整个旧状态。
+
+\subsection{一次边长提议：截断后不能省略提议比}
+
+拓扑决定后，依次访问当前树中的全部 $2m-1$ 条边。
+对当前长度 $a>0$ 提议
+\[
+ a'\sim N(a,\sigma^2)\ \text{截断于 }(0,\infty).
+\]
+这里 $a$ 是未截断高斯的中心，不是截断后分布的实际均值。
+设标准正态密度、分布函数分别为 $\varphi_N,\Phi_N$，
+\[
+ q(a'\mid a)=
+ \frac{\varphi_N((a'-a)/\sigma)}
+ {\sigma\Phi_N(a/\sigma)}\,\mathbf1\{a'>0\}.
+\]
+高斯核对称，但归一化因子不同，所以
+\[
+ \frac{q(a\mid a')}{q(a'\mid a)}
+ =\frac{\Phi_N(a/\sigma)}{\Phi_N(a'/\sigma)}.
+\]
+固定拓扑和其他边长，完整对数接受比为
+\begin{equation}
+ \log r_L=
+ [\ell(a')-\ell(a)]
+ -\frac{a'-a}{\lambda}
+ +\log\Phi_N(a/\sigma)-\log\Phi_N(a'/\sigma).
+ \label{eq:textbook-S16-length-ratio}
+\end{equation}
+按同样的对数均匀数规则接受。每接受一条边后，后续边必须使用已经更新的状态。
+若被拒绝，应保留旧值，并把这一重复状态纳入链；只保存接受样本会改变抽样分布。
+
+\subsection{一轮完整流程：原 Algorithm 1 的可执行整理}
+
+下面保持原文的“拓扑一次、全部边长一轮”顺序。
+接受概率按标准 Metropolis--Hastings 定义写为 $\min(1,r)$；
+这是对已核查版本中概率表达的必要明确化，不是声称作者代码也使用了排版中的 $\max$。
+
+\begin{algorithm}[htbp]
+\caption{S16：树状态上的拓扑与边长交替 MH（原流程的等价整理）}
+\label{alg:textbook-S16}
+\begin{algorithmic}[1]
+\Require 零均值模型数据 $x_{1:N}$；有效二叉状态 $(\mathcal E,a)$；$\lambda,\sigma>0$；轮数 $M$；舍弃轮数 $B<M$
+\Ensure $M-B$ 个链状态及拓扑、边长诊断记录
+\State 计算 $S$、当前 $\Sigma$ 与 $\ell$；检查所有状态约束
+\For{$r=1,\ldots,M$}
+  \If{$m\ge3$}
+    \State 均匀选择内部分裂 $A$，求另外两个 NNI 分裂并均匀选 $B'$
+    \State 构造 $\mathcal E',a'$，使 $a'_{B'}=a_A$，其余长度不变
+    \State 计算 $\ell'$，置 $\log r_E=\ell'-\ell$
+    \State 若 $\log U\le\min(0,\log r_E)$，用新状态替换当前状态
+  \EndIf
+  \For{当前 $\mathcal E$ 中每条边 $A$，按固定顺序}
+    \State 从 $N(a_A,\sigma^2)$ 的正半轴截断分布提议 $a'_A$
+    \State 构造 $\Sigma'=\Sigma+(a'_A-a_A)u_Au_A^\top$，计算 $\ell'$
+    \State 按式 \eqref{eq:textbook-S16-length-ratio} 计算 $\log r_L$
+    \State 若 $\log U\le\min(0,\log r_L)$，同步更新 $a_A,\Sigma,\ell$
+    \State 拒绝时保持当前状态，包括之前本轮已经接受的更新
+  \EndFor
+  \State 记录本轮当前状态及接受信息
+  \If{$r>B$}
+    \State 将当前状态存入后验样本序列
+  \EndIf
+\EndFor
+\State \Return 样本序列、分裂访问频率、边长轨迹及诊断
+\end{algorithmic}
+\end{algorithm}
+
+每个接受步骤中的 $U$ 都重新独立取自 $\operatorname{Unif}(0,1)$。
+本算法固定采用均匀拓扑和相同均值指数先验；
+一般先验需要相应修改接受比。$M$ 是计算预算，不是自动保证收敛的迭代数。
+
+\subsection{数值例：三末端树的一次拓扑提议和一次边长提议}
+
+取 $m=3$，全部五条边初始长度为 $1$：
+\[
+ \mathcal E=\{\{1\},\{2\},\{3\},\{1,2,3\},\{1,2\}\},
+ \quad
+ \Sigma_{12}=
+ \begin{pmatrix}3&2&1\\2&3&1\\1&1&2\end{pmatrix}.
+\]
+两个独立观测取
+$x_1=(1,1,0)^\top$、$x_2=(-1,-1,0)^\top$。
+它们是教学数值，不用于声称模型已通过验证。
+
+\paragraph{第一步：拓扑改变。}
+唯一内部分裂为 $\{1,2\}$，另外两种为 $\{1,3\}$ 和 $\{2,3\}$。
+假设提议选择 $\{1,3\}$，并继承长度 $1$：
+\[
+ \Sigma_{13}=
+ \begin{pmatrix}3&1&2\\1&2&1\\2&1&3\end{pmatrix}.
+\]
+两者行列式均为 $8$。直接解线性方程得到
+\[
+ x_1^\top\Sigma_{12}^{-1}x_1=\tfrac12,\qquad
+ x_1^\top\Sigma_{13}^{-1}x_1=1.
+\]
+对 $x_2$ 的二次型相同。因此
+\[
+ \ell_{12}=-\log8-\tfrac12,\qquad
+ \ell_{13}=-\log8-1,\qquad
+ r_E=e^{-1/2}=0.606531.
+\]
+若本次均匀数 $U=0.4$，接受，新状态是 $\Sigma_{13}$；
+若 $U=0.7$ 则拒绝，状态仍为 $\Sigma_{12}$。
+以下继续使用已经接受 $\Sigma_{13}$ 的分支。
+
+\paragraph{第二步：单条末端边长度改变。}
+令 $\lambda=\sigma=1$，对分裂 $\{3\}$ 的长度由 $1$ 提议到 $1.5$。
+新矩阵为
+\[
+ \Sigma'=\Sigma_{13}+0.5e_3e_3^\top
+ =\begin{pmatrix}3&1&2\\1&2&1\\2&1&3.5\end{pmatrix}.
+\]
+这里
+$e_3^\top\Sigma_{13}^{-1}e_3=5/8$、
+$x_1^\top\Sigma_{13}^{-1}e_3=-1/2$。
+行列式引理与 Sherman--Morrison 公式给出
+\[
+ \frac{\det\Sigma'}{\det\Sigma_{13}}=
+ 1+\frac12\frac58=\frac{21}{16},\quad
+ \det\Sigma'=10.5,\quad
+ x_1^\top(\Sigma')^{-1}x_1=1-\frac{(1/2)(1/2)^2}{21/16}
+ =\frac{19}{21}.
+\]
+因此
+\[
+ \ell'-\ell_{13}
+ =-\log(21/16)+\frac2{21}=-0.176696.
+\]
+先验比是 $e^{-0.5}$，提议比是
+\[
+ \frac{\Phi_N(1)}{\Phi_N(1.5)}
+ =\frac{0.841345}{0.933193}=0.901577.
+\]
+最终
+\[
+ \log r_L=-0.176696-0.5+\log(0.901577)=-0.780306,
+ \qquad r_L=0.458266.
+\]
+若本次 $U=0.5$，拒绝该边长变化，当前状态仍是长度均为 $1$ 的 $\Sigma_{13}$。
+这个演算同时检查了似然、先验和截断提议三部分，不能只比较数据拟合。
+
+\subsection{怎样汇总样本、判断预算是否足够}
+
+对保留的 $M-B$ 个状态，可计算某分裂的访问频率
+\[
+ \widehat P(A\in\mathcal E\mid D)
+ =\frac1{M-B}\sum_{r>B}\mathbf1\{A\in\mathcal E^{(r)}\}.
+\]
+这是在链充分混合前提下的数值后验近似。对给定分裂，报告存在概率和
+“存在时的边长分布”应分开；未出现的分裂不是一条已存在但长度为零的内部边。
+完整拓扑的出现频率、最大访问后验密度状态和逐元素协方差平均，也分别是不同的汇总量。
+
+实际停止规则可预先给定预算，再检查多个初始树的模式访问、分裂切换、边长有效样本量和似然轨迹。没有一个“轨迹看起来平稳”的判据能够证明已访问全部后验模式。
+本节不推荐把原论文某次实验的舍弃比例机械搬到新数据。
+
+预计算 $S$ 约需 $O(Nm^2)$。朴素实现每次提议重新做稠密分解，
+一轮 $O(m)$ 次提议的成本约为 $O(m^4)$；$M$ 轮约 $O(Mm^4)$。
+单边变化是秩一更新，拓扑替换是一次删除加一次加入，谨慎使用 Cholesky 更新后可以减少重复计算；这是实现优化，不是原文实验时间的重述。
+只存分裂和长度约需每样本 $O(m)$ 空间，保存全部协方差则需 $O(m^2)$。
+
+\subsection{在 Topo 中迁移时保留哪些边界}
+
+相同的分裂展开可用于共同路径响应矩阵 $R$、$X$，但论文的观测模型是
+$x_t\sim N(0,\Sigma)$，并不是自动把电压样本当成共同路径增量。
+例如 $v=Rp+\varepsilon$ 时，通常
+$\operatorname{Cov}(v)=R\operatorname{Cov}(p)R^\top+\operatorname{Cov}(\varepsilon)$，
+并不等于 $R$。采用本算法之前，应明确抽样对象是响应矩阵参数还是电压协方差；
+若重写为 $P/Q/V$ 条件似然，应标作教学迁移模型。
+
+严格正的连续边长先验不对多分叉边界赋正质量。原 Algorithm 1 可以经零内部边的几何位置提出新二叉树，但最终保留状态仍是二叉正边状态。
+若目标最简树允许未分辨多分叉，需要新的边界质量与跳转规则，不能仅把近零边概率称为精确多分叉后验。
+
+\paragraph{版本核验提醒。}
+所读主文式 (9)--(11) 的 $\max(1,r)$ 不能作为接受概率，故上文使用了标准 $\min(1,r)$。
+主文关于扩展距离的加法表达与 CAT(0) 唯一性之间的核验问题，也不影响读者按明确密度和 MH 比率理解本节算法。完整证据和独立反例列在 \path{audit_statistical.md}，不据此推断作者代码是否存在相同问题。
+
+\section{S17：从校准分数到预测集合}
+\label{sec:textbook-S17}
+
+\subsection{先选样本单位：一个时刻还是一整个网络}
+
+\citet{S17} 第 1.1 节给出 split conformal 的标准步骤，附录 D 用秩对称性证明覆盖。
+其输入是一批具有可观测标签的校准样本 $(X_i,Y_i)$，以及已经冻结的评分函数
+$s(x,y)$；分数越大表示候选标签越不符合模型。
+
+在 Topo 中，两个不同任务对应两种不同样本单位：
+\begin{center}
+\begin{tabularx}{\linewidth}{lXXX}
+\toprule
+任务 & 一个 $X_i$ & 一个 $Y_i$ & 需要的校准来源\\
+\midrule
+未来电压预测 & 一个时刻的功率与工况 & 同一时刻的电压向量 & 与未来时刻具有所需交换关系的观测\\
+新网络拓扑预测 & 一整网的末端数据包 & 该网络已知真拓扑 & 多个有真树标签的可交换网络实例\\
+\bottomrule
+\end{tabularx}
+\end{center}
+同一未知网络的九个时刻可以提供九个电压标签，
+却不会自动提供九个已知的拓扑标签。这一选择必须发生在校准算法之前。
+
+\subsection{分位数公式及覆盖推导}
+
+给定 $n$ 个校准分数 $s_i=s(X_i,Y_i)$，令
+\begin{equation}
+ k=\left\lceil(n+1)(1-\alpha)\right\rceil,\qquad
+ \widehat q=
+ \begin{cases}
+ s_{(k)},& k\le n,\\
+ +\infty,& k=n+1,
+ \end{cases}
+ \quad
+ \mathcal C(x)=\{y:s(x,y)\le\widehat q\}.
+ \label{eq:textbook-S17-quantile}
+\end{equation}
+$s_{(k)}$ 是从小到大排序的第 $k$ 个数，使用从 $1$ 开始的索引。
+直接写成普通经验 $1-\alpha$ 分位数会遗漏有限样本修正。
+
+条件于独立训练数据，若校准样本与新样本可交换，且分数几乎必然无并列，
+新分数在 $n+1$ 个分数中的秩均匀。因此当 $k\le n$，
+\[
+ \mathbb P\{Y_{\mathrm{new}}\in\mathcal C(X_{\mathrm{new}})\}
+ =\mathbb P\{s_{\mathrm{new}}\le s_{(k)}\}
+ =\frac{k}{n+1}\ge1-\alpha.
+\]
+当 $k=n+1$，集合为整个输出空间，覆盖自然成立。
+有并列时，用弱不等式得到的下界仍然保留，集合可能更保守；
+精确上界需要额外条件或相应随机化。这是对来源秩论证的教材展开。
+
+\subsection{完整标准算法}
+
+\begin{algorithm}[htbp]
+\caption{S17：split conformal（原算法的索引与边界显式整理）}
+\label{alg:textbook-S17}
+\begin{algorithmic}[1]
+\Require 独立训练数据 $D_{\mathrm{train}}$；校准数据 $\{(X_i,Y_i)\}_{i=1}^n$；$0<\alpha<1$
+\Ensure 可用于新输入的预测集合函数 $\mathcal C(\cdot)$
+\State 只用训练数据拟合预测器及尺度，定义并冻结评分函数 $s$
+\For{$i=1,\ldots,n$}
+  \State $s_i\gets s(X_i,Y_i)$
+\EndFor
+\State $k\gets\lceil(n+1)(1-\alpha)\rceil$
+\If{$k>n$}
+  \State $\widehat q\gets+\infty$
+\Else
+  \State 对分数排序，$\widehat q\gets s_{(k)}$
+\EndIf
+\State 对任意新输入 $x$，返回所有满足 $s(x,y)\le\widehat q$ 的输出 $y$
+\State \Return $\mathcal C(\cdot)$，以及 $n,k,\widehat q$ 和冻结评分器
+\end{algorithmic}
+\end{algorithm}
+
+评分函数可以很差而仍获边际覆盖，但集合会很大或没有辨别力。
+校准数据用于确定阈值，不能又在许多评分器之间挑最窄的那个而仍直接套用同一证明。
+若需要调评分器，应另用训练/调参数据或采用有对应理论的选择程序。
+
+\subsection{数值例一：九个残差得到一个电压区间}
+
+设冻结预测器对本例所有输入给 $\widehat v=230$ 伏，
+尺度为 $1$ 伏，评分 $s(x,v)=|v-230|$。
+取 $\alpha=0.2$，九个校准观测及其分数为
+\begin{center}
+\begin{tabular}{crrrrrrrrr}
+\toprule
+$i$ &1&2&3&4&5&6&7&8&9\\
+\midrule
+$v_i$ &230.1&229.8&230.2&229.6&230.4&229.5&230.7&229.2&231.1\\
+$s_i$ &0.1&0.2&0.2&0.4&0.4&0.5&0.7&0.8&1.1\\
+\bottomrule
+\end{tabular}
+\end{center}
+这些分数恰好已按升序排列。
+\[
+ k=\lceil10\times0.8\rceil=8,\qquad
+ \widehat q=s_{(8)}=0.8.
+\]
+因此新输入的预测集合为
+\[
+ \mathcal C(x)=[230-0.8,\ 230+0.8]=[229.2,230.8]\ \text{伏}.
+\]
+新值 $230.7$ 的分数为 $0.7$，落入集合；$230.9$ 的分数为 $0.9$，不落入集合。
+这两个检验点仅解释集合判定，不是覆盖率的经验估计。
+
+若同样 $n=9$ 却要求 $\alpha=0.05$，
+$k=\lceil9.5\rceil=10>n$，必须返回整个实数轴。
+把 $k$ 硬截到 $9$ 并取最大残差 $1.1$，在一般连续分数下只有 $9/10$ 的覆盖，
+不是所要求的 $95\%$。这一边界是可实施算法必须显式处理的部分。
+
+\subsection{向量电压：同时覆盖应放进评分定义}
+
+对 $m$ 个末端，冻结 $\widehat v_j(x)$ 和严格正的尺度 $\widehat\sigma_j(x)$，
+定义
+\[
+ s(x,v)=\max_j\frac{|v_j-\widehat v_j(x)|}{\widehat\sigma_j(x)}.
+\]
+由该向量分数独立校准得到阈值后，
+\[
+ \mathcal C_v(x)=
+ \prod_{j=1}^m
+ [\widehat v_j(x)-\widehat q\widehat\sigma_j(x),\
+  \widehat v_j(x)+\widehat q\widehat\sigma_j(x)].
+\]
+这是单个新时刻的整个电压向量覆盖事件，不是每个节点分别校准后再假定联合覆盖。
+
+作为单独的教学计算，若\emph{向量校准分数}给出 $\widehat q=0.8$，
+新输入的预测为 $(230,228)$、尺度为 $(1,0.5)$，则
+\[
+ \mathcal C_v=[229.2,230.8]\times[227.6,228.4].
+\]
+观测 $(230.7,228.45)$ 的标准化误差为 $(0.7,0.9)$，
+最大值 $0.9$，故整个向量不被覆盖。不能把上一小节的标量校准分数直接当作此处向量分数；两者必须分别校准。
+
+\subsection{数值例二：标签是整棵树时怎样构造集合}
+
+现在使用另一组九个\emph{网络实例}进行校准，各实例的真树已知，
+并采用冻结推断器产生的树权重 $\widehat W(T\mid X)$。
+定义 $s(X,T)=1-\widehat W(T\mid X)$。
+假设这组网络校准分数为
+\[
+ (0.05,0.10,0.15,0.20,0.30,0.40,0.50,0.80,0.90).
+\]
+同样取 $\alpha=0.2$，得到 $k=8$、$\widehat q=0.8$。
+对一个新网络，三种树标签的冻结权重为
+\[
+ \widehat W=(0.65,0.25,0.10),\qquad s=(0.35,0.75,0.90).
+\]
+因为要求 $s\le0.8$，输出
+$\mathcal C_T(X)=\{T_1,T_2\}$。
+这可以校准一个原先不准确的权重评分，但覆盖对象是同机制新网络的真树标签，
+不是把同一网络的时间样本误当作独立真树。
+
+评分须在声明的整个树标签空间上有定义。
+如果测试时把该集合再与 RNJ 候选集相交，被截掉的真树可能破坏覆盖。
+若事先把候选域外树的分数定义为 $+\infty$ 并按同一规则校准，
+频繁候选遗漏可能使 $\widehat q=+\infty$；此时集合按定义应含全部标签，
+不能仍强行输出那个有限候选域。
+
+\subsection{停止、成本和数据条件}
+
+校准算法在计算全部 $n$ 个分数和一个次序统计量后结束。
+若每个评分成本为 $C_s$，排序实现约需
+$O(nC_s+n\log n)$；选第 $k$ 小元素可避免完整排序。
+树标签有限且有 $K$ 种时，每个新输入需要评估 $K$ 个标签分数；
+连续回归则需要把不等式反解为区间或区域。这里不包含预测器训练成本。
+
+覆盖是对校准集和新样本随机性平均后的边际陈述；它不是固定校准集上每个输入点的条件保证。
+对于时间数据，季节漂移、主动控制改变采样策略和重叠窗口都会影响可交换性。
+简单打乱时序不会制造原本不存在的独立性或交换性。
+若改用窗口、分组、加权或漂移适应版本，应说明新分数与新理论，不把标准算法的保证原封不动转移。
+
+\paragraph{预测与拓扑的最后区别。}
+一个错误拓扑仍可能在有限激励下有良好电压预测，或者靠很宽区域取得高覆盖。
+极端例子是始终返回 $\mathbb R^m$：电压覆盖为一，却没有任何拓扑识别内容。
+因此应同时报告区域大小、分组覆盖及样本单位。
+本节算法可靠地回答“新观测/标签如何形成覆盖集合”，不能凭电压残差校准直接回答“这棵物理树是否为真”。
+
+\section{四种算法怎样衔接而不混淆}
+\label{sec:textbook-statistical-connection}
+
+在一次可追踪的研究中，可以让 RNJ 提供候选，S14 对声明损失产生可比较权重，
+再以 S16 的树坐标探索连续参数与新分裂；
+但只有使用所声明的高斯协方差似然，才是本章给出的 S16 原模型。
+若目标是频率意义的真树保留，可另在正确条件似然和完整参数域上运行 S15。
+若目标是未来电压区域，S17 则可以把冻结预测器的残差分数校准成集合。
+它们不是一个自动叠加保证的流水线。
+
+一份可实施的记录至少应保存：数据划分、功率和电压坐标、树标签规范、
+候选生成规则、先验或损失、归一化密度、优化上下界、MCMC 随机种子、
+校准秩和无限阈值行为。每个输出都注明属于信念权重、后验计算近似、
+频率置信集合还是预测覆盖集合。这些对象分清后，数值实验才能回答相应的问题。

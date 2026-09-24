@@ -1,0 +1,68 @@
+% Compile from this directory: latexmk -xelatex -outdir=build main.tex
+\documentclass[UTF8,11pt,fontset=fandol,openany,oneside]{ctexbook}
+\usepackage[a4paper,margin=2.2cm,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array,tabularx,longtable,multirow}
+\usepackage{enumitem,graphicx,xcolor,fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage{algorithm,algpseudocode}
+\floatname{algorithm}{算法}
+\algrenewcommand\algorithmicrequire{\textbf{输入：}}
+\algrenewcommand\algorithmicensure{\textbf{输出：}}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=teal!65!black,urlcolor=blue!60!black,bookmarksnumbered=true]{hyperref}
+\hypersetup{pdftitle={配电网文献算法：教材式解析与完整性审查},pdfauthor={Topo 研究文档}}
+\setlist{nosep,leftmargin=2em}
+\setlength{\parskip}{0.25em}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.2}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small 配电网文献算法：教材式解析}
+\fancyhead[R]{\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\chaptermark}[1]{\markboth{第\thechapter 章}{} }
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{proposition}[theorem]{命题}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{定义}
+\newtheorem{example}[theorem]{例}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{说明}
+\numberwithin{equation}{chapter}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{2}
+\title{配电网文献算法\\[0.6em]\Large 教材式解析与完整性审查\\[0.8em]\large 从观测模型、算法步骤到算例、证明与复现边界}
+\author{Topo 研究文档}
+\date{2026年9月11日}
+\begin{document}
+\frontmatter
+\maketitle
+\input{chapters/preface}
+\tableofcontents
+\mainmatter
+\input{chapters/foundations}
+\input{chapters/passive}
+
+
+
+
+\input{chapters/integration}
+\appendix
+\input{chapters/audit}
+\backmatter
+\bibliographystyle{unsrtnat}
+\bibliography{refs_core}
+\end{document}

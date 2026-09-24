@@ -1,0 +1,629 @@
+       A Topological Model-Driven Optimization
+     Approach for Detecting and Locating Electricity
+            Fraud in low-voltage Networks
+Rubén Carmona-Pardo∗† , Rafael Morán-Corbacho∗† , Carlos Garcı́a-Santacruz ∗† , Álvaro Rodrı́guez del Nozal∗ , and
+                                            Esther Romero-Ramos∗‡
+                             ∗ Department of Electrical Engineering, Universidad de Sevilla, Seville, Spain
+                                        † Ingelectus Innovative Electrical Solutions, Seville, Spain
+         ‡ ENGREEN Laboratory of Engineering for Energy and Environmental Sustainability of Universidad de Sevilla
+
+
+
+
+   Abstract—Electricity fraud in low-voltage networks has be-                                   I. I NTRODUCTION
+come increasingly sophisticated, causing both technical and non-
+technical losses for utilities, along with issues related to power           Electricity fraud has always been one of the major concerns
+quality and supply continuity. While current artificial intelligence      of electricity distributors. Its immediate negative effects are
+and big data methods are effective for detecting visible fraud,
+                                                                          not only economic, but can also cause technical problems
+invisible fraud (resulting from direct illegal connections) is harder
+to detect and locate, often requiring extensive fieldwork. This           with enormous repercussions, such as interruptions in supply,
+paper proposes a methodology that leverages network topology,             a deterioration in the quality of the signal supplied to the
+connectivity data, and smart meter measurements to construct              customer causing damages in appliances, greater electricity
+a linear model of the low-voltage network and address both                losses in energy transmission, or worse still, endangering
+visible and invisible fraud. The optimization problem minimizes
+                                                                          people’s safety, among other things [1]. The deterioration of
+the differences between recorded and calculated voltages, as well
+as the discrepancies in power, to detect and locate fraudulent            the sustainability of the entire electrical system as a result of
+segments. This approach significantly reduces the time required           electricity fraud is evident and a subject of debate in society
+for fraud detection, optimizing efforts and reducing costs for            [2].
+distribution operators. Real-world low-voltage network data tests            There are different ways to steal electricity, the two most
+validate the proposal.
+                                                                          common being tapping electricity directly from the distribution
+  Index Terms—Electricity fraud, Fraud detection, low-voltage             network without passing through the meter or tampering with
+networks, Network optimization, Smart Meters                              the energy meter [1]. The first of these two, which is the most
+                                                                          widespread [3], consists of illegally connecting to a feeder at
+                                                                          any point between the distribution transformer and the nodes
+                         N OMENCLATURE                                    where customers are connected (usually the leaf nodes). This
+Throughout this work, the following notation is used:                     type of theft is particularly difficult to detect if the illegal
+k, t             Indices for buses                                        connection is not made immediately before the energy meter,
+p, q ∈ {a, b, c} Indices for phases                                       but far away from it, in the middle of a power line away from
+Vkq              Phase q to neutral voltage magnitude mea-                customer connection points. Throughout this work, theft that
+                 surement at bus k                                        involves a connection immediately before the meter is called
+V̂kq             Phase q to neutral voltage magnitude esti-               visible fraud, while the connection far from any energy meter
+                 mate at bus k                                            is named invisible fraud.
+Phq              Active power measurement at the network                     In the specialized literature, different criteria have been
+                 header through phase q                                   proposed to classify theft detection methodologies [3]-[12].
+P̂hq             Active power estimate at the network header              A first rough classification is based on whether or not new
+                 through phase q                                          specific equipment to detect electricity theft is installed, i.e.
+Pkp              Phase p active power injection at bus k                  hardware versus non-hardware solutions. Most of the proposed
+   q                                                                      solutions are non-hardware, seeking to avoid incurring new
+P(k,t)           Fraudulent power associated with phase q of
+                 the line connecting nodes k and t                        investment costs. These non-hardware solutions are classified
+ϵ                Voltage discrepancy threshold                            into three new categories: data-based, model-based, or hybrid
+γ                Trade-off weighting parameter                            methods. The main difference between data-driven and model-
+                                                                          driven approaches is the use of network-related data by the
+                                                                          second. Data-driven approaches have been very popular since
+Submitted to the 24th Power Systems Computation Conference (PSCC 2026).   the widespread use of smart meters (SMs), and concentrate
+
+
+
+24th Power Systems Computation Conference                                                              Limassol, Cyprus — June 8-12, 2026
+                                                                      PSCC 2026
+most of the non-hardware proposals from the specialized               method is introduced. Section V evaluates the performance
+literature. However, these methodologies fail to detect invisible     and robustness of the proposed solution under simulation and
+fraud, for which it is mandatory to use model-based or hybrid         Section VI summarizes the main results of the conducted
+approaches. This work focuses on detecting and quantifying            research and future work lines.
+both visible and invisible fraud, so data-driven solutions are
+not considered the best techniques for addressing this problem.                      II. M OTIVATION OF THE PROBLEM
+   Model-based solutions typically detect fraud by computing             European LV distribution networks are inherently unbal-
+the deviation between estimated values and available mea-             anced systems, primarily composed of four-wire lines: the
+surements and comparing it to a preset threshold [3], [12].           three phases (a, b, and c) and the neutral conductor (n). The
+Algorithms based on state estimators [13], [14], [15], [16],          networks supply a mix of single-phase loads, connected be-
+[17], [18], or power flow tools [19], [20], [21], [22], are used to   tween one phase and the neutral, and three-phase loads, which
+estimate the quantities to be compared with the measurements.         are typically unbalanced. In recent years, the proliferation
+The greater the level of measurements collected, the better           of private photovoltaic (PV) self-consumption installations at
+the performance of these model-based methodologies, with              this voltage level has further altered traditional grid operation.
+solutions based on state estimators performing better than            PV sources operate alongside demand loads, which can cause
+those based on power flow [12]. However, the reality is               reverse power flows at certain times across different parts of
+far from this high degree of measurement redundancy, and              the grid, and occasionally even at the MV/LV transformer.
+although SMs have radically changed the observability of low-         Consequently, the resulting voltage profiles can differ signifi-
+voltage networks [19], many more intermediate sensors should          cantly from well-known traditional patterns.
+be installed for these model-based approaches to successfully            From an operational perspective, electricity fraud behaves
+detect and identify electricity fraud [16], mainly for power          as an unregistered, additional load. This practice is reflected
+flow-based approaches [21], [22]. It is worth mentioning that         in two main electrical effects. The first is an inconsistency in
+to the best of the authors’ knowledge, none of the model-based        LV network energy balances, where loss percentages above a
+methodologies published to date addresses the detection and           certain threshold may suggest the presence of non-technical
+identification of invisible fraud and none of them take into          losses in addition to technical ones. The second key indicator
+account the specific nature of low-voltage lines, i.e., sections      is an abnormal voltage profile along the grid, characterized by
+with three phases and four wires.                                     increasing voltage imbalances or unusually low-voltage values
+   This paper proposes a methodology to address both visible          at certain nodes.
+and invisible fraud, leveraging advanced optimization tech-              To illustrate the impact of fraud on voltages, the unbalanced
+niques based on network model, sensor data at the distribution        53-bus LV network 65037 from [23] is considered. A typical
+network, and SM readings. By constructing a linear model of           operating scenario is simulated with a three-phase illegal
+the low-voltage (LV) network, the proposed approach identifies        connection demanding 30 kW at bus 33. Although inherently
+fraudulent connections. It aims to optimize the detection             three-phase, Fig. 1 depicts the phase-a voltage profile for
+process, reducing both the time and cost involved in locating         simplicity. The green line represents the normal case (no
+fraud incidents.                                                      fraud), while the red line shows the case with the illegal
+   Thus, the main contributions of the work are:                      connection. A clear voltage drop appears at bus 33 and its
+  • Propose a novel optimization-based methodology for                electrically adjacent buses, potentially causing power quality
+    detecting and locating visible and invisible electricity          issues, overloads in critical components such as power lines,
+    fraud in LV networks. The proposed solution specifically          and threats to supply continuity. This distinctive voltage devi-
+    leads to a mixed-integer convex quadratic optimization            ation serves as a detectable signature for fraud identification
+    problem, which guarantees that a global solution will be          and localization, highlighting the need for effective tools to
+    found.                                                            uncover such unauthorized consumption.
+  • Leveraging network topology and connectivity data in
+                                                                                          III. P ROBLEM DESCRIPTION
+    conjunction with sensors and SM data to construct a
+    more accurate linear model of the network. This linear               The work considered in this study uses a distribution
+    model takes into account the unbalance nature of the              network model defined by a graph G, where the vertices
+    three-phase four-wire low-voltage networks, non avoiding          represent the buses of the network, and the edges represent
+    the consideration of the neutral or the coupling among            the electrical lines that interconnect them. Mathematically, the
+    phases.                                                           graph G is defined as G = (V, E), where V is the set of
+  • Reduce the time and operational costs associated with             vertices or buses1 , and E is the set of edges or electrical
+    traditional fraud detection methods by optimizing field           lines that interconnect those buses. This work takes into
+    inspection efforts.                                               account the unbalanced nature of LV distribution networks.
+                                                                      Thus, the electrical quantities of the network at each point are
+   Section II motivates the addressed problem by analyzing the
+consequences of electricity fraud in a LV network. Section              1 Note in a three-phase four-wire network a bus can be constituted by until
+III formally state the problem. In Section IV the proposed            4 nodes, the three phases and the neutral
+
+
+
+
+24th Power Systems Computation Conference                                                               Limassol, Cyprus — June 8-12, 2026
+                                                                  PSCC 2026
+                                                                                                                                    collected. In addition, active and reactive power and nodal
+                                                                                 3 K D V H  D  Q R U P D O  R S H U D W L R Q         voltages are also collected at the low-voltage side of the
+                                                                            3 K D V H  D  L O O H J D O  F R Q Q H F W L R Q     distribution transformer, node h, by low-voltage supervisors
+                                                                                                                                    [27], that is, Phq , Qqh and Vhk .
+                              
+ 9 R O W D J H   9 
+
+
+
+
+                                                                                                                                                              IV. P ROPOSED METHOD
+                                                                                                                                       The proposed method consists of two sequential stages
+                                                                                                                                    as schemed in Fig. 2. In the first stage, candidate network
+                                                                                                                                         segments potentially hosting fraud are preselected by com-
+                              
+                                                                                                                                         paring actual voltage measurements against predicted voltages
+                                                                                                                                    derived from a reference network model, thus constructing F;
+                                                                                                                              significant discrepancies between these values indicate areas
+                                                          % X V  Q X P E H U                                                            warranting further investigation. The second stage refines this
+                                                                                                                                         identification by precisely locating the fraudulent segments
+Fig. 1. Voltage profile (phase a) across the 53-bus LV network 65037 from                                                                through the resolution of a novel optimization problem.
+[23] under normal conditions (green) and with a 30 kW illegal connection at
+bus 33 (red).                                                                                                                            A. Identification of candidates areas to host fraud
+                                                                                                                                            As introduced in the problem description, the proposed
+represented by four components corresponding to phases a, b                                                                              approach relies on the electrical network model together with
+and c and the neutral wire n.                                                                                                            a set of measurements acquired from the system. Specifically,
+   The problem addressed in this work is the identification and                                                                          synchronized measurements of active power, reactive power,
+location of illegal connections in LV distribution networks. An                                                                          and nodal voltages are available from all SMs in the network,
+illegal connection is assumed to be attached to a power line                                                                             as well as from the feeder head. Based on this information, as
+between two adjacent buses k and t, where (k, t) ∈ E. Only a                                                                             it can be seen in Fig. 2, the proposed method proceeds in the
+subset of power lines is considered vulnerable to hosting illegal                                                                        following steps:
+connections. Accordingly, the set F ⊆ V is defined as the set                                                                               1) A model of the network is constructed based on the
+of buses adjacent to those power lines that are candidates for                                                                                 topology and the electrical parameters of the power
+hosting an illegal connection.                                                                                                                 lines.
+   To approach the problem, the following hypotheses are                                                                                    2) The constructed model is fed with the active and reactive
+considered:                                                                                                                                    power measurements from the SMs, while the voltage at
+   • Information about the network topology and the types of                                                                                   the head of the network is fixed to its measured value.
+      conductors used is available. Therefore, network model                                                                                   Note that, at this stage, the nodal voltages measured by
+      G can be derived.                                                                                                                        the SMs and the power measurements at the network
+   • Prior work has already been carried out to determine the                                                                                  head are not used.
+      phase assignment of each SM in the network.                                                                                           3) Next, the voltages measured by the SMs are compared
+   • Synchronized measurements of active power, reactive                                                                                       with those computed by the model-based power flow
+      power, and nodal voltages are available from each SM in                                                                                  solution. Nodes for which this discrepancy exceeds a
+      the network, as well as from the distribution transformer                                                                                predefined threshold, i.e. |Vkq − V̂kq | ≥ ε2 , are flagged
+      at the head of the feeder.                                                                                                               as candidate buses where illegal connections may be
+   It should be noted that these assumptions are increasingly                                                                                  present and, therefore are included in set F.
+realistic in modern distribution systems. Electricity distribution                                                                          Recall that the discrepancies in voltages for a simulated
+companies maintain detailed, geolocated records of all their                                                                             fraud in a network, discussed during the problem motivation
+electrical assets; combined with information on the conductor                                                                            in Section II, were already illustrated in Fig. 1.
+types used in the installation, this enables accurate knowledge
+                                                                                                                                         B. Fraud detection and location
+of both the network topology and the electrical characteristics
+of its lines. Regulatory issues related to remuneration for                                                                                Once the set F has been constructed, the second stage
+the electricity distribution business [24] are one of the main                                                                           of the algorithm begins. In this stage, the proposed method
+reasons why distribution companies collect and keep all this                                                                             aims to identify both the location and magnitude of the illegal
+information up to date. Likewise, synchronized “snapshots” of                                                                            connections. To achieve this, two steps are performed. First,
+the distribution network are becoming increasingly common                                                                                a linear model of the network is derived using sensitivity
+[25], [26], driven by utilities growing interest in detecting                                                                            coefficients. Subsequently, an optimization problem based on
+energy theft and other forms of non-technical losses. In partic-                                                                         that coefficients is formulated, whose solution yields the
+ular, it is assumed that for each single-phase load connected to                                                                         location and magnitude of the illegal connections in the LV
+a bus k and measured by a SM between phase q and the neutral                                                                             network.
+wire, time-aligned measurements of active power Pkq , reactive                                                                             2 Variables marked with a hat (e.g. x̂) represent model estimates, while
+power Qqk , and phase-to-neutral voltage Vkq are simultaneously                                                                          unmarked variables denote measured quantities.
+
+
+
+
+24th Power Systems Computation Conference                                                                                                                                 Limassol, Cyprus — June 8-12, 2026
+                                                                                                                                       PSCC 2026
+  Topology data                                                                                                           Second stage: Fraud branch localization
+                                                                                                                                  and energy calculation
+                                                 First stage: Identification of candidates areas to host fraud
+            N1
+
+                           N3                        Generate electrical                  Three-phase unbalanced                   Sensitivity coefficients
+             N2
+                                                    digital twin of the grid                   Power Flow                                calculation
+  N4
+                         N5
+                N6                                                                                                                Building sentivitity-based
+                                                                                                                                 fraud detector optimization
+ Sensor and Smart                                                      Graph-based localization                                       problem (SFDOP)
+    Meter data                                                          of candidates branches
+                Sensor voltage data
+          brandname                                                       to containing fraud
+                                                                                                                                       Solve SFDOP
+                                Sensor power data
+                                SM power data
+                                SM voltage data
+
+                                                            Fig. 2. Fraud detection and calculation methodology scheme.
+
+
+
+   The linear approximation of the network model is con-                                       In the above optimization problem, the decision variables
+structed by computing the sensitivity coefficients of nodal                                 are the power adjustments ∆Pkq and the binary indicators
+                                                                                             q
+voltages with respect to power injection increments, i.e.,                                  δ(k,t) , defined for all nodes k, t ∈ F and phases q ∈ {a, b, c}.
+∂ V̂kq /∂Ptp , as well as the sensitivity of active power at the head                          The optimization problem aims to minimize the discrep-
+of the network with respect to power injection increments, i.e.,                            ancies between the voltage measurements at SMs and the
+∂ P̂hq /∂Ptp . The procedure to obtain these sensitivity coeffi-                            corresponding model-based estimates, as well as between the
+cients is well described in [29], where their accuracy has also                             estimated and measured active power at the head of the
+been evaluated. These sensitivities are obtained at an operating                            network (Both objectives are balanced by a trade-off weighting
+point of the network where the power flow was solved in the                                 parameter γ). To this end, the variables ∆Pkp are introduced,
+previous stage. The estimated values of nodal voltages, head                                representing the additional power demand injections required
+power, and sensitivities at this operating point are denoted                                at network nodes to supply undetected illegal connections.
+as x|0 where x represent the specific magnitude. The use of                                 Note that these new power injections alters both the nodal
+sensitivity coefficients to linearize the network equations offers                          voltages and the head power, as described by eqs. (1b) and (1c)
+a significant advantage, as it allows formulating the constraints                           respectively. The total fraudulent power associated with a line
+of the optimization problem to be solved by using linear                                    connecting nodes k and t is modeled as the sum of the power
+                                                                                                                                     q
+equations. This avoids considering the exact network equations                              increments at its endpoints, i.e., ∆P(k,t)    (see eq. (1d)). Two
+that would lead to a nonlinear and non-convex optimization                                  additional constraints are included in the formulation. First,
+problem. The proposed linear formulation makes the resulting                                the fraudulent power on any line must exceed a predefined
+methodology computationally efficient and robust.                                           threshold; smaller values are discarded by setting the binary
+                                                                                                        q
+   Once the linear model of the network is constructed, the                                 variable δ(k,t)  to zero (1e). Second, the total fraudulent power
+following optimization problem (1) is formulated:                                           across the network is constrained to be less than the total losses
+                             2                             2                              of the system (including both technical and non-technical
+            X q                     1 XX q
+  min γ            P̂h − Phq +                     Vk − V̂kq , (1a)                         losses) as reflected in eq. (1f).
+               q
+                                   Nk q
+                                                            k∈V
+                                                                                                              V. M ETHOD PERFORMANCE
+                                    X X ∂ V̂ q
+   s.t.               V̂kq = V̂kq +         k
+                                             p              ∆Ptp ,                (1b)         To evaluate the performance of the proposed method, this
+                                 0        ∂Pt                                               section details the real-world network test case, the generated
+                                    t∈F p               0
+                                            X X ∂P q                                        fraud scenarios, and the evaluation procedure.
+                      P̂hq = P̂hq       +           h
+                                                            ∆Pkp ,                 (1c)
+                                    0             ∂Pkp 0                                    A. Test case description
+                                    k∈F p
+                           q
+                      ∆P(k,t)  = ∆Pkq + ∆Ptq ,                                    (1d)        The performance of the proposed approach is assessed using
+                       q                 q         q                                        a test case derived from adapted LV networks in northern
+                      δ(k,t) ∆Pmax ≥ ∆P(k,t) ≥ δ(k,t) ∆Pmin ,                      (1e)
+                        X X          q
+                                                                                            Spain, originally detailed in [23]. These distribution systems
+                                 ∆P(k,t) ≤ Ploss .                                 (1f)     consist of 22 independent radial LV networks, each fed by
+                      (k,t)∈E q                                                             a 22/0.42 kV distribution transformer. While the foundational
+
+
+
+24th Power Systems Computation Conference                                                                                     Limassol, Cyprus — June 8-12, 2026
+                                                                                       PSCC 2026
+network topologies, line parameters, and load profiles are doc-     modeled exclusively as either a single-phase or a three-phase
+umented in [23], the specific datasets employed in this study       power demand. The measurement visibility is determined by
+are available in a complementary, author-managed repository         the status of the nodes defining the fraudulent line segment:
+[28].                                                               high-visibility scenarios represent fraud occurring on a branch
+                                                                    where, at least, one of the terminating nodes is equipped with
+                                                                    SMs, while low-visibility scenarios represent fraud on a branch
+                                                                    where the terminating nodes lack measurement support. Table
+                 Reference bus                                      II summarizes the specific configuration for each case.
+                 Zero-injection bus
+                 Load bus                                                                       TABLE II
+                                                                                       F RAUD CASES CONFIGURATION
+                                                                        Case   Fraud Type     Measurement visibility   Fraud Segment
+                                                                        1      single-phase      high-visibility          32 - 33
+                                                                        2      single-phase       low-visibility          32 - 34
+                                                                        3       three-phase      high-visibility          32 - 33
+                                                                        4       three-phase       low-visibility          32 - 34
+
+                                                                       In scenarios characterized by high visibility (Cases 1 and
+                                                                    3), the fraud is simulated in a segment directly connected to
+                                                                    buses equipped with SM measurements (bus 33). In contrast,
+                                                                    scenarios characterized by low visibility (Cases 2 and 4)
+                                                                    involve fraud in a segment not directly connected to SM-
+                                                                    monitored buses (buses 32–34). In all instances, the fraud is
+                                                                    modeled by introducing a power demand at a fictitious bus
+                                                                    located within the affected branch.
+               Fig. 3. LV network used in test cases.               C. Test results
+                                                                       This section presents the results obtained by implementing
+   From the available set, one network was selected and
+                                                                    the proposed tool across the four cases defined previously. As
+adapted to simulate an electricity fraud scenario. A single-
+                                                                    intorduced in Section IV, the methodology operates through
+line diagram of this network is illustrated in Fig. 3. In this
+                                                                    two sequential stages:
+diagram, green buses indicate consumer connection points (all
+                                                                       • Stage 1: Potential candidate nodes and branches are
+equipped with SM measurement capabilities) while blue buses
+represent zero-injection buses without load or generation. The           identified by comparing field measurements, specifically
+main characteristics of this network are summarized in Table             voltage magnitude, against estimated values derived from
+I. The system comprises 53 buses, the majority of which                  the system model and power flow analysis. Any discrep-
+include three phases and a neutral conductor, with a minority            ancies exceeding the threshold ε are flagged as potential
+consisting of a single phase and neutral, resulting in a total of        sites for fraud. In this section a value of ε = 0.5 has been
+208 nodes.                                                               considered.
+                                                                       • Stage 2: The optimization problem defined in (1) is solved
+                            TABLE I                                      to locate and quantify the existing fraud in the network.
+               M AIN FIGURES OF THE TEST NETWORK                         To ensure robustness, two constraints are applied to the
+              Feature                           Value                    optimization logic: a minimum power mismatch (∆Pmin )
+              Transformer rated power (kVA)      630                     of 500 W is enforced, disregarding variations below
+              Extent (km)                        0.87
+              Number of feeders                     5                    this value as non-fraudulent noise, and the maximum
+              Number of loads                    291                     fraud magnitude is set at the total measured network
+              Number of buses                      53                    losses (∆Pmax = Ploss ), ensuring the solution remains
+              Number of nodes                    208
+              Total Load (kVA)                 261.47                    physically consistent with the operational limits of the
+                                                                         network.
+                                                                       The results for Case 1, representing single-phase fraud
+B. Definition of fraud scenarios                                    located near a SM, are summarized in Table III. The first
+   To evaluate the effectiveness of the proposed methodol-          column lists all candidate network branches identified during
+ogy, four distinct fraud configurations are considered, with        the Stage 1 of the methodology, while the remaining columns
+power demands ranging from 1 kW to 90 kW (representing              present the percentage of defrauded energy allocated to each
+approximately 0.38% to 34.4% of the total connected load).          branch during Stage 2, across a simulated fraud range of 1
+These scenarios are differentiated by two primary factors: the      kW to 30 kW. The branch corresponding to the simulated
+nature of the simulated fraud and the level of measurement          fraud location (32–33) is highlighted in bold to distinguish the
+visibility. Regarding the fraud type, each configuration is         ground truth. The results demonstrate the high effectiveness of
+
+
+
+24th Power Systems Computation Conference                                                         Limassol, Cyprus — June 8-12, 2026
+                                                                PSCC 2026
+the proposed tool, as the correct segment consistently receives         Table V presents the results for Case 3, which models
+the highest percentage of allocated fraud energy. Performance        three-phase fraud under high-visibility conditions (close to an
+improves with the magnitude of the fraud, with the method            SM). Consistent with the findings in Case 1, the proximity to
+correctly identifying over 90% of the defrauded energy for           a measurement point significantly enhances the precision of
+power levels exceeding 5 kW. Although minor fractions of             the methodology, enabling accurate attribution of fraudulent
+energy are occasionally allocated to adjacent sections (where        power to the correct network segment (32–33, highlighted in
+the voltage drop patterns align with the objective function) the     bold). Across the entire simulated fraud range the proposed
+methodology successfully isolates the fraudulent segment with        tool consistently allocates approximately 90% or more of
+strong precision.                                                    the defrauded energy to the actual branch where the fraud
+                                                                     occurs. Instances of incorrect allocation to adjacent sections
+                             TABLE III                               are minimal, occurring in only one scenario with a negligible
+  C ASE 1: F RAUD ENERGY ALLOCATION (%) ACROSS CANDIDATE LV          percentage. These results demonstrate that the algorithm effec-
+             SECTIONS (S INGLE - PHASE , H IGH VISIBILITY ).
+                                                                     tively leverages the increased data availability of three-phase
+   k, t ∈ F   1 kW    3 kW    5 kW    10 kW    20 kW    30 kW        measurements to maintain robust detection accuracy even as
+   27 - 28     0.0     19.1     0.0     0.0      6.7      6.8        the fraud magnitude scales.
+   28 - 29     0.0      0.0     0.0     0.0      0.0      0.0
+   28 - 30     0.0      0.0     0.0     0.0      0.0      0.0
+   30 - 31     0.0      0.0     0.0     0.0      0.0      0.0                                     TABLE V
+   30 - 32     0.0      0.0     0.0     0.0      0.0      0.0          C ASE 3: F RAUD ENERGY ALLOCATION (%) ACROSS CANDIDATE LV
+                                                                                  SECTIONS (T HREE - PHASE , H IGH VISIBILITY ).
+   32 - 33     53.7    75.7    73.0    90.2     90.3     91.9
+   32 - 34     0.0      0.0     0.0     0.0      0.0      0.0          k, t ∈ F   5 kW    10 kW   20 kW    30 kW    60 kW    90 kW
+   34 - 35     0.0      0.0     0.0     0.0      0.0      0.0
+                                                                       27 - 28      0.0     0.0     0.0      0.0     4.5.      0.0
+   35 - 36     0.0      0.0     0.0     0.0      0.0      0.0
+                                                                       28 - 29      0.0     0.0     0.0      0.0      0.0      0.0
+   36 - 38     22.2     0.0     0.0     0.0      0.0      0.0
+                                                                       28 - 30      0.0     0.0     0.0      0.0      0.0      0.0
+   35 - 37     0.0      0.0     0.0     0.0      0.0      0.0
+                                                                       30 - 31      0.0     0.0     0.0      0.0      0.0      0.0
+   37 - 39     0.0      0.0     0.0     0.0      0.0      0.0
+                                                                       30 - 32      0.0     0.0     0.0      0.0      0.0      0.0
+                                                                       32 - 33     92.4    97.4    88.8     97.9     93.0     92.7
+   Table IV presents the results for Case 2, which involves            32 - 34      0.0     0.0     0.0      0.0      0.0      0.0
+single-phase fraud occurring at a location with low mea-               34 - 35      0.0     0.0     0.0      0.0      0.0      0.0
+                                                                       35 - 36      0.0     0.0     0.0      0.0      0.0      0.0
+surement visibility, specifically, far from any SM connection          36 - 38      0.0     0.0     0.0      0.0      0.0      0.0
+points. Unlike Case 1, where proximity to an SM allows                 35 - 37      0.0     0.0     0.0      0.0      0.0      0.0
+for high-precision identification, Case 2 exhibits a more dis-         37 - 39      0.0     0.0     0.0      0.0      0.0      0.0
+tributed energy allocation. While the methodology successfully
+identifies the branch hosting the fraud (32–34, highlighted in          Table VI displays the results for Case 4, representing
+bold) in most scenarios, it also allocates significant proportions   three-phase fraud in a low-visibility environment, that is, far
+of energy to adjacent segments, such as 32–33 and 35–36. This        from any measurement points. This scenario represents the
+behavior highlights the inherent difficulty of detecting fraud       most significant challenge for the proposed methodology, as
+in segments without direct SM observation, as the reduced            evidenced by the dispersed energy allocation at lower fraud
+voltage sensitivity at these locations makes distinguishing the      levels. The tool demonstrates robust performance only as the
+fraudulent demand from surrounding network impacts more              fraud magnitude increases, successfully isolating the correct
+complex. Nevertheless, the correct branch generally retains          network segment (32–34, highlighted in bold) when the fraud
+the highest allocated energy percentage across the 1 kW to           power exceeds approximately 11.5% of the total load. At
+30 kW fraud range, confirming the resilience of the tool even        lower power levels, the absence of direct SM observation
+in low-visibility environments.                                      complicates the distinction between the fraudulent demand
+                                                                     and normal system variations, leading the algorithm to assign
+                             TABLE IV
+                                                                     significant energy percentages to adjacent network sections.
+  C ASE 2: F RAUD ENERGY ALLOCATION (%) ACROSS CANDIDATE LV          Nevertheless, the results confirm that the tool remains effective
+             SECTIONS (S INGLE - PHASE , L OW VISIBILITY ).          even in challenging, low-observability topologies provided that
+   k, t ∈ F   1 kW    3 kW    5 kW    10 kW    20 kW    30 kW        the anomaly is of sufficient magnitude.
+   27 - 28     0.0     10.7     0.0     0.0      0.0      0.0           To facilitate interpretation, Figs. 4 and 5 compare the allo-
+   28 - 29     0.0      0.0     0.0     0.0      0.0      0.0        cation performance across all configurations. High-visibility
+   28 - 30     0.0      0.0     7.5     0.0      7.2      7.1        scenarios (Cases 1 and 3) demonstrate superior precision,
+   30 - 31     0.0      0.0     0.0     0.0      0.0      0.0
+   30 - 32     0.0      0.0     0.0     0.0      0.0      0.0        as the methodology concentrates allocation on the target
+   32 - 33     0.0      0.0    39.2    23.7     40.7     24.0        segment with minimal error. Specifically, in High-visibility,
+   32 - 34     0.0     37.8    50.8    67.8     51.7     68.6        Single-phase (Case 1) scenarios, the target segment receives
+   34 - 35     0.0      0.0     0.0     0.0      0.0      0.0
+   35 - 36     81.3    47.4     0.0     0.0      0.0      0.0
+                                                                     75.7–91.9% of the fraud energy, while High-visibility, Three-
+   36 - 38     0.0      0.0     0.0     0.0      0.0      0.0        phase (Case 3) scenarios achieve 88.8–97.9%. Conversely, in
+   35 - 37     0.0      0.0     0.0     0.0      0.0      0.0        Low-visibility scenarios (Cases 2 and 4), exact-branch pre-
+   37 - 39     0.0      0.0     0.0     0.0      0.0      0.0        cision decreases, yet neighborhood-level localization remains
+
+
+
+24th Power Systems Computation Conference                                                         Limassol, Cyprus — June 8-12, 2026
+                                                                 PSCC 2026
+                                                          TABLE VI                                                                                                                                                                                           & D V H  
+                               C ASE 4: F RAUD ENERGY ALLOCATION (%) ACROSS CANDIDATE LV                                                                                                                                                                                                                      
+                                           SECTIONS (T HREE - PHASE , L OW VISIBILITY ).
+
+
+
+
+                                                                                                                                                                                                                                                                                                                      $ G M D F H Q W  V H F W L R Q    
+                                                                                                                                                                                                                                                                                                              
+
+
+
+
+                                                                                                                                                                             ( [ D F W  V H F W L R Q    
+                             k, t ∈ F             5 kW        10 kW           20 kW         30 kW        60 kW         90 kW
+                             27 - 28               0.0          4.3             0.0           7.4          4.7           1.5                                                                                                                                                                                  
+                             28 - 29               17.1         0.0             0.0           0.0          0.0           0.0
+                             28 - 30               0.0          0.0             1.3           0.0          0.0           0.0                                                                                                                                                                                  
+                             30 - 31               6.8          0.0             7.9           0.0          2.8           5.4
+                             30 - 32               0.0         13.1             0.0           0.0          0.0           0.0                                                                                                                                                                                  
+                             32 - 33               23.5        31.3            42.5          40.7         29.7          14.4
+                             32 - 34               0.0          0.0             0.0          51.8         62.6          78.4                                                                                                                                                                                  
+                             34 - 35               0.0          0.0            16.4           0.0          0.0           0.0                                                                                                                                 & D V H  
+                             35 - 36               19.1        16.6            31.9           0.0          0.0           0.0                                                                                                                                                                                  
+                             36 - 38               33.4        34.1             0.0           0.0          0.0           0.0
+
+
+
+
+                                                                                                                                                                                                                                                                                                                      $ G M D F H Q W  V H F W L R Q    
+                                                                                                                                                                                                                                                                                                              
+
+
+
+
+                                                                                                                                                                             ( [ D F W  V H F W L R Q    
+                             35 - 37               0.0          0.0             0.0           0.0          0.0           0.0
+                             37 - 39               0.0          0.0             0.0           0.0          0.0           0.0
+                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                              
+robust. For Low-visibility, Single-phase (Case 2) scenarios, the
+true branch captures 37.8–68.6%, with combined allocations to                                                                                                                                                                                                                                                 
+the true and adjacent segments consistently exceeding 90% for
+                                                                                                                                                                                                                                                                                                              
+fraud levels of 5–30 kW. Similarly, in Low-visibility, Three-                                                                                                                                                                                                    
+phase (Case 4) scenarios, while reliable exact identification is                                                                                                                                                                                   ( O H F W U L F D O  I U D X G   : 
+limited to higher power levels (greater than 11.47% of total
+                                                                                                                                                                            Fig. 5. Three-phase fraud detection results in Case 3 and Case 4 according
+load), the combined allocation to the true and adjacent seg-                                                                                                                to the fraud range.
+ments remains above 92%, effectively restricting the suspected
+area to a minimal number of LV sections.
+                                                                                                                                                                            both the computational complexity and the potential solution
+                                                                              & D V H                                                                                     space. Consequently, the final energy allocation results are
+                                                                                                                                                                      inherently sensitive to this threshold selection. To evaluate
+                                                                                                                                $ G M D F H Q W  V H F W L R Q    
+
+
+
+
+                                                                                                                                                                        this impact, a sensitivity analysis was performed on Case 2
+ ( [ D F W  V H F W L R Q    
+
+
+
+
+                                                                                                                                                                            (20 kW, Single-phase, Low-visibility). Figure 6 illustrates the
+                                                                                                                                                                        sensitivity of the fraud energy allocation to variations in ε,
+                                                                                                                                                                        plotting the percentage assigned to the correct branch (32–34),
+                                                                                                                                                                            the adjacent branch (32–33), and their combined attribution.
+                                                                                                                        
+                                                                                                                                                                                                                  
+                                                                              & D V H  
+                                                                                                                                                                                                               
+                                                                                                                                                                             $ F F X U D F \    
+                                                                                                                                $ G M D F H Q W  V H F W L R Q    
+
+
+
+
+                                                                                                                                                                                                                 
+ ( [ D F W  V H F W L R Q    
+
+
+
+
+                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                               6 H F W L R Q      
+                                                                                                                                                                                                                                                                                           6 H F W L R Q      
+                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                           6 X P
+                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                                                                     
+                                                                                         
+                                                                      ( O H F W U L F D O  I U D X G   : 
+                                                                                                                                                                            Fig. 6. Accuracy in locating sections where fraud is connected according to
+Fig. 4. Single-phase fraud detection results in Case 1 and Case 2 according                                                                                                 ε threshold value.
+to the fraud range.
+                                                                                                                                                                               As shown in Figure 6, the threshold ε = 0.35 V provides
+                                                                                                                                                                            strong neighborhood localization, successfully capturing the
+D. Performance sensitivity to ε threshold                                                                                                                                   fraud within the immediate network vicinity, although exact
+   As introduced in Section IV, Stage 1 of the proposed                                                                                                                     branch identification remains spatially distributed. As ε in-
+methodology identifies potential fraud candidates by filtering                                                                                                              creases, the Stage 1 filter becomes more restrictive, narrowing
+network nodes based on a voltage discrepancy threshold,                                                                                                                     the search space for the Stage 2 optimization problem. This
+ε. This parameter serves as a critical input to the overall                                                                                                                 selectivity enhances spatial precision, achieving 100% exact
+process: it defines the search space for the Stage 2 optimization                                                                                                           branch identification at ε = 0.5 V. However, this sensitivity
+problem, effectively filtering the candidate set and dictating                                                                                                              analysis highlights a critical design trade-off: while a higher
+
+
+
+24th Power Systems Computation Conference                                                                                                                                                                                                                   Limassol, Cyprus — June 8-12, 2026
+                                                                                                                                                                          PSCC 2026
+ε improves localization accuracy by minimizing candidate                     [4] R. Jiang, R. Lu, Y. Wang, J. Luo, C. Shen, and X. Shen, Energy-
+“noise”, an overly restrictive threshold risks excluding the                     theft detection issues for advanced metering infrastructure in smart grid,
+                                                                                 Tsinghua Sci. Technol., vol. 19, no. 2, pp. 105–120, Apr. 2014.
+true fraudulent branch entirely. Therefore, the selection of ε               [5] P. Glauner, J. A. Meira, and P. Valtchev, The challenge of non-technical
+must balance candidate selectivity with the risk of omitting                     loss detection using artificial intelligence: A survey, Int. J. Comput. Intell.
+legitimate network sections.                                                     Syst., vol. 10, no. 1, pp. 760–775, 2017.
+                                                                             [6] J. L. Viegas, P. R. Esteves, R. Melı́cio, V. M. F. Mendes, and S. M. Vieira,
+                        VI. C ONCLUSIONS                                         Solutions for detection of non-technical losses in the electricity grid: A
+                                                                                 review, Renew. Sustain. Energy Rev., vol. 80, pp. 1256–1268, Dec. 2017.
+   This paper introduces a novel methodology for the detec-                  [7] T. Ahmad, H. Chen, J. Wang, and Y. Guo, Review of various modeling
+tion and localization of both visible and invisible electricity                  techniques for the detection of electricity theft in smart grid environment,
+                                                                                 Renew. Sustain. Energy Rev., vol. 82, pp. 2916–2933, Feb. 2018.
+fraud by leveraging advanced optimization techniques based
+                                                                             [8] G. M. Messinis and N. D. Hatziargyriou, Review of non-technical loss
+on detailed network models. Validated on real network data                       detection methods, Electr. Power Syst. Res., vol. 158, pp. 250–266, May
+with synthetically generated illegal connection scenarios, the                   2018.
+proposed approach demonstrates a high degree of effectiveness                [9] A. Maamar and K. Benahmed, Machine learning techniques for energy
+                                                                                 theft detection in AMI, Int. Conf. Softw. Eng. Inf. Manage. (ICSIM),
+and consistently identifies the vicinity of fraudulent activity                  2018.
+with remarkable precision. The two-stage structure provides                  [10] M. S. Saeed et al., Detection of non-technical losses in power utilities—A
+an operationally meaningful workflow: an initial screening that                  comprehensive systematic review, Energies, vol. 13, no. 18, p. 4727, Sep.
+                                                                                 2020.
+reduces the search space to a limited set of suspicious LV                   [11] Fernando de Souza Savian, Julio Cezar Mairesse Siluk, Taı́s Bisognin
+sections, followed by an optimization stage that assigns fraud-                  Garlet, Felipe Moraes do Nascimento, José Renes Pinheiro, Zita Vale,
+ulent power to a small subset of candidate branches, enabling                    Non-technical losses: A systematic contemporary article review, Renew-
+                                                                                 able and Sustainable Energy Reviews, Volume 147, 2021, 111205
+efficient prioritization of inspections. Although performance                [12] Guarda, F.G.K.; Hammerschmitt, B.K.; Capeletti, M.B.; Neto, N.K.;
+may degrade under limited observability, data inaccuracies, or                   dos Santos, L.L.C.; Prade, L.R.; Abaide, A. Non-Hardware-Based Non-
+when fraud is electrically distant from measurement points, the                  Technical Losses Detection Methods: A Review. Energies 2023, 16, 2054
+                                                                             [13] S. A. Salinas and P. Li, Privacy-preserving energy theft detection in
+presented results and the ε sensitivity analysis confirm that the                microgrids: A state estimation approach, IEEE Trans. Power Syst., vol.
+tool remains robust, typically concentrating the allocation be-                  31, no. 2, pp. 883–894, Mar. 2016.
+tween the true branch and adjacent ones. Overall, the method                 [14] S.-C. Huang, Y.-L. Lo, and C.-N. Lu, Non-technical loss detection sing
+offers a practical and computationally efficient framework to                    state estimation and analysis of variance, IEEE Trans. Power Syst., vol.
+                                                                                 28, no. 3, pp. 2959–2966, Aug. 2013.
+support distribution operators in accelerating fraud localization            [15] S. Weckx, C. Gonzalez, J. Tant, T. D. Rybel, and J. Driesen, Parameter
+while reducing fieldwork requirements. Future research will                      identification of unknown radial grids for theft detection, presented at the
+build upon this framework to address identified limitations,                     3rd IEEE PES Innov. Smart Grid Technol. Eur. (ISGT Europe), 2012.
+                                                                             [16] C. Carquex and C. Rosenberg, Multi-timescale electricity theft detection
+particularly the current susceptibility to measurement noise                     and localization in distribution systems based on state estimation and
+and topological inaccuracies. The primary advancement will                       PMU measurements, presented at the 9th Int. Conf. Future Energy Syst.,
+involve transitioning from static, single-snapshot analysis to                   2018.
+                                                                             [17] H. L. Wong, C. K. Tan, W. -N. Tan, M. -T. Gan, S. -C. Yip and A. H. A.
+a multi-snapshot approach covering extended time windows                         Bakar, Energy Theft Identification: A State Estimation Model for Partial
+to enhance statistical robustness and mitigate the impact of                     Meter Bypass, in IEEE Access, vol. 13, pp. 121412-121431, 2025
+transient anomalies. Additionally, upcoming efforts will focus               [18] Rodrigo F.G. Sau, Tailan R. Garcia, Fernanda C.L. Trindade, Madson
+                                                                                 C. de Almeida, Bala Venkatesh, Identification and ranking of customers
+on adapting the methodology to accommodate modern grid                           with energy theft using hypothesis tests, Electric Power Systems Research,
+topologies characterized by high levels of distributed genera-                   Volume 225, 2023, 109862
+tion penetration and integrating diverse data sources to further             [19] L. M. R. Raggi, F. C. L. Trindade, V. C. Cunha, and W. Freitas, “Non-
+improve the diagnostic reliability of the tool and robustness                    technical loss identification by using data analytics and customer smart
+                                                                                 meters,” IEEE Trans. Power Del., vol. 35, no. 6, pp. 2700–2710, Dec.
+against environmental and operational variations.                                2020.
+                                                                             [20] M. Tariq and H. V. Poor, Electricity theft detection and localization
+                   VII. ACKNOWLEDGEMENTS                                         in grid-tied microgrids, IEEE Trans. Smart Grid, vol. 9, no. 3, pp.
+  This work was supported by the Ministerio de Ciencia e                         1920–1929, May 2018.
+                                                                             [21] J. Y. Kim, Y. M. Hwang, Y. G. Sun, I. Sim, D. I. Kim, and X. Wang,
+Innovación (MCIN) Agencia Estatal de Investigación (AEI)                       Detection for non-technical loss by smart energy theft with intermediate
+10.13039/501100011033 through the ’European Regional De-                         monitor meter in smart grid, IEEE Access, vol. 7, pp. 129043–129053,
+velopment Fund (ERDF) A way of making Europe’ under                              2019
+                                                                             [22] E. A. C. Aranha Neto and J. Coelho, Probabilistic methodology for
+Grant FlexOnGrid-PID2021-124571OB-I00.                                           technical and non-technical losses estimation in distribution system,
+                                                                                 Electr. Power Syst. Res., vol. 97, pp. 93–99, Apr. 2013.
+                            R EFERENCES                                      [23] X. Dominguez, A. Prado, P. Arboleya and V. Terzija, “Evolution of
+[1] S. S. S. R. Depuru, L. Wang, and V. Devabhaktuni, Electricity theft:         knowledge mining from data in power systems: The Big Data Analytics
+    Overview, issues, prevention and a SM based approach to control theft,       breakthrough”, Electric Power Systems Research, vol. 218, 109193, 2023
+    Energy Policy, vol. 39, no. 2, pp. 1007–1015, Feb. 2011                  [24] Mateo, C., Prettico, G., Gómez, T., Cossent, R., Gangale, F., Frı́as, P.,
+[2] Dianne Plummer, Electricity Theft: Economic Burden And                       Fulli, G., 2018.European representative electricity distribution networks,
+    Sustainability Risks, Forbes, Feb 21, 2025, 12:39am EST,                     Int. J. Electr. Power Energy Syst., 99, pp. 273–280, 2018.
+    https://www.forbes.com/sites/dianneplummer/2025/02/21/electricity-       [25] A. L. Shah, A. T. Al-Awami and W. Mesbah, Time Skew Mitigation
+    theft-economic-burden-and-sustainability-risks/                              in Smart Meters for Tampering Detection and Correction, in IEEE
+[3] Z. Yan and H. Wen, Performance Analysis of Electricity Theft Detection       Transactions on Instrumentation and Measurement, vol. 70, pp. 1-15, 2021
+    for the Smart Grid: An Overview, in IEEE Transactions on Instrumenta-    [26] F. B. B. Rolim, V. C. Cunha and F. C. L. Trindade, Non-Technical
+    tion and Measurement, vol. 71, pp. 1-28, 2022,                               Losses Detection and Location for LV Systems Applying Smart Meters
+
+
+
+
+24th Power Systems Computation Conference                                                                         Limassol, Cyprus — June 8-12, 2026
+                                                                         PSCC 2026
+    Measurements, 2022 IEEE Power & Energy Society General Meeting
+    (PESGM), Denver, CO, USA, 2022
+[27] López, I.G.; Zubia, H.U.; González, J.R.; Lartategui, I.A.; Sanz, M.H.;
+    Sánchez, A.P. low-voltage Supervision Systems: Technology, Applications,
+    Use Cases And Deployment. In Proceedings of the 25th International
+    Conference on Electricity Distribution, Madrid, Spain, 3–6 June 2019;
+    pp. 3–6.
+[28] https://github.com/rubencarmona/lvnetworkdataset
+[29] Rubén Carmona-Pardo, Rafael Morán-Corbacho, Álvaro Rodrı́guez
+    del     Nozal,     Esther    Romero-Ramos,Practical        sensitivity-based
+    optimization technique to solve the hosting capacity problem
+    in unbalanced low-voltage networks. Sustainable Energy, Grids
+    and Networks. Volume 45. 2026. 102140. ISSN 2352-4677.
+    https://doi.org/10.1016/j.segan.2026.102140.
+
+
+
+
+24th Power Systems Computation Conference                                                  Limassol, Cyprus — June 8-12, 2026
+                                                                               PSCC 2026
+

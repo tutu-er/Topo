@@ -1,0 +1,2 @@
+"""Scenario construction and validation."""
+

@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+  node distance=1.35cm and 1.45cm,
+  every node/.style={font=\small},
+  obs/.style={circle,draw,fill=blue!18,minimum size=7mm},
+  hid/.style={circle,draw,fill=white,minimum size=7mm},
+  root/.style={circle,draw,fill=black!12,minimum size=7mm},
+  line/.style={-Latex,thick}
+]
+\node[root] (r) {$0$};
+\node[hid,below=of r] (a) {$a$};
+\node[obs,below left=of a] (n1) {$1$};
+\node[obs,below=of a] (n2) {$2$};
+\node[hid,below right=of a] (b) {$b$};
+\node[obs,below left=of b] (n3) {$3$};
+\node[obs,below right=of b] (n4) {$4$};
+\draw[thick] (r)--(a)--(n1);
+\draw[thick] (a)--(n2);
+\draw[thick] (a)--(b)--(n3);
+\draw[thick] (b)--(n4);
+\node[align=center,right=1.0cm of b] {隐藏分支点\\未直接量测};
+\end{tikzpicture}

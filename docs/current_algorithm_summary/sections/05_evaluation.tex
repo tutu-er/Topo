@@ -1,0 +1,87 @@
+\section{评价指标与合成算例结论}
+
+\subsection{rooted-clade F1}
+
+对根向树的每个内部节点，取其下游末端集合；去除单元素集合和全体末端集合后，
+得到非平凡 rooted clade 集合 $\mathcal C(T)$。隐藏节点标签不参与比较，degree-2
+节点抑制后仍对应同一结构。令
+\[
+TP=|\widehat{\mathcal C}\cap\mathcal C^\star|,quad
+FP=|\widehat{\mathcal C}\setminus\mathcal C^\star|,quad
+FN=|\mathcal C^\star\setminus\widehat{\mathcal C}|.
+\]
+则
+\begin{equation}
+  \operatorname{Precision}=\frac{TP}{TP+FP},\quad
+  \operatorname{Recall}=\frac{TP}{TP+FN},\quad
+  F_1=\frac{2TP}{2TP+FP+FN}.
+  \label{eq:clade-f1}
+\end{equation}
+$F_1=1$ 表示缩减根向树结构完全恢复，但不表示隐藏节点原始编号、degree-2 节点个数、
+零阻抗设备层级或每条支路参数均完全恢复。
+
+该指标与 rooted Robinson--Foulds 距离满足
+\[
+F_1=1-\frac{d_{RF}}{|\widehat{\mathcal C}|+|\mathcal C^\star|}.
+\]
+terminal-only MST 不能与 full physical edge set 直接计算边 F1；只有显式生成隐藏节点后，
+才使用 rooted clade F1 或在已知候选隐藏节点图上计算物理边指标。
+
+\subsection{当前大规模结果}
+
+固定参数为：$P/Q$ 噪声 $0.5\%$、电压噪声 $0.02\%$、逐日去均值、
+$0.75d_R+0.25d_X$、RNJ 容差因子 $0.16$、稳定阈值 $0.9$、
+最大收缩 clade 大小 $5$、pseudo 电压去嵌入权重 $0.25$。
+
+\begin{table}[htbp]
+\centering
+\caption{一层冻结聚合在合成 case bank 上的完整 rooted-clade 指标}
+\begin{tabular}{lcccc}
+\toprule
+实验集合 & 条件数 & 基线平均 F1 & 聚合平均 F1 & 完全恢复率变化\\
+\midrule
+不同场景数与数据量 & 48 & 0.8847 & 0.9073 & 56.3\% $\to$ 72.9\%\\
+独立 288 点噪声日 & 60 & 0.9510 & 0.9898 & 58.3\% $\to$ 88.3\%\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+48 个数据量条件中，聚合改善 12 个、持平 35 个、变差 1 个；60 个独立日中改善
+20 个、持平 40 个、无变差。结果支持“冻结高置信边缘 clade、只重辨识缩减主干”
+这一设计，但不能据此宣称所有新馈线都接近完全恢复。参数仍来自当前 case bank，
+面对分布外数据时需要无标签自适应规则。
+
+\subsection{主要误差来源}
+
+\begin{enumerate}
+  \item \textbf{激励与条件数：} 住宅负荷共同日周期、工业负荷共线以及固定功率因数
+  使 $P/Q$ 设计矩阵接近低秩。
+  \item \textbf{量测噪声相对差分放大：} $V$ 的相对误差虽小，但差分、去公共模态和
+  灵敏度回归使用的是更小的电压变化量。
+  \item \textbf{交流--线性模型偏差：} 损耗和二阶电压项使式\eqref{eq:linear-drop}
+  的误差具有结构性，并非独立白噪声。
+  \item \textbf{距离竞争 margin 小：} 多个内部 split 的候选加性距离接近时，
+  小偏差会改变 RNJ 最大共享路径对。
+  \item \textbf{不可辨识结构：} degree-2 链和零阻抗边没有末端距离签名。
+  \item \textbf{稳定但错误：} bootstrap 只检验局部扰动稳定性，不能消除固定系统偏差。
+\end{enumerate}
+\subsection{RNJ 前后的错误区域变化}
+
+为检验早期“错误主要位于中心内部节点”的结论，NJ、RG、RNJ 在 72 个正常条件下使用
+完全相同的 ordered $R/X$ 估计和 $0.75d_R+0.25d_X$ 距离。结果如下：
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+方法 & 平均 split F1 & 完全恢复率 & 漏真实 split & 多预测 split\\
+\midrule
+NJ  & 0.6298 & 0.0\%  & 1  & 469\\
+RG  & 0.7417 & 4.2\%  & 15 & 268\\
+RNJ & 0.9661 & 72.2\% & 3  & 26\\
+\bottomrule
+\end{tabular}
+\end{center}
+RNJ 对根邻接中心主干的 198 次识别全部正确；RG 漏 4 次，NJ 虽未漏真实中心 split，
+但生成大量额外二叉 split。RNJ 剩余 26 条额外 split 中，20 条只包含不超过 3 个
+terminal，表现为末端簇内部过分裂。因此 RNJ 并非以牺牲边缘为代价改善中心，而是同时
+压低两类误差；中心误差消失后，残余误差的组成自然偏向边缘。早期“内部错误”标签把
+所有额外隐藏 split 都记为内部边，即使它仅切分一个很小的末端簇，因此物理位置含义过粗。

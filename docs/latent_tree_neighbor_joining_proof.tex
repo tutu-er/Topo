@@ -1,0 +1,370 @@
+\documentclass[UTF8,11pt]{ctexart}
+
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+\newtheorem{definition}{定义}
+\newtheorem{assumption}{假设}
+\newtheorem{lemma}{引理}
+\newtheorem{theorem}{定理}
+\newtheorem{remark}{说明}
+
+\title{由终端阻抗距离矩阵恢复隐藏树拓扑：Neighbor Joining、误差鲁棒性与可恢复性证明}
+\author{terminal\_load\_only\_case33 notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{问题设定}
+
+设配电网为一棵径向树 $T=(V,E)$，根节点 $0$ 可观测，终端/用户节点集合为
+$L=\{1,\ldots,n\}$。内部节点 $H=V\setminus (L\cup\{0\})$ 为隐藏零注入节点。
+在终端节点上估计得到 reduced sensitivity matrix $R$ 后，可构造终端间阻抗距离
+\begin{equation}
+  d_R(i,j)=R_{ii}+R_{jj}-2R_{ij},\qquad i,j\in L.
+\end{equation}
+若 $R_{ij}$ 等于 $i,j$ 从根出发公共路径电阻和，则
+\begin{equation}
+  d_R(i,j)=\sum_{e\in \operatorname{path}(i,j)} r_e,
+\end{equation}
+即 $d_R$ 是由隐藏树边权诱导的 additive tree metric。类似地，$X$ 可给出电抗距离
+$d_X$。本说明只写 $d$，可理解为 $d_R$、$d_X$ 或二者的加权组合。
+
+需要特别区分三类拓扑对象：
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{terminal MST}：只在 $L$ 上选边，不显式生成隐藏节点；
+  \item \textbf{pseudo cluster tree}：先把高置信终端边收缩成 pseudo node，再在 pseudo 层辨识；
+  \item \textbf{latent tree reconstruction}：仅根据 $d(i,j),\,i,j\in L$，显式生成隐藏节点和边权。
+\end{itemize}
+
+当前代码中真正会从距离矩阵生成 latent hidden node 的入口是
+\begin{center}
+\texttt{terminal\_case33/graph/latent\_tree\_baselines.py::neighbor\_joining\_baseline}.
+\end{center}
+它用负整数 $-1,-2,\ldots$ 标记算法生成的隐藏节点。
+
+\section{Neighbor Joining 算法}
+
+Neighbor Joining (NJ) 是 Saitou 和 Nei 提出的经典距离树重构算法。它输入观测叶节点之间的距离矩阵，
+输出一棵无根加权树。算法本质上是 bottom-up 的：每一步从当前 active 节点中选择一对最像 sibling
+的节点，将其合并到一个新生成的 latent node。
+
+\subsection{符号}
+
+令当前 active 节点集合为 $A$，$|A|=m$。当前距离为 $d(a,b)$。定义每个节点的 row sum：
+\begin{equation}
+  S_a=\sum_{k\in A,\ k\neq a} d(a,k).
+\end{equation}
+NJ 对每对 $a\neq b$ 计算
+\begin{equation}
+  Q(a,b)=(m-2)d(a,b)-S_a-S_b.
+  \label{eq:nj-q}
+\end{equation}
+选择 $Q(a,b)$ 最小的一对 $(a,b)$，创建新的 latent node $u$，并连接
+\[
+  u-a,\qquad u-b.
+\]
+两条新边的长度估计为
+\begin{align}
+  \ell(a,u)
+  &=\frac{1}{2}d(a,b)+\frac{S_a-S_b}{2(m-2)},\\
+  \ell(b,u)
+  &=d(a,b)-\ell(a,u).
+\end{align}
+随后删除 $a,b$，加入 $u$，并更新 $u$ 到任意其他 active 节点 $k$ 的距离：
+\begin{equation}
+  d(u,k)=\frac{1}{2}\left[d(a,k)+d(b,k)-d(a,b)\right].
+  \label{eq:nj-update}
+\end{equation}
+重复直到只剩两个 active 节点，最后连接它们。
+
+\subsection{代码对应}
+
+当前实现位于
+\begin{center}
+\texttt{terminal\_case33/graph/latent\_tree\_baselines.py}.
+\end{center}
+主要步骤对应如下：
+\begin{itemize}[leftmargin=2em]
+  \item active 节点集合：\texttt{active = list(labels)}；
+  \item $Q(a,b)$ 选择：实现中按式 \eqref{eq:nj-q} 构造 key，对所有 active pair 取最小值；
+  \item 新隐藏节点：\texttt{latent = next\_latent}，从 $-1$ 开始递减；
+  \item 新边长度：\texttt{left\_length} 和 \texttt{right\_length}；
+  \item 距离更新：\texttt{0.5 * (get(left,node) + get(right,node) - separation)}。
+\end{itemize}
+
+当前实现为了避免数值病态，会将负边长截断为 $0$：
+\begin{equation}
+  \hat{\ell}\leftarrow \max(\hat{\ell},0).
+\end{equation}
+这只是数值保护，不是严格统计修正。若距离误差较大，NJ 仍可能选错 sibling。
+
+\section{一个小例子}
+
+假设四个终端 $A,B,C,D$ 来自如下隐藏树：
+\[
+\begin{array}{ccccccccc}
+A &-& H_1 &-& H_0 &-& H_2 &-& C\\
+  && |   &&     && |   \\
+  && B   &&     && D
+\end{array}
+\]
+设 $A-H_1,B-H_1,C-H_2,D-H_2$ 的长度均为 $1$，$H_1-H_0$ 和 $H_0-H_2$ 的长度均为 $2$。
+则终端距离为
+\[
+d(A,B)=2,\quad d(C,D)=2,\quad
+d(A,C)=d(A,D)=d(B,C)=d(B,D)=6.
+\]
+对四个 active 节点，有
+\[
+S_A=S_B=S_C=S_D=14.
+\]
+于是
+\[
+Q(A,B)=2\cdot 2-14-14=-24,
+\]
+而
+\[
+Q(A,C)=2\cdot 6-14-14=-16.
+\]
+因此 NJ 会优先合并 $A,B$，生成隐藏节点 $H_1$ 的估计节点 $-1$。同理后续会合并 $C,D$，
+生成 $-2$，最后连接 $-1$ 与 $-2$。这就是从终端距离矩阵显式生成隐藏拓扑。
+
+\section{现有文献如何处理隐藏拓扑恢复}
+
+\subsection{系统发育/距离树文献}
+
+Saitou--Nei 的 NJ 是最常用的距离矩阵到无根树的构造方法之一。它不假设 ultrametric，
+因此不同叶节点到根的距离可以不相同，这比 UPGMA 更适合一般加权树。NJ 的理论基础后来被解释为
+一种对 balanced minimum evolution 目标的贪心近似。
+
+Atteson 给出了经典鲁棒性条件：若估计距离矩阵 $\hat d$ 与真实 additive distance $d$ 满足
+\begin{equation}
+  \|\hat d-d\|_\infty < \frac{1}{2}\ell_{\min},
+  \label{eq:atteson}
+\end{equation}
+其中 $\ell_{\min}$ 是真实树中最短边长，则 NJ 可恢复正确拓扑。Mihaescu--Levy--Pachter
+进一步从 quartet 角度解释 NJ 为什么在一些不满足式 \eqref{eq:atteson} 的情况下仍然成功。
+
+这类结论对配电网有直接启发：如果由电压/功率数据估计出的阻抗距离误差小于最短可辨识边的
+margin，隐藏树拓扑可以被稳定恢复；若误差与短支路阻抗同阶，任何纯距离树算法都会变得不稳定。
+
+\subsection{Latent tree graphical model 文献}
+
+Choi--Tan--Anandkumar--Willsky 研究了 latent tree graphical models，在只有部分节点可观测时，
+利用 information distance 恢复 minimal latent tree。他们提出 Recursive Grouping 和
+CLGrouping：前者局部识别 sibling 与 parent--child 关系，后者先构造 observed-node 预树，
+再在局部子集上递归恢复隐藏节点。
+
+Anandkumar 等人的 spectral recursive grouping 进一步给出了有限样本恢复条件：只要二阶统计量估计误差足够小，
+且树边长度、节点度数等满足可分性条件，就能以高概率恢复结构。
+
+对当前配电网问题来说，$d_R,d_X$ 扮演了 information distance 的角色。区别是：我们的距离来自物理灵敏度矩阵，
+误差来自 AC 潮流非线性、量测噪声、根电压公共模态、P/Q 激励病态和滤波偏差。
+
+\subsection{配电网拓扑辨识文献}
+
+Deka--Backhaus--Chertkov 和 Park--Deka--Chertkov 的 minimal observability 工作强调：
+即使只在 terminal/end-user 节点量测，也可以利用径向网的电压关系恢复隐藏内部节点和线路参数。
+这类方法通常不直接套用 NJ，而是利用三元组、路径公共部分、父子关系判别或电压方差趋势来构造隐藏树。
+
+Deka--Kekatos--Cavaro 的教程总结了配电网拓扑学习中常见路径：距离/相关性图学习、物理约束最小二乘、
+有限量测下的可辨识性、以及主动扰动下的 voltage response 方法。它也说明了 meter placement、
+隐藏节点相邻性、注入统计独立性和潮流模型误差会显著影响可恢复性。
+
+\section{为什么准确距离矩阵可恢复隐藏拓扑}
+
+\begin{definition}[Additive tree metric]
+给定一棵加权树 $T=(V,E,w)$ 和叶节点集合 $L$。若对任意 $i,j\in L$，
+\begin{equation}
+  d(i,j)=\sum_{e\in \operatorname{path}_T(i,j)} w_e,
+\end{equation}
+则称 $d$ 是由 $T$ 诱导的 additive tree metric。
+\end{definition}
+
+\begin{assumption}[最小隐藏树]
+所有边权 $w_e>0$，且除根以外的隐藏内部节点度数至少为 $3$。度数为 $2$ 的隐藏链已被压缩为一条等效边。
+\end{assumption}
+
+\begin{remark}
+该假设是必要的。若隐藏节点度数为 $2$，例如 $a-h_1-h_2-b$，仅凭叶间距离只能识别总长度
+$w(a,h_1)+w(h_1,h_2)+w(h_2,b)$，无法唯一知道中间有几个度数为 $2$ 的隐藏节点。
+\end{remark}
+
+\begin{theorem}[Additive distance 的拓扑唯一性]
+在最小隐藏树假设下，叶节点集合 $L$ 上的 additive distance matrix $d(i,j)$ 唯一确定无根树拓扑和所有边权。
+\end{theorem}
+
+\begin{proof}[证明思路]
+任取四个叶节点 $a,b,c,d$。若它们在树中的 quartet 拓扑为 $ab|cd$，即 $a,b$ 在一侧、$c,d$ 在另一侧，
+则四点条件给出
+\begin{equation}
+  d(a,b)+d(c,d)
+  <
+  d(a,c)+d(b,d)
+  =
+  d(a,d)+d(b,c).
+  \label{eq:four-point}
+\end{equation}
+严格不等式的间隔等于中间分隔路径长度的两倍，因此在正边权下可区分。
+
+每条内部边 $e$ 都把叶集合分成一个 bipartition $A_e|B_e$。对任意
+$a,a'\in A_e$ 和 $b,b'\in B_e$，式 \eqref{eq:four-point} 会稳定支持
+$aa'|bb'$。因此所有内部边诱导的 terminal split 都可由四点条件恢复。
+一棵最小无根树由其所有非平凡 terminal split 唯一确定，所以拓扑唯一。
+
+拓扑确定后，边权可由叶间距离线性求解。例如 pendant edge 可用 limb-length 公式恢复；
+内部边长度可由跨越该边的 quartet 差值恢复：
+\begin{equation}
+  w_e
+  =
+  \frac{1}{2}\left[
+  d(a,b)+d(a',b')-d(a,a')-d(b,b')
+  \right],
+\end{equation}
+其中 $a,a'$ 位于 $e$ 的一侧，$b,b'$ 位于另一侧，并且选择使四个叶的路径只共同穿过边 $e$。
+因此 $d$ 唯一确定拓扑和边权。
+\end{proof}
+
+\begin{theorem}[NJ 在准确 additive distance 下的恢复性]
+若输入 $d$ 是由满足最小隐藏树假设的 $T$ 诱导的准确 additive distance，则 Neighbor Joining
+递归生成的 latent tree 与 $T$ 拓扑等价，边权也可恢复。
+\end{theorem}
+
+\begin{proof}[证明思路]
+首先，准确 additive tree 中至少存在一对 cherry，即共享同一个隐藏父节点的叶节点。NJ 的
+$Q$ 准则并不是简单选择 $d(i,j)$ 最小的 pair，而是扣除了 $S_i,S_j$ 代表的全局离群程度。
+对 additive tree，可证明某个 true cherry 的 $Q$ 值达到最小。因此第一步合并不会破坏真实拓扑。
+
+设 NJ 正确合并 cherry $a,b$ 并生成新节点 $u$。由式 \eqref{eq:nj-update}，
+\[
+  d(u,k)=\frac{1}{2}\{d(a,k)+d(b,k)-d(a,b)\}
+\]
+恰好等于真实隐藏父节点到 $k$ 的路径长度。因此合并后的 reduced distance matrix 仍然是
+收缩后真实树的 additive distance。
+
+对叶节点数归纳：当只剩三个 active 节点时，拓扑唯一；若 $m>3$，第一步正确合并 cherry，
+且更新后仍为准确 additive distance，于是递归成立。故 NJ 恢复原树的最小无根拓扑。
+\end{proof}
+
+\section{距离矩阵有误差时应如何生成隐藏节点}
+
+实际中得到的是
+\begin{equation}
+  \hat d(i,j)=d(i,j)+\varepsilon_{ij}.
+\end{equation}
+误差会在两处造成破坏：
+\begin{enumerate}[leftmargin=2em]
+  \item sibling/cherry 选择错误：错误 pair 的 $Q$ 值小于真实 cherry；
+  \item branch length 病态：估计边长为负或接近零，说明该 split 不稳定。
+\end{enumerate}
+
+可行的鲁棒流程如下。
+
+\subsection{Bootstrap Neighbor Joining}
+
+从原始 P/Q/V 时间序列重采样，或对估计距离矩阵加入与估计方差匹配的扰动：
+\begin{equation}
+  \hat d^{(b)}=\hat d+\eta^{(b)},\qquad b=1,\ldots,B.
+\end{equation}
+每次运行 NJ，得到 latent tree $T^{(b)}$。由于隐藏节点标签任意，不能直接比较 $-1,-2$ 的编号，
+应比较每条内部边诱导的 terminal split。split 置信度定义为
+\begin{equation}
+  \pi(S)=\frac{1}{B}\sum_{b=1}^B
+  \mathbf{1}\{S\text{ appears in }T^{(b)}\}.
+\end{equation}
+最终只保留 $\pi(S)\ge \tau$ 的高置信 hidden split。低置信区域可保留为未解析 multifurcation，
+或交给局部 pseudo-root 二次辨识。
+
+\subsection{Regularized/Constrained Distance Projection}
+
+在运行 NJ 前，可先把 $\hat d$ 投影到更接近 tree metric 的集合：
+\begin{equation}
+  \min_{d'\in \mathcal{T}} \sum_{i<j}\omega_{ij}(d'_{ij}-\hat d_{ij})^2,
+\end{equation}
+其中 $\mathcal{T}$ 是满足四点条件的 tree metric 集合或其近似约束。实践中可用：
+\begin{itemize}[leftmargin=2em]
+  \item 非负边长约束；
+  \item 去除明显违反四点条件的高噪声频段；
+  \item 对 $R,X$ 施加对称、非负和 shrinkage；
+  \item 多场景联合估计，降低 $\varepsilon_{ij}$ 方差。
+\end{itemize}
+
+\subsection{与当前项目的建议组合}
+
+对当前 terminal-load-only 配电网，更稳的 pipeline 应为：
+\begin{enumerate}[leftmargin=2em]
+  \item 多场景 AC 数据估计 $\hat R,\hat X$；
+  \item 构造 $\hat d_R,\hat d_X$，并输出估计方差或 bootstrap 样本；
+  \item 对每个 bootstrap 样本运行 NJ；
+  \item 用 terminal split frequency 形成 hidden-edge posterior；
+  \item 对高置信 split 生成 hidden node；
+  \item 对低置信局部区域使用 pseudo-root local re-identification；
+  \item 最终用 split F1，而不是 hidden node raw labels，评价隐藏拓扑。
+\end{enumerate}
+
+\section{参考文献}
+
+\begin{thebibliography}{99}
+
+\bibitem{SaitouNei1987}
+N. Saitou and M. Nei,
+\newblock The neighbor-joining method: a new method for reconstructing phylogenetic trees,
+\newblock \emph{Molecular Biology and Evolution}, 4(4):406--425, 1987.
+
+\bibitem{Atteson1997}
+K. Atteson,
+\newblock The performance of neighbor-joining algorithms of phylogeny reconstruction,
+\newblock \emph{COCOON 1997}, Lecture Notes in Computer Science 1276.
+
+\bibitem{Mihaescu2006}
+R. Mihaescu, D. Levy, and L. Pachter,
+\newblock Why neighbor-joining works,
+\newblock arXiv:cs/0602041, 2006.
+\newblock \url{https://arxiv.org/abs/cs/0602041}
+
+\bibitem{Choi2010}
+M. J. Choi, V. Y. F. Tan, A. Anandkumar, and A. S. Willsky,
+\newblock Learning latent tree graphical models,
+\newblock arXiv:1009.2722, 2010.
+\newblock \url{https://arxiv.org/abs/1009.2722}
+
+\bibitem{Anandkumar2011}
+A. Anandkumar, K. Chaudhuri, D. Hsu, S. M. Kakade, L. Song, and T. Zhang,
+\newblock Spectral methods for learning multivariate latent tree structure,
+\newblock arXiv:1107.1283, 2011.
+\newblock \url{https://arxiv.org/abs/1107.1283}
+
+\bibitem{DekaTerminal2016}
+D. Deka, S. Backhaus, and M. Chertkov,
+\newblock Learning topology of distribution grids using only terminal node measurements,
+\newblock arXiv:1608.05031, 2016.
+\newblock \url{https://arxiv.org/abs/1608.05031}
+
+\bibitem{Park2017}
+S. Park, D. Deka, and M. Chertkov,
+\newblock Exact topology and parameter estimation in distribution grids with minimal observability,
+\newblock arXiv:1710.10727, 2017.
+\newblock \url{https://arxiv.org/abs/1710.10727}
+
+\bibitem{DekaTutorial2022}
+D. Deka, V. Kekatos, and G. Cavraro,
+\newblock Learning distribution grid topologies: a tutorial,
+\newblock arXiv:2206.10837, 2022.
+\newblock \url{https://arxiv.org/abs/2206.10837}
+
+\end{thebibliography}
+
+\end{document}

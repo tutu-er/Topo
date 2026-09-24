@@ -1,0 +1,172 @@
+\chapter{从 P/Q/V 曲线估计距离矩阵}
+\label{chap:estimation}
+
+\section*{本章目标}
+本章说明如何从多时刻 $P/Q/V$ 曲线估计 LinDistFlow 灵敏度矩阵，并进一步构造阻抗距离矩阵。我们讨论岭回归、Lasso、Elastic Net、公共源端电压模态、未量测负荷导致的遗漏变量偏差，以及估计误差如何通过\cref{thm:noisy_margin_mst}影响 MST 恢复。
+
+\section{多时刻线性模型}
+
+对 $T$ 个时刻收集非根节点量测，构造差分或去均值矩阵
+\begin{equation}
+  \Delta V =
+  \begin{bmatrix}
+    \Delta V(1)^\top\\
+    \vdots\\
+    \Delta V(T)^\top
+  \end{bmatrix},\quad
+  \Delta P =
+  \begin{bmatrix}
+    \Delta P(1)^\top\\
+    \vdots\\
+    \Delta P(T)^\top
+  \end{bmatrix},\quad
+  \Delta Q =
+  \begin{bmatrix}
+    \Delta Q(1)^\top\\
+    \vdots\\
+    \Delta Q(T)^\top
+  \end{bmatrix}.
+\end{equation}
+矩阵形式可写为
+\begin{equation}
+  \Delta V = \Delta P R^\top + \Delta Q X^\top + E,
+  \label{eq:regression_matrix}
+\end{equation}
+等价于逐个电压节点 $i$ 回归
+\begin{equation}
+  \Delta V_i(t)=
+  \sum_j R_{ij}\Delta P_j(t)+
+  \sum_j X_{ij}\Delta Q_j(t)+E_i(t).
+\end{equation}
+
+若采用列向量约定，也常写成 $\Delta v=R\Delta p+X\Delta q+\epsilon$。关键不是转置位置，而是把电压响应与功率扰动联系起来。
+
+\section{岭回归、Lasso 与 Elastic Net}
+
+令设计矩阵为
+\begin{equation}
+  Z=[\Delta P\ \ \Delta Q]\in\R^{T\times 2n},
+\end{equation}
+对每个电压列 $y_i=\Delta V_{\cdot i}$ 估计系数
+\begin{equation}
+  \theta_i=[R_{i1},\ldots,R_{in},X_{i1},\ldots,X_{in}]^\top .
+\end{equation}
+
+\paragraph{岭回归}
+\begin{equation}
+  \widehat\theta_i^{\rm ridge}
+  =\argmin_\theta \|y_i-Z\theta\|_2^2+\lambda\|\theta\|_2^2.
+\end{equation}
+岭回归适合特征强相关场景，可降低方差，但估计矩阵会被整体收缩。
+
+\paragraph{Lasso}
+\begin{equation}
+  \widehat\theta_i^{\rm lasso}
+  =\argmin_\theta \|y_i-Z\theta\|_2^2+\lambda\|\theta\|_1.
+\end{equation}
+Lasso 产生稀疏系数，但在配电网灵敏度矩阵中，$R_{ij}$ 本身并不稀疏；稀疏性更适合导纳矩阵或边集合。若直接对 $R$ 做强稀疏约束，可能破坏公共路径结构。
+
+\paragraph{Elastic Net}
+\begin{equation}
+  \widehat\theta_i^{\rm en}
+  =\argmin_\theta \|y_i-Z\theta\|_2^2
+  +\lambda_1\|\theta\|_1+\lambda_2\|\theta\|_2^2.
+\end{equation}
+Elastic Net 在相关负荷下比纯 Lasso 更稳定，可作为工程折中。
+
+\section{公共源端电压模态}
+
+若源端电压 $V_0(t)$ 未完全稳定，则所有节点电压会共享共同扰动。观测模型更接近
+\begin{equation}
+  \Delta V(t)=\mathbf{1}\,\Delta V_0(t)+R\Delta P(t)+X\Delta Q(t)+E(t).
+  \label{eq:source_mode}
+\end{equation}
+若忽略 $\Delta V_0(t)$，回归会把公共模态错误归因于负荷扰动，导致 $\widehat R,\widehat X$ 含有近似低秩偏差。
+
+常见处理方式包括：
+\begin{enumerate}[label=(\arabic*)]
+  \item 若根节点电压可测，直接从所有节点电压中扣除 $\Delta V_0(t)$；
+  \item 若不可测，用主成分或全体节点均值估计公共模态；
+  \item 使用电压差 $V_i(t)-V_j(t)$ 消除共同源端项，但需重新推导回归形式；
+  \item 在模型中显式加入截距、日周期项或公共因子。
+\end{enumerate}
+
+\section{未量测负荷与遗漏变量偏差}
+
+若某些节点负荷未量测，真实模型为
+\begin{equation}
+  \Delta V = Z_o\Theta_o + Z_m\Theta_m + E,
+\end{equation}
+但估计时只使用观测设计矩阵 $Z_o$。若 $Z_m$ 与 $Z_o$ 相关，则遗漏项 $Z_m\Theta_m$ 与解释变量相关，普通最小二乘会产生偏差：
+\begin{equation}
+  \E[\widehat\Theta_o]-\Theta_o
+  \approx (Z_o^\top Z_o)^{-1}Z_o^\top Z_m\Theta_m.
+\end{equation}
+在居民负荷同步性强的台区，这种偏差尤其明显。它会污染阻抗距离，进而缩小或翻转 MST 的 cut margin。
+
+\section{估计误差与 MST margin}
+
+假设估计得到 $\widehat R$，且
+\begin{equation}
+  \|\widehat R-R\|_{\max}\le \eta_R .
+\end{equation}
+由阻抗距离定义，
+\begin{align}
+  |\widehat d^R_{ij}-d^R_{ij}|
+  &=
+  |(\widehat R_{ii}-R_{ii})+(\widehat R_{jj}-R_{jj})
+  -2(\widehat R_{ij}-R_{ij})|\\
+  &\le 4\eta_R .
+\end{align}
+因此，若真实电阻距离的最小 cut margin 为 $\gamma_{\min}^R$，由\cref{thm:noisy_margin_mst}可得一个简单充分条件：
+\begin{equation}
+  4\eta_R < \frac{1}{2}\gamma_{\min}^R,
+  \qquad\text{即}\qquad
+  \eta_R<\frac{\gamma_{\min}^R}{8}.
+\end{equation}
+这个界通常保守，但清楚说明：统计估计精度必须与网络最小可分辨阻抗间隔匹配。
+
+\section{Python 实现思路}
+
+下面给出实现流程示意，不要求本书项目实际运行。
+
+\begin{verbatim}
+import numpy as np
+from sklearn.linear_model import Ridge, ElasticNet
+
+# P, Q, V: shape (T, n), already time-aligned
+dP = P - P.mean(axis=0, keepdims=True)
+dQ = Q - Q.mean(axis=0, keepdims=True)
+dV = V - V.mean(axis=0, keepdims=True)
+
+# optional: remove common voltage mode
+dV = dV - dV.mean(axis=1, keepdims=True)
+
+Z = np.hstack([dP, dQ])
+coef = []
+for i in range(n):
+    model = Ridge(alpha=alpha, fit_intercept=False)
+    model.fit(Z, dV[:, i])
+    coef.append(model.coef_)
+coef = np.asarray(coef)
+
+R_hat = coef[:, :n]
+X_hat = coef[:, n:]
+
+dR = np.diag(R_hat)[:, None] + np.diag(R_hat)[None, :] - 2 * R_hat
+dR = 0.5 * (dR + dR.T)  # enforce symmetry before MST
+\end{verbatim}
+
+实际工程还需处理缺失值、时间同步、异常点、三相相别、标幺化、温度和光伏反送等因素。
+
+\section{本章小结}
+
+从 $P/Q/V$ 曲线估计拓扑通常分两步：先用线性化潮流回归估计 $R,X$，再构造阻抗距离并进入 MST 或隐藏树重构。岭回归、Lasso、Elastic Net 各有偏差-方差权衡。公共源端电压和未量测负荷会造成系统性偏差；这种偏差最终体现为距离误差，并由 MST margin 决定是否改变拓扑输出。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 为什么直接回归 $V$ 而不做差分或去均值可能引入日周期偏差？
+  \item 若 $\Delta P$ 与 $\Delta Q$ 高度相关，应如何解释 $R$ 与 $X$ 估计的不稳定性？
+  \item 设计一个验证流程，判断公共源端电压模态是否已经被充分去除。
+  \item 若估计误差主要集中在少数节点对，是否必须使用全局 $\|\cdot\|_{\max}$ 界？可以怎样改进 margin 分析？
+\end{enumerate}

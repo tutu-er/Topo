@@ -1,0 +1,630 @@
+\documentclass[UTF8,11pt]{ctexart}
+
+\usepackage[a4paper,margin=2.20cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,multirow}
+\usepackage{enumitem}
+\usepackage{placeins}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{upquote}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.25em}
+\setlength{\headheight}{14pt}
+\setlist{nosep,leftmargin=2.1em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+\definecolor{codeblue}{RGB}{35,75,145}
+\definecolor{codegreen}{RGB}{25,115,70}
+\definecolor{codered}{RGB}{150,45,45}
+\definecolor{codegray}{RGB}{246,247,249}
+\definecolor{framegray}{RGB}{205,210,218}
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegreen},
+  stringstyle=\color{codered},
+  backgroundcolor=\color{codegray},
+  frame=single,
+  rulecolor=\color{framegray},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=7pt,
+  showstringspaces=false,
+  showspaces=false,
+  showtabs=false,
+  tabsize=4,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  captionpos=b,
+  aboveskip=0.8em,
+  belowskip=0.8em
+}
+\lstset{style=pythonstyle}
+
+\newtheorem{proposition}{命题}
+\newtheorem{remark}{说明}
+\newtheorem{definition}{定义}
+
+\newcommand{\Rmat}{\bm R}
+\newcommand{\Xmat}{\bm X}
+\newcommand{\Pmat}{\bm P}
+\newcommand{\Qmat}{\bm Q}
+\newcommand{\Ymat}{\bm Y}
+\newcommand{\one}{\bm 1}
+\newcommand{\zv}{\bm z}
+\newcommand{\ind}{\mathbb I}
+\newcommand{\absval}[1]{\left\lvert #1\right\rvert}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Laminar $L_1$--MILP 实现报告}
+\rhead{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{基于逐步“填数”的对称 $R/X$ 回归：\\
+Laminar $L_1$--MILP 的精确实现、算例与完整源码}
+\author{\texttt{terminal\_load\_only\_case33} 实现审计稿}
+\date{2026 年 9 月 4 日}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文给出一种面向终端量测配电网的结构化灵敏度矩阵回归实现。算法把每条候选公共路径写成对称块原子
+$\zv_k\zv_k^{\mathsf T}$，并令 $R$、$X$ 两个通道共享同一组支撑集合、分别估计非负填充值。
+支撑集合两两只能嵌套或不交，从而形成 laminar family。每次前向迭代利用纯混合整数线性规划
+（MILP）在全部非空终端子集中隐式搜索一个新的合法支撑，同时以 $L_1$ 残差重新拟合全部既有原子权重
+和场景--终端截距。实现采用 \texttt{scipy.optimize.milp} 所调用的 HiGHS 求解器；只有当求解器状态、
+原始--对偶界或相对 gap 共同通过严格证书检查时才接受新原子。本文列出完整数学模型、代码映射、
+测试设计、复现实验命令和可证明性边界，并在附录中直接嵌入估计器、单元测试、结果表生成器和
+两套算例驱动脚本的最终源码。
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\section{任务、实现范围与结论边界}
+
+目标是控制回归所得 $R/X$ 矩阵的对称性与结构复杂度：第 $t$ 步只选择一个终端集合
+$S_t\subseteq\{1,\ldots,n\}$，并分别把同一个数 $r_t$、$x_t$ 加到 $R$、$X$ 的同一主子矩阵
+$S_t\times S_t$ 上。本文实现遵循如下约定：
+\begin{enumerate}
+  \item 对角线与非对角线执行相同填数操作；单终端独有路径由 singleton 支撑 $S_t=\{i\}$ 表示；
+  \item $R$ 与 $X$ 共享支撑，但 $r_t$ 与 $x_t$ 独立且非负；允许其中一个通道的权重为零；
+  \item 已选集合必须构成 laminar family，即任意两集合嵌套或不交；
+  \item 每轮只新增一个集合，但新增后对全部旧权重进行 fully-corrective 重新拟合；
+  \item 目标为平均绝对残差（MAE），因此扩展问题是纯 MILP，固定支撑问题是 LP；
+  \item 路径上的模型用连续时间块验证集的 one-standard-error 规则选择，测试集只用于最终评估。
+\end{enumerate}
+
+这里的“精确”有严格限定：HiGHS 必须返回状态 \texttt{0}，并且报告的原始--对偶绝对 gap
+不超过 $10^{-10}$，或相对 MIP gap 不超过 $10^{-10}$；此时当前有界参数域中的\emph{最佳单原子
+扩展}才记为已证明全局最优。整个多步前向路径仍然是贪心路径，并不等价于固定 $K$ 个原子的
+联合全局最优解。
+
+\section{回归模型与“填数”原子}
+
+\subsection{多场景终端回归}
+
+设场景为 $s=1,\ldots,m$，场景 $s$ 中有 $T_s$ 个时刻，终端数为 $n$。代码接收
+\texttt{P\_terminal}、\texttt{Q\_terminal}、\texttt{drop\_target} 三个同形状表格。对时刻 $\tau$
+及输出终端 $i$，模型为
+\begin{equation}
+  Y_{s\tau i}
+  = \sum_{j=1}^{n}P_{s\tau j}R_{ij}
+  + \sum_{j=1}^{n}Q_{s\tau j}X_{ij}
+  + c_{si} + e_{s\tau i}.
+  \label{eq:regression}
+\end{equation}
+其中 $c_{si}$ 是场景--输出终端截距；其作用是吸收每个场景中不随时间变化的基准项。总观测数为
+\begin{equation}
+  N_{\mathrm{obs}}=n\sum_{s=1}^{m}T_s.
+\end{equation}
+
+\subsection{对称块原子与矩阵分解}
+
+对非空集合 $S_k$ 定义二值向量
+\begin{equation}
+ z_{ki}=\ind\{i\in S_k\},\qquad \zv_k\in\{0,1\}^{n},
+\end{equation}
+以及原子
+\begin{equation}
+ \bm A_k=\zv_k\zv_k^{\mathsf T}.
+\end{equation}
+矩阵由非负权重叠加：
+\begin{equation}
+ \Rmat=\sum_{k=1}^{K}r_k\bm A_k,
+ \qquad
+ \Xmat=\sum_{k=1}^{K}x_k\bm A_k,
+ \qquad r_k,x_k\ge 0.
+ \label{eq:atom-decomposition}
+\end{equation}
+若 $S_k=\{3,6,8\}$，则 $S_k\times S_k$ 的九个位置（包括三个对角位置）同时增加 $r_k$ 或 $x_k$。
+
+\begin{proposition}[原子分解的直接保证]
+由式~\eqref{eq:atom-decomposition} 构造的 $R$、$X$ 自动满足对称、逐元素非负和半正定。
+\end{proposition}
+\begin{proof}
+$\bm A_k=\zv_k\zv_k^{\mathsf T}$ 对称且逐元素非负；对任意 $\bm v$，
+$\bm v^{\mathsf T}\bm A_k\bm v=(\zv_k^{\mathsf T}\bm v)^2\ge0$。非负加权和保持这三项性质。
+\end{proof}
+
+对角线无需额外自由变量。singleton 原子满足
+$\zv_k\zv_k^{\mathsf T}=\bm e_i\bm e_i^{\mathsf T}$，只改变 $(i,i)$ 元素，正好表达终端独有的末端路径。
+
+\subsection{Laminar 条件及树解释}
+
+\begin{definition}[Laminar family]
+集合族 $\mathcal F$ 为 laminar，当且仅当对任意 $A,B\in\mathcal F$，有
+\begin{equation}
+ A\cap B=\varnothing,
+ \quad\text{或}\quad A\subseteq B,
+ \quad\text{或}\quad B\subseteq A.
+\end{equation}
+\end{definition}
+
+径向树上一条边的下游终端集合天然组成 laminar family。反之，任意有限 laminar family 都可以嵌入某棵
+以终端为叶/观测节点的层次树；未选择的层次可理解为零权重或被压缩的边。因此，此约束比单纯的对称、
+非负、PSD 或 $M_{ii}\ge M_{ij}$ 更强。若允许交叉集合，例如 $\{1,2\}$ 与 $\{2,3\}$，所得 PSD
+矩阵一般不再具有树公共路径协方差解释。
+
+需要注意：这一结构只给出终端 clade 层面的树解释，并不识别隐藏节点的任意编号；多个具有相同下游终端
+集合的串联物理边只能聚合为同一个原子权重。
+
+\section{单轮精确 \texorpdfstring{$L_1$}{L1}--MILP}
+
+假设已经固定 $K$ 个 laminar 支撑 $C_1,\ldots,C_K$。下一轮同时搜索新支撑 $S$、新填充值
+$r_{+},x_{+}$，并重拟合全部旧填充值。
+
+\subsection{决策变量}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.23\textwidth}X>{\raggedright\arraybackslash}p{0.20\textwidth}}
+\toprule
+变量 & 含义 & 定义域 \\
+\midrule
+$r_k,x_k$，$k\le K$ & 既有固定支撑的、在本轮重新拟合的填充值 & $[0,\overline r]$、$[0,\overline x]$ \\
+$c_{si}$ & 场景--终端截距 & 自由变量 \\
+$h_{s\tau i}$ & 残差绝对值的 epigraph 变量 & $[0,+\infty)$ \\
+$z_i$ & 新支撑是否包含终端 $i$ & $\{0,1\}$ \\
+$y_{ij}$，$i\le j$ & $z_i z_j$，新主子矩阵的位置指示 & $[0,1]$ \\
+$r_+,x_+$ & 新原子的统一填充值 & $[0,\overline r]$、$[0,\overline x]$ \\
+$u^R_{ij},u^X_{ij}$ & $r_+y_{ij}$、$x_+y_{ij}$ & 相应非负有界变量 \\
+$a_k,b_k,d_k$ & 新集合相对 $C_k$ 的子集、超集、不交选择 & $\{0,1\}$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+实现只为 $i\le j$ 保存 $y_{ij},u^R_{ij},u^X_{ij}$，预测时以
+$(\min(i,j),\max(i,j))$ 查找，因而严格复用对称变量，而不是事后对称化。
+
+\subsection{支撑与子矩阵的精确线性化}
+
+新集合非空：
+\begin{equation}
+ \sum_{i=1}^{n}z_i\ge1.
+ \label{eq:nonempty}
+\end{equation}
+对角位置直接约束为
+\begin{equation}
+ y_{ii}=z_i.
+ \label{eq:diag}
+\end{equation}
+对 $i<j$，二元乘积 $y_{ij}=z_i z_j$ 的凸包线性描述为
+\begin{align}
+ y_{ij}&\le z_i,& y_{ij}&\le z_j,\label{eq:y-upper}\\
+ y_{ij}&\ge z_i+z_j-1,& y_{ij}&\ge0.\label{eq:y-lower}
+\end{align}
+尽管 $y_{ij}$ 被声明为连续变量，整数可行点上它必然等于 $0$ 或 $1$。
+
+\subsection{统一填充值的精确线性化}
+
+对所有 $i\le j$，用有界连续变量与二元变量乘积的凸包约束表达
+$u^R_{ij}=r_+y_{ij}$：
+\begin{align}
+ 0\le u^R_{ij}&\le \overline r y_{ij},\label{eq:ur1}\\
+ u^R_{ij}&\le r_+,\label{eq:ur2}\\
+ u^R_{ij}&\ge r_+-\overline r(1-y_{ij}).\label{eq:ur3}
+\end{align}
+$X$ 通道同理：
+\begin{align}
+ 0\le u^X_{ij}&\le \overline x y_{ij},\\
+ u^X_{ij}&\le x_+,\\
+ u^X_{ij}&\ge x_+-\overline x(1-y_{ij}).
+\end{align}
+当 $y_{ij}=0$ 时强制 $u_{ij}=0$；当 $y_{ij}=1$ 时强制 $u^R_{ij}=r_+$、
+$u^X_{ij}=x_+$。因此“选中一个相同行列子矩阵并统一填数”不是松弛近似，而是整数可行解上的精确等式。
+
+\subsection{Laminar 与禁止重复约束}
+
+对每个旧集合 $C_k$，引入三元互斥关系
+\begin{equation}
+ a_k+b_k+d_k=1,
+ \label{eq:relation-one}
+\end{equation}
+分别表示 $S\subseteq C_k$、$C_k\subseteq S$、$S\cap C_k=\varnothing$。对应 implication 直接写成
+\begin{align}
+ z_i&\le1-a_k, && i\notin C_k,\label{eq:subset}\\
+ z_i&\ge b_k, && i\in C_k,\label{eq:superset}\\
+ z_i&\le1-d_k, && i\in C_k.\label{eq:disjoint}
+\end{align}
+还需禁止新集合等于旧集合：
+\begin{equation}
+ \sum_{i\in C_k}(1-z_i)+\sum_{i\notin C_k}z_i\ge1.
+ \label{eq:no-duplicate}
+\end{equation}
+式~\eqref{eq:relation-one}--\eqref{eq:no-duplicate} 对每个 $k$ 同时成立，因此新增后的整个集合族保持 laminar。
+
+\subsection{Fully-corrective 预测与 \texorpdfstring{$L_1$}{L1} 目标}
+
+对旧支撑 $C_k$ 预计算特征
+\begin{align}
+ B^P_{s\tau ik}
+ &=z_{ki}\sum_{j=1}^{n}P_{s\tau j}z_{kj},\\
+ B^Q_{s\tau ik}
+ &=z_{ki}\sum_{j=1}^{n}Q_{s\tau j}z_{kj}.
+\end{align}
+新原子通过上三角共享变量参与预测：令
+$\pi(i,j)=(\min(i,j),\max(i,j))$，则
+\begin{equation}
+ \widehat Y_{s\tau i}=c_{si}
+ +\sum_{k=1}^{K}\left(r_k B^P_{s\tau ik}+x_kB^Q_{s\tau ik}\right)
+ +\sum_{j=1}^{n}\left(P_{s\tau j}u^R_{\pi(i,j)}+Q_{s\tau j}u^X_{\pi(i,j)}\right).
+ \label{eq:prediction}
+\end{equation}
+绝对残差的 epigraph 约束为
+\begin{align}
+ h_{s\tau i}&\ge Y_{s\tau i}-\widehat Y_{s\tau i},\label{eq:l1a}\\
+ h_{s\tau i}&\ge-\left(Y_{s\tau i}-\widehat Y_{s\tau i}\right).
+ \label{eq:l1b}
+\end{align}
+求解目标是
+\begin{equation}
+ \min\quad J_{K+1}=\frac{1}{N_{\mathrm{obs}}}
+ \sum_{s=1}^{m}\sum_{\tau=1}^{T_s}\sum_{i=1}^{n}h_{s\tau i}.
+ \label{eq:l1-objective}
+\end{equation}
+由于所有乘积均已线性化，式~\eqref{eq:nonempty}--\eqref{eq:l1-objective} 构成纯 MILP。
+
+\section{固定支撑 LP 与完整前向算法}
+
+\subsection{固定支撑 LP}
+
+给定 $\mathcal F_K=(S_1,\ldots,S_K)$ 后，不再需要 $z,y,u$ 或关系二元变量。只需优化
+$r_k,x_k,c_{si},h_{s\tau i}$，仍使用式~\eqref{eq:l1a}--\eqref{eq:l1-objective}。该问题是连续 LP，
+记其最优值为 $J_K$。每次接受支撑后再求解此 LP，用于：
+\begin{itemize}
+  \item 消除扩展 MILP 与最终固定支撑表达之间的数值差异；
+  \item 重新校正所有旧原子权重，而不是冻结早期填充值；
+  \item 识别 $R$、$X$ 权重均低于阈值的零原子；
+  \item 删除零原子后再次求解，并仅在目标未显著增加时接受删除。
+\end{itemize}
+
+\subsection{算法流程}
+
+\begin{enumerate}[label=\textbf{步骤 \arabic*.},leftmargin=4.2em]
+  \item 读取训练场景并核对所有 $P,Q,Y$ 维数、终端标签及有限性；验证集必须使用相同终端标签。
+  \item 若未指定 $\overline r,\overline x$，用训练数据的稠密 OLS 系数经对称化、非负截断和安全倍数生成初值。
+  \item 从空支撑族 $\mathcal F_0=\varnothing$ 开始，求仅含场景--终端截距的固定支撑 LP，保存路径点 $K=0$。
+  \item 在当前 $\mathcal F_K$ 上求解第 3 节的一原子扩展 MILP。它隐式考察全部 $2^n-1$ 个非空集合，
+  但只允许与所有旧集合嵌套或不交且不重复的集合。
+  \item 若求解器未证明全局最优，则拒绝 incumbent，并以“扩展未获最优证书”停止；
+  若模型不可行，则以“无可行扩展”停止。
+  \item 若任一最优权重达到当前上界的指定比例，则扩大对应上界并重求同一轮；超过最大扩界次数则停止。
+  \item 计算精确单原子训练增益 $\Delta_K=J_K-J_{K+1}^{\star}$。若其不超过绝对/相对容差，停止。
+  \item 接受新支撑，求固定支撑 LP 进行 fully-corrective polishing；谨慎删除双通道均为零且删除后目标不变的原子。
+  \item 保存矩阵、支撑、权重、训练 MAE、验证 MAE/标准误及完整求解器诊断，继续下一轮。
+  \item 到达原子上限、laminar family 上限或其他停止条件后，在整条路径上执行验证集 one-SE 选择。
+\end{enumerate}
+
+\subsection{终止条件与验证选择}
+
+扩展被证明最优且满足
+\begin{equation}
+ J_K-J_{K+1}^{\star}
+ \le \epsilon_{\mathrm{abs}}
+ +\epsilon_{\mathrm{rel}}\max\{\absval{J_K},\epsilon_{\mathrm{mach}}\}
+ \label{eq:gain-stop}
+\end{equation}
+时，得到“当前支撑族下不存在有价值的单原子合法扩展”的证书。非空 laminar family 的基数至多为
+$2n-1$，代码也以此校验 \texttt{max\_atoms}。
+
+若有验证数据，对每个路径点固定 $R/X$，并沿用该路径点由训练 LP 得到的场景--输出终端截距；
+验证目标不参与截距重估。随后按连续时间块计算 MAE 标准误。令验证 MAE 最小的路径点为
+$K_{\min}$，阈值为
+\begin{equation}
+ \theta=\operatorname{MAE}_{\mathrm{val}}(K_{\min})
+ +\operatorname{SE}_{\mathrm{val}}(K_{\min}).
+\end{equation}
+最终选择满足 $\operatorname{MAE}_{\mathrm{val}}(K)\le\theta$ 的第一个（即最小复杂度）路径点。
+
+\section{实现映射与可复现命令}
+
+\subsection{代码结构}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.20\textwidth}>{\raggedright\arraybackslash}p{0.45\textwidth}}
+\toprule
+文件/接口 & 角色 & 关键内容 \\
+\midrule
+\endfirsthead
+\toprule
+文件/接口 & 角色 & 关键内容 \\
+\midrule
+\endhead
+\path{rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py} & 核心估计器 & 稀疏 MILP 构造、固定支撑 LP、一原子扩展、完整前向路径、验证选择与诊断 \\
+\path{solve_fixed_support_l1} & 固定支撑求解 & 给定 laminar 支撑，对全部 $r/x$ 和截距进行 $L_1$ 全量重拟合 \\
+\path{solve_best_laminar_extension_l1} & 单步精确搜索 & 在全部合法非空子集中搜索全局最优一原子扩展 \\
+\path{fit_laminar_l1_sensitivity} & 主入口 & 扩界、增益停止、零原子剪枝、完整路径及 one-SE 选择 \\
+\path{build_matrices_from_atoms} & 矩阵重构 & 在包含对角线的 $S_k\times S_k$ 上统一累加 $r_k/x_k$ \\
+\path{experiments/run_laminar_l1_milp.py} & small6 算例驱动 & 无噪声/污染响应两种制度、时间块划分、固定截距外推和审计文件导出 \\
+\path{experiments/run_laminar_l1_case33_integration.py} & case33 集成驱动 & 四物理叶精确路径和 32 终端限时规模压力测试；候选搜索不使用真值 \\
+\path{experiments/render_laminar_l1_results_tex.py} & 结果表生成器 & 直接读取落盘 CSV/JSON，生成本文输入的两个 LaTeX 结果片段 \\
+\path{tests/test_laminar_l1_milp.py} & 单元与穷举测试 & 证书、矩阵装配、穷举 oracle、fully-corrective、终止、截距和物理重构共 12 项 \\
+\bottomrule
+\end{longtable}
+
+\subsection{环境与执行命令}
+
+从 \texttt{terminal\_load\_only\_case33} 目录运行：
+\begin{lstlisting}[language=bash,caption={安装、测试与算例复现命令}]
+python -m pip install -e .
+python -m pytest tests/test_laminar_l1_milp.py -q
+python -m experiments.run_laminar_l1_milp \
+  --output outputs/laminar_l1_milp_small6_final \
+  --seed 20260902 --time-count 72 \
+  --train-count 48 --validation-count 12 \
+  --max-atoms 11 --outlier-fraction 0.05 \
+  --time-limit 120
+python -m experiments.run_laminar_l1_case33_integration \
+  --output outputs/laminar_l1_milp_case33_bound2_final \
+  --seed 20260903 --aggregate-time-limit 30 \
+  --hybrid-time-limit 60 --coefficient-bound 2
+python -m experiments.render_laminar_l1_results_tex
+\end{lstlisting}
+
+默认算例采用 small6 六终端网络、平方电压 LinDistFlow 真值、连续 72 点 $P/Q$ 轨迹，按时间顺序划分为
+$48/12/12$ 个训练/验证/测试点。两种响应制度为：
+\begin{enumerate}
+  \item \texttt{noiseless}：严格使用 $Y=P R_{\mathrm{true}}^{\mathsf T}+QX_{\mathrm{true}}^{\mathsf T}$；
+  \item \texttt{laplace\_outliers}：加入尺度为信号中位绝对偏差 $5\%$ 的 Laplace 噪声，并在约 $5\%$
+  响应元素上加入基准尺度 $150\%$ 的带符号 gross outlier。
+\end{enumerate}
+首要测试指标使用\emph{训练集估计的固定截距}预测测试段；测试段重新拟合截距所得 MAE 只作为
+干扰截距诊断，不能替代严格 held-out 指标。
+
+主要输出包括 \texttt{summary.csv}、\texttt{metrics.json}、\texttt{all\_paths.csv}、
+\texttt{all\_extension\_attempts.csv}、\texttt{all\_selected\_atoms.csv}，以及每个制度下的 $R/X$
+估计、选中原子、路径、求解器状态和测试残差。本次实测环境为 SciPy 1.18.1/HiGHS；表格生成器
+以这些落盘文件为唯一数值来源。
+
+\section{验证项目与算例结果}
+
+\subsection{单元测试覆盖}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.31\textwidth}>{\raggedright\arraybackslash}p{0.53\textwidth}p{0.06\textwidth}}
+\toprule
+测试 & 判据 & 状态 \\
+\midrule
+\endfirsthead
+\toprule
+测试 & 判据 & 状态 \\
+\midrule
+\endhead
+Laminar 判定与矩阵性质 & 嵌套/不交为真、交叉为假；矩阵对称、非负、PSD，并核对对角与非对角累加 & 通过 \\
+singleton 与输入校验 & singleton 只改变一个对角元；拒绝负权、重复索引和越界索引 & 通过 \\
+最优证书真值表 & 区分 LP、MIP 零 gap、绝对原始--对偶 gap、缺失 gap 与非最优状态 & 通过 \\
+无噪声单原子恢复 & 恢复 $\{0,2,3\}$、$r=0.7$、$x=0.3$，目标近零且对角线同填 & 通过 \\
+MILP 与穷举 oracle & 枚举 $n=4$ 全部合法集合并逐一求 LP；目标、最优支撑及手算 MAE 一致 & 通过 \\
+交叉集合排除 & 已有 $\{0,1\}$ 时排除交叉的 $\{1,2\}$ & 通过 \\
+无合法扩展 & $n=1$ 且 singleton 已选时得到确定性 infeasible 状态 2，不返回伪支撑 & 通过 \\
+三原子 fully-corrective & 确定性正负单位激励下按 root--child--singleton 恢复；旧 root 权重在第二轮被重新校正 & 通过 \\
+一般前向路径 & 每一路径点与独立固定支撑 LP 一致；MAE 单调，且始终 laminar、对称、非负、PSD & 通过 \\
+固定训练截距验证 & 验证目标发生常数漂移时不在验证集重估截距；同时核对 profiled 诊断口径 & 通过 \\
+零信号终止 & 目标完全由截距解释时不接纳零权伪原子，停止于无显著单原子增益 & 通过 \\
+small6 物理重构 & 按物理边下游终端集合聚合原子，精确重构平方电压 $R/X$ 真矩阵 & 通过 \\
+\bottomrule
+\end{longtable}
+
+定向测试命令返回 \texttt{12 passed}；随后项目完整测试返回
+\texttt{104 passed}。其中穷举 oracle 独立枚举离散支撑，手工矩阵预测又独立重算 MAE；
+这两层检查避免只用同一个辅助函数自洽地“验证自己”。
+
+\subsection{small6 结果}
+
+% 该小文件由最终算例结果更新；若尚未生成，正文仍可编译。
+\IfFileExists{laminar_l1_milp_results_table.tex}{
+  \input{laminar_l1_milp_results_table.tex}
+}{
+  \begin{center}
+  \fbox{\parbox{0.90\textwidth}{\centering
+  最终算例结果尚未写入 \texttt{laminar\_l1\_milp\_results\_table.tex}；
+  应以已落盘的 \texttt{outputs/laminar\_l1\_milp\_small6/summary.csv} 和
+  \texttt{metrics.json} 为唯一数值依据，不在报告中预填或猜测结果。}}
+  \end{center}
+}
+
+报告结果时至少同时列出：路径选择位置/原子数、停止原因、训练/验证/测试 MAE、$R/X$ 矩阵误差、
+非平凡 clade precision/recall/F1、所有扩展是否均证明最优、最大 MIP gap、运行时间和是否触及系数上界。
+不能只报告一个 F1 或只报告训练拟合误差。
+
+\subsection{IEEE case33 派生集成算例}
+
+四物理叶聚合版本用于验证完整 7 原子路径；32 终端 hybrid 版本仅尝试一个扩展，用来如实测量
+全子集 MILP 的规模边界。两者均由平方电压 LinDistFlow 真值生成响应，但真支撑与真系数不进入
+候选搜索。
+
+\IfFileExists{laminar_l1_case33_results_table.tex}{
+  \input{laminar_l1_case33_results_table.tex}
+}{
+  \begin{center}
+  \fbox{\parbox{0.90\textwidth}{\centering
+  case33 结果片段尚未生成；请先运行
+  \texttt{python -m experiments.render\_laminar\_l1\_results\_tex}。}}
+  \end{center}
+}
+
+\section{RX75--RNJ 末端分块与有限候选域 MILP 联合}
+
+\subsection{为何要区分硬信息与软候选}
+
+最终联合实现只把 bootstrap 置信度不低于 $0.75$ 的至多两个互不相交末端 cherry 当作硬信息。
+它们被收缩为伪末端，并以 singleton 形式固定；展开回原终端后，该 singleton 正是
+$\bm z_C\bm z_C^{\mathsf T}$。完整 RX75--RNJ 的其余 clade 不直接作为已知线路，而只构成
+MILP 的有限候选域。因而，RNJ 错误候选仍可被 $L_1$ 拟合与独立验证拒绝。
+
+\subsection{对角线预处理与候选域精确性}
+
+当前四个算例的观测终端均为物理叶节点，所以每个约化终端必有一个 leaf-edge singleton 原子。
+实现先固定全部 singleton：普通 singleton 只承担对角线叶边项；收缩伪末端的 singleton 对应
+可信 RNJ 末端块。MILP 只搜索剩余非平凡块，避免用组合搜索重复发现确定存在的对角原子。
+
+若有限候选为 $\mathcal C=\{C_1,\ldots,C_M\}$，实现增加二元选择变量 $h_m$，
+\begin{equation}
+ \sum_{m=1}^{M}h_m=1,\qquad
+ z_i=\sum_{m:i\in C_m}h_m .
+\end{equation}
+其余 $y_{ij}=z_i z_j$、有界连续乘积、laminar 与 $L_1$ 约束保持不变。因此每次扩展仍是
+真正的 MILP，并在当前 family、给定系数上界及有限候选域内要求全局最优证书；它不声称覆盖
+全部 $2^n-1$ 个支撑，也不把多步贪心路径声称为固定 $K$ 的联合全局最优。
+
+\subsection{数据配置与四算例结果}
+
+训练与验证分别使用独立的 $3\times96$ 含噪 AC 数据；P/Q 相对噪声为 $0.5\%$，电压相对噪声
+为 $0.02\%$，预处理为 \texttt{daily\_demean}，矩阵约束为 \texttt{ordered}，RNJ 使用
+RX75 与 $0.16$ 倍中位根深度容差。做 100 次 circular moving-block bootstrap，块长为 4。
+真拓扑不参与候选生成。
+
+\IfFileExists{rx75_rnj_milp_hybrid_results_table.tex}{
+  \input{rx75_rnj_milp_hybrid_results_table.tex}
+}{
+  \begin{center}
+  \fbox{\parbox{0.90\textwidth}{\centering RX75--RNJ 联合结果表尚未生成。}}
+  \end{center}
+}
+
+\FloatBarrier
+特别地，\texttt{pengwah18} 的完整 RNJ 具有额外 clade $\{311,312\}$，F1 为 $0.9333$；
+该错误块仍位于 MILP 候选池中，但最终验证路径没有选择它，并恢复全部 7 个真实非平凡 clade，
+故联合 F1 为 1。这是候选选择带来的改进，不是利用真值人工删块。
+
+\section{严格可证明性边界与已知限制}
+
+\begin{enumerate}
+  \item \textbf{单步全局最优不等于全路径全局最优。}
+  通过本文严格证书检查的状态 \texttt{0}，只证明在当前已选支撑不被删除/替换的前提下，
+  新增一个合法原子的有界 MILP 达到数值全局最优。多原子交换、回溯或一次联合选择 $K$ 个集合仍可能改进结果。
+
+  \item \textbf{必须依赖有限且有效的系数上界。}
+  McCormick 线性化对给定 $\overline r,\overline x$ 是精确的；若真实所需权重超过上界，模型域本身已经截断。
+  实现会检测近触界并扩界重求，但当达到扩界次数上限时不会把结果误称为无约束全局最优。
+
+  \item \textbf{求解器精确性是数值容差意义的。}
+  HiGHS 使用浮点可行性、整数性和最优性容差；\path{mip_rel_gap=0} 表示请求零相对 gap，
+  不是符号有理运算。实现还检查绝对原始--对偶 gap 或报告的相对 gap；若两者都缺失，即使状态字段为
+  \texttt{0} 也不输出“精确支撑”。超时 incumbent 同样不会被主算法接受。
+
+  \item \textbf{Laminar 支撑恢复的是终端 clade，不是隐藏节点编号。}
+  相同下游终端集合的串联边不可分别识别，只能估计聚合 $r/x$；缺失激励、共线 $P/Q$ 或零权重也会导致非唯一表示。
+
+  \item \textbf{原子数不等于矩阵不同数值个数。}
+  一个矩阵元素是所有包含该终端对的原子权重之和；$K$ 个原子可以产生多个不同子集和。本实现直接控制的是
+  clade/公共路径原子数和 laminar 复杂度，而不是显式限制 $R_{ij}$ 只能取 $K$ 个数值。
+
+  \item \textbf{共享支撑不强迫两个通道同时严格为正。}
+  某个集合可有 $r_k=0,x_k>0$ 或相反。若要加入物理 $R/X$ 比值区间或共同严格激活，需要额外约束及可辨识性分析。
+
+  \item \textbf{验证截距与测试协议必须区分。}
+  主路径选择与严格测试指标均沿用相应训练 LP 的截距，不读取 held-out 目标来重估截距。
+  \texttt{evaluate\_l1\_matrices(..., fixed\_intercepts=None)} 保留了重新拟合 nuisance intercept 的
+  显式诊断模式，但这种结果必须标为 profiled diagnostic，不能冒充完全外推性能。
+
+  \item \textbf{small6 无噪声恢复是实现一致性检查，不是 AC 真实性证明。}
+  该制度的数据由同一个平方电压线性模型生成，因此检验的是算法能否恢复模型类内真值。对 AC 潮流、量测误差、反向潮流和大规模 case33
+  的有效性仍需独立实验。
+
+  \item \textbf{计算复杂度仍为组合型。}
+  MILP 避免显式枚举 $2^n-1$ 个集合，却没有消除最坏情形指数复杂度。实测中，四叶 case33 的
+  7 轮均快速取得证书；32 终端 hybrid 即使把系数上界从 10 收紧到 2，并给单轮 60 秒，仍以
+  状态 \texttt{1}、报告 gap 1.0 超时。因此 small6/四叶精确结果不能外推为完整 case33 每轮均可快速证明最优。
+\end{enumerate}
+
+\section{建议的后续扩展}
+
+在不改变本报告主实现的前提下，可依次研究：
+\begin{itemize}
+  \item 为路径加入回溯式“删一加一”或局部交换 MILP，以减弱纯前向贪心依赖；
+  \item 加入物理 $r/x$ 比值上下界，并在有/无该约束之间做可辨识性消融；
+  \item 在 case33 上比较精确 MILP、梯度 MILP oracle 和有限候选字典三种搜索代价；
+  \item 对 AC 生成数据分别报告矩阵误差、非平凡 clade 缺失/额外/交叉替代及末端挂接错误；
+  \item 通过 bootstrap 记录每个 clade 的选择频率，而不把一次贪心路径当作拓扑置信度。
+\end{itemize}
+
+\clearpage
+\appendix
+
+\section{核心估计器完整源码}
+
+下列清单在编译时直接读取最终 Python 文件，因而数学报告与实际交付实现保持一致。
+\lstinputlisting[
+  caption={\texttt{terminal\_case33/estimation/laminar\_l1\_milp.py}},
+  label={lst:estimator}
+]{../rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py}
+
+\clearpage
+\section{单元测试完整源码}
+
+\lstinputlisting[
+  caption={\texttt{tests/test\_laminar\_l1\_milp.py}},
+  label={lst:tests}
+]{../tests/test_laminar_l1_milp.py}
+
+\clearpage
+\section{small6 算例驱动完整源码}
+
+\lstinputlisting[
+  caption={\texttt{experiments/run\_laminar\_l1\_milp.py}},
+  label={lst:experiment}
+]{../experiments/run_laminar_l1_milp.py}
+
+\clearpage
+\section{case33 集成算例驱动完整源码}
+
+\lstinputlisting[
+  caption={\texttt{experiments/run\_laminar\_l1\_case33\_integration.py}},
+  label={lst:case33-experiment}
+]{../experiments/run_laminar_l1_case33_integration.py}
+
+\clearpage
+\section{实测结果表生成器完整源码}
+
+\lstinputlisting[
+  caption={\texttt{experiments/render\_laminar\_l1\_results\_tex.py}},
+  label={lst:result-renderer}
+]{../experiments/render_laminar_l1_results_tex.py}
+
+\clearpage
+\section{RX75--RNJ 联合算例驱动完整源码}
+
+\lstinputlisting[
+  caption={\texttt{experiments/run\_rx75\_rnj\_milp\_hybrid\_ac.py}},
+  label={lst:rx75-rnj-hybrid}
+]{../rnj_wzzt_core/rnj_wzzt/pipeline.py}
+
+\clearpage
+\section{RX75--RNJ 联合回归测试完整源码}
+
+\lstinputlisting[
+  caption={\texttt{tests/test\_rx75\_rnj\_milp\_hybrid\_ac.py}},
+  label={lst:rx75-rnj-hybrid-tests}
+]{../tests/test_rx75_rnj_milp_hybrid_ac.py}
+
+\end{document}

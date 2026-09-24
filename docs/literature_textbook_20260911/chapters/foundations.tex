@@ -1,0 +1,136 @@
+\chapter{共同基础：从配电网到可学习的数学对象}
+\label{ch:foundations}
+\section{先固定任务、符号和单位}
+\begin{definition}[观测树与目标树]
+设物理配电网为有根径向树 $T=(V,E)$，根为0，观测节点集合为 $O$，未观测节点为 $H$。隐藏零注入节点不在任何时刻产生额外净功率。若隐藏的度2节点仅连接两条串联线路，端口量测通常只能识别其阻抗和；本书把压缩这些节点后、保留根和可见分叉的树称为最简目标树。
+\end{definition}
+需要分别输出三种对象：物理设备连接图、可由当前端口区分的最简树，以及端口等效矩阵。后两者的正确性不自动决定第一种对象。拓扑估计 $\widehat T$、阻抗估计 $\widehat\theta$、候选集合 $\mathcal C$ 和置信集合 $\mathcal T_\alpha$ 也不是同一输出。
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lXl}
+\toprule 符号 & 本书共同模型含义 & 维数或单位\\\midrule
+$n,m$ & 观测非根节点数、样本数 & 整数\\
+$p_t,q_t$ & 正值表示消耗的有功、无功 & $\R^n$；统一标幺\\
+$v_t,u_t$ & 电压幅值、平方电压 $u_t=v_t\odot v_t$ & $\R^n$\\
+$y_t$ & 平方电压降 $u_{0,t}\mathbf1-u_t$ & $\R^n$\\
+$K_r,K_x$ & 电阻、电抗共同路径矩阵 & $\R^{n\times n}$\\
+$R,X$ & 本书平方电压灵敏度 $R=2K_r,X=2K_x$ & $\R^{n\times n}$\\
+$\mathcal P_i$ & 根到 $i$ 的边集 & 集合\\
+$w_e$ & 边 $e$ 下游观测节点的0/1向量 & $\{0,1\}^n$\\
+$d_{ij}$ & 电阻路径距离，非欧氏空间坐标距离 & 电阻单位\\
+\bottomrule
+\end{tabularx}
+\caption{共同符号。文献的电压幅值灵敏度可能记作 $R=K_r$；必须先换算，不能直接复制数值。}
+\end{table}
+
+\section{从支路压降推导共同路径矩阵}
+在线性 DistFlow 中忽略线路损耗，以消耗为正，边 $e$ 的下游总功率为 $P_e=w_e^\top p$、$Q_e=w_e^\top q$，边两端平方电压降近似为 $2r_eP_e+2x_eQ_e$。沿根到节点 $i$ 累加：
+\begin{align}
+ y_i&=2\sum_{e\in\mathcal P_i}(r_ew_e^\top p+x_ew_e^\top q),\\
+ y&=Rp+Xq,\qquad
+ R=2\sum_{e\in E}r_ew_ew_e^\top,\quad
+ X=2\sum_{e\in E}x_ew_ew_e^\top.\label{eq:tb-base-rx}
+\end{align}
+于是 $K_{r,ij}=\sum_{e\in\mathcal P_i\cap\mathcal P_j}r_e$。这个量记录两条根路径重合了多长的电阻，通常不是 $i,j$ 之间直接线路的阻抗。模型基础及与幅值线性化的关系见 S1 第II节\citep{S1}；此处采用统一消耗正号重新推导。
+
+\begin{example}[贯穿全书的三叶树]\label{ex:tb-tree}
+取边 $0h,ha,hg,gb,gc$ 的电阻分别为 $1,2,3,4,5$，数值是为手算选择的任意一致单位。
+\begin{center}
+\begin{tikzpicture}[every node/.style={circle,draw,minimum size=7mm},>=Latex]
+\node (r) at (0,0) {0};\node (h) at (2,0) {$h$};
+\node (a) at (4,1) {$a$};\node (g) at (4,-1) {$g$};
+\node (b) at (6,0) {$b$};\node (c) at (6,-2) {$c$};
+\draw (r)--node[above,draw=none]{1}(h);
+\draw (h)--node[above,draw=none]{2}(a);
+\draw (h)--node[above,draw=none]{3}(g);
+\draw (g)--node[above,draw=none]{4}(b);
+\draw (g)--node[below,draw=none]{5}(c);
+\end{tikzpicture}
+\end{center}
+按 $a,b,c$ 排列，五个下游指示向量依次为
+$(1,1,1)^\top,(1,0,0)^\top,(0,1,1)^\top,(0,1,0)^\top,(0,0,1)^\top$。
+因此
+\begin{equation}
+ K_r=\begin{bmatrix}3&1&1\\1&8&4\\1&4&9\end{bmatrix},\qquad
+ R=\begin{bmatrix}6&2&2\\2&16&8\\2&8&18\end{bmatrix}.
+ \label{eq:tb-toy-k}
+\end{equation}
+例如 $b,c$ 共用 $0h$ 和 $hg$，所以 $K_{r,bc}=1+3=4$；$b$ 的根路径长为8，所以对角元为8。若只有 $b$ 增加单位有功且无功不变，平方压降的变化为 $R_{:b}=(2,16,8)^\top$。
+\end{example}
+
+\section{最小二乘究竟识别什么}
+把每个时刻放在一行，令 $P,Q,Y\in\R^{m\times n}$，定义
+\begin{equation}
+ A=[P\ Q]\in\R^{m\times2n},\quad
+ \Theta=\begin{bmatrix}R^\top\\X^\top\end{bmatrix}\in\R^{2n\times n},
+ \qquad Y=A\Theta+E.
+\end{equation}
+无约束最小二乘为 $\widehat\Theta=A^\dagger Y$。当 $A$ 满列秩时参数解唯一，且
+\begin{equation}
+ \norm{\widehat\Theta-\Theta}_F
+ \leq\frac{\norm{E}_F}{\sigma_{\min}(A)}.
+ \label{eq:tb-ls-bound}
+\end{equation}
+证明只需将误差写为 $A^\dagger E$，利用矩阵算子范数。这里的 $m\geq2n$ 只是必要的计数条件；所有列几乎同向时，即使 $m$ 很大也会不稳定。对称约束可能减少未知维数，但应检查受约束设计算子在可行差分方向上的零空间，不能把 $2n$ 的计数不加修改当成所有模型的门槛。
+
+\begin{example}[功率因数固定时的不可分辨]
+若所有时刻 $q_t=\kappa p_t$，则 $y_t=(R+\kappa X)p_t$。任意允许的矩阵扰动 $\Delta$ 都给出同一预测：
+$R'=R+\kappa\Delta$、$X'=X-\Delta$。足够变化的 $p_t$ 仍只能识别组合矩阵；物理先验可能选择一个解，却不是新增了独立的数据方向。
+\end{example}
+
+若输入自身也有误差，$\widetilde A=A+U$，普通最小二乘中的残差包含 $-U\Theta$，与 $\widetilde A$ 相关，式\eqref{eq:tb-ls-bound}不能被直接解释为无偏估计保证。时间差分可以消除恒定截距，却把独立测量噪声 $\epsilon_t$ 变为 $\epsilon_t-\epsilon_{t-1}$：方差翻倍，相邻差分协方差为 $-\sigma^2$。因此，差分既不是免费降噪，也不自动产生独立样本。
+
+\begin{algorithm}[htbp]
+\caption{教学模块：从 P/Q/V 数据到可审查的灵敏度估计}
+\begin{algorithmic}[1]
+\Require 时间对齐的 $P,Q,V$，根平方电压序列或明确的根模型，训练/验证划分
+\Ensure $\widehat R,\widehat X$，奇异值、残差和未识别方向报告
+\State 统一标幺、功率正号；按同一量测定义计算 $Y=u_0\mathbf1^\top-V\odot V$
+\State 在训练集上固定中心化/差分规则，将同一变换用于验证集
+\State 形成 $A=[P\ Q]$，用 QR 或 SVD 检查秩和条件数
+\State 求解最小二乘或已声明的受约束二次规划
+\State 在独立工况计算预测残差，并检查残差与输入、时间及节点的关系
+\State 返回矩阵和诊断；秩不足时明确返回可识别的组合量
+\end{algorithmic}
+\end{algorithm}
+该流程是公共教学模块，不代替 S2 或 S3 的原始模型。QR/SVD 避免显式求逆 $A^\top A$ 所造成的条件数平方。稠密 QR 的主要成本量级为 $O(mn^2+n^3)$，这里仅指该无约束求解模块。
+
+\section{从共同路径矩阵到加性树距离}
+两条根路径中的公共部分在下式中被消去：
+\begin{equation}
+ d_{ij}=K_{r,ii}+K_{r,jj}-2K_{r,ij}
+       =\frac{R_{ii}+R_{jj}-2R_{ij}}2,
+ \qquad d_{0i}=K_{r,ii}.\label{eq:tb-distance}
+\end{equation}
+例\ref{ex:tb-tree}给出 $d_{ab}=9,d_{ac}=10,d_{bc}=9$ 和 $d_{0a}=3,d_{0b}=8,d_{0c}=9$。特别地，只看三叶间距离时，共同干线 $0h$ 的电阻完全消失；根距离或其他根信息是定位这一段的必要补充。
+
+\begin{proposition}[四点条件与短内边的难度]
+一棵正权树上四个端点分裂为 $ab\mid cd$，内路径长度为 $\ell>0$，则
+\begin{equation}
+ d_{ab}+d_{cd}<d_{ac}+d_{bd}=d_{ad}+d_{bc},
+ \quad (d_{ac}+d_{bd})-(d_{ab}+d_{cd})=2\ell.
+\end{equation}
+若每个距离的估计误差绝对值不超过 $\varepsilon_d$，则 $\ell>2\varepsilon_d$ 足以保持这一严格分裂次序。若 $\norm{\widehat R-R}_{\max}\leq\varepsilon_R$，式\eqref{eq:tb-distance}给出 $\varepsilon_d\leq2\varepsilon_R$，因此 $\ell>4\varepsilon_R$ 是相应充分条件。
+\end{proposition}
+\begin{proof}
+每条末端枝在三个和式中均出现一次，两个跨分裂的和额外穿过内路径两次。两个距离和之差的误差最多为 $4\varepsilon_d$，只要 $2\ell>4\varepsilon_d$ 就不会变号。矩阵到距离的误差界由三角不等式得出。
+\end{proof}
+这个证明说明短内边为何难恢复，而不是给任意带噪分组算法颁发整体正确性证明。零长边使不同拓扑表示合并，不能要求数据恢复一个不可区分的二叉细化。
+
+\section{隐藏节点：Kron矩阵与物理邻接的区别}
+对相量电路扣除根参考后，隐藏节点零注入给出
+\begin{equation}
+ \begin{bmatrix}i_O\\0\end{bmatrix}
+ =\begin{bmatrix}Y_{OO}&Y_{OH}\\Y_{HO}&Y_{HH}\end{bmatrix}
+ \begin{bmatrix}v_O\\v_H\end{bmatrix},\quad
+ Y_{\rm red}=Y_{OO}-Y_{OH}Y_{HH}^{-1}Y_{HO}.
+\end{equation}
+以一个隐藏星形中心连接三个端口为例，三条支路电导都为1。中心消元后端口矩阵是
+\begin{equation}
+ Y_{\rm red}=I_3-\tfrac13\mathbf1\mathbf1^\top
+ =\begin{bmatrix}2/3&-1/3&-1/3\\-1/3&2/3&-1/3\\-1/3&-1/3&2/3\end{bmatrix}.
+\end{equation}
+三个端口两两有有效耦合，但物理图仍是三条线接一个中心。这个示例是未接地的端口网络，整体常数电位自由度使矩阵奇异；加上根参考后的子系统可正定，稠密化现象不变。将 $Y_{\rm red}$ 的非零非对角元直接作为真实边会输出错误的三角形。
+
+\section{贯穿各章的三条检查线}
+\textbf{数据到参数：}设计矩阵是否有足够独立方向，测量误差如何进入？\textbf{参数到结构：}树度量、隐藏节点最简性、候选覆盖是否满足？\textbf{结构到结论：}返回的是一个拟合解、候选内最优、置信集合还是运行约束保证？后续各章都沿这三条线解释，但先给操作方法，再讨论保证边界。

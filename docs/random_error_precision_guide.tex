@@ -1,0 +1,984 @@
+\documentclass[UTF8,11pt]{ctexart}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\dd}{\mathrm{d}}
+
+\title{随机误差下配电网终端量测拓扑辨识精度提升指南\\
+\large 面向 terminal-only 隐藏节点树、AC 潮流数据与 reduced sensitivity/MST 方法}
+\author{terminal\_load\_only\_case33 项目说明}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文系统整理在智能电表随机量测误差、根节点电压公共模态、负荷相关性和 AC--LinDistFlow 模型失配共同存在时，
+如何提高配电网 terminal-only 拓扑辨识精度。对象是单根径向配电树：根节点可观测，内部节点隐藏且零注入，
+仅末端节点有 P/Q/V 智能表。核心观测模型为
+\[
+    V_0(t)^2 - V_i(t)^2
+    \approx \sum_j R_{ij}P_j(t)+\sum_j X_{ij}Q_j(t)+\gamma_{i,s}+\varepsilon_i(t),
+\]
+再由
+\[
+    d^R_{ij}=R_{ii}+R_{jj}-2R_{ij},\qquad
+    d^X_{ij}=X_{ii}+X_{jj}-2X_{ij}
+\]
+构造 terminal-equivalent tree。本文强调：单一滤波窗口不是物理真值；面对新场景，应使用无监督的
+残差预测、重采样稳定性、矩阵树后验熵和物理约束一致性来自适应选择或集成。
+\end{abstract}
+
+\tableofcontents
+
+\section{问题定义与误差来源}
+
+\subsection{terminal-only 隐藏节点树}
+
+设配电网为一棵树
+\[
+    \mathcal{T}=(\mathcal{V},\mathcal{E}),\qquad r\in\mathcal{V}
+\]
+其中 $r$ 为馈线出口或配变低压侧根节点。节点集合分为
+\[
+    \mathcal{V}=\{r\}\cup \mathcal{H}\cup \mathcal{L},
+\]
+$\mathcal{H}$ 为不可观内部隐藏节点，$\mathcal{L}$ 为 observed terminal leaves。严格 terminal-load-only 假设为
+\[
+    P_h(t)=Q_h(t)=0,\quad h\in\mathcal{H},\qquad
+    P_\ell(t),Q_\ell(t),V_\ell(t)\ \text{可测},\quad \ell\in\mathcal{L}.
+\]
+根节点提供 $V_0(t)$ 或 $V_r(t)$，也可提供总功率，但内部节点无 P/Q/V 表计。
+
+在径向网络上，若使用 squared-voltage LinDistFlow 的小信号形式，则对 terminal 节点有
+\begin{equation}
+    \Delta v_{\mathcal{L}}(t)
+    \equiv V_0(t)^2\bm{1}-V_{\mathcal{L}}(t)^{\circ 2}
+    \approx R P_{\mathcal{L}}(t)+X Q_{\mathcal{L}}(t),
+    \label{eq:drop-model}
+\end{equation}
+其中 $R,X\in\R^{m\times m}$，$m=|\mathcal{L}|$。对任意两个 terminal $i,j$，
+$R_{ij}$ 是从根到 $i,j$ 的公共路径电阻和；$X_{ij}$ 同理。
+因此
+\begin{equation}
+    d^R_{ij}=R_{ii}+R_{jj}-2R_{ij}
+    =\sum_{e\in\operatorname{path}(i,j)} r_e,
+    \label{eq:additive-distance}
+\end{equation}
+这正是 terminal--terminal additive tree distance。若 $d^R$ 估计准确，则 minimum spanning tree 或 latent-tree
+方法可恢复 terminal-equivalent topology；若要恢复完整隐藏物理树，还需额外的 latent tree reconstruction
+或 candidate hidden graph。
+
+\subsection{为什么随机误差会显著影响 MST 边}
+
+令真实距离为 $d_{ij}$，估计距离为
+\[
+    \widehat d_{ij}=d_{ij}+\eta_{ij}.
+\]
+MST 的边选择是非连续的排序操作：只要两个候选边距离差
+\[
+    \Delta = d_{ab}-d_{cd}
+\]
+与误差差值
+\[
+    \eta_{cd}-\eta_{ab}
+\]
+同数量级，边排序就可能翻转。若 $\eta_{ab},\eta_{cd}$ 近似独立正态且方差均为 $\sigma_d^2$，则错误排序概率近似为
+\begin{equation}
+    \Pr(\widehat d_{ab}>\widehat d_{cd}\mid d_{ab}<d_{cd})
+    =
+    \Phi\!\left(-\frac{\Delta}{\sqrt{2}\sigma_d}\right).
+    \label{eq:edge-flip}
+\end{equation}
+这说明提高精度的关键不只是降低平均 RMSE，还要增大边排序 margin 或降低距离估计方差。
+对于 terminal-only 网络，兄弟 terminal 的服务线长度接近、共同路径很长时，$\Delta$ 本来就小，
+所以随机误差会被 MST 放大为错边。
+
+\subsection{误差分解}
+
+当前场景中，误差可分为五类：
+\begin{align}
+    \widehat P(t)&=P(t)+\epsilon_P(t),\\
+    \widehat Q(t)&=Q(t)+\epsilon_Q(t),\\
+    \widehat V(t)&=V(t)+\epsilon_V(t),\\
+    \widehat V_0(t)&=V_0(t)+\epsilon_0(t),\\
+    V_0(t)^2-V_i(t)^2
+    &=\sum_j R_{ij}P_j(t)+\sum_jX_{ij}Q_j(t)+b_i(P,Q,V_0)+\epsilon_i(t).
+\end{align}
+其中 $b_i(\cdot)$ 是 AC 潮流相对于线性模型的系统误差，通常随负荷水平、电压降和损耗项变化。
+因此“随机误差”在回归中并不只是白噪声，还会和如下因素耦合：
+
+\begin{itemize}[leftmargin=2em]
+  \item P/Q 量测噪声导致 errors-in-variables bias；
+  \item V 噪声经过平方变换后变成 $2V\epsilon_V+\epsilon_V^2$；
+  \item 根节点电压共同波动造成 common mode；
+  \item PV、风电和负荷日内趋势造成强共线性；
+  \item AC 非线性损耗项造成慢变模型偏差；
+  \item MST 对距离排序敏感。
+\end{itemize}
+
+\section{基础估计器：多场景约束电压降回归}
+
+\subsection{多场景固定效应模型}
+
+设共有 $S$ 个场景，每个场景 $s$ 有 $T_s$ 个样本。定义
+\[
+    y_{s,t,i}=\widehat V_{0,s}(t)^2-\widehat V_{i,s}(t)^2.
+\]
+基础模型为
+\begin{equation}
+    y_{s,t,i}
+    =
+    \sum_{j=1}^m R_{ij}\widehat P_{s,t,j}
+    +
+    \sum_{j=1}^m X_{ij}\widehat Q_{s,t,j}
+    +
+    \gamma_{s,i}
+    +
+    e_{s,t,i}.
+    \label{eq:multiscenario}
+\end{equation}
+$\gamma_{s,i}$ 是场景--节点固定效应，用来吸收不同日、不同天气、不同平均根电压下的常数偏差。
+与单场景相比，多场景耦合的优势是共享 $R,X$，但允许不同场景有不同偏置：
+\begin{equation}
+    \min_{R,X,\Gamma}
+    \sum_{s,t,i}
+    \left(
+      y_{s,t,i}
+      -\sum_j R_{ij}P_{s,t,j}
+      -\sum_j X_{ij}Q_{s,t,j}
+      -\gamma_{s,i}
+    \right)^2.
+    \label{eq:ols}
+\end{equation}
+若所有场景堆叠为
+\[
+    y=A\theta+e,
+\]
+则 ridge 形式为
+\begin{equation}
+    \widehat\theta_\lambda
+    =
+    (A^\top W A+\lambda \Lambda)^{-1}A^\top W y.
+    \label{eq:ridge}
+\end{equation}
+其中 $W$ 是噪声协方差的逆，$\Lambda$ 通常不惩罚固定效应项。
+
+\subsection{对称与非负约束}
+
+真实 reduced sensitivity 满足
+\[
+    R=R^\top,\qquad X=X^\top,\qquad R_{ij}\ge0,\quad X_{ij}\ge0.
+\]
+把 $R,X$ 用上三角参数化：
+\[
+    R_{ij}=R_{ji}=\rho_{\min(i,j),\max(i,j)},\qquad
+    X_{ij}=X_{ji}=\xi_{\min(i,j),\max(i,j)}.
+\]
+令
+\[
+    \theta=(\rho,\xi,\gamma),
+\]
+则约束回归为二次规划：
+\begin{equation}
+    \min_{\theta}
+    \frac12\norm{W^{1/2}(A\theta-y)}_2^2+\frac{\lambda}{2}\norm{\Lambda^{1/2}\theta}_2^2,
+    \qquad
+    \rho\ge0,\quad \xi\ge0.
+    \label{eq:nnls}
+\end{equation}
+这类约束能系统性提高精度，原因是它把随机噪声导致的非物理负系数、非对称系数投影回物理可行域。
+在样本量有限时，约束相当于加入强先验：
+\[
+    \Theta_{\rm phys}
+    =
+    \{(R,X):R=R^\top,X=X^\top,R\ge0,X\ge0\}.
+\]
+若真实参数 $\theta^\star\in\Theta_{\rm phys}$，则投影估计的方差通常低于无约束估计，尤其当设计矩阵病态时。
+
+\section{方法一：加权最小二乘与广义最小二乘}
+
+\subsection{异方差噪声建模}
+
+智能表相对误差常近似写作
+\[
+    \epsilon_P(t)\sim (0,\sigma_P^2 P(t)^2),\quad
+    \epsilon_Q(t)\sim (0,\sigma_Q^2 Q(t)^2),\quad
+    \epsilon_V(t)\sim (0,\sigma_V^2 V(t)^2).
+\]
+对 squared-voltage drop
+\[
+    y_i=V_0^2-V_i^2,
+\]
+一阶误差传播给出
+\begin{equation}
+    \Var(\epsilon_{y_i})
+    \approx
+    4V_0^2\Var(\epsilon_0)+4V_i^2\Var(\epsilon_{V_i})
+    -8V_0V_i\Cov(\epsilon_0,\epsilon_{V_i}).
+    \label{eq:delta-method}
+\end{equation}
+若 root 与 terminal 电压量测误差独立，则协方差项为零。于是不同时间、不同节点的 $y$ 噪声方差并不相同。
+WLS 的自然权重为
+\[
+    w_{s,t,i}=\frac{1}{\widehat\Var(\epsilon_{y_{s,t,i}})+\epsilon_{\rm floor}}.
+\]
+
+\subsection{GLS 处理公共模态}
+
+根节点电压误差会同时进入所有 terminal 的 $y_i$，导致同一时刻不同节点残差相关：
+\[
+    \Cov(e_{t,i},e_{t,k})
+    \approx 4V_0^2\Var(\epsilon_0),\qquad i\neq k.
+\]
+因此每个时刻的残差协方差可写为
+\begin{equation}
+    \Sigma_t
+    =
+    \sigma_0^2 \bm{1}\bm{1}^\top
+    +
+    \diag(\sigma_{V_1,t}^2,\ldots,\sigma_{V_m,t}^2)
+    +
+    \Sigma_{\rm model}.
+    \label{eq:gls-cov}
+\end{equation}
+GLS 目标为
+\begin{equation}
+    \min_\theta
+    \sum_{s,t}
+    (y_{s,t}-A_{s,t}\theta)^\top
+    \Sigma_{s,t}^{-1}
+    (y_{s,t}-A_{s,t}\theta).
+    \label{eq:gls}
+\end{equation}
+这比普通 LS 更适合 root voltage common mode 很强的场景。
+
+\section{方法二：errors-in-variables、TLS 与去衰减}
+
+\subsection{OLS 的衰减偏差}
+
+式 \eqref{eq:multiscenario} 中的自变量 $P,Q$ 也有噪声。令真实设计矩阵为 $Z$，观测为
+\[
+    \widehat Z=Z+U,\qquad y=Z\beta+\epsilon.
+\]
+OLS 使用 $\widehat Z$ 回归：
+\[
+    \widehat\beta_{\rm OLS}
+    =
+    (\widehat Z^\top \widehat Z)^{-1}\widehat Z^\top y.
+\]
+当样本数趋于无穷，
+\begin{equation}
+    \widehat\beta_{\rm OLS}
+    \rightarrow
+    \left(\Sigma_Z+\Sigma_U\right)^{-1}\Sigma_Z\beta.
+    \label{eq:attenuation}
+\end{equation}
+若 $\Sigma_U\succ0$，系数会向零收缩，称为 attenuation bias。对拓扑辨识而言，这会压缩距离差异，
+使 MST 边 margin 变小。
+
+\subsection{修正最小二乘}
+
+若知道或可估计 $\Sigma_U$，可用 corrected least squares：
+\begin{equation}
+    \widehat\beta_{\rm CLS}
+    =
+    \left(\widehat Z^\top\widehat Z-n\widehat\Sigma_U\right)^{-1}
+    \widehat Z^\top y.
+    \label{eq:cls}
+\end{equation}
+带 ridge 与约束时可写为
+\begin{equation}
+    \min_{\beta\in\Theta_{\rm phys}}
+    \frac12\beta^\top
+    \left(\widehat Z^\top\widehat Z-n\widehat\Sigma_U+\lambda I\right)
+    \beta
+    -
+    \beta^\top \widehat Z^\top y.
+    \label{eq:cls-constrained}
+\end{equation}
+实践中必须保证二次项半正定；若不半正定，可加入 $\lambda I$ 或投影到 PSD cone。
+
+\subsection{Total Least Squares}
+
+TLS 同时修正 $Z$ 和 $y$：
+\begin{equation}
+    \min_{\Delta Z,\Delta y,\beta}
+    \norm{[\Delta Z,\Delta y]}_F^2,
+    \qquad
+    y+\Delta y=(Z+\Delta Z)\beta.
+    \label{eq:tls}
+\end{equation}
+令 $C=[Z,y]$，对 $C$ 做 SVD：
+\[
+    C=U\Sigma V^\top.
+\]
+若最小奇异向量分块为
+\[
+    v_{\min}=\begin{bmatrix}v_x\\v_y\end{bmatrix},\qquad v_y\neq0,
+\]
+则单输出 TLS 解为
+\begin{equation}
+    \widehat\beta_{\rm TLS}=-\frac{v_x}{v_y}.
+    \label{eq:tls-svd}
+\end{equation}
+多输出情形可对每个 terminal 方程分别做 TLS，或使用 structured TLS。TLS 对 P/Q 噪声有效，但标准 TLS 不自动保证
+$R=X^\top$、非负性和 tree-metric 结构，故更适合作为约束 QP 的初始化或偏差修正模块。
+
+\section{方法三：工具变量与外生扰动}
+
+\subsection{工具变量条件}
+
+若能获得与真实 P/Q 相关、但与量测噪声和电压残差不相关的工具变量 $G$，可用 IV 估计：
+\[
+    \E[G^\top U]=0,\qquad \E[G^\top\epsilon]=0,\qquad \operatorname{rank}\E[G^\top Z]=p.
+\]
+则
+\begin{equation}
+    \widehat\beta_{\rm IV}
+    =
+    (G^\top \widehat Z)^{-1}G^\top y.
+    \label{eq:iv}
+\end{equation}
+在配电网中，候选工具变量包括：
+
+\begin{itemize}[leftmargin=2em]
+  \item 上一时刻或低频预测负荷：$G(t)=\widehat P(t-1)$，适合白噪声表计误差；
+  \item 天气驱动 PV/风电预测：与真实 DER 出力相关，但与电压表噪声无关；
+  \item 可控小扰动或 probe 信号：例如小发电机、逆变器无功阶跃；
+  \item 聚合 feeder 总功率：可作为总量约束和工具变量。
+\end{itemize}
+
+\subsection{两阶段最小二乘}
+
+2SLS 首先把含噪自变量投影到工具变量张成空间：
+\[
+    \widehat Z_{\rm IV}=P_G\widehat Z,\qquad
+    P_G=G(G^\top G)^{-1}G^\top.
+\]
+然后回归：
+\begin{equation}
+    \widehat\beta_{\rm 2SLS}
+    =
+    (\widehat Z^\top P_G\widehat Z)^{-1}
+    \widehat Z^\top P_G y.
+    \label{eq:2sls}
+\end{equation}
+若工具变量有效，2SLS 能显著减轻 P/Q 随机误差造成的系数衰减。但若工具变量弱，方差会变大。
+弱工具可用第一阶段 $R^2$、F 统计量或奇异值检查。
+
+\section{方法四：时间域去趋势与自适应窗口}
+
+\subsection{滤波的本质}
+
+当前实验中，rolling high-pass 的形式为
+\[
+    \widetilde z(t)=z(t)-\frac{1}{w}\sum_{\tau=t-\lfloor w/2\rfloor}^{t+\lfloor w/2\rfloor}z(\tau).
+    \label{eq:rolling-hp}
+\]
+若一天 $T=960$ 点，则采样间隔为 $90$ 秒，$w=288$ 对应 $7.2$ 小时的趋势剥离。
+它不是物理线路参数，而是将日内慢趋势、根节点共同模态、AC 慢变模型误差从局部激励中分离出来。
+
+\subsection{无先验参数选择：预测误差 + 稳定性}
+
+面对新场景，不能用真实边恢复率选窗口。设候选滤波器集合为
+\[
+    \mathcal{F}=\{F_1,\ldots,F_K\}.
+\]
+对每个 $F_k$，做 $B$ 次场景或日期 bootstrap。第 $b$ 次得到 $\widehat R^{(k,b)}$ 和 MST
+$\widehat T^{(k,b)}$。定义边频率
+\begin{equation}
+    \pi_e^{(k)}=\frac{1}{B}\sum_{b=1}^B \mathbf{1}\{e\in\widehat T^{(k,b)}\}.
+    \label{eq:edge-frequency}
+\end{equation}
+边熵为
+\begin{equation}
+    H^{(k)}
+    =
+    -\frac{1}{|\mathcal{E}_c|}
+    \sum_{e\in\mathcal{E}_c}
+    \left[
+      \pi_e^{(k)}\log(\pi_e^{(k)}+\delta)
+      +(1-\pi_e^{(k)})\log(1-\pi_e^{(k)}+\delta)
+    \right].
+    \label{eq:edge-entropy}
+\end{equation}
+同时做 held-out 场景预测：
+\begin{equation}
+    {\rm RMSE}_{\rm val}^{(k)}
+    =
+    \sqrt{
+    \frac{1}{N_{\rm val}}
+    \sum_{(s,t,i)\in\mathcal{D}_{\rm val}}
+    \left(y_{s,t,i}-\widehat y_{s,t,i}^{(k)}\right)^2}.
+    \label{eq:validation-rmse}
+\end{equation}
+推荐选择准则：
+\begin{equation}
+    \operatorname{score}(F_k)
+    =
+    {\rm RMSE}_{\rm val}^{(k)}
+    +\lambda_H H^{(k)}
+    +\lambda_C \log \kappa(A_k)
+    +\lambda_{RX}D_{RX}^{(k)}.
+    \label{eq:filter-score}
+\end{equation}
+其中 $D_{RX}$ 衡量 $d^R$ 与 $d^X$ 给出的树是否一致。选
+\[
+    F^\star=\argmin_{F_k\in\mathcal{F}}\operatorname{score}(F_k).
+\]
+这比固定 $w=288$ 更适合新场景。
+
+\subsection{窗口集成而非单窗口}
+
+更稳健的方式是窗口集成。令每个滤波器输出边频率 $\pi_e^{(k)}$，加权为
+\begin{equation}
+    s_e=\sum_{k=1}^K \omega_k\pi_e^{(k)},\qquad
+    \omega_k\propto \exp[-\alpha \operatorname{score}(F_k)].
+    \label{eq:ensemble-score}
+\end{equation}
+最终取最大生成树：
+\begin{equation}
+    \widehat T_{\rm ens}
+    =
+    \argmax_{T\in\mathfrak{T}}
+    \sum_{e\in T}s_e.
+    \label{eq:ensemble-tree}
+\end{equation}
+这样可以避免单个窗口对某个场景过拟合。
+
+\section{方法五：common mode 与低秩扰动消除}
+
+\subsection{低秩公共模态模型}
+
+根电压波动、日照共同包络和系统级负荷同步变化通常表现为低秩结构：
+\[
+    Y = ZB + LC^\top + E,
+    \label{eq:lowrank}
+\]
+其中 $Y\in\R^{n\times m}$ 是电压降矩阵，$Z=[P,Q]$，$B=[R^\top,X^\top]^\top$，
+$LC^\top$ 是 rank-$q$ 的公共模态项。优化问题为
+\begin{equation}
+    \min_{B,L,C}
+    \norm{Y-ZB-LC^\top}_F^2
+    +\lambda_B\mathcal{R}(B),
+    \qquad \operatorname{rank}(LC^\top)\le q.
+    \label{eq:lowrank-regression}
+\end{equation}
+也可用 nuclear norm 松弛：
+\begin{equation}
+    \min_{B,M}
+    \frac12\norm{Y-ZB-M}_F^2+\lambda_M\norm{M}_\ast+\lambda_B\mathcal{R}(B).
+    \label{eq:nuclear}
+\end{equation}
+实践中常用更简单的步骤：先对 $Y,P,Q$ 做每日去均值、高通或 PCA 去除前几个主成分，再回归。
+但必须避免去掉与拓扑有关的局部信号。
+
+\section{方法六：鲁棒回归与异常点处理}
+
+\subsection{Huber 与 Tukey 损失}
+
+电表通信异常、PV 突变、AC 潮流未完全收敛或错误挂表会造成重尾残差。普通二乘损失
+\[
+    \rho(u)=\frac12u^2
+\]
+对离群点敏感。Huber 损失为
+\begin{equation}
+    \rho_\delta(u)=
+    \begin{cases}
+      \frac12u^2, & |u|\le\delta,\\
+      \delta(|u|-\frac12\delta), & |u|>\delta.
+    \end{cases}
+    \label{eq:huber}
+\end{equation}
+对应 M-estimator：
+\begin{equation}
+    \min_{\theta\in\Theta_{\rm phys}}
+    \sum_{s,t,i}\rho_\delta
+    \left(
+      \frac{y_{s,t,i}-a_{s,t,i}^\top\theta}{\widehat\sigma_i}
+    \right).
+    \label{eq:m-estimator}
+\end{equation}
+其迭代加权形式为
+\[
+    w_r=\frac{\psi(r)}{r},\qquad
+    \psi(r)=\rho'(r),
+\]
+然后解加权约束 LS。优点是自动降低异常样本权重；缺点是若大比例系统误差被误判为异常，可能丢掉有效激励。
+
+\subsection{场景级异常诊断}
+
+对每个场景 $s$ 计算
+\[
+    {\rm RMSE}_s=\sqrt{\frac{1}{T_sm}\sum_{t,i}e_{s,t,i}^2},
+\qquad
+    {\rm leverage}_{s,t}=a_{s,t}^\top(A^\top A)^{-1}a_{s,t}.
+\]
+高残差且高 leverage 的样本会强烈影响 $R/X$。可用 Cook 距离类指标：
+\begin{equation}
+    D_{s,t}\approx
+    \frac{e_{s,t}^2}{p\widehat\sigma^2}
+    \frac{h_{s,t}}{(1-h_{s,t})^2}.
+    \label{eq:cook}
+\end{equation}
+对高 $D$ 样本可降权、剔除或单独建模。
+
+\section{方法七：bootstrap、stability selection 与概率树}
+
+\subsection{bootstrap 方差估计}
+
+设估计流程为
+\[
+    \mathcal{A}:\{(P,Q,V,V_0)_s\}_{s=1}^S\mapsto \widehat T.
+\]
+重采样日期、场景或时间块得到 $\widehat T^{(b)}$。边频率 $\pi_e$ 如式 \eqref{eq:edge-frequency}。
+若某边 $\pi_e\approx1$，说明对随机误差稳定；若 $\pi_e\approx0.5$，说明处于排序边界。
+
+terminal tree 必须有 $m-1$ 条边，因此不能简单选 $\pi_e>\tau$；应把 $\pi_e$ 当权重做 maximum spanning tree：
+\[
+    \widehat T_{\rm stab}=\argmax_{T\in\mathfrak{T}}\sum_{e\in T}\pi_e.
+    \label{eq:stable-mst}
+\]
+
+\subsection{stability selection 的误选控制思想}
+
+Stability selection 的核心是：对随机子样本反复运行基础选择器，保留高选择概率变量。对边选择而言，
+变量就是候选边 $e$。设阈值 $\pi_{\rm thr}$，选择
+\[
+    \widehat E_{\rm stable}=\{e:\pi_e\ge\pi_{\rm thr}\}.
+\]
+原始 stability selection 给出了期望误选数量上界，其具体形式依赖交换性和选择规模假设。对于 MST，
+更实用的是把它改成“边置信度 + 生成树约束”的形式，即式 \eqref{eq:stable-mst}。
+
+\subsection{矩阵树后验}
+
+给每条候选边一个权重
+\[
+    w_e=\exp(-\beta \widehat d_e),
+\]
+定义所有生成树上的 Gibbs 分布：
+\begin{equation}
+    \Pr(T\mid \widehat d)
+    =
+    \frac{1}{Z}
+    \prod_{e\in T}w_e,
+\qquad
+    Z=\sum_{T\in\mathfrak{T}}\prod_{e\in T}w_e.
+    \label{eq:tree-posterior}
+\end{equation}
+由矩阵树定理，若 $L(w)$ 是加权图 Laplacian，删除根行列得 $L_{\bar r}$，则
+\[
+    Z=\det L_{\bar r}.
+\]
+边 $e=(u,v)$ 的边际概率为
+\begin{equation}
+    p_e
+    =
+    w_e\, b_e^\top L_{\bar r}^{-1} b_e,
+    \label{eq:edge-marginal}
+\end{equation}
+其中 $b_e$ 是边关联向量删除根节点后的版本。若 $p_e$ 集中在 $m-1$ 条边附近，拓扑置信度高；
+若大量边 $p_e$ 接近，则随机误差导致不可区分。
+
+\subsection{温度参数自适应}
+
+$\beta$ 控制后验尖锐程度。可用 bootstrap 距离方差设定：
+\[
+    \beta_e=\frac{1}{\widehat\sigma_{d,e}+\epsilon}.
+\]
+或统一选择 $\beta$ 使
+\[
+    \sum_e p_e=m-1
+\]
+天然成立，同时使 posterior entropy
+\[
+    H_{\rm tree}
+    =
+    -\sum_e
+    \left[
+      p_e\log p_e+(1-p_e)\log(1-p_e)
+    \right]
+    \label{eq:tree-entropy}
+\]
+不过大。最终可报告 MAP tree、edge marginal 和 entropy，而不只报告一棵硬树。
+
+\section{方法八：tree metric 投影与 additivity 约束}
+
+\subsection{四点条件}
+
+真实 terminal additive tree metric 满足四点条件：任意四个叶子 $a,b,c,d$，
+\[
+    d_{ab}+d_{cd},\quad d_{ac}+d_{bd},\quad d_{ad}+d_{bc}
+\]
+中最大两个相等。随机误差会破坏该条件。可把估计距离 $\widehat d$ 投影到 tree metric 集合：
+\begin{equation}
+    \min_{d\in\mathcal{M}_{\rm tree}}
+    \sum_{i<j}\omega_{ij}(d_{ij}-\widehat d_{ij})^2.
+    \label{eq:tree-metric-proj}
+\end{equation}
+其中 $\mathcal{M}_{\rm tree}$ 是所有 additive tree metrics。这个集合是多拓扑的并集，直接求解较难；
+实用方法包括 neighbor joining、recursive grouping、quartet voting 或先 MST 后局部修正。
+
+\subsection{局部 quartet voting}
+
+对每个四元组 $(a,b,c,d)$，根据三种 split 的得分
+\[
+    S_{ab|cd}=d_{ab}+d_{cd},\quad
+    S_{ac|bd}=d_{ac}+d_{bd},\quad
+    S_{ad|bc}=d_{ad}+d_{bc}
+\]
+判断哪两个较大且接近。若
+\[
+    S_{ac|bd}\approx S_{ad|bc}>S_{ab|cd},
+\]
+则支持 split $ab|cd$。把所有 quartet vote 聚合成边置信度，可修正 MST 在小 margin 处的个别错边。
+
+\section{方法九：R/X 组合距离与多视角一致性}
+
+若线路 $R$ 与 $X$ 同数量级，则 $d^X$ 同样是 additive tree distance。可构造
+\begin{equation}
+    d^{RX}_{ij}
+    =
+    \alpha\frac{d^R_{ij}}{\operatorname{median}(d^R)}
+    +(1-\alpha)\frac{d^X_{ij}}{\operatorname{median}(d^X)}.
+    \label{eq:rx-distance}
+\end{equation}
+固定 $\alpha$ 有风险，因为某些算例中 $X$ 噪声更大。推荐把 $d^R$ 和 $d^{RX}$ 视为两个 view：
+\[
+    T_R=\operatorname{MST}(d^R),\qquad
+    T_{RX}=\operatorname{MST}(d^{RX}).
+\]
+定义一致性
+\[
+    J(T_R,T_{RX})=\frac{|T_R\cap T_{RX}|}{|T_R\cup T_{RX}|}.
+\]
+若 $J$ 高，说明拓扑稳定；若 $J$ 低，应进入局部诊断：检查错边附近的距离 margin、bootstrap 频率和残差影响。
+当前实验中，固定 $d^R$ 在多数 case 上更稳，而 $d^{RX}$ 能修正某些 balanced case 的局部错边。因此建议：
+
+\begin{equation}
+    s_e=\pi^R_e+\eta\,\pi^{RX}_e-\mu\,\mathbf{1}\{e\ \text{only appears in unstable view}\}.
+    \label{eq:multi-view-edge-score}
+\end{equation}
+
+\section{方法十：主动激励与最优实验设计}
+
+\subsection{为什么主动激励最有效}
+
+被动智能表数据常有强相关负荷：
+\[
+    \operatorname{cond}(A)\gg1.
+\]
+估计协方差近似为
+\[
+    \Cov(\widehat\theta)\approx \sigma^2(A^\top A)^{-1}.
+    \label{eq:cov-ls}
+\]
+要系统降低方差，就要增大 $A^\top A$ 的最小特征值，而不是只增加相似样本。
+
+若可控 DER 允许注入小扰动 $u(t)$，设计目标可写为 D-optimal：
+\[
+    \max_{u(1:T)}
+    \log\det(A(u)^\top A(u)+\lambda I)
+    \quad
+    \text{s.t.}\quad
+    |u_j(t)|\le \bar u_j,\quad V_{\min}\le V(t)\le V_{\max}.
+    \label{eq:d-optimal}
+\]
+或 E-optimal：
+\[
+    \max_{u(1:T)}
+    \lambda_{\min}(A(u)^\top A(u)).
+    \label{eq:e-optimal}
+\]
+主动激励可显著提高 identifiability，尤其是区分兄弟 terminal 或近似等长 service drops。
+
+\subsection{无功 probe}
+
+逆变器无功扰动对电压敏感，且不直接改变用户有功负荷。若第 $j$ 个 terminal 注入
+\[
+    \Delta Q_j(t)=q_0 s_j(t),
+\]
+其中 $s_j(t)$ 是互相正交的伪随机序列，则
+\[
+    \Delta y_i(t)\approx X_{ij}q_0s_j(t).
+\]
+用相关解调：
+\[
+    \widehat X_{ij}
+    =
+    \frac{1}{q_0T}\sum_t \Delta y_i(t)s_j(t).
+    \label{eq:lockin}
+\]
+这类似 lock-in measurement，可把随机噪声平均掉。工程上需满足电压约束、逆变器容量和用户影响约束。
+
+\section{方法十一：Kalman/状态空间滤波与时间变化拓扑}
+
+若 $R,X$ 或电压偏差慢变，可建状态空间模型：
+\begin{align}
+    \theta_{t+1}&=\theta_t+w_t,\qquad w_t\sim\mathcal{N}(0,Q_\theta),\\
+    y_t&=A_t\theta_t+v_t,\qquad v_t\sim\mathcal{N}(0,R_t).
+\end{align}
+Kalman filter 预测与更新：
+\begin{align}
+    \theta_{t|t-1}&=\theta_{t-1|t-1},\\
+    P_{t|t-1}&=P_{t-1|t-1}+Q_\theta,\\
+    K_t&=P_{t|t-1}A_t^\top(A_tP_{t|t-1}A_t^\top+R_t)^{-1},\\
+    \theta_{t|t}&=\theta_{t|t-1}+K_t(y_t-A_t\theta_{t|t-1}),\\
+    P_{t|t}&=(I-K_tA_t)P_{t|t-1}.
+\end{align}
+这适合在线辨识。对固定拓扑离线问题，Kalman smoother 相当于带时间平滑先验的递推 GLS。
+
+\section{方法十二：AC 模型误差修正}
+
+\subsection{AC residual linearization}
+
+当前数据由 AC 潮流生成，而估计使用 reduced linear sensitivity，系统误差不可避免。设 AC 方程为
+\[
+    F(x,u,\theta_{\rm net})=0,
+\]
+$x$ 是电压相量，$u=(P,Q)$。在工作点 $(x^\star,u^\star)$ 附近：
+\[
+    \Delta x
+    \approx
+    -F_x^{-1}F_u\Delta u.
+\]
+这给出局部 sensitivity
+\[
+    S_{\rm AC}(u^\star)=\frac{\partial y}{\partial u}
+    =
+    -H_xF_x^{-1}F_u.
+\]
+与 constant $R/X$ 不同，$S_{\rm AC}$ 随工作点变化。可采用分段线性模型：
+\begin{equation}
+    y_{s,t}
+    =
+    A_{s,t}\theta
+    +
+    B\phi(u_{s,t})
+    +
+    e_{s,t},
+    \label{eq:ac-correction}
+\end{equation}
+其中 $\phi(u)$ 包括总负荷、总无功、损耗近似项：
+\[
+    \phi(u)=
+    \left[
+      \sum_j P_j,\ 
+      \sum_j Q_j,\ 
+      \left(\sum_j P_j\right)^2,\ 
+      \left(\sum_j Q_j\right)^2,\ 
+      \sum_j P_jQ_j
+    \right].
+\]
+这可吸收 AC 慢变偏差，降低对滤波窗口的依赖。但 $\phi$ 过多会与 $R/X$ 共线，需要 ridge 或 cross-validation。
+
+\section{推荐的综合算法}
+
+\subsection{离线无先验推荐流程}
+
+\begin{algorithm}[H]
+\caption{Adaptive Stable Constrained Topology Identification}
+\begin{algorithmic}[1]
+\Require 多场景 terminal P/Q/V、root voltage $V_0$；候选窗口 $\mathcal{W}$；bootstrap 次数 $B$
+\State 构造电压降 $Y_s=V_{0,s}^{\circ2}\bm{1}^\top-V_s^{\circ2}$
+\For{$w\in\mathcal{W}$}
+  \State 对 $Y_s,P_s,Q_s$ 应用 rolling high-pass 或频域 band-pass
+  \For{$b=1,\ldots,B$}
+    \State bootstrap 抽取场景/日期/时间块
+    \State 解对称非负约束回归 \eqref{eq:nnls}
+    \State 构造 $d^R$ 与可选 $d^{RX}$
+    \State 生成 MST，记录边出现
+  \EndFor
+  \State 计算 validation RMSE、边熵、条件数、$R/X$ 一致性
+\EndFor
+\State 由式 \eqref{eq:ensemble-score} 得到跨窗口边分数 $s_e$
+\State 输出 $\widehat T=\argmax_T\sum_{e\in T}s_e$
+\State 同时输出 edge frequency、matrix-tree marginal、局部低置信边列表
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{默认参数建议}
+
+若一天 $T=960$ 点，建议窗口集合为
+\[
+    \mathcal{W}=\{192,224,240,256,288,320,360\}.
+\]
+对应约 $4.8$--$9$ 小时的慢趋势剥离。若采样点数不同，按时间尺度而不是点数换算：
+\[
+    w(\tau)=\left\lfloor\frac{\tau}{\Delta t}\right\rceil,\qquad
+    \tau\in\{4.8,5.6,6.0,6.4,7.2,8.0,9.0\}\ {\rm hours}.
+\]
+默认主距离使用 $d^R$；若 $d^R$ 与 $d^{RX}$ 在 bootstrap 中一致，合并；若不一致，优先保留 $d^R$，
+把 $d^{RX}$ 作为局部诊断。
+
+\subsection{精度提升路线优先级}
+
+\begin{longtable}{p{0.23\linewidth}p{0.32\linewidth}p{0.34\linewidth}}
+\toprule
+方法 & 主要解决的问题 & 推荐程度 \\
+\midrule
+多场景耦合 + 固定效应 & 单日激励不足、根电压均值差异 & 必做 \\
+对称非负约束 & 随机噪声导致非物理系数 & 必做 \\
+自适应高通/频域滤波 & 慢变公共模态、AC 系统偏差 & 必做，但不可 oracle 选参 \\
+bootstrap 稳定性 & MST 排序敏感、边置信度未知 & 必做 \\
+WLS/GLS & 异方差 V/P/Q 噪声、root common mode & 强烈推荐 \\
+R/X 多视角一致性 & R 或 X 单一视角局部错边 & 推荐作辅助 \\
+EIV/TLS/IV & P/Q 自变量量测噪声偏差 & 有噪声标定时强烈推荐 \\
+鲁棒 M-estimator & 离群点、错挂表、通信异常 & 推荐 \\
+tree metric/quartet 投影 & 距离矩阵不满足 additive tree & 推荐作后处理 \\
+主动 DER probe & 边 margin 太小、被动数据不可辨识 & 条件允许时最有效 \\
+AC residual correction & 高负荷下线性模型失配 & 高电压降场景推荐 \\
+\bottomrule
+\end{longtable}
+
+\section{与当前实验结果的关系}
+
+在当前 case-bank 实验中，固定组合
+\[
+    \text{rolling\_highpass\_w288}+d^R
+\]
+在四个论文风格算例上恢复 $55/56$ 条 terminal-equivalent MST 边，平均 F1 约 $0.983$。
+不滤波 raw drop + $d^R$ 为 $51/56$，平均 F1 约 $0.915$。这说明高通滤波主要提高困难边排序的稳定性。
+
+但是 $w=288$ 不是普适真理。它对应当前 $T=960$、一天数据、90 秒采样下的 $7.2$ 小时趋势剥离。
+面对新场景，应改用式 \eqref{eq:filter-score} 或式 \eqref{eq:ensemble-score} 的无监督选择/集成。
+
+\section{结论}
+
+随机误差下提升拓扑辨识精度不能只依赖某个滤波窗口。系统性方案应同时处理四件事：
+
+\begin{enumerate}[leftmargin=2em]
+  \item 用多场景耦合和固定效应增加有效激励并隔离场景偏置；
+  \item 用对称、非负、tree-metric、R/X 一致性等物理约束降低估计方差；
+  \item 用 WLS/GLS、EIV/TLS/IV、鲁棒 M-estimator 正确建模量测误差；
+  \item 用 bootstrap、矩阵树后验和跨窗口集成把 MST 的硬决策变成可校准的边置信度。
+\end{enumerate}
+
+如果工程上允许主动 DER probe，则最根本的提升来自最优实验设计：让 $A^\top A$ 条件更好，
+而不是被动等待随机负荷提供足够激励。
+
+\begin{thebibliography}{99}
+
+\bibitem{baran1989}
+M. E. Baran and F. F. Wu,
+``Network reconfiguration in distribution systems for loss reduction and load balancing,''
+\emph{IEEE Transactions on Power Delivery}, vol. 4, no. 2, pp. 1401--1407, 1989.
+
+\bibitem{bolognani2016}
+S. Bolognani and S. Zampieri,
+``On the existence and linear approximation of the power flow solution in power distribution networks,''
+\emph{IEEE Transactions on Power Systems}, vol. 31, no. 1, pp. 163--172, 2016.
+Preprint: \url{https://arxiv.org/abs/1403.5031}.
+
+\bibitem{gan2014}
+L. Gan and S. H. Low,
+``Convex relaxations and linear approximation for optimal power flow in multiphase radial networks,''
+preprint, 2014. \url{https://arxiv.org/abs/1406.3054}.
+
+\bibitem{deka2016terminal}
+D. Deka, S. Backhaus, and M. Chertkov,
+``Learning topology of distribution grids using only terminal node measurements,''
+preprint, 2016. \url{https://arxiv.org/abs/1608.05031}.
+
+\bibitem{deka2016graphical}
+D. Deka, S. Backhaus, and M. Chertkov,
+``Estimating distribution grid topologies: A graphical learning based approach,''
+preprint, 2016. \url{https://arxiv.org/abs/1602.08509}.
+
+\bibitem{deka2016missing}
+D. Deka, S. Backhaus, and M. Chertkov,
+``Learning topology of the power distribution grid with and without missing data,''
+preprint, 2016. \url{https://arxiv.org/abs/1603.01650}.
+
+\bibitem{satya2016}
+J. P. Satya, N. Bhatt, R. Pasumarthy, and A. Rajeswaran,
+``Identifying topology of power distribution networks based on smart meter data,''
+preprint, 2016. \url{https://arxiv.org/abs/1609.02678}.
+
+\bibitem{guo2021}
+Y. Guo, Y. Yuan, and Z. Wang,
+``Distribution grid modeling using smart meter data,''
+preprint, 2021. \url{https://arxiv.org/abs/2103.00660}.
+
+\bibitem{golub1980}
+G. H. Golub and C. F. Van Loan,
+``An analysis of the total least squares problem,''
+\emph{SIAM Journal on Numerical Analysis}, vol. 17, no. 6, pp. 883--893, 1980.
+
+\bibitem{vanhuffel1991}
+S. Van Huffel and J. Vandewalle,
+\emph{The Total Least Squares Problem: Computational Aspects and Analysis}.
+SIAM, 1991.
+
+\bibitem{fuller1987}
+W. A. Fuller,
+\emph{Measurement Error Models}.
+Wiley, 1987.
+
+\bibitem{carroll2006}
+R. J. Carroll, D. Ruppert, L. A. Stefanski, and C. M. Crainiceanu,
+\emph{Measurement Error in Nonlinear Models: A Modern Perspective}.
+CRC Press, 2006.
+
+\bibitem{huber2009}
+P. J. Huber and E. M. Ronchetti,
+\emph{Robust Statistics}, 2nd ed.
+Wiley, 2009.
+
+\bibitem{hampel1986}
+F. R. Hampel, E. M. Ronchetti, P. J. Rousseeuw, and W. A. Stahel,
+\emph{Robust Statistics: The Approach Based on Influence Functions}.
+Wiley, 1986.
+
+\bibitem{efron1993}
+B. Efron and R. J. Tibshirani,
+\emph{An Introduction to the Bootstrap}.
+Chapman \& Hall/CRC, 1993.
+
+\bibitem{meinshausen2010}
+N. Meinshausen and P. Buehlmann,
+``Stability selection,''
+\emph{Journal of the Royal Statistical Society: Series B}, vol. 72, no. 4, pp. 417--473, 2010.
+
+\bibitem{shah2013}
+R. D. Shah and R. J. Samworth,
+``Variable selection with error control: Another look at stability selection,''
+\emph{Journal of the Royal Statistical Society: Series B}, vol. 75, no. 1, pp. 55--80, 2013.
+
+\bibitem{kalman1960}
+R. E. Kalman,
+``A new approach to linear filtering and prediction problems,''
+\emph{Transactions of the ASME--Journal of Basic Engineering}, vol. 82, no. 1, pp. 35--45, 1960.
+
+\bibitem{kirchhoff1847}
+G. Kirchhoff,
+``Ueber die Aufloesung der Gleichungen, auf welche man bei der Untersuchung der linearen Vertheilung galvanischer Stroeme gefuehrt wird,''
+\emph{Annalen der Physik und Chemie}, vol. 72, pp. 497--508, 1847.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,59 @@
+\documentclass[UTF8,11pt]{ctexart}
+
+\usepackage[a4paper,margin=2.35cm]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black
+}
+\setlist{nosep,leftmargin=2em}
+\newcommand{\Rhat}{\widehat{R}}
+\newcommand{\Xhat}{\widehat{X}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\clade}{\mathcal{C}}
+
+\title{仅末端量测配电网隐藏拓扑辨识\\
+当前算法、实验结果与真实数据验证}
+\author{terminal\_load\_only\_case33 项目技术报告}
+\date{2026年7月}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文整理当前项目的完整技术主线：用逐时段径向交流潮流生成量测，
+从根节点参考电压与末端智能表的有功、无功和电压幅值平方估计
+reduced sensitivity matrix；由对称非负的 $R/X$ 估计构造加性阻抗距离；
+利用根约束 Neighbor Joining（RNJ）显式生成隐藏节点；再通过对已有噪声量测
+叠加小扰动，识别稳定的根向 clade，将高置信边缘结构收缩为 pseudo node，
+仅重辨识缩减后的内部主干，最后展开冻结的局部结构。
+
+文档同时给出当前评价指标、合成算例结果、参数来源和适用边界。作为下一阶段，
+项目接入公开的挪威工业配电网数据集：拓扑、支路参数和小时有功负荷来自真实且
+匿名化的数据，缺失的无功和电压分别用功率因数假设及交流潮流补全。因此该结果
+属于“真实拓扑与真实负荷驱动的半实证验证”，不能表述为现场 $P/Q/V$ 全量测验证。
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{sections/01_problem}
+\input{sections/02_estimation}
+\input{sections/03_rooted_tree}
+\input{sections/04_hierarchy}
+\input{sections/05_evaluation}
+\input{sections/06_real_data}
+\input{sections/07_next_steps}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

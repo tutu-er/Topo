@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "theft-wzzt"
+version = "0.1.0"
+description = "Standalone RNJ-wzzT topology identification plus unmetered-load (theft) identification pilot"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "networkx",
+]
+
+[tool.setuptools.packages.find]
+include = ["theft_wzzt*"]

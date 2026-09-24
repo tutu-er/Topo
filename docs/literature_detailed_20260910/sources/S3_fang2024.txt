@@ -1,0 +1,1654 @@
+
+PAGE 1
+Minerva Access is the Institutional Repository of The University of Melbourne
+Author/s:
+Fang, L;Pengwah, AB;Andrew, LLH;Razzaghi, R;Munoz, MA
+Title:
+Three-phase voltage sensitivity estimation and its application to topology identiﬁcation
+in low-voltage distribution networks
+Date:
+-
+Citation:
+Fang, L., Pengwah, A. B., Andrew, L. L. H., Razzaghi, R. & Munoz, M. A. (). Three-phase
+voltage sensitivity estimation and its application to topology identiﬁcation in low-voltage
+distribution networks. International Journal of Electrical Power and Energy Systems, ,
+https://doi.org/./j.ijepes...
+Persistent Link:
+https://hdl.handle.net//
+License:
+CC BY
+
+PAGE 2
+Electrical Power and Energy Systems 158 (2024) 109949
+Available online 30 March 2024
+0142-0615/© 2024 The Author(s). Published by Elsevier Ltd. This is an open access article under the CC BY license ( http://creativecommons.org/licenses/by/4.0/).
+Contents lists available at ScienceDirect
+International Journal of Electrical Power and Energy Systems
+journal homepage: www.elsevier.com/locate/ijepes
+Three-phase voltage sensitivity estimation and its application to topology
+identification in low-voltage distribution networks
+Luxin Fang a, Abu Bakr Pengwahb, Lachlan L.H. Andrewa,c,∗, Reza Razzaghib,
+Mario Andrés Muñoza,c
+a Faculty of Engineering and Information Technology, The University of Melbourne, Parkville, 3010, VIC, Australia
+b Department of Electrical and Computer Systems Engineering, Monash University, Clayton, 3800, VIC, Australia
+c ARC Centre in Optimisation Technologies, Integrated Methodologies, and Applications, 700 Swanston Street, Carlton, 3053, VIC, Australia
+A R T I C L E I N F O
+Keywords:
+Low-voltage distribution networks
+Voltage sensitivity estimation
+Network topology estimation
+Smart meters
+A B S T R A C T
+This paper aims to estimate the three-phase voltage sensitivity matrix and the network topology of a low-
+voltage distribution network from smart meter data, which measures voltage magnitude, current magnitude,
+and power factor with a lead/lag indicator. The targeted networks are three-phase networks with single-
+phase loads. Understanding network sensitivity and topology is crucial for fault detection, unmetered load
+identification, and addressing Dynamic Operating Envelope problems. The problem is formulated as a
+constrained optimization problem to estimate both the three-phase voltage sensitivity and the low-voltage
+transformer voltage. The estimated voltage sensitivity is used to further identify the network topology, by
+implementing an enhanced Recursive-Grouping and Backtracking algorithm, as well as a candidate topology
+selection technique. The proposed method is tested on the 55-node European feeder and several synthetic
+networks. Compared to the state-of-the-art, the results show a four-fold improvement in the accuracy of voltage
+sensitivity estimation and substantially fewer mistakes in the topology estimates. The result underscores the
+efficacy of a three-phase network model and voltage angle approximation in enhancing estimation accuracy.
+1. Introduction
+Thanks to advancements in computer science and information tech-
+nology, a wide range of applications for power distribution networks
+has emerged in recent years. To monitor and control the network,
+demand-response [1] and distribution management systems (DMS)[ 2]
+have been developed, which require accurate knowledge of the net-
+work structure. This includes knowledge of both the network topology
+and line impedances. Such knowledge is also invaluable for applica-
+tions including transmission line fault detection and classification [ 3],
+detection of unmetered loads and electricity theft [4], microgrid protec-
+tion [5], and optimal power dispatch strategy [ 6]. Although the topol-
+ogy might have been well-documented at the initial rollout, changes
+can go undocumented or may not be communicated immediately to all
+relevant parties, often due to the ongoing addition of new customers. In
+addition, it is costly to update records through manual inspection. Con-
+sequently, data-driven approaches have emerged as a means to acquire
+knowledge of the network topology. These methods typically rely on
+data collected from devices within the network, such as line current
+sensors [ 7] or Distribution Phasor Measurement Units (D-PMUs)[ 8],
+∗ Corresponding author.
+E-mail address: llandrew@unimelb.edu.au (L.L.H. Andrew).
+1 Three-phase customers are less common outside North America since most of the rest of the world uses 220–240 V distribution.
+which are expensive and uncommon measurement equipment. An al-
+ternative involves using data collected by smart meters that, installed
+primarily for billing purposes, are widely deployed across Europe, the
+U.S.[9], and Australia [10].
+Deriving the topology from smart meter data presents significant
+challenges. A primary issue is the lack of voltage phase information at
+the customer’s end from smart meters, which only provide magnitudes
+of current and voltage, along with the power factor and a lead/lag
+indicator. Second, residential distribution networks are primarily three-
+phase networks with single-phase loads, introducing non-negligible
+phase coupling through the neutral line1. A third challenge arises from
+the fact that smart meters are not typically installed at substations,
+leaving the secondary side voltage of low-voltage (LV) transformers
+unknown. Finally, measurement noise—whether in the data values
+themselves or in the synchronization of measurement times—poses a
+significant hurdle. While this can be mitigated by collecting a large
+number of samples, the typical five-minute sampling period [11] neces-
+sitates efficient use of each sample. This work specifically addresses the
+first three challenges, within the limitations imposed by the last one.
+https://doi.org/10.1016/j.ijepes.2024.109949
+Received 26 September 2023; Received in revised form 27 January 2024; Accepted 13 March 2024
+
+PAGE 3
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+2
+L. Fang et al.
+Nomenclature
+1 − 𝜙 Single-phase
+3 − 𝜙 Three-phase
+𝑁 Total number of leaf nodes
+𝑁𝑎 Number of leaf nodes in phase 𝐴
+𝑁𝑏 Number of leaf nodes in phase 𝐵
+𝑁𝑐 Number of leaf nodes in phase 𝐶
+𝐿 Number of samples of smart meter measure-
+ments
+ℜ Real part of
+ℑ Imaginary part of
+𝐣 Imaginary unit
+𝛥 Difference operator
+𝑎 Complex number multiplier, equal to 𝑒−𝐣2𝜋∕3
+𝑉𝑠|𝑉𝑠,𝑖 Complex LV transformer voltage, relative to
+phase 𝐴, or 0 ◦ [𝑉 ]
+𝑉 |𝑉𝑖 Complex voltage | Complex voltage on node
+𝑖 [𝑉 ]
+|𝑉 |||||𝑉𝑖| Voltage magnitude | the voltage on node 𝑖
+measured by smart meters [ 𝑉 ]
+𝐼|𝐼𝑖 Complex current | The current injection on
+node 𝑖 [𝐴]
+|𝐼|||||𝐼𝑖| Current magnitude | the current on node 𝑖
+measured by smart meters [ 𝐴]
+𝑝𝑓 Power factor with a lead/lag indicator,
+measured by smart meters
+𝜃𝑣 Voltage angle, relative to phase 𝐴 [Rad]
+̃𝜃𝑣 Voltage angle, relative to the phase of the
+leaf node [Rad]
+𝜃𝑖 Current angle, relative to phase 𝐴 [Rad]
+̃𝜃𝑖 Current angle, relative to the phase of the
+leaf node [Rad]
+𝜃𝑝 Power factor angle, the difference between
+the voltage and current angle [Rad]
+𝑍|𝑍𝑖𝑗 Impedance matrix, a symmetrical complex
+matrix, explained in text
+𝑆|𝑆𝑖𝑗 Sensitivity matrix, a symmetrical complex
+matrix, explained in text
+𝑆𝐼 In-phase component of the sensitivity ma-
+trix
+𝑆𝑄 Quadrature component of the sensitivity
+matrix
+𝑆𝑆 Same-phase component of the sensitivity
+matrix, the voltage sensitivity on current of
+the same phase.
+𝑆𝑂 Other-phase component of the sensitivity
+matrix, the voltage sensitivity on current of
+the different phase.
+𝜈 Vectorization operator, converts 𝐵 = [𝑏𝑖𝑗 ] ∈
+C𝑁×𝑀 to 𝑐 ∈ C1×NM, where 𝑐(𝑖−1)𝑀+𝑗 = 𝑏𝑖𝑗
+† Pseudo-inverse operator
+𝐺 Topology graph, a Steiner tree whose
+root represents the transformer node of
+the physical network, leaf nodes repre-
+sent customers, internal nodes represent
+interconnection buses
+𝐷|𝐷𝑖𝑗 Distance matrix, a complex symmetrical
+matrix | The complex electrical distance
+between node 𝑖 and 𝑗 [𝛺]
+|𝑖𝑗 Adjacency matrix, a binary symmetrical ma-
+trix | Node 𝑖 and 𝑗 are directly connected in
+𝐺 if 𝑖𝑗 = 1, they are not directly connected
+if 𝑖𝑗 = 0
+ Set of active nodes, nodes are eligible for
+decision-making
+SNR Signal-to-noise ratio
+DCS DeltaCon score, a score between 0 and 1
+measures the similarity between two topol-
+ogy graphs, a higher score indicates two
+topology graph are more similar, 1 means
+they are identical.
+1.1. Related literature
+Work on topology estimation has focused mostly on single-phase
+(1-𝜙) networks, as demonstrated by the survey by Deka et al. [12]
+of over fifty papers, where only nine considered three-phase (3- 𝜙)
+networks. Several of the latter use D-PMUs since they measure complex
+voltage and current at a high sampling rate with low synchronization
+error. Hence, they produce the ideal data to estimate the topology.
+For example, Moffat et al. [13] used D-PMU data to estimate the
+impedance matrix for metered nodes, then implemented a recursive
+grouping (RG) algorithm to estimate the network topology. Chauhan
+and Sodhi [14] developed an Active Distribution Network State Esti-
+mation (ADNSE) framework, which uses D-PMUs to detect changes in
+topology dynamically.
+Examples of 1- 𝜙 networks topology estimation using smart meter
+data are the work of Peppanen et al. [15], who estimated 5–6 bus sub-
+networks within a 66-node network. Soumalas et al. [16] used voltage
+sensitivity to estimate the topology assuming that all unknown line
+segments between nodes are equal or integer multiples of a specific
+length. Liao et al. [17] recovered large-scaled network topology aided
+by partial network knowledge. Park et al. [18] employed recursive
+grouping to reconstruct the complete topology using exclusively smart
+meter measurements as information.
+According to [12], 3- 𝜙 methods use D-PMUs exclusively, smart
+meter data exclusively or a combination of the two. Approaches using
+D-PMU data only (Adaptive LASSO [19], PaToPa [20] PaToPaEM [21])
+achieve accurate results, but D-PMUs are expensive, and not widely
+deployed. Of the methods partially using smart meter data, Bariya
+et al. [22] proposed a method to estimate the grid topology using
+voltage magnitude, but this approach has large error for loads having
+realistically high correlation. Deka et al. [23] rely on the voltage angle
+information, which is not typically provided by smart meters, and
+also require a large sample size (more than 4 × 10 5) to get accurate
+results. Gandluru et al. [24] recover the topology of a large-scale 1069-
+node power system accurately with noisy measurements, but their
+method requires line meters on some transmission lines for power
+measurement. Liao et al. [25] proposed a method for finding the net-
+work topology directly by applying a maximum a-posteriori probability
+(MAP) model on the time differences of voltages, without estimating
+the line parameters. Studies also differ in how they treat the access
+lines leading from feeders to individual customers. Although these are
+short, they often have substantial impedances.
+Of the studies solely using the smart meter data, Li et al. [26] con-
+sidered three-phase balanced loads, which reduces the same problem
+as a single-phase network. Pengwah et al. [27] and Flynn et al. [28]
+both used a single-phase algorithm; for the simulation studies, they
+
+PAGE 4
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+3
+L. Fang et al.
+decoupled the three-phase network by adding ideal ground stakes at
+each load which decouples the phase, although results for real mea-
+surements showed acceptable accuracy despite the coupling. Garcia
+et al. [29] identifies the phase only, which is a prerequisite of topology
+estimation. Shi et al. [30] estimated the three-phase line parameters
+and topology, and also recovered the unknown phase information from
+the smart meter. Both [26] and [30] modeling the topology as a
+Spanning tree of customers, which assumes the access lines have no
+impedance. A more realistic model [31] explicitly models access lines,
+leading to a ‘‘Steiner’’ tree model, in which nodes are either customers
+(leaves) or ‘‘internal’’ nodes at which lines join with no customer. We
+adopt the more accurate Steiner tree approach, also used in [27] and
+[28]. Our proposal is the first algorithm to study a full three-phase
+network of single-phase loads, while modeling the access line, which is
+a more common scenario than [26] and [30] and more accurate than
+decoupling phases, especially when measurement noise is low.
+The innovation in [27] and [28] was to improve the accuracy of
+sensitivity estimation by imposing physically-based constraints, yield-
+ing a quadratic optimization problem. They extend the RG algorithm
+to find multiple candidate topologies, including known leaf nodes and
+concealed internal nodes. Finally, several goodness-of-fit measures are
+combined to choose the best candidate topology. This method has
+higher accuracy than [13] and [18], which similarly uses the RG algo-
+rithm. Moreover, Flynn et al. [28] extended the optimization problem
+in [27] to estimate the LV transformer voltage along with the voltage
+sensitivity on the 1- 𝜙 network and further improved the performance
+of the RG algorithm. However, these two methods have limitations.
+Because the sensitivity estimation considers one phase at a time, the
+coupling between phases dominates the effective signal to noise ratio
+(SNR). Moreover, during testing, an ideal grounding stake was placed at
+each node, which masks the coupling through the neutral line. While
+this simplification is justified by Kron reduction, its accuracy is due
+to the cancellation of neutral currents by the phases. This does not
+reduce the sensitivity of the voltage at one node to the current at
+another, which is the required property for estimating line impedances
+and hence, topologies.
+Other approaches try to exploit other sources of information. Liu
+et al. [32] discussed the precision limit to the topology estimation prob-
+lem and accordingly proposed a conservative progressive self-adaptive
+(CPS) algorithm to estimate the topology. Talkington et al. [33] seek
+to circumvent the unknown voltage phase angle problem by using a
+first-order approximation. However, their algorithms require a known
+scaled version of the sensitivity matrix itself, which may limit its appli-
+cability. Another approach is to use information about the geographic
+locations of the meters [34].
+1.2. Contribution of this paper
+This paper proposes a novel method to estimate 3- 𝜙 voltage sen-
+sitivity coefficients for a network of single phase loads purely from
+smart meter measurements. From that, it identifies the topology of
+a radial 3- 𝜙 power network consisting of single-phase loads with a
+single transformer as the root, as is typical of low-voltage distribution
+networks. The contributions are:
+• A method to estimate the voltage sensitivity to current and trans-
+former voltage in low-voltage three-phase distribution network of
+single phase loads, using smart meter data only. The proposed
+method models the network as a Steiner tree, which considers
+the impedance on the access line, explicitly works around the
+unknown voltage angle and considers the coupling effect between
+customers on different phases through the neutral line, in Sec-
+tion 2 which reduces the estimation error by four-fold compared
+to the state to the art in in-phase sensitivity elements, and,
+unlike existing algorithms, estimates the inter-phase sensitivity
+elements;
+• An enhanced recursive-grouping and backtracking algorithm to
+recover the network topology with a more targeted backtracking
+procedure and faster candidate topology selection technique, in
+Section 3, which outperforms the state-to-the-art in both accu-
+racy and speed when estimating the individual phase topologies.
+The proposed algorithm is also capable of recovering the full
+three-phase topologies of single phase nodes, unlike prior work.
+The performance of the proposed topology estimation algorithm is
+studied in Sections 5 and 6 provides the concluding remarks.
+2. Sensitivity matrix estimation
+The first step for estimating the topology is to find the electrical
+distances between nodes. This is done by estimating the (complex)
+sensitivity of the voltage at each meter to the current at each other
+meter, known as the 3- 𝜙 voltage sensitivity matrix. The problem is
+first formulated with complex voltage and current, from which an
+approximation using only smart meter measurements is derived.
+Fundamentally, a 3-𝜙 power distribution network can be modeled as
+a weighted unrooted tree , ̂𝐺 = (𝑇 , , 𝐷), with 𝑇 being a set of nodes,
+total number of nodes being 𝑁𝑇 ,  being a set of edges, representing
+power transmission lines, with complex weights 𝐷 ∶  → C𝑁𝑇 ×𝑁𝑇
+representing the complex electrical distance between pairs of nodes.
+We write 𝐷𝑖𝑗 to denote the impedance of the path between two nodes
+(𝑖, 𝑗). An unweighted unrooted tree , 𝐺 = ( 𝑇 , ), represents the network
+topology. In other words, the topology 𝐺 do not contain the distance
+or impedance information. Smart meters measure voltage magnitude,
+current magnitude, and power factor including whether it is leading
+or lagging and whether real power is absorbed or injected. 2 Voltage
+and current are sampled for 𝐿 time slots, giving 𝑁 × 𝐿 matrices 𝑉
+and 𝐼, with smart meters recording |𝑉 |, |𝐼|, 𝑝𝑓, and whether |𝑉 | leads
+or lags 𝐼, where | ⋅ | denotes element-wise absolute value. Complex
+quantities are sometimes decomposed as real and imaginary parts,
+denoted by subscripts 𝑟 and 𝑥, or as in-phase and quadrature parts
+denoted by subscripts  and . The root node of 𝐺 corresponds to the
+LV transformer, whose voltage is 𝑉𝑠 ∈ R.
+2.1. Voltage sensitivity and transformer voltage estimation
+In this study, following [27] and [28], the voltage sensitivity 𝑆
+refers to the changes in a customer node’s voltage due to the changes in
+node currents (rather than powers as is often used). Consider first the 1-
+𝜙 case. Let nodes 1, … , 𝑁 + 1 be metered nodes, and nodes 𝑁 + 2, … 𝑁𝑇
+be the unmetered ‘‘nodes’’ (location where lines join, such as where
+an access line connects to a feeder). Then in the 3- 𝜙 network, node
+1 is the transformer node, nodes 2, … , 𝑁𝑎 + 1 are on phase 𝐴, nodes
+𝑁𝑎 + 2 … , 𝑁𝑎 + 𝑁𝑏 + 1 are on phase 𝐵 and 𝑁𝑎 + 𝑁𝑏 + 2 … , 𝑁 + 1 on
+phase 𝐶. Let 𝑖𝑖 be the (unique) path from the transformer node 𝑠 to
+node 𝑖, and 𝑖𝑗 denote the section of 𝑖 that is common to 𝑗. Let 𝑍𝑖𝑖
+and 𝑍𝑖𝑗 be the impedances of these paths 3. By Ohm’s law,
+𝑉𝑠 − 𝑉𝑖 =
+𝑁𝑇∑
+𝑗=1
+𝑍𝑖𝑗 𝐼𝑗 =
+𝑁∑
+𝑗=1
+𝑍𝑖𝑗 𝐼𝑗 (1)
+provided there are no nonlinear elements, such as phase-changing
+transformers, because there is no current injected at unmetered nodes
+𝑗 > 𝑁 . Thus the sensitivity of (minus) 𝑉𝑖 to 𝐼𝑗 is simply 𝑍𝑖𝑗. The
+sensitivity matrix 𝑆 is a submatrix of the standard impedance matrix 𝑍
+(inverse of the admittance matrix, 𝑌 ) containing the rows and columns
+of the 𝑍 matrix that correspond to metered nodes (i.e., customers);
+2 Note that the lead/lag and absorb/inject data is vital, and was ignored
+in [16] and [18], and miscalculated in [27] and [28].
+3 Note that 𝑍𝑖𝑗 is not the impedance of a line between node 𝑖 and 𝑗, it is
+the 𝑖, 𝑗th component of the inverse of the admittance matrix 𝑌 .
+
+PAGE 5
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+4
+L. Fang et al.
+that is, it is the 𝑁th leading principal minor. The 𝑍 matrix was first
+used for topology estimation of urban power networks in [17], and
+further used in [13] and [26] for single-phase distribution network
+topology estimation. If measurement were available at all nodes, then
+it would be preferable to estimate 𝑌 and exploit its sparsity by methods
+such as LASSO [17], but that is not possible in this more realistic
+setting; indeed, the admittance between each pair of measured nodes
+is 0. Moreover, using 𝑍 was reported in [13] to be more robust.
+To generalize this to three phases, let 𝑎 = 𝑒−𝐣2𝜋∕3, 𝑁𝑎, 𝑁𝑏 and 𝑁𝑐
+be the numbers of nodes on each phase. The sensitivity of voltage
+to power, rather than current, was first introduced in [35], and used
+in some of the most recent works, such as sensitivity estimation given
+an incomplete matrix in [33] and representing localized power system
+structure as a sensitivity matrix in [34]. However, this is a non-linear
+relationship, and so we use the 𝑆 defined above, to improve robustness
+to voltage sag. Let 𝐸𝑎 = 𝐸𝑁𝑎,1, 𝐸𝑏 = 𝑎𝐸𝑁𝑏,1 and 𝐸𝑐 = 𝑎2𝐸𝑁𝑐 ,1, where
+𝐸𝑛,1 ∈ R𝑛×1 is the all-ones matrix. Finally let 𝐸𝑁 = [ 𝐸′
+𝑎, 𝐸′
+𝑏, 𝐸′
+𝑐]′. Then
+concatenating (1) for all leaf nodes 𝑖 = 1, 2, … , 𝑁 gives
+𝐸𝑁 𝑉𝑠 − 𝑉 = 𝑆𝐼, (2)
+where 𝑉𝑠 ∈ R1×𝐿 is the time series of LV transformer voltages as a
+row vector, and 𝐸𝑁 𝑉𝑠 ∈ C𝑁×𝐿 is time series replicated to 𝑁 rows and
+rotated to the three phases, 𝐿 is the sample size and 𝑉 , 𝐼 ∈ C𝑁×𝐿 are
+the voltage and current at the customer’s nodes. As (2) is linear, it also
+holds for pairwise differences 𝛥𝑉𝑠, 𝛥𝑉 , and 𝛥𝐼:
+𝐸𝑁 𝛥𝑉𝑠 − 𝛥𝑉 = 𝑆𝛥𝐼. (3)
+Unlike when using the power sensitivity [35], this is not needed to
+reduce the linearization error. However, it does improve robustness to
+uncertainties in 𝑉𝑠. The subsequent equations in this section also apply
+to pairwise differences.
+Let 𝜃𝑣, 𝜃𝑖 ∈ 𝑅𝑁×𝐿 be the matrix of unknown voltage and current
+angles relative to 0◦, and ̃𝜃𝑣, ̃𝜃𝑖 ∈ 𝑅𝑁×𝐿 be the angles relative to
+their corresponding phase. A least-squares estimation of 𝑆 can easily
+be obtained if 𝑉𝑠 and 𝜃𝑣 are known, they are not. Instead, (2) can be
+written in terms of the smart meter measurements |𝑉 |, |𝐼|, the phase
+angle 𝜃𝑝 = 𝜃𝑖 − 𝜃𝑣 = ̃𝜃𝑖 − ̃𝜃𝑣 ∈ [− 𝜋 𝜋 ] between them, and the unknown
+voltage angles 𝜃𝑣 and voltages 𝑉𝑠 as
+𝐸𝑁 𝑉𝑠 − |𝑉 | ⊙ 𝑒𝐣𝜃𝑣 = 𝑆(|𝐼| ⊙ 𝑒𝐣(𝜃𝑣+𝜃𝑝)) , (4)
+where ⊙ is element-wise multiplication, 𝑒(⋅) is element-wise exponenti-
+ation. Its 𝑖, 𝑗 th element can be derived from two smart meter channels:
+𝐶1, whose magnitude is |𝐼| and which is negative when the customer
+is injecting power, and 𝐶2, whose magnitude is the power factor and
+which is positive when it is lagging (the voltage leads the current). Note
+that when the voltage leads the current, angle ̃𝜃𝑖 < ̃𝜃𝑣, thus when both
+𝐶1,𝑖𝑗 and 𝐶2,𝑖𝑗 are positive, 𝜃𝑝 is negative and its absolute value equals
+arccos (𝐶2,𝑖𝑗 ) by the definition of power factor. Consider the load is still
+absorbing power ( 𝐶1,𝑖𝑗 > 0) but 𝐶2,𝑖𝑗 < 0, then the current leads the
+voltage and 𝜃𝑝 = arccos ( |𝐶2,𝑖𝑗 |). When the customer is injecting power
+𝐶1,𝑖𝑗 < 0, then if 𝐶2,𝑖𝑗 > 0 (the voltage leads the current), 𝜃𝑝 is still
+arccos (𝐶2,𝑖𝑗 ) relative to the negative real axis ( −𝜋), but it is instead in
+the 3rd quadrant. Similarly, if 𝐶2,𝑖𝑗 < 0 (the voltage lags the current),
+𝜃𝑝 is in the 2nd quadrant. Therefore, the relationship between 𝜃𝑝 and
+𝐶1, 𝐶2 is:
+𝜃𝑝 =
+⎧
+⎪
+⎪
+⎨
+⎪
+⎪⎩
+− arccos(𝐶2,𝑖𝑗 ), if 𝐶1,𝑖𝑗 > 0 and 𝐶2,𝑖𝑗 > 0
+arccos(|𝐶2,𝑖𝑗 |), if 𝐶1,𝑖𝑗 > 0 and 𝐶2,𝑖𝑗 < 0
+−𝜋 + arccos(𝐶2,𝑖𝑗 ), if 𝐶1,𝑖𝑗 < 0 and 𝐶2,𝑖𝑗 > 0
+𝜋 − arccos(|𝐶2,𝑖𝑗 |), if 𝐶1,𝑖𝑗 < 0 and 𝐶2,𝑖𝑗 < 0,
+or more concisely,
+𝜃𝑝 = −sgn(𝐶2,𝑖𝑗 )(𝜋∕2 − sgn(𝐶1,𝑖𝑗 )(𝜋∕2 − arccos( |𝐶2,𝑖𝑗 |))). (5)
+To estimate the voltage sensitivity matrix 𝑆 from (4), the LV trans-
+former voltage 𝑉𝑠 and voltage angle 𝜃𝑣 are required. Works like [32]
+and [33] specifically pointed out the impact of lacking the phasor
+information 𝜃𝑣. It is straightforward to estimate 𝑉𝑠 along with 𝑆 as it
+occurs linearly, but a different approach is required for 𝜃𝑣. We consider
+two approaches for approximating 𝜃𝑣 and evaluate their impact on 𝑆.
+Let 𝑉𝐴 be a 𝑁𝑎 × 𝐿 matrix of the voltages of devices on phase 𝐴,
+and 𝑉𝐵 and 𝑉𝐶 are defined analogously.
+1. Ignore: this approach approximates 𝜃𝑣 by the nominal angle,
+which are 𝑎0 (phase A), 𝑎1 (phase B) or 𝑎2 (phase C), (where
+𝑎 = 𝑒−𝐣2𝜋∕3), obtained using phase identification as in [27]. Then,
+𝑆 is approximated as the least-squares solution to (4) subject to
+the constraints described below. This is the approach implicitly
+used when sensitivity to real and reactive power is used.
+2. Proj: using the estimates of 𝜃𝑣 from Ignore, solve for 𝑆 by
+minimizing the squares of only the in-phase components of (4);
+that is, quantities are projected onto the nominal phases before
+taking the least square. This exploits the fact that the component
+of 𝑉 in the direction of the nominal phase is not very sensitive
+to 𝜃𝑣, which mainly affects the quadrature components. This will
+be explained in more detail below.
+3. Oracle uses the actual 𝜃𝑣 instead of estimating it from the
+measurements, for benchmarking purposes.
+The Proj. seeks to minimize only ‖𝑉𝑠, − 𝑉 − (𝑆𝐼 ) ‖2
+𝐹 , rather than
+considering the mismatch ‖𝑉𝑠, − 𝑉 − (𝑆𝐼 ) ‖2
+𝐹 + ‖𝑉𝑠, − 𝑉 − (𝑆𝐼 )‖2
+𝐹 .
+To see why we should ignore the quadrature component, let ̃𝜃 be
+the voltage angle relative to its phase and note that the voltage drop
+on the transmission line is relatively small, whence |𝑉 | ≫ |𝑆𝐼 |, and
+̃𝜃𝑣 ≪ 1. Thus cos ̃𝜃𝑣 ≈ 1 − ̃𝜃2
+𝑣∕2, and sin ̃𝜃𝑣 ≈ ̃𝜃𝑣. Therefore, cos ̃𝜃𝑣 is less
+sensitive to error in ̃𝜃𝑣, making the right hand side of
+𝐸𝑁 𝑉𝑠,𝐼 − 𝑉𝐼 − (𝑆𝐼 )𝐼 = |𝑉𝑠| − |𝑉 | ⊙ cos ̃𝜃𝑣 (6)
+− 𝑆𝐼 |𝐼| ⊙ cos (𝜃𝑝 + ̃𝜃𝑣) + 𝑆𝑄|𝐼| ⊙ sin (𝜃𝑝 + ̃𝜃𝑣)
+more accurate than that of
+𝐸𝑁 𝑉𝑠,𝑄 − 𝑉𝑄 − (𝑆𝐼 )𝑄 = −|𝑉 | ⊙ sin ̃𝜃𝑣 (7)
+− 𝑆𝐼 |𝐼| ⊙ sin (𝜃𝑝 + ̃𝜃𝑣) − 𝑆𝑄|𝐼| ⊙ cos (𝜃𝑝 + ̃𝜃𝑣).
+Both Ignore and Proj involve solving quadratic programs, con-
+structed as follows. In order to simplify taking the in-phase component
+later, (4) is rewritten as
+(𝐸𝑁 𝑉𝑠 − |𝑉 | ⊙ 𝑒𝑗𝜃𝑣 ) ⊙ 𝑅 = (𝑆(|𝐼| ⊙ 𝑒𝐣(𝜃𝑣+𝜃𝑝))) ⊙ 𝑅 , (8)
+where 𝑅𝑖𝑡 = 𝑎0 if node 𝑖 is on phase 𝐴, 𝑎2 for phase 𝐵 and 𝑎1 for phase
+𝐶 (𝑎 = 𝑒−𝐣2𝜋∕3); that is, its columns are the element-wise reciprocals of
+those of 𝐸𝑁. This allows the action of taking the in-phase component
+to be replaced by taking the real part.
+Hence, the approximation (𝑒𝑗𝜃𝑣 )𝑛𝑡 = 1∕𝑅𝑛𝑡 gives
+|𝑉 | = (𝐸𝑁 𝑉𝑠 − 𝑆(|𝐼| ⊙ 𝑒𝐣(𝜃𝑣+𝜃𝑝))) ⊙ 𝑅 , (9)
+or canonically
+𝜈(|𝑉 |) = 𝑥𝐻 , (10)
+where 𝜈 is the ‘‘vectorization’’ operator that maps 𝐵 = [𝑏𝑖𝑗 ] ∈ C𝑁×𝑀 to
+𝑐 ∈ C1×NM with 𝑐(𝑖−1)𝑀+𝑗 = 𝑏𝑖𝑗, and 𝑥 = [ 𝜈(𝑆) 𝑉𝑠] ∈ C1×(𝑁 2+𝐿) contains
+the unknowns 𝑆𝑖𝑗 and (𝑉𝑠)𝑡, for some 𝐻 ∈ C(𝑁 2+𝐿)×NL, since the right
+hand side of (9) is linear in 𝑥. The next step is to express 𝐻 explicitly.
+We again substitute 1∕𝑅𝑛𝑡 for (𝑒𝑗𝜃𝑣 )𝑛𝑡 into (9), so that the (𝑖, 𝑡) th
+component in |𝑉 |, or (𝑖 − 1)𝐿 + 𝑡 th in 𝜈(|𝑉 |), is
+|𝑉 |𝑖𝑡 =
+(
+(𝐸𝑁 𝑉𝑠)𝑖𝑡 −
+𝑁∑
+𝑘=1
+𝑆𝑖𝑘|𝐼|𝑘𝑡𝑒𝐣(𝜃𝑝)𝑘𝑡 (𝑅𝑘𝑡)−1
+)
+𝑅𝑖𝑡
+=
+(
+𝑎𝑖𝑡𝑥𝑁 2+𝑡 −
+𝑁∑
+𝑘=1
+𝑥(𝑖−1)𝑁+𝑘|𝐼|𝑘𝑡𝑒𝐣(𝜃𝑝)𝑘𝑡 (𝑅𝑘𝑡)−1
+)
+𝑅𝑖𝑡 . (11)
+
+PAGE 6
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+5
+L. Fang et al.
+Hence the ((𝑖 − 1)𝑁 + 𝑘, (𝑖 − 1)𝐿 + 𝑡)th element of 𝐻 (dependence of |𝑉 |𝑖𝑡
+on 𝐼𝑘𝑡, 𝑘 ∈ [1, 𝑁]) is
+−|𝐼|𝑘𝑡𝑒𝑗(𝜃𝑝)𝑘𝑡 𝑅𝑖𝑡∕𝑅𝑘𝑡 (12)
+and the (𝑁 2 + 𝑡, (𝑖 − 1)𝐿 + 𝑡)th element (dependence of |𝑉 |𝑖𝑡 on (𝑉𝑠)𝑡) is
+𝑎𝑖𝑡𝑅𝑖𝑡 = 1 (𝑎𝑖𝑡 = 𝑎0, 𝑎1, 𝑎2 respectively for 𝑖 being phase 𝐴, 𝐵, 𝐶 node),
+and all other elements are 0.
+2.2. Optimization problem
+A least squares solution of Ignore can be obtained by post-
+multiplying (10) by the pseudoinverse 𝐻 † of 𝐻. A better solution can
+be obtained by minimizing the sum of squares of the mismatch subject
+to physicality constraints outlined below.
+A real optimization is obtained by representing every complex
+number in (10) as
+𝑢 + 𝑗𝑣 ≡
+[𝑢 −𝑣
+𝑣 𝑢
+]
+. (13)
+In this representation, 𝑥 ∈ R2×(2𝑁 2+𝐿) but only has 2𝑁 2 + 𝐿 degrees
+of freedom, which will cause trouble for the solver. To avoid this,
+the bottom row of 𝑥 and 𝜈(|𝑉 |) due to the [𝑣, 𝑢] can be omitted,
+as it contains the same information as the top row due to [𝑢, −𝑣],
+yielding 𝑥− and 𝜈−(|𝑉 |). Furthermore, the columns of 𝑥 and rows of 𝐻
+corresponding to the imaginary parts of 𝑉𝑠 can be omitted to enforce
+the constraint that 𝑉𝑠 is real, yielding 𝐻1.
+The following constraints apply to𝑥−, for all 𝑖, 𝑗 ∈ [1, 𝑁]. First, as all
+elements of 𝑆, including same-phase (refers to the voltage sensitivity
+to current of the same phase) and other-phase (refers to the voltage
+sensitivity to current of the different phase) elements, are impedance,
+the real (resistive) part of 𝑆 must be non-negative:
+𝑥−
+2𝑖−1 ≥ 0. (14)
+Furthermore, as 𝑆𝑖𝑗 is the impedance on the common path between the
+transformer 𝑠 to 𝑖 and 𝑠 to 𝑗, we have 𝑆𝑖𝑗 = 𝑆𝑗𝑖:
+𝑥−
+(𝑖−1)𝑁+2𝑗−1 = 𝑥−
+(𝑗−1)𝑁+2𝑖−1
+𝑥−
+(𝑖−1)𝑁+2𝑗 = 𝑥−
+(𝑗−1)𝑁+2𝑖. (15)
+As 𝑆𝑖𝑗 is a subpath of 𝑆𝑖𝑖, and their resistances are non-negative, hence
+we have ℜ(𝑆𝑖𝑗 ) ≤ ℜ(𝑆𝑖𝑖). Thus,
+𝑥−
+(𝑖−1)𝑁+2𝑗−1 ≤ 𝑥−
+(𝑖−1)𝑁+2𝑖−1. (16)
+Let 𝑘 be the most downstream node common to the paths from 𝑠 to 𝑖
+and from 𝑠 to 𝑗, and
+𝐷𝑖𝑗 = (𝐷𝑠𝑖 − 𝐷𝑠𝑘) + (𝐷𝑠𝑗 − 𝐷𝑠𝑘) = 𝑆𝑖𝑖 + 𝑆𝑗𝑗 − 2 𝑆𝑖𝑗 , (17)
+denote the impedance on the path from 𝑖 to 𝑗. Again, its resistive part
+must be non-zero, yielding
+𝑥−
+(2𝑖−1)𝑁+2𝑖−1 + 𝑥−
+(2𝑗−1)𝑁+2𝑗−1 − 2 𝑥−
+(2𝑖−1)𝑁+2𝑗−1 ≥ 0. (18)
+Finally, as the LV transformer voltage variation is within ±𝛼%, for
+𝑖 ∈ [𝑁 2 + 1, 𝑁2 + 𝐿],
+(1 − 𝛼)
+√
+2𝑉𝑡𝑟 ≤ 𝑥−
+2𝑖−1 ≤ (1 + 𝛼)
+√
+2𝑉𝑡𝑟, (19)
+Where 𝑉𝑡𝑟 is the nominal voltage in the secondary side of the trans-
+former, in Australia, it is 230 V. Method Ignore then finds 𝑆 and 𝑉𝑠 as
+the solution to
+min𝑥− ‖𝜈−(|𝑉 |) − 𝑥−𝐻1‖2
+2
+𝑠.𝑡. (14)–(19).
+(20)
+The next step is to convert this to a problem to solve Proj. Minimiz-
+ing the sum of squares of only the in-phase components corresponds to
+minimizing the sum of the squares of the real parts of the mismatch
+in (10). This is achieved by simply omitting every second column of
+𝑣−(|𝑉 |), which contain the imaginary parts, and correspondingly every
+second column of 𝐻1, yielding 𝑣=(|𝑉 |) and 𝐻2. Then Proj. finds them
+as the solution to
+min𝑥− ‖𝜈=(|𝑉 |) − 𝑥−𝐻2‖2
+2
+𝑠.𝑡. (14)–(19) .
+(21)
+The numerical results will show that this modification reduces the error
+in the estimated sensitivity matrix by around 22-fold. Note that this
+method can also find the sensitivity for non-radial networks. This is
+useful for applications such as operating envelope calculations. How-
+ever, for such networks there is no simple relationship between the
+sensitivities and the individual line impedances.
+3. Topology estimation by recursive grouping
+From the sensitivity matrix of the leaf nodes, it is possible to
+estimate the locations of the (unmetered) internal nodes in the network,
+and thus find the complete topology. Here, we present a variant of the
+recursive grouping algorithm first introduced in [36], first applied in
+topology estimation in [13], and also used in [18,26,27], and [28].
+However, unlike [27] and [28], who used only the real part of sensitiv-
+ities, and [13], who used complex values but estimated the imaginary
+part poorly by approximating the phase angle by the nominal angle,
+i.e., applying the Ignore approach, we are able to use the full complex
+value. We also improve the backtracking decisions to select more likely
+candidates, and propose new features that allow the optimal candidate
+to be chosen more quickly.
+Recursive grouping treats each customer (leaf) node as a degenerate
+tree. Then, it repeatedly joins pairs of trees as either siblings of a new
+node or with one as a child of the root of the other. To explain the
+basic recursive-grouping process, we first introduce an active node set
+, which contains the root of each sub-tree formed so far, initially
+the leaf nodes. For each node pair (𝑖, 𝑗) in , there are three possible
+relationships – parent–child, siblings, and ‘‘others’’ – and we want to
+make decisions of joining pairs of the first two types. Parent–child and
+sibling pairs (𝑖, 𝑗) can be distinguished from ‘‘other’’ pairs because their
+relative distances, 𝐷𝑖𝑘 −𝐷𝑗𝑘, to all other nodes 𝑘 ∈  is constant, as will
+be explained in Section 3.1. Fig. 1 shows recursive grouping of a 5-node
+network. To begin with, as shown in (a), the set  initially contains
+the LV transformer node (purple, labeled 1) and all leaf nodes (green,
+labeled 2–6). Pale nodes show nodes (other than the transformer) not
+in . Steps (b), (c) and (d) show nodes being joined as siblings, step (e)
+shows node 8 being joined as a child of node 9, and step (f) shows the
+special case of the transformer joining at the end. Note that after each
+decision step, the number of elements in  is decrease by 1.
+The proposed recursive-grouping (RG) algorithm has two extra
+steps. The four steps are: Pair Selection, Node Join, Backtracking, and
+Topology Selection. To explain the last two, we introduce the concept
+of a decision tree (or single-player game tree), which is distinct from the
+topology tree discussed above. In a decision tree, the root represents the
+initial state of the RG process (Fig. 1(a)). Each internal node represents
+a decision to be made by the algorithm, for example, the state in
+Fig. 1(b) is a child of the root in the decision tree. If we join node
+pair (3,4) instead of (2,3) in Fig. 1(b), this is another child of the
+root and another internal node in the decision tree. Each edge in the
+decision tree represents a decision to merge two subtrees and how they
+are merged (siblings or parent/child). Finally, the leaf nodes in the
+decision tree are the final solutions of the RG, which in our case are
+candidate topologies. The state of Fig. 1(f) is one of the leaf node in the
+decision tree. The RG algorithm of Fig. 1 only considers a single path to
+a single leaf, but the backtracking introduced in [27] and used in this
+paper considers multiple children of selected nodes to discover multiple
+leaves. The final topology selection step selects one of the leaves of this
+decision tree.
+
+PAGE 7
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+6
+L. Fang et al.
+Fig. 1. Example of Recursive-Grouping. Step (e) is a parent–child join; the others are sibling joins.
+3.1. Pair selection
+For each pair (𝑖, 𝑗) ∈ 2, let
+𝛷𝑖𝑗𝑘 = 𝐷𝑖𝑘 − 𝐷𝑗𝑘 , 𝑘 ∈  ⧵ (𝑖, 𝑗 ). (22)
+Then 𝛷𝑖𝑗𝑘 is constant for all 𝑘 if and only if 𝑖 and 𝑗 are either siblings or
+parent and child [36]. For sibling pair (𝑖, 𝑗), 𝛷𝑖𝑗𝑘 = ±(𝐷𝑖ℎ − 𝐷𝑗ℎ ) where
+𝑘 is the parent of 𝑖 and 𝑗, whereas 𝛷𝑖𝑗𝑘 = ± 𝐷𝑖𝑗 if (𝑖, 𝑗) are parent and
+child; the latter can be considered as ℎ coinciding with either 𝑖 or 𝑗,
+leading to either 𝐷𝑖ℎ or 𝐷𝑗ℎ being zero. However, due to estimation
+error in the sensitivity matrix, the value of 𝜙𝑖𝑗𝑘 varies slightly with 𝑘
+even if 𝑖, 𝑗 are siblings or parent–child. Let
+𝐸s,𝑖𝑗 = max
+𝑘∈⧵{𝑖,𝑗}
+|𝛷𝑖𝑗𝑘 | − min
+𝑘∈⧵{𝑖,𝑗}
+|𝛷𝑖𝑗𝑘 | , (23)
+be an estimate of the measurement noise that is reflected on 𝜙 values,
+and
+𝐸p,𝑖𝑗 = |𝐷𝑖𝑗 | − 1
+||
+∑
+𝑘∈
+|𝛷𝑖𝑗𝑘 |, 𝑘 ∈  ⧵ {𝑖, 𝑗} (24)
+measure the mismatch to the parent/child condition.
+These are used both to select which pair to join, and whether to join
+them as siblings or as parent and child, as follows.
+Let  = ({s, p} × 2) ⧵ , where  is a set of ‘‘invalid’’ combinations
+in which a leaf is a parent, or the LV transformer node is a child. We
+calculate 𝐸s and 𝐸p for all decisions in , and find the smallest value
+𝐸min amongst all 𝐸s and 𝐸p. If 𝐸min corresponds to (23), our first guess
+is that this pair are siblings, otherwise, we guess parent–child.
+However, due to errors in 𝜙𝑖𝑗𝑘, this may yield an incorrect decision.
+To combat this, we record possible decisions for which the relative
+error,
+̃𝐸𝑡𝑖𝑗 = 𝐸𝑡𝑖𝑗 ∕ min
+(𝑡′,𝑖′,𝑗′)∈
+𝐸𝑡′𝑖′𝑗′ (25)
+for 𝑡 ∈ { s, p}, is less than a threshold 𝑇𝑐, and the algorithm later
+back-tracks to resume at this point to explore these other decisions.
+This differs from [27] and [28] which backtrack over at most one
+parent–child pair and at most one sibling pair.
+Alternative decisions are only recorded if they are inconsistent with
+the first guess; that is, if they share at least one node to be joined.
+By contrast, [27] reserves every pair-relationship if their ̃𝐸 ≤ 𝑇𝑐,
+which introduces unnecessary backtracking. Note that the depth of the
+decision tree is 𝑁 − 1, regardless of the decisions.
+3.2. Node join
+After each pair is decided to join in the decision-making step, the
+distance matrix 𝐷 and graph 𝐺 is updated accordingly depending on the
+relationship of the pair. We first introduce a 0/1 symmetric adjacency
+matrix . A ‘‘1’’ in  indicates that the corresponding pair of nodes
+are directly connected in graph 𝐺, and a ‘‘0’’ means two nodes are not
+directly connected. The graph 𝐺 can be uniquely determined by. This
+part of the algorithm connects the identified pair (𝑖, 𝑗) into the network
+and update the adjacency matrix  and distance matrix 𝐷.
+If a pair (𝑖, 𝑗) is identified as siblings, a common parent node ℎ is
+created and added to the active node set , then pair (ℎ, 𝑖) and (ℎ, 𝑗)
+are connected and nodes 𝑖 and 𝑗 are removed from the active node set
+. Consequently, we update the adjacency matrix  by creating a zero
+row and a zero column representing ℎ and setting ℎ𝑖 = 𝑖ℎ = ℎ𝑗 =
+𝑗ℎ = 1 . For the distance matrix 𝐷, we first create a new row and a
+new column in 𝐷 with distances
+𝐷𝑖ℎ = 𝐷ℎ𝑖 = 1
+2 (𝐷𝑖𝑗 + 1
+||
+∑
+𝑘∈
+𝛷𝑖𝑗𝑘 ), (26)
+𝐷𝑗ℎ = 𝐷ℎ𝑗 = 𝐷𝑖𝑗 − 𝐷𝑖ℎ, (27)
+𝐷ℎ𝑘 = 𝐷𝑘ℎ = 1
+2 (𝐷𝑖𝑘 − 𝐷𝑖ℎ + 𝐷𝑗𝑘 − 𝐷𝑗ℎ ) 𝑘 ∈  ⧵ {𝑖, 𝑗} (28)
+where  ⊂ 𝑇 is the set containing all discovered node of the current
+status of graph 𝐺.
+If a pair (𝑖, 𝑗) is identified as parent–child, 𝑖 is the child if the average
+over 𝑘 of 𝛷𝑖𝑗𝑘 is negative, and the parent otherwise. We connect (𝑖, 𝑗)
+and set 𝑖𝑗 = 𝑗𝑖 = 1. Then we remove the child node from the active
+node set . As no new node is discovered, there is no need for updating
+𝐷.
+3.3. Backtracking
+The original ‘‘greedy’’ algorithm of [36] will traverse a single path
+of the decision tree from the root to a leaf. Instead, we follow [27]
+and explore the tree more thoroughly to find multiple candidates,
+and then select among these by assessing how plausible each is. Once
+the first candidate topology is reconstructed, we first find the last
+decision node that has reserved candidate decision(s), then follow the
+candidate with the lowest relative score except for those that have
+already been followed. We join the corresponding pair and continue
+the RG algorithm to create a new candidate topology.
+
+PAGE 8
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+7
+L. Fang et al.
+Fig. 2. Example of Backtracking, constructing an alternative topology of (d) in Fig. 1.
+Fig. 2 shows the backtracking process. In this example, the decision
+of joining pair (4,7) as siblings in Fig. 1(d) has a reserved candidate
+decision of joining 4 as a child of 8. The initial decision is revoked by
+disconnecting edges between 4,9 and 7,9, removing 9 from the active
+node set  and returning its children 4,7 to , as shown in Fig. 2(d).
+Then according to the reserved candidate decision, internal node 8 is
+a parent of leaf node 4, hence we connect (4,8) and remove leaf node
+4 from , as shown in Fig. 2(e). We keep making decisions until we
+obtain a new candidate topology shown in Fig. 2(g), which is different
+from the candidate topology in Fig. 1(f). If sufficient reserve candidates
+are stored, this could be continued until all possible trees had been
+evaluated. However, this would be too computationally expensive, and
+so we further set a maximum number of candidate topology 𝑁𝑐. Once
+𝑁𝑐 candidate topologies have been considered, the backtracking stops
+despite there being unvisited decision tree nodes. The full algorithm
+is presented in Algorithm 1. Notation ⇐ indicates that the right-hand
+side is appended to the list on the left-hand side, and ̄s = p, ̄p = s swaps
+between sibling and parent/child.
+3.4. Topology selection
+After obtaining the candidate topology library from the backtrack-
+ing algorithm, we need an additional step to choose the best topology to
+be the final estimate, or to rank the candidates. This is done by defining
+several figures of merit for each candidate 𝐶𝑛 that measure different
+aspects of the suitability of the estimate, which are then combined by
+a regression procedure to form a final score.
+Since the RG algorithm seeks (suboptimally) to minimize ̂𝐸 given
+in (25), the first figure of merit is the mean of accumulated squared
+error of 𝐸s and 𝐸p of all decisions:
+𝐹s(𝐶𝑛) = 1
+𝑁 − 1
+𝑁−1∑
+𝑖=1
+(𝐸{s,p},𝑛)2 , (29)
+where 𝐸{s,p} includes 𝐸s and 𝐸p depends on the corresponding pair-
+relationship; 𝑁, the total number of leaf nodes, is also the number of
+decisions to complete the topology. If this were the only figure of merit,
+then backtracking and selecting the topology to minimize 𝐹s(⋅) would
+work together as a global optimization procedure for 𝐹s(⋅). However,
+there is an opportunity to use additional engineering insights that are
+not easy to incorporate into the objective ̂𝐸 of the grouping procedure,
+because they cannot be calculated until the whole candidate topology
+is known.
+The first ancillary figure of merit reflects the empirical observation
+that, when the topology is mis-estimated, it is common for some line
+lengths to be very large or very small. This causes the selection of the
+wrong topology to be positively correlated with having a large variance
+of line lengths. This suggests the figure of merit
+𝐹RI(𝐶𝑛) =
+∑
+𝑖,𝑗∈𝐵𝑛
+(
+ℜ𝑆𝑖𝑗 − 1
+𝑛
+∑
+𝑘,𝑙∈𝐵𝑛
+ℜ𝑆𝑘𝑙
+)2
+, (30)
+where 𝐵𝑛 be the set of internal edges of candidate network 𝐶𝑛.
+Finally, due to constraints on geometry and material, the ratio
+of reactance ℑ𝑆𝑖𝑗 to resistance ℜ𝑆𝑖𝑗 (X/R ratio) is unlikely to vary
+wildly between different lines, and unreasonably large variance in this
+ratio can again indicate incorrect topology estimates. This suggests, the
+second ancillary feature used is the variance of the X/R ratio of all
+edges in each candidate network:
+𝐹XR(𝐶𝑛) = Var
+[ℑ𝑆𝑖𝑗
+ℜ𝑆𝑖𝑗
+]
+, (𝑖, 𝑗) ∈  , (31)
+where Var refers to the sample variance. Note that we are not claiming
+that either 𝐹𝑅𝐼 or 𝐹𝑋𝑅 should be zero for a real network, in contrast
+to 𝐹𝑠 which should be. It is merely that they have been observed to be
+large for many of the mis-estimated topologies.
+It remains to combine these features (figures of merit) into a single
+score. The simplest method is to take a linear combination of the
+features, which turns out to be adequate. Optimal coefficients are found
+by linear regression, even though it is not expected that there is any
+underlying linear relationship. Logistic regression was also tested, but
+found not to improve performance. The topology is then selected as
+arg min
+𝐶𝑛
+𝛽s𝐹s(𝐶𝑛) + 𝛽RI𝐹RI(𝐶𝑛) + 𝛽XR𝐹XR(𝐶𝑛), (32)
+where the 𝛽 are the regression coefficients. The accuracy and com-
+putational speed comparison between the proposed topology selection
+method and existing methods are discussed in Section 5.1.2.
+3.5. Non-radial networks
+The proposed method is only applicable in radial distribution net-
+works, which the vast majority of LV networks are. However, in High-
+Voltage (HV) and Medium-Voltage (MV) networks, meshed networks
+are common. In such networks, the recursive-grouping algorithm can-
+not be applied. Moreover, any non-radial network measured only at
+leaf nodes can be transformed to an ‘‘equivalent circuit’’ (in terms of
+steady-state V and I at the leaves) that is radial, which means that
+the discrete measurements of the voltage and current at the customer
+premises are not enough to determine a non-radial topology, even if
+we know both their magnitudes and phase angles. Deka et al. [37]
+estimated the topology of meshed networks under the condition that
+there is no cycle of unmetered nodes. However in our setting, due to
+all measurements being at leaf nodes, determining the topology is not
+possible. This can be viewed as a disadvantage of modelling the access
+line, but there are some Steiner points in the LV network even if we
+ignore the access line, which still causes ambiguity.
+4. Evaluation of sensitivity estimation
+The numerical evaluation of the proposed techniques will be in
+two parts. This section considers only the accuracy of evaluating the
+sensitivity matrix, and the following section considers the accuracy of
+the algorithm to estimate the topology from the sensitivity.
+
+PAGE 9
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+8
+L. Fang et al.
+Algorithm 1: Topology Estimation Algorithm
+Input:
+Sensitivity matrix 𝑆
+Number of leaf nodes 𝑁
+Cut-off threshold 𝑇𝑐
+Maximum number of candidates 𝑁𝑐
+Output:
+Library of candidate topologies 𝐶
+Adjacency and distance matrices 𝑓 , 𝑓
+1 Initialization:
+An array 𝑃 indexed by pairs in the decision tree storing priority
+queues,
+An empty decision index 𝑛,
+An empty adjacency matrix ,
+An empty active node set ,
+A discovered node set  ← [1, 2, … , 𝑁 + 1].
+2 Calculate 𝐷 from 𝑆 using (17)
+3  ←  ,𝑜 ← 
+4 while |𝐶| ≤ 𝑁𝑐 do
+5 if || > 2 then
+6 Calculate ̃𝐸 using (25)
+7 𝑛 ← |𝑜| − || + 1 (* depth in decision tree *)
+8 (𝑡, 𝑖, 𝑗) = arg min (𝑡,𝑖,𝑗)∈{s,p}×2 ̃𝐸𝑡,𝑖𝑗
+9 𝑃𝑛 ⇐ ( ̃𝐸𝑡,𝑖𝑗 , 𝑡, 𝑖, 𝑗)
+10 if ̃𝐸̄𝑡,𝑖𝑗 ≤ 𝑇𝑐 then
+11 𝑃𝑛 ⇐ ( ̃𝐸̄𝑡,𝑖𝑗 , ̄𝑡, 𝑖, 𝑗)
+12 end
+13 if 𝑡 = s then
+14 for (𝑖′, 𝑗′) ∈ { 𝑖, 𝑗} ×  ⧵ {𝑖, 𝑗} s.t. ̃𝐸s,𝑖′𝑗′ ≤ 𝑇𝑐 do
+15 𝑃𝑛 ⇐ ( ̃𝐸s,𝑖′,𝑗′ , s, 𝑖′, 𝑗′)
+16 end
+17 end
+18 (, 𝐷, ,  ) ⇐ NodeJoin((𝑡, {𝑖, 𝑗}), , 𝐷, ,  )
+19 else
+20 ID ← (p, ) (* Last two parent/child *)
+21 𝐶 ⇐ NodeJoin(ID, , 𝐷, ,  )
+22 if any |𝑃 | ≥ 2 (* backtrack *) then
+23 Find last decision point 𝑚 where |𝑃𝑚| ≥ 2
+24 𝑟 ←  at 𝑚
+25 Remove the current lowest ̃𝐸 from 𝑃𝑚
+26 Empty 𝑃𝑛 for all 𝑛 > 𝑚
+27 (* Build tree with new lowest ̃𝐸 in 𝑃𝑚 *)
+28  ← 𝑜
+29 for 𝑛 = 1 to 𝑚 do
+30 ID ← lowest- ̃𝐸 decision in 𝑃𝑛
+31 (, 𝐷, ,  ) ⇐ NodeJoin(ID, , 𝐷, ,  )
+32 end
+33 else
+34 return 𝐶
+35 end
+36 end
+37 end
+38 return 𝐶
+4.1. Voltage sensitivity and LV transformer voltage estimation
+In this study, all experiments are conducted in MATLAB, and the op-
+timization problems are solved using YALMIP with the MOSEK solver.
+This experiment uses the IEEE PES 55-node European LV feeder [38]
+(EU feeder), and other synthetic networks with 21, 30, 42, 55 customers
+and fifty different networks per size (200 synthetic networks in total).
+Of the synthetic networks, the physical parameters of the transmission
+line such as reactance to resistance (X/R) ratio, average length, and
+impedance per unit length are chosen in the range of those in the EU
+feeder. Note that in this experiment, the network is a residential 3- 𝜙
+network, which consists of 1-𝜙 loads from all three different phases. The
+network does not include any 3-phase loads. This design is informed by
+the fact that in regions such as Europe, Australia, New Zealand, China,
+and much of other Asian countries, the standard nominal voltage of 𝑉𝑡𝑟
+= 220-240 V is adequate for the majority of residential applications.
+First, we implement the 𝐏𝐫𝐨𝐣. estimation in (21) to evaluate the
+accuracy of the estimated voltage sensitivity coefficients and the LV
+transformer voltage. The active power consists of two components. The
+first is representing the power consumption of customers, noted as 𝑃 𝐿,
+given for 𝑖 ∈ [1, 𝑁], 𝑡 ∈ [1, 𝐿] by
+𝑃 𝐿
+𝑖,𝑡 = 𝜆 ̂𝑃 𝐿
+𝑖,𝑡−1 + (1 − 𝜆) ̂𝑃 𝐿
+𝑖,𝑡, (33)
+where 𝜆 is the auto-correlation, ̂𝑃 𝐿
+𝑖,𝑡 are i.i.d. ˙uniform on [𝑃𝑎, 9𝑃𝑎] for
+an adjustable power 𝑃𝑎. The second component noted as 𝑃 𝑆, repre-
+sents solar photovoltaic (PV) installed on 20% of nodes selected at
+random. Note that the PV system generates primarily active power, and
+does not inherently generate reactive power. Consequently, no reactive
+component is considered in PV generation. 4
+𝑃 𝑆
+𝑖,𝑡 =
+{
+− max (0, 30𝑃𝑎 sin (2𝜋𝑡∕𝑇 )) if 𝑖 ∈ ;
+0 otherwise
+, (34)
+where 𝑇 is the number of samples per day. Smart meters typically
+measure once per five minutes, or 𝑇 = 288 times per day. Set  is
+the subset of customers that have solar PV.
+For the customer’s consumption, the power factor pf 𝐿 are randomly
+generated within the range of [0.9, 1] ∧ [−1, −0.9]. Lower power factors
+can occur in the measured power when there is cancellation of the ac-
+tive consumption by PV generation. The corresponding reactive power
+consumption is:
+𝑄𝐿
+𝑖,𝑡 = sign(pf 𝐿
+𝑖,𝑡)
+√
+1 − (pf 𝐿)2
+𝑖,𝑡𝑃 𝐿
+𝑖,𝑡, (35)
+which leads to the total active power 𝑃 = 𝑃 𝐿 +𝑃 𝑆, total reactive power
+𝑄 = 𝑄𝐿. Note that the active power factorpf measured by smart meters
+differ from pf 𝐿, which is
+pf 𝑖,𝑡 =
+⎧
+⎪
+⎪
+⎨
+⎪
+⎪⎩
+arctan (|𝑄𝑖,𝑡∕𝑃𝑖,𝑡|) if 𝑃𝑖,𝑡 > 0, 𝑄𝑖,𝑡 > 0;
+− arctan (|𝑄𝑖,𝑡∕𝑃𝑖,𝑡|) if 𝑃𝑖,𝑡 > 0, 𝑄𝑖,𝑡 < 0;
+𝜋 − arctan ( |𝑄𝑖,𝑡∕𝑃𝑖,𝑡|) if 𝑃𝑖,𝑡 < 0, 𝑄𝑖,𝑡 > 0;
+−𝜋 + arctan ( |𝑄𝑖,𝑡∕𝑃𝑖,𝑡|) if 𝑃𝑖,𝑡 < 0, 𝑄𝑖,𝑡 < 0.
+(36)
+Lastly, the average transformer voltage varies during the day, with
+a minimum during peak solar generation, between the morning and
+evening consumption peaks. It is modeled as a perturbation of a sinu-
+soidal voltage with mean
+√
+2𝐸𝑛 volts, amplitude 0.1
+√
+2𝐸𝑛 volts, and
+period one-day(𝑇 = 288 samples). The perturbation is i.i.d. uniformly
+distributed multiplicative noise 𝑟𝑡 ∈ [0.9 1 .1] to simulate the sag caused
+by disturbance, faults, etc., giving
+𝑉𝑠,𝑡 =
+√
+2(1 + 0.1 sin (2𝜋𝑡∕𝑇 ))𝑟𝑡𝐸𝑛. (37)
+In this study, we use the relative average absolute error (abbreviated
+to relative error) to quantify the accuracy of the voltage sensitivity
+coefficients. Let 𝑆 be the true sensitivity, and ̂𝑆 be the estimated value,
+then the relative error between 𝑆 and ̂𝑆 be
+𝐸𝑟 = 1
+𝑁 2
+𝑁∑
+𝑖=1
+𝑁∑
+𝑗=1
+||||||
+𝑆𝑖𝑗 − ̂𝑆𝑖𝑗
+𝑆𝑖𝑗
+||||||
+= 𝐌(|𝑆 − ̂𝑆| ⊘ |𝑆|), (38)
+where ⊘ denotes element-wise division, | ⋅ | denotes the element-wise
+absolute value, and 𝐌(⋅) denotes the average value of elements in a
+matrix.
+Fig. 3 plots the relative average error of the absolute value of the
+sensitivity coefficients |𝑆| and the LV transformer voltage 𝑉𝑠 against
+the SNR on current for different network size. The SNR of current
+4 This assumption is not crucial, as the algorithm itself does not distinguish
+between power from PV or the load; we only separate them to get a suitable
+joint distribution of the total real and reactive powers.
+
+PAGE 10
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+9
+L. Fang et al.
+Table 1
+Comparison of the |𝑆| and 𝑉𝑠 estimation among [27], [28] and the proposed method in
+different sized network and 𝑆𝑁𝑅 . ALG 1: modified [28], prop.: the proposed method.
+Size SNR |𝑆| % error 𝑉𝑠 % error
+[27] [28] prop. [28] prop.
+30
+25 16.1 5.9 3.8 2.30 0.32
+30 16.0 5.6 2.6 2.25 0.18
+35 16.0 5.2 2.0 2.23 0.12
+40 16.0 5.2 1.7 2.23 0.09
+42
+25 16.0 6.6 4.0 2.67 0.30
+30 16.0 6.4 2.7 2.62 0.21
+35 15.9 6.1 2.0 2.62 0.16
+40 15.9 6.1 1.8 2.62 0.14
+55
+25 17.7 10.8 4.2 3.50 0.44
+30 17.6 10.5 2.8 3.48 0.38
+35 17.5 9.9 2.5 3.48 0.36
+40 17.5 9.7 2.3 3.47 0.35
+varies from 10 dB to 40 dB, and the SNR on voltage is always 6 dB
+higher. This is in contrast to [13,18,27,28] which had no noise on the
+voltage. The adjustable power 𝑃𝑎 is 400 W, the number of samples used
+in the simulation is 40,000, and the auto-correlation coefficient𝜆 = 0.8.
+Note that the actual average active power consumption is 5𝑃𝑎. The
+results are averaged over all 50 networks in each size. Fig. 3(a) shows a
+distinct downward trend of relative estimation error in both same-phase
+and other-phase coefficients of |𝑆| as SNR increases. The other-phase
+coefficients exhibit approximately double the relative error of the same-
+phase coefficients. This disparity arises because the coupling of voltage
+on current across different phases is smaller by a approximate factor
+of four compare to the current of the same phase. A factor of 1/2
+is due to nodes in different phases are solely coupled via the neutral
+wire, compared with the two-wire coupling between the same-phase
+nodes. Another factor of 1/2 is from the different phase elements are
+out of phase by‖ cos 2𝜋∕3‖. Note however that the other-phase coupling
+remains significant, showing that for applications such as dynamic
+operating envelope calculations, the other-phase interactions should
+not be ignored as is current practice. Within the conventional range
+of smart meter measurement noise ( SNR𝐼 = 40 dB, SNR𝑉 = 46 dB), the
+relative errors for same-phase and other-phase are around 1.5%–3%
+and 3-5% respectively. As seen in Fig. 3(b), the estimation of 𝑉𝑠 tends
+to be more precise in larger networks at lower SNR values, but this
+pattern reverses as SNR increases. In smaller networks, the estimation
+accuracy is more susceptible to individual large measurement errors.
+Contrarily, larger systems exhibit an improved capacity to average out
+these errors, thereby enhancing overall accuracy. Fig. 4 shows the same
+𝑦 axis as in Fig. 3 against the adjustable power 𝑃𝑎, regarding different
+network size. Here, 𝑃𝑎 ranges from 100 W to 800 W (actual average
+active power from 500 W to 4 kW), while SNR𝐼 and SNR𝑉 are kept
+constant at 40/46 dB, respectively. This experiment also uses a sample
+size of 40,000 and an auto-correlation coefficient ( 𝜆) of 0.8.
+As shown in Fig. 4, the relative errors in the estimated|𝑆| is initially
+decrease then increase as progressively heavier loads are applied. The
+reason is that the measurement noise on 𝑉𝑠 − |𝑉 | is roughly a constant,
+and 𝑉𝑠 − |𝑉 | is proportional to the load. Consequently, as the load
+increases, the relative noise decreases, leading to smaller errors in
+voltage sensitivity 𝑆. However, as 𝐼 further increases beyond a certain
+threshold, the discrepancy between the complex voltage and its same-
+phase component starts to become dominant (approach 𝐏𝐫𝐨𝐣. only uses
+the same-phase component), causing the error in sensitivity to increase.
+For the 𝑉𝑠 estimation, the primary determinant of accuracy is the
+error in |𝑉 |, which grows with load power, making 𝑉𝑠 error strictly
+rise with 𝑃𝑎. This underscores the need for accurate 𝜃𝑣 estimation in
+future research for improved sensitivity in high-load situations. Fig. 5
+shows the impact of the number of time samples, varying from 100 to
+40,000. Other parameters are: 𝑃𝑎=400 W (average load power XYZ);
+SNR𝐼=40 dB; SNR𝑉 =46 dB; and 𝜆=0.8. As seen in Fig. 5(a), at sample
+size = 10,000 of more, the relative error on same-phase element of 𝑆
+is typically less than 5%, and different-phase error is less than 10%.
+Table 1 presents a comparison of the relative error in estimated |𝑆|
+and 𝑉𝑠 between the proposed method and prior work. Note that [26]
+and [30] is not included as it finds a spanning tree for topology
+representation, contrasting our use of a Steiner tree. Moreover, their
+approach does not assess accuracy against the topology’s ground truth,
+presenting a challenge for a comprehensive performance comparison.
+We applied the 1- 𝜙 sensitivity estimation method in [27,28] on each
+separate phase of 3- 𝜙 network. We then took the weighted average of
+the relative error to compare with the proposed 3- 𝜙 method. Note that
+only same-phase estimation results are compared as the 1- 𝜙 methods
+cannot estimate the other-phase sensitivity coefficients. The proposed
+method outperforms [27] by a factor of 5 to 10 in the accuracy of |𝑆|.
+In [27], which approximates the LV transformer voltage as constant,
+the error in estimating 𝑆𝑥 is almost 100%, while the error in the
+estimate of 𝑆𝑟 is around 3 times larger than that of the proposed
+method. In [28], the LV transformer voltage was estimated using a
+regularization term 𝛼(|𝑉𝑠,𝑡+1 − 𝑉𝑠,𝑡|) in the objective to prevent excess
+fluctuations in estimates of 𝑉𝑠. We choose 𝛼 = 0 .01. Although that
+method accurately estimates both |𝑆| and 𝑉𝑠 in a single-phase network,
+applying it to one phase of a 3- 𝜙 network yields errors 2 to 4 times as
+large in |𝑆|, and 8 to 20 times as large in 𝑉𝑠, as shown in Table 1.
+4.2. Sensitivity estimation error source discussion
+There are four sources of error when estimating the voltage sen-
+sitivity: applying a 1- 𝜙 method on a 3- 𝜙 network; approximations
+made about the unknown voltage phase angle 𝜃𝑣; the unknown LV
+transformer voltage; and smart meter measurement noise. In this ex-
+periment, the error in |𝑆| caused by each of these sources is evaluated.
+The tested network is the European 55-node feeder and fifty 55-
+node synthetic networks. Note that |𝑆| consists of two parts: the block-
+diagonal (same-phase) elements coupled by the neutral and line con-
+ductors; and the off-block-diagonal (cross-phase) elements only coupled
+by neutral conductors. The 1- 𝜙 method estimates the block-diagonal
+elements only.
+In the control group, the voltage sensitivity is estimated using the
+3-𝜙 method with known 𝜃𝑣 (𝐎𝐫𝐚𝐜𝐥𝐞) and 𝑉𝑠, and typical measurement
+noise (SNR𝐼 = 40 dB, SNR𝑉 = 46 dB). We apply a range of pertubations
+from the conditions in control group to repeat the |𝑆| estimation, as
+shown in the first column of 2. Here ‘‘Estimated 𝑉𝑠’’ indicates that
+the LV transformer voltage 𝑉𝑠 is estimated via the proposed optimiza-
+tion method alongside with 𝑆, ‘‘Constant 𝑉𝑠’’ is when 𝑉𝑠 is set to
+230 V. The 1-𝜙 estimation stands for applying the proposed sensitivity
+estimation method using the single-phase measurements only. Both
+methods [27,28] use 1- 𝜙 estimation, considering current noise only.
+They also project the complex voltage onto the real axis, a procedure
+akin to 𝐏𝐫𝐨𝐣.. The transformer voltage is estimated in [28], and treated
+as a known constant in [27]. 5
+We evaluate the ‘‘ratio of relative error in |𝑆|’’ after each change,
+and the errors in the diagonal and off-diagonal relative to those of the
+control group are shown separately in the second and third columns of
+Table 2. This leads to the following conclusions:
+Table 2 demonstrates that applying the 1-𝜙 method to each phase of
+a 3-𝜙 network, as done in [17,18,27,28], ignoring the coupling effect
+between phases via the shared neutral line, leads to a threefold error in
+the same-phase component of |𝑆|, and fails to estimate the other-phase
+component entirely.
+Of the ways of handling unknown 𝜃𝑣, ignoring both the phase shift
+and the quadrature component yields much less error than ignoring
+the phase shift but considering the full complex form of (4). As seen
+5 [28] described their method as complex equation, similar to Ignore.
+However, they actually used Proj. in implementation.
+
+PAGE 11
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+10
+L. Fang et al.
+Fig. 3. Average relative error of (a) the estimated sensitivity matrix and (b) transformer voltage against current SNR, with voltage SNR 6 dB higher, for adjustable power 𝑃𝑎 = 400
+W, auto-correlation coefficient 𝜆 = 0 .8. In the legend, 𝑆𝑆 refers to same-phase sensitivities; 𝑆𝑂 to other-phase sensitivities, 𝑉𝑠 to transformer voltage, followed by the number of
+customers.
+Table 2
+Comparison of how major factors affect the average estimation error in diagonal and
+off-diagonal sensitivity elements. ‘‘Ratio’’ refers to the ratio of the average error in |𝑆|
+for the condition after the → to the average error for the condition before the →.
+Changes to the Control Group Diag ratio OffDiag ratio
+3-𝜙 estimation → 1-𝜙 estimation 3.18 N.A.
+Oracle 𝜃𝑣 → 𝜃𝑣 approach ‘‘ Ignore" 27.6 26.5
+Oracle 𝜃𝑣 → 𝜃𝑣 approach ‘‘ Proj." 1.23 1.17
+Known 𝑉𝑠 → Estimated 𝑉𝑠 1.27 1.42
+Known 𝑉𝑠 → Constant 𝑉𝑠 8.20 8.41
+𝑆𝑁𝑅 𝐼 = 40 → 𝑆𝑁𝑅 𝐼 = 10 2.01 1.69
+𝑆𝑁𝑅 𝑉 = 46 → 𝑆𝑁𝑅 𝑉 = 16 10.7 11.0
+Control group → Proposed method 1.70 1.76
+Control group → [27] 12.69 N.A.
+Control group → [28] 7.02 N.A.
+Proposed method → [27] 7.46 N.A.
+Proposed method → [28] 4.13 N.A.
+in Table 2, the former only has an error in |𝑆| around 1.3 times the
+control group, whereas the latter has error more than 25 times as large.
+As the ̃𝜃𝑣 is typically smaller than 0.5◦, it fits the scenario described in
+the paragraph before (6), which explains why adding the quadrature
+component to the optimization problem is detrimental to the accuracy
+of |𝑆|.
+The unknown LV transformer voltage is another source of er-
+ror [28]. In our setting, ignoring variations in 𝑉𝑠 causes more than 8
+times as large an error in |𝑆| as using the known 𝑉𝑠. This is because the
+difference 𝑉𝑠−𝑉 is the small voltage drop across the transmission line in
+a local network, which is often small compared with the fluctuations of
+𝑉𝑠. By contrast, an estimation of 𝑉𝑠 by the proposed method can reduce
+the error in |𝑆| to less than 1.5 times as large as known |𝑆|, which is
+a 6.5 fold improvement over assuming constant 𝑉𝑠.
+Our proposed method demonstrates robustness against current
+noise. As shown in Table 2, substantial current noise ( SNR𝐼 = 10 dB,
+equivalent to a 33% error in 𝐼) only doubles the error in 𝑆 when
+compared to reasonable current noise ( SNR𝐼 = 40 dB, equivalent to a
+1% error in 𝐼). However, |𝑆| does exhibit sensitivity to voltage noise,
+a factor ignored in [18,27,28]. An equivalent increase in error in 𝑉
+results in a five-fold surge in error in |𝑆|. This is because a given
+amount of noise may be a small fraction of 𝑉 , but a large fraction of
+the much smaller quantity 𝑉𝑠 − 𝑉 .
+The proposed method outperforms [27,28] by around 7.5 and 4
+fold respectively in same-phase component of |𝑆| in 55-node network,
+
+PAGE 12
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+11
+L. Fang et al.
+Fig. 4. Average Relative error of the estimated sensitivity matrix and transformer voltage versus adjustable power 𝑃𝑎, with different network sizes, when SNR𝐼 = 40, SNR𝑉 = 46,
+auto-correlation coefficient 𝜆 = 0.8. The legend are the same as in Figs. 3(a) and 3(b), note that the actual average power is 5 times as large.
+as both methods use 1 − 𝜙 estimation, and the former treated 𝑉𝑠 as a
+constant.
+4.3. Three-phase loads
+So far, all sensitivity estimation experiments have been limited to
+three-phase networks containing only single-phase nodes. However,
+even residential networks often have some three-phase loads, which
+are approximately balanced. A simple way to incorporate these is to
+treat them as three single-phase loads. This degrades the estimate of
+the sensitivity because it adds extra degrees of freedom to 𝑆 that are
+not present in the data, leading to ambiguities in the solution. In further
+work, the problem should be reformulated to eliminate those degrees of
+freedom, but it is useful to understand how well the present algorithm
+works with a limited number of balanced three-phase loads.
+The relative error of |𝑆| was calculated for networks with 0% to
+50% penetration of three-phase nodes, in steps of 12.5%. A penetration
+of 𝑥% consists of having 48𝑥∕100 three-phase loads and 48(100 −𝑥)∕100
+single-phase nodes. For each penetration, 50 random networks were
+generated, with their line parameters based on those of the EU feeder.
+Fig. 6 presents the relative error of both diagonal (same-phase)
+and off-diagonal (other-phase) elements of estimated |𝑆| against the
+penetration level of three-phase nodes. As expected, the errors in|𝑆| in-
+creases as the fraction of three-phase loads increases, due to ambiguities
+in the additional redundant degrees of freedom in the model. This is in
+contrast to the degradation in most three-phase models when imbalance
+is introduced, because most models are designed for balanced nodes
+and imbalance is a form of mismatch, whereas the proposed model is
+for a three-phase network of single-phase loads and so the mismatch
+consists of having three-phase nodes.
+5. Evaluation of topology estimation
+5.1. Single-phase topology estimation
+We employ Algorithm 1 for reconstructing individual phase topolo-
+gies in a 3- 𝜙 network, utilizing the estimated 3- 𝜙 voltage sensitivity
+coefficients. These evaluations involve the European 55-node feeder
+along with fifty synthetic networks of each of several sizes. This section
+assesses the influence of factors such as network size – 21, 30, 42,
+
+PAGE 13
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+12
+L. Fang et al.
+Fig. 5. Average Relative error of the estimated sensitivity matrix and transformer voltage against sample size, with different network sizes. when SNR𝐼 = 40 , SNR𝑉 = 46 , 𝑃𝑎 =
+400 W auto-correlation coefficient 𝜆 = 0.8. The legend are the same as in Figs. 3(a) and 3(b).
+Fig. 6. Relative error of the estimated sensitivity matrix in 48-node networks with different penetration of three-phase nodes.
+
+PAGE 14
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+13
+L. Fang et al.
+55-nodes –, average active load power level 𝑃𝑎, measurement signal-
+to-noise ratio SNR, and varying approximations on ̃𝜃𝑣 on the estimated
+network topology.
+5.1.1. European 55-node feeder reconstruction
+In this experiment, the synthetic load power and the LV transformer
+voltage are produced according to (33)–(37), with the following param-
+eters: active power level 𝑃𝑎 = 400 W, auto-correlation 𝜆 = 0 .8, 40,000
+samples, and applied noise for current and voltage at SNR𝐼 = 40 dB
+and SNR𝑉 = 46 dB respectively.
+A comparison between the true and estimated topologies is not
+straightforward. For small individual instances, we show the true and
+estimated topology explicitly, but a numerical score is needed to evalu-
+ate the performance on larger data sets. There are various such scores,
+which differ in the emphasis they place on various types of mismatches:
+is transporting an entire subtree to a remote part of the graph a bigger
+or smaller difference than multiple changes that each only exchange
+neighbors? A natural candidate is the relative error between the true
+and estimated distance matrices 𝐷. However, this cannot be calculated
+if the topologies have different numbers of internal nodes. Instead, we
+show the tree graphs of one of the topologies, as well as quantify-
+ing their similarity by the DeltaCon score (DCS) introduced in [39]
+and used in [27] and [28]. The score is between 0 and 1, with a
+higher score meaning two topologies are more similar so that identical
+topologies have a score of 1. As a guide, topologies with a few minor
+structural differences would typically score 0.8–0.9, with large-scale
+subtree mismatch would score 0.5–0.7, and two completely unrelated
+topologies often score 0.25 or less. There are other quantitative mea-
+sures of topological similarity, such as the normalized Total Vector
+Error (nTVE) used in [26] when the true topology is unknown. The
+Centrality Measurement (CM) used in [27] does not always accurately
+reflect the degree of structural discrepancy. Another alternative would
+be the Group Similarity proposed in [28] which seeks to weigh large-
+scale errors more than small-scale errors. As shown in [28], a higher
+Group Similarity typically corresponds to a higher DCS but is also much
+slower to calculate than the DCS. Consequently, we choose DCS for
+measuring the similarity between topologies, due to its overall accuracy
+and reduced computational time.
+Figs. 7(a)–7(c) show the true topology (left), the topology recon-
+structed by the proposed method (middle), and the topology recon-
+structed by method in [28]. The mistakes made by both methods
+in each phase are emphasized by corresponding darker colors. To
+quantify the similarity of two graphs, we can use the Graph Edit
+Distance (GED) [40], which refers to the minimum number of graph
+operations – deleting a node/subtree, adding a node/subtree, moving
+a node/subtree to another place – required to transform one topology
+graph 𝐺 to another 𝐺′. The proposed method makes one to two
+mistakes per phase (each consisting of moving a leaf and its parent).
+Moving a node from one edge to another causes one edge to split into
+two and another two edges to combine into one. In the topologies
+estimated by the proposed method (middle), the edge that has been
+merged is shown in magenta, and the edges resulting from the split are
+blue; the corresponding edges are colored the same as the true topology
+on the left. For example, in phase 𝐴, the parent of leaf node 11 (labeled
+𝑃11 in Fig. 7(a)) is connected on the edge 𝐴1𝐴3 (blue) in the true graph
+(left), but it is instead attached on the edge𝐴2𝐴3 in the estimated graph
+(middle). We count this as one mistake. Leaf node 16 is also attached
+to the wrong place, giving a GED of two mistakes. Calculating the GED
+is slow [40], and so we instead use the simpler DeltaCon score (DCS)
+when evaluating large collections of networks. As shown in the right
+figure of all three phases, the method in [28] not only made more
+mistakes than the proposed method involving more leaf nodes but also
+connected some subtree structures to relatively distant locations. For
+example, the subtree in phase 𝐴 including 9,10,11 is misplaced to a
+distant location.
+As for the DCS measure, the proposed method achieved 0.80, 0.89
+and 0.82 for each phase, respectively. Comparing with 0.68, 0.65 and
+0.7 scored by [28]; 0.67, 0.62, 0.67 scored by [27] (not shown in
+Figs. 7(a)–7(c)). To conclude, the proposed method outperformed [27,
+28] by a notable margin.
+5.1.2. Accuracy vs network size
+This experiment evaluates the dependence of the accuracy of the
+estimated topology in terms DCS, as a function of the network size, and
+compares the effectiveness of the proposed features used for topology
+selection with those of [27]. Four different sizes of 3- 𝜙 networks – 21,
+30, 42, 55 nodes – are used in this experiment, with fifty different
+networks of each size. The synthetic load power and the LV transformer
+voltage settings are identical to those in Section 5.1.1.
+The results are shown in Fig. 8. The DCS (averaged over fifty
+networks) illustrate that the proposed method consistently achieved
+scores around 0.9 across all networks, although with a slight reduction
+in 55-node networks (refer to the fifth bar (blue) for each network
+size). The leftmost bar, in pale red, representing [28] and [27] per-
+forms worse by a factor of 1.1 to 1.3, and shown a decreasing trend
+with network size. Note that [27] and [28] shared the same topology
+selection features. The first and fourth bars, in pale red and red, denote
+the topology candidate selection based on features used in [27], which
+include voltage magnitude, sensitivity coefficients, voltage profile, and
+voltage correlation. The bars in blue show the proposed features, and
+the rightmost bar, in green, combines features from both the proposed
+method and [27]. The three sets of features achieving similar DCS,
+but the iterative backward-forward method applied in [27] required a
+20-fold higher computation time than the proposed method. Thus, the
+proposed topology selection method is more efficient than that of [27].
+5.1.3. Accuracy vs sample size
+This experiment is to evaluate the impact of number of time sam-
+ples used to estimate the sensitivity on the accuracy of the estimated
+topology, as measured by DCS. The network and the parameter are the
+same as in 5.1.2, except a varying sample size from 100 to 40,000.
+As presented in 9, the accuracy increases steadily as the sample size
+increases, but plateaus below 1. Doubling the size of the network
+requires 10 or more times as many samples for a given accuracy.
+5.1.4. Accuracy vs active load power level
+This experiment compares the DCS accuracy for networks with
+different loads. It is conducted on EU 55-node feeder as well as fifty
+55-node synthetic networks. The synthetic load power and the LV
+transformer voltage settings are the same as in 5.1.1, other than the
+varying the adjustable load power level 𝑃𝑎.
+The results are depicted in Fig. 10. The proposed method in red
+first shows a slight increase then consistently decreases in DCS as
+𝑃𝑎 increases. This observation aligns with the pattern in 4(a), as a
+smaller relative error in |𝑆| leads to a more accurate topology. The
+topology estimated by [27] shown in green is significantly worse in
+DCS, degrades in performance fairly consistently as the load power
+increases. In contrast, the oracle (with known ̃𝜃𝑣) in blue is almost flat
+with increasing 𝑃𝑎 after a slight initial increase. Knowing ̃𝜃𝑣 leads to
+an accurate same-phase component of |𝑉 |, thus the relative error on
+𝑉𝑠 − |𝑉 | decreases with increasing load power. Although |𝑆| becomes
+more accurate as 𝑃𝑎 increases, this marginal improvement in 𝑆 has a
+negligible impact on topology estimation, rendering the blue line nearly
+flat.
+
+PAGE 15
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+14
+L. Fang et al.
+Fig. 7. True and estimated topology of EU 55-node feeder. Left: True topology, Middle: Estimated topology by the proposed method, Right: Estimated topology by [28]. (a) Phase
+A:, (b) Phase B:, and (c) Phase C:. Mistakes in topology are highlighted.
+5.1.5. Accuracy vs SNR
+This experiment considers the impact of measurement noise on the
+accuracy of reconstruction, as measured by DCS. It also conducted on
+EU 55-node feeder and fifty 55-node synthetic networks, with the same
+setting as in 5.1.1, other than the varying current noise SNR𝐼, and the
+SNR𝑉 , which is always 6 dB higher than SNR𝐼.
+Fig. 11 shows that the DCS all increase with SNR. Both the proposed
+method and the oracle has a steeper improvement after SNR𝐼 = 30 dB,
+the true topology starts to be reconstructed in some instances, they
+improve the average DCS significantly as they score 1. In the range
+where SNR𝐼 > 25 dB, the proposed method outperforms the method
+presented in [27] (green), yet lags behind the benchmarking oracle
+(blue) by a notable gap.
+5.2. Three-phase topology reconstruction
+Our analysis has thus far focused on estimating three distinct 1- 𝜙
+topologies using a 3- 𝜙 sensitivity matrix. However, reconstructing a
+unified 3-𝜙 topology provides a more complete representation the inter-
+connections between different phases. A few studies have reconstructed
+the 3-𝜙 topologies according to [12], with most utilizing D-PMU data.
+The work presented in [26] stands out as the only one that used smart
+
+PAGE 16
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+15
+L. Fang et al.
+Fig. 8. Comparison of DCS of the estimated topology of [28] and the proposed method against network size. The legend shows ⟨grouping algorithm⟩; ⟨selection features⟩. ‘‘Mixed’’
+selection uses both sets of features. The proposed features improve speed without sacrificing accuracy.
+Fig. 9. Average DCS against sample size in the estimated topology of 55-node European feeder and several synthetic networks. Note the nonlinear horizontal axis.
+Fig. 10. Average DCS versus average load power 𝑃𝑎 in the estimated topology of 55-node European feeder and several synthetic networks.
+
+PAGE 17
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+16
+L. Fang et al.
+Fig. 11. Average DCS against SNR in the estimated topology of 55-node European feeder and several synthetic networks.
+Table 3
+DCS of the estimated topology of EU feeder. Estimating phases individually (1 𝜙) or the
+unified topology (3 𝜙), using the 1 𝜙 and full 3 𝜙 sensitivity estimates.
+Ph. 1 𝜙, 𝑆 from 1 𝜙 1𝜙, 𝑆 from 3 𝜙 3𝜙, 𝑆 from 3 𝜙
+𝐴 0.68 0.80
+0.76𝐵 0.65 0.89
+𝐶 0.7 0.82
+meter data. However, since they focused on other real networks that
+lacked ground truth and modeled the network as a spanning tree,
+drawing a comparison between the proposed method and [26] proves
+challenging.
+To reconstruct the 3-𝜙 topology, our approach uses the components
+of the sensitivity coefficients due exclusive to the neutral wire. How-
+ever, the sensitivity coefficients estimated by our proposed method
+combine line and neutral in same-phase elements, while other-phase
+elements inherently contain only the neutral. Here, we assume that
+the line and neutral impedance are equal in same-phase elements, the
+neutral sensitivity matrix 𝑆𝑁 can be obtained by simply halving all
+same-phase elements of 𝑆. As in the real network, the impedance on
+the line and neutral conductors should be similar to maintain balanced
+voltage levels and prevent excessive voltage drops, if the electrical
+wiring is correctly installed and properly maintained [41]. In this
+experiment, we reconstruct the 3-𝜙 topology of 12, 21, 30, 42, and 55-
+node synthetic networks and the EU 55-node feeder. The inputs and
+parameters are the same as in Section 5.1.2. The results for synthetic
+networks are shown in 12; the DCS comparison of the EU 55-node
+feeder by different methods are depicted in Table 3.
+In Table 3, a noteworthy observation is the lower performance of
+the 3-𝜙 reconstructed network compared to its 1- 𝜙 counterparts. This
+discrepancy can be attributed to the significantly larger size of 3- 𝜙
+networks, approximately three times the size of their 1-𝜙 sub-networks.
+When employing the RG-backtracking algorithm on larger networks, it
+involves a multitude of decisions and a broader set of candidate topolo-
+gies. This increases the likelihood of wrong decisions and suboptimal
+candidate topology selections, worsening the similarity score. As shown
+in Fig. 12, the similarity score is Figs. 8 and 12, the similarity score of
+3-𝜙 reconstructed 21-node network is similar to the 1- 𝜙 reconstructed
+55-node network, (the 55-node network comprises roughly three 21-
+node networks) which demonstrates the network being 3- 𝜙 is not a
+reason of worsening performance. Table 3 further implies the proposed
+method is superior to [28], despite handling a network roughly three
+times as large.
+Fig. 13 shows the computational time comparison between the
+proposed RG-backtracking algorithm and the algorithm in [28]. In this
+experiment, fifty networks of each size (250 in total) are evaluated. The
+sensitivity matrix is estimated by the proposed method, and converted
+to neutral sensitivity 𝑆𝑁 to allow both algorithms to estimate the 3-
+𝜙 topology. The median time taken by the proposed algorithm is two
+orders of magnitude less than that of the method outlined in [28].
+Particularly in larger networks, the maximum processing time of the
+proposed algorithm is similar to or less than the median time of [28].
+Notably, there are instances where [28] fails to find a topology within
+24 hours (86,400 seconds, the corresponding instances are not included
+in the plot), a situation that has not been observed with the proposed
+algorithm. This substantial time reduction can be attributed primarily
+to a more efficient topology selection technique. While the topology
+selection process accounts for 82% to 98% of the total computation
+time in [28], it constitutes only 23% to 55% in our proposed approach.
+In summary, the proposed algorithm is markedly faster than the method
+in [28], with no loss of accuracy.
+6. Conclusion and future work
+This paper proposes a novel method for estimating the three-phase
+voltage sensitivity to current and the transformer voltage in low-voltage
+distribution power networks, using only smart meter measurements.
+This is achieved by considering the coupling effect between phases, and
+without the need to estimate the voltage phase shift and the quadrature
+component of the voltage. A series of experiments demonstrate that
+the proposed method outperforms state-of-the-art methods by a factor
+of 4 and 10 in the accuracy of same-phase sensitivity elements and
+transformer voltage, respectively. Moreover, the proposed method can
+estimate the other-phase sensitivity elements, which many Dynamic
+Operating Envelope researchers, such as [42] and [43], ignore. Instead,
+they approximate the three-phase system as three independent phases,
+causing some errors. Additionally, an enhanced recursive-grouping and
+Backtracking algorithm capable of reconstructing the full three-phase
+topology is presented, a feat not achieved by sensitivity-based methods
+in the prior art. The algorithm also features refined decision rules,
+more selective backtracking, and a fast topology selection technique,
+which improves accuracy and is two orders of magnitude faster than
+state-of-the-art methods in single-phase topology estimation.
+This work leads to several new research directions. First, an accu-
+rate estimation of the voltage angle, possibly by iteration-optimization
+approach or gradient descent approach, can improve the accuracy of
+the voltage sensitivity and topology estimation, especially in indus-
+trial or commercial networks with larger loads. Second, the decision
+
+PAGE 18
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+17
+L. Fang et al.
+Fig. 12. Similarity score against network size in 3- 𝜙 topology reconstruction.
+Fig. 13. Computational time comparison of the proposed topology estimation algorithm and method in [28]. In the horizontal axis, N: network size, Prop.: Proposed method, [28]:
+method in [28]. In the plot, red line: median time, box: 25% and 75% percentile, ‘‘+’’: outliers.
+rules in the recursive-grouping and backtracking method were deter-
+mined heuristically, and could be replaced by systematic rules based
+on a probabilistic model. Third, the formulation can be extended to
+three-phase loads by imposing suitable constraints on the sensitivity
+coefficients. In addition, the accurately estimated sensitivity matrix
+can help developing the model free Dynamic Operating Envelope and
+fairness problems. Finally, note that the proposed method is only
+applicable to radial networks, as found in Low-Voltage distribution net-
+works, where most smart meters occur. Topology estimation of meshed
+network as found in Medium Voltage and High Voltage networks
+requires more information than is contained in phasor measurements
+at the customers when there may be unidentified (Steiner) nodes.
+CRediT authorship contribution statement
+Luxin Fang: Conceptualization, Data curation, Formal analysis,
+Methodology, Software, Visualization, Writing – original draft, Writing
+– review & editing. Abu Bakr Pengwah: Investigation, Resources,
+Validation. Lachlan L.H. Andrew: Conceptualization, Funding acqui-
+sition, Investigation, Methodology, Project administration, Supervision,
+Writing – review & editing. Reza Razzaghi: Conceptualization, Super-
+vision, Writing – review & editing. Mario Andrés Muñoz: Supervision,
+Writing – review & editing.
+Declaration of competing interest
+The authors declare that they have no known competing finan-
+cial interests or personal relationships that could have appeared to
+influence the work reported in this paper.
+Data availability
+No data was used for the research described in the article.
+Acknowledgments
+This work was supported by the Australian Research Council grants
+DP190102134, DE230100056 and IC200100009.
+References
+[1] Meliopoulos AS, Polymeneas E, Tan Z, Huang R, Zhao D. Advanced distribution
+management system. IEEE Trans Smart Grid 2013;4(4):2109–17.
+[2] Medina J, Muller N, Roytelman I. Demand response and distribution
+grid operations: Opportunities and challenges. IEEE Trans Smart Grid
+2010;1(2):193–8.
+[3] Fahim SR, Sarker SK, Muyeen S, Das SK, Kamwa I. A deep learning based
+intelligent approach in detection and classification of transmission line faults.
+Int J Electr Power Energy Syst 2021;133:107102.
+[4] Terzija V, Valverde G, Cai D, Regulski P, Madani V, Fitch J, et al. Wide-area
+monitoring, protection, and control of future electric power networks. Proc IEEE
+2010;99(1):80–93.
+
+PAGE 19
+International Journal of Electrical Power and Energy Systems 158 (2024) 109949
+18
+L. Fang et al.
+[5] Manditereza PT, Bansal RC. Protection of microgrids using voltage-based
+power differential and sensitivity analysis. Int J Electr Power Energy Syst
+2020;118:105756.
+[6] Liu Y, Ćetenović D, Li H, Gryazina E, Terzija V. An optimized multi-objective
+reactive power dispatch strategy based on improved genetic algorithm for wind
+power integrated systems. Int J Electr Power Energy Syst 2022;136:107764.
+[7] Farajollahi M, Shahsavari A, Mohsenian-Rad H. Topology identification in
+distribution systems using line current sensors: An MILP approach. IEEE Trans
+Smart Grid 2019;11(2):1159–70.
+[8] Phadke AG. Synchronized phasor measurements – a historical overview. In:
+IEEE/PES transmission and distribution conference and exhibition, vol. 1, IEEE;
+2002, p. 476–9.
+[9] Uribe-Pérez N, Hernández L, De la Vega D, Angulo I. State of the art and trends
+review of smart metering in electricity grids. Appl Sci 2016;6(3):68.
+[10] Lovell H. Are policy failures mobile? An investigation of the advanced metering
+infrastructure program in the state of Victoria, Australia. Environ Plan A Econ
+Space 2017;49(2):314–31.
+[11] Chen F, Dai J, Wang B, Sahu S, Naphade M, Lu C-T. Activity analysis based
+on low sample rate smart meters. In: Proceedings of the 17th ACM SIGKDD
+international conference on knowledge discovery and data mining. 2011, p.
+240–8.
+[12] Deka D, Kekatos V, Cavraro G. Learning distribution grid topologies: A tutorial.
+IEEE Trans Smart Grid 2023.
+[13] Moffat K, Bariya M, Von Meier A. Unsupervised impedance and topology
+estimation of distribution networks—Limitations and tools. IEEE Trans Smart
+Grid 2019;11(1):846–56.
+[14] Chauhan K, Sodhi R. A robust state estimation framework for active distribution
+network with distribution-level PMUs. In: 2020 IEEE power & energy society
+general meeting. IEEE; 2020, p. 1–5.
+[15] Peppanen J, Grijalva S, Reno MJ, Broderick RJ. Distribution system low-voltage
+circuit topology estimation using smart metering data. In: 2016 IEEE/PES
+transmission and distribution conference and exposition (t&d). IEEE; 2016, p.
+1–5.
+[16] Soumalas K, Messinis G, Hatziargyriou N. A data driven approach to distribution
+network topology identification. In: 2017 IEEE manchester powerTech. IEEE;
+2017, p. 1–6.
+[17] Liao Y, Weng Y, Liu G, Rajagopal R. Urban MV and LV distribution grid topology
+estimation via group lasso. IEEE Trans Power Syst 2018;34(1):12–27.
+[18] Park S, Deka D, Backhaus S, Chertkov M. Learning with end-users in distribu-
+tion grids: Topology and parameter estimation. IEEE Trans Control Netw Syst
+2020;7(3):1428–40.
+[19] Ardakanian O, Wong VW, Dobbe R, Low SH, von Meier A, Tomlin CJ,
+et al. On identification of distribution grids. IEEE Trans Control Netw Syst
+2019;6(3):950–60.
+[20] Yu J, Weng Y, Rajagopal R. PaToPa: A data-driven parameter and topol-
+ogy joint estimation framework in distribution grids. IEEE Trans Power Syst
+2017;33(4):4335–47.
+[21] Yu J, Weng Y, Rajagopal R. PaToPaEM: A data-driven parameter and topology
+joint estimation framework for time-varying system in distribution grids. IEEE
+Trans Power Syst 2018;34(3):1682–92.
+[22] Bariya M, Deka D, von Meier A. Guaranteed phase & topology identification in
+three phase distribution grids. IEEE Trans Smart Grid 2021;12(4):3605–12.
+[23] Deka D, Chertkov M, Backhaus S. Topology estimation using graphical
+models in multi-phase power distribution grids. IEEE Trans Power Syst
+2019;35(3):1663–73.
+[24] Gandluru A, Poudel S, Dubey A. Joint estimation of operational topology and
+outages for unbalanced power distribution systems. IEEE Trans Power Syst
+2019;35(1):605–17.
+[25] Liao Y, Weng Y, Liu G, Zhao Z, Tan C-W, Rajagopal R. Unbalanced multi-phase
+distribution grid topology estimation and bus phase identification. IET Smart
+Grid 2019;2(4):557–70.
+[26] Li H, Weng Y, Liao Y, Keel B, Brown KE. Distribution grid impedance & topology
+estimation with limited or no micro-PMUs. Int J Electr Power Energy Syst
+2021;129:106794.
+[27] Pengwah AB, Fang L, Razzaghi R, Andrew LLH. Topology identification of radial
+distribution networks using smart meter data. IEEE Syst J 2021.
+[28] Flynn D, Pengwah AB, Razzaghi R, Andrew LLH. An improved algorithm for
+topology identification of distribution networks using smart meter data and its
+application for fault detection. IEEE Trans Smart Grid 2023.
+[29] García S, Mora-Merchán JM, Larios DF, Personal E, Parejo A, León C. Phase topol-
+ogy identification in low-voltage distribution networks: A Bayesian approach. Int
+J Electr Power Energy Syst 2023;144:108525.
+[30] Shi Z, Xu Q, Liu Y, Wu C, Yang Y. Line parameter, topology and phase estimation
+in three-phase distribution networks with non- μPMUs. Int J Electr Power Energy
+Syst 2024;155:109658.
+[31] Duan G, Yu Y. Power distribution system optimization by an algorithm for ca-
+pacitated steiner tree problems with complex-flows and arbitrary cost functions.
+Int J Electr Power Energy Syst 2003;25(7):515–23.
+[32] Liu Y, Zhang N, Hou Q, Botterud A, Kang C. Topology and admittance estimation:
+Precision limits and algorithms. 2021, arXiv preprint arXiv:2106.00532.
+[33] Talkington S, Turizo D, Grijalva S, Fernandez J, Molzahn DK. Conditions for
+estimation of sensitivities of voltage magnitudes to complex power injections.
+IEEE Trans Power Syst 2023.
+[34] Talkington S, Grijalva S, Reno MJ, Azzolini JA, Peppanen J. Localized structure
+in secondary distribution system voltage sensitivity matrices. Electr Power Syst
+Res 2024;226:109788.
+[35] Peschon J, Piercy DS, Tinney WF, Tveit OJ. Sensitivity in power systems. IEEE
+Trans Power Appar Syst 1968;(8):1687–96.
+[36] Choi MJ, Tan VY, Anandkumar A, Willsky AS. Learning latent tree graphical
+models. J Mach Learn Res 2011;12:1771–812.
+[37] Deka D, Talukdar S, Chertkov M, Salapaka MV. Graphical models in meshed
+distribution grids: Topology estimation, change detection & limitations. IEEE
+Trans Smart Grid 2020;11(5):4299–310.
+[38] IEEE. IEEE PES test feeder. 2023, https://site.ieee.org/pes-testfeeders/.
+[39] Koutra D, Vogelstein JT, Faloutsos C. Deltacon: A principled massive-graph
+similarity function. In: Proceedings of the 2013 SIAM international conference
+on data mining. SIAM; 2013, p. 162–70.
+[40] Gao X, Xiao B, Tao D, Li X. A survey of graph edit distance. Pattern Anal Appl
+2010;13:113–29.
+[41] IEEE. IEEE recommended practice for powering and grounding electronic equip-
+ment. 1999, p. 1–408. http://dx.doi.org/10.1109/IEEESTD.1999.90559, IEEE Std
+1100-1999.
+[42] Liu MZ, Ochoa LF, Wong PK, Theunissen J. Using OPF-based operating
+envelopes to facilitate residential DER services. IEEE Trans Smart Grid
+2022;13(6):4494–504.
+[43] Naughton JC. A modelling framework for virtual power plants under uncertainty
+[Ph.D. thesis], University of Birmingham; 2022.

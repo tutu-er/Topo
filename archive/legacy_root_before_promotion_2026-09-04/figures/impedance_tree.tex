@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  bus/.style={circle,draw,fill=blue!12,minimum size=7mm}
+]
+\node[bus] (n0) at (0,0) {$0$};
+\node[bus] (n1) at (2,0) {$1$};
+\node[bus] (n2) at (4,0.9) {$2$};
+\node[bus] (n3) at (4,-0.9) {$3$};
+\draw[very thick] (n0)--node[above] {$r=.10$} (n1);
+\draw[very thick] (n1)--node[above] {$r=.08$} (n2);
+\draw[very thick] (n1)--node[below] {$r=.12$} (n3);
+\draw[dashed,blue!60] (n0) to[bend left=25] node[above] {公共路径} (n1);
+\node[align=center,right=0.6cm of n3] {$R_{23}=r_{01}$\\$d^R_{23}=r_{12}+r_{13}$};
+\end{tikzpicture}

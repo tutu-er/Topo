@@ -1,0 +1,417 @@
+\section{主动探测与特征信号：S12--S13及P1--P5}
+\label{sec:probing-detailed}
+
+本组文献首先要按\emph{输入、输出、时间尺度、恢复对象}区分。改变逆变器的有功/无功设定值，观察新的稳态电压，得到的是潮流灵敏度；在线路中注入特征电流并检测支路电流，得到的是带阈值的路径信息；注入MHz信号，利用传播时延或反射，得到的是频率相关传输通道；在馈线入口注入编码电压并读取入口电流，得到的是端口动态等效模型。它们都属于主动实验，但对应的逆问题不同。
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lXXX@{}}
+\toprule
+文献 & 实验输入与输出 & 数学对象 & 解释时的关键限制\\
+\midrule
+S12、S13、P1 & 秒级功率设定值变化与电压幅值差 & 电阻/电抗灵敏度及树结构 & 全节点电压与仅末端电压不是同一观测条件\\
+P2 & 非工频特征电流与线路电流检测 & 近似祖先关系 & 小量分流和检测阈值决定可见性\\
+P3 & MHz信号及电流、电压、时延 & 分布参数传播通道 & 额外电感改变传播方向\\
+P4 & 设备特征信号记录集 & 缺失的祖先偏序/后代集合 & 记录补全可能只给候选顺序\\
+P5 & 入口编码电压与入口电流 & 脉冲响应及低阶等效电路 & 单端口模型通常不确定内部树\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{S12：用响应矩阵的等值层恢复树}
+\label{subsec:S12}
+
+\paragraph{原文定位与主要结果。}
+Cavraro与Kekatos的S12\citep{S12}把主动采样分成灵敏度估计、等值层提取、递归树重建。全叶节点探测加全节点电压可恢复原树；仅在探测节点测压时，恢复的是包含可辨识分叉点的约化树，隐藏节点标签不唯一。原文第IV--V节分别给出两种递归算法；第VI节用重复探测讨论抗噪，其概率论证采用独立零均值扰动及中心极限定理近似。以下从共同路径模型重新解释这些结果，而不逐行转录算法。
+
+\paragraph{本文推导：为什么一列电压响应能够切出一系列层。}
+设根节点为0，非根节点共$n$个，边电阻严格为正。记$P_i$为从0到$i$的边集合，路径关联矩阵为
+\begin{equation}
+ F_{ei}=\mathbb{I}\{e\in P_i\},\qquad
+ R=F^{\mathsf T}\operatorname{diag}(r)F.
+ \label{eq:probe-common-path}
+\end{equation}
+若电压采用幅值而非幅值平方，比例常数需按标幺基值吸收；这里统一使用$\Delta v=R\Delta p+X\Delta q$。从式\eqref{eq:probe-common-path}直接得到
+\begin{equation}
+ R_{ij}=\sum_{e\in P_i\cap P_j}r_e
+       =h_r\bigl(\operatorname{lca}(i,j)\bigr),
+ \qquad h_r(u)=\sum_{e\in P_u}r_e.
+ \label{eq:probe-lca}
+\end{equation}
+在$j$注入单位有功后，$i$的电压变化取决于$i,j$共享多少根路径。因而固定$j$，$R_{ij}$相等表示两点与$j$的最近公共祖先处在同一个位置，而不是表示$i,j$相邻。沿$0$到$j$的路径，最近公共祖先每向下移动一条边，该列的响应值就增加该边电阻。正电阻使不同祖先对应的高度严格递增，这正是排序后可分层的原因。
+
+例如根0经电阻$a$到隐藏节点$u$，$u$经$b$到叶1，经$c$到隐藏节点$w$，$w$再经$d,e$到叶2、3。末端响应为
+\begin{equation}
+ R_{\mathcal O\mathcal O}=
+ \begin{bmatrix}
+ a+b&a&a\\
+ a&a+c+d&a+c\\
+ a&a+c&a+c+e
+ \end{bmatrix},\qquad \mathcal O=\{1,2,3\}.
+ \label{eq:probe-three-leaf}
+\end{equation}
+探测叶2时，叶1属于高度$a$的层，叶3属于高度$a+c$的层，叶2自身属于高度$a+c+d$的层。若$u,w$也测压，则其响应值分别与叶1、叶3相同；跨不同探测叶比较这些集合，便能把隐藏在单列等值组中的祖先节点分离出来。
+
+\paragraph{本文推导：先识别矩阵，再识别拓扑，是两个不同的条件。}
+令$\mathcal P$为$k$个探测点，$\Delta\in\mathbb R^{k\times T}$为已知功率扰动矩阵，$Y$收集测得的电压差。全节点测压时
+\begin{equation}
+ Y=R_{:\mathcal P}\Delta+E,
+ \qquad
+ \widehat R_{:\mathcal P}
+ =Y\Delta^{\mathsf T}(\Delta\Delta^{\mathsf T})^{-1}.
+ \label{eq:probe-ls}
+\end{equation}
+满行秩保证所探测的$k$列可唯一回归，并不自动保证未知树唯一。若$\Delta$只有一维，例如所有逆变器始终以固定比例同时改变输出，增加时间样本只能更准确地估计同一个线性组合。即使$\Delta$满秩，如果一个独立末端分支从不被激励，仍可能缺少区分该分支内部结构的信息。
+
+在无噪声情况下，$T\geq k$只是满行秩的必要计数条件；在有噪声情况下还需要设计矩阵条件良好。由\eqref{eq:probe-ls}可直接得
+\begin{equation}
+ \|\widehat R-R\|_F
+ \leq \|E\|_F\|\Delta^\dagger\|_2
+ =\frac{\|E\|_F}{\sigma_{\min}(\Delta)}.
+ \label{eq:probe-conditioning}
+\end{equation}
+该式说明同样的探测次数和总能量，若输入高度共线，结果仍可能不可靠。设计时关注$\Delta\Delta^{\mathsf T}$的最小特征值，比单独关注样本数更直接。
+
+\paragraph{递归重建的逻辑。}
+记$\mathcal N_j^t$为$j$在第$t$个祖先处的等值层。对于已知属于同一待识别子树的探测叶，取它们相应等值层的交集，可以定位共同祖先；定位后用相邻响应高度的差计算连接电阻；最后按下一层是否相同将探测叶分组，对各组递归。这里的集合交运算具有实际含义：一片旁支可能与某个探测叶处于同一层，但当该旁支中的叶也被探测时，它就不能在所有相应层中同时充当共同祖先。叶节点覆盖由此消除旁支与祖先之间的歧义。
+
+\paragraph{仅末端测压时：约化树与Kron矩阵不能混为一谈。}
+只有$\mathcal O=\mathcal P$测压时，回归目标变成$R_{\mathcal O\mathcal O}$。用末端对构造
+\begin{equation}
+ d_{ij}=R_{ii}+R_{jj}-2R_{ij}
+       =\sum_{e\in P(i,j)}r_e.
+ \label{eq:probe-tree-distance}
+\end{equation}
+式\eqref{eq:probe-tree-distance}给出加性树距离，因此与末端隐藏树重建直接相接。不过，仅用$d_{ij}$会消掉所有末端共享的根部干线电阻：在\eqref{eq:probe-three-leaf}中，$a$完全抵消。若要保留根部信息，应保留响应矩阵对角线或可用的根参考。
+
+考虑一条无观测、无额外已知注入的串联路径，其总电阻为$r$。用两段$r_1,r_2>0$替代，只要$r_1+r_2=r$，所有边界电压响应不变。这给出一个明确反例：无论重复实验多少次，末端数据都不能判断其中有没有一个未观测的二度节点，也不能分别确定$r_1,r_2$。可恢复的自然对象是压缩这些路径后的树；具有两个可观测后代方向的分叉点则可能保留。
+
+另一方面，若$G=R^{-1}$按观测节点$\mathcal O$与隐藏节点$\mathcal H$分块，则
+\begin{equation}
+ (R_{\mathcal O\mathcal O})^{-1}
+ =G_{\mathcal O\mathcal O}
+  -G_{\mathcal O\mathcal H}G_{\mathcal H\mathcal H}^{-1}
+   G_{\mathcal H\mathcal O}.
+ \label{eq:probe-kron}
+\end{equation}
+右端是保留边界节点的Schur补，通常会形成稠密连接；它与包含新增隐藏分叉点的最小树表示可以产生相同边界响应，却不是同一张图。因此，在末端矩阵的逆上看见非零非对角元，不能直接报告末端之间存在真实物理边。
+
+\paragraph{本文推导：噪声条件的确定性内核。}
+设真实不同层之间的最小响应间隔为$\gamma>0$，所有估计元素满足$|\widehat R_{ij}-R_{ij}|\leq\varepsilon$。同层两元素最多相差$2\varepsilon$，不同层至少相差$\gamma-2\varepsilon$。存在无歧义阈值的充分条件是
+\begin{equation}
+ 2\varepsilon<\tau<\gamma-2\varepsilon,
+ \qquad\text{因此}\qquad \varepsilon<\gamma/4.
+ \label{eq:probe-layer-margin}
+\end{equation}
+这是一条确定性命题，不依赖噪声分布。原树正边权下可用最小边电阻作为保守间隔；对压缩树，实际有效间隔也可能是多段电阻之和。
+
+进一步假定每列重复$T_j$次，幅度为$\delta_j$，每个观测误差在时间上独立高斯且方差不超过$\sigma^2$，则均值估计误差方差不超过$\sigma^2/(\delta_j^2T_j)$。对总计$q$个待用元素作并集界，可自行导出
+\begin{equation}
+ \Pr\!\left(\max|\widehat R_{ij}-R_{ij}|\geq\gamma/4\right)
+ \leq 2q\exp\!\left(-\frac{\gamma^2\min_j(\delta_j^2T_j)}{32\sigma^2}\right).
+ \label{eq:probe-confidence}
+\end{equation}
+这比仅报单个元素置信度更接近完整树恢复的事件。若噪声只被中心极限定理近似为高斯，上式也只是近似；若存在时间相关负荷变化、系统性潮流偏差或跟随探测动作的控制器响应，增加$T_j$不一定按$1/T_j$降方差，更不会自动消除偏差。对Topo而言，S12最有价值的是给出了\emph{获得末端响应后能识别什么}的严格边界，以及把最小边尺度与实验精度关联的方法。
+
+\subsection{S13：从候选拓扑的最小二乘评分到MILP}
+\label{subsec:S13}
+
+\paragraph{原文定位与主要结果。}
+Taheri、Kekatos与Cavraro的S13\citep{S13}以全节点电压响应为基础，对候选线路的逆电阻作最小二乘，再选择残差最小的拓扑。原文第III--IV节把这个组合选择问题重写为含二值乘积的模型，并用McCormick约束处理；提供简化模型及强制树结构的较大模型。数值测试采用修改后的IEEE 13节点系统。必须保留的限定是：辅助连续变量的盒界未获解析证明，作者采用的是经验有效的界；简化模型得到树的约90\%比例只是所测实例结果。
+
+\paragraph{本文推导：线性变量实际上是电导，而不是电阻。}
+候选树的约化关联矩阵为$A\in\mathbb R^{n\times n}$，每条边的电导$g_e=1/r_e$。令$V\in\mathbb R^{n\times T}$为全部节点的电压差，$P$为只在探测点非零的有功变化，则
+\begin{equation}
+ P=G(g)V+E,\qquad G(g)=A^{\mathsf T}\operatorname{diag}(g)A.
+ \label{eq:milp-probe-model}
+\end{equation}
+令$a_e$为$A$第$e$行的转置，逐边展开有
+\begin{equation}
+ G(g)V=\sum_{e=1}^{n}g_ea_e(a_e^{\mathsf T}V),\qquad
+ \operatorname{vec}(P)=H_Ag+\operatorname{vec}(E),
+ \label{eq:milp-vectorize}
+\end{equation}
+其中
+\begin{equation}
+ (H_A)_{:e}=(V^{\mathsf T}a_e)\otimes a_e,
+ \qquad H_A\in\mathbb R^{nT\times n}.
+ \label{eq:milp-design}
+\end{equation}
+这是Khatri--Rao积的列形式。它可以从恒等式$\operatorname{vec}(uv^{\mathsf T})=v\otimes u$直接推导，避免把这个矩阵积当成需要记忆的符号。只要$H_A$满列秩，对固定$A$的无约束最小二乘解为
+\begin{equation}
+ \widehat g_A=(H_A^{\mathsf T}H_A)^{-1}H_A^{\mathsf T}p,
+ \quad
+ J(A)=p^{\mathsf T}(I-\Pi_A)p,
+ \quad
+ \Pi_A=H_A(H_A^{\mathsf T}H_A)^{-1}H_A^{\mathsf T},
+ \label{eq:milp-projection}
+\end{equation}
+其中$p=\operatorname{vec}(P)$。拓扑选择因此是比较不同候选设计矩阵张成的子空间，选择最能解释已知输入$p$的那个。这个几何解释同时揭示：残差越小表示数据拟合越好，并不在缺少可辨识性、候选覆盖或物理约束时自动等于真实拓扑。
+
+无约束$\widehat g_A$可能含负值。若另行要求$g_e\in[g_e^{\min},g_e^{\max}]$且$g_e^{\min}>0$，对固定拓扑的估计就变成有界最小二乘，式\eqref{eq:milp-projection}一般不再适用。修改物理可行域后，需要重新检查后续代数等价性，不能只在最后把负数截为零却沿用原评分证明。
+
+\paragraph{本文推导：为何可以把选行变为选择设计矩阵的列。}
+给定候选边全集$\overline{\mathcal E}$，共有$m$条边，约化关联矩阵为$\bar A\in\mathbb R^{m\times n}$。若$S\in\{0,1\}^{n\times m}$每行选择不同的一条边，则
+\begin{equation}
+ A=S\bar A,\quad SS^{\mathsf T}=I_n,\quad
+ S^{\mathsf T}S=D_b:=\operatorname{diag}(b),\quad
+ H_A=\bar H S^{\mathsf T},
+ \label{eq:milp-selector}
+\end{equation}
+其中$\bar H_{:e}=(V^{\mathsf T}\bar a_e)\otimes\bar a_e$，$b\in\{0,1\}^m$表示选中哪些候选边。两个因子同时按同一条边取列，故Khatri--Rao积只需取相应的整列。
+
+为解释原文的逆矩阵技巧，任取$\alpha>0$并定义
+\begin{equation}
+ C=(I_m+\alpha^{-1}\bar H^{\mathsf T}\bar H)^{-1},
+ \qquad \bar p=\bar H^{\mathsf T}p.
+ \label{eq:milp-C}
+\end{equation}
+注意$C$是$m\times m$矩阵，单位阵维度由候选边数决定。由\eqref{eq:milp-selector}可得
+\begin{equation}
+ H_A^{\mathsf T}H_A=\alpha SC^{-1}S^{\mathsf T}-\alpha I_n.
+ \label{eq:milp-gram}
+\end{equation}
+在所需逆矩阵存在时，Woodbury恒等式给出
+\begin{equation}
+ (H_A^{\mathsf T}H_A)^{-1}
+ =-\alpha^{-1}\left[I_n+S(C-D_b)^{-1}S^{\mathsf T}\right].
+ \label{eq:milp-woodbury}
+\end{equation}
+因此，把$J(A)$中不依赖拓扑的$p^{\mathsf T}p$去掉，剩余目标乘上$\alpha$后可写为
+\begin{equation}
+ \bar p^{\mathsf T}D_b\bar p+
+ \bar p^{\mathsf T}D_b(C-D_b)^{-1}D_b\bar p.
+ \label{eq:milp-reduced-cost}
+\end{equation}
+引入$z$满足$(C-D_b)z=D_b\bar p$，再用$w=D_bz$，式\eqref{eq:milp-reduced-cost}变成
+\begin{align}
+ \min_{b,z,w}\quad &\sum_{e=1}^{m}\bar p_e^2b_e+\bar p^{\mathsf T}w,\label{eq:milp-linear-objective}\\
+ \text{s.t.}\quad &Cz-w=D_b\bar p,\qquad w_e=b_ez_e.\nonumber
+\end{align}
+除了最后的二值--连续乘积，其余已经线性。矩阵逆不是被近似删去，而是通过辅助方程重写；等价性仍依赖$C-D_b$可逆及所用可行域正确。
+
+\paragraph{本文推导：McCormick何时是精确的。}
+假设\emph{事先已有有效界}$\ell_e\leq z_e\leq u_e$。对$b_e\in\{0,1\}$，$w_e=b_ez_e$等价于
+\begin{align}
+ \ell_e b_e\leq w_e\leq u_e b_e,\qquad
+ z_e-u_e(1-b_e)\leq w_e\leq z_e-\ell_e(1-b_e).
+ \label{eq:milp-mccormick}
+\end{align}
+证明只需分两种情况：$b_e=0$时第一对不等式强制$w_e=0$，第二对等价于$z_e$在盒内；$b_e=1$时第二对强制$w_e=z_e$，第一对又给盒界。因此整数可行点上的乘积处理没有误差；将$b_e$放松为$[0,1]$时才得到包络松弛。
+
+真正容易遗漏的是界的来源。若某个真实最优解的$z_e$在盒外，求解器即便把MIP gap降到零，也只证明\emph{截断后的模型}已经最优。原文经验盒界的有效性与二值乘积线性化的精确性，是两个独立命题。可以检查的对象应包括：当前候选域、参数$\alpha$、边界处最优变量、界放大后解是否改变，以及能否从模型本身推导一个覆盖全部所需解的界。单次放大后未变化仍是稳健性证据，不是对所有实例的证明。
+
+\paragraph{本文辨析：边数正确且没有孤点为什么仍可能不是树。}
+在$n+1$个节点上选$n$条边，并要求每个节点至少有一条邻边，只排除了孤立单点，没有排除孤立分量。一个反例是5个节点：前三个节点构成三角形，后两个节点之间有一条边。总计4条边，每个节点度数至少为1，但图不连通且存在环。因此，简化模型解出非树并非求解器故障，而是约束本身允许。
+
+原文较大模型通过引入关联矩阵选择和逆矩阵关系排除此类情况。其基本代数是：选$n$条边后的约化关联矩阵$A$可逆，当且仅当选边构成覆盖全节点的树。对根向外且符号一致的定向，$-A^{-1}$可表示为0--1路径矩阵；任意预设边定向则可能产生负号。使用这一编码时，应连同定向约定审查，不能把任意树的任意关联矩阵逆都宣称为二值矩阵。另一种独立的树编码思路是用根到其他节点的虚拟流强制连通，再结合$n$条边；这是本文给出的实现理解，不是对S13算法的转录。
+
+\paragraph{本文辨析：统计模型与全局证书的边界。}
+若实测$V=V_\star+N$，真实关系是$P=G_\star V_\star$，则
+\begin{equation}
+ P-G_\star V=-G_\star N.
+ \label{eq:milp-eiv}
+\end{equation}
+因此右侧误差与以$V$构造的设计矩阵相关，属于自变量也含噪声的情形。把$V$当作确定且无噪声再套普通最小二乘无偏性，缺少依据。S13的代数求解可以仍然成立，但最小二乘目标的统计最优性需要另行建模。重复探测、总最小二乘或显式噪声似然可以研究，不能从MILP这一名称推导出来。
+
+对Topo尤其应区分四层结论：数据在给定模型下足以区分真树；候选域含有真树；所写MILP与预期评分问题等价；求解器已把这个MILP求到所需精度。缺少任一层，都不能称为对真实隐藏拓扑的全局正确性保证。并且S13的$V$包含全部节点行；若只有末端电压，直接删掉隐藏节点的行并沿用$P=GV$会错置方程，应该先建立隐藏变量模型或明确转向边界等效模型。
+
+\paragraph{原文记号核验说明。}
+所核版本的定理1中$V=GI_{\mathcal C}\Delta$与同页模型式(3)--(4)的$G^{-1}$不一致；本文采用与潮流定义一致的$V=G^{-1}I_{\mathcal C}\Delta$。$C$定义中的单位阵按式\eqref{eq:milp-C}作维度一致的表述。这些是模型与维度检查，不构成对原文全部排版的勘误认证。
+
+\subsection{P1：拉普拉斯约束、可辨识性与凸估计的分工}
+\label{subsec:P1}
+
+\paragraph{原文定位。}
+P1\citep{P1}是这条逆变器探测路线的系统性起点：第III-B节证明叶探测加全节点测压的可辨识性；第III-C--D节以凸惩罚和ADMM估计拉普拉斯，再用树投影启发式；还讨论已知候选线路的状态检测。原文明确未证明凸估计及树投影必然恢复真树。探测期间其他电压/频率控制不响应，是其准稳态实验解释的重要条件。
+
+\paragraph{本文推导：拉普拉斯结构为什么比任意回归矩阵更强。}
+令$\Theta=R^{-1}$。正电阻网络应满足
+\begin{equation}
+ \Theta=\Theta^{\mathsf T},\qquad
+ \Theta_{ij}\leq0\;(i\ne j),\qquad
+ \Theta\mathbf1\geq0.
+ \label{eq:p1-signs}
+\end{equation}
+恢复根节点对应的行列后，完整拉普拉斯为
+\begin{equation}
+ \Phi(\Theta)=
+ \begin{bmatrix}
+ \mathbf1^{\mathsf T}\Theta\mathbf1&-\mathbf1^{\mathsf T}\Theta\\
+ -\Theta\mathbf1&\Theta
+ \end{bmatrix}.
+ \label{eq:p1-lift}
+\end{equation}
+非根节点间的连接由$-\Theta_{ij}$表示，而根与节点$i$的连接权重由$(\Theta\mathbf1)_i$表示；只检查非对角元会漏掉根部连接。式\eqref{eq:p1-signs}允许网状或不连通图；再要求$\Theta\succ0$可保证与根连通，但仍允许环。最后还需要完整图恰好$n$条边，才能得到树。
+
+由此可以把估计目标理解为三种力量的平衡：数据拟合项要求$\Theta V\approx P$；稀疏项鼓励较少或较弱连接；$-\log\det\Theta$项排斥奇异边界。类似形式为
+\begin{equation}
+ \min_{\Theta\text{满足}\eqref{eq:p1-signs}}
+ \frac12\|\Theta V-P\|_W^2
+ +\lambda\operatorname{tr}\!\left[\Theta(I+\mathbf1\mathbf1^{\mathsf T})\right]
+ -\mu\log\det\Theta.
+ \label{eq:p1-convex}
+\end{equation}
+迹项等于完整拉普拉斯非对角绝对值之和。它惩罚的是权重总量，不直接数边，因此增大$\lambda$可能同时造成电导收缩偏差。$\mu$则保持连通所需的正定性，两者权衡后仍可能得到多于$n$条边。ADMM收敛至这个凸目标的解，与该解的支撑等于真树，是两个不同的结论。
+
+\paragraph{本文辨析：为什么最小生成树后处理会改变问题。}
+对一个稠密估计图选出树，可保证输出具有树形式，但其依据是估计权重的排序。后处理一般不等于直接求
+$\min_{\Theta\in\text{物理树集合}}\|\Theta V-P\|^2$，因为删边后其他参数应重新拟合，而且全局最优支撑未必由单边排序决定。它是实用的结构投影，不能继承一个尚未建立的统计恢复保证。
+
+\paragraph{与末端隐藏树的联系。}
+P1的价值在于把已知输入主动实验与被动电压统计分开，使不相关负荷之类假设不再作为无噪声辨识的起点。它不能取消观测覆盖限制：全节点电压让同一响应层内的实际节点标签可见，只有末端电压则对应式\eqref{eq:probe-kron}。在Topo中借用P1时，可借其激励设计与物理矩阵约束；不能把末端Kron图的稠密边当作原树的直接边，也不能用“优化问题是凸的”代替隐藏树唯一性分析。
+
+\subsection{P2：非工频电流注入如何产生近似路径证据}
+\label{subsec:P2}
+
+\paragraph{原文事实。}
+Ge等人的P2\citep{P2}以等效电路分流分析和注入/接收矩阵识别上下游关系。其第4节仿真采用220\,Hz、5\,A电流源，实验室采用240\,Hz方波；二者不可混写。实验室部分下游支路为空载。第3节“上游明显、下游不明显”的结论来自线路/电源通路阻抗相对负载较小的近似，非普遍的严格单向传播定律。
+
+\paragraph{本文推导：可检测的方向是阻抗分流结果。}
+在注入频率$\omega$处，将独立电压源的小信号分量置零，注入点看到上游等效导纳$Y_{\rm up}(\omega)$及多个负载/支路导纳$Y_k(\omega)$。注入电流为$I_{\rm inj}$，则
+\begin{equation}
+ V_{\rm inj}=\frac{I_{\rm inj}}{Y_{\rm up}+\sum_kY_k},\qquad
+ I_{\rm up}=\frac{Y_{\rm up}}{Y_{\rm up}+\sum_kY_k}I_{\rm inj},\qquad
+ I_k=\frac{Y_k}{Y_{\rm up}+\sum_kY_k}I_{\rm inj}.
+ \label{eq:p2-current-split}
+\end{equation}
+若$|Y_{\rm up}|$主导，上游获得大部分扰动，下游仅有小分量。若某个负载在该频率有很大导纳，或滤波电容提供低阻抗旁路，扰动就可能明显分流。因而线路是否处在注入点的根路径上，与某个检测器是否超过阈值之间，还隔着频率响应、噪声与阈值设计。
+
+对无额外并联注入、理想节点电流不随电压改变的径向模型，KCL给出更理想化的路径表达：$\Delta i=F\Delta j$，其中$F$为节点注入到支路电流的路径关联矩阵。实际负载若有增量导纳，应改写为$\Delta j=\Delta j_{\rm cmd}-Y_L\Delta v$，路径外电流便可能出现。这个推导解释了原文近似在何种物理条件下成立。
+
+\paragraph{本文推导：检测矩阵首先是祖先矩阵。}
+定义$B_{ij}=1$表示在设备$j$注入时，设备$i$上游支路检测到信号。理想模型中，$B_{ij}=1$表示$i$是$j$的祖先，可以跨越许多条边。只有全部所需节点的祖先关系可靠可见时，才可通过传递约简获得相邻关系：
+\begin{equation}
+ E_{ij}=1
+ \Longleftrightarrow
+ B_{ij}=1,\ i\ne j,
+ \text{且不存在 }k\notin\{i,j\}\text{ 使 }B_{ik}B_{kj}=1.
+ \label{eq:p2-transitive-reduction}
+\end{equation}
+若中间设备未被观测，约简中的一条边就可能对应多段实际线路。未检测到信号也不能单独证明设备在下游：它还可能在旁支、检测失效或该频率衰减过大。
+
+\paragraph{对Topo的可迁移内容。}
+末端电流传感器通常只测自己的入户支路，并不等于在所有中间干线上布置了检测器。即便主动注入，在其他末端未检测到电流，也不能说明两末端的公共路径不存在；电压响应反而可能通过共同根路径明显变化。P2适合产生设备归属或祖先候选约束。只有额外硬件覆盖与分流条件足以验证，才可能转为硬拓扑约束；将它直接当成某对末端为cherry的证据，会跳过必要的中间结构推理。
+
+\subsection{P3：MHz注入、方向控制与时延定位}
+\label{subsec:P3}
+
+\paragraph{原文事实。}
+P3\citep{P3}研究低压架空线，采用5--15\,MHz信号和分布参数模型。原文在注入点一侧加约1\,mH电感抑制该方向信号，再沿馈线移动探测位置；利用到达延时和反射估计距离。验证为修改IEEE 13节点结构的MATLAB仿真，不能称为完成真实复杂台区部署验证。其负载分析将低频等效$R,L$外推至高频，须作为模型假设保留。
+
+\paragraph{本文推导：进入传播区间后，静态共同路径矩阵已不够。}
+单模均匀线的频域电报方程为
+\begin{equation}
+ \frac{\partial V}{\partial x}=-z(\omega)I,\qquad
+ \frac{\partial I}{\partial x}=-y(\omega)V,
+ \qquad
+ \gamma(\omega)=\sqrt{z(\omega)y(\omega)},\quad
+ Z_c(\omega)=\sqrt{\frac{z(\omega)}{y(\omega)}}.
+ \label{eq:p3-telegrapher}
+\end{equation}
+其中$z=R'+j\omega L'$、$y=G'+j\omega C'$为单位长度参数。长度$\ell$产生因子$e^{-\gamma\ell}$，同时改变幅度与相位；分叉、互感、接地及终端阻抗又改变反射和模式转换。多导体系统中的$R',L',C',G'$为矩阵，不能简单逐支路套同一个标量波速。
+
+若$\gamma=\alpha+j\beta$，相速度为$v_p=\omega/\beta$；适当条件下群延时由$\partial(\beta\ell)/\partial\omega$给出。单程到达时差$\tau$对应$\ell\approx v\tau$，同一点测得的往返反射延时对应$\ell\approx v\tau/2$。两种长度公式的差别来自走过的距离不同，而不是经验修正。
+
+\paragraph{本文辨析：单频相位不能独自给出绝对距离。}
+若只测稳态相位，观测的是$\phi=-\beta\ell\pmod{2\pi}$。于是$\ell$与$\ell+k\lambda$可以有相同相位。要分辨整数周歧义，需要启动瞬态、时间同步、多频信息或已知长度范围。看到若干周期延迟时，还必须解释如何识别首波，以及反射是否会污染峰值定位。因此，原文的粗长度估计是特定仿真波形和波速假设下的结果，不宜改写成任意未知电缆均可直接按周期数测距。
+
+电感的理想阻抗是$j\omega L$。$L=1$\,mH、$f=5$\,MHz时，其幅值约为$31.4$\,k$\Omega$，这解释了理想模型中的阻断作用。但方向性由外加元件及其安装位置创造，不能推导为原网络天然只向一个方向传播。实际元件的寄生电容和自谐振、负载输入滤波器的高频端口特性，均应由测量或经过验证的模型确定。
+
+\paragraph{对Topo的边界与启发。}
+MHz反射可以提供静态末端电压没有的时延信息，有机会区分某些具有相同低频等效电阻的线路模型；这是一条值得实验验证的补充观测路线。然而，它要求新的频率相关前向模型和耦合硬件。合理的联合问题应使用$H_{ij}(\omega;T,\theta)$拟合传播数据，再与静态$R_{\mathcal O\mathcal O}$约束同一拓扑$T$；不能把MHz幅相样本直接喂入准静态$R/X$树距离公式。能否消除二度节点歧义还取决于节点是否造成可观察的阻抗不连续，平滑均匀线的任意人为分段仍未必可辨。
+
+\subsection{P4：FSR缺失补全中的逻辑推断与方向猜测}
+\label{subsec:P4}
+
+\paragraph{版本与原文事实。}
+P4为Duan等人2024年Energies论文\citep{P4}，本次已取得出版社15页终版，并核对第8页原始排版。该文对设备特征信号记录（FSR）作垂直和水平补全，再由集合包含关系组织拓扑。终版第3.5节明确承认水平补全的上下游方向可能不确定，提出标记待分析及按记录数判断的处理。现场例子中仍有收发或通信信息不足而无法定位的设备。
+
+\paragraph{本文建模：把FSR写成后代集合，能直接看出约束。}
+设每个装有设备的节点有唯一标识，$X_i$记录设备$i$收到的标识，并补入$i$自身。理想情况下
+\begin{equation}
+ X_i=\{j:j\text{是设备}i\text{的可见后代，包括自身}\}.
+ \label{eq:p4-descendant-set}
+\end{equation}
+树中两个真实后代集合要么不交，要么一个包含另一个，即构成层状集合族。若已可靠观测到$j\in X_i$，则$j$位于$i$下游，可把$j$已知的后代补入$i$：
+\begin{equation}
+ X_i\leftarrow X_i\cup\!\bigcup_{j\in X_i}X_j.
+ \label{eq:p4-closure}
+\end{equation}
+反复执行直到不再增加元素，是一种传递闭包。其逻辑有效性要求原有正记录没有误报、拓扑在采样窗口内不变，并且传感器记录确实服从根路径可见性。若最初有一条错误的正记录，闭包可能把错误传播到更多节点；因此它对漏报与误报的表现并不对称。
+
+\paragraph{本文反例：相交不包含不能唯一确定方向。}
+假设记录为$X_a=\{a,c\}$、$X_b=\{b,c\}$。共同看到$c$说明$a,b$可能在通向$c$的同一根路径上，但数据同时兼容$a\to b\to c$和$b\to a\to c$：前一种情况下$a$漏掉$b$，后一种情况下$b$漏掉$a$。把两集合的并集分配给任一方，都是选择一个方向，而不是从当前记录唯一推出方向。
+
+记录数量也不能保证方向。假设真实链上$a$在$b$上游，而$a$由于严重漏报只剩两个标识，$b$却完整记录五个标识，则按较大集合为上游会得到反向结果。正确的逻辑是：\emph{真实完整后代集}在上游不小于下游；该性质不能直接移植到具有不同漏报率的观测集合。若有额外历史拓扑、可靠设备安装层级或一次定向探测，可以解除歧义；这些是额外信息，不是补全算子凭空创造的信息。
+
+\paragraph{本文建议的可审查表示。}
+对于二值记录$B_{ij}=\mathbb I\{j\in X_i\}$，最好区分可靠正记录、可靠负记录和未知。只在正记录可靠且物理模型成立时，传递关系
+\begin{equation}
+ B_{ij}=1,\ B_{jk}=1\quad\Longrightarrow\quad B_{ik}=1
+ \label{eq:p4-transitivity}
+\end{equation}
+才是可用于硬补全的规则。“没有收到”若可能源于丢包，应标未知，而不是$B_{ij}=0$。补全结果若出现双向祖先关系或不符合树层状性，也应作为冲突诊断保留，不能只靠排序消除表面矛盾。
+
+\paragraph{对Topo的联系。}
+FSR最自然提供的是终端集合归属：某个检测设备覆盖哪些末端。它可映射成候选子树支持或祖先偏序，与末端电气距离联合判别。即使一个检测器稳定看到末端$i,j$，也只说明两者位于它的下游范围，未证明该范围内只有这两个末端，更未证明中间不存在其他分叉。若记录缺失尚未排除，适合作为候选约束；只有完成覆盖及方向验证后，才能升级为固定结构先验。P4的工程贡献在于让缺失记录可被系统处理，但补全后的完整表格不等于结构已经被唯一识别。
+
+\subsection{P5：脉冲压缩获取动态端口模型}
+\label{subsec:P5}
+
+\paragraph{原文事实。}
+Piaquadio等人的P5\citep{P5}在馈线入口注入伪随机二值电压，相关处理入口电流，再拟合低阶等效电路。IEEE 13节点相A仿真使用阶数10、位宽100\,$\mu$s、幅值50\,V的序列，周期0.1023\,s，另加60\,Hz陷波。所识别的是二阶端口模型；原文明确说明拟合参数$R_1$为负，等效电路不是内部实际物理电路。故不能把其结果作为馈线逐边拓扑恢复的实证。
+
+\paragraph{本文推导：相关处理为何像施加了一次脉冲。}
+在某个运行点附近，先假设输入输出关系在实验窗口内近似线性时不变：
+\begin{equation}
+ y=h*(u_0+p)+n.
+ \label{eq:p5-lti}
+\end{equation}
+若已知编码$p$具有尖锐的自相关，选择归一化参考$s$使$p\star s$近似周期性脉冲列，则
+\begin{equation}
+ y\star s=h*(p\star s)+(h*u_0)\star s+n\star s
+ \approx\sum_{k\in\mathbb Z}h(t-kT_p)+\varepsilon(t).
+ \label{eq:p5-correlation}
+\end{equation}
+这里$*$为卷积、$\star$为互相关。与理想单脉冲相比，编码把能量分布到较长时间；处理时再利用已知编码相干累积，而与编码不相关的扰动不会同样累积。这解释了幅值、记录长度和精度之间的权衡，并不表示探测能量可以无条件趋零。
+
+式\eqref{eq:p5-correlation}右侧是\emph{周期化}的脉冲响应。若$h(t)$在$T_p$后仍明显不为零，不同周期会重叠，估计就有混叠。位宽又限制有效时间分辨率和可激励带宽；增大序列阶数能延长周期，却也增加跟踪时延。在快速变拓扑场景中，还必须检查整个窗口内是否存在同一个近似$h$。
+
+\paragraph{本文推导：Hankel秩识别的是动态阶数。}
+采样得到Markov参数$h_1,h_2,\ldots$，构造
+\begin{equation}
+ \mathcal H_0=(h_{i+j-1})_{i,j=1}^{q},\qquad
+ \mathcal H_1=(h_{i+j})_{i,j=1}^{q}.
+ \label{eq:p5-hankel}
+\end{equation}
+在理想最小实现条件下，Hankel秩等于输入输出可控且可观测动态部分的阶数；对$\mathcal H_0=U\Sigma V^{\mathsf T}$取显著奇异值，可构造
+\begin{equation}
+ A_r=\Sigma_r^{-1/2}U_r^{\mathsf T}\mathcal H_1V_r\Sigma_r^{-1/2}.
+ \label{eq:p5-era}
+\end{equation}
+保留几阶反映该端口需要多少个动态状态来逼近，不等于馈线有多少个节点或支路。截断弱奇异值还会丢掉该输入输出方向中较弱的模式，即使这些模式对应真实设备。
+
+\paragraph{本文辨析：同一个端口函数有很多内部实现。}
+单端口观测最多直接约束$Y_{\rm in}(s)=I(s)/V(s)$。仅在纯电阻情形，一个电阻$r$与两个串联电阻$r/2,r/2$已经具有相同端口阻抗，内部节点数却不同。加入电感、电容和有源控制后，实现非唯一性更强。即使指定一种二阶电路形式并唯一解出其参数，也只是\emph{在该等效结构内}参数唯一，不是实际馈线树唯一。
+
+\paragraph{对Topo的启发。}
+P5适合用于端口变化监测、短窗口信号提取或主动实验波形设计。若希望支持内部拓扑学习，应增加多端口注入与多点测量，拟合矩阵传递函数，并给出拓扑到传递函数的可辨识性条件。其短时动态辨识优势不能直接移植成末端隐藏树恢复保证；现阶段更稳妥的联合用途是检测“当前电气模型发生变化”，再触发具有足够空间覆盖的拓扑辨识实验。
+
+\subsection{把七篇文献连起来：可以迁移的机制与不能省略的证据}
+
+这组文献可以组成一条清楚的研究链：P1建立主动输入与拉普拉斯估计问题，S12把共同路径结构转化为可解释的图算法，S13研究候选结构的全局组合搜索；P2和P4提供设备路径与集合信息；P3与P5则扩展到频率相关或时域动态观测。每条路线增加的观测都有自己的前向模型，不能仅因为都叫“注入”就互换。
+
+对末端隐藏树问题，一个可审查的联合形式是
+\begin{equation}
+ \begin{aligned}
+ \mathcal T_{\rm compatible}=\{T:\ &\exists\theta_T,\ 
+   \|\widehat R_{\mathcal O\mathcal O}-R_{\mathcal O\mathcal O}(T,\theta_T)\|
+       \leq\varepsilon_R,\\
+ &T\text{满足已验证的祖先/集合记录},\\
+ &\|\widehat H(\omega)-H(\omega;T,\theta_T)\|
+       \leq\varepsilon_H\text{（若有动态数据）}\}.
+ \end{aligned}
+ \label{eq:probing-compatible-set}
+\end{equation}
+这是本文提出的理解框架，不是声称已有某篇文献证明了这个联合问题。它保留三点：每种数据只约束其能够看到的部分；电阻、电抗、高频负载及传播参数都应置于相应模型内；如果多个拓扑同样兼容，就应报告等价类或未决局部结构。候选池搜索、重复采样、数值残差和求解器gap分别帮助处理不同层次的问题，只有把这些层次连接起来，才能形成可信的拓扑结论。

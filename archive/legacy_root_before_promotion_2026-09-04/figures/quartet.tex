@@ -1,0 +1,18 @@
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  leaf/.style={circle,draw,fill=blue!14,minimum size=7mm},
+  hid/.style={circle,draw,fill=white,minimum size=6mm}
+]
+\node[hid] (u) at (0,0) {};
+\node[hid] (v) at (2.2,0) {};
+\node[leaf] (a) at (-1.1,0.9) {$a$};
+\node[leaf] (b) at (-1.1,-0.9) {$b$};
+\node[leaf] (c) at (3.3,0.9) {$c$};
+\node[leaf] (d) at (3.3,-0.9) {$d$};
+\draw[thick] (a)--node[above left] {$\alpha$} (u);
+\draw[thick] (b)--node[below left] {$\beta$} (u);
+\draw[very thick] (u)--node[above] {$x$} (v);
+\draw[thick] (v)--node[above right] {$\gamma$} (c);
+\draw[thick] (v)--node[below right] {$\delta$} (d);
+\node at (1.1,-0.65) {$ab|cd$};
+\end{tikzpicture}

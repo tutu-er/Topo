@@ -1,0 +1,137 @@
+\section{从交流量测到阻抗距离}
+
+\subsection{根节点参考的电压幅值平方模型}
+
+令负荷消耗取正号。对末端节点电压幅值平方写成
+\begin{equation}
+  y_i(t)=v_0^2(t)-v_i^2(t).
+  \label{eq:drop-target}
+\end{equation}
+在径向 LinDistFlow 一阶近似下，
+\begin{equation}
+  y(t)\approx R p(t)+X q(t)+b_s+e(t),
+  \label{eq:linear-drop}
+\end{equation}
+其中 $s$ 表示运行场景，$b_s$ 是每个场景的固定截距，$e(t)$ 同时包含量测噪声、
+交流潮流高阶项、支路损耗、相不平衡和未建模设备。
+
+对终端 $i,j$，理想 reduced sensitivity 的元素等于根到两节点公共路径上的阻抗和：
+\begin{equation}
+  R_{ij}=2\sum_{e\in \operatorname{path}(s,i)\cap
+  \operatorname{path}(s,j)}r_e,
+  \quad
+  X_{ij}=2\sum_{e\in \operatorname{path}(s,i)\cap
+  \operatorname{path}(s,j)}x_e,
+\end{equation}
+其中因子 $2$ 对应电压平方模型；若使用电压幅值模型则不含该因子。
+
+\subsection{多场景物理约束估计}
+
+将多个场景按行堆叠，并为每个场景加入独立截距。代码首先解
+\begin{equation}
+  \min_{A,B,\{b_s\}}
+  \sum_s\left\|Y_s-P_sA^\top-Q_sB^\top
+  -\boldsymbol{1}b_s^\top\right\|_F^2
+  +\alpha(\|A\|_F^2+\|B\|_F^2).
+  \label{eq:multiscenario-regression}
+\end{equation}
+当 $\alpha=0$ 时直接用 SVD 最小二乘求解，不再显式形成
+$X^\top X$；当 $\alpha>0$ 时用增广设计矩阵实现 Ridge。初始估计先对称化为
+\begin{equation}
+  \Rhat=\left[\frac{A+A^\top}{2}\right]_+,
+  \qquad
+  \Xhat=\left[\frac{B+B^\top}{2}\right]_+.
+  \label{eq:projected-rx}
+\end{equation}
+对径向树还可写成
+\[
+R=2A_r^{-1}\operatorname{diag}(r)A_r^{-\top},
+\]
+故 $R/2$ 是 grounded Laplacian 的逆；只保留末端后的 $R_{LL}^{-1}$
+是 Kron-reduced grounded Laplacian。由此得到
+\begin{equation}
+R=R^\top,\quad R\ge0,\quad R\succeq0,\quad
+R_{ii}-R_{ij}\ge\epsilon,\quad R_{jj}-R_{ij}\ge\epsilon,
+\label{eq:matrix-constraints}
+\end{equation}
+$X$ 同理。最后两个不等式正是 Pengwah 等式 (10)--(11) 使用的
+shared-path 上界\cite{pengwah2024}。
+
+代码现提供三级约束：
+\begin{itemize}
+  \item \texttt{basic}：对称、元素非负；
+  \item \texttt{ordered}（默认）：再施加式\eqref{eq:matrix-constraints}的对角上界；
+  \item \texttt{tree\_covariance}：进一步做半正定特征值投影。
+\end{itemize}
+初始可行投影后，代码用带回溯的 projected gradient 继续最小化原多场景目标，
+每一步重新计算最优场景截距。这样比一次 Frobenius 投影更接近带约束最小二乘。
+同时报告 $R^{-1}/X^{-1}$ 的 M-matrix 违例和距离四点条件残差。完整推导与消融见
+\texttt{docs/sensitivity\_matrix\_constraints.md}。
+固定 16 条件消融的汇总如下：
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+约束模式 & basic & ordered & tree covariance \\
+\midrule
+平均 clade F1 & 0.8974 & 0.8630 & 0.8689 \\
+平均四点违例 & 0.1396 & 0.1230 & 0.1035 \\
+\bottomrule
+\end{tabular}
+\end{center}
+因此硬约束显著改善矩阵可行性，
+但在交流--线性模型误差较大时不保证提高拓扑 F1；论文结果必须同时报告两类指标。
+进一步的 96 组有噪声 AC 数据条件包含 4 个算例、48/96/288 点、1/3/5/10 个场景和
+2 个独立重复，共得到 288 次矩阵拟合与 2592 次 RNJ 重构。正常工况在评分前定义为
+场景数不少于 3；单场景作为压力测试单独报告，不依据输出 F1 事后删样本。在固定混合
+距离和容差因子 0.16 下，basic、ordered、tree covariance 的正常工况平均 clade F1
+分别为 $0.9681,0.9681,0.9638$，完全恢复率分别为 $69.4\%,72.2\%,68.1\%$。
+288 点且不少于 3 个场景时，三种约束平均 F1 均为 $0.9972$，完全恢复率均为
+$95.8\%$；单场景压力测试不纳入上述正常指标。
+
+同条件文献方法比较统一使用相同有噪声 AC 数据、根节点量测、预处理和 terminal-split
+F1。72 个正常数据条件下，Flynn root-corrected proxy、本文 ordered RNJ、PSD RNJ
+的平均 split F1 分别为 $0.9672,0.9661,0.9621$，完全恢复率分别为
+$69.4\%,72.2\%,68.1\%$。Pengwah ordered-RG proxy 与 Park/Deka RG baseline
+分别为 $0.6554$ 和 $0.6541$。其中 proxy 明确表示未声称复现论文缺失的整数
+Prüfer 或完整迭代图学习细节；受控 NJ/RG/RNJ 行用于隔离重构算法差异。
+
+默认时间预处理为逐日去均值：
+\[
+\widetilde z_s(t)=z_s(t)-\frac{1}{T_s}\sum_{\tau=1}^{T_s}z_s(\tau),
+\]
+以去除场景固定水平并保留日内共同激励。当前固定跨算例主线仅使用该预处理，
+不再生成频域候选，也不使用真值选择滤波窗口。
+
+\subsection{加性距离}
+
+由 $\Rhat,\Xhat$ 构造
+\begin{align}
+  d^R_{ij}&=\widehat R_{ii}+\widehat R_{jj}-2\widehat R_{ij},\\
+  d^X_{ij}&=\widehat X_{ii}+\widehat X_{jj}-2\widehat X_{ij}.
+  \label{eq:distance}
+\end{align}
+在精确树模型下，$d^R_{ij}$ 等于 $i$ 到 $j$ 路径的电阻和，$d^X_{ij}$
+等于电抗和。为避免 $R/X$ 绝对尺度支配组合距离，代码先以各距离矩阵正元素均值归一化：
+\[
+\bar d^R=\frac{d^R}{\operatorname{mean}(d^R_{ij}>0)},\qquad
+\bar d^X=\frac{d^X}{\operatorname{mean}(d^X_{ij}>0)},
+\]
+再使用当前跨算例固定组合
+\begin{equation}
+  d=0.75\bar d^R+0.25\bar d^X.
+  \label{eq:mixed-distance}
+\end{equation}
+该 $75/25$ 比例来自当前合成 case bank 的稳健性比较，不是普适物理常数。
+
+对 RNJ 而言，无需先构造式~\eqref{eq:distance} 再把距离还原为公共路径量。
+定义 $s_R,s_X$ 为 $d^R,d^X$ 的正元素均值，则当前实现直接使用
+\begin{equation}
+  S_{ij}=0.75\frac{\widehat R_{ij}}{s_R}
+  +0.25\frac{\widehat X_{ij}}{s_X},
+  \qquad H_i=S_{ii}.
+  \label{eq:direct-shared-score}
+\end{equation}
+这里 $S_{ij}$ 就是根到 $\operatorname{LCA}(i,j)$ 的估计公共路径深度。
+混合距离仍作为加性距离诊断和 NJ/RG 等方法的输入保留，但 RNJ 不再执行
+``$R/X\to d\to\rho\to R/X$'' 的代数往返。

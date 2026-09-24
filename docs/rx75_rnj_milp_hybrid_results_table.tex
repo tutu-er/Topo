@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\caption{3 场景 $\times$ 96 点含噪 AC 数据上的 RX75--RNJ 与有限候选域 $L_1$--MILP}
+\label{tab:rx75-rnj-milp-hybrid}
+\scriptsize
+\begin{tabular}{lrrrrrr}
+\toprule
+算例 & 完整 RNJ F1 & 仅 top-2 F1 & 约化 $n$ & 候选数 & 联合 F1 & MILP/s \\
+\midrule
+\texttt{paper15}    & 1.0000 & 0.5000 & 11 & 4 & 1.0000 & 94.92 \\
+\texttt{soumalas11} & 1.0000 & 0.6667 &  7 & 2 & 1.0000 &  3.57 \\
+\texttt{flynn16}    & 1.0000 & 0.5000 & 11 & 4 & 1.0000 & 47.46 \\
+\texttt{pengwah18}  & 0.9333 & 0.4444 & 14 & 6 & 1.0000 & 142.82 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize 联合结果的 precision 与 recall 也均为 1；MILP 时间不含 RNJ/bootstrap。
+\end{table}

@@ -1,0 +1,145 @@
+\chapter{图拉普拉斯、关联矩阵与导纳矩阵}
+\label{chap:laplacian}
+
+\section*{本章目标}
+本章介绍 incidence matrix、graph Laplacian、admittance matrix sparsity、reduced Laplacian、effective resistance 与 Kron reduction。这些对象把图论结构、网络方程和拓扑辨识联系起来，并与\cref{chap:impedance_distance}中的阻抗距离互相补充。
+
+\section{关联矩阵}
+
+给无向图 $G=(V,E)$ 任意指定边方向。节点-边关联矩阵 $B\in\R^{|V|\times |E|}$ 定义为
+\begin{equation}
+  B_{ve}=
+  \begin{cases}
+    1, & \text{若 }v\text{ 是边 }e\text{ 的尾端},\\
+    -1,& \text{若 }v\text{ 是边 }e\text{ 的头端},\\
+    0, & \text{否则}.
+  \end{cases}
+\end{equation}
+方向只是代数约定，不改变无向图本身。
+
+\begin{proposition}[树的关联矩阵秩]
+\label{prop:incidence_rank}
+若 $G$ 有 $n$ 个节点且连通，则 $\operatorname{rank}(B)=n-1$。特别地，若 $G$ 是树，则删去任意一行后的 reduced incidence matrix 为可逆方阵。
+\end{proposition}
+
+\begin{proof}
+对任意边列，元素和为零，故 $\mathbf{1}^\top B=0$，秩至多为 $n-1$。若 $G$ 连通且 $B^\top x=0$，则对任意边 $(u,v)$ 有 $x_u=x_v$。连通性推出所有 $x_v$ 相等，故 $\operatorname{null}(B^\top)=\operatorname{span}\{\mathbf{1}\}$，从而 $\operatorname{rank}(B)=n-1$。树有 $n-1$ 条边，删去任意一行后得到 $(n-1)\times(n-1)$ 矩阵，秩为 $n-1$，所以可逆。
+\end{proof}
+
+\section{图拉普拉斯}
+
+给边权 $g_e>0$，令 $W=\operatorname{diag}(g_e)$。加权图拉普拉斯定义为
+\begin{equation}
+  L=BWB^\top .
+  \label{eq:laplacian_bwb}
+\end{equation}
+其元素满足
+\begin{equation}
+  L_{ij}=
+  \begin{cases}
+    \sum_{k:(i,k)\in E}g_{ik}, & i=j,\\
+    -g_{ij}, & (i,j)\in E,\\
+    0, & i\ne j,\ (i,j)\notin E.
+  \end{cases}
+\end{equation}
+因此 $L$ 的非零非对角元直接反映图的稀疏邻接关系。
+
+\begin{lemma}[拉普拉斯二次型]
+\label{lem:laplacian_quadratic}
+对任意 $x\in\R^{|V|}$，
+\begin{equation}
+  x^\top Lx=\sum_{(i,j)\in E}g_{ij}(x_i-x_j)^2.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+由 $L=BWB^\top$ 得 $x^\top Lx=(B^\top x)^\top W(B^\top x)$。边 $e=(i,j)$ 对应的 $(B^\top x)_e$ 等于 $x_i-x_j$ 或其相反数，平方后方向无关。
+\end{proof}
+
+\section{导纳矩阵稀疏性}
+
+在配电网稳态电路模型中，节点导纳矩阵 $Y$ 的非对角元满足
+\begin{equation}
+  Y_{ij}=
+  \begin{cases}
+    -y_{ij},& (i,j)\in E,\\
+    0,& (i,j)\notin E,
+  \end{cases}
+\end{equation}
+对角元包含与节点相连的线路导纳和接地支路导纳。若忽略 shunt 或把其单独建模，$Y$ 与复权拉普拉斯非常接近。拓扑辨识可以看成恢复 $Y$ 的稀疏模式：
+\begin{equation}
+  (i,j)\in E \quad \Longleftrightarrow \quad Y_{ij}\ne 0,\quad i\ne j .
+\end{equation}
+
+这与\cref{chap:estimation}中的 $R,X$ 不同：$R,X$ 是路径公共阻抗矩阵，通常稠密；$Y$ 或拉普拉斯是边局部矩阵，通常稀疏。
+
+\section{Reduced Laplacian}
+
+配电网常把根节点 $0$ 作为参考电压。删除 $L$ 中根节点对应的行列，得到 reduced Laplacian $L_{\rm red}$。若图连通，则 $L_{\rm red}$ 正定。
+
+\begin{proposition}[reduced Laplacian 正定]
+\label{prop:reduced_laplacian_pd}
+若 $G$ 连通且边权 $g_e>0$，则删除任意一个节点后的 $L_{\rm red}$ 是正定矩阵。
+\end{proposition}
+
+\begin{proof}
+任取非零 $z\in\R^{n-1}$，把它补上被删除节点的值 $0$ 得到 $x\in\R^n$。若 $z\ne 0$，则 $x$ 不是常数向量。由连通性，存在边 $(i,j)$ 使 $x_i\ne x_j$。由\cref{lem:laplacian_quadratic}，$x^\top Lx>0$。而 $x^\top Lx=z^\top L_{\rm red}z$，故 $L_{\rm red}$ 正定。
+\end{proof}
+
+\section{Effective resistance}
+
+电阻网络中的 effective resistance 定义为
+\begin{equation}
+  R^{\rm eff}_{ij}=(e_i-e_j)^\top L^+(e_i-e_j),
+  \label{eq:effective_resistance}
+\end{equation}
+其中 $L^+$ 是 Moore--Penrose 伪逆。对一般网状图，有效电阻综合了所有并联路径；对树，它退化为唯一路径上的电阻和。
+
+\begin{proposition}[树上的有效电阻等于路径电阻]
+\label{prop:effective_tree_path}
+若 $G$ 是一棵电阻树，边电导为 $g_e=1/r_e$，则任意 $i,j$ 的有效电阻等于 $i$ 到 $j$ 的路径电阻和。
+\end{proposition}
+
+\begin{proof}
+在树中，从 $i$ 向 $j$ 注入单位电流时，电流只能沿唯一路径 $\pathset_{ij}$ 流动，路径外边电流为零。路径上每条边电压降为 $1\cdot r_e$，总电压差为 $\sum_{e\in\pathset_{ij}}r_e$。有效电阻定义为单位电流下的端电压差，故结论成立。
+\end{proof}
+
+\section{Kron reduction}
+
+若内部节点 $H$ 未观测，观测节点为 $L$，可把导纳矩阵按节点分块：
+\begin{equation}
+  Y=
+  \begin{bmatrix}
+    Y_{LL} & Y_{LH}\\
+    Y_{HL} & Y_{HH}
+  \end{bmatrix}.
+\end{equation}
+消去隐藏节点电压得到 Kron reduced matrix
+\begin{equation}
+  Y^{\rm kron}=Y_{LL}-Y_{LH}Y_{HH}^{-1}Y_{HL}.
+  \label{eq:kron_reduction}
+\end{equation}
+Kron reduction 保留观测节点的端口行为，但通常会使图变稠密：原来通过隐藏节点相连的多个叶节点会形成等效完全子图。这解释了为什么只看观测节点导纳或相似度时，不能简单把非零项解释为原始电气边。
+
+\section{与拓扑辨识的关系}
+
+本章对象在拓扑辨识中的作用可概括如下。
+\begin{enumerate}[label=(\arabic*)]
+  \item 关联矩阵描述边-节点约束，是潮流方程和径向约束的基础。
+  \item 拉普拉斯和导纳矩阵的稀疏模式对应电气边，可用于参数估计。
+  \item reduced Laplacian 给出参考节点下的可逆网络方程。
+  \item effective resistance 在树上等于路径距离，可连接到 MST 与 four-point condition。
+  \item Kron reduction 说明隐藏节点消去后会产生稠密等效耦合，提醒我们不要把观测端口图误认为原始拓扑。
+\end{enumerate}
+
+\section{本章小结}
+
+关联矩阵、拉普拉斯和导纳矩阵提供了从图结构到电路方程的代数桥梁。拉普拉斯二次型刻画边差分能量，导纳矩阵稀疏性刻画直接电气邻接，effective resistance 在树上给出路径距离，Kron reduction 则解释了隐藏节点导致的端口等效稠密化。这些工具为物理约束拓扑辨识提供了严谨线性代数基础。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 为什么 $R,X$ 灵敏度矩阵通常稠密，而导纳矩阵通常稀疏？
+  \item 对三节点链 $0$--$1$--$2$，写出关联矩阵和拉普拉斯矩阵。
+  \item Kron reduction 后的非零边是否代表真实线路？结合隐藏星形网络说明。
+  \item 在含环网络中，有效电阻为什么不再等于某条单一路径的电阻和？
+\end{enumerate}

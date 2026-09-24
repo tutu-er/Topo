@@ -1,0 +1,707 @@
+992                                                                                    IEEE TRANSACTIONS ON POWER DELIVERY, VOL. 39, NO. 2, APRIL 2024
+
+
+
+
+      Topology Identification of Distribution Networks
+            With Partial Smart Meter Coverage
+            Abu Bakr Pengwah , Yasin Zabihinia Gerdroodbari , Reza Razzaghi , Senior Member, IEEE,
+                              and Lachlan L. H. Andrew , Senior Member, IEEE
+
+
+   Abstract—This paper presents a novel measurement-based ap-                       With the advent of advanced metering infrastructure (AMI)
+proach for estimating the topology of low-voltage (LV) distribution              consisting of smart meters that provide voltage, active and
+networks containing different types of customer meters. The first                reactive power measurements every few minutes, measurement
+type is smart meters that measure the voltage, and active and
+reactive power of customers with higher time resolution while the                based-approaches have been relying on all customers having
+second type is energy meters (referred to as interval meters) that               AMI devices installed at their premises (e.g., [7]). However,
+measure the net energy consumed by the customers at a lower                      many low-voltage networks have not yet achieved a 100% rollout
+time resolution. First, an optimization problem is proposed to                   of AMI devices, specifically smart meters. For example, only
+estimate the network impedance models of distribution systems. A                 50% of households had smart meters installed in the US by
+two-step topology estimation framework is then presented that first
+estimates the topology corresponding to the customers with smart                 2016 [8]. To this day, conventional metering devices such as
+meters and subsequently, identifies the location of the interval                 interval meters that only provide energy (kWh) measurements
+meters on the estimated topology. The performance of the proposed                with lower resolutions of 30 minutes and accumulation meters
+algorithms is evaluated on multiple randomly generated networks                  which are manually read once a month by a meter reader, are still
+with different numbers of customers, and the IEEE European LV                    present in distribution networks [9]. This paper proposes a novel
+Test Feeder.
+                                                                                 method for estimating the topology of networks comprising
+   Index Terms—Power distribution networks, smart meter,                         customers with both interval and smart meters and evaluates the
+topology identification.                                                         impact of accumulation meters on the accuracy of the proposed
+                                                                                 method.
+                          I. INTRODUCTION
+      OW voltage distribution networks form the last mile of
+L     power networks, which are usually radial in structure
+with multiple branching points feeding multiple customers [1].
+                                                                                 A. Prior Art
+                                                                                    Several techniques have been proposed to estimate the topol-
+                                                                                 ogy of distribution networks. Prior to AMI devices, the tradi-
+Knowledge of the distribution network model, including both
+                                                                                 tional approach uses the status of switches in distribution net-
+network topology and associated line parameters, is of great
+                                                                                 works to infer the network topology [10], [11]. While switches
+importance to distribution network service providers (DNSPs).
+                                                                                 can provide information regarding the real-time topology, being
+These network models underpin various applications notably
+                                                                                 limited in numbers, they don’t provide full coverage of the
+state estimation [2], voltage control [3], and fault detection [4].
+                                                                                 network. With smart meters now penetrating distribution net-
+Nonetheless, the full network model of distribution networks is
+                                                                                 works, data analytic approaches estimating network topologies
+rarely accessible to DNSPs due to the partial monitoring of these
+                                                                                 have gained attention. One category of these approaches relies
+networks and lack of accurate records [5]. This has motivated
+                                                                                 on the correlation between measured voltages [12], [13], [14].
+a significant body of research related to distribution network
+                                                                                 Customers closer to each other will exhibit higher levels of
+topology estimation using measurements [6].
+                                                                                 voltage correlations compared to those separated by a larger
+                                                                                 electrical distance. This has been the basis of the nodal corre-
+   Manuscript received 20 June 2023; revised 9 October 2023; accepted 26         lation, principle component analysis, and the Markov random
+December 2023. Date of publication 16 January 2024; date of current version
+26 March 2024. This work was supported in part by the Australian Research        field approaches presented in [12], [13], and [14], respectively.
+Council (ARC) Discovery Early Career Researcher Award (DECRA) under              The main drawback of these methods is that they do not provide
+Grant DE230100056, and in part by ARC under Grant DP190102134. Paper             any detail on either the line parameters or on the location of
+no. TPWRD-00841-2023. (Corresponding author: Reza Razzaghi.)
+   Abu Bakr Pengwah, Yasin Zabihinia Gerdroodbari, and Reza Razzaghi             unmonitored branching points, e.g. poles, (henceforth referred
+are with the Electrical and Computer Systems Engineering, Monash Univer-         to as internal nodes) of the distribution networks.
+sity, Clayton, VIC 3800, Australia (e-mail: muhammad.pengwah@monash.edu;            This limitation has been overcome through data-driven ap-
+yasin.zabihiniagerdroodbari@monash.edu; reza.razzaghi@monash.edu).
+   Lachlan L. H. Andrew is with the Computing and Information Systems,           proaches that estimate the location of unmonitored poles and
+The University of Melbourne, Melbourne, VIC 3010, Australia (e-mail: lach-       associated line parameters of distribution networks from smart
+lan.andrew@unimelb.edu.au).                                                      meter measurements of customers in recent studies, includ-
+   Color versions of one or more figures in this article are available at
+https://doi.org/10.1109/TPWRD.2024.3354292.                                      ing [15], [16], [17], [18]. In [15], a Prüfer decoding algorithm is
+   Digital Object Identifier 10.1109/TPWRD.2024.3354292                          presented in which the location of unmonitored poles and line
+                        0885-8977 © 2024 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                      See https://www.ieee.org/publications/rights/index.html for more information.
+
+
+          Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+PENGWAH et al.: TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS WITH PARTIAL SMART METER COVERAGE                                                    993
+
+
+
+impedance of estimated segments are determined. The major
+downside of this approach is its requirement for all segments
+to have equal line impedance values, which does not happen
+in practice. To overcome this limitation, a recursive grouping
+(RG) algorithm is used in [16], [17], [18], [19]. These works
+rely on the estimation of voltage sensitivity coefficients from
+smart meter measurements [16], [17], [18] or phasor measure-
+ment units (PMUs) [19], following which their variations of
+the RG algorithm estimate the location of unmonitored poles
+and all branches, with their associated line impedance values.
+While these techniques can estimate the full network model
+of distribution networks, they require the AMI devices to be
+                                                                                Fig. 1. Distribution network model with unmonitored poles, U and customers
+installed at all customers’ premises, which is a barrier to being               comprising both smart meters and interval meters (S, I) ∈ C.
+adopted in many low-voltage networks.
+   Recent research has focused on estimating the topology of
+distribution networks with partial measurements in the form of
+                                                                                is evaluated on multiple randomly generated topologies of sizes
+individual missing measurements from smart meters. In [20],
+                                                                                ranging from 10 nodes (customers plus internal nodes) to 50
+pseudo-measurements from historical data are used to compen-
+                                                                                nodes and is extended to the IEEE LV European Test Feeder
+sate for the missing measurements. In [21], a neural network
+                                                                                and presented in Section IV. Finally, Section V concludes the
+framework that estimates the network topology with 50% of
+                                                                                paper.
+nodal voltage measurements missing, is presented. While these
+techniques work for some missing measurements at particular
+                                                                                              II. NETWORK IMPEDANCE ESTIMATION
+times, they fail to address the impact of missing the measure-
+ments across the whole sampled period. This is reflective of                       This section presents a method for estimating a network
+interval meters which provide neither voltage nor reactive power                impedance model of the distribution power system using both
+measurements.                                                                   smart meters and interval meters. First, the modeling preliminar-
+                                                                                ies of distribution networks are summarized and then the method
+B. Contributions of Paper                                                       for estimating the network impedance model is presented.
+  Compared to the aforementioned papers requiring 100% roll-
+                                                                                A. LV Distribution Model
+out of smart meters, this paper proposes a new method for
+topology estimation of LV networks comprising a mixture of                         Low voltage distribution networks mostly have radial tree
+both smart meters and interval meters. In this paper, a district                structures consisting of a low voltage transformer, distribution
+with a mix of smart meters and interval meters, such as when                    lines, unmonitored poles, and meters at customers’ premises, as
+customers are allowed to opt out of a district-wide deployment                  depicted in Fig. 1. An LV network can be represented by a graph
+when industrial customers with specific metering needs are                      structure where the edges represent the distribution and service
+not updated, or when customers are only required to install                     lines while the vertices (nodes) represent the LV transformer,
+smart meters when their meter is replaced, is considered. The                   unmonitored poles and customers. Let the graph be denoted
+contributions of this paper are the following:                                  by G = (V, E), where V corresponds to the set of nodes and
+  1) A novel algorithm for estimating the topology of distribu-                 E corresponds to the set of edges. The set of nodes, V, is broken
+      tion networks without requiring 100% coverage of smart                    down into sets of unmonitored poles, U , henceforth referred to
+      meters, in contrast to those in [15], [16], [17], [18].                   as internal nodes, and the set of customers, C. In this paper,
+  2) An optimization-based approach to calculate the network                    U consists of unmonitored branching points, i.e., where both
+      impedance model of an LV distribution power system in                     lines branch and power is neither injected nor consumed. The
+      the presence of interval meters that do not provide voltage               set of customers, C, is further partitioned into two sets with
+      and reactive power measurements.                                          one assigned to customers with smart meters, S, and the other
+  3) A novel topology estimation algorithm that estimates the                   assigned to customers with interval meters, I. Let N be the
+      location of the interval meters within a reduced estimated                cardinality of C, and Ns and Ni be the cardinalities of sets S
+      topology consisting of the customers with smart meters.                   and I, respectively.
+                                                                                   The rest of this section describes the method of estimating the
+C. Paper Organization                                                           network impedance model from measurements corresponding to
+                                                                                sets S and I.
+   The rest of this paper is organized as follows: the optimization
+problem solving for the network impedance model of the LV
+                                                                                B. Proposed Network Impedance Estimation Algorithm
+distribution system with the inclusion of interval meters is pre-
+sented in Section II. Section III presents two topology estimation                 1) Background: In this paper, the network impedance model
+algorithms, including a novel algorithm to estimate the location                is calculated using the measured voltage drop across distribution
+of interval meters. The performance of the proposed algorithm                   lines corresponding to the measured current flowing through
+
+          Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+994                                                                                   IEEE TRANSACTIONS ON POWER DELIVERY, VOL. 39, NO. 2, APRIL 2024
+
+
+
+those lines. For N number of customers and T sampled RMS                        matrix is of size Ni × Ti , where Ti corresponds to the number
+measurements of voltages, V , active, P and reactive powers, Q,                 of sampled interval meter measurements.
+the N × T real, Ir , and imaginary parts, Ix of currents, whilst                   First, the smart meter measurement matrices are reduced to a
+assuming nominal voltage angles, are given as                                   size similar to the interval meters’ measurement matrix. This is
+                                                                                achieved by taking the average of the smart meter measurements,
+                  Ir = P  V, Ix = Q  V ,                              (1)
+                                                                                i.e., voltages, real and imaginary parts of current measurements,
+where  corresponds to the element-wise division operation                      for all t ∈ Ts with a window size of k such that kτs = τi . Now,
+between matrices. From [19], the N × N network impedance                        the measurement matrices, V S , IrS , and IxS correspond to the
+matrices, R and X, for the resistance and reactance values                      net average smart meter measurements within τi and are of size
+respectively satisfy                                                            Ns × T i .
+                                                                                   The next step is to transform the energy measurements, E,
+                JN,1 ⊗ V tr − V = RIr + XIx ,                           (2)
+                                                                                into equivalent average values of P I . With active power being
+where V tr is the 1 × T LV transformer voltage at the root, JN,1                defined as the rate of change in energy, Pi,t , for interval meter i
+is an N × 1 matrix of ones and the ⊗ operator denotes the                       at time t is given as
+Kronecker product. The Kronecker product is a matrix product
+operation that generates a block matrix of size N × T using the                                                    Ei,t − Ei,t−1
+                                                                                                         Pi,t =                  .                   (4)
+JN,1 and V tr matrices of sizes N × 1 and 1 × T , respectively.                                                          τi
+Thus the matrix JN,1 ⊗ V tr is an N × T matrix whose tth
+                                                                                If the averaged measurements of voltages, V I and reactive
+column has identical elements equal to Vttr at time t. In a
+                                                                                power, QI of customers with interval meters could be collected,
+distribution network, it is not feasible to have measurements
+                                                                                the real and imaginary parts of currents for interval meters, IrI
+at all nodes, and thus the impedance matrices, R and X are the
+                                                                                and IxI can be calculated using (1), thereby expanding (2) to
+reduced impedance matrices, composed of only the customers
+whose measurements are available [22].                                                                      
+                                                                                                       tr    VS
+   The impedance matrices, R and X, encapsulate the aggre-                                  JN,1 ⊗ V −
+gated line impedance values of the distribution network. Let Pk                                              VI
+and Pl be the paths in G linking the LV transformer to customers                                                                   
+k and l, respectively. The kth row and lth column entry of the R                                     RSS    RSI       X SS    X SI
+                                                                                             =  SI               SI 
+and X matrices are expressed as                                                                    R        RII      X         X II
+                                                                                                                 
+               Rkl =        rab , Xkl =       xab ,           (3)                                  IrS IrI IxS IxI ,                          (5)
+                        ab∈P                   ab∈P
+
+where r and x are the resistance and reactance values of the                    where  denotes the transpose operation. The impedance sub-
+distribution lines found in the common path, P, linking both                    matrix, RSS and X SS are each of size Ns × Ns and correspond
+customers k and l to the LV transformer. As such, the diagonal el-              to the impedance values found in the common path linking any
+ements of R and X correspond to the sum of resistance/reactance                 pair of smart meter customers to the LV transformer. In contrast,
+values found in the path linking the LV transformer to the                      the impedance sub-matrix RSI and X SI are each of size Ns ×
+corresponding customer.                                                         Ni and correspond to the impedance values found in the common
+   The voltage drop (2) can be formulated as an over-determined                 path linking any pair comprising a smart meter customer and
+system of linear equations. If there is measurement noise, an                   interval meter customer to the LV transformer.
+approximate solution can be obtained by minimizing the sum                         However, interval meters measure neither V I , nor QI , of
+of squared errors. However, in a practical scenario, not all                    customers, rendering the calculation of IrI and IxI non-trivial.
+customers have smart meters installed at their premises. Interval               To this end, a framework for approximating (5) is designed.
+meters, i ∈ I, are still present in distribution networks and they              In distribution networks, customers’ loads have power factors
+only record the energy, E (kWh), consumed without recording                     close to unity [4]. Based on the load profiles of customers, in
+the voltage or power measurements [23].                                         this paper, IxI is approximated as a zero matrix, 0. As it will be
+   2) Proposed Framework: A method of estimating the net-                       demonstrated in the performance evaluation section, the actual
+work impedance model with the measurements of both smart                        condition of having non-unity power factors has a small impact
+meters and interval meters is proposed. Smart meters record                     on the proposed methodology. This is due to LV distribution lines
+averaged measurements of voltages, V S , active, P S , and reactive             having low reactance compared to resistance [24]. The error on
+powers, QS with a sampling period of τs minutes (5 minutes in                   IxI gets multiplied by a term X  R, so that its impact is low.
+this paper). The corresponding real and imaginary parts of the                     The omission of voltage measurements corresponding to in-
+currents, IrS and IxS , respectively can be calculated from (1).                terval meters is more critical. This reduces the number of rows
+Each measurement matrix is of size Ns × Ts , where Ts is the                    in the measured voltage drop matrix JNs ,1 ⊗ V tr − V S from N
+number of sampled smart meter measurements. In contrast,                        to Ns . As a result, in (5), the impedance elements of the matrices
+the interval meters measure the aggregated energy, E (kWh),                     RII and X II , i.e., the sum of resistance/reactance values found
+which is reported with a slower sampling period of τi minutes                   in the path linking the LV transformer to the interval meters,
+(30 minutes in this paper). The recorded energy measurement                     can’t be estimated.
+
+         Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+PENGWAH et al.: TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS WITH PARTIAL SMART METER COVERAGE                                                              995
+
+
+
+
+Fig. 2.    Network impedance estimation process flow.
+
+
+
+  With IxI = 0 and V I missing, the voltage drop (5) is approx-                    Fig. 3. Topology examples with 2 internal nodes, u1 and u2 , 2 interval meters,
+imated as                                                                          i1 and i2 , and 2 smart meters, s1 and s2 . (a) represents the true topology. (b)
+                                                                                 represents the graph with the omission of interval meters and their corresponding
+     JNs ,1 ⊗ V tr − V S ≈ RSS RSI X SS X SI                                       edges. (c) shows the estimated topology, GS with the interval meters, i1 and i2 ,
+                                                                                   and the internal node u1 not estimated.
+                                             
+                             IrS I¯rI IxS 0 ,               (6)
+                                                                                   A. Overview
+where I¯rI is estimated using (1) whilst assuming the nominal 1
+pu voltage level. Let                                                                 The process of identifying the location of interval meters can
+                                                                                   be broken down into two steps. First, the sub-graph correspond-
+                        y = JNs ,1 ⊗ V tr − V S ,                            (7)   ing to the smart meter customers, GS , is estimated following
+                                                                                   which the novel algorithm for estimating the location of the
+and
+                                                                                interval meters is applied to GS . An example of a distribution
+                       A = IrS       I¯rI   IxS   0 .                        (8)   network is shown in Fig. 3(a). The two interval meters, i1 and i2 ,
+                                                                                   are shown in blue while the smart meter customers, s1 and s2 , are
+The minimization problem incorporating the squared error func-                     denoted by the orange markers. The LV transformer is shown
+tion as the objective is written as                                                in red while the two internal nodes, u1 and u2 , are shown in
+                                                                                 green. Omitting the interval meters results in a reduced graph as
+         min           y − RSS RSI X SS X SI A                                     shown in Fig. 3(b). However, the RG algorithm cannot estimate
+      RSS ,...,X SI                                                     2
+                                                                                   internal nodes with degrees less than three, i.e., internal node
+      subject to.        (10)−(11) ,                                         (9)   u1 (indicated by the ‘*’ marker), having degree 2 in the reduced
+                                                                                   graph cannot be estimated. Thus, the estimated graph will look
+where || . ||2 corresponds to the Euclidean norm, bounded by
+                                                                                   as shown in Fig. 3(c) in which u1 is not estimated and the
+contraints (10) and (11). The constraints are defined in the
+                                                                                   impedance of the segments, i.e., R1 and R2 , gets lumped into the
+following section.
+                                                                                   single estimated edge with impedance R1 + R2 . The objective
+   3) Constraints: First, a symmetry constraint is enforced onto
+                                                                                   of the proposed algorithm is to recover the actual topology from
+the impedance sub-matrices of RSS and X SS :
+                                                                                   the estimated reduced graph, GS .
+                                          
+              RSS = RSS , X SS = X SS .                     (10)
+                                                                                   B. Recursive Grouping Algorithm
+Lastly, the sum of resistance values found in the common path
+linking two customers k and l to the LV transformer is equal to                       First, the algorithm estimating the network topology, GS
+or less than that found in the path linking the customer k or l to                 corresponding to the smart meters is presented. In this paper,
+the LV transformer. From (3), this constraint is enforced as                       the recursive grouping (RG) algorithm presented in [18] is used
+                                                                                   to estimate GS . The RG algorithm starts from the distance matrix
+                  Rkk ≥ Rkl ∀{k, l} ∈ {Ns , Ni } .                          (11)   of smart meter nodes, i.e., DS , which is the electrical distance
+                                                                                   between the meters in S. The resistance matrix, RSS can be
+The analogous constraint on X applies to typical LV distribution                   transformed into DS using
+lines. The overall process estimating the network impedance of
+                                                                                                         S     SS    SS     SS
+distribution networks is summarized in Fig. 2.                                                          Dkl = Rkk + Rll − 2Rkl .                              (12)
+                                                                                   The resistance matrix is used as the main decision variable when
+          III. ESTIMATION OF INTERVAL METERS’ LOCATION
+                                                                                   estimating the topologies. This is because distribution lines have
+   This section presents the proposed algorithm for estimating                     a large R/X ratio [25] coupled with loads typically having close
+the location of both smart meters and interval meters. First, an                   to unity power factors.
+overview of the algorithms is provided followed by detailed                           From DS , the RG algorithm recursively groups nodes (start-
+descriptions of the algorithms.                                                    ing with the set S) as either parent-child or siblings to a common
+
+             Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+996                                                                                   IEEE TRANSACTIONS ON POWER DELIVERY, VOL. 39, NO. 2, APRIL 2024
+
+
+
+parent node. When grouping nodes as siblings, it generates a new                    Note that since RII is not known, the length of edge connect-
+parent node, which is also an internal node ∈ U . As new internal               ing i and h cannot be estimated. Hence, they are allocated an
+nodes are created, the electrical distances between the newly                   arbitrary length much larger than .
+created nodes and the discovered ones are also recorded in an                       This process is repeated until G ≡ G|I| has been found. The
+estimate D̂S . The RG algorithm outputs the estimated reduced                   overall process is summarized in Algorithm 1. The algorithm
+graph GS and the corresponding distance matrix D̂S , containing                 takes as inputs the estimates from the RG algorithm and the
+a subset of the internal nodes ∈ U . See [18] for details. This                 RSI matrix estimated from the network impedance estimation
+topology is an input to the novel algorithm presented in the                    algorithm. First, the smart meter, s, closest to the interval node,
+following section which estimates the location of the interval                                                                  SI
+                                                                                i, is identified by the maximum value of Rsi       , which is denoted
+meters, i ∈ I.                                                                  by dˆi and also corresponds to the longest common path between
+                                                                                s and i. The distances, dn , between the root and all nodes, n,
+C. Estimation of Interval Meter Location                                        found on the path linking the root to smart meter s are calculated.
+                                                                                Following dn , βn is calculated using (14). If |βv | <  for any
+   The matrix RSI is used in conjunction with the estimated
+                                                                                node v, then Case A is selected, i.e., the interval meter i is directly
+  S
+G and D̂S (identified from RSS ) to estimate the location of
+                                                                                connected to v. Otherwise, Case B is selected. In this case, the
+the interval meters. The (s, i)th component of RSI is the total
+                                                                                node, v, for which βv first go positive and its parent node w are
+impedance values along the common component of the path
+                                                                                identified using (15). A new internal node h is added and edges
+linking interval meter i to the LV transformer and the path linking
+                                                                                are added connecting i, v and w to h. The graph is updated and
+smart meter s to the transformer. For an interval meter, i, and
+                                                                                the iteration proceeds until the locations of all interval meters
+smart meter, s, it can be expressed as a sum of impedance values
+                                                                                are identified.
+found in the common path, Pi , linking the two meters and the
+                                                                                    Note that this algorithm does not estimate the internal nodes
+LV transformer up to the point of branching, including internal
+                                                                                found in clusters consisting only of interval meters. This is due
+nodes, u ∈ U , and is given by
+                                                                                to limited measurements being present, so that RII cannot be
+                                                                               estimated. Without RII , there does not appear to be any way
+                           SI
+                         Rsi   =       rab .                   (13)
+                                                                                for the electrical distances between the interval meters to be
+                                   ab∈Pi
+                                                                                estimated, and as a result, the internal nodes linking any pair of
+Using this information, interval meters can be added one at a                   interval meters are not identified. Instead, the algorithm assigns
+time, forming a sequence of graphs G0 = GS to G|I| = G. To                      these clusters of interval meters to the nearest identified internal
+add an interval meter i to Gk to form Gk+1 , it is necessary to                 node.
+find either a node v in Gk that will be the parent of i (case A),
+or to find an edge (w, v) to split (case B), with w the parent of                                  IV. PERFORMANCE EVALUATION
+v. In either case, v is the most recent common ancestor in Gk of                  The performance of the proposed methods is evaluated on
+Ck = {s ∈ S : dˆi = Rsi   SI
+                             }, where dˆi = maxs Rsi
+                                                   SI
+                                                      . To identify             multiple randomly generated network sizes and the IEEE Euro-
+v, an arbitrary s ∈ Ck is selected, and the path Ps in Gk from the              pean Low Voltage Test Feeder [26].
+root (LV transformer) to s is identified. Let dn be the distance
+in Gk from the root to any node n in Gk , including those not in                A. Simulation Parameters
+S, and
+                                                                                   1) Simulation Inputs: The total number of nodes for the
+                            βn = dn − dˆi .                            (14)     randomly generated radial topologies is varied from 10 to 50,
+                                                                                and realistic distribution network topologies are generated using
+Then,                                                                           constrained Prüfer sequences [27]. For each network size, 100
+                                                                                instances of topologies are considered. The line parameters of
+                       v = arg       min       βn .                    (15)     the generated topologies are sampled from uniform distributions
+                                 n∈Ps :βn ≥0
+                                                                                with the bounds being the minimum and maximum line parame-
+To account for measurement noise, the foregoing should inter-                   ter values of the IEEE network. The active power load profiles are
+pret two quantities equal if they differ by less than a constant ,             independently sampled from uniform distributions with mean
+which in our studies is taken as  = 10−3 Ω.                                    1 kW and ± 500 W deviations. The power factor of the loads,
+   1) Case a: If |βv | ≤  then Gk+1 is formed by attaching the                 pf , is independently drawn from an exponential distribution
+interval meter i to node v.                                                     λ exp−λ(1−pf ) , with λ = 20. The penetration of smart meters,
+   2) Case b: Case B, in which |βn | ≥  for all n, typically                   defined as the percentage of smart meters over the total number
+occurs when the internal node connected to the interval meter i                 of meters (smart meters and interval meters) is kept to 70% in
+is elided from Gk . The objective is then to find the location along            all case studies, except Section IV-D.
+one of the edges in Gk at which the interval meter connects.                       2) Graph Metric: The proposed algorithm has two outputs:
+   The graph Gk+1 is formed by replacing the edge (w, v) in                     i) GS (smart graph meter only) and ii) G (the full graph). The
+Gk by two edges, (w, h) with length dˆi − dw , and (h, v) with                  correctness of the estimated graphs is evaluated in terms of
+length dv − dˆi , and then attaching the interval meter i to the new            the centrality measure based on the hop count error in [28]. The
+internal node h by an edge.                                                     hop count error is defined as the number of edges that need to be
+
+         Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+PENGWAH et al.: TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS WITH PARTIAL SMART METER COVERAGE                                                       997
+
+
+
+
+ Algorithm 1: Topology Reconstruction Algorithm.
+
+
+
+
+                                                                                Fig. 4. Mean relative error between true and estimated resistance matrices
+                                                                                for a 70% penetration level of smart meters. The blue line corresponds to the
+                                                                                resistance sub-matrix corresponding to smart meters RSS , and the red dashed
+                                                                                line to the resistance sub-matrix corresponding to interval meters, RSI .
+
+
+
+
+                                                                                Fig. 5. Distribution of mean hop error, for estimated graphs GS and G across
+                                                                                different network sizes.
+
+
+                                                                                matrices is plotted in Fig. 4. It can be seen that as the network
+                                                                                size increases, the mean relative error increases for RSS and RSI
+                                                                                as more elements are estimated with more errors. The relative
+                                                                                error for the interval meters is approximately 1.1% in contrast
+added to or subtracted from an estimated graph in order to obtain               to 0.1% for the smart meters. This is due to the approximation
+the true graph. It is calculated using the adjacency matrix, A, of              in (6) in which the voltages of the interval meters are not known.
+the graphs, in which Akl = 1 if there is an edge between nodes                  The estimated resistances are then given as input to the topology
+k and l, otherwise Akl = 0. The hop count distance matrices                     estimation algorithm.
+are calculated from A using the Floyd-Warshall algorithm [29],                     The estimated topologies, both GS and G, are compared to
+following which the hop count error matrix is given as the                      the true corresponding topologies using the hop count metric.
+absolute difference between the hop count distance matrices of                  The mean hop errors for both estimated topologies are plotted in
+the estimated and true graphs. The estimated graphs have both                   Fig. 5. As shown, the proposed topology estimation algorithm
+labelled nodes (C) and unlabelled nodes (U ). In this paper, the                estimates both GS and G accurately across all instances and
+hop count error corresponding to the labelled nodes is extracted.               sizes of the network with the mean hop error being close to zero
+For GS , this corresponds to the smart meter customers, while                   except for some outliers for G due to the increased error in the
+for the full graph G, this corresponds to the interval meters. A                estimated impedances. Outliers are defined as values more than
+lower hop count error implies a better estimate of the topology.                1.5 times the interquartile range.
+   The proposed framework is evaluated on five case studies:                       2) Non-Unity Power Factor for Interval Meters: The impact
+(i) Impact of network size including both unity and non-unity                   of the assumption of the interval meter having a unity power fac-
+power factors of loads connected to interval meters; (ii) Impact                tor is evaluated in this case study. The simulations are repeated
+of voltage variances; (iii) Impact of the penetration level of                  with the power factor of the interval meters drawn from the
+smart meters; (iv) Impact of measurement errors; (v) Impact                     truncated exponential distributions described above. The mean
+of accumulation meters installed in the distribution networks;                  relative error between the true and estimated resistance matrices
+(vi) Analysis on the IEEE European LV Test Feeder.                              is plotted in Fig. 6. Compared to the ideal case in Fig. 4, the rela-
+                                                                                tive error increases, especially for the RSI sub-matrix for which
+                                                                                it increases by approximately 3 times for 50 node networks
+B. Impact of Network Size                                                       and 40 times for 10 node networks. The relative error is higher
+   1) Unity Power Factor for Interval Meters: In this case study,               since in addition to the voltages, the reactive power of the loads
+the power factor of the loads connected to the interval meters                  associated with interval meters is not known, thereby adding to
+is fixed to unity. The corresponding voltages, currents, power                  the approximations in (6). As for the estimated topologies, GS
+factor, and aggregated energy is obtained from a load flow                      still has no topological error, but G is substantially less accurate.
+analysis and are given as input to the proposed algorithms. The                 The mean hop error is still near zero for small networks but
+mean relative error between the true and estimated resistance                   increases to 0.5 for 50-node networks. This is consistent with
+
+          Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+998                                                                                     IEEE TRANSACTIONS ON POWER DELIVERY, VOL. 39, NO. 2, APRIL 2024
+
+
+
+
+Fig. 6. Mean relative error between true and estimated resistance matrices for
+non-unity power factor loads connected to interval meters for a 70% penetration
+level of smart meters.
+
+
+
+
+                                                                                  Fig. 8. Network with 30 nodes. The root node is highlighted in red, smart
+                                                                                  meter customers are blue and the interval meters are orange. The internal nodes
+                                                                                  are shown by the small black markers. (a) True topology, (b) Estimated topology
+                                                                                  using the proposed method. The differences between the true topology and the
+                                                                                  estimated one are highlighted by the dashed magenta edges and the hollow
+                                                                                  asterisk markers.
+
+Fig. 7. Distribution of mean hop error, for estimated graphs GS and G across
+different network sizes for non-unity power factor loads connected to interval
+meters.
+
+
+
+
+the increase in relative error of RSI . Excluding the outliers,
+the maximum hop error is around 1 and in most cases, this is
+caused by the interval meter being estimated to be connected
+to the parent or child node of the node it is actually connected                  Fig. 9. Mean relative error between true and estimated resistance matrices for
+to. The hop error is illustrated in Fig. 8. A hop error of 1 is                   several variances of voltages at interval meters.
+caused by the interval meter being estimated as connected to an
+intermediate internal node. Non-unity power factor is considered
+in the rest of the case studies, except Section IV-C.
+
+C. Impact of Variance of Voltage Measurements
+   The impact of assuming nominal 1 pu voltage level when
+formulating (9) is analysed in this case study. The variance of
+the voltages is varied from 0.1 to 15. This is achieved by varying
+the bounds of the uniform distributions from which the active
+power load profiles are independently sampled since larger loads                  Fig. 10. Distribution of mean hop error, for estimated graphs GS and G across
+                                                                                  several variances of voltages at interval meters.
+inculcate in lower terminal voltages and vice versa. The voltages
+are obtained from a load flow analysis and are fed as inputs to
+the proposed algorithm. For the data set with the largest voltage
+variance, the minimum measured meter voltage is 0.9015 pu,                        D. Impact of Penetration Level of Smart Meters
+representing a worst-case scenario for (9).                                          The rollout of smart meters is not yet complete, and may never
+   The mean relative error in the estimates of the resistance                     be. To study the impact of the penetration level of smart meters,
+matrices is plotted as a function of the variances in measured                    several values of penetration levels are simulated from as low
+voltages in Fig. 9. With increased deviations of the voltage                      as 10% to as high as 90%, with the remaining meters being
+measurements from the 1 pu nominal level, the mean relative                       interval meters. The assignment of smart and interval meters
+error increases. However, as shown in Fig. 10, this increase                      is conducted randomly. The experiments of IV-B2 are repeated
+in relative error does not result in large errors in the topology                 and the mean hop error across all instances of network sizes is
+estimates, with the worst mean hop error being less than 1. In                    calculated for each level of penetration of smart meters.
+contrast to Fig. 7 in which the maximum mean hop error exceeds                       The mean relative error in the estimates of the resistance
+1, this study shows that assuming a nominal 1 pu voltage level                    matrices is plotted in Fig. 11. As the number of smart meters
+has a less detrimental impact on the performance of the proposed                  increases, the mean relative error for RSS and RSI decreases.
+methodology than assuming a nominal power factor.                                 The graph metrics are plotted in Fig. 12. The proposed algorithm
+
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+PENGWAH et al.: TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS WITH PARTIAL SMART METER COVERAGE                                                           999
+
+
+
+
+                                                                                  Fig. 13. Mean relative error between true and estimated resistance matrices
+Fig. 11. Mean relative error between true and estimated resistance matrices       across all network sizes for five smart meter classes: 0.1S, 0.2S, 0.5S, 1S and
+across all network sizes for several penetration levels of smart meters.          2S. The penetration level of smart meters is 70%.
+
+
+
+
+                                                                                  Fig. 14. Distribution of mean hop error, for estimated graphs GS and G across
+Fig. 12. Distribution of mean hop error, for estimated graphs GS and G across     all network sizes for five smart meter classes: 0.1S, 0.2S, 0.5S, 1S and 2S.
+all network sizes for several penetration levels of smart meters.
+
+
+
+starts to fail for smart meter penetration levels for 50% penetra-
+tion or lower. At these low levels, the reduced graph GS is so
+condensed that the estimates of the location of the interval meters
+are inadvertently corrupted with errors. However, the error is
+still on average less than 1 hop signifying that the location of
+most interval meters is correctly estimated with a few having a
+maximum hop error of 1 or 2.
+
+E. Impact of Measurement Errors
+   Both smart meters and interval meters are susceptible to
+measurement errors. In this case study, the performance of the
+proposed algorithm is evaluated on five smart meter classes,
+called 0.1S, 0.2S, 0.5S, 1S and 2S [30]. A meter class xS is
+defined as having a relative error up to x% on the measurements.                  Fig. 15. Network with 30 nodes. (a) Estimated topology with smart meters,
+For the interval meters, slower and less accurate meters are                      GS using RG algorithm, (b) True topology, (b) Estimated topology using the
+considered, such as meter classes 1 and 2 (the more common                        proposed method. The differences between the true topology and the estimated
+                                                                                  one are highlighted by the dashed magenta edges and the hollow asterisk
+names for 1S and 2S meters) [31]. In this case, the maximum                       markers.
+relative error is up to 2%. In our results, the error distributions are
+independently sampled from truncated Gaussian distributions
+                                                                                  with erroneous smart meter and interval meter measurements.
+with zero mean and variance x/3, with values higher than the
+                                                                                  However, the GS estimate using the RG algorithm is corrupted
+meter class truncated. Considering the worst class meter, i.e.,
+                                                                                  due to measurement errors as shown in Fig. 15(a). As a result,
+2S meters, the maximum variance of the Gaussian distribution
+                                                                                  the interval meter algorithm cannot correctly identify the fine
+is 2.45, while for the largest network, the maximum recorded
+                                                                                  topology structure between the nodes, albeit recovering the
+variance of the meter voltages is 3.2.
+                                                                                  general structure. Although the proposed algorithm is sensitive
+   The mean relative error in the estimates of the resistance
+                                                                                  to noisy measurements, it can return a reasonable estimate of
+matrices and the mean hop error across all instances of network
+                                                                                  the full network topology.
+sizes are plotted in Figs. 13 and 14, respectively. As the tolerance
+of the meters becomes more lax, both the mean relative error
+                                                                                  F. Impact of Accumulation Meters
+and the mean hop error increase. The non-outlier maximum hop
+error increases up to 3.5 for the least accurate meter classes                        While both interval meters and smart meters make up the
+of 2S. However, the mean hop error in the estimates of G is                       core of modern distribution networks, some networks are still
+still well below 2. An instance of the results pertaining to the                  fitted with accumulation meters that are read by a meter-reader
+0.1S smart meter is shown in Fig. 15. As depicted, the errors                     in person once a month or so. With only one measurement
+between the true and estimated graphs are more pronounced                         per month, it’s difficult to incorporate this measurement into
+            Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+1000                                                                                   IEEE TRANSACTIONS ON POWER DELIVERY, VOL. 39, NO. 2, APRIL 2024
+
+
+
+
+Fig. 16. Distribution of mean hop error, for estimated graphs GS and G for
+several penetration levels of accumulation meters.
+
+
+
+the impedance matrix formulation. These meters provide the
+same types of values as interval meters (total energy over an                    Fig. 17. IEEE LV European Test Feeder with 55 customers, with 70% of
+                                                                                 customers having smart meters installed at their premises. Customers in phase
+interval), and so can in principle be incorporated in the same                   A are highlighted in red, in phase B in green, and in phase C in blue. Interval
+way, but this would require implausible measurement periods                      meters are highlighted by ‘+’ markers.
+(centuries) to obtain sufficient data for the technique to achieve
+useful accuracy. Instead, in this study, the accumulation meters                                             TABLE I
+are ignored in the impedance matrix formulation and their loads                    PERFORMANCE EVALUATION IEEE LV EUROPEAN TEST FEEDER WITH 70%
+are treated as noise, and the impact of this noise is studied.                                  PENETRATION LEVEL OF SMART METERS
+   The simulations pertaining to a network size of 50 are re-run
+with the fraction of accumulation meters ranging from 10% to
+50%. The percentage of interval meters is kept fixed at 30%
+while the remaining meters are considered smart meters. Note
+that in this experiment, the estimate of GS corresponds to the
+reduced graph without either interval meters or accumulation
+meters, and the estimated G graph corresponds to the reduced                        As presented, the algorithm is able to recover the estimated
+graph without accumulation meters.                                               topologies with minimal errors. For all phases A, B and C, the
+   The graph metrics are plotted in Fig. 16. This shows that                     algorithm can correctly identify the sub-graph, GS correctly.
+the proposed algorithm is still able to estimate the topologies                  When assigning the location of the interval meters, across phases
+accurately with the worst-case scenario being a mean error of                    B and C, a worst mean hop error count of approximately 1
+1 hop. The number of outliers in the estimated reduced graph                     is obtained, thereby proving that the proposed algorithm can
+of GS increases gradually as the percentage of accumulation                      identify the location of interval meters with an appreciable level
+meters increases, although the mean hop error remains ap-                        of performance.
+proximately zero. This shows that the proposed algorithm can
+produce reasonable estimates of topologies even in the presence                                               V. CONCLUSION
+of accumulation meters.
+                                                                                    In this paper, a novel method for estimating the topology of
+                                                                                 distribution networks without 100% penetration of smart meters
+G. IEEE European LV Network                                                      has been presented. The network impedance model estimation
+   Finally, the performance evaluation is extended to an IEEE                    algorithm has been shown to provide reasonable estimates for
+reference network, specifically the IEEE LV European Test                        both smart meters and interval meters. These impedance values
+Feeder [26]. It consists of 55 customers with 21 on phase A, 19 on               are given as input to a novel topology estimation algorithm
+phase B and 15 on phase C as shown in Fig. 17. The customers                     that estimates the location of the interval meters. The proposed
+are color-coded according to the phases they are allocated to,                   algorithms are extensively evaluated under multiple randomly
+with customers on phase A assigned the red color, customers                      generated topologies and the IEEE European test feeder. Under
+on phase B assigned the green color and customers on phase C                     all scenarios, the topology estimates are reasonable with mini-
+assigned the blue color. The penetration level of smart meters                   mum error in terms of connectivity of neighbouring nodes. Fu-
+is kept at 70% and the interval meters are indicated in the ‘+’                  ture research could extend the algorithm to meshed distribution
+markers. The phase allocation of the meters is assumed known;                    networks through the decoupled linear power flow approach.
+techniques such as that used in [16] can be used to estimate
+the phase allocation if it is not known. The active power load                                                     REFERENCES
+profile of the customers, corresponding to one day, is taken                      [1] J. M. Nahman and D. M. Peric, “Optimal planning of radial distribution
+from the PES database [26], in which the measurements are                             networks by simulated annealing technique,” IEEE Trans. Power Syst.,
+temporally correlated. To increase the sample size, the power                         vol. 23, no. 2, pp. 790–795, May 2008.
+                                                                                  [2] Z. Soltani, S. Ma, M. Khorsand, and V. Vittal, “Simultaneous robust
+factor of the loads is drawn from the exponential distribution                        state estimation, topology error processing, and outage detection for
+whilst duplicating the active power load profile. The results                         unbalanced distribution systems,” IEEE Trans. Power Syst., vol. 38, no. 3,
+pertaining to the IEEE test case are tabulated in Table I.                            pp. 2018–2034, May 2023.
+
+          Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+PENGWAH et al.: TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS WITH PARTIAL SMART METER COVERAGE                                                              1001
+
+
+
+ [3] Y. Liu et al., “Fully decentralized P2P energy trading in active distribution   [27] B. Y. Wu and K.-M. Chao, Spanning Trees and Optimization Problems.
+     networks with voltage regulation,” IEEE Trans. Smart Grid, vol. 14, no. 2,           Boca Raton, FL, USA: CRC Press, 2004.
+     pp. 1466–1481, Mar. 2023.                                                       [28] C. Donnat et al., “Tracking network dynamics: A survey using graph
+ [4] D. Flynn, A. B. Pengwah, R. Razzaghi, and L. L. H. Andrew, “An improved              distances,” Ann. Appl. Statist., vol. 12, no. 2, pp. 971–1012, 2018.
+     algorithm for topology identification of distribution networks using smart      [29] S. Hougardy, “The floyd–warshall algorithm on graphs with negative
+     meter data and its application for fault detection,” IEEE Trans. Smart Grid,         cycles,” Inf. Process. Lett., vol. 110, no. 8-9, pp. 279–281, 2010.
+     vol. 14, no. 5, pp. 3850–3861, Sep. 2023.                                       [30] American National Standard for Electricity Meters - 0.2 and 0.5 Accuracy
+ [5] S. Bhela, V. Kekatos, and S. Veeramachaneni, “Enhancing observability in             Classes, American National Standards Institute, Washington, DC, USA,
+     distribution grids using smart meter data,” IEEE Trans. Smart Grid, vol. 9,          ANSI Standard C12, 20-2010.
+     no. 6, pp. 5953–5961, Nov. 2018.                                                [31] H. Carstens, X. Xia, and S. Yadavalli, “Measurement uncertainty in energy
+ [6] D. Deka, V. Kekatos, and G. Cavraro, “Learning distribution grid topolo-             monitoring: Present state of the art,” Renewable Sustain. Energy Rev.,
+     gies: A tutorial,” IEEE Trans. Smart Grid, vol. 15, no. 1, pp. 999–1013,             vol. 82, pp. 2791–2805, 2018.
+     Jan. 2024.
+ [7] A. Lang, Y. Wang, C. Feng, E. Stai, and G. Hug, “Data aggregation point
+     placement for smart meters in the smart grid,” IEEE Trans. Smart Grid,                                    Abu Bakr Pengwah received the B.E. and Ph.D.
+     vol. 13, no. 1, pp. 541–554, Jan. 2022.                                                                   degrees in electrical engineering from Monash Uni-
+ [8] J. D. Hmielowski, A. D. Boyd, G. Harvey, and J. Joo, “The social di-                                      versity, Clayton, VIC, Australia, in 2019, and 2023,
+     mensions of smart meters in the United States: Demographics, privacy,                                     respectively. His research interests include model-
+     and technology readiness,” Energy Res. Social Sci., vol. 55, pp. 189–197,                                 ing and identification of distribution networks, smart
+     2019.                                                                                                     grids and data analysis.
+ [9] M. Koivisto, P. Heine, I. Mellin, and M. Lehtonen, “Clustering of connec-
+     tion points and load modeling in distribution systems,” IEEE Trans. Power
+     Syst., vol. 28, no. 2, pp. 1255–1265, May 2013.
+[10] Y. Xu et al., “An adaptive-importance-sampling-enhanced Bayesian ap-
+     proach for topology estimation in an unbalanced power distribution sys-
+     tem,” IEEE Trans. Power Syst., vol. 37, no. 3, pp. 2220–2232, May 2022.
+[11] G. Cavraro, A. Bernstein, V. Kekatos, and Y. Zhang, “Real-time identifia-
+                                                                                                               Yasin Zabihinia Gerdroodbari received the B.Sc.
+     bility of power distribution network topologies with limited monitoring,”
+                                                                                                               and M.Sc. degrees in electrical engineering from the
+     IEEE Contr. Syst. Lett., vol. 4, no. 2, pp. 325–330, Apr. 2020.
+                                                                                                               University of Tehran, Tehran, Iran, in 2014 and 2016,
+[12] W. Luan, J. Peng, M. Maras, J. Lo, and B. Harapnuk, “Smart meter data
+                                                                                                               respectively. Since 2019, he has been working toward
+     analytics for distribution network connectivity verification,” IEEE Trans.
+                                                                                                               the Ph.D. degree with Monash University, Clayton,
+     Smart Grid, vol. 6, no. 4, pp. 1964–1971, Jul. 2015.
+                                                                                                               VIC, Australia. His research interests include active
+[13] C. Francis, R. D. Trevizan, M. J. Reno, and V. Rao, “Enhancing topol-
+                                                                                                               distribution networks, distributed energy resources,
+     ogy identification of distribution power systems using multi-rate voltage
+                                                                                                               smart grids, and applications of power electronics in
+     measurements,” IEEE Trans. Ind. Appl., vol. 59, no. 1, pp. 412–421,
+                                                                                                               power systems.
+     Jan./Feb. 2023.
+[14] J. Zhao, L. Li, Z. Xu, X. Wang, H. Wang, and X. Shao, “Full-scale
+     distribution system topology identification using Markov random field,”
+     IEEE Trans. Smart Grid, vol. 11, no. 6, pp. 4714–4726, Nov. 2020.
+[15] K. Soumalas, G. Messinis, and N. Hatziargyriou, “A data driven approach
+     to distribution network topology identification,” in Proc. IEEE Manchester                              Reza Razzaghi (Senior Member, IEEE) received
+     PowerTech, 2017, pp. 1–6.                                                                               the Ph.D. degree in electrical engineering from the
+[16] A. B. Pengwah, L. Fang, R. Razzaghi, and L. L. H. Andrew, “Topology                                     Swiss Federal Institute of Technology of Lausanne
+     identification of radial distribution networks using smart meter data,” IEEE                            (EPFL), Lausanne, Switzerland, in 2016. In 2017,
+     Syst. J., vol. 16, no. 4, pp. 5708–5719, Dec. 2022.                                                     he joined Monash University, Melbourne, VIC, Aus-
+[17] D. Deka, S. Backhaus, and M. Chertkov, “Structure learning in power                                     tralia, where he is currently a Senior Lecturer with
+     distribution networks,” IEEE Trans. Control Netw. Syst., vol. 5, no. 3,                                 the Department of Electrical and Computer Systems
+     pp. 1061–1074, Sep. 2018.                                                                               Engineering and an Australian Research Council
+[18] S. Park, D. Deka, S. Backhaus, and M. Chertkov, “Learning with end-users                                DECRA Fellow. His research interests include dis-
+     in distribution grids: Topology and parameter estimation,” IEEE Trans.                                  tributed energy resources, power system protection,
+     Control Netw. Syst., vol. 7, no. 3, pp. 1428–1440, Sep. 2020.                                           dynamics and transients. He has been the recipient of
+[19] K. Moffat, M. Bariya, and A. V. Meier, “Unsupervised impedance and              the 2019 Best Paper Award of IEEE Transactions on EMC and the 2013 Basil
+     topology estimation of distribution networks–limitations and tools,” IEEE       Papadias Best Paper Award from the IEEE PowerTech Conference.
+     Trans. Smart Grid, vol. 11, no. 1, pp. 846–856, Jan. 2020.
+[20] H. Wei, W. Wang, C. Fang, Y. Liu, N. Zhang, and C. Kang, “Online
+     distribution system topology monitoring with limited smart meter com-                                      Lachlan L. H. Andrew (Senior Member, IEEE) re-
+     munication,” IEEE Trans. Power Syst., vol. 38, no. 6, pp. 5714–5725,                                       ceived the B.Sc. degree in computer science, and
+     Nov. 2023, doi: 10.1109/TPWRS.2022.3227904.                                                                B.E. and Ph.D. degrees in electrical engineering from
+[21] H. Wu, Z. Xu, J. Zhao, and S. Chai, “Gridtopo-GAN for distribution                                         the University of Melbourne, Melbourne, VIC, Aus-
+     system topology identification,” IEEE Trans. Ind. Inform., vol. 19, no. 4,                                 tralia, in 1992, 1993, and 1997, respectively. Since
+     pp. 5356–5366, Apr. 2023.                                                                                  2019, he has been with the University of Melbourne.
+[22] F. Dorfler and F. Bullo, “Kron reduction of graphs with applications to                                    From 2014 to 2018, he was with Monash University,
+     electrical networks,” IEEE Trans. Circuits Syst. I, Reg. Papers, vol. 60,                                  Melbourne, and from 2008 to 2014, he was with
+     no. 1, pp. 150–163, Jan. 2013.                                                                             the Swinburne University of Technology, Melbourne.
+[23] B. O’Neill and K. Wrigley, “Electricity meter types explained,” 2012, [On-                                 From 2010 to 2014, he was an ARC Future Fellow.
+     line]. Available: https://www.canstarblue.com.au/solar/electricity-meter-                                  He was a Senior Research Fellow with the University
+     types/#types                                                                    of Melbourne and a Lecturer with Royal Melbourne Institute of Technology,
+[24] Á. Molina-García, R. A. Mastromauro, T. García-Sánchez, S. Pugliese,            Melbourne. From 2005 to 2008, he was a Senior Research Engineer with the
+     M. Liserre, and S. Stasi, “Reactive power flow control for PV inverters         Department of Computer Science, Caltech, Pasadena, CA, USA. His research
+     voltage support in LV distribution networks,” IEEE Trans. Smart Grid,           interests include algorithmic aspects of energy management, and performance
+     vol. 8, no. 1, pp. 447–456, Jan. 2017.                                          analysis of network resource allocation algorithms. Dr. Andrew was the co-
+[25] A. Garces, “A linear three-phase load flow for power distribution systems,”     recipient of the ACM SIGMETRICS Test of Time Award in 2021, the IEEE
+     IEEE Trans. Power Syst., vol. 31, no. 1, pp. 827–828, Jan. 2016.                William R. Bennett Prize in 2014, and the Best Paper Award at International
+[26] K. P. Schneider et al., “Analytic considerations and design basis for the       Green Construction Code (IGCC) 2012, IEEE International Conference on
+     IEEE distribution test feeders,” IEEE Trans. Power Syst., vol. 33, no. 3,       Computer Communications (INFOCOM) 2011, and IEEE Mobile Adhoc and
+     pp. 3181–3188, May 2018.                                                        Sensor Systems (MASS) 2007. He is a member of the ACM.
+
+
+             Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 07:58:27 UTC from IEEE Xplore. Restrictions apply.
+

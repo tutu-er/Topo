@@ -1,0 +1,20 @@
+﻿\begin{tikzpicture}[
+  every node/.style={font=\small,align=center},
+  box/.style={draw,rounded corners=2pt,minimum width=2.7cm,minimum height=0.8cm,fill=blue!8},
+  fuse/.style={draw,rounded corners=2pt,minimum width=3.0cm,minimum height=0.9cm,fill=green!10},
+  outbox/.style={draw,rounded corners=2pt,minimum width=3.0cm,minimum height=0.9cm,fill=orange!12},
+  arr/.style={-Latex,thick}
+]
+\node[box] (v) at (0,2) {$P/Q/V$\\阻抗距离};
+\node[box] (plc) at (0,0.65) {PLC/HPLC\\RSSI,SNR,route};
+\node[box] (gis) at (0,-0.7) {GIS/台账\\候选边};
+\node[fuse] (prob) at (4,0.65) {边概率模型\\$p_{ij}$};
+\node[outbox] (mst) at (8,0.65) {最大生成树\\放射状解码};
+\node[outbox] (check) at (8,-1.0) {潮流/约束\\后验校验};
+\draw[arr] (v)--(prob);
+\draw[arr] (plc)--(prob);
+\draw[arr] (gis)--(prob);
+\draw[arr] (prob)--(mst);
+\draw[arr] (mst)--(check);
+\end{tikzpicture}
+

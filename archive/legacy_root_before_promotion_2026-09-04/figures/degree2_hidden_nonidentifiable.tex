@@ -1,0 +1,14 @@
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  obs/.style={circle,draw,fill=blue!18,minimum size=7mm},
+  hid/.style={circle,draw,fill=white,minimum size=7mm}
+]
+\node[obs] (u) at (0,0) {$u$};
+\node[hid] (h) at (1.8,0) {$h$};
+\node[obs] (v) at (3.6,0) {$v$};
+\draw[thick] (u)--node[above] {$\alpha$} (h)--node[above] {$\beta$} (v);
+\node at (4.8,0) {$\Longleftrightarrow$};
+\node[obs] (u2) at (6.0,0) {$u$};
+\node[obs] (v2) at (8.8,0) {$v$};
+\draw[thick] (u2)--node[above] {$\alpha+\beta$} (v2);
+\end{tikzpicture}

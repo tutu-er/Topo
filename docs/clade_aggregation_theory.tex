@@ -1,0 +1,910 @@
+\documentclass[UTF8,11pt]{ctexart}
+
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+\newtheorem{definition}{定义}
+\newtheorem{assumption}{假设}
+\newtheorem{lemma}{引理}
+\newtheorem{theorem}{定理}
+\newtheorem{corollary}{推论}
+\newtheorem{remark}{说明}
+
+\title{终端负荷-only 配电网拓扑辨识中的 clade 聚合：\\精确性引理、两阶段样本复杂度与 RNJ 安全半径}
+\author{terminal\_load\_only\_case33 notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{引言与代码对应}
+
+本文研究 \texttt{terminal\_load\_only\_case33} 项目中"一层 clade 聚合"管线的理论基础。
+该管线的实际代码流程为：
+\begin{enumerate}[leftmargin=2em]
+  \item 用 AC 前推回代潮流仿真各场景终端量测
+        （\texttt{terminal\_case33/models/ac\_powerflow.py:171}），
+        叠加相对高斯量测噪声（\texttt{experiments/common.py:97-100}）；
+  \item 以平方电压降 $Y_i(t)=v_0^2(t)-V_i^2(t)$ 为回归目标
+        （\texttt{experiments/common.py:106}，\texttt{terminal\_case33/estimation/preprocessing.py:38-56}）；
+  \item 多场景联合最小二乘拟合灵敏度矩阵，再做对称化、截负与 ordered 半空间投影
+        （\texttt{terminal\_case33/estimation/multiscenario.py:29} \texttt{fit\_projected\_sensitivity}）；
+  \item 由 $\widehat R,\widehat X$ 构造阻抗距离与根深，RX75 模式先各自归一化再按
+        $0.75/0.25$ 混合（\texttt{terminal\_case33/estimation/baseline.py:71-93}）；
+  \item 以 shared-path 矩阵和根深为输入运行 Rooted Neighbor Joining（RNJ）
+        （\texttt{terminal\_case33/graph/rooted\_neighbor\_joining.py:88}）；
+  \item 对高置信外围 clade 做"软收缩"聚合：$P/Q$ 列求和、平方电压经去嵌入重构为
+        pseudo 边界量（\texttt{terminal\_case33/graph/rooted\_hierarchy.py:205-302}），
+        在收缩后的主干问题上重跑估计与 RNJ，再在各 clade 内以 pseudo 边界为局部根做
+        二阶段辨识（\texttt{terminal\_case33/graph/rooted\_hierarchy.py:305-386}）；
+  \item 最终候选用留出场景的 AC 预测 NLL 排序
+        （\texttt{terminal\_case33/pipeline/ac\_likelihood.py:522-534}）；
+        oracle 指标只在实验脚本中计算，不进入辨识回路
+        （\texttt{experiments/run\_unified\_topology\_pipeline\_sweep.py:75-79}）。
+\end{enumerate}
+
+本文的目的是为第 6 步给出精确性引理与样本复杂度定理：在真实 clade 与线性模型下，
+聚合\emph{不引入任何近似误差}（引理~\ref{lem:aggregation-exact}），同时把主干问题的
+有效噪声方差降低 $|C|$ 倍、把未知树尺寸从 $n$ 降到 $n-|C|+1$（引理~\ref{lem:denoise}），
+从而使主干拓扑精确恢复所需的样本量约按 $|C|$ 倍下降（定理~\ref{thm:two-stage}）。
+
+写作原则是：\textbf{所有模型假设逐一对应代码的实际行为，而不是任何 .md 文档的描述}。
+每个符号与每条假设的代码出处汇总于附录~\ref{app:code-map} 的对照表；正文中首次出现时
+也以 \texttt{file:line} 标注。符号约定与系列文档 \texttt{chapters/} 保持一致并避免冲突：
+树用 $T$、每场景样本数用 $m$、场景数用 $S$（ch04 用 $T$ 表树、ch09 用 $T$ 表样本数，
+本文只取前者）。证明为"证明思路"级别，与
+\texttt{docs/latent\_tree\_neighbor\_joining\_proof.tex} 的风格对齐；但以下关键不等式链
+显式写出：lstsq 行误差集中与 union bound（\S\ref{sec:sample-complexity} 步骤 1）、
+ordered 投影的 entrywise max-norm 非扩张性（引理~\ref{lem:proj-nonexpansive}）、
+RX75 随机归一化因子的集中（引理~\ref{lem:normalize}）、直接 shared-path 分数的
+误差界与安全半径（\S\ref{sec:sample-complexity} 步骤 3）。
+
+\section{模型与符号}
+\label{sec:model}
+
+\subsection{树、灵敏度矩阵与阻抗距离}
+
+设配电网为一棵径向加权树 $T=(V,E)$，根节点 $0$（变电站/ slack 母线）可观测，
+终端（用户）节点集合 $L=\{1,\ldots,n\}$，$|L|=n$；隐藏零注入节点集合
+$H=V\setminus(L\cup\{0\})$。记 $\operatorname{path}_{0i}$ 为根到节点 $i$ 的唯一路径。
+
+\begin{assumption}[最小隐藏树]
+\label{ass:minimal}
+所有边电阻 $r_e>0$、电抗 $x_e>0$；除根以外的隐藏节点度数至少为 $3$，
+度数为 $2$ 的隐藏链已被压缩为一条等效边。
+\end{assumption}
+
+该假设与 \texttt{docs/latent\_tree\_neighbor\_joining\_proof.tex} 的最小隐藏树假设相同；
+度数 $2$ 的隐藏节点仅凭终端数据不可辨识（见 \S\ref{sec:limitations}）。
+
+代码实际回归的灵敏度矩阵采用平方电压约定
+（\texttt{terminal\_case33/models/lin\_distflow.py:57-59} 的 \texttt{squared-voltage} 分支
+乘以因子 $2$），故本文直接定义
+\begin{equation}
+  R_{ij} \;=\; 2\sum_{e\in \operatorname{path}_{0i}\cap \operatorname{path}_{0j}} r_e,
+  \qquad
+  X_{ij} \;=\; 2\sum_{e\in \operatorname{path}_{0i}\cap \operatorname{path}_{0j}} x_e,
+  \qquad i,j\in L.
+  \label{eq:shared-path-R}
+\end{equation}
+即 $R_{ij}$ 是 $i,j$ 根路径公共部分的电阻和（平方电压单位）。阻抗距离为
+\begin{equation}
+  d^R_{ij}=R_{ii}+R_{jj}-2R_{ij}
+  =2\sum_{e\in \operatorname{path}(i,j)} r_e,
+  \label{eq:impedance-distance}
+\end{equation}
+对应 \texttt{terminal\_case33/models/lin\_distflow.py:63-67}
+\texttt{impedance\_distance\_from\_reduced\_R}。$d^R$ 是由隐藏树边权诱导的
+additive tree metric。根深（root depth）为对角元
+\begin{equation}
+  h_i := R_{ii} = 2\sum_{e\in \operatorname{path}_{0i}} r_e,
+  \label{eq:root-depth}
+\end{equation}
+代码在 RX 混合模式下按同一归一化混合对角元作为根深
+（\texttt{terminal\_case33/estimation/baseline.py:90-93}）。
+
+\subsection{观测模型}
+
+数据按\emph{场景}组织：场景 $s=1,\ldots,S$，每场景样本 $t=1,\ldots,m$，总样本数 $N=Sm$。
+每个场景是一次独立的一日运行剖面（不同 seed、不同可再生出力剖面，见
+\texttt{experiments/common.py:37-58} 的场景注册表）。回归目标为平方电压降
+\begin{equation}
+  Y_i^{(s)}(t) \;=\; v_0^{(s)}(t)^2 - V_i^{(s)}(t)^2,
+  \label{eq:drop-target}
+\end{equation}
+其中根电压 $v_0$ 被直接量测，根电压波动在进入回归前即被去除
+（\texttt{terminal\_case33/estimation/preprocessing.py:38-56}
+\texttt{squared\_voltage\_drop\_from\_observed\_root} 的文档字符串明确说明这是
+"preferred target"）。
+
+\begin{assumption}[线性 drop 模型与有界模型失配]
+\label{ass:linear}
+存在场景截距 $\gamma_i^{(s)}\in\mathbb{R}$，使得
+\begin{equation}
+  Y_i^{(s)}(t)
+  =
+  \sum_{j\in L} R_{ij} P_j^{(s)}(t)
+  +
+  \sum_{j\in L} X_{ij} Q_j^{(s)}(t)
+  +
+  \gamma_i^{(s)}
+  +
+  b_i^{(s)}(t)
+  +
+  E_i^{(s)}(t),
+  \label{eq:linear-model}
+\end{equation}
+其中 $b$ 为线性（LinDistFlow 平方电压近似）模型相对 AC 潮流的有界失配项，
+$|b_i^{(s)}(t)|\le \beta$。
+\end{assumption}
+
+式 \eqref{eq:linear-model} 正是代码拟合的模型：设计阵为
+$[\,P\;|\;Q\;|\;\text{场景示性}\,]\in\mathbb{R}^{N\times(2n+S)}$
+（\texttt{terminal\_case33/estimation/multiscenario.py:47-59}），
+\texttt{terminal\_case33/estimation/baseline.py:106-115} 的文档字符串逐字写出
+\texttt{Y\_s = P\_s R.T + Q\_s X.T + gamma\_s + delta\_V\_s}。AC 仿真
+（\texttt{terminal\_case33/models/ac\_powerflow.py:171}）只用于生成数据与最终候选排序，
+不进入本文任何定理的条件；失配项 $b$ 以常数偏差形式进入误差预算（见定理
+\ref{thm:two-stage} 步骤 1），不随样本量消失，这是诚实处理而非技术缺陷。
+
+\begin{assumption}[逐终端独立的次高斯噪声]
+\label{ass:noise}
+$\{E_i^{(s)}(t)\}$ 关于 $(s,t,i)$ 相互独立，均值为零，次高斯参数不超过
+$\sigma_{\mathrm{eff}}^2$。
+\end{assumption}
+
+该假设对应仿真器的事实：\texttt{experiments/common.py:97-100} 对每个量测矩阵用独立
+高斯扰动 $P_{\mathrm{meas}}=P+\mathcal{N}(0,\sigma_{PQ}\cdot|P|)$、
+$V_{\mathrm{meas}}=V+\mathcal{N}(0,\sigma_V\cdot|V|)$，逐终端、逐时刻独立；
+电压噪声经 $(v_0^2-V^2)$ 的差分进入 $Y$ 时近似放大 $2V\approx 2$ 倍，
+连同 $P/Q$ 量测噪声经回归目标的贡献一起并入 $\sigma_{\mathrm{eff}}$。
+跨终端相关的后果在 \S\ref{sec:limitations} 讨论。
+
+\subsection{估计器与 RNJ 输入}
+
+代码的估计器（默认 \texttt{alpha=0}，即无岭惩罚）为
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{lstsq}：$\widehat\Theta=(Z^\top Z)^{-1}Z^\top Y$，
+        $Z=[P|Q|\text{场景示性}]$（\texttt{multiscenario.py:68}）；
+  \item \textbf{对称化+截负}：$\widehat R\leftarrow \max\{0,\tfrac12(\widehat\Theta_R^\top+\widehat\Theta_R)\}$
+        （\texttt{multiscenario.py:71-73}）；
+  \item \textbf{ordered 投影}：循环执行对称化/截负与半空间修正
+        $\{M_{ii}-M_{ij}\ge \mathrm{margin}\}$，最后做一次对角提升可行化
+        （\texttt{multiscenario.py:74-82}；
+        \texttt{matrix\_constraints.py:70-96} \texttt{project\_ordered\_sensitivity\_matrix}，
+        半空间扫描 \texttt{:37-53}，可行化 \texttt{:56-67}；
+        $\mathrm{margin}=\texttt{margin\_ratio}\times\mathrm{median}(\operatorname{diag})$，
+        \texttt{margin\_ratio} 默认 $10^{-6}$，\texttt{multiscenario.py:33}）；
+  \item \textbf{距离诊断与直接分数}：保留式 \eqref{eq:impedance-distance} 的估计版；
+        RX75 模式下 RNJ 直接使用
+        $\hat S_{ij}=0.75\widehat R_{ij}/\hat s_R+0.25\widehat X_{ij}/\hat s_X$，
+        根深为 $\hat H_i=\hat S_{ii}$（\texttt{sensitivity\_geometry.py}）；
+  \item \textbf{RNJ}：以 $\hat S$ 最大者优先成组
+        （\texttt{rooted\_neighbor\_joining.py}），
+        容差 $\tau=\texttt{tolerance\_factor}\cdot\mathrm{median}(\hat H)$，
+        默认因子 $0.16$（\texttt{baseline.py:104,172}）。
+\end{enumerate}
+设计阵 $Z$ 的条件数由拟合例程返回并随结果审计保存
+（\texttt{multiscenario.py:171} 返回 \texttt{np.linalg.cond(design)}；
+\texttt{baseline.py:194} 的 \texttt{condition\_number} 字段）。
+
+\begin{assumption}[设计阵良态与 margin]
+\label{ass:design}
+(1) 设计阵满足 $\sigma_{\min}(Z)\ge \sqrt{N\,v_{\min}}$、
+$\sigma_{\max}(Z)\le \sqrt{N\,v_{\max}}$，记 $\kappa(Z)=\sigma_{\max}(Z)/\sigma_{\min}(Z)$；
+(2) 真实树最短内部边对应的阻抗距离 margin 为 $\ell_{\min}>0$；
+(3) 真实 $R$ 严格满足 ordered 可行性：对一切 $i\neq j$，
+$R_{ii}-R_{ij}\ge g_{\min}$，且 $g_{\min}$ 远大于代码投影 margin
+（$10^{-6}$ 相对量级）；
+(4) 每个被确认 clade 的 quartet 检测间隔至少为 $\ell^C_{\min}>0$
+（见 \S\ref{sec:sample-complexity} 步骤 4）。
+\end{assumption}
+
+\begin{remark}
+假设 \ref{ass:design}(3) 对真实灵敏度矩阵自动成立：
+$R_{ii}-R_{ij}=2\sum_{e\in \operatorname{path}_{0i}\setminus\operatorname{path}_{0j}} r_e>0$
+是 $i$ 在 $\mathrm{LCA}(i,j)$ 之下悬挂段的电阻和，在最小隐藏树假设下严格为正。
+代码的投影 margin 为数值保护量级，真实矩阵以很大余量可行——这一事实是引理
+\ref{lem:proj-nonexpansive} 非扩张性论证的前提。
+\end{remark}
+
+\section{引理 1：外部等价}
+\label{sec:external-equivalence}
+
+\begin{definition}[悬挂 clade]
+终端子集 $C\subset L$（$2\le |C|<n$）称为附着于节点 $g\in V$ 的\emph{悬挂 clade}，
+若 $C$ 是 $g$ 的某条下游子树中的全部终端，即对任意 $j\in C$，路径
+$\operatorname{path}_{0j}$ 经过 $g$，而任何 $i\notin C$ 的路径不经过 $g$ 以下的
+$C$-侧支路。收缩树 $T/C$ 指把 $C$ 的下游子树替换为单个 pseudo 终端 $g$ 所得的树。
+\end{definition}
+
+\begin{lemma}[外部等价]
+\label{lem:external}
+设 $C$ 是附着于 $g$ 的悬挂 clade。则对任意 $i\notin C$ 与任意 $j,k\in C$，
+\begin{equation}
+  R_{ij}=R_{ik}=R_{ig},
+  \qquad
+  X_{ij}=X_{ik}=X_{ig}.
+  \label{eq:external-equiv}
+\end{equation}
+\end{lemma}
+
+\begin{proof}[证明思路]
+对 $i\notin C$、$j\in C$，公共路径
+$\operatorname{path}_{0i}\cap\operatorname{path}_{0j}
+=\operatorname{path}_{0i}\cap\operatorname{path}_{0g}$：
+$j$ 的路径在 $g$ 处与 $i$ 的路径分离，$g$ 以下的 $C$-侧支路对交集无贡献。
+右端与 $j$ 无关，故式 \eqref{eq:external-equiv} 由公共路径形式
+\eqref{eq:shared-path-R} 一行证得。$X$ 同理。
+\end{proof}
+
+\begin{remark}[与代码的对应]
+引理 \ref{lem:external} 的物理内容是：\textbf{簇外注入对簇内各终端的平方电压降贡献
+完全相同}。这正是代码去嵌入步骤"只用簇内 $P/Q$ 列"的精确依据——
+\texttt{terminal\_case33/graph/rooted\_hierarchy.py:216-218} 的注释原文为
+"Tree additivity makes that differential zero for injections outside the clade,
+so de-embedding deliberately uses only descendant P/Q columns"，
+实现上差分灵敏度向量 \texttt{delta\_r}/\texttt{delta\_x} 只在簇内位置非零
+（\texttt{rooted\_hierarchy.py:274-282}）。
+\end{remark}
+
+\section{引理 2：聚合精确性}
+\label{sec:aggregation-exact}
+
+\begin{lemma}[一层 clade 聚合的精确性]
+\label{lem:aggregation-exact}
+设 $C$ 是附着于 $g$ 的悬挂 clade，观测满足假设 \ref{ass:linear} 的线性模型。
+则：
+\begin{enumerate}[label=\textup{(\alph*)},leftmargin=2.4em]
+  \item \label{item:kcl}
+  \textbf{KCL 聚合}：pseudo 注入 $P_g^{(s)}(t):=\sum_{j\in C}P_j^{(s)}(t)$、
+  $Q_g^{(s)}(t):=\sum_{j\in C}Q_j^{(s)}(t)$ 恰为流过附着边（$g$ 与其父节点之间的边）
+  的总注入；
+  \item \label{item:deembed}
+  \textbf{去嵌入恒等式}：对任意 $i\in C$，理想去嵌入量
+  \begin{equation}
+    \widetilde Y_{g,i}
+    \;:=\;
+    Y_i
+    -
+    \sum_{j\in C}\bigl[R_{ij}-R_{gj}\bigr]_{+}P_j
+    -
+    \sum_{j\in C}\bigl[X_{ij}-X_{gj}\bigr]_{+}Q_j
+    \label{eq:deembed}
+  \end{equation}
+  （省略场景与样本指标）与 $i\in C$ 无关，记为 $\widetilde Y_g$；并且它恰等于收缩树
+  $T/C$ 上 pseudo 终端 $g$ 的 drop 模型
+  \begin{equation}
+    \widetilde Y_g^{(s)}(t)
+    =
+    \sum_{j\notin C} R_{gj} P_j^{(s)}(t)
+    +
+    R_{gg}P_g^{(s)}(t)
+    +
+    \sum_{j\notin C} X_{gj} Q_j^{(s)}(t)
+    +
+    X_{gg}Q_g^{(s)}(t)
+    +
+    \gamma_g^{(s)}
+    +
+    \tilde b_g^{(s)}(t)
+    +
+    \widetilde E_g^{(s)}(t),
+    \label{eq:pseudo-model}
+  \end{equation}
+  其中 $\gamma_g^{(s)}=\gamma_i^{(s)}$（与 $i\in C$ 无关的部分），
+  $|\tilde b_g|\le \beta$，$\widetilde E_g$ 次高斯参数不超过 $\sigma_{\mathrm{eff}}^2$。
+  即\textbf{在真实 clade 与线性模型下，聚合不引入任何近似误差}；
+  \item \label{item:depth}
+  \textbf{附着深度恒等式}：若 $g$ 在 $C$ 内分出至少 $2$ 支（由假设
+  \ref{ass:minimal} 成立），则
+  \begin{equation}
+    R_{gg}=\min_{\substack{j\neq k\\ j,k\in C}} R_{jk}.
+    \label{eq:attach-depth}
+  \end{equation}
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}[证明思路]
+\ref{item:kcl} 径向树上流过附着边的功率等于下游全部终端注入之和（无损近似下
+即 KCL；损耗项并入失配 $b$）。代码逐字实现为列求和
+\texttt{p\_pseudo[pseudo\_id] = p\_terminal[children].sum(axis=1)}
+（\texttt{rooted\_hierarchy.py:260-261}）。
+
+\ref{item:deembed} 分三步。
+\emph{第一步（正部截断在理想模型下不激活）}：对 $i,j\in C$，
+$\operatorname{path}_{0i}\cap\operatorname{path}_{0j}\supseteq\operatorname{path}_{0g}$，
+故 $R_{ij}-R_{gj}=2\sum_{e\in(\operatorname{path}_{0i}\cap\operatorname{path}_{0j})
+\setminus\operatorname{path}_{0g}} r_e\ge 0$；
+$[\,\cdot\,]_{+}$ 可以去掉，差值恰为 $g$ 以下公共支路的电阻和。
+\emph{第二步（与 $i$ 无关）}：把式 \eqref{eq:linear-model} 的 $Y_i$ 展开，
+对 $j\in C$ 的项为 $R_{ij}P_j=[R_{gj}+(R_{ij}-R_{gj})]P_j$，
+去嵌入恰好消去第二项，留下 $R_{gj}P_j$——与 $i$ 无关；
+对 $j\notin C$ 的项由引理 \ref{lem:external}，$R_{ij}=R_{gj}$，本来就与 $i$ 无关。
+\emph{第三步（等于收缩树模型）}：合并后 $C$ 内项为
+$\sum_{j\in C}R_{gj}P_j$。注意 $R_{gj}=R_{gg}+(\text{$j$ 在 $g$ 以下支路的共享电阻})$，
+而理想去嵌入把 $j$ 在 $g$ 以下的部分全部消去，故
+$\sum_{j\in C}R_{gj}P_j$ 经 \eqref{eq:deembed} 化简为
+$R_{gg}\sum_{j\in C}P_j=R_{gg}P_g$（KCL）；$j\notin C$ 的项保持
+$R_{gj}P_j$。$X$ 同理。于是 $\widetilde Y_g$ 满足收缩树 $T/C$ 上以 $g$ 为终端的
+drop 模型 \eqref{eq:pseudo-model}，截距、失配界与噪声参数逐项继承。
+
+\ref{item:depth} 对 $j\neq k\in C$，
+$R_{jk}=R_{gg}+2\sum_{e\in(\operatorname{path}_{0j}\cap\operatorname{path}_{0k})
+\setminus\operatorname{path}_{0g}}r_e\ge R_{gg}$；
+取 $j,k$ 分别位于 $g$ 在 $C$ 内的两条不同分支（假设 \ref{ass:minimal} 保证至少两支），
+其 $g$ 以下公共部分为空，等号成立。
+\end{proof}
+
+\begin{remark}[代码的含噪鲁棒版]
+代码并不使用式 \eqref{eq:deembed} 的理想量本身：
+\begin{itemize}[leftmargin=2em]
+  \item 边界行 $R_{gj}$ 用鲁棒估计：簇内取
+        $\mathrm{clip}\bigl(\mathrm{quantile}_{0.2}(\text{off-diag }R[C,C]),\,0,\,\min\operatorname{diag}R[C,C]\bigr)$，
+        簇外取 $\mathrm{median}_{i\in C}R_{ij}$
+        （\texttt{rooted\_hierarchy.py:182-202} \texttt{\_boundary\_sensitivity\_row}）。
+        由式 \eqref{eq:attach-depth}，理想值是簇内 off-diagonal 的\emph{最小值}；
+        $\mathrm{quantile}_{0.2}$ 是其抗噪替代，$\min\operatorname{diag}$ 上界由
+        $R_{gg}\le R_{jj}$ 保证方向正确；
+  \item 式 \eqref{eq:deembed} 对每个 $i\in C$ 计算后对子节点取 \texttt{median}
+        （\texttt{rooted\_hierarchy.py:284}），再与簇内均值做凸混合
+        $\texttt{mean}+w\cdot(\texttt{median}-\texttt{mean})$，默认 $w=0.50$
+        （\texttt{rooted\_hierarchy.py:285-287}；
+        \texttt{pipeline/unified\_topology\_pipeline.py:71}
+        \texttt{aggregation\_deembedding\_weight=0.50}）。
+\end{itemize}
+引理 \ref{lem:aggregation-exact}\ref{item:deembed} 给出的是这些启发式所逼近的
+\emph{理想不动点}：无噪时 median、mean 与任意 $w$ 的混合都等于 $\widetilde Y_g$，
+故鲁棒版与理想恒等式相容。$w$ 与 quantile 的理论选择目前是开放问题
+（\S\ref{sec:limitations}）。
+\end{remark}
+
+\section{引理 3：降噪与降维}
+\label{sec:denoise}
+
+\begin{lemma}[聚合的降噪与降维]
+\label{lem:denoise}
+在引理 \ref{lem:aggregation-exact} 的条件下，并对 $k$ 个互不相交的确认 clade
+$C_1,\ldots,C_k$（大小 $|C_c|\ge 2$）同时聚合：
+\begin{enumerate}[label=\textup{(\alph*)},leftmargin=2.4em]
+  \item \textbf{降噪}：pseudo 观测
+        $\widehat Y_{g_c}=\frac{1}{|C_c|}\sum_{i\in C_c}\widetilde Y_{g_c,i}$
+        的噪声次高斯参数降为 $\sigma_{\mathrm{eff}}^2/|C_c|$；
+        代码的 median 版本渐近方差为
+        $\frac{\pi}{2}\sigma_{\mathrm{eff}}^2/|C_c|$（高斯情形），
+        与 mean 的任意凸混合仍为 $O(\sigma_{\mathrm{eff}}^2/|C_c|)$；
+  \item \textbf{降维}：主干回归未知量维数
+        $2n+S\;\longrightarrow\;2\bigl(n-\textstyle\sum_c(|C_c|-1)\bigr)+S$；
+  \item \textbf{条件数}：簇内 $P/Q$ 列合并为其和，消除了由簇内负荷同步产生的
+        近共线方向，最小奇异值不因簇内相关性而塌缩；设计阵条件数由拟合例程
+        在收缩问题上重新返回（\texttt{multiscenario.py:171}），作为可审计量。
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}[证明思路]
+(a) 由引理 \ref{lem:aggregation-exact}\ref{item:deembed}，
+$\widetilde Y_{g,i}=\widetilde Y_g+\varepsilon_i$，其中 $\varepsilon_i$ 跨 $i\in C$
+独立（假设 \ref{ass:noise}：仿真噪声逐终端独立，去嵌入的差分项只含确定性的
+估计系数与量测 $P/Q$，其噪声贡献为低阶项，并入 $\sigma_{\mathrm{eff}}$）。
+独立次高斯变量的均值以次高斯参数 $\sigma^2/|C|$ 集中；
+median 在高斯下的渐近方差为 $\pi\sigma^2/(2|C|)$；凸混合的方差不超过两个分量的
+较大者（Cauchy--Schwarz），故仍为 $O(\sigma^2/|C|)$。
+
+(b) 每个 clade 把 $|C_c|$ 个终端列替换为 $1$ 个 pseudo 列，
+$P$、$Q$ 块各减少 $|C_c|-1$ 列，场景示性列不变。
+
+(c) 列子集与列求和是设计的线性聚合 $Z\mapsto ZA$；簇内高度相关的列合并后，
+原来由簇内同步负荷造成的近零奇异方向被移除（这正是 ch05 反例 4 的病态来源，
+见推论 \ref{cor:main}(ii)）。一般情况下 $\sigma_{\min}(ZA)$ 不存在普适的单调性结论，
+因此本文不对条件数作超出代码可审计范围的断言：每次主干拟合返回
+\texttt{np.linalg.cond(design)}（\texttt{multiscenario.py:171}），
+实验层面可直接核验。
+\end{proof}
+
+\section{定理 1：两阶段样本复杂度}
+\label{sec:sample-complexity}
+
+本节先给两个技术引理（ordered 投影的非扩张性、RX75 归一化因子的集中），
+再陈述并论证主定理。
+
+\begin{lemma}[ordered 投影链的 entrywise max-norm 非扩张性]
+\label{lem:proj-nonexpansive}
+设真实灵敏度矩阵 $R$ 满足 ordered 可行性（对称、逐元非负、且对一切 $i\neq j$，
+$R_{ii}-R_{ij}\ge \mathrm{margin}$，见假设 \ref{ass:design}(3)）。
+若输入矩阵 $M$ 满足 $\|M-R\|_{\max}\le \eta$，则
+\texttt{project\_ordered\_sensitivity\_matrix}
+（\texttt{matrix\_constraints.py:70-96}）的每一个基本操作——对称化、非负截断、
+半空间修正（\texttt{\_project\_diagonal\_order}，\texttt{:37-53}）、
+最终对角提升可行化（\texttt{\_make\_ordered\_feasible}，\texttt{:56-67}）——
+输出 $M'$ 仍满足 $\|M'-R\|_{\max}\le \eta$。因此整个投影链（任意多次迭代）后
+$\|\widehat R^{\mathrm{ord}}-R\|_{\max}\le \eta$。
+\end{lemma}
+
+\begin{proof}[证明思路]
+记 $e_{ij}=M_{ij}-R_{ij}$，$|e_{ij}|\le\eta$。逐操作验证：
+
+\emph{(1) 对称化} $M'\leftarrow\frac12(M+M^\top)$：由 $R$ 对称，
+$|M'_{ij}-R_{ij}|\le\frac12(|e_{ij}|+|e_{ji}|)\le\eta$。
+
+\emph{(2) 非负截断} $x\mapsto\max(x,0)$：逐元 $1$-Lipschitz，且 $R\ge 0$，非扩张。
+
+\emph{(3) 半空间修正}：当 violation
+$v:=\mathrm{margin}-(M_{ii}-M_{ij})>0$ 时，代码更新
+\begin{equation}
+  M'_{ii}=M_{ii}+\tfrac{2}{3}v,\qquad
+  M'_{ij}=M_{ij}-\tfrac{1}{3}v,\qquad
+  M'_{ji}=M'_{ij}.
+  \label{eq:halfspace-update}
+\end{equation}
+令 $g:=(R_{ii}-R_{ij})-\mathrm{margin}\ge 0$（真矩阵的可行余量），则
+$v=(e_{ij}-e_{ii})-g$，且 $v>0$ 蕴含 $e_{ij}-e_{ii}>g\ge 0$。代入
+\eqref{eq:halfspace-update}：
+\begin{align}
+  M'_{ii}-R_{ii}
+  &=\tfrac13 e_{ii}+\tfrac23 e_{ij}-\tfrac23 g,
+  \label{eq:err-diag}\\
+  M'_{ij}-R_{ij}
+  &=\tfrac23 e_{ij}+\tfrac13 e_{ii}+\tfrac13 g.
+  \label{eq:err-offdiag}
+\end{align}
+对式 \eqref{eq:err-diag}：下界 $M'_{ii}-R_{ii}=e_{ii}+\frac23v\ge e_{ii}\ge-\eta$
+（因 $v\ge 0$）；上界 $\frac13e_{ii}+\frac23e_{ij}-\frac23g
+\le\frac13e_{ii}+\frac23e_{ij}\le\eta$。
+对式 \eqref{eq:err-offdiag}：下界
+$\frac23e_{ij}+\frac13e_{ii}+\frac13g\ge\frac23e_{ij}+\frac13e_{ii}\ge-\eta$；
+上界利用 $g<e_{ij}-e_{ii}$，
+$\frac23e_{ij}+\frac13e_{ii}+\frac13g
+<\frac23e_{ij}+\frac13e_{ii}+\frac13(e_{ij}-e_{ii})=e_{ij}\le\eta$。
+故 $|M'_{ii}-R_{ii}|\le\eta$、$|M'_{ij}-R_{ij}|\le\eta$；
+$M'_{ji}$ 相同（$R_{ji}=R_{ij}$）。
+
+\emph{(4) 最终对角提升}：$M'_{ii}=\max\bigl(M_{ii},\,\max_{j\neq i}M_{ij}+\mathrm{margin}\bigr)$。
+设真实行余量 $g_i:=R_{ii}-\max_{j\neq i}R_{ij}\ge\mathrm{margin}$。
+下界 $M'_{ii}\ge M_{ii}\ge R_{ii}-\eta$；上界：若未触发提升则
+$M'_{ii}=M_{ii}\le R_{ii}+\eta$；若触发，
+$M'_{ii}\le \max_{j\neq i}R_{ij}+\eta+\mathrm{margin}
+=R_{ii}-g_i+\eta+\mathrm{margin}\le R_{ii}+\eta$。
+故 $|M'_{ii}-R_{ii}|\le\eta$。
+
+各操作均保持 $\|\cdot-R\|_{\max}\le\eta$，复合后结论成立。
+\end{proof}
+
+\begin{remark}
+值得注意的是，代码的更新 \eqref{eq:halfspace-update} 并非向半空间
+$\{M_{ii}-M_{ij}\ge\mathrm{margin}\}$ 的欧氏正交投影（那将是 $(v/2,-v/2)$），
+而是 $(2v/3,-v/3)$ 的偏斜修正。上述论证表明：在真矩阵可行（$g\ge 0$）且
+$v\ge 0$ 的结构下，新误差是两个旧误差的凸组合减去非负松弛项，因此
+\emph{entrywise max-norm} 仍非扩张——这比"凸投影在 Frobenius 范数下非扩张"
+的通用结论更强，也正是评审所要求的处理。若放松 $g\ge 0$（真矩阵违反投影
+margin），非扩张性不再成立；但由于代码 margin 为 $10^{-6}$ 相对量级而真实
+$g_{\min}$ 是物理边电阻量级，该前提在实际中总是成立。
+\end{remark}
+
+\begin{lemma}[RX75 随机归一化因子的集中]
+\label{lem:normalize}
+设事件 $\mathcal{E}=\{\|\hat d^R-d^R\|_{\max}\le 4\eta_R\}$ 成立，且
+$4\eta_R<\min_{i\neq j}d^R_{ij}$。令 $s_R:=\frac{1}{n(n-1)}\sum_{i\neq j}d^R_{ij}$，
+$\hat s_R$ 为 $\hat d^R$ 正项均值（\texttt{baseline.py:71-73}）。则
+在 $\mathcal{E}$ 上：
+\begin{enumerate}[label=\textup{(\alph*)},leftmargin=2.4em]
+  \item 正项选取是\emph{确定}的：$\hat d^R$ 的对角元恒等于 $0$
+        （构造 \eqref{eq:impedance-distance} 使 $\hat d^R_{ii}\equiv 0$），
+        而所有 $i\neq j$ 项满足 $\hat d^R_{ij}\ge d^R_{ij}-4\eta_R>0$，
+        故"正项均值"恰为全体 $i\neq j$ 对的均值；
+  \item $|\hat s_R-s_R|\le 4\eta_R$（$n(n-1)$ 个各误差 $\le 4\eta_R$ 的量的均值）；
+  \item 归一化距离逐元误差
+        \begin{equation}
+          \left|\frac{\hat d^R_{ij}}{\hat s_R}-\frac{d^R_{ij}}{s_R}\right|
+          \le
+          \frac{|\hat d^R_{ij}-d^R_{ij}|}{\hat s_R}
+          +
+          \frac{d^R_{ij}\,|\hat s_R-s_R|}{s_R\,\hat s_R}
+          \le
+          \frac{4\eta_R}{s_R-4\eta_R}
+          \left(1+\frac{d^R_{\max}}{s_R}\right),
+          \label{eq:normalize-chain}
+        \end{equation}
+        其中 $d^R_{\max}=\max_{i\neq j}d^R_{ij}$；
+  \item 混合距离 $\hat d=0.75\,\hat d^R/\hat s_R+0.25\,\hat d^X/\hat s_X$
+        （\texttt{baseline.py:89}）的逐元误差不超过
+        $0.75\,c_R\eta_R+0.25\,c_X\eta_X$，
+        $c_R=\frac{4}{s_R-4\eta_R}\bigl(1+\frac{d^R_{\max}}{s_R}\bigr)$ 为 $O(1/s_R)$
+        常数；根深（\texttt{baseline.py:90-93}）同理（正项均值换为对角均值）。
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}[证明思路]
+(a)(b) 已在上式给出；(c) 是标准的"商扰动"展开，
+$|\hat d/\hat s-d/s|\le|\hat d-d|/\hat s+(d/s)\cdot|\hat s-s|/\hat s$，
+并用 $\hat s_R\ge s_R-4\eta_R$；(d) 对两个归一化项分别用 (c) 再以权重凸组合。
+结论：主定理对\emph{未归一化}距离陈述；RX75 归一化只是把 $\eta$ 换成
+$\eta'=O(\eta/s_R)$，只改变常数，不改变样本复杂度的阶。
+\end{proof}
+
+\begin{theorem}[两阶段样本复杂度]
+\label{thm:two-stage}
+在假设 \ref{ass:minimal}--\ref{ass:design} 下，设对 $\delta\in(0,1)$，
+\begin{equation}
+  \eta
+  \;:=\;
+  \underbrace{\frac{\sigma_{\mathrm{eff}}\sqrt{2\log\bigl(4n(2n+S)/\delta\bigr)}}
+  {\sigma_{\min}(Z)}}_{\text{噪声项，}\asymp\,
+  \sigma_{\mathrm{eff}}\kappa(Z)\sqrt{\frac{\log(n/\delta)}{N v_{\max}}}}
+  \;+\;
+  \underbrace{\frac{\beta\sqrt{N}}{\sigma_{\min}(Z)}}_{\text{模型失配偏差（不随 $N$ 消失）}}
+  \label{eq:eta-def}
+\end{equation}
+满足 RNJ 安全半径条件（式 \eqref{eq:rnj-radius}）与 quartet 检测条件
+（式 \eqref{eq:quartet-cond}）。则以概率 $\ge 1-\delta-\delta_q$：
+\begin{enumerate}[label=\textup{(\alph*)},leftmargin=2.4em]
+  \item ordered 投影后的估计满足 $\|\widehat R^{\mathrm{ord}}-R\|_{\max}\le\eta$
+        （$X$ 同理）；
+  \item RNJ 在收缩树 $T/\{C_c\}$ 上精确恢复主干拓扑；
+  \item 条件于所有确认 clade 为真，两阶段管线（聚合主干 + 各 clade 局部二阶段）
+        精确恢复完整拓扑；主干阶段的有效噪声方差为 $\sigma_{\mathrm{eff}}^2/|C|$、
+        未知树尺寸为 $\tilde n=n-\sum_c(|C_c|-1)$，故主干精确恢复所需总样本量
+        \begin{equation}
+          N=Sm\;\gtrsim\;
+          \frac{\sigma_{\mathrm{eff}}^2\,\kappa(\widetilde Z)^2\,
+          \log(\tilde n/\delta)}{|C|\cdot v_{\max}\cdot\widetilde\gamma^{\,2}}
+          \label{eq:sample-complexity}
+        \end{equation}
+        相对未聚合管线（$|C|=1$、$\widetilde\gamma=\gamma_{\min}$ 含簇内短边）
+        约按 $|C|$ 倍下降，且收缩树 margin $\widetilde\gamma=\widetilde\ell_{\min}$
+        不再受簇内短边限制。
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[证明思路]
+\textbf{步骤 1（lstsq 行误差集中 + union bound）}。
+对每个目标列 $j$（终端 $j$ 的 $Y$ 列），
+\begin{equation}
+  \widehat\Theta_{\cdot j}-\Theta_{\cdot j}
+  =(Z^\top Z)^{-1}Z^\top\bigl(E_{\cdot j}+b_{\cdot j}\bigr).
+\end{equation}
+其第 $k$ 个系数为 $a_k^\top(E_{\cdot j}+b_{\cdot j})$，其中 $a_k^\top$ 是
+$(Z^\top Z)^{-1}Z^\top$ 的第 $k$ 行，
+$\|a_k\|_2\le\sigma_{\max}\bigl((Z^\top Z)^{-1}Z^\top\bigr)=1/\sigma_{\min}(Z)$。
+由假设 \ref{ass:noise}，$a_k^\top E_{\cdot j}$ 是次高斯参数
+$\le\sigma_{\mathrm{eff}}^2/\sigma_{\min}^2(Z)$ 的零均值变量：
+\begin{equation}
+  \Pr\bigl(|a_k^\top E_{\cdot j}|>t\bigr)
+  \le 2\exp\!\left(-\frac{t^2\,\sigma_{\min}^2(Z)}{2\sigma_{\mathrm{eff}}^2}\right);
+  \qquad
+  |a_k^\top b_{\cdot j}|\le\|a_k\|_2\|b_{\cdot j}\|_2
+  \le\frac{\beta\sqrt{N}}{\sigma_{\min}(Z)}.
+  \label{eq:row-concentration}
+\end{equation}
+对全部 $R$、$X$ 块系数（$2$ 块 $\times$ $n$ 列 $\times$ $(2n+S)$ 行，共
+$2n(2n+S)$ 个 entry）做 union bound：
+\begin{equation}
+  \Pr\!\left(\max_{k,j}\bigl|\widehat\Theta_{kj}-\Theta_{kj}\bigr|>t+\frac{\beta\sqrt N}{\sigma_{\min}(Z)}\right)
+  \le
+  4n(2n+S)\exp\!\left(-\frac{t^2\sigma_{\min}^2(Z)}{2\sigma_{\mathrm{eff}}^2}\right).
+  \label{eq:union-bound}
+\end{equation}
+令右端等于 $\delta$ 解出 $t$，即得式 \eqref{eq:eta-def} 的 $\eta$；
+用 $\sigma_{\min}(Z)=\sigma_{\max}(Z)/\kappa(Z)\asymp\sqrt{Nv_{\max}}/\kappa(Z)$
+改写成右端的形式。对称化与截负不放大 max-norm（引理
+\ref{lem:proj-nonexpansive} 的步骤 (1)(2)），再由引理 \ref{lem:proj-nonexpansive}
+整个 ordered 投影链保持 $\|\widehat R^{\mathrm{ord}}-R\|_{\max}\le\eta$，
+即结论 (a)——\textbf{$\eta$ 界覆盖代码的真实估计器输出，而非仅 lstsq 中间量}。
+
+\textbf{步骤 2（距离误差 $\le 4\eta$，ch09 链）}。
+由式 \eqref{eq:impedance-distance} 的构造，
+\begin{align}
+  \bigl|\hat d_{ij}-d_{ij}\bigr|
+  &=
+  \bigl|(\widehat R_{ii}-R_{ii})+(\widehat R_{jj}-R_{jj})
+  -2(\widehat R_{ij}-R_{ij})\bigr|
+  \notag\\
+  &\le \eta+\eta+2\eta=4\eta.
+  \label{eq:four-eta}
+\end{align}
+RX75 模式下由引理 \ref{lem:normalize}，把 $4\eta$ 换成 $O(\eta/s_R)$ 的归一化版本，
+以下推导不变（常数因子）。
+
+\textbf{步骤 3（直接 shared-path 分数的安全半径）}。
+RNJ 不再从 $\hat d$ 回算一个新的 $\hat\rho$，而是直接输入
+\begin{equation}
+  \hat S_{ij}=0.75\frac{\widehat R_{ij}}{\hat s_R}
+  +0.25\frac{\widehat X_{ij}}{\hat s_X},
+  \qquad \hat H_i=\hat S_{ii}.
+  \label{eq:shared-path-est}
+\end{equation}
+记归一化矩阵元素误差界为 $\varepsilon_R,\varepsilon_X$，则
+\begin{equation}
+  \|\hat S-S\|_{\max}
+  \le0.75\varepsilon_R+0.25\varepsilon_X=: \varepsilon_S.
+  \label{eq:three-eta}
+\end{equation}
+设相邻隐藏分叉深度的最小差为 $\ell_{\min}$。RNJ 的最大对选择与 family 扩展都只比较
+$S$ 值；与当前代码一致的充分安全区间为
+\begin{equation}
+  \varepsilon_S<\frac{\ell_{\min}}4,
+  \qquad
+  2\varepsilon_S\le\tau<\ell_{\min}-2\varepsilon_S.
+  \label{eq:rnj-radius}
+\end{equation}
+旧稿的 $3\eta$ 来自把同一矩阵产生的根深和距离误差当作独立项；直接式
+\eqref{eq:shared-path-est} 表明该放大不存在。代码取
+$\tau=0.16\cdot\mathrm{median}(\hat H)$（\texttt{baseline.py}），
+其实现文档自述这是数值阈值而非理论校准
+（\texttt{rooted\_neighbor\_joining.py:95-101}），见 \S\ref{sec:limitations}。
+
+\textbf{步骤 4（两阶段：条件于确认 clade 为真）}。
+设确认 clade 集合全真的事件为 $\mathcal{E}_{\mathrm{clade}}$，
+$\Pr(\mathcal{E}_{\mathrm{clade}})\ge 1-\delta_q$。clade 检测的正确性由
+quartet/四点检验单独保证：对候选 clade $C$，四点条件
+\begin{equation}
+  d(i,k)+d(j,l)-\max\bigl\{d(i,j)+d(k,l),\ d(i,l)+d(j,k)\bigr\}
+  \ge 2\ell^C_{\min},
+  \qquad i,j\in C,\ k,l\notin C,
+  \label{eq:quartet-cond}
+\end{equation}
+的每个三点和涉及至多 $6$ 个距离项，误差 $\le 3\times 4\eta=12\eta$
+（保守取 $\le 8\eta$ 的两倍界），对全部 $O(n^4)$ 个四元组做 union bound
+（失败预算 $\delta_q$），即得：当 $\eta$ 满足式 \eqref{eq:rnj-radius} 且
+$12\eta<\ell^C_{\min}$ 时 $\delta_q$ 可控。代码对应为
+\texttt{terminal\_case33/graph/quartet\_significance.py} 的 bootstrap 显著性检验
+（20 次重复、置信水平 $0.90$、正支持率阈值 $0.80$，
+\texttt{pipeline/unified\_topology\_pipeline.py:59-62}），以及门控管线
+（support $\ge 0.875$、boundary margin $\ge 0.10$、长度比 $\ge 0.02$、
+簇大小 $\le 5$，\texttt{pipeline/peripheral\_edge\_proposals.py:335-349}）
+加四源外部确认（Ordered base / GTLS $\ge 0.5$ / AC / quartet，
+\texttt{pipeline/unified\_topology\_pipeline.py:250-254,302-334}）。
+
+在 $\mathcal{E}_{\mathrm{clade}}$ 上，由引理 \ref{lem:aggregation-exact}，
+聚合后的主干数据\emph{恰好}服从收缩树 $T/\{C_c\}$ 上的同类线性模型，
+未知树尺寸 $\tilde n=n-\sum_c(|C_c|-1)$；由引理 \ref{lem:denoise}，
+pseudo 终端的有效噪声参数为 $\sigma_{\mathrm{eff}}^2/|C_c|$。
+对主干问题重新应用步骤 1--3：式 \eqref{eq:eta-def} 中
+$\sigma_{\mathrm{eff}}^2\mapsto\sigma_{\mathrm{eff}}^2/|C|$、
+$n\mapsto\tilde n$、margin $\ell_{\min}\mapsto\widetilde\ell_{\min}$
+（收缩树的 margin，不再包含簇内短边），解出式 \eqref{eq:sample-complexity}。
+局部二阶段以 pseudo 边界电压为局部根电压
+（\texttt{rooted\_hierarchy.py:305-340} \texttt{build\_local\_cluster\_scenarios}；
+或直接在 shared-path 上重 Rooted 后局部重跑 RNJ，
+\texttt{rooted\_hierarchy.py:343-386}），问题规模仅为 $|C_c|$，
+其样本需求相对主干可忽略。主干与局部结果经
+\texttt{expand\_pseudo\_clades\_with\_local\_reidentification}
+（\texttt{rooted\_hierarchy.py:407-424}）合并为完整终端 clade 集合。
+对失败事件取并，总失败概率 $\le\delta+\delta_q$。
+\end{proof}
+
+\section{推论}
+\label{sec:corollaries}
+
+\begin{corollary}[聚合的三项结构性结论]
+\label{cor:main}
+在定理 \ref{thm:two-stage} 的条件下：
+\begin{enumerate}[label=\textup{(\roman*)},leftmargin=2.6em]
+  \item \textbf{真实 clade 下聚合单调不伤}。三个通道分别成立：
+        (i) 方差通道——主干 pseudo 观测噪声 $\sigma_{\mathrm{eff}}^2\to\sigma_{\mathrm{eff}}^2/|C|$
+        （引理 \ref{lem:denoise}(a)）；
+        (ii) 维数通道——未知量 $2n+S\to 2\tilde n+S$，$\tilde n<n$
+        （引理 \ref{lem:denoise}(b)），集中不等式 \eqref{eq:union-bound} 的
+        union bound 因子同步缩小；
+        (iii) margin 通道——收缩树 $\widetilde\ell_{\min}\ge\ell_{\min}$，
+        安全半径条件 \eqref{eq:rnj-radius} 只会更容易满足。
+        这解释了代码的"软收缩"设计：聚合候选始终以未聚合形式保留在候选集中
+        （beam 结构，\texttt{pipeline/unified\_topology\_pipeline.py:337-360}），
+        最终由留出场景 AC NLL 仲裁（\texttt{ac\_likelihood.py:522-534}），
+        因此聚合在最坏情形下不回退，在定理条件下严格受益。
+  \item \textbf{主干恢复对簇内负荷相关免疫}。ch05 反例 4（同步负荷曲线）表明：
+        同支路终端的 $P/Q$ 曲线高度相关会使设计阵近共线、$\sigma_{\min}(Z)$
+        塌缩，lstsq 系数的 entrywise 误差按
+        $1/\sigma_{\min}(Z)$ 放大（式 \eqref{eq:row-concentration}）。
+        聚合把簇内相关列合并为单列和 $P_g=\sum_{j\in C}P_j$
+        （引理 \ref{lem:aggregation-exact}\ref{item:kcl}），
+        簇内相关性不再进入主干设计阵 $\widetilde Z$；
+        因此主干阶段的 $\kappa(\widetilde Z)$ 与 $\eta$ 界对簇内负荷相关免疫。
+        反例由此从"管线失效模式"转化为"聚合的收益来源"。
+  \item \textbf{门限的定量解释}。代码门控（support $\ge 0.875$ 等，
+        \texttt{peripheral\_edge\_proposals.py:343-345}）是
+        $\Pr(\text{clade 为真}\mid\text{数据})$ 的 bootstrap 经验估计；
+        定理 \ref{thm:two-stage} 给出"何时该聚合"的定量判据方向：
+        当 $\eta$ 已小于簇内可分辨 margin（ quartet 条件
+        \eqref{eq:quartet-cond} 满足）而仍大于收缩树安全半径所需水平时，
+        聚合把 $\eta$ 有效降低 $\sqrt{|C|}$ 倍并把 margin 放松到
+        $\widetilde\ell_{\min}$，恰好覆盖这一 regime；
+        门控 support 阈值应对应 $1-\delta_q$ 的检测置信度。
+\end{enumerate}
+\end{corollary}
+
+\section{假设与局限}
+\label{sec:limitations}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{线性模型 vs AC}。定理的回归模型是 LinDistFlow 平方电压近似
+        （假设 \ref{ass:linear}）；AC 非线性以有界失配项
+        $\beta\sqrt{N}/\sigma_{\min}(Z)=O(\beta/\sqrt{v_{\min}})$ 进入
+        $\eta$（式 \eqref{eq:eta-def}），不随样本量消失。若 $\beta$ 项接近
+        $\ell_{\min}/6$，安全半径条件 \eqref{eq:rnj-radius} 无论多少样本都无法满足。
+        AC 模型在管线中只用于最终候选排序（\texttt{ac\_likelihood.py:522-534}），
+        不进入定理。
+  \item \textbf{跨终端误差相关}。引理 \ref{lem:denoise}(a) 的
+        $\sigma^2/|C|$ 依赖噪声跨终端独立（假设 \ref{ass:noise}）。
+        若簇内噪声两两相关系数平均为 $\bar\rho$，均值方差退化为
+        $\frac{\sigma^2}{|C|}\bigl(1+(|C|-1)\bar\rho\bigr)$，
+        $\bar\rho\to 1$ 时降噪收益消失。仿真器中噪声逐终端独立
+        （\texttt{experiments/common.py:97-100}），且根电压公共模态已被 drop 目标
+        去除（\texttt{preprocessing.py:38-56}），故在本文实验设置下假设成立；
+        真实智能电表的共模扰动需在部署前单独检验。
+  \item \textbf{度 2 隐藏链}。度数 $2$ 的隐藏节点在终端距离下不可辨识，
+        假设 \ref{ass:minimal} 不可去除；聚合引理对此无修复作用。
+  \item \textbf{启发式参数暂无理论}。去嵌入 median/mean 混合权重
+        $w=0.50$（\texttt{unified\_topology\_pipeline.py:71}）、边界行
+        $\mathrm{quantile}_{0.2}$（\texttt{rooted\_hierarchy.py:191-194}）、
+        RNJ 容差因子 $0.16$（\texttt{baseline.py:104}）均为鲁棒启发式；
+        引理 \ref{lem:aggregation-exact} 只保证它们在无噪极限下与理想恒等式一致。
+  \item \textbf{目标单调精化循环不在集中不等式覆盖内}。代码默认在 lstsq+投影后
+        再跑 $50$ 步带回溯线搜索的投影梯度精化
+        （\texttt{multiscenario.py:34,138-166}），该循环只保证最小二乘目标单调下降，
+        其输出的 entrywise max-norm 误差没有定理 \ref{thm:two-stage} 步骤 1 的显式界；
+        定理严格覆盖的是 \texttt{constraint\_refine\_iterations=0} 的估计器。
+        此外 \texttt{daily\_demean} 预处理（\texttt{baseline.py:100} 默认）在日块内
+        引入弱时间相关，步骤 1 的独立性假设把它近似忽略。
+  \item \textbf{clade 检测条件的独立性}。定理 \ref{thm:two-stage} 以
+        $\mathcal{E}_{\mathrm{clade}}$ 为条件；quartet 检验的有限样本功效
+        （而不仅是 I 类错误）没有显式给出，对应的 bootstrap 实现
+        （\texttt{graph/quartet\_significance.py}）是经验校准的。
+  \item \textbf{相图实验的反面证据（2026-07-21，144 条件）}。配套相图实验
+        （\texttt{experiments/run\_aggregation\_phase\_diagram.py}，
+        结果见 \texttt{outputs/agg\_phase\_figures/report.md}）表明：
+        在链式骨干的 grid16\_k2/k4/k8 案例上，聚合开/关的统一管线 F1 配对增益
+        在全部 72 对中严格为 $0$——聚合簇能被提议并通过稳定性门控，但聚合候选在
+        pseudo 主干重辨识的质量门控处被拒并回退。其直接原因是链式骨干的累计阻抗
+        使设计阵病态（实测条件数 $\approx 2.2\times 10^{4}$），违反假设
+        \ref{ass:design} 的良态要求，定理 \ref{thm:two-stage} 的样本复杂度结论
+        在该 regime 下不提供保证；门控回退保护了最终结果，恰为推论
+        "单调不伤"提供了实证（对照案例 flynn16 上聚合 14/18 条件实际应用且
+        F1 无损）。这意味着定理预测的正增益只应在满足设计阵良态假设的
+        regime 中出现；病态 regime 下门控阈值的自适应标定是开放问题。
+\end{enumerate}
+
+\appendix
+
+\section{符号与代码对照表}
+\label{app:code-map}
+
+下表汇总本文每个符号、每条假设对应的代码位置（行号以写作时的代码为准）。
+所有路径相对于 \texttt{terminal\_load\_only\_case33/}。
+
+\begin{center}
+\footnotesize
+\begin{tabular}{p{4.6cm}p{6.2cm}p{4.2cm}}
+\toprule
+符号 / 假设 & 代码位置 & 说明 \\
+\midrule
+相对高斯量测噪声（假设 \ref{ass:noise}）
+  & \texttt{experiments/common.py:97-100}
+  & $P_{\mathrm{meas}}=P+\mathcal N(0,\sigma_{PQ}|P|)$ 等，逐终端独立 \\
+drop 目标 $Y=v_0^2-V_i^2$（式 \eqref{eq:drop-target}）
+  & \texttt{experiments/common.py:106}；\texttt{terminal\_case33/estimation/preprocessing.py:38-56}
+  & 根电压公共模态预先去除 \\
+AC 前推回代仿真（仅数据生成与排序）
+  & \texttt{terminal\_case33/models/ac\_powerflow.py:171}
+  & \texttt{solve\_ac\_power\_flow\_timeseries} \\
+$R_{ij}=2\sum r_e$（式 \eqref{eq:shared-path-R}）
+  & \texttt{terminal\_case33/models/lin\_distflow.py:24-60}
+  & 平方电压约定 $\times2$：\texttt{:57-59} \\
+设计阵 $Z=[P|Q|\text{场景示性}]$（假设 \ref{ass:linear}）
+  & \texttt{terminal\_case33/estimation/multiscenario.py:47-59}
+  & 模型字符串见 \texttt{baseline.py:106-115} \\
+lstsq（步骤 1）
+  & \texttt{terminal\_case33/estimation/multiscenario.py:68}
+  & 默认 $\alpha=0$ 无岭惩罚 \\
+对称化+截负
+  & \texttt{terminal\_case33/estimation/multiscenario.py:71-73}
+  & 引理 \ref{lem:proj-nonexpansive} 步骤 (1)(2) \\
+ordered 投影（引理 \ref{lem:proj-nonexpansive}）
+  & \texttt{multiscenario.py:74-82}；\texttt{matrix\_constraints.py:70-96}
+  & 半空间修正 \texttt{:37-53}；对角提升 \texttt{:56-67}；margin 比 $10^{-6}$：\texttt{multiscenario.py:33} \\
+目标单调精化循环（局限 5）
+  & \texttt{terminal\_case33/estimation/multiscenario.py:138-166}
+  & 回溯线搜索保证目标不升 \\
+设计阵条件数（假设 \ref{ass:design}）
+  & \texttt{terminal\_case33/estimation/multiscenario.py:171}；\texttt{baseline.py:194}
+  & \texttt{np.linalg.cond(design)}，随结果审计保存 \\
+$d_{ij}=R_{ii}+R_{jj}-2R_{ij}$（式 \eqref{eq:impedance-distance}）
+  & \texttt{terminal\_case33/models/lin\_distflow.py:63-67}
+  & 对角恒为 $0$（引理 \ref{lem:normalize}(a)） \\
+RX75 直接分数与根深（引理 \ref{lem:normalize}）
+  & \texttt{terminal\_case33/graph/sensitivity\_geometry.py}
+  & 正项均值归一，$0.75/0.25$ 混合 \\
+shared-path $S=c_RR+c_XX$（式 \eqref{eq:shared-path-est}）
+  & \texttt{terminal\_case33/graph/sensitivity\_geometry.py}
+  & RNJ 的直接输入 \\
+RNJ 主算法（步骤 3）
+  & \texttt{terminal\_case33/graph/rooted\_neighbor\_joining.py:88-171}
+  & 家族扩展判据 \texttt{:142-149} \\
+RNJ 容差 $\tau=0.16\cdot\mathrm{median}(\hat H)$
+  & \texttt{terminal\_case33/estimation/baseline.py:104,172}
+  & 数值阈值，非理论校准 \\
+clade 提取 \texttt{rooted\_clades}
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:84-111}
+  & 非平凡下游终端 clade \\
+边界行 quantile$_{0.2}$（式 \eqref{eq:attach-depth} 的鲁棒替代）
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:182-202}
+  & quantile 于 \texttt{:191-194}；clip 上界 $\min\operatorname{diag}$ \\
+去嵌入"只用簇内 $P/Q$ 列"（引理 \ref{lem:external}）
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:216-218}
+  & 注释原文；实现 \texttt{:274-282} \\
+$P_g=\sum_{j\in C}P_j$（引理 \ref{lem:aggregation-exact}\ref{item:kcl}）
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:260-261}
+  & 簇内列求和 \\
+去嵌入 + median + $\lambda$ 混合（引理 \ref{lem:aggregation-exact}\ref{item:deembed}）
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:272-287}
+  & \texttt{median} 于 \texttt{:284}；混合 \texttt{:285-287} \\
+$\lambda=0.50$ 默认（局限 4）
+  & \texttt{terminal\_case33/pipeline/unified\_topology\_pipeline.py:71}
+  & \texttt{aggregation\_deembedding\_weight} \\
+局部二阶段（步骤 4）
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:305-340,343-386}
+  & pseudo 边界为局部根 \\
+clade 展开合并
+  & \texttt{terminal\_case33/graph/rooted\_hierarchy.py:407-424}
+  & 主干 + 局部 clade 合并 \\
+门控 support $\ge 0.875$ 等（推论 \ref{cor:main}(iii)）
+  & \texttt{terminal\_case33/pipeline/peripheral\_edge\_proposals.py:335-349}
+  & margin $\ge 0.10$、长度比 $\ge 0.02$、簇 $\le 5$ \\
+四源外部确认（步骤 4）
+  & \texttt{terminal\_case33/pipeline/unified\_topology\_pipeline.py:250-254,302-334}
+  & Ordered base / GTLS $\ge0.5$ / AC / quartet \\
+quartet 显著性检验（式 \eqref{eq:quartet-cond}）
+  & \texttt{terminal\_case33/graph/quartet\_significance.py}
+  & bootstrap 四点检验（注意：位于 \texttt{graph/} 而非 \texttt{estimation/}） \\
+留出场景 AC NLL 排序
+  & \texttt{terminal\_case33/pipeline/ac\_likelihood.py:522-534}
+  & 不进定理，仅最终仲裁 \\
+oracle 指标（仅实验）
+  & \texttt{experiments/run\_unified\_topology\_pipeline\_sweep.py:75-79}
+  & 不进辨识回路 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{参考文献}
+
+\begin{thebibliography}{99}
+
+\bibitem{Atteson1997}
+K. Atteson,
+\newblock The performance of neighbor-joining algorithms of phylogeny reconstruction,
+\newblock \emph{COCOON 1997}, Lecture Notes in Computer Science 1276.
+
+\bibitem{SaitouNei1987}
+N. Saitou and M. Nei,
+\newblock The neighbor-joining method: a new method for reconstructing phylogenetic trees,
+\newblock \emph{Molecular Biology and Evolution}, 4(4):406--425, 1987.
+
+\bibitem{Mihaescu2006}
+R. Mihaescu, D. Levy, and L. Pachter,
+\newblock Why neighbor-joining works,
+\newblock arXiv:cs/0602041, 2006.
+
+\bibitem{Choi2010}
+M. J. Choi, V. Y. F. Tan, A. Anandkumar, and A. S. Willsky,
+\newblock Learning latent tree graphical models,
+\newblock arXiv:1009.2722, 2010.
+
+\bibitem{DekaTerminal2016}
+D. Deka, S. Backhaus, and M. Chertkov,
+\newblock Learning topology of distribution grids using only terminal node measurements,
+\newblock arXiv:1608.05031, 2016.
+
+\end{thebibliography}
+
+\end{document}

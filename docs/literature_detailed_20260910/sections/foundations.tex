@@ -1,0 +1,101 @@
+\section{阅读范围、统一模型与判断标准}
+\subsection{文献编号与证据层级}
+本报告沿用已有调研文件 \path{docs/lv_topology_research_probability_20260909.md} 的 S1--S17 编号；P1--P5 是此前小信号注入专题的补充，S12 不重复计数。因此共涉及22篇文献，而非22个已经完成代码复现的算法。正文中的 S 编号用于对应既有调研，方括号数字由参考文献系统生成。
+
+文中采用三个可追踪层次。\textbf{原文核实}指本次阅读到的论文正文、作者公开版本或出版摘要，并在对应小节给出定位；\textbf{本文推导}指依据声明的数学模型自行展开的解释，不是对作者未展示证明的代言；\textbf{待核实}用于全文缺失、版本不一致或证明接口没有满足的部分。文献页码按印刷页码说明时，不一定等于PDF阅读器页号，尤其S3机构PDF多了一页封面。
+
+\begin{longtable}{p{0.08\linewidth}p{0.44\linewidth}p{0.39\linewidth}}
+\toprule 编号 & 阅读主题 & 应首先分清的对象\\\midrule\endhead
+S1 & 配电拓扑学习教程 & 量测配置和恢复对象\\
+S2 & 末端P/Q/V下拓扑与阻抗联合估计 & 原文访问不足与可推导的公共机制\\
+S3 & 三相灵敏度、根电压与RG回溯 & 电流灵敏度及中性线耦合\\
+S4 & 隐节点潜树、BIC与EM & 概率生成模型与物理网络\\
+S5--S6 & 弱监督置信度、共形拓扑识别 & 标签置信与结构覆盖\\
+S7 & 量化下的参数误差界 & 连续参数误差与支撑恢复\\
+S8--S9 & 真实DSO相别核验与残差定位 & 现场核验与未知隐藏整树重建\\
+S10--S11 & 数据驱动与鲁棒DOE & 预测模型与全动作域可行性\\
+S12--S13 & 图探测与MILP & 叶节点激励、量测覆盖及已知候选线路\\
+S14--S17 & 广义后验、通用推断、树空间与共形 & 条件信念、置信集合和预测覆盖\\
+P1--P5 & 逆变器、电流、高频、FSR及脉冲压缩 & 功率响应、传播通道与记录关系\\
+\bottomrule
+\end{longtable}
+
+\subsection{从潮流到共同路径矩阵：本文统一推导}
+设径向树为 $T=(\{0\}\cup\mathcal H\cup\mathcal O,E)$，根为0，观测终端为 $\mathcal O$，隐藏节点为 $\mathcal H$。本节假设隐藏节点无净注入，支路电阻 $r_e>0$，电抗 $x_e\geq0$，暂不计损耗、互感与中性线。令 $p_i,q_i$ 为正值表示净负荷的终端功率，$u_i=|V_i|^2$。对边 $e=(a,b)$，令 $C_e$ 为其下游终端集合，$w_e\in\{0,1\}^n$ 为指示向量。由无损功率平衡，
+\begin{equation}
+ P_e=\sum_{j\in C_e}p_j=w_e^\top p,\qquad Q_e=w_e^\top q,
+ \qquad u_a-u_b=2(r_eP_e+x_eQ_e).
+\end{equation}
+沿根到终端 $i$ 的路径求和，交换求和顺序，得到
+\begin{align}
+ y_i:=u_0-u_i
+ &=2\sum_{e\in\mathcal P_{0i}}\sum_{j\in C_e}(r_ep_j+x_eq_j),\\
+ y&=Rp+Xq,\qquad
+ R=2\sum_e r_ew_ew_e^\top,\quad X=2\sum_e x_ew_ew_e^\top.
+ \label{eq:base-rx}
+\end{align}
+因此 $R_{ij}$ 是两个根路径交集上电阻和的两倍，而非 $i,j$ 间直接支路的电阻。若采用电压幅值及额定电压附近的线性化，系数约为上述的一半；若 $p,q$ 改为正值代表发电注入，响应符号相反。后文保留原论文局部符号时，会说明它与本节的区别。
+
+设 $H_{ie}=1\{e\in\mathcal P_{0i}\}$，则 $R=2H\diag(r)H^\top$。在全部非根节点都列入时，选定关联矩阵的方向可使路径矩阵为其逆，故逆灵敏度是加权约化Laplacian；只保留末端后，一般不能把 $R_{\mathcal O\mathcal O}^{-1}$ 的非零元直接解释成末端之间的实际线路。
+
+\subsection{树距离、根信息和不可辨识性}
+由式\eqref{eq:base-rx}定义
+\begin{equation}
+ d_{ij}=\frac{R_{ii}+R_{jj}-2R_{ij}}{2}
+       =\sum_{e\in\mathcal P_{ij}}r_e,
+ \qquad d_{0i}=R_{ii}/2.
+ \label{eq:base-distance}
+\end{equation}
+共同路径在差分中抵消，仅留下两端之间的路径。若只使用 $d_{ij}$ 而不使用 $d_{0i}$，所有终端上游公共边的阻抗会消失。反过来，若根电压存在无法分离的公共误差，矩阵的 $\mathbf1\mathbf1^\top$ 方向容易与该误差混淆；知道根标签、知道根电压以及知道根直接连接的终端分区是不同的信息。
+
+\begin{proposition}[隐藏串联节点的观测等价，本文推导]
+在式\eqref{eq:base-rx}模型下，将一条边 $(r,x)$ 替换为两条串联边 $(r_1,x_1),(r_2,x_2)$，满足 $r_1+r_2=r$、$x_1+x_2=x$，且中间节点隐藏且零注入，则对所有末端功率轨迹，末端电压响应均不变。
+\end{proposition}
+\begin{proof}
+两条串联边下游终端集合相同，因而其原子贡献为
+$2r_1ww^\top+2r_2ww^\top=2rww^\top$，$X$ 同理。任何仅依赖末端 $p,q,u$ 的估计器都无法从完全相同的数据分布中区分这两个模型。
+\end{proof}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},scale=1]
+\node[circle,draw,inner sep=2pt] (a) at (0,0) {0};
+\node[circle,draw,inner sep=2pt] (b) at (3,0) {$i$};
+\draw (a)--node[above]{$r_1+r_2$}(b);
+\node at (4.1,0) {$\Longleftrightarrow$};
+\node[circle,draw,inner sep=2pt] (c) at (5.2,0) {0};
+\node[circle,draw,dashed,inner sep=2pt] (h) at (7.2,0) {$h$};
+\node[circle,draw,inner sep=2pt] (d) at (9.2,0) {$i$};
+\draw (c)--node[above]{$r_1$}(h)--node[above]{$r_2$}(d);
+\node at (7.2,-0.65) {隐藏、零注入、无中间量测};
+\end{tikzpicture}
+\end{center}
+
+因此“完整恢复”必须说明是原物理设备图还是压缩无观测二度节点后的最简树。更多采样能缩小统计误差，却不能解除完全相同的端口映射。高频传播、中间量测或设备台账改变了信息模型，才可能辨别原来等价的细分。
+
+\subsection{回归误差如何变成结构误差：本文推导}
+将 $m$ 个时刻堆叠成 $Y=A\Theta+W$，其中 $A=[P\ Q]\in\R^{m\times2n}$、$\Theta=[R^\top\ X^\top]^\top$。若 $A$ 无误差且满列秩，
+\begin{equation}
+ \widehat\Theta-\Theta=(A^\top A)^{-1}A^\top W,
+ \qquad \norm{\widehat\Theta-\Theta}_F\leq\frac{\norm W_F}{\sigma_{\min}(A)}.
+\end{equation}
+低样本并非唯一困难：固定功率因数 $Q=\kappa P$ 只能辨认 $R+\kappa X$；复制同一工况不会改善秩。若 $A$ 也带噪，上式的无偏性不能直接沿用，需要EIV、工具变量或显式联合观测模型。
+
+若 $\max_{ij}|\widehat R_{ij}-R_{ij}|\leq\epsilon_R$，则由\eqref{eq:base-distance}有 $\max_{ij}|\widehat d_{ij}-d_{ij}|\leq2\epsilon_R$。对四叶分裂 $ab|cd$，设其诱导四叶树中央路径的总长为 $\ell>0$，加性树满足
+\begin{equation}
+ d_{ac}+d_{bd}=d_{ad}+d_{bc}=d_{ab}+d_{cd}+2\ell.
+\end{equation}
+每个二距离和误差不超过 $2\epsilon_d$，比较两个和的误差不超过 $4\epsilon_d$，因此 $\ell>2\epsilon_d$ 足以保持最小和的身份；若采用上述 $\epsilon_R$ 界，保守条件为 $\ell>4\epsilon_R$。这只是局部四点判别的充分条件，不能冒充某个特定实现的全树样本复杂度定理。它解释了为什么极短内部边应允许拒判，而非强制输出二叉细分。
+
+\subsection{为什么概率、优化和运行保证不能互换}
+\begin{longtable}{p{0.23\linewidth}p{0.35\linewidth}p{0.33\linewidth}}
+\toprule 输出 & 数学含义 & 额外缺口\\\midrule\endhead
+最小训练残差 & 给定模型域的拟合最优性 & 不等于真实结构或泛化误差最小\\
+MILP gap趋零 & 所编码问题的原始--对偶界接近 & 候选遗漏、贪心外层未获保证\\
+bootstrap频率 & 当前采样与算法流程下的稳定度 & 不等于 $\Prob(T=T_\star\mid D)$\\
+广义后验权重 & 指定损失、温度、先验下的权重 & 需要解释、校准与候选域说明\\
+置信集合 & 重复采样下包含固定真参数的频率保证 & 要求真实观测模型与有效构造\\
+预测覆盖 & 新量测落入预测集合的概率 & 不自动覆盖拓扑或所有控制动作\\
+鲁棒DOE & 对声明模型和动作域的所有组合可行 & 真实模型遗漏、模型误差与热额定值\\
+\bottomrule
+\end{longtable}
+

@@ -1,0 +1,544 @@
+\documentclass[UTF8,11pt,a4paper,fontset=windows]{ctexart}
+\usepackage[margin=2.25cm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage{xcolor,enumitem,fancyhdr,fvextra,needspace}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[colorlinks=true,linkcolor=teal!60!black,urlcolor=teal!60!black,bookmarksnumbered=true]{hyperref}
+\usepackage{xurl}
+\setmonofont{Consolas}[Scale=0.88]
+\definecolor{ink}{HTML}{16384C}
+\definecolor{accent}{HTML}{137C8B}
+\definecolor{pale}{HTML}{F3F6F7}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{3em}
+\setlist{itemsep=2pt,topsep=4pt,leftmargin=2em}
+\renewcommand{\arraystretch}{1.2}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{ink}Topo 核心模块：功能与源码对应}
+\fancyhead[R]{\small 2026-09-19}
+\fancyfoot[C]{\thepage}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\ones}{\bm{1}}
+\newcommand{\CodeRef}[1]{\begingroup\small\csname coderef@#1\endcsname\endgroup}
+\newcommand{\SourceCode}[4]{%
+  \par\Needspace{5\baselineskip}\noindent\textbf{代码：#4}\par
+  {\footnotesize\nolinkurl{#1}，第 #2--#3 行。}\par
+  \VerbatimInput[firstline=#2,lastline=#3,firstnumber=#2,numbers=left,
+    numbersep=5pt,fontsize=\scriptsize,breaklines=true,breakanywhere=true,
+    frame=leftline,framesep=2mm,rulecolor=\color{accent},tabsize=4]{source_snapshot/#1}}
+\input{generated/references.tex}
+\input{generated/counts.tex}
+\hypersetup{pdftitle={Topo 当前核心模块：功能与源码对应},pdfauthor={当前工作区源码审查}}
+
+\begin{document}
+\begin{titlepage}
+\vspace*{2cm}
+{\color{accent}\large SOURCE-GROUNDED IMPLEMENTATION GUIDE\par}
+\vspace{0.8cm}
+{\Huge\bfseries\color{ink}当前核心模块\par 功能与源码对应\par}
+\vspace{1cm}
+{\Large RX75-RNJ、伪终端收缩与层叠 L1-MILP\par}
+\vspace{0.6cm}
+{\large 基于 Topo 工作区当前实现的中文审查文档\par}
+\vspace{1.3cm}
+\noindent\begin{tabularx}{\textwidth}{P{2.5cm}X}
+\toprule
+审查日期 & 2026 年 9 月 19 日\\
+权威代码 & \nolinkurl{rnj_wzzt_core/rnj_wzzt/} 及 \nolinkurl{rnj_wzzt_core/run.py}\\
+覆盖内容 & 模块职责、输入输出、数学模型、调用链、源码摘录、函数索引、运行验证及实现边界\\
+定位方式 & 原文件相对路径、函数名、原始行号；随附源码快照与 SHA-256 清单\\
+验证证据 & 核心现有测试 695 项通过；8 个相关父项目测试文件共 46 项通过；一次小规模端到端运行\\
+\bottomrule
+\end{tabularx}
+\vfill
+\noindent 本文描述\textbf{本次读取的工作区代码}。旧报告、历史实验结果及记忆仅用于定位，不作为当前实现的依据。审查与文档生成未修改算法源码。
+\end{titlepage}
+
+\begin{abstract}
+当前核心实现的是一个本地 Python 仿真与辨识流程：从径向终端负荷网络生成含噪 AC 量测，拟合多场景 R/X 灵敏度，形成归一化共享路径分数，用 RNJ 生成层次和边界块，必要时收缩为伪终端，再用具有一步最优性检查的层叠 L1-MILP 构建模型路径，并用独立模拟复制上的验证误差选择模型。本文将每项功能映射到实际函数和代码行，明确默认执行路径与保留的研究工具，并记录本次实际测试结果。特别区分凸回归可行性、树结构表示、bootstrap 稳定性、候选域最优性及真实拓扑恢复五种不同含义。
+\end{abstract}
+\tableofcontents
+\clearpage
+
+\section{范围、阅读方法与核心边界}
+\subsection{“当前核心”的判定}
+根目录 README 与核心 README 均把 \nolinkurl{rnj_wzzt_core} 指定为拓扑主线的权威实现。本次进一步检查了实际入口：
+\begin{quote}
+\nolinkurl{rnj_wzzt_core/run.py}\ $\to$\ \nolinkurl{rnj_wzzt.cli.main}\ $\to$\ \nolinkurl{rnj_wzzt.cli.run}\ $\to$\ \nolinkurl{rnj_wzzt.pipeline.run}。
+\end{quote}
+父目录 \nolinkurl{experiments/run_mainline.py} 将核心目录加入导入路径并导入 \nolinkurl{rnj_wzzt.cli}；\nolinkurl{terminal_case33/_standalone_core.py} 通过模块别名转发到核心。父项目中其他研究文件不因此成为主路径组成部分。
+
+\nolinkurl{theft_wzzt/README.md} 明确其为复制拓扑主线后增加偷电识别的独立包；本报告\textbf{不审计其偷电模型}。核心目录中的 \nolinkurl{experiments/}、\nolinkurl{tests/meter_theft_pilot/} 和历史 \nolinkurl{artifacts/} 也不计入生产主路径。后续若修改拓扑算法，应区分这些独立副本与兼容转发层。
+
+\subsection{可追溯方式}
+本次快照含 \Pythonfiles{} 个 Python 文件、\Pythonlines{} 行源码和 \Indexedsymbols{} 个顶层类、函数及类方法位置（不把函数内部闭包单列）。附录给出全部模块和符号索引；正文包含 \Checkedexcerpts{} 段直接读取快照的代码摘录。
+路径均相对于 \nolinkurl{rnj_wzzt_core/}，行号保留原文件编号。\nolinkurl{source_manifest.json} 保存逐文件 SHA-256；\nolinkurl{build.py --check} 同时比较当前代码和快照，避免代码变更后继续误用旧行号。正文超链接跳转到对应模块索引。
+
+本文使用以下语义：\textbf{默认主线}指普通 \nolinkurl{run.py}；\textbf{底层接口}指可单独调用的 Python 函数；\textbf{兼容或研究工具}指存在于核心包但默认主线不调用的功能。一个功能在文件中存在，不代表默认入口启用了它。
+
+\section{整体功能与实际调用链}
+\begin{center}
+\begin{tikzpicture}[node distance=5mm,box/.style={draw=accent,rounded corners,fill=pale,text width=12.5cm,align=center,minimum height=9mm,font=\small},arr/.style={-{Latex[length=2mm]},color=accent}]
+\node[box] (a) {\textbf{入口与配置}：普通 CLI 固定主线参数；底层入口保留 legacy 默认};
+\node[box,below=of a] (b) {\textbf{场景准备}：网络/资源 $\to$ P/Q 曲线 $\to$ AC 潮流 $\to$ 噪声 $\to$ 平方电压降};
+\node[box,below=of b] (c) {\textbf{初始结构}：去均值 $\to$ 约束 R/X 凸 QP $\to$ RX75 $\to$ RNJ};
+\node[box,below=of c] (d) {\textbf{边界筛选}：循环分块 bootstrap $\to$ 完整树边界块 $\to$ 不相交筛选};
+\node[box,below=of d] (e) {\textbf{约化与候选}：P/Q 聚合、平方电压反嵌入、候选映射、固定 singleton};
+\node[box,below=of e] (f) {\textbf{结构拟合}：固定支持 LP $\to$ 一步扩展 MILP $\to$ 重估/扩界/剪枝};
+\node[box,below=of f] (g) {\textbf{选择与报告}：验证集一标准误差规则 $\to$ clade 展开 $\to$ CSV/JSON};
+\foreach \u/\v in {a/b,b/c,c/d,d/e,e/f,f/g}{\draw[arr](\u)--(\v);}
+\end{tikzpicture}
+\end{center}
+
+\begin{longtable}{P{2.3cm}P{5.5cm}P{7.1cm}}
+\toprule 功能阶段 & 流程函数 & 交给下一阶段的对象\\\midrule\endhead
+输入与检查 & \nolinkurl{_validate_run_options}, \nolinkurl{_prepare_case} & \nolinkurl{_CaseData}：原始/预处理训练验证数据、终端、根及评价真值\\
+RNJ 与筛选 & \nolinkurl{_select_case_rnj}, \nolinkurl{_select_boundary_blocks} & \nolinkurl{_RnjSelection}：R/X 拟合、完整 clade、频率、选定块及耗时\\
+收缩与候选 & \nolinkurl{_contracted_milp_inputs}, \nolinkurl{_rnj_reduced_candidate_pool} & 约化训练验证表、固定支持、候选支持、伪终端映射\\
+L1 路径 & \nolinkurl{fit_laminar_l1_sensitivity} & \nolinkurl{LaminarL1Result}：选中模型、路径、尝试记录和停止原因\\
+展开与输出 & \nolinkurl{_expand_pseudo_result_clades}, \nolinkurl{_milp_result_row} & 原终端 clade 集合、拟合指标、候选覆盖和求解器证据\\
+\bottomrule
+\end{longtable}
+主编排见 \CodeRef{pipeline.run}；RNJ 复用全训练拟合结果见 \CodeRef{pipeline._select_case_rnj}。bootstrap 的每次重采样仍独立重拟合 R/X，并非复用同一矩阵。
+
+\Needspace{8\baselineskip}
+\subsection{默认入口不能混用}
+\begin{longtable}{P{4.7cm}P{4.7cm}P{5.5cm}}
+\toprule 配置 & 普通 \nolinkurl{cli.run} & 底层 \nolinkurl{pipeline.run}\\\midrule\endhead
+场景套件 / 输出目录 & reference / outputs/reference & legacy / outputs/mainline\\
+是否运行 MILP & 是 & 默认否：selection\_only=True\\
+是否另跑 milp\_only & 否 & 默认是（仅在运行 MILP 时生效）\\
+可信块物理收缩 & 根可观测时开启 & 默认关闭\\
+训练 / 验证复制 & 0 / 1 & 0 / 1\\
+场景数、每场景样本数 & 3、96 & 3、96\\
+bootstrap 次数 / 块长 & 100 / 4 & 100 / 4\\
+边界支持阈值 / 最多块数 & 0.75 / 2 & 0.75 / 2\\
+候选域 & rnj & rnj\\
+时间上限 / 初始权重上界 & 1800 秒 / R、X 各 2.0 & 相同\\
+\bottomrule
+\end{longtable}
+高级 \nolinkurl{advanced_main} 默认为 legacy，需 \nolinkurl{--run-milp} 才运行 MILP；\nolinkurl{--hybrid-only} 关闭基线；\nolinkurl{--contract-blocks} 显式启用收缩。三个入口的差异是当前接口设计，不能仅按文件名猜测。
+\SourceCode{rnj_wzzt/cli.py}{46}{69}{普通入口传递给底层流程的配置}
+
+\section{网络、场景仿真与量测数据}
+\subsection{网络对象和算例库}
+\CodeRef{models.network.TerminalizedNetwork} 保存母线表、支路表、根、标幺基准、原节点/终端映射和元数据。闭合支路生成 NetworkX 图；AC 潮流要求该图连通且无环。
+
+\begin{center}\begin{tabular}{lrrrrr}\toprule
+算例 & 终端 & 隐节点 & 总节点 & 支路 & legacy 阻抗倍率\\\midrule
+paper15 & 15 & 6 & 22 & 21 & 5.0\\
+soumalas11 & 11 & 4 & 16 & 15 & 5.2\\
+flynn16 & 16 & 6 & 23 & 22 & 4.8\\
+pengwah18 & 18 & 7 & 26 & 25 & 4.5\\\bottomrule
+\end{tabular}\end{center}
+这些是代码内构造的\textbf{合成、文献风格算例}，不能仅凭名称宣称是论文原始数据复现。四例均采用 0.4 kV、0.2 MVA 基准；reference 套件将阻抗倍率改为 1.0。注册表在 \nolinkurl{data/paper_style_case_bank.py}；构造入口见 \CodeRef{data.paper_style_terminal_lv.build_paper_style_terminal_lv_case} 与 \CodeRef{data.paper_style_case_bank._make_case}。
+
+\CodeRef{scenario.validate_scenario.validate_terminal_load_only_scenario} 检查根唯一、连通径向、非根负荷在叶节点、隐节点零负荷且不可观、总 P/Q 守恒，并报告二度隐节点的不可辨识性。它以网络表的可观测标记检查根；场景的 unobserved 根模式由 \nolinkurl{settings.py} 和目标构造控制，是另一层概念。\nolinkurl{_simulate_pool} 并不自动调用全部场景校验；本次审查对四个构造网络另行调用了严格校验。
+
+\subsection{异质 P/Q 曲线及单位}
+\CodeRef{scenario.profiles._build_terminal_profiles} 根据居民/商业/工业类型生成日负荷曲线，叠加节点相位差和局部波动，合成光伏、风电、小型机组，并用各自功率因数形成无功。正值表示用电，净发电可以为负：
+\[
+P_i=\frac{P_i^{\rm demand}-P_i^{\rm PV}-P_i^{\rm wind}-P_i^{\rm gen}}{1000 S_{\rm base}},\quad
+Q_i=\frac{Q_i^{\rm demand}-Q_i^{\rm PV}-Q_i^{\rm wind}-Q_i^{\rm gen}}{1000 S_{\rm base}}.
+\]
+分子采用 kW/kvar，$S_{\rm base}$ 用 MVA，因此所得 P/Q 为标幺量。\nolinkurl{_scenario_shape} 支持 default、高风/低风、无光照、多云、高负荷、晚峰、风暴前沿、混合云风等工况；reference 默认只选择 default、多云变光伏、晚峰高负荷三种。
+
+\subsection{AC 潮流是生成层，线性灵敏度是估计层}
+\CodeRef{models.ac_powerflow.solve_ac_power_flow_timeseries} 在平衡单相等值径向网络上执行后向前向扫掠，对时间样本向量化，并冻结已经收敛的样本。其物理迭代为
+\[
+I_{ij}=\overline{(P_j+\mathrm{i}Q_j)/V_j}+\sum_{k\in\operatorname{child}(j)}I_{jk},
+\qquad V_j=V_i-z_{ij}I_{ij}.
+\]
+默认最大迭代 100 次、最大复电压更新阈值 $10^{-10}$；非收敛会使 \nolinkurl{_simulate_pool} 抛出异常。输出还包括支路功率、损耗、相角和收敛元数据。
+
+理想矩阵由 \CodeRef{models.lin_distflow.build_reduced_sensitivity_matrices} 构造。设 $\mathcal P_i$ 为根到终端路径，则在平方电压模型下
+\begin{equation}\label{eq:physical}
+R_{ij}=2\sum_{e\in\mathcal P_i\cap\mathcal P_j}r_e^{\rm pu},\quad
+X_{ij}=2\sum_{e\in\mathcal P_i\cap\mathcal P_j}x_e^{\rm pu},\quad
+D_{ti}\approx\sum_j R_{ij}P_{tj}+X_{ij}Q_{tj}.
+\end{equation}
+\textbf{系数 2 必须与电压模型匹配}：该工具函数默认 \nolinkurl{voltage_model="magnitude"}，只有指定 \nolinkurl{"squared-voltage"} 才乘 2；当前主线回归目标却是平方电压降。理想矩阵用于物理参照，主流程不把真值 R/X 传给估计器。
+\SourceCode{rnj_wzzt/models/lin_distflow.py}{45}{60}{共同路径与平方电压系数}
+
+\subsection{根电压与噪声独立控制}
+\CodeRef{scenario.settings.resolve_scenario_settings} 把物理根波动与量测误差分开：reference 的根均值 1.02 p.u.，背景波动尺度 0.003 p.u.，默认 noisy 根表计相对标准差 0.0002。legacy 默认 IID 根波动 0.0008、exact 根观测，并保留算例原倍率。weak\_root、strong\_root 和 tap\_step 分别改变波动强度或加入分接头阶跃。
+
+\CodeRef{scenario.simulation._root_voltage} 的相关过程由日周期与 AR(1) 分量构成。0.003 是生成参数，\textbf{不是强制每次样本标准差等于 0.003}；代码不剪裁电压，也不按样本方差重新缩放。
+量测噪声是按每个真值幅度缩放的独立高斯项，例如
+\[
+\widetilde P_{ti}=P_{ti}+\epsilon^P_{ti},\qquad
+\epsilon^P_{ti}\sim\mathcal N\!\left(0,[\sigma_P\max(|P_{ti}|,10^{-12})]^2\right).
+\]
+默认 P/Q 的相对标准差 0.005，终端电压 0.0002；根表计使用独立随机数流。
+
+\SourceCode{rnj_wzzt/scenario/simulation.py}{203}{232}{AC 收敛检查、量测噪声与根目标分支}
+
+若根可观测，$D_{ti}=\widetilde V_{0t}^{,2}-\widetilde V_{it}^{,2}$；若不可观测，使用 $D_{ti}=1.02^2-\widetilde V_{it}^{,2}$，不读取真实根电压补偿。此时残留动态公共项会影响 R/X 估计；当前默认流程没有自动启用公共模态估计。普通 CLI 自动关闭伪终端收缩；底层若要求 unobserved 与收缩同时启用则报错。
+
+新套件先生成完整 96 点物理曲线及量测噪声，再均匀抽取所需点。允许的样本数为 $4\le T\le96$ 且整除 96。训练与验证由复制编号决定随机种子，默认 0 和 1；它们独立生成随机实现，但共享网络和工况定义，不能视为跨网络外推测试。
+
+\subsection{场景数据契约}
+\begin{longtable}{P{3.6cm}P{3.4cm}P{7.7cm}}\toprule
+字段 & 类型/维度 & 用途\\\midrule\endhead
+\nolinkurl{P_terminal}, \nolinkurl{Q_terminal} & DataFrame，$T_s\times n$ & 标幺有功/无功；列为终端标签，行是同步时刻\\
+\nolinkurl{drop_target} & DataFrame，$T_s\times n$ & 平方电压降，p.u.$^2$\\
+\nolinkurl{V_terminal}, \nolinkurl{root_voltage} & DataFrame / Series 或 None & 原始含噪电压，伪终端反嵌入所需\\
+\nolinkurl{name} & 字符串 & 场景身份；L1 验证复用训练截距时必须同名同序\\
+真值与 diagnostics & 数组 / 字典 & 仿真审计；预处理接口不会把这些字段传给回归器\\
+\bottomrule\end{longtable}
+
+\section{预处理与多场景约束 R/X 回归}
+\subsection{同步去均值及标签对齐}
+\CodeRef{estimation.multiscenario.preprocess_scenarios} 对 P、Q 和目标应用同一个配方，并取时间索引交集。默认每个场景整体去均值：此处 \nolinkurl{samples_per_day=len(scenario["P_terminal"])}，并非读取时间戳自动分日。因此给一个包含多天的表，不会自动按自然日分组。
+\CodeRef{estimation.preprocessing.apply_preprocessing_recipe} 还支持 raw、rolling\_highpass、difference 和 chain；默认主线没有启用这些替代分支。
+\SourceCode{rnj_wzzt/estimation/multiscenario.py}{16}{30}{主线实际预处理配方的应用}
+
+\CodeRef{estimation.multiscenario._aligned_arrays} 在转 NumPy 前按首场景列标签和当前 P 表的行索引重排 Q 与目标，拒绝重复标签、缺行缺列和非有限值。这一对齐比下述 L1 底层接口更严格。
+
+\subsection{实际求解的凸问题}
+将 $A_s=[P_s\ Q_s]\in\R^{T_s\times 2n}$、$B=[R;X]\in\R^{2n\times n}$，目标记为 $D_s$。代码模型为
+\begin{align}
+\min_{R,X,c_s}\quad&\frac12\sum_s\|P_sR+Q_sX+\ones c_s^T-D_s\|_F^2
++\frac\alpha2(\|R\|_F^2+\|X\|_F^2),\label{eq:qp}\\
+\text{s.t.}\quad&M=M^T,\quad M_{ij}\ge0,\quad M_{ii}-M_{ij}\ge\delta_M\ (i\ne j),\quad M\in\{R,X\}.\nonumber
+\end{align}
+对称性使行向量写法 $P_sR$ 与显式预测 $P_sR^T$ 一致。默认 $\alpha=0$，margin 比率为 $10^{-6}$。$\delta_R,\delta_X$ 从一次无约束估计的非负对称块尺度确定，此后在 QP 内固定，保证约束域不随迭代变化。
+
+这里的 ordered 是\textbf{对角元素逐项不小于该行非对角元素}，不是 $M_{ii}\ge\sum_{j\ne i}|M_{ij}|$ 的行和对角占优。它不保证 PSD，更不保证存在一棵共同的 R/X 树。
+
+场景截距不受惩罚，可通过各场景中心化精确消去：
+\[
+\bar A_s=A_s-\ones\mu_{A_s},\quad \bar D_s=D_s-\ones\mu_{D_s},\qquad
+c_s^T=\mu_{D_s}-\mu_{A_s}B.
+\]
+见 \CodeRef{estimation.multiscenario.fit_projected_sensitivity}。回归再次中心化用于精确消截距，即使前一步已经做过 daily\_demean；bootstrap 抽样后的均值通常也不再为零。
+\SourceCode{rnj_wzzt/estimation/multiscenario.py}{155}{185}{中心化、固定 margin 与 QP 调用}
+
+\subsection{数值实现与返回值}
+\CodeRef{estimation.constrained_least_squares.solve_symmetric_least_squares} 用上三角变量编码对称性，对非对角变量使用两次出现的 ridge 权重；采用 SLSQP 求解凸 QP。良态 Hessian 使用 Cholesky 坐标变换，近奇异情况使用谱预条件，目标仍按原残差评价。谱变换的特征值下限\textbf{没有给模型新增 ridge}。
+
+求解器失败、非有限解或缩放可行性违反超过 $10^{-8}$ 会抛异常；通过后仅修正数值舍入。四返回值为 $(R,X,R^2,\kappa)$；第四项是含场景指示变量的原设计条件数，不是中心化后的条件数。可选 \nolinkurl{diagnostics} 字典提供中心化条件数、截距、目标、迭代次数和求解状态。主编排目前只消费历史四元组。
+
+\nolinkurl{constraint_refine_iterations=0} 只返回可行初始化；\nolinkurl{basic} 去掉 ordered 不等式；\nolinkurl{tree_covariance} 调用 PSD 可行性启发式。\CodeRef{estimation.matrix_constraints.project_ordered_sensitivity_matrix} 与 \CodeRef{estimation.matrix_constraints.project_tree_covariance_matrix} 是兼容修正工具，其循环半空间操作不应称为整个交集上的最近点投影。
+
+\section{RX75 共享路径几何与 RNJ 重构}
+\subsection{归一化的确切定义}
+\CodeRef{graph.sensitivity_geometry.sensitivity_geometry} 先对称化并验证矩阵，计算
+\[
+d^R_{ij}=R_{ii}+R_{jj}-2R_{ij},\quad
+\mu_R=\max\bigl(\operatorname{mean}\{d^R_{ij}:d^R_{ij}>0\},10^{-12}\bigr).
+\]
+若没有正距离，则均值采用 1.0；X 同理。默认共享路径核为
+\begin{equation}
+S=\frac{0.75}{\mu_R}R+\frac{0.25}{\mu_X}X,\qquad h_i=\max(S_{ii},0).
+\end{equation}
+因此 RX75 是\textbf{按正距离均值归一化后的加权和}，不是元素比值，也不是简单按矩阵最大值归一化。RNJ 消费裁剪到 $0\le S_{ij}\le\min(h_i,h_j)$ 的共享路径核；距离矩阵作为诊断保留。
+\SourceCode{rnj_wzzt/graph/sensitivity_geometry.py}{102}{113}{共享路径、根深与可行域裁剪}
+
+\subsection{RNJ 递归规则}
+\CodeRef{pipeline._rx75_rnj_clades} 使用
+\[
+\tau=0.16\max(\operatorname{median}(h),10^{-12}).
+\]
+\CodeRef{graph.rooted_neighbor_joining.rooted_neighbor_joining} 的主要行为如下：
+\begin{enumerate}
+\item 在活动节点中选择共享路径最大的二元组 $(a,b)$，并用标签确定性打破并列。
+\item 若最大共享路径不超过 $\tau$，全部活动节点接根并终止。
+\item 新隐节点深度取 $S_{ab}$。对其他节点 $u$，若 $S_{ab}-\min(S_{au},S_{bu})\le\tau$，加入同一家族。
+\item 子边长取 $\max(h_u-h_{\rm parent},0)$；新隐节点到剩余节点的共享路径取家族样本的中位数，再裁剪。
+\item 收缩长度不超过 $10^{-10}$ 且两端均非终端的内部边。
+\end{enumerate}
+\SourceCode{rnj_wzzt/graph/rooted_neighbor_joining.py}{138}{168}{最深共享路径合并、根处终止和中位数更新}
+隐节点编号取小于现有根与终端标签的负整数，避免与已有负标签冲突。输出 \nolinkurl{RootedTreeResult} 包含根、终端、带权边和实际容差。其边长是归一化混合几何中的长度，不能直接当作欧姆电阻。
+
+默认 $0.16$ 是经验阈值，代码没有根据未知最短真边长校准理论阈值。\CodeRef{graph.rooted_hierarchy.rooted_clades} 提取非平凡后代终端集合：$1<|C|<n$，所以 singleton 和全体终端的根干线不进入这类结构评分。
+
+\section{bootstrap 边界块及伪终端收缩}
+\subsection{边界块不是任意高频 clade}
+\CodeRef{graph.bootstrap._boundary_cherries} 返回非平凡 clade 中按包含关系极小的集合；它可以含三个或更多终端，不限于二叶樱桃。\CodeRef{graph.bootstrap._moving_block_bootstrap_copy} 在每个场景内随机取循环块起点，块内使用模 $T$ 索引，拼接到 T 行；P、Q、目标共用抽样索引。
+\SourceCode{rnj_wzzt/graph/bootstrap.py}{26}{41}{循环分块抽样且同步复制三个量测表}
+
+设 $\mathcal B^{(b)}$ 为第 b 次 RNJ 的边界集合，则
+\[
+\widehat\pi(C)=\frac1B\sum_{b=1}^B\mathbf1\{C\in\mathcal B^{(b)}\}.
+\]
+只有\textbf{完整训练树本身的边界块}且 $\widehat\pi(C)\ge0.75$ 才进入稳定候选；仅在 bootstrap 中出现的高频块不会被自动冻结。\nolinkurl{_select_disjoint} 按频率降序、大小降序、标签顺序选择最多两个不相交块。
+\SourceCode{rnj_wzzt/pipeline.py}{190}{211}{重采样计数、完整树条件与支持阈值}
+这里的 confidence 是经验出现频率，不是校准后的概率、置信水平或拓扑正确率。
+
+\subsection{反嵌入平方电压}
+\CodeRef{pipeline._contracted_milp_inputs} 用全训练数据估计的同一 R/X 分别处理训练和验证原始数据。\CodeRef{graph.rooted_hierarchy.aggregate_rooted_scenarios} 将选中块 C 的 P/Q 求和；其边界灵敏度由 \nolinkurl{_boundary_sensitivity_row} 估计：块内非对角值取 20\% 分位数并裁剪，块外列取成员行的中位数。
+
+对 $i\in C$，只保留后代输入列的灵敏度差：
+\begin{align}
+\Delta R_{ij}&=\mathbf1\{j\in C\}\max(R_{ij}-R_{Cj},0),\\
+u_{ti}^{(C)}&=\widetilde V_{ti}^2+\sum_j(P_{tj}\Delta R_{ij}+Q_{tj}\Delta X_{ij}),\\
+\widehat V_{tC}^2&=\overline{V^2}_{tC}+\omega\left[\operatorname{median}_{i\in C}u_{ti}^{(C)}-\overline{V^2}_{tC}\right],\quad \omega=0.5.
+\end{align}
+\SourceCode{rnj_wzzt/graph/rooted_hierarchy.py}{274}{293}{后代差分修正与加权反嵌入}
+最后对平方电压取至少 $10^{-12}$ 再开方，用观测根重建目标，再重新去均值。单终端原电压直接保留。理想真树下的差分抵消具有物理解释，但分位数、非负截断、中位数和 $\omega=0.5$ 是当前稳健化设计，不是无偏或最优性证明。
+
+\subsection{冻结的是支持，权重仍重估}
+约化系统为\textbf{每个}叶终端固定 singleton 支持。收缩块对应的约化 singleton 展开后就是原可信块；未收缩的终端也有 singleton。\nolinkurl{initial_supports} 不会在剪枝中被删去，但其 R/X 权重可以被重新估计到零。因此“冻结 clade”不等于“强制其线路权重严格为正”。
+不做物理收缩时，hybrid 变体仍冻结选中的原 RNJ 块；关闭收缩并不等于关闭冻结。\CodeRef{pipeline._fit_milp_variants} 在入口处分开处理这两种行为。
+
+\section{有限候选域的构造与位置编码}
+\CodeRef{pipeline._map_clade_to_reduced_support} 将原终端标签集合映射为\textbf{约化表的列位置}。如果一个原 clade 只包含某冻结块的一部分，则映射失败，防止后续候选拆开可信块。
+\SourceCode{rnj_wzzt/pipeline.py}{421}{431}{拒绝切穿冻结块的候选}
+
+\CodeRef{pipeline._rnj_reduced_candidate_pool} 支持三种流程配置：
+\begin{itemize}
+\item rnj：把完整训练 RNJ 层次映射为候选，仅保留大小大于 1 的约化支持。
+\item rnj\_one\_edit：在上述基础上增加一个约化终端，或删除一个终端且仍至少保留两个。
+\item unrestricted：传入 \nolinkurl{candidate_supports=None}，在所有可容许子集上建立 MILP；计算成本可能明显增加。
+\end{itemize}
+\nolinkurl{None} 与空候选元组不同：后者是没有可选候选的有限域。候选彼此可以交叉，但任何被接受的支持必须与当前 family 层叠相容。候选不使用真拓扑生成。
+
+位置编码与物理标签不能混淆：$\{0,2\}$ 表示第 1、3 列，不表示母线 0、2。最终 \nolinkurl{support_labels} 才映射回实际标签；收缩时还需经过 \nolinkurl{pseudo_members} 再展开。
+\SourceCode{rnj_wzzt/pipeline.py}{442}{463}{RNJ 候选与单次增加或删除候选}
+
+候选域为真树空间的内近似。即使 MILP 在该域内严格最优，漏失的真 clade 也不会凭证书自动出现。报告同时保存 \nolinkurl{candidate_pool_only_truth_recall} 与 \nolinkurl{candidate_pool_plus_frozen_truth_recall}，二者是仿真事后诊断，不是选模输入。
+
+\section{L1 树原子模型与固定支持 LP}
+\subsection{模型、残差和结构约束}
+设 $z_k\in\{0,1\}^n$ 为支持 $C_k$ 的指示向量，代码以共享支持表示 R/X：
+\begin{equation}\label{eq:atoms}
+R=\sum_{k=1}^K r_kz_kz_k^T,\quad X=\sum_{k=1}^K x_kz_kz_k^T,
+\qquad 0\le r_k\le U_R,\quad0\le x_k\le U_X.
+\end{equation}
+支持族满足 laminar：任意 $C_a,C_b$ 要么不相交，要么一方包含另一方。$R,X$ 共用层次，但系数可以分别为零。正文中的 $wzz^T$ 是泛称，代码实际区分 r 和 x 两套权重。
+
+预测及目标为
+\begin{align}
+\widehat D_{sti}&=c_{si}+\sum_k z_{ki}\!\left(r_k\sum_jz_{kj}P_{stj}+x_k\sum_jz_{kj}Q_{stj}\right),\\
+L&=\frac1N\sum_{s,t,i}|D_{sti}-\widehat D_{sti}|,\qquad N=n\sum_sT_s.
+\end{align}
+每场景、每终端有自由截距 $c_{si}$。固定支持时，权重和截距的联合重估是 LP。
+\CodeRef{estimation.laminar_l1_milp._fixed_atom_features} 构造 $z_{ki}\sum_jz_{kj}P_{stj}$ 和对应 Q 特征。
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{537}{543}{树原子的回归特征}
+
+\CodeRef{estimation.laminar_l1_milp._add_absolute_residual_constraints} 引入 $a_{sti}\ge0$ 并使用
+\[
+\widehat D_{sti}+a_{sti}\ge D_{sti},\qquad
+\widehat D_{sti}-a_{sti}\le D_{sti},
+\]
+即 $a\ge|D-\widehat D|$。目标系数为 $1/N$，因此求解器 objective 是 MAE 而不是绝对误差总和。底层统一调用 \nolinkurl{scipy.optimize.milp}，但固定支持时没有整数变量，数学上仍是 LP。
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{692}{703}{固定支持的权重、自由截距与 MAE 目标变量}
+
+\CodeRef{estimation.laminar_l1_milp.build_matrices_from_atoms} 负责由支持和权重重建矩阵。此低层构造器特意允许交叉支持，供反例测试使用；层叠检查发生在估计器的 \nolinkurl{normalize_supports}，不能仅凭调用该构造器就宣称得到树矩阵。
+
+\section{一步扩展 MILP 的具体编码}
+\subsection{一个新支持，同时重估全部旧权重}
+\CodeRef{estimation.laminar_l1_milp._solve_extension_prepared} 为新支持设 $z_i\in\{0,1\}$，同时保留全部旧 r/x 和截距变量。不是先固定旧系数再单独拟合新块。
+有限域情况下，设通过当前相容性筛选的候选为 $C_\ell$，使用
+\[
+\sum_\ell b_\ell=1,\qquad z_i=\sum_{\ell:i\in C_\ell}b_\ell,\qquad b_\ell\in\{0,1\}.
+\]
+无候选时等式 $0=1$ 使扩展问题不可行，由路径层解释为无可行扩展。
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{847}{866}{有限候选的 one-hot 支持选择}
+
+\subsection{两层乘积的精确线性化}
+先用连续 $0\le y_{ij}\le1$ 表示 $z_iz_j$。当 $i<j$：
+\[
+y_{ij}\le z_i,\quad y_{ij}\le z_j,\quad y_{ij}\ge z_i+z_j-1;
+\qquad y_{ii}=z_i.
+\]
+二进制 z 使这些约束把 y 固定为 0 或 1。再为 $u^R_{ij}=r_{\rm new}y_{ij}$ 施加
+\[
+0\le u^R_{ij}\le U_R y_{ij},\quad u^R_{ij}\le r_{\rm new},\quad
+u^R_{ij}\ge r_{\rm new}-U_R(1-y_{ij}),
+\]
+X 同理。由于 y 已为二值且 r/x 有界，这里是精确的有界乘积编码；不应把其结论推广到两个一般连续变量的 McCormick 松弛。
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{868}{894}{二进制乘积与有界系数乘积}
+
+\subsection{与旧族层叠相容及禁止重复}
+对每个旧支持 C 设三个关系二进制变量，恰选一个：新支持是 C 的子集、超集或与 C 不相交。代码对应的蕴含是
+\[
+b_{\rm sub}=1\Rightarrow z_i=0\ (i\notin C),\quad
+b_{\rm sup}=1\Rightarrow z_i=1\ (i\in C),\quad
+b_{\rm dis}=1\Rightarrow z_i=0\ (i\in C).
+\]
+非空由 $\sum_i z_i\ge1$ 约束；与旧支持不同由 Hamming 距离约束
+\[
+\sum_{i\notin C}z_i-\sum_{i\in C}z_i\ge1-|C|
+\]
+保证。\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{896}{925}{层叠关系与去重约束}
+
+若已有 K 个支持、n 个终端、S 个场景、N 个观测残差、q 个可容许候选，且 $p=n(n+1)/2$，扩展模型有约 $2K+Sn+N+2+n+q+3p+3K$ 个变量，整数变量为 $n+q+3K$；无有限域时不含 q。稀疏约束由 \nolinkurl{_ConstraintBuilder} 组装，旧原子特征仍是稠密数组。时间上限并不消除建模和初始化 LP 的额外成本。
+
+\section{证书、前向路径、扩界与停止行为}
+\subsection{“精确”的代码判据}
+\CodeRef{estimation.laminar_l1_milp.solver_diagnostics_prove_optimality} 要求 status=0 且 success=True。没有二进制变量时接受 LP 最优状态；有二进制变量时还要求有限的原始/对偶绝对差不超过 $10^{-10}$，或者已报告的非负相对 gap 不超过 $10^{-10}$。
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{207}{229}{当前数值最优性判定}
+超时可行解可以保留 objective 和 diagnostics，但不给出标为精确的 support。\textbf{这是一套依赖浮点求解器状态和 gap 的数值检查，不是有理数形式的独立形式化证书。}
+
+\subsection{完整前向逻辑}
+\CodeRef{estimation.laminar_l1_milp.fit_laminar_l1_sensitivity} 的路径算法为：
+\begin{enumerate}
+\item 对初始固定族求最优 LP，形成路径起点。一般低层 API 可传空族；主流程传叶 singleton 以及可能的 RNJ 块。
+\item 对当前族求最优的一原子扩展；未获证书不接受该扩展。
+\item 固定扩展支持后重新求 LP，并验证其目标与 MILP 一致，相对复现尺度容差为 $10^{-7}$。
+\item 检查显著改进：$L_{\rm old}-L_{\rm new}>10^{-10}+10^{-8}\max(|L_{\rm old}|,\epsilon_{\rm mach})$。
+\item 若新解系数达到上界的 99.5\%，将相应上界乘 2，最多扩界 4 次，\textbf{从初始族重新生成路径}；不能只继续旧路径。
+\item 对非冻结且 R、X 权重均不超过 $10^{-9}$ 的原子尝试删除，重解 LP 确认目标未实质变差；冻结原子始终保留。
+\item 检查剪枝后改进与族重复，保存新路径点，再继续扩展。默认原子预算不超过 $2n-1$。
+\end{enumerate}
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{1356}{1385}{目标复现、改进检查、触界扩张和路径重启}
+
+\begin{longtable}{P{7.2cm}P{7.7cm}}\toprule
+停止原因（原始字符串） & 应如何理解\\\midrule\endhead
+\nolinkurl{no_feasible_extension} & 当前域已无可行新支持；不等于所有物理树都已搜索\\
+\nolinkurl{extension_not_proven_optimal} & 一步求解未达到证书；属于搜索未完成\\
+\nolinkurl{no_significant_one_atom_gain_certified_by_dual_bound} & 即使未返回精确支持，对偶界已排除本域内显著的一步收益\\
+\nolinkurl{no_significant_one_atom_gain} & 获证书的最佳一步改进未达容差\\
+\nolinkurl{no_significant_one_atom_gain_after_polishing} & 重估或剪枝后的改进未达容差\\
+\nolinkurl{bound_expansion_limit} & 触界且扩界预算耗尽；没有无界域最优性保证\\
+\nolinkurl{repeated_family_after_zero_pruning} & 剪枝后回到已出现族，防止循环\\
+\nolinkurl{max_atoms}, \nolinkurl{laminar_family_limit} & 达到迭代/层叠族规模上限\\
+\nolinkurl{extension_without_incumbent} & 防御性分支：无可用支持或目标\\
+\bottomrule\end{longtable}
+固定支持 LP 自身没有最优结果时直接抛 RuntimeError，不一定产生 \nolinkurl{stop_reason}。此外，\nolinkurl{time_limit} 也传给初始化及重估 LP，故普通 CLI 的 1800 秒不是整个流程的墙钟预算。
+
+上界仅在具有显著改进的候选解触界后触发扩张。初始解或无改进停止点即使触界，也不能据此宣称已经检查无限系数域。因此所有最优性表述均须附带当时的有限上界。
+
+\section{独立验证、结构评价和输出文件}
+\subsection{截距复用与一标准误差规则}
+\CodeRef{estimation.laminar_l1_milp._make_path_point} 在验证阶段显式传入训练截距，避免每个候选在验证集重新自由拟合截距。\CodeRef{pipeline._align_scenario_names} 按顺序把验证场景命名对齐到训练场景，所以自定义调用者必须保证两边确实为同一工况顺序。
+
+\CodeRef{estimation.laminar_l1_milp.evaluate_l1_matrices} 将每个场景沿时间分为 4 块，计算各块绝对误差均值 $m_b$，并取
+\[
+\operatorname{SE}=\frac{\operatorname{std}(m_1,\ldots,m_B;\mathrm{ddof}=1)}{\sqrt B}.
+\]
+设验证 MAE 最小的路径点为 $k_*$，则在 $\mathrm{MAE}_k\le\mathrm{MAE}_{k_*}+\mathrm{SE}_{k_*}$ 的点中选择支持数最少者，再按较早索引打破并列。无验证集时取路径末点。
+\SourceCode{rnj_wzzt/estimation/laminar_l1_milp.py}{1169}{1179}{一标准误差规则的实际选点逻辑}
+
+SE 是分块经验离散度，并未估计所有剩余时序相关性，不能当作严格置信区间。验证集参与预处理时会使用本验证批次自身的均值；因此这里评价的是\textbf{独立批次去均值量的预测与选模}，不等价于只用历史均值的实时绝对电压预测。
+低层 \nolinkurl{evaluate_l1_matrices(fixed_intercepts=None)} 会对验证残差取中位数重新消截距，只宜解释为剖面化诊断；主路径没有采用该模式。
+
+\subsection{评分对象与零权重冻结块}
+\CodeRef{reporting._family_score} 使用预测和真值非平凡 clade 的集合交并计算 precision、recall 和 F1。\CodeRef{pipeline._expand_pseudo_result_clades} 遍历最终 \nolinkurl{support_labels} 展开，而不在报告阶段再按权重过滤。零权重的冻结支持也可能计入结构集合；应区分“保留的结构假设”与“正权重有效边”。
+
+这套指标不比较隐节点编号，不直接评价原始物理边长度，也不计算二度隐节点的个数。全体终端根干线和叶 singleton 不计入非平凡 clade 指标。因此 F1=1 只表示本指标定义下的后代集合完全匹配。
+
+\subsection{落盘内容与未落盘内容}
+\begin{longtable}{P{5.4cm}P{9.5cm}}\toprule
+文件 & 内容\\\midrule\endhead
+\nolinkurl{rnj_summary.csv} & R/X 拟合 $R^2$、条件数、完整 RNJ clade/边界评分、选中支持、频率和耗时\\
+\nolinkurl{rnj_boundary_candidates.csv} & 每个边界候选的频率、是否属于完整树、阈值/选中状态和真值匹配标记\\
+\nolinkurl{milp_results.csv} & 每个变体的 clade 指标、候选覆盖、MAE、路径摘要、停止原因及每次扩展的状态/目标/对偶界/gap\\
+\nolinkurl{metrics.json} & 配置、场景简要清单、RNJ 与 MILP 汇总行；使用 allow\_nan=False 序列化\\
+\bottomrule\end{longtable}
+\CodeRef{reporting._milp_result_row} 汇总证据；\CodeRef{pipeline.run} 写出文件。CSV 按案例或变体逐步写出，metrics.json 在整轮完成后写出；中途异常可能只有部分 CSV。
+
+当前 \nolinkurl{pipeline.run} 返回的是汇总 payload，\textbf{不会默认序列化全部 R/X 矩阵、逐边权重、截距和原始时间序列}。这些存在于更低层的 \nolinkurl{LaminarL1Result} 和场景对象中。需要复用数值模型时应调用低层 API 并自行保存，不能从汇总 CSV 假定可恢复全部模型。
+
+\section{保留工具与主路径之外的功能}
+\begin{longtable}{P{6.8cm}P{8.1cm}}\toprule
+代码功能 & 当前用途和边界\\\midrule\endhead
+\nolinkurl{rooted_tree_from_clades} & 从层叠集合构造规范化树；返回单位占位边长，非物理参数拟合结果\\
+\nolinkurl{select_peripheral_clusters} & 用 clade/兄弟对频率选择外围块；默认主流程用的是 bootstrap 的极小 clade 筛选\\
+\nolinkurl{build_local_cluster_scenarios}, \nolinkurl{reidentify_local_clades_from_shared_paths} & 为簇内重新辨识准备局部数据和共享路径；主流程的当前收缩路径未调用\\
+\nolinkurl{expand_pseudo_clades_with_local_reidentification}, \nolinkurl{expand_pseudo_sibling_pairs} & 支持研究流程的局部结构展开；主流程使用 pipeline 内较简短的集合展开\\
+\nolinkurl{sensitivity_matrix_diagnostics}, \nolinkurl{four_point_violation_summary} & 检查对称、非负、最小特征值、逆矩阵符号和四点条件违反；不是自动恢复证书\\
+\nolinkurl{distance_candidates}, \nolinkurl{shared_paths_from_distances} & 历史距离接口及一般距离转共享路径适配；默认直接用 R/X 共享路径\\
+\nolinkurl{recipes.py} & 预处理函数与配方的导入兼容层，没有独立新算法\\
+\bottomrule\end{longtable}
+相应入口见 \CodeRef{graph.rooted_hierarchy.rooted_tree_from_clades}、\CodeRef{graph.rooted_hierarchy.reidentify_local_clades_from_shared_paths} 及 \CodeRef{estimation.matrix_constraints.four_point_violation_summary}。完整符号索引能用于进一步逐函数阅读。
+
+\section{本次检查结果与可复现证据}
+\subsection{实际执行的验证}
+测试环境为 Python 3.11.15（conda Topo），NumPy 2.4.6、SciPy 1.17.1、Pandas 3.0.3、NetworkX 3.6.1、pytest 9.1.1。运行依赖声明只要求 NumPy/Pandas/SciPy/NetworkX，无 Gurobi；不需把实验依赖等同于核心依赖。
+
+\begin{longtable}{P{4.5cm}P{4.1cm}P{6.3cm}}\toprule
+检查 & 本次结果 & 可复核文件\\\midrule\endhead
+核心全部现有测试 & 695 passed，22.57 秒 & \nolinkurl{evidence/core_tests.log}，对应 JUnit XML\\
+8 个相关父项目测试文件 & 46 passed，3.77 秒 & \nolinkurl{evidence/compatibility_tests.log}，对应 JUnit XML\\
+四网络严格场景检查 & 四例均无 violations & \nolinkurl{evidence/runtime_audit.json}\\
+小规模完整流程 & 成功生成 RNJ、MILP、CSV、JSON & \nolinkurl{evidence/smoke/}\\
+运行时仓库导入检查 & 未加载父项目算法源码 & \nolinkurl{runtime_audit.json} 内模块列表\\
+源码与引用 & 自动检查符号、摘录区间和哈希 & \nolinkurl{generated/reference_check.json}、\nolinkurl{source_manifest.json}\\
+\bottomrule\end{longtable}
+测试通过仅覆盖现有用例，并非全功能正确性的证明。没有修改核心，也没有把旧实验指标重新标记为本次结果。
+
+\subsection{小规模运行揭示的候选边界}
+本次 smoke 使用 soumalas11、reference、1 个场景、每场景 8 点、2 次 bootstrap、每次求解 5 秒预算；它用于检查连通流程，\textbf{不是默认 3$\times$96 / 100 次 bootstrap 的性能评估}。
+
+实际候选数 6，候选真 clade 覆盖率 0，选中冻结块数 0。MILP 六次尝试均获得数值最优证书；路径长度 6，选中索引 3；停止原因为 \nolinkurl{no_significant_one_atom_gain}。最终训练 MAE 约 $2.98204\times10^{-4}$，验证 MAE 约 $5.88244\times10^{-4}$，\textbf{clade F1=0}。这次结果直接展示了“步骤求解最优”和“恢复真实拓扑”可以同时分离，不能用低 MAE 替代结构正确性。
+
+该 smoke 因没有选中可信块，没有动态覆盖非空块的反嵌入行为；相关逻辑还依赖源码检查和现有层次/管线测试。导入闭包检查也只覆盖本次执行路径，不构成所有可选分支的打包证明。
+
+\subsection{确认的接口风险：L1 时间行对齐}
+\CodeRef{estimation.laminar_l1_milp._matrix_from_scenario} 对 DataFrame 仅按列标签选择；\nolinkurl{_prepare_scenarios} 检查形状和有限性，\textbf{没有按时间索引对齐 P/Q/目标行}。这与 R/X 回归接口的 \nolinkurl{_aligned_arrays} 行为不同。
+
+本次探针取单终端 $P=(1,2,3)^T$、$Q=0$、$D=2P$、$R=2$、$X=0$、截距固定为零。同步行顺序的 MAE 为 0；仅将目标表按同一标签逆序存放后，MAE 变为 $8/3$，函数没有拒绝该输入。复现保存在 \nolinkurl{audit_runtime.py} 与 runtime\_audit.json。
+
+当前仿真主线同步产生三张表，因此本次运行未受该风险影响。直接接入外部表时，调用者须先严格同步索引与顺序并确保标签唯一；后续改进可在 L1 输入层增加与回归接口一致的检查。此次任务是检查和文档整理，未实施接口改动。
+
+\subsection{审查结论的边界}
+\begin{enumerate}
+\item 末端量测主线恢复的是规范化的终端后代集合；内部零注入、径向、可观測终端及足够激励等假设不能省略。
+\item P/Q 自变量也含噪声，默认平方损失回归不是 EIV/TLS 无偏估计；去均值也会移除恒定分量。
+\item ordered、PSD 修正和 bootstrap 高频分别表达矩阵可行性、外近似与重采样稳定性，没有自动给出真树认证。
+\item MILP 证书受固定旧支持、当前候选域与系数上界限制；多步选择仍是贪心路径，不是固定 K 的联合全局优化。
+\item 真拓扑用于仿真生成和事后评分；未用于候选生成或路径选择。该分离不等于真实数据中总能验证这些假设。
+\item 默认 CLI 内置四算例，没有 CSV 量测导入参数；真实数据接入需按本报告的场景契约调用低层函数或新增适配层。
+\end{enumerate}
+
+\section{运行、阅读与文档维护}
+\subsection{推荐阅读顺序}
+先读 \nolinkurl{cli.py} 的固定配置和 \nolinkurl{pipeline.py} 的四阶段编排，再按“simulation/preprocessing $\to$ multiscenario/QP $\to$ geometry/RNJ $\to$ bootstrap/hierarchy $\to$ laminar\_l1\_milp $\to$ reporting”阅读。MILP 文件可先看数据类、证书函数和最外层路径，再回看建模细节，避免一开始陷入变量索引。
+
+\subsection{运行命令}
+以下命令在仓库根目录执行；默认完整运行可能较慢。
+\begin{Verbatim}[fontsize=\small,breaklines=true,frame=leftline]
+conda activate Topo
+python rnj_wzzt_core/run.py --cases paper15 --scenario-suite reference --output outputs/core_reference_review --time-limit 30
+python -m pytest rnj_wzzt_core/tests -q
+python docs/core_module_code_20260919/audit_runtime.py
+python docs/core_module_code_20260919/build.py --check
+\end{Verbatim}
+长命令在纸面上自动折行，执行时仍为一行。若从核心目录启动，输出相对路径也相对于核心目录；CLI 中路径未自动固定到仓库根。
+
+直接使用低层模型时应注意接口差异：
+\begin{Verbatim}[fontsize=\small,breaklines=true,frame=leftline]
+from rnj_wzzt.estimation.multiscenario import preprocess_scenarios
+from rnj_wzzt.estimation.preprocessing import RECIPE
+from rnj_wzzt.estimation.laminar_l1_milp import fit_laminar_l1_sensitivity
+
+# training_raw / validation_raw must satisfy the scenario contract.
+train = preprocess_scenarios(training_raw, RECIPE)
+valid = preprocess_scenarios(validation_raw, RECIPE)
+# Align names ONLY if each position truly denotes the same operating regime.
+for tr, va in zip(train, valid, strict=True):
+    va['name'] = tr['name']
+n = train[0]['P_terminal'].shape[1]
+result = fit_laminar_l1_sensitivity(
+    train, validation_scenarios=valid,
+    initial_supports=[(i,) for i in range(n)],
+    candidate_supports=candidate_pool,  # positional, not physical bus labels
+    r_upper_bound=2.0, x_upper_bound=2.0, time_limit=30.0,
+)
+# result.r_matrix, result.x_matrix, result.path, result.attempted_extensions
+\end{Verbatim}
+这里是接口示例，\nolinkurl{candidate_pool} 和量测表需由调用者提供；不是可直接执行的完整数据例程。完整可执行审查例程见随附 \nolinkurl{audit_runtime.py}。
+
+\subsection{重编译与更新}
+\nolinkurl{main.tex} 通过 \nolinkurl{generated/references.tex} 引用 AST 检查过的函数位置，代码摘录由 \nolinkurl{source_snapshot/} 直接读取，附录也由同一快照生成。使用 XeLaTeX 编译两次更新目录和交叉引用，本报告不依赖外部文献库或 Biber。
+\nolinkurl{build.py} 只更新文档快照、索引和清单，不会修改核心源码；重新生成后需人工复核正文、默认值和摘录区间。随附整个目录可独立编译，\nolinkurl{build.py --check} 则需要放回原仓库相对位置执行。
+
+\appendix
+\clearpage
+\section{完整模块清单}
+\small
+\input{generated/modules.tex}
+\normalsize
+
+\section{完整符号与行号索引}
+\small
+\input{generated/index.tex}
+\normalsize
+\end{document}

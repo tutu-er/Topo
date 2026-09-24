@@ -1,0 +1,121 @@
+\chapter{通信数据与多视图图关系学习}
+\label{chap:multiview}
+
+\section*{本章目标}
+本章讨论 PLC/HPLC 通信数据、GIS 台账与电气量测如何融合。重点观点是：通信图 $G_C$ 不等于电气图 $G_E$，但通信特征可以作为 noisy prior 帮助边概率估计。最后给出用最大生成树或有向生成树解码放射状拓扑的简化流程。
+
+\section{PLC/HPLC 通信数据类型}
+
+低压台区的 PLC/HPLC 系统可能提供如下特征：
+\begin{enumerate}[label=(\arabic*)]
+  \item RSSI：接收信号强度；
+  \item SNR：信噪比，可包括整体 SNR 与子载波 SNR；
+  \item RTT：往返时延；
+  \item PER：包错误率或丢包率；
+  \item hop：通信路由跳数；
+  \item route：某时段路由父节点或中继路径；
+  \item CIR：信道冲激响应；
+  \item 频段特征：各子载波衰落、噪声谱、可用载波数量。
+\end{enumerate}
+这些特征与线路长度、阻抗、耦合方式、噪声源和中继策略相关，因此可能携带拓扑信息，但它们并不是电气边的直接观测。
+
+\section{通信图不等于电气图}
+
+定义通信图 $G_C=(V,E_C)$，若两个节点存在直接通信、路由邻接或信道质量超过阈值，则连接边。定义电气图 $G_E=(V,E_E)$，边表示实际导线或等效线路连接。一般有
+\begin{equation}
+  G_C\ne G_E.
+\end{equation}
+原因包括：
+\begin{enumerate}[label=(\arabic*)]
+  \item 通信信号可跨分支耦合，电气不相邻节点可能通信质量好；
+  \item 中继路由由协议和瞬时信道决定，不必沿电气父子边；
+  \item 电缆类型、接头、噪声源和相别会影响通信质量；
+  \item HPLC 网络可能动态换路，通信边具有时间变动性。
+\end{enumerate}
+
+\section{通信距离作为 noisy prior}
+
+通信特征可以转化为先验距离或边概率。例如
+\begin{equation}
+  \phi^{PLC}_{ij}=
+  [\operatorname{RSSI}_{ij},\operatorname{SNR}_{ij},
+  \operatorname{RTT}_{ij},\operatorname{PER}_{ij},
+  \operatorname{hop}_{ij},\ldots].
+\end{equation}
+然后学习
+\begin{equation}
+  p_{ij}=
+  \mathbb{P}\big((i,j)\in E_E
+  \mid \phi^{V}_{ij},\phi^{PQ}_{ij},\phi^{PLC}_{ij},\phi^{GIS}_{ij}\big).
+  \label{eq:edge_probability_multiview}
+\end{equation}
+若缺少标注拓扑，可用弱监督：GIS 边作为正样本候选，明显远距离或不同台区节点作为负样本候选，再用物理可行性筛选。
+
+\section{多视图图}
+
+可把不同信息源看成不同视图：
+\begin{equation}
+  G^V,\qquad G^{PQ},\qquad G^{PLC},\qquad G^{GIS}.
+\end{equation}
+其中 $G^V$ 来自电压响应或阻抗距离，$G^{PQ}$ 来自负荷相关与扰动共现，$G^{PLC}$ 来自通信特征，$G^{GIS}$ 来自台账候选。融合方式包括特征拼接、加权投票、贝叶斯先验、图神经网络或约束优化。本书建议入门阶段先采用透明模型：
+\begin{equation}
+  \operatorname{logit}(p_{ij})=
+  \beta_0+\beta_V^\top\phi^V_{ij}
+  +\beta_{PQ}^\top\phi^{PQ}_{ij}
+  +\beta_{PLC}^\top\phi^{PLC}_{ij}
+  +\beta_{GIS}^\top\phi^{GIS}_{ij}.
+\end{equation}
+
+\section{由边概率解码为放射状拓扑}
+
+若网络被建模为无向放射状树，可求最大生成树：
+\begin{equation}
+  \widehat T=
+  \argmax_{T\text{ spans }V}\sum_{(i,j)\in T}\log p_{ij}.
+  \label{eq:maxst_probability}
+\end{equation}
+若已知根节点且希望恢复父子方向，可先求无向树再按根定向；若边概率本身有方向 $p_{i\to j}$，可求最大有向生成树或 arborescence。
+
+\begin{algorithm}[htbp]
+  \caption{多视图拓扑辨识简化流程}
+  \label{alg:multiview_pipeline}
+  \KwIn{$P/Q/V$ 曲线，PLC/HPLC 记录，GIS 候选边，根节点 $0$}
+  \KwOut{放射状电气拓扑 $\widehat T$}
+  从 $P/Q/V$ 估计阻抗距离与电气特征 $\phi^V,\phi^{PQ}$\;
+  从通信记录提取 RSSI、SNR、RTT、PER、hop、route、CIR 特征 $\phi^{PLC}$\;
+  从 GIS 提取候选关系、地理距离、同箱同相等特征 $\phi^{GIS}$\;
+  用监督或弱监督模型估计每条候选边的 $p_{ij}$\;
+  在候选图上求最大生成树；若需要方向，则以根节点 $0$ 定向\;
+  用潮流残差、电压可行性和开关约束做后验校验\;
+  \KwRet{$\widehat T$}
+\end{algorithm}
+
+\begin{figure}[htbp]
+  \centering
+  \input{figures/multiview_flow.tex}
+  \caption{电气、通信、GIS 多视图融合并解码为放射状拓扑。}
+  \label{fig:multiview_flow}
+\end{figure}
+
+\section{物理约束的作用}
+
+多视图学习不能只追求分类精度。配电网拓扑还必须满足：
+\begin{enumerate}[label=(\arabic*)]
+  \item 每个非根节点有唯一路径连接根节点；
+  \item 边集合与开关状态、馈线边界和相别约束一致；
+  \item 在线性化或 AC 潮流下能解释观测电压；
+  \item 不产生与 GIS 明显矛盾的长距离跳接，除非数据证据充分。
+\end{enumerate}
+这些约束可作为后处理，也可直接进入优化模型。
+
+\section{本章小结}
+
+PLC/HPLC 通信数据提供了拓扑辨识的重要辅助信息，但通信图不等于电气图。合理做法是把通信距离作为 noisy prior，与 $P/Q/V$ 估计的电气特征和 GIS 台账共同学习边概率，再用最大生成树或有向生成树解码出放射状拓扑。多视图方法的优势在于抗单一数据源失真，但必须保留物理约束和可解释校验。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 给出一个 HPLC 路由父节点不等于电气父节点的可能场景。
+  \item 若 GIS 台账很旧，是否应把 GIS 候选边作为硬约束？为什么？
+  \item 最大生成树解码与逐边阈值分类相比有什么优势？
+  \item 如何设计无标注或弱标注数据下的边概率训练样本？
+\end{enumerate}

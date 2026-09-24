@@ -1,0 +1,103 @@
+\chapter{把各篇算法连接起来：选择、比较与练习}
+\label{ch:integration}
+\section{按可用观测选择计算路线}
+\begin{longtable}{p{0.19\textwidth}p{0.24\textwidth}p{0.24\textwidth}p{0.23\textwidth}}
+\toprule 当前信息 & 可以考虑的文献路线 & 直接计算对象 & 还需确认的接口\\\midrule\endhead
+末端P/Q/V、内部零注入 & S2路线；S3需要转到其电流及相别配置 & 灵敏度、隐藏最简树、阻抗 & 根电压、P/Q秩、相线/中性线、候选覆盖\\
+末端统计量与潜结构 & S4潜树、S16树协方差 & 概率结构、模型后验 & 物理模型是否导出所用似然\\
+可控逆变器和电压响应 & S12、S13、P1 & 部分响应列、候选边、Laplacian & 探测和量测覆盖、背景变化、线路先验\\
+沿线路检测特征电流 & P2、P4 & 祖先/包含记录、邻接关系 & 通道门限、传感器位置、漏检误检\\
+高频传播或编码响应 & P3、P5 & 时延、端口传递函数、低阶模型 & 传播速度、反射、输入输出位置、模型非唯一\\
+多源归属标签或现场档案 & S5、S6、S8、S9 & 归属置信、异常排序、现场核验 & 标签定义、依赖证据、量测可用率、现场真值\\
+需要权重或覆盖集合 & S14、S15、S17 & 广义后验、置信集合、预测集合 & 温度或似然、样本划分、交换性、求解方向\\
+需要运行包络 & S10、S11 & 数据驱动灵敏度、联合域、独立区间 & 模型误差、AC边界、全域鲁棒包含\\
+\bottomrule
+\end{longtable}
+这些路线可以组合，但每次组合都要重新检查接口。例如 S3生成候选，S14赋权，是一个候选上的广义后验；要升级成 S15的频率覆盖集合，需要合法的测试密度、验证似然及正确的全域上界，不能仅更换分数名称。
+
+\section{相同数据下如何比较不同模块}
+把完整流程写作
+\begin{equation}
+ D\xrightarrow{\mathcal P}\widetilde D
+ \xrightarrow{\mathcal E}\widehat M
+ \xrightarrow{\mathcal G}\mathcal C
+ \xrightarrow{\mathcal S}\widehat T
+ \xrightarrow{\mathcal U}\text{运行决策}.
+\end{equation}
+$\mathcal P$ 是预处理，$\mathcal E$ 是矩阵或响应估计，$\mathcal G$ 是候选生成，$\mathcal S$ 是选择或集合推断，$\mathcal U$ 是应用。比较两个端到端方法时，应另做模块固定的配对比较：固定 $\widetilde D$ 比估计器，固定 $\widehat M$ 比候选生成，固定 $\mathcal C$ 比选择规则。否则不能知道改进来自新增传感器、更好的估计，还是更多搜索预算。
+
+结构指标应对隐藏节点重新编号不敏感，可使用终端分裂、根化 clade 或压缩后的边关系。阻抗误差必须对齐单位及压缩规则；两条串联边合并后，应比较其和。预测误差、结构错误率、置信覆盖、拒判率和运行约束违反率分别报告，它们回答不同问题。所有调参都应隔离测试集；同一馈线上的多个时间窗口不能替代跨馈线泛化测试。
+
+\section{候选内最优为什么不能充当全域证明}
+设声明的模型集合为 $\mathcal M$，候选生成器只产生 $\mathcal C\subseteq\mathcal M$。对最小化损失有
+\begin{equation}
+ \min_{m\in\mathcal C}L(m)\geq\inf_{m\in\mathcal M}L(m).
+ \label{eq:tb-candidate-bound}
+\end{equation}
+候选最优值给全域最小值的上界，不能作为下界排除模型。对最大化似然恰好相反，有限候选最大值是全域最大值的下界。S15的分母若需要最大似然或其上界，使用候选最大值会使检验量变大，可能破坏覆盖。
+
+同理，求解器的最优性间隙只对应已编码的那个优化问题。即使某个有界MILP求得零间隙，如果它只搜索一次结构扩展、固定先验支持或有限候选池，也没有自动搜索全部隐藏树。候选截断、优化超时和模型近似是三个不同的限制，应分别记录。
+
+\section{与当前Topo代码的数学对照}
+以下只是本次静态核对到的代码入口，帮助读者把书中变量映射到已有研究对象；本次文档整理没有修改这些实现。
+\begin{longtable}{p{0.18\textwidth}p{0.49\textwidth}p{0.23\textwidth}}
+\toprule 数学对象 & 仓库相对路径与入口 & 必须保留的尺度或语义\\\midrule\endhead
+共同路径矩阵 & \path{rnj_wzzt_core/rnj_wzzt/models/lin_distflow.py}；\texttt{build\_reduced\_sensitivity\_matrices} & 幅值模式为 $K$，平方电压模式为 $2K$\\
+树距离 & 同文件；\texttt{impedance\_distance\_from\_reduced\_R} & 函数按输入尺度返回距离；若输入 $2K$，返回 $2d$\\
+RNJ共同深度 & \path{rnj_wzzt_core/rnj_wzzt/graph/sensitivity_geometry.py} & 当前说明明确直接使用共同路径分数；距离保留作诊断\\
+受约束矩阵估计 & \path{rnj_wzzt_core/rnj_wzzt/estimation/constrained_least_squares.py} & 连续约束与树组合约束分开理解\\
+层状原子结构 & \path{rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py} & 文件说明：精确对应单步有界扩展，完整前向路径为贪心\\
+候选池与流程 & \path{rnj_wzzt_core/rnj_wzzt/pipeline.py}；\texttt{\_prepare\_case}、\texttt{candidate\_supports} & 预处理、支持池和外层选择分别记录\\
+\bottomrule
+\end{longtable}
+例如 $R=\sum_e a_ew_ew_e^\top$ 的系数若来自平方电压模型，$a_e=2r_e$；标幺到欧姆还需乘 $Z_{\rm base}=V_{\rm base}^2/S_{\rm base}$。比较 S3 的复电流灵敏度时，则应先转换观测模型，不能只改一个系数2。
+
+\section{从统计集合到运行安全的充分条件}
+\begin{proposition}[集合包含如何传递到全域约束]
+设 $m_\star$ 是真实模型，数据产生的集合满足
+$\Prob\{m_\star\in\mathcal M(D)\}\geq1-\alpha$。若计算出的动作集合 $\mathcal U(D)$ 对每个数据实现都满足
+\begin{equation}
+ \forall m\in\mathcal M(D),\ \forall u\in\mathcal U(D),\quad g_m(u)\leq0,
+\end{equation}
+则
+\begin{equation}
+ \Prob\{\forall u\in\mathcal U(D),\ g_{m_\star}(u)\leq0\}\geq1-\alpha.
+\end{equation}
+\end{proposition}
+\begin{proof}
+在事件 $m_\star\in\mathcal M(D)$ 上，把真实模型代入确定性的全域鲁棒约束即可。安全事件包含该覆盖事件，故概率至少为 $1-\alpha$。
+\end{proof}
+这个简短证明同时指出困难所在：第一步需要模型覆盖，第二步需要对整个集合和整个动作域验证。随机抽查若干 AC 潮流点、只检查一个运行点、或只覆盖已有候选树，都不能单独提供上述两个前提。对于另行控制的模型失配事件，可以显式加入额外失效概率，而不是省略它。
+
+\section{练习与参考解：检查是否真正理解算法}
+\subsection{练习1：改变公共干线能否被叶间距离发现}
+把例\ref{ex:tb-tree}中 $r_{0h}$ 从1变为2。写出新的 $K_r$ 和所有叶间距离。
+\paragraph{参考解} $K'_r=K_r+\mathbf1\mathbf1^\top$，所以每个叶间距离中的新增量为 $1+1-2=0$，仍为9、10、9；根距离则从3、8、9变为4、9、10。这个练习说明根信息不能由纯叶间距离自动恢复。
+
+\subsection{练习2：一个未知量计数足够的回归为何仍失败}
+有 $m=1000,n=3$，但 $q_t=0.4p_t$。是否足以同时估计任意 $R,X$？
+\paragraph{参考解}不充分。$A=[P\ 0.4P]$ 的秩最多为3，即使有1000行仍小于6。数据能识别 $R+0.4X$，不能分别识别全部参数。增加相同统计方向上的样本只能降低组合量的方差。
+
+\subsection{练习3：父子关系中的符号}
+树上 $j$ 是 $i$ 的父，$d_{ij}=2$，外部端点 $k$ 在 $i$ 子树之外。求 $\phi_{ijk}=d_{ik}-d_{jk}$。
+\paragraph{参考解}路径 $i\to k$ 先经过 $j$，故 $d_{ik}=2+d_{jk}$，$\phi=+2$。若计算程序按负号判 $i$ 为子，就与这个定义矛盾。复杂情况下先检查路径残差和根方向，不对复数使用未定义的“负”。
+
+\subsection{练习4：模长一致是否意味着兄弟关系}
+某对节点的外部差值为 $\{1,-1\}$。计算式\eqref{eq:tb-s3-scores}中的 $E_s$，判断能否用它证明理想等差条件。
+\paragraph{参考解} $E_s=1-1=0$，但两个差值并不相等，不能证明兄弟关系。它是评分失败模式的代数例子，不是对某一论文数据集的实验结论。
+
+\subsection{练习5：候选似然应提供哪一侧的界}
+验证集上某复合原假设的最大似然为 $L^\star$，已找到一个可行参数的似然为 $L_f$。把 $L_f$ 用作 S15 型比率的分母是否总是保守？
+\paragraph{参考解}不是。$L_f\leq L^\star$，分母缩小使比率放大，可能过度拒绝。需要精确 $L^\star$ 或经证明的上界 $U\geq L^\star$；负对数似然形式对应有效下界。
+
+\subsection{练习6：九个校准样本能否给95\%有限阈值}
+采用标准 split conformal，无随机化，校准样本 $m=9$，目标覆盖 $1-\alpha=0.95$，求索引。
+\paragraph{参考解} $k=\lceil(m+1)(1-\alpha)\rceil=\lceil9.5\rceil=10=m+1$。标准带额外 $+\infty$ 的规则给无穷阈值；直接把索引裁到最大有限分数9会改变保证。
+
+\subsection{练习7：联合可行域为何不能按坐标分别全额授权}
+设 $\mathcal F=\{(p_1,p_2):p_i\geq0,p_1+p_2\leq1\}$。两个坐标投影都是 $[0,1]$，它们的笛卡尔积是否可安全独立使用？
+\paragraph{参考解}不可以，$(1,1)$ 不可行。独立区间 $[0,b_1]\times[0,b_2]$ 必须满足 $b_1+b_2\leq1$。最大面积解为 $b_1=b_2=1/2$；精确的联合域与可同时行使的独立权利不同。
+
+\subsection{练习8：一次探测能否打破所有隐藏歧义}
+两棵模型在所有已有端口上具有完全相同的静态响应矩阵。只在这些端口改变准稳态 P/Q，能否保证区分两者？
+\paragraph{参考解}不能；同一矩阵作用于任意新增输入仍给同一输出。需要改变观测算子，例如增加内部量测或研究确有不同响应的频域通道。高频与电流路径方法须使用各自模型，不能把静态矩阵中的不可辨性当作任意物理实验都不可辨。

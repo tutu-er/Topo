@@ -1,0 +1,86 @@
+\chapter{总结与研究路线建议}
+\label{chap:summary}
+
+\section*{本章目标}
+本章回顾全书主线：什么时候 MST 足够，什么时候必须使用 hidden tree reconstruction，什么时候需要物理约束，什么时候需要通信/GIS 先验。最后给出一个适合论文开题的研究问题与技术路线。
+
+\section{何时 MST 足够}
+
+MST 足够可靠的典型条件是：
+\begin{enumerate}[label=(\arabic*)]
+  \item 节点集接近完整电气节点集，隐藏分支点很少或已纳入模型；
+  \item 边权是可加树路径距离，如由公共路径灵敏度构造的阻抗距离；
+  \item 估计误差小于最小 cut margin 的一半；
+  \item 网络在研究时段内确实放射状运行；
+  \item 公共源端电压、未量测负荷和异常数据已被处理。
+\end{enumerate}
+在这些条件下，\cref{thm:additive_mst_recovery,thm:noisy_margin_mst}给出了清晰的理论保证。
+
+\section{何时必须使用 hidden tree reconstruction}
+
+若可观测节点主要是末端智能电表，而中间分支箱、接线点或开关柜未量测，就不应把叶节点 MST 解释为真实电气拓扑。此时应使用\cref{chap:four_point,chap:hidden_tree}中的 hidden tree reconstruction。输出应是最简等效拓扑，而不是含所有物理接头的施工图。
+
+尤其要注意：
+\begin{equation}
+  \text{leaf-only distance matrix} \not\Rightarrow
+  \text{MST recovers hidden branches}.
+\end{equation}
+能恢复隐藏分支，是因为叶间距离满足 four-point condition 并携带 quartet 信息，而不是因为 MST 会自动增加隐藏节点。
+
+\section{何时需要物理约束}
+
+当距离矩阵由统计相关性、机器学习特征或含噪回归得到时，必须引入物理约束：
+\begin{enumerate}[label=(\arabic*)]
+  \item LinDistFlow 或三相线性化潮流约束；
+  \item 电压上下限与潮流残差校验；
+  \item 导纳矩阵稀疏性或阻抗非负性；
+  \item 放射状约束和候选开关状态约束；
+  \item 源端公共模态和未量测负荷建模。
+\end{enumerate}
+物理约束的作用不是装饰模型，而是防止统计相似度偏离电气因果结构。
+
+\section{何时需要通信/GIS 先验}
+
+当 $P/Q/V$ 量测不足、扰动激励不够、负荷高度相关或局部 margin 很小时，通信与 GIS 先验尤其重要。PLC/HPLC 特征可提供边的弱证据，GIS 可限制候选边空间，开关台账可解释拓扑变化。但它们应作为 noisy prior，而不是直接替代电气拓扑。
+
+\section{适合开题的研究问题}
+
+一个自然且具有工程价值的研究问题是：
+
+\begin{quote}
+\textbf{融合 $P/Q/V$ 曲线分解与 PLC 通信特征的低压配电网多视图拓扑辨识。}
+\end{quote}
+
+可拆分为以下研究任务。
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{电气距离估计}：从多时刻 $P/Q/V$ 曲线中分离公共源端模态，估计 $R,X$ 或端口阻抗距离。
+  \item \textbf{隐藏树建模}：针对仅末端智能电表可观测场景，利用 four-point condition 或 recursive grouping 恢复最简等效分支拓扑。
+  \item \textbf{通信先验融合}：提取 HPLC 的 RSSI、SNR、RTT、PER、route、CIR 和子载波特征，学习边概率先验。
+  \item \textbf{放射状解码}：在候选图上用最大生成树、有向生成树或混合整数约束解码拓扑。
+  \item \textbf{物理后验校验}：用 LinDistFlow/三相潮流残差、电压可行性和开关状态验证输出。
+  \item \textbf{不确定性评估}：用 cut margin、bootstrap 或贝叶斯后验识别低置信度边，指导补充量测。
+\end{enumerate}
+
+\section{建议实验设计}
+
+论文实验可分为四层：
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{合成树实验}：控制边阻抗、隐藏节点比例、噪声强度，验证 MST margin 与 hidden tree reconstruction。
+  \item \textbf{标准配电网算例}：在 IEEE 径向馈线或实际台区脱敏模型上生成 LinDistFlow 数据。
+  \item \textbf{通信扰动实验}：模拟通信边与电气边不一致，检验多视图融合是否优于单一视图。
+  \item \textbf{消融实验}：分别去掉公共模态校正、GIS 先验、PLC 特征和物理后验校验，观察拓扑边准确率、路径准确率和电压残差变化。
+\end{enumerate}
+
+推荐指标包括边准确率、父节点准确率、树编辑距离、叶间路径距离误差、潮流残差、低置信边召回率以及运行时间。
+
+\section{本章小结}
+
+本书的主线可以压缩为一句话：\textbf{MST 解决完整节点集上的加性距离树恢复，hidden tree reconstruction 解决仅叶节点距离下的隐藏分支恢复，物理约束与多视图先验解决实际量测偏差与信息不足。} 对研究生而言，关键不是记住某个算法名称，而是判断数据、节点集、距离语义与输出拓扑之间是否匹配。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 针对你手头的数据，判断它属于全节点可观测、仅叶节点可观测还是候选图内开关状态辨识。
+  \item 设计一个实验验证“公共源端电压模态会误导相关性拓扑辨识”。
+  \item 如果只能新增少量量测点，应优先布置在分支节点还是末端节点？请结合 hidden tree reconstruction 说明。
+  \item 为上述开题题目写出三个可检验假设和对应评价指标。
+\end{enumerate}

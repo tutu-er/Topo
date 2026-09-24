@@ -1,0 +1,18 @@
+mode: hybrid_leaf
+service_impedance_mode: random_perturbed
+T: 360
+dt_seconds: 60
+profile_mode: correlated_residential
+pf_mode: noisy_q_ratio
+noise_config:
+  p_std: 0.0004
+  q_std: 0.0004
+  v_std: 0.0008
+v0_config:
+  sigma: 0.002
+delay_config:
+  max_delay_steps: 2
+seed: 11
+experiments:
+  - noise_v0_delay
+

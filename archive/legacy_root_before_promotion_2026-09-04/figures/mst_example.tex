@@ -1,0 +1,15 @@
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  bus/.style={circle,draw,fill=blue!12,minimum size=7mm}
+]
+\node[bus] (n0) at (0,0) {$0$};
+\node[bus] (n1) at (2,0) {$1$};
+\node[bus] (n2) at (4,0.8) {$2$};
+\node[bus] (n3) at (4,-0.8) {$3$};
+\draw[very thick] (n0)--node[above] {$1$} (n1);
+\draw[very thick] (n1)--node[above] {$2$} (n2);
+\draw[very thick] (n1)--node[below] {$3$} (n3);
+\draw[dashed,gray] (n0) to[bend left=18] node[above,gray] {$3$} (n2);
+\draw[dashed,gray] (n0) to[bend right=18] node[below,gray] {$4$} (n3);
+\draw[dashed,gray] (n2)--node[right,gray] {$5$} (n3);
+\end{tikzpicture}

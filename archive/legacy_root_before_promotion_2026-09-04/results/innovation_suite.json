@@ -1,0 +1,105 @@
+{
+  "innovation_1": {
+    "innovation": "hidden-load marginalized Bayesian topology likelihood",
+    "candidate_topologies": 15,
+    "hidden_nodes_1_based": [
+      5,
+      7
+    ],
+    "pmu_buses_1_based": [
+      9,
+      11
+    ],
+    "zero_injection_wls_accuracy": 0.4625,
+    "marginalized_bayes_accuracy": 0.9791666666666666,
+    "prior_draws": 12,
+    "test_cases": 720
+  },
+  "innovation_2": {
+    "innovation": "joint max-min active probing and micro-PMU placement",
+    "candidate_topologies": 15,
+    "best_passive_pmu_bus_1_based": 12,
+    "best_active_probes": [
+      {
+        "bus_1_based": 11,
+        "delta_p_pu": -0.015
+      },
+      {
+        "bus_1_based": 12,
+        "delta_p_pu": -0.015
+      }
+    ],
+    "joint_pmu_bus_1_based": 11,
+    "joint_probes": [
+      {
+        "bus_1_based": 9,
+        "delta_p_pu": -0.015
+      },
+      {
+        "bus_1_based": 10,
+        "delta_p_pu": -0.015
+      }
+    ],
+    "separation": {
+      "passive_sm": 6.2190782642385,
+      "passive_best_pmu": 9.482243261527003,
+      "active_sm": 15.591601022632588,
+      "joint_active_pmu": 22.247199198072803
+    },
+    "identification_accuracy": {
+      "passive_sm": 0.9563333333333334,
+      "passive_best_pmu": 0.977,
+      "active_sm": 0.992,
+      "joint_active_pmu": 0.9986666666666667
+    }
+  },
+  "innovation_3": {
+    "innovation": "switch-graph constrained HMM with missing asynchronous channels",
+    "candidate_topologies": 15,
+    "horizon": 100,
+    "missing_probability": 0.35,
+    "true_switches": 11,
+    "independent_accuracy": 0.69,
+    "viterbi_accuracy": 0.97,
+    "independent_switch_f1": 0.34375000000000006,
+    "viterbi_switch_f1": 0.8181818181818182,
+    "pmu_bus_1_based": 10
+  },
+  "innovation_4": {
+    "innovation": "potential-edge block coordinate descent with group sparsity and tree projection",
+    "surrogate_model": "scalar matrix-weighted Laplacian core",
+    "candidate_edges": 16,
+    "true_edges": 11,
+    "projected_edges": 11,
+    "matched_edges": 11,
+    "edge_precision": 1.0,
+    "edge_recall": 1.0,
+    "matched_weight_mape_percent": 35.5319384238557,
+    "pmu_buses_1_based": [
+      3,
+      4
+    ],
+    "objective_initial": 0.005401032416530475,
+    "objective_final": 0.0004981437505940323
+  },
+  "innovation_5": {
+    "innovation": "class-conditional conformal topology sets with adaptive PMU query",
+    "candidate_topologies": 15,
+    "target_miscoverage": 0.05,
+    "sm_top1_accuracy": 0.8657407407407407,
+    "conformal_set_coverage": 0.9722222222222222,
+    "average_prediction_set_size": 2.066666666666667,
+    "adaptive_one_pmu_accuracy": 0.8777777777777778,
+    "pmu_query_rate": 0.45555555555555555,
+    "adaptive_bus_query_histogram_1_based": {
+      "3": 41,
+      "4": 8,
+      "5": 99,
+      "6": 57,
+      "7": 6,
+      "11": 98,
+      "12": 183
+    },
+    "test_cases": 1080
+  }
+}

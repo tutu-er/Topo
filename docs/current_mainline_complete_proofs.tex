@@ -1,0 +1,1193 @@
+\documentclass[UTF8,11pt]{ctexart}
+
+\usepackage[a4paper,margin=2.35cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+\newtheorem{definition}{定义}[section]
+\newtheorem{assumption}[definition]{假设}
+\newtheorem{theorem}[definition]{定理}
+\newtheorem{lemma}[definition]{引理}
+\newtheorem{proposition}[definition]{命题}
+\newtheorem{corollary}[definition]{推论}
+\newtheorem{remark}[definition]{说明}
+\newtheorem{counterexample}[definition]{反例}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\Pbb}{\mathbb P}
+\newcommand{\Ebb}{\mathbb E}
+\newcommand{\Ccal}{\mathcal C}
+\newcommand{\Tcal}{\mathcal T}
+\newcommand{\Lcal}{\mathcal L}
+\newcommand{\pathset}{\mathcal P}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\pa}{\operatorname{pa}}
+\newcommand{\lca}{\operatorname{LCA}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\norm}[2][]{\left\lVert #2\right\rVert_{#1]}}
+
+\title{终端量测配电网拓扑辨识主线：\\完整数学证明、修正后的样本复杂度与可证明性边界}
+\author{基于 \texttt{terminal\_load\_only\_case33} 当前实现的审计稿}
+\date{2026年9月1日}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\begin{abstract}
+本文对当前“根电压校正 $\to$ 约束灵敏度估计 $\to$ RX75 加性距离 $\to$
+已知根 RNJ $\to$ quartet/NJ/RG 外周 clade $\to$ 一层 pseudo 聚合与局部重辨识
+$\to$ 固定树 EIV/AC 留出排序”主线给出逐步数学证明。证明严格区分三类结论：
+(i) 在径向零注入树和线性平方电压模型下成立的恒等式；
+(ii) 在明确统计假设和校准容差下成立的有限样本定理；
+(iii) 当前代码中的鲁棒启发式，它们只能获得条件性解释，不能被写成无条件保证。
+
+审计发现并修正了旧理论稿中的四个关键问题：第一，RNJ 的 shared-path 分数可直接由
+$R/X$ 元素构造，不应先形成距离再代数消去回原矩阵，也不存在旧稿给出的 $3\eta$ 放大；第二，当前 RNJ
+实现的安全条件应同时控制“选对最深家族、纳入全部兄弟、排除外部节点和在根处停止”，
+一个充分区间是 $2\varepsilon\le\tau<\lambda_*-2\varepsilon$；第三，正确 quartet
+gap 是“两条 cross-sum 的较小者减 within-sum”，旧稿中的 max 公式在真树上反而为零；
+第四，pseudo 电压平均只有在忽略 $P/Q$ 自变量误差和共模误差时才有
+$1/|C|$ 方差缩减，生产管线不能无条件宣称样本复杂度按 $|C|$ 倍下降。
+\end{abstract}
+
+\section{证明范围与结论分级}
+
+当前代码包含候选生成、统计稳定性、物理重估和留出选择多个层次。为避免把经验规则
+误写成定理，本文采用下列分级。
+
+\begin{center}
+\small
+\begin{longtable}{p{4.2cm}p{3.0cm}p{7.0cm}}
+\toprule
+模块 & 结论级别 & 本文结论 \\
+\midrule
+径向 LinDistFlow 共享路径矩阵 & 恒等式 & 在零注入内部节点、终端注入和一阶无损模型下严格成立。\\
+RX75 归一化混合 & 恒等式 & 两个同拓扑树度量的正线性组合仍是同拓扑树度量。\\
+最小隐藏树可辨识性 & 定理 & 精确加性距离与已知根深唯一确定规范化根向树。\\
+OLS 与 ordered 投影 & 条件定理 & 固定设计、条件次高斯误差、无 EIV 偏差、关闭后续 refinement 时有显式界。\\
+当前 general-tree RNJ & 条件定理 & shared-path 误差和容差落在显式安全区间时精确恢复。\\
+quartet clade 检验 & 确定性定理 & 正确 gap 公式及其 $\ell_\infty$ 扰动半径可严格证明。\\
+clade 聚合/去嵌入 & 恒等式 & 真 clade、真灵敏度、线性无损模型下严格；AC 损耗进入模型失配。\\
+pseudo 降噪与样本复杂度 & 条件推论 & 只有额外的独立响应噪声、无 EIV/共模误差等条件下才出现 $1/|C|$。\\
+固定树非负参数重估 & 凸子问题 & 权重固定时是凸 NNLS；权重依赖参数的 IRLS 全局最优性不保证。\\
+GTLS SVD & 条件定理 & 仅对可分离、列同方差、正确白化的 TLS 模型严格。\\
+有限候选 generalized posterior & 定义与一致性 & 正确归一化；若真树在候选池且留出损失有正 gap，则渐近集中。\\
+bootstrap/NJ/RG/AC gates & 经验诊断 & 可证明 Monte Carlo 频率误差，不能证明“稳定即正确”。\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+因此“完整证明”的含义不是为每个默认超参数制造不存在的保证，而是把所有可证明链条
+闭合，并明确指出保证在何处停止。
+
+\section{树模型、路径矩阵与平方电压方程}
+
+\subsection{基本对象}
+
+设 $T=(V,E)$ 是以已知节点 $0$ 为根的有限树。观测终端集合为
+$L=\{1,\ldots,n\}$，隐藏内部节点集合为 $H=V\setminus(L\cup\{0\})$。
+对边 $e$，令 $r_e>0,x_e>0$。令
+\begin{equation}
+ A_{ie}:=\mathbf 1\{e\in\pathset(0,i)\},\qquad
+ A\in\{0,1\}^{n\times |E|},
+ \label{eq:path-incidence}
+\end{equation}
+即 $A$ 是 terminal-to-edge 根路径矩阵。删去边 $e$ 后不含根的一侧所含终端记为
+$C_e$，于是 $A_{ie}=\mathbf 1\{i\in C_e\}$。
+
+\begin{assumption}[规范化最小根向树]
+\label{ass:minimal-tree}
+所有物理终端均为叶节点；所有隐藏内部节点为零注入；非根隐藏节点度数至少为 $3$；
+零阻抗内部边已收缩；度数为 $2$ 的隐藏链已替换为一条总阻抗相同的等效边。
+\end{assumption}
+
+最后两项不是算法便利，而是 terminal-only 可辨识性的必要规范化，见
+命题~\ref{prop:nonidentifiable}。
+
+\subsection{从 DistFlow 到 reduced sensitivity}
+
+令负荷消耗为正。对有向边 $e=(u\to v)$，记流向下游的有功、无功为 $P_e,Q_e$，
+节点电压幅值平方为 $w_u=|V_u|^2$。精确单相 DistFlow 电压方程为
+\begin{equation}
+ w_u-w_v=2(r_eP_e+x_eQ_e)-(r_e^2+x_e^2)\ell_e,
+ \qquad \ell_e=\frac{P_e^2+Q_e^2}{w_u}.
+ \label{eq:distflow-voltage}
+\end{equation}
+在线性无损近似中，忽略 $\ell_e$ 及支路损耗，且
+\begin{equation}
+ P_e=\sum_{j\in C_e}p_j,\qquad Q_e=\sum_{j\in C_e}q_j.
+ \label{eq:lossless-kcl}
+\end{equation}
+
+\begin{theorem}[平方电压 reduced sensitivity 恒等式]
+\label{thm:reduced-sensitivity}
+在式~\eqref{eq:lossless-kcl} 的线性无损模型下，终端平方电压降
+$y_i=w_0-w_i$ 满足
+\begin{equation}
+ y=Rp+Xq,
+ \qquad
+ R=2A\diag(r)A^\top,
+ \qquad
+ X=2A\diag(x)A^\top.
+ \label{eq:RX-path-form}
+\end{equation}
+等价地，
+\begin{equation}
+ R_{ij}=2\sum_{e\in\pathset(0,i)\cap\pathset(0,j)}r_e,
+ \qquad
+ X_{ij}=2\sum_{e\in\pathset(0,i)\cap\pathset(0,j)}x_e.
+ \label{eq:RX-shared-path}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+沿根到 $i$ 的路径对式~\eqref{eq:distflow-voltage} 的线性部分求和：
+\begin{align*}
+ y_i
+ &=2\sum_{e\in\pathset(0,i)}(r_eP_e+x_eQ_e)\\
+ &=2\sum_{e\in\pathset(0,i)}
+ \left(r_e\sum_{j\in C_e}p_j+x_e\sum_{j\in C_e}q_j\right)\\
+ &=\sum_{j\in L}
+ \left(2\sum_{e\in\pathset(0,i)}r_e\mathbf1\{j\in C_e\}\right)p_j
+ +\sum_{j\in L}
+ \left(2\sum_{e\in\pathset(0,i)}x_e\mathbf1\{j\in C_e\}\right)q_j.
+\end{align*}
+条件 $j\in C_e$ 等价于 $e\in\pathset(0,j)$，故两个括号分别为
+式~\eqref{eq:RX-shared-path}。矩阵形式由
+$(A\diag(r)A^\top)_{ij}=\sum_e r_eA_{ie}A_{je}$ 立即得到。
+\end{proof}
+
+\begin{remark}[AC 数据中的模型失配]
+生产实验用 AC backward--forward sweep 生成电压，而非用
+式~\eqref{eq:RX-path-form} 生成。把式~\eqref{eq:distflow-voltage} 的
+$(r_e^2+x_e^2)\ell_e$、有损 KCL、调压设备、ZIP/不平衡效应与量测误差合并，实际回归是
+\begin{equation}
+ Y_s=P_sR^\top+Q_sX^\top+\bm1\gamma_s^\top+B_s+E_s.
+ \label{eq:statistical-model}
+\end{equation}
+因此后文的有限样本结论都显式保留有界偏差 $B_s$，并不把 AC 数据误称为精确线性数据。
+\end{remark}
+
+\subsection{矩阵物理结构}
+
+\begin{proposition}[对称、非负、PSD 与 ordered 性]
+\label{prop:matrix-structure}
+在假设~\ref{ass:minimal-tree} 下，$R$ 与 $X$ 均对称、逐元非负、半正定，且对
+$i\neq j$，
+\begin{equation}
+ R_{ii}-R_{ij}
+ =2\sum_{e\in\pathset(0,i)\setminus\pathset(0,j)}r_e>0,
+ \qquad
+ R_{jj}-R_{ij}>0,
+ \label{eq:ordered-gap}
+\end{equation}
+$X$ 同理。
+\end{proposition}
+
+\begin{proof}
+对称与逐元非负由式~\eqref{eq:RX-shared-path} 直接得到。对任意 $z\in\R^n$，
+\begin{equation*}
+ z^\top Rz
+ =2z^\top A\diag(r)A^\top z
+ =2\sum_{e\in E}r_e\left(\sum_{i\in C_e}z_i\right)^2\ge0,
+\end{equation*}
+故 $R\succeq0$。由于 $i,j$ 均为不同叶节点，$i$ 在
+$\lca(i,j)$ 以下至少有一条正电阻边不属于 $j$ 的根路径，因此
+式~\eqref{eq:ordered-gap} 严格为正。$X$ 的证明相同。
+\end{proof}
+
+\begin{remark}[逆 M-matrix 的来源]
+若对所有非根节点构造完整灵敏度矩阵，则其一半是 grounded Laplacian 的逆。
+只保留终端的主子矩阵后，其逆是对隐藏节点做 Schur 补得到的 Kron-reduced grounded
+Laplacian，因而具有非正非对角元。该性质是 tree-covariance 诊断的依据；但是代码中的
+交替 PSD/ordered 投影并非精确投到“所有树矩阵”的集合，不能由此推出估计矩阵必对应
+某棵树。
+\end{remark}
+
+\section{加性距离、RX 混合与规范化树的唯一性}
+
+\subsection{距离诊断和直接 shared-path 分数}
+
+定义
+\begin{equation}
+ d^R_{ij}:=R_{ii}+R_{jj}-2R_{ij},
+ \qquad h^R_i:=R_{ii}.
+ \label{eq:distance-depth}
+\end{equation}
+
+\begin{lemma}[矩阵元素就是 shared-path 分数]
+\label{lem:additive-distance}
+对任意终端 $i,j$，
+\begin{equation}
+ S^R_{ij}:=R_{ij}=2\sum_{e\in\pathset(0,\lca(i,j))}r_e,
+ \qquad
+ d^R_{ij}=h^R_i+h^R_j-2S^R_{ij}
+ =2\sum_{e\in\pathset(i,j)}r_e.
+ \label{eq:direct-R-shared}
+\end{equation}
+因此 RNJ 可直接按 $R_{ij}$ 排序；距离式只服务于需要加性距离的算法和诊断。
+\end{lemma}
+
+\begin{proof}
+两条根路径的对称差恰是 $i$ 到 $j$ 的路径。将
+式~\eqref{eq:RX-shared-path} 已给出第一式。将它代入式~\eqref{eq:distance-depth}，
+公共边出现系数 $1+1-2=0$，只属于一条根路径的边出现系数 $1$，得到距离式。
+\end{proof}
+
+\begin{proposition}[RX75 仍是同一拓扑的加性树度量]
+\label{prop:rx-mixture}
+令 $s_R,s_X>0$ 为任意正尺度，$a,b>0$。定义
+\begin{equation}
+ d_{ij}=a\frac{d^R_{ij}}{s_R}+b\frac{d^X_{ij}}{s_X},
+ \qquad
+ h_i=a\frac{R_{ii}}{s_R}+b\frac{X_{ii}}{s_X}.
+ \label{eq:mixed-metric}
+\end{equation}
+则 $d$ 是原树 $T$ 上的加性度量，其边长为
+\begin{equation}
+ \omega_e=2a\frac{r_e}{s_R}+2b\frac{x_e}{s_X}>0,
+\end{equation}
+相应的 RNJ 直接分数和根深度为
+\begin{equation}
+ S_{ij}:=a\frac{R_{ij}}{s_R}+b\frac{X_{ij}}{s_X},
+ \qquad H_i:=S_{ii},
+ \qquad d_{ij}=H_i+H_j-2S_{ij}.
+ \label{eq:mixed-shared}
+\end{equation}
+因此代码的 $a=0.75,b=0.25$ 不改变精确拓扑，只改变边长。
+\end{proposition}
+
+\begin{proof}
+把引理~\ref{lem:additive-distance} 对 $R$ 和 $X$ 的表达式代入
+式~\eqref{eq:mixed-metric}，逐边合并系数即可。式~\eqref{eq:mixed-shared}
+由 $S^R=R,S^X=X$ 的线性组合直接得到。
+\end{proof}
+
+\subsection{四点定理与唯一性}
+
+\begin{theorem}[四点关系]
+\label{thm:four-point}
+取四个不同标签 $i,j,k,l$。若其诱导四叶树的 split 为 $ij\mid kl$，连接两侧
+分叉点的内部路径长度为 $\lambda\ge0$，则
+\begin{align}
+ d_{ij}+d_{kl}&=:S_{\rm within},\\
+ d_{ik}+d_{jl}&=S_{\rm within}+2\lambda,\\
+ d_{il}+d_{jk}&=S_{\rm within}+2\lambda.
+ \label{eq:four-point-equality}
+\end{align}
+特别地，三个 pair-sum 中最大的两个相等；当 $\lambda>0$ 时，最小者唯一并确定 split。
+\end{theorem}
+
+\begin{proof}
+将四叶诱导子树分为五段：$i,j$ 侧两条 pendant 路径、$k,l$ 侧两条 pendant 路径，
+以及长度 $\lambda$ 的中间路径。每个 pair-sum 都包含四条 pendant 路径各一次；
+cross-sum 还各自两次经过中间路径，而 within-sum 不经过，故得到
+式~\eqref{eq:four-point-equality}。
+\end{proof}
+
+\begin{theorem}[规范化根向树唯一性]
+\label{thm:tree-uniqueness}
+在假设~\ref{ass:minimal-tree} 下，精确的终端距离 $d_{ij}$ 与根深 $h_i=d(0,i)$
+唯一确定根向加权树，唯一性只差隐藏节点重命名。
+\end{theorem}
+
+\begin{proof}
+把根 $0$ 作为额外标签，定义扩充距离
+$d(0,i)=h_i,d(0,0)=0$。它正是原树在标签集 $L\cup\{0\}$ 上的加性度量。
+由定理~\ref{thm:four-point}，每条正长度内部边诱导的 split 都可由某个四元组的
+唯一最小 pair-sum 识别；反之全部这类 split 两两兼容，因为它们来自同一棵树。
+兼容 split 的包含关系（等价于 rooted clade 的包含关系）给出一棵唯一的 Hasse 图：
+每个非平凡 clade 对应一个内部节点，其父节点是严格包含它的最小 clade，未落入更小
+clade 的标签直接接到该节点。该 Hasse 图就是抑制度 $2$ 节点后的根向树。
+
+拓扑确定后，四点 gap 的一半给出内部边长；终端根深减去其父节点深度给出 pendant
+边长。因此边权也唯一。隐藏节点的整数标签未出现在距离中，只能确定到重命名。
+\end{proof}
+
+\begin{proposition}[不可辨识结构]
+\label{prop:nonidentifiable}
+仅凭 $(d_{ij},h_i)$ 无法辨识：(i) 一条边被分成多少条串联的 degree-2 隐藏边；
+(ii) 零长度内部边两端是否为两个节点；(iii) 没有任何终端后代的设备节点。
+\end{proposition}
+
+\begin{proof}
+把长度 $a+b$ 的边替换为两条长度 $a,b$ 且中间插入 degree-2 隐藏节点，任意标签间
+路径总长不变。对零长度边做收缩同样不改变任何路径长。没有终端后代的枝条不出现在
+任意根到终端或终端到终端路径上，也不影响观测距离。故这些结构产生完全相同的数据。
+\end{proof}
+
+\section{多场景回归的有限样本误差}
+
+\subsection{固定设计模型}
+
+将全部场景堆叠。记总样本数 $N=\sum_s m_s$，设计矩阵
+\begin{equation}
+ Z=[P\mid Q\mid G]\in\R^{N\times p},\qquad p=2n+S,
+\end{equation}
+其中 $G$ 为场景示性矩阵；目标 $Y\in\R^{N\times n}$。写成
+\begin{equation}
+ Y=Z\Theta+B+E,
+ \qquad
+ \Theta=\begin{bmatrix}R^\top&X^\top&\Gamma^\top\end{bmatrix}^\top.
+ \label{eq:stacked-regression}
+\end{equation}
+
+\begin{assumption}[回归定理的统计条件]
+\label{ass:regression}
+$Z$ 满列秩且在条件于 $Z$ 后，每个目标列 $E_{\cdot j}$ 满足：对任意确定向量 $a$，
+\begin{equation}
+ \Ebb[\exp(t a^\top E_{\cdot j})\mid Z]
+ \le \exp\!\left(\frac{t^2\sigma_j^2\|a\|_2^2}{2}\right).
+ \label{eq:subgaussian-vector}
+\end{equation}
+并且 $\|B_{\cdot j}\|_2\le\beta_j\sqrt N$。
+\end{assumption}
+
+该假设允许同一目标列在去均值后出现相关性，因为去均值矩阵是二范数不超过 $1$ 的
+线性投影；但它不允许未校正的 errors-in-variables 偏差。生产数据中的 noisy $P/Q$
+使 $Z$ 与有效残差相关，因此下述 OLS 定理应理解为“真 $P/Q$、工具变量、交叉拟合或
+EIV 偏差已单独控制”时的基准定理。
+
+\begin{theorem}[OLS entrywise 误差]
+\label{thm:ols-bound}
+令 $\widehat\Theta=Z^\dagger Y=(Z^\top Z)^{-1}Z^\top Y$。对任意
+$\delta\in(0,1)$，以概率至少 $1-\delta$，
+\begin{equation}
+ \|\widehat\Theta-\Theta\|_{\max}
+ \le
+ \max_j\left\{
+ \frac{\sigma_j\sqrt{2\log(2pn/\delta)}}{\sigma_{\min}(Z)}
+ +\frac{\beta_j\sqrt N}{\sigma_{\min}(Z)}
+ \right\}
+ =:\eta.
+ \label{eq:ols-max-bound}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+设 $a_k^\top$ 是 $Z^\dagger$ 的第 $k$ 行。则
+\begin{equation*}
+ \widehat\Theta_{kj}-\Theta_{kj}
+ =a_k^\top E_{\cdot j}+a_k^\top B_{\cdot j},
+ \qquad
+ \|a_k\|_2\le\|Z^\dagger\|_2=\frac1{\sigma_{\min}(Z)}.
+\end{equation*}
+由式~\eqref{eq:subgaussian-vector}，
+\begin{equation*}
+ \Pbb(|a_k^\top E_{\cdot j}|>t\mid Z)
+ \le2\exp\left(-\frac{t^2\sigma_{\min}^2(Z)}{2\sigma_j^2}\right).
+\end{equation*}
+同时 Cauchy--Schwarz 给出
+$|a_k^\top B_{\cdot j}|\le\beta_j\sqrt N/\sigma_{\min}(Z)$。
+对 $pn$ 个系数做 union bound，并令随机项阈值为
+$\sigma_j\sqrt{2\log(2pn/\delta)}/\sigma_{\min}(Z)$，即得结论。
+\end{proof}
+
+\begin{corollary}[以设计方差表示的样本阶]
+\label{cor:ols-sample}
+若 $\sigma_{\min}^2(Z)\ge Nv_{\min}$，则
+\begin{equation}
+ \eta\le
+ \max_j\left\{
+ \sigma_j\sqrt{\frac{2\log(2pn/\delta)}{Nv_{\min}}}
+ +\frac{\beta_j}{\sqrt{v_{\min}}}
+ \right\}.
+ \label{eq:ols-vmin}
+\end{equation}
+注意分母应是 $v_{\min}$。仅由
+$\sigma_{\max}^2(Z)\le Nv_{\max}$ 不能推出旧稿所写的
+$\kappa(Z)^2/v_{\max}$ 形式；若要使用该形式，还必须另加
+$\sigma_{\max}^2(Z)\asymp Nv_{\max}$ 的双边尺度假设。
+\end{corollary}
+
+\subsection{ordered 投影链}
+
+代码先对称化、截负，再循环执行 diagonal-order 修正，最后提升对角线。投影 margin
+由输入矩阵的 scale 计算，因此以下定理先固定一次实际使用的 margin $\mu$。
+
+\begin{theorem}[ordered 基本操作的 max-norm 非扩张性]
+\label{thm:ordered-projection}
+设真矩阵 $R$ 对称、非负，并满足
+$R_{ii}-R_{ij}\ge\mu$。若 $\|M-R\|_{\max}\le\eta$，则代码中的每个基本操作
+（对称化、截负、一次 $(2/3,-1/3)$ 半空间修正、最终对角提升）都保持
+$\|M'-R\|_{\max}\le\eta$。故任意有限次 ordered 基本操作的复合仍非扩张。
+\end{theorem}
+
+\begin{proof}
+对称化后
+$|\frac12(M_{ij}+M_{ji})-R_{ij}|\le\eta$。映射 $x\mapsto[x]_+$ 是
+$1$-Lipschitz，且 $R_{ij}\ge0$，故截负不放大误差。
+
+考虑约束 $M_{ii}-M_{ij}\ge\mu$ 的一次违例。令
+\begin{equation*}
+ v=\mu-(M_{ii}-M_{ij})>0,
+ \qquad
+ g=(R_{ii}-R_{ij})-\mu\ge0,
+\end{equation*}
+以及 $e_{ii}=M_{ii}-R_{ii},e_{ij}=M_{ij}-R_{ij}$。则
+$v=e_{ij}-e_{ii}-g$，代码更新
+\begin{equation*}
+ M'_{ii}=M_{ii}+\frac{2v}{3},\qquad
+ M'_{ij}=M_{ij}-\frac v3,qquad M'_{ji}=M'_{ij}.
+\end{equation*}
+于是
+\begin{align*}
+ M'_{ii}-R_{ii}&=\frac13e_{ii}+\frac23e_{ij}-\frac23g,\\
+ M'_{ij}-R_{ij}&=\frac13e_{ii}+\frac23e_{ij}+\frac13g.
+\end{align*}
+第一式的下界也可写成 $e_{ii}+2v/3\ge-\eta$，上界不超过
+$(e_{ii}+2e_{ij})/3\le\eta$。第二式下界不小于
+$(e_{ii}+2e_{ij})/3\ge-\eta$；由 $v>0$ 得
+$g<e_{ij}-e_{ii}$，故其上界严格小于 $e_{ij}\le\eta$。
+
+最后，对角提升为
+$M'_{ii}=\max\{M_{ii},\max_{j\ne i}M_{ij}+\mu\}$。若触发提升，
+\begin{equation*}
+ M'_{ii}le\max_{j\ne i}R_{ij}+\eta+\mu\le R_{ii}+\eta;
+\end{equation*}
+又 $M'_{ii}\ge M_{ii}\ge R_{ii}-\eta$。未触发时显然成立。逐操作复合完成证明。
+\end{proof}
+
+\begin{remark}[定理覆盖的代码范围]
+当随机 margin $\mu(M)=10^{-6}\operatorname{median}(\diag M)$ 满足
+$\mu(M)\le\min_{i\ne j}(R_{ii}-R_{ij})$ 时，定理适用。它严格覆盖
+初始 lstsq 后的 ordered 投影链。默认的 50 步 projected-gradient refinement
+会重新计算 proposal 的 scale 和 margin；其目标值单调下降不等于相对真矩阵的
+max-norm 单调，因此不在定理~\ref{thm:ordered-projection} 的保证内。
+tree-covariance 模式的 PSD 特征值投影在 Frobenius 范数下有良性性质，但不保持本文
+所需的 entrywise max-norm 界，也单独排除。
+\end{remark}
+
+\subsection{随机归一化与 shared-path 误差的正确预算}
+
+令 $s_R$ 为 $d^R$ 全部非对角项的均值，$\widehat s_R$ 为代码中估计距离正项均值。
+
+\begin{lemma}[归一化尺度与矩阵误差]
+\label{lem:normalization}
+若 $\|\widehat R-R\|_{\max}\le\eta_R$ 且
+$4\eta_R<d^R_{\min}:=\min_{i\ne j}d^R_{ij}$，则
+\begin{equation}
+ |\widehat s_R-s_R|\le4\eta_R,
+ \label{eq:scale-error}
+\end{equation}
+并且对所有 $i,j$，
+\begin{equation}
+ \left|\frac{\widehat R_{ij}}{\widehat s_R}-\frac{R_{ij}}{s_R}\right|
+ \le
+ \frac{\eta_R}{s_R-4\eta_R}
+ +\frac{4R_{\max}\eta_R}{s_R(s_R-4\eta_R)}
+ =:\varepsilon_R.
+ \label{eq:normalized-R-error}
+\end{equation}
+其中 $R_{\max}=\max_{ij}R_{ij}$。$X$ 有完全相同的结论。
+\end{lemma}
+
+\begin{proof}
+由距离定义，
+$|\widehat d^R_{ij}-d^R_{ij}|\le|\Delta R_{ii}|+|\Delta R_{jj}|+2|\Delta R_{ij}|
+\le4\eta_R$。条件 $4\eta_R<d^R_{\min}$ 保证全部非对角估计距离为正，而对角元由
+构造恒为零，所以“正项均值”恰好对全部非对角项取均值，得到
+式~\eqref{eq:scale-error}。再用
+\begin{align*}
+ \left|\frac{\widehat R_{ij}}{\widehat s_R}-\frac{R_{ij}}{s_R}\right|
+ &\le\frac{|\widehat R_{ij}-R_{ij}|}{\widehat s_R}
+ +\frac{R_{ij}|\widehat s_R-s_R|}{s_R\widehat s_R}
+\end{align*}
+以及 $\widehat s_R\ge s_R-4\eta_R$ 即得。
+\end{proof}
+
+\begin{corollary}[直接 shared-path 分数的误差]
+\label{cor:shared-error}
+若 $\widehat R,\widehat X$ 对称、非负且 ordered，则代码直接构造
+\begin{equation}
+ \widehat S_{ij}
+ =0.75\frac{\widehat R_{ij}}{\widehat s_R}
+ +0.25\frac{\widehat X_{ij}}{\widehat s_X}.
+ \label{eq:estimated-shared-direct}
+\end{equation}
+因此
+\begin{equation}
+ \|\widehat S-S\|_{\max}
+ \le0.75\varepsilon_R+0.25\varepsilon_X=: \varepsilon.
+ \label{eq:shared-score-error}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+式~\eqref{eq:estimated-shared-direct} 是两个归一化矩阵元素的线性组合；分别应用
+引理~\ref{lem:normalization} 后用三角不等式即得。
+\end{proof}
+
+旧稿从 $\widehat d$ 再定义 $\widehat\rho$，随后讨论对角项如何消去；这只是
+$\widehat R_{ij}$ 的恒等改写。当前代码和证明均直接使用式~\eqref{eq:estimated-shared-direct}。
+
+\section{当前 general-tree RNJ 的严格恢复条件}
+
+\subsection{分叉间隔}
+
+对规范化根向树，将每条“父端为根或隐藏分叉点、子端为隐藏分叉点”的边称为
+骨架边。定义
+\begin{equation}
+ \lambda_*:=\min\{\omega_e:e\text{ 为正长度骨架边}\}.
+ \label{eq:skeleton-margin}
+\end{equation}
+若树没有隐藏分叉点，则令 $\lambda_*=+\infty$。pendant 终端边不进入
+$\lambda_*$，因为 RNJ 的 family 判定比较的是不同 LCA 深度，最小分离来自相邻分叉点
+之间的骨架边。
+
+\begin{lemma}[active frontier 不变量]
+\label{lem:active-frontier}
+在真树上自底向上收缩若干完整 sibling family 后，active 节点对应两两不相交的真子树；
+对任意 active 节点 $a,b$，其分数 $S_{ab}$ 仍等于
+$\operatorname{depth}(\lca(a,b))$。若把一个完整 family 收缩到父节点 $u$，则对任何
+外部 active 节点 $z$，所有 family 成员 $c$ 都满足
+$S_{cz}=S_{uz}$。
+\end{lemma}
+
+\begin{proof}
+收缩完整子树不会改变该子树外部的根路径。family 成员与外部节点的 LCA 等于其父节点
+$u$ 与外部节点的 LCA，故 shared path 相同。归纳即可。
+\end{proof}
+
+\begin{theorem}[代码 RNJ 的 $\ell_\infty$ 安全区间]
+\label{thm:rnj-robust}
+设初始 root depths 和 shared paths 均在真值的 $\varepsilon$ 邻域内，并且代码在每次
+更新时对 family-to-outside shared path 取中位数。若
+\begin{equation}
+ \varepsilon<\frac{\lambda_*}{4},
+ \qquad
+ 2\varepsilon\le\tau<\lambda_*-2\varepsilon,
+ \label{eq:rnj-safe-interval}
+\end{equation}
+则 \texttt{rooted\_neighbor\_joining} 精确恢复规范化根向拓扑；估计边长可以有误，
+但 rooted clade 集合完全正确。
+\end{theorem}
+
+\begin{proof}
+对 while 循环次数归纳。初始时引理~\ref{lem:active-frontier} 显然成立，并假设所有
+active depth/shared 值误差不超过 $\varepsilon$。
+
+取当前最深尚未收缩的真分叉点 $u$，深度为 $H$。它至少有两个 active 子节点
+$a,b$（非根隐藏节点度数至少 $3$，去掉父边后至少有两个子分支），且
+$S_{ab}=H$。任何不属于同一个最深 family 的 active 对，其 LCA 深度至多
+$H-\lambda_*$；即使存在多个同深度 family，跨 family 的 LCA 仍至少隔一条骨架边。
+因此
+\begin{equation*}
+ \widehat S_{ab}\ge H-\varepsilon,
+ \qquad
+ \widehat S_{cd}\le H-\lambda_*+\varepsilon
+\end{equation*}
+对任意非同-family 对 $(c,d)$ 成立。由 $2\varepsilon<\lambda_*$，代码选择的全局最大对
+必属于某个最深真 family。
+
+令选中对为 $a,b$。输入分数已裁剪到端点根深度之下，故代码直接取父深
+$\widehat H=\widehat S_{ab}$，从而 $|\widehat H-H|\le\varepsilon$。
+
+若 $c$ 是同一 family 的另一个 active 子节点，则
+$S_{ac}=S_{bc}=H$，从而
+\begin{equation*}
+ \widehat H-\min\{\widehat S_{ac},\widehat S_{bc}\}
+ \le2\varepsilon\le\tau,
+\end{equation*}
+故 $c$ 必被纳入。若 $z$ 在 family 外，则其真 support 至多
+$H-\lambda_*$，所以
+\begin{equation*}
+ \widehat H-\min\{\widehat S_{az},\widehat S_{bz}\}
+ \ge\lambda_*-2\varepsilon>\tau,
+\end{equation*}
+故外部节点不会被误纳入。代码因此恰好收缩一个完整真 family。
+
+对任意剩余节点 $z$，family 每个成员与 $z$ 的真 shared path 都等于
+$S_{uz}$（引理~\ref{lem:active-frontier}）。每个估计值在其 $\varepsilon$ 邻域内，
+故中位数也在同一邻域内。clip 到
+$[0,\min(\widehat H_u,\widehat H_z)]$ 不会把误差扩大超过 $\varepsilon$：真值属于真区间，
+估计区间端点与真端点相差至多 $\varepsilon$。于是归纳不变量保持。
+
+当 active 节点全是根的直接子分支时，所有真 pair support 为 $0$，估计值经非负 clip
+位于 $[0,\varepsilon]$，而 $\tau\ge2\varepsilon$，代码正确停止并把它们接到给定根。
+在此之前若仍有非根 family，则最大真 parent depth 至少为 $\lambda_*$，其估计值至少
+$\lambda_*-\varepsilon>\tau$，不会提前停止。故全部收缩顺序均与真树兼容，最终 rooted
+clade 集合精确。
+\end{proof}
+
+\begin{remark}[默认 $0.16$ 容差的地位]
+代码取 $\tau=0.16\operatorname{median}(\widehat H)$。定理只说明：若这个数据依赖值
+恰好落入式~\eqref{eq:rnj-safe-interval}，则恢复有保证。固定比例本身不能保证对新馈线
+满足该区间；更合理的理论参数应由 shared-path 不确定度上界 $\varepsilon$ 与最小可分辨
+骨架边下界共同确定。
+\end{remark}
+
+\section{quartet clade 证据的正确公式与鲁棒半径}
+
+对候选 clade $C$，取 $i,j\in C$ 和 $k,l\notin C$；代码把已知根作为 complement
+中的额外 anchor。定义
+\begin{equation}
+ G_{ij\mid kl}(d)
+ :=\min\{d_{ik}+d_{jl},d_{il}+d_{jk}\}-(d_{ij}+d_{kl}).
+ \label{eq:correct-quartet-gap}
+\end{equation}
+
+\begin{proposition}[split gap 与确定性扰动界]
+\label{prop:quartet-robust}
+若真四叶 split 为 $ij\mid kl$，内部路径长度为 $\lambda$，则
+$G_{ij\mid kl}(d)=2\lambda$。若
+$\|\widehat d-d\|_{\max}\le\xi$，则
+\begin{equation}
+ |G_{ij\mid kl}(\widehat d)-2\lambda|\le4\xi.
+ \label{eq:quartet-error}
+\end{equation}
+特别地，$\xi<\lambda/2$ 时 gap 保持为正。
+\end{proposition}
+
+\begin{proof}
+第一式是定理~\ref{thm:four-point}。每个 pair-sum 含两个距离项，误差至多
+$2\xi$；两个数的 minimum 映射在 max-norm 下是 $1$-Lipschitz，故 cross-min 误差
+至多 $2\xi$，within-sum 误差至多 $2\xi$，相减得到 $4\xi$。
+\end{proof}
+
+旧稿使用“一个 cross-sum 减三个和的 max”。在真 split 下两个 cross-sum 相等，
+该量等于零，不能作为正 gap。式~\eqref{eq:correct-quartet-gap} 与
+\texttt{quartet\_gaps\_for\_clade} 的实际实现一致。
+
+\begin{proposition}[bootstrap 正支持率只估计扰动稳定性]
+\label{prop:bootstrap-mc}
+固定原始数据 $D$ 与扰动/块采样机制。令一次 replicate 的接受指示量为
+$I_b\in\{0,1\}$，条件成功率 $p_D=\Pbb(I_b=1\mid D)$。若 replicates 条件独立，则
+\begin{equation}
+ \Pbb\left(\left|\frac1B\sum_{b=1}^BI_b-p_D\right|>u\middle|D\right)
+ \le2e^{-2Bu^2}.
+ \label{eq:hoeffding-bootstrap}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+条件于 $D$ 后，$I_b$ 是独立 Bernoulli 变量，直接应用 Hoeffding 不等式。
+\end{proof}
+
+式~\eqref{eq:hoeffding-bootstrap} 只控制 Monte Carlo 误差；$p_D$ 是“在选定扰动机制下
+算法重复接受”的概率，不是 $\Pbb(C\text{ 为真}\mid D)$。固定模型偏差可使错误 clade
+具有很高 $p_D$。
+
+\section{一层 clade 聚合的精确恒等式}
+
+\subsection{外部等价}
+
+\begin{definition}[完整悬挂 clade]
+若隐藏节点 $g$ 的全部终端后代恰为 $C$，则称 $C$ 是以 $g$ 为边界的完整悬挂 clade。
+记 $R_{gj}$ 为把 $g$ 当作一行标签时的共享路径灵敏度，$R_{gg}$ 为根到 $g$ 的两倍
+电阻深度；$X$ 同理。
+\end{definition}
+
+\begin{lemma}[外部行等价]
+\label{lem:external-equivalence}
+若 $C$ 是以 $g$ 为边界的完整悬挂 clade，则
+\begin{align}
+ R_{ij}&=R_{gj},&X_{ij}&=X_{gj},&& i\in C,\ j\notin C,\label{eq:external-row}\\
+ R_{gj}&=R_{gg},&X_{gj}&=X_{gg},&&j\in C.\label{eq:inside-boundary-row}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+对 $i\in C,j\notin C$，$i$ 的根路径在 $g$ 以下的部分不可能与 $j$ 的根路径相交，
+故 $\pathset(0,i)\cap\pathset(0,j)=\pathset(0,g)\cap\pathset(0,j)$，得到
+式~\eqref{eq:external-row}。对 $j\in C$，$g$ 位于 $j$ 的根路径上，二者公共根路径
+正是 $\pathset(0,g)$，得到式~\eqref{eq:inside-boundary-row}。
+\end{proof}
+
+\subsection{pseudo 功率与边界电压}
+
+\begin{theorem}[oracle clade 收缩精确性]
+\label{thm:oracle-aggregation}
+在定理~\ref{thm:reduced-sensitivity} 的线性无损模型下，令
+\begin{equation}
+ p_g=\sum_{j\in C}p_j,qquad q_g=\sum_{j\in C}q_j.
+ \label{eq:pseudo-injection}
+\end{equation}
+对 $i\in C$ 定义
+\begin{equation}
+ \widetilde w_{g,i}
+ :=w_i+\sum_{j\in C}(R_{ij}-R_{gj})p_j
+ +\sum_{j\in C}(X_{ij}-X_{gj})q_j.
+ \label{eq:oracle-deembedding}
+\end{equation}
+则：
+\begin{enumerate}[label=\textup{(\alph*)}]
+\item 对 $j\in C$，$R_{ij}-R_{gj}\ge0,X_{ij}-X_{gj}\ge0$，故代码中的正部截断
+在真值处不激活；
+\item 对任意 $i\in C$，$\widetilde w_{g,i}=w_g$，与 $i$ 无关；
+\item 把 $C$ 子树替换为 pseudo 终端 $g$ 后，其余终端与 $g$ 的平方电压方程仍精确
+属于同一类 reduced model，且 $C$ 内注入只通过 $(p_g,q_g)$ 出现。
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+若 $i,j\in C$，二者公共路径包含 $\pathset(0,g)$，所以
+\begin{equation*}
+ R_{ij}-R_{gj}
+ =2\sum_{e\in[\pathset(0,i)\cap\pathset(0,j)]\setminus\pathset(0,g)}r_e\ge0,
+\end{equation*}
+$X$ 同理，证明 (a)。
+
+由平方电压模型，
+\begin{align*}
+ w_g-w_i
+ &=\sum_{j\in L}(R_{ij}-R_{gj})p_j
+ +\sum_{j\in L}(X_{ij}-X_{gj})q_j.
+\end{align*}
+对 $j\notin C$，引理~\ref{lem:external-equivalence} 使差值为零，故求和可限制在
+$C$，右端正是式~\eqref{eq:oracle-deembedding} 的修正项。这证明
+$\widetilde w_{g,i}=w_g$。
+
+对任意外部终端 $a\notin C$，
+\begin{equation*}
+ \sum_{j\in C}R_{aj}p_j=R_{ag}\sum_{j\in C}p_j=R_{ag}p_g
+\end{equation*}
+由外部等价成立；对边界行，
+$\sum_{j\in C}R_{gj}p_j=R_{gg}p_g$。$X,q$ 同理。因此收缩后的每一行都与
+把 $g$ 当作单个终端的 reduced model 完全一致，证明 (c)。
+\end{proof}
+
+\begin{corollary}[边界深度的最小 off-diagonal 公式]
+\label{cor:boundary-depth}
+若 $g$ 在 $C$ 内至少有两个含终端的子分支，则
+\begin{equation}
+ R_{gg}=\min_{i\ne j,\ i,j\in C}R_{ij},
+ \qquad
+ X_{gg}=\min_{i\ne j,\ i,j\in C}X_{ij}.
+ \label{eq:min-offdiag}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+任意 $i,j\in C$ 的公共根路径包含根到 $g$ 的路径，故 $R_{ij}\ge R_{gg}$。
+分别从 $g$ 的两个不同子分支选 $i,j$，其 $g$ 以下公共路径为空，等号成立。
+\end{proof}
+
+代码用 off-diagonal 的 $0.2$ 分位数而非 minimum，并对子节点去嵌入结果取 median、
+再与原始均值按 $0.5$ 混合。它们在无噪 oracle 极限都以 $w_g$ 为不动点，但有限噪声下
+是鲁棒启发式，不由定理~\ref{thm:oracle-aggregation} 自动获得最优性。
+
+\subsection{含量测误差时的精确传播式}
+
+旧稿声称对 $|C|=k$ 个子节点平均必将噪声方差从 $\sigma^2$ 降到
+$\sigma^2/k$。这在 noisy $P/Q$ 和公共根电压存在时不成立。下面给出正确公式。
+
+令测得的平方电压为 $w_i^m=w_i+\xi_i$，测得的注入为
+$p_j^m=p_j+u_j,q_j^m=q_j+z_j$。设 oracle 差分矩阵
+$\Delta R_{ij}=R_{ij}-R_{gj}$、$\Delta X_{ij}=X_{ij}-X_{gj}$，且仅取 $j\in C$。
+对任意权重 $a_i$ 满足 $\sum_{i\in C}a_i=1$，定义线性去嵌入平均。其误差为
+\begin{equation}
+ \varepsilon_g
+ =\sum_{i\in C}a_i\xi_i
+ +\sum_{j\in C}\left(\sum_{i\in C}a_i\Delta R_{ij}\right)u_j
+ +\sum_{j\in C}\left(\sum_{i\in C}a_i\Delta X_{ij}\right)z_j.
+ \label{eq:pseudo-noise-exact}
+\end{equation}
+
+\begin{proposition}[pseudo 噪声协方差]
+\label{prop:pseudo-noise}
+若 $\xi,u,z$ 相互独立、均值为零，协方差分别为
+$\Sigma_\xi,\Sigma_p,\Sigma_q$，令 $\Delta R_C,\Delta X_C\in\R^{k\times k}$，则
+\begin{equation}
+ \operatorname{Var}(\varepsilon_g)
+ =a^\top\Sigma_\xi a
+ +a^\top\Delta R_C\Sigma_p\Delta R_C^\top a
+ +a^\top\Delta X_C\Sigma_q\Delta X_C^\top a.
+ \label{eq:pseudo-variance}
+\end{equation}
+同时 pseudo 注入误差满足
+\begin{equation}
+ \operatorname{Var}(p_g^m-p_g)=\bm1^\top\Sigma_p\bm1,
+ \qquad
+ \operatorname{Var}(q_g^m-q_g)=\bm1^\top\Sigma_q\bm1.
+ \label{eq:pseudo-pq-variance}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+式~\eqref{eq:pseudo-noise-exact} 可写为
+$a^\top\xi+a^\top\Delta R_Cu+a^\top\Delta X_Cz$。独立随机向量的方差可加，
+得到式~\eqref{eq:pseudo-variance}。注入聚合误差是 $\bm1^\top u$ 和
+$\bm1^\top z$，直接得到式~\eqref{eq:pseudo-pq-variance}。
+\end{proof}
+
+只有在 $\Delta R_Cu,\Delta X_Cz$ 可忽略、$\Sigma_\xi=\sigma^2I$、
+$a=\bm1/k$ 时，第一项才等于 $\sigma^2/k$。若有公共平方电压误差
+$\Sigma_\xi=\sigma_{\rm ind}^2I+\sigma_{\rm com}^2\bm1\bm1^\top$，则
+\begin{equation*}
+ a^\top\Sigma_\xi a=\frac{\sigma_{\rm ind}^2}{k}+\sigma_{\rm com}^2,
+\end{equation*}
+共模项完全不衰减。iid $P/Q$ 噪声反而使 pseudo 注入绝对方差按 $k$ 增长。
+因此生产管线是否获得更高信噪比取决于负荷信号如何随 $k$ 增长、EIV 权重、服务线
+差分和共模误差，不能只由终端数量断言。
+
+\section{两阶段恢复：正确的条件定理与样本复杂度}
+
+\subsection{clade 集合的分解}
+
+设 $C_1,\ldots,C_K$ 是两两不相交的真完整 clade。收缩后 backbone 终端为
+$K$ 个 pseudo 节点加未聚合 singleton，数量
+\begin{equation}
+ n_B=n-\sum_{c=1}^K(|C_c|-1).
+ \label{eq:backbone-size}
+\end{equation}
+真 rooted clade 集合可唯一分解为：每个 $C_c$ 内部的局部 clades、$C_c$ 本身，
+以及 backbone clade 展开 pseudo 标签后得到的 unions。
+
+\begin{theorem}[两阶段组合正确性]
+\label{thm:two-stage-correct}
+设检测器给出的 $C_1,\ldots,C_K$ 全是真完整 clade；oracle 聚合满足
+定理~\ref{thm:oracle-aggregation}。若 backbone 与每个 local stage 的
+shared-path 误差分别为 $\varepsilon_B,\varepsilon_c$，其骨架 margin 为
+$\lambda_B,\lambda_c$，并选择
+\begin{equation}
+ 2\varepsilon_q\le\tau_q<\lambda_q-2\varepsilon_q,
+ \qquad q\in\{B,1,\ldots,K\},
+ \label{eq:stagewise-rnj}
+\end{equation}
+则 backbone RNJ、全部 local RNJ 和 clade 展开合并精确恢复完整规范化根向树。
+\end{theorem}
+
+\begin{proof}
+定理~\ref{thm:rnj-robust} 分别保证 backbone 与各 local tree 的 rooted clades
+精确。backbone 中每个 pseudo 标签 $g_c$ 代表终端集合 $C_c$；将 backbone clade 中的
+$g_c$ 替换为 $C_c$，恰得到真树中跨越 clade 边界的所有 clades。每个 local RNJ
+给出严格包含于 $C_c$ 的所有 clades，再加入 $C_c$ 本身。根据前述 clade 集合分解，
+三类集合无遗漏、无额外项。定理~\ref{thm:tree-uniqueness} 说明该 clade 集合唯一对应
+真规范化根向树。
+\end{proof}
+
+\subsection{stagewise 有限样本界}
+
+对 stage $q$，记 $n_q$ 为终端数，$p_q=2n_q+S$，设计最小方差为 $v_q$，响应噪声
+次高斯参数上界为 $\sigma_q$，模型偏差上界为 $\beta_q$。令 $C_q$ 是从
+$\|\widehat\Theta_q-\Theta_q\|_{\max}$ 到归一化 shared-path 误差的常数；R-only
+且无随机归一化时 $C_q=1$，RX75 时由引理~\ref{lem:normalization} 给出局部常数。
+
+\begin{corollary}[完整两阶段样本复杂度]
+\label{cor:two-stage-sample}
+给每个 stage 分配失败概率 $\delta_q$，另给 clade 检测事件分配 $\delta_C$。若
+\begin{equation}
+ a_q:=\frac{\lambda_q}{4C_q}-\frac{\beta_q}{\sqrt{v_q}}>0
+ \label{eq:positive-gap}
+\end{equation}
+且
+\begin{equation}
+ N\ge
+ \max_{q\in\{B,1,\ldots,K\}}
+ \frac{2\sigma_q^2}{v_q a_q^2}
+ \log\frac{2p_qn_q}{\delta_q},
+ \label{eq:correct-sample-complexity}
+\end{equation}
+同时各 $\tau_q$ 按式~\eqref{eq:stagewise-rnj} 选取，则完整恢复概率至少
+$1-\delta_C-\sum_q\delta_q$。
+\end{corollary}
+
+\begin{proof}
+由推论~\ref{cor:ols-sample}，stage $q$ 的系数误差不超过
+\begin{equation*}
+ \eta_q\le\sigma_q\sqrt{\frac{2\log(2p_qn_q/\delta_q)}{Nv_q}}
+ +\frac{\beta_q}{\sqrt{v_q}}.
+\end{equation*}
+式~\eqref{eq:correct-sample-complexity} 等价于 $\eta_q\le\lambda_q/(4C_q)$，
+因此 shared-path 误差 $\varepsilon_q\le C_q\eta_q<\lambda_q/4$，RNJ 安全区间非空。
+对所有 stage 和 clade 检测事件做 union bound，再应用
+定理~\ref{thm:two-stage-correct}。
+\end{proof}
+
+\begin{corollary}[何时才有 backbone 的 $|C|$ 倍收益]
+\label{cor:k-gain}
+进一步假设 backbone 的每个 pseudo 响应都是至少 $k$ 个独立同方差响应的 oracle 均值；
+没有 $P/Q$ EIV、共模误差或边界行估计误差；聚合前后 $v_B,C_B,\lambda_B,\beta_B$
+不变。则 $\sigma_B^2\le\sigma^2/k$，式~\eqref{eq:correct-sample-complexity} 中
+\emph{backbone 项}最多按 $k$ 倍下降。
+\end{corollary}
+
+这不是完整管线样本量必降 $k$ 倍：local stage 的最大项仍可能主导；未聚合 singleton
+的响应噪声不下降；式~\eqref{eq:pseudo-variance} 中的 EIV/共模项也可能主导。
+此外设计维数从 $2n+S$ 降到 $2n_B+S$ 是严格事实，但条件数没有普适单调性。例如原始
+正交列 $e_1,e_2,e_3$ 条件数为 $1$，把前两列求和后 $[e_1+e_2,e_3]$ 的条件数为
+$\sqrt2$，反而变差。生产代码重新报告聚合设计的条件数是必要审计，而非冗余诊断。
+
+\section{固定候选树上的参数重估}
+
+\subsection{树参数化}
+
+给定 rooted candidate $T$，令 $A_T$ 为其路径矩阵。任何非负支路参数都产生
+\begin{equation}
+ R_T=2A_T\diag(r)A_T^\top,qquad
+ X_T=2A_T\diag(x)A_T^\top,qquad r,x\ge0.
+ \label{eq:fixed-tree-parameterization}
+\end{equation}
+
+\begin{proposition}[已知最小拓扑上的参数可辨识性]
+\label{prop:fixed-tree-identifiability}
+若 $T$ 满足假设~\ref{ass:minimal-tree}，则映射
+$r\mapsto A_T\diag(r)A_T^\top$ 是单射；$x$ 同理。
+\end{proposition}
+
+\begin{proof}
+矩阵对角给出每个终端深度；对任意隐藏节点 $u$，从其两个不同子分支各取一个终端
+$i,j$，则 $R_{ij}/2$ 等于 $u$ 的根深。于是所有隐藏节点和终端的根深都由 $R$ 唯一
+确定。每条边长度等于子节点深度减父节点深度，因此所有 $r_e$ 唯一。若两个参数向量
+产生同一矩阵，它们逐边相同，故映射单射。
+\end{proof}
+
+\subsection{固定权重 NNLS 与 IRLS 边界}
+
+把式~\eqref{eq:fixed-tree-parameterization} 代入线性电压模型。对样本 $t$，
+\begin{equation*}
+ R_Tp_t=2\sum_e r_e\,a_e(a_e^\top p_t),
+\end{equation*}
+其中 $a_e$ 是 $A_T$ 的第 $e$ 列。将全部样本堆叠，得到对 $(r,x)$ 线性的设计
+$H_T$。权重固定时，代码子问题是
+\begin{equation}
+ \min_{r,x\ge0}\|W^{1/2}(y-H_T[r^\top,x^\top]^\top)\|_2^2
+ +\lambda\|(r,x)\|_2^2.
+ \label{eq:fixed-weight-nnls}
+\end{equation}
+
+\begin{proposition}[固定权重子问题]
+式~\eqref{eq:fixed-weight-nnls} 是凸优化；若 $\lambda>0$，或
+$W^{1/2}H_T$ 满列秩，则目标严格凸，解唯一。
+\end{proposition}
+
+\begin{proof}
+Hessian 为 $2H_T^\top WH_T+2\lambda I\succeq0$，非负正交象限是凸集。
+在给定条件下 Hessian 正定，故严格凸并有唯一极小点。
+\end{proof}
+
+生产 structured-EIV 令权重随 $(r,x)$ 变化并交替更新，因此完整 IRLS 目标通常非凸；
+上面只保证每个固定权重 NNLS 子问题的全局解，不保证交替序列达到全局最优。
+
+\section{GTLS、EIV predictive likelihood 与有限候选后验}
+
+\subsection{可分离 GTLS 的 SVD 推导}
+
+去均值后写 $Y\simeq ZB$，按列噪声尺度白化：
+$Z_w=ZS_Z^{-1},Y_w=YS_Y^{-1}$，$W=[Z_w,Y_w]$。
+
+\begin{proposition}[理想 multiresponse TLS 解]
+\label{prop:tls-svd}
+考虑最小 Frobenius 扰动使 $[Z_w+\Delta Z_w,Y_w+\Delta Y_w]$ 的秩至多
+$p$。令 $W$ 最小的 $n$ 个右奇异向量组成
+\begin{equation*}
+ V_2=\begin{bmatrix}V_{Z2}\\V_{Y2}\end{bmatrix}.
+\end{equation*}
+若 $V_{Y2}$ 可逆，则
+\begin{equation}
+ \widehat B_w=-V_{Z2}V_{Y2}^{-1},
+ \qquad
+ \widehat B=S_Z^{-1}\widehat B_wS_Y.
+ \label{eq:tls-solution}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Eckart--Young 定理说明，删除最小的 $n$ 个奇异分量给出到秩 $p$ 矩阵集合的最近点。
+该修正矩阵的右零空间由 $V_2$ 张成。回归约束等价于
+\begin{equation*}
+ [Z_w+\Delta Z_w,Y_w+\Delta Y_w]
+ \begin{bmatrix}\widehat B_w\\-I\end{bmatrix}=0.
+\end{equation*}
+因此存在可逆矩阵 $C$ 使
+$[\widehat B_w^\top,-I]^\top=V_2C$。下块给出
+$-I=V_{Y2}C$，故 $C=-V_{Y2}^{-1}$，上块得到
+式~\eqref{eq:tls-solution}。反白化完成证明。
+\end{proof}
+
+使用 pseudoinverse、相对噪声随样本变化、AC 模型失配、$0.99$ OLS shrinkage 和后续
+树约束时，已经超出命题~\ref{prop:tls-svd}；这些步骤的作用是候选多样化，不应声称为
+精确 GTLS MLE。
+
+\subsection{EIV predictive variance}
+
+若正确候选下的预测残差近似为
+\begin{equation*}
+ e_{ti}=\nu_{ti}-\sum_jR_{ij}u^P_{tj}-\sum_jX_{ij}u^Q_{tj}+m_{ti},
+\end{equation*}
+各项独立、均值为零，则
+\begin{equation}
+ s_{ti}^2=\sigma_{v^2,ti}^2+sum_jR_{ij}^2\sigma_{P,tj}^2
+ +\sum_jX_{ij}^2\sigma_{Q,tj}^2+\sigma_{m,i}^2.
+ \label{eq:eiv-variance}
+\end{equation}
+高斯近似的逐点负对数似然（忽略公共常数）为
+\begin{equation}
+ \ell_{ti}=\frac12\left(\log s_{ti}^2+\frac{e_{ti}^2}{s_{ti}^2}\right).
+ \label{eq:gaussian-nll}
+\end{equation}
+式~\eqref{eq:eiv-variance} 由独立线性组合的方差相加得到；若误差相关，必须加入完整
+协方差的交叉项。
+
+\subsection{有限候选 generalized posterior}
+
+对有限候选池 $\mathcal K$，定义每棵树的留出分数 $L_T$。代码形式为
+\begin{equation}
+ \pi(T\mid D)=
+ \frac{\exp[-N_{\rm eff}(L_T-L_{\min})/\tau]}
+ {\sum_{U\in\mathcal K}\exp[-N_{\rm eff}(L_U-L_{\min})/\tau]}.
+ \label{eq:finite-posterior}
+\end{equation}
+减去 $L_{\min}$ 只改善数值稳定性，不改变概率。
+
+\begin{proposition}[归一化、MAP 与 clade marginal]
+式~\eqref{eq:finite-posterior} 在有限 $\mathcal K$ 上严格归一化，MAP 候选等于
+$\argmin_TL_T$。任意 clade $C$ 的 marginal 为
+\begin{equation}
+ \pi(C\mid D)=\sum_{T\in\mathcal K}\pi(T\mid D)\mathbf1\{C\in\Ccal(T)\}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+分母是全部正权重之和，故概率和为 $1$；指数函数严格单调，最大权重对应最小分数。
+clade marginal 是对事件 $\{T:C\in\Ccal(T)\}$ 的有限求和。
+\end{proof}
+
+\begin{theorem}[有限候选留出排序的一致性]
+\label{thm:heldout-consistency}
+设真树 $T_0\in\mathcal K$，训练后参数固定；留出数据由 $M$ 个独立块组成，块损失
+$\ell_b(T)$ 为一致可积且次指数。若对所有 $T\ne T_0$，
+\begin{equation}
+ \Ebb[\ell_b(T)-\ell_b(T_0)]\ge\Delta_T>0,
+ \label{eq:risk-gap}
+\end{equation}
+且复杂度惩罚为 $o(1)$，则经验分数的 MAP 选择以概率趋于 $1$ 选中 $T_0$，并且固定
+$\tau>0$ 时 $\pi(T_0\mid D)\to1$。
+\end{theorem}
+
+\begin{proof}
+对每个 $T\ne T_0$，次指数 Bernstein 不等式给出
+\begin{equation*}
+ \Pbb\!\left(\frac1M\sum_b[\ell_b(T)-\ell_b(T_0)]\le0\right)
+ \le2\exp[-cM\min(\Delta_T^2/K_T^2,\Delta_T/K_T)]
+\end{equation*}
+对某个尺度常数 $K_T$ 与绝对常数 $c>0$ 成立。对有限候选做 union bound，误选概率
+趋于零。事件上每个经验 gap 收敛到正数，式~\eqref{eq:finite-posterior} 中错误候选相对
+真树的权重比按 $\exp[-M\Delta_T/\tau]$ 衰减，故真树质量趋于 $1$。
+\end{proof}
+
+该定理解释了独立留出的价值，但有两个不可绕过的前提：真树必须在候选池内，且真树
+在所用 predictive loss 下具有正风险 gap。AC ranker 不能创造缺失候选；模型错设时，
+后验集中到的是候选池中的 pseudo-true minimizer，而不必是真物理树。
+
+\section{现有主线的端到端条件定理}
+
+\begin{theorem}[端到端条件正确性]
+\label{thm:end-to-end}
+若同时满足：
+\begin{enumerate}[label=\textup{(A\arabic*)}]
+\item 网络满足假设~\ref{ass:minimal-tree}，且线性模型偏差受控；
+\item OLS/EIV 估计在每个 stage 满足推论~\ref{cor:two-stage-sample} 的误差界；
+\item ordered 投影使用的 margin 与真矩阵兼容，且不调用未覆盖的 refinement/PSD 步骤，
+或另行证明这些步骤不破坏误差界；
+\item RNJ 的实际 $\tau_q$ 落在式~\eqref{eq:stagewise-rnj}；
+\item 被聚合的 clades 全真，oracle 边界行/电压误差满足 stagewise 界；
+\item 候选池包含真树，固定树拟合识别充分，留出 predictive risk 对真树有正 gap；
+\end{enumerate}
+则端到端 MAP 输出以推论~\ref{cor:two-stage-sample} 与
+定理~\ref{thm:heldout-consistency} 给出的概率精确恢复规范化 rooted clade 集合。
+\end{theorem}
+
+\begin{proof}
+(A1)--(A4) 与定理~\ref{thm:rnj-robust} 保证基础和 stagewise RNJ 候选的结构正确；
+(A5) 与定理~\ref{thm:two-stage-correct} 保证聚合/展开候选正确；(A6) 与
+定理~\ref{thm:heldout-consistency} 保证留出排序最终选择真候选。各失败事件用 union
+bound 合并即可。
+\end{proof}
+
+定理~\ref{thm:end-to-end} 是“若每个模块的可检验条件成立，则组合正确”的闭环证明，
+不是对当前默认配置的无条件背书。当前配置中至少有下列未闭合项：
+\begin{enumerate}[leftmargin=2em]
+\item noisy $P/Q$ 造成 EIV 与 OLS 有效残差相关；
+\item 默认 50 步 projected-gradient refinement 不受 max-norm 定理覆盖；
+\item $\tau=0.16\operatorname{median}(h)$ 未由 $\varepsilon,\lambda_*$ 校准；
+\item NJ/RG/bootstrap/四源门控相关，不能把支持度相乘为独立概率；
+\item boundary quantile、median 和 $0.5$ shrinkage 尚无有限样本最优性；
+\item structured-EIV IRLS 与一次 AC correction 只有局部/单调改进，不保证全局最优；
+\item representative held-out scenarios 不是严格 iid blocks；
+\item hidden injection、三相不平衡、调压器、不同步/区间平均量测尚未进入观测模型。
+\end{enumerate}
+
+\section{代码对应与可执行审计清单}
+
+\begin{longtable}{p{5.3cm}p{9.4cm}}
+\toprule
+数学对象 & 当前实现 \\
+\midrule
+式~\eqref{eq:RX-path-form} 的真 $R/X$ & \texttt{terminal\_case33/models/lin\_distflow.py} \\
+AC 数据生成与式~\eqref{eq:distflow-voltage} & \texttt{terminal\_case33/models/ac\_powerflow.py} \\
+式~\eqref{eq:stacked-regression} 的多场景拟合 & \texttt{terminal\_case33/estimation/multiscenario.py} \\
+定理~\ref{thm:ordered-projection} 的 ordered 操作 & \texttt{terminal\_case33/estimation/matrix\_constraints.py} \\
+RX75 直接分数、根深与式~\eqref{eq:estimated-shared-direct} & \texttt{terminal\_case33/graph/sensitivity\_geometry.py} \\
+定理~\ref{thm:rnj-robust} 的 general-tree RNJ & \texttt{terminal\_case33/graph/rooted\_neighbor\_joining.py} \\
+式~\eqref{eq:correct-quartet-gap} & \texttt{terminal\_case33/graph/quartet\_significance.py} \\
+定理~\ref{thm:oracle-aggregation} 与 pseudo 场景 & \texttt{terminal\_case33/graph/rooted\_hierarchy.py} \\
+候选门控与软收缩 beam & \texttt{terminal\_case33/pipeline/peripheral\_edge\_proposals.py}、\texttt{unified\_topology\_pipeline.py} \\
+固定树 EIV/AC 排序 & \texttt{terminal\_case33/pipeline/ac\_likelihood.py} \\
+有限候选 posterior & \texttt{terminal\_case33/pipeline/gtls\_topology\_posterior.py} \\
+\bottomrule
+\end{longtable}
+
+复现实验或论文写作时，至少应同时导出：$\sigma_{\min}(Z)$ 或条件数、估计
+shared-path bootstrap 误差、最小 family separation、实际 RNJ $\tau$、candidate-oracle
+recall、每个聚合 clade 的 quartet gap、pseudo 电压误差分解、固定树参数秩与留出
+loss gap。只有这些量能判断端到端定理的条件是否接近成立。
+
+\section{结论}
+
+当前方法最坚实的数学核心是
+\begin{equation*}
+ \text{径向零注入树}
+ \Longrightarrow
+ R/X\text{ 共享路径矩阵}
+ \Longrightarrow
+ \text{同拓扑加性距离}
+ \Longrightarrow
+ \text{规范化隐藏树唯一性}.
+\end{equation*}
+在有限样本下，正确链条应写成
+\begin{equation*}
+ \text{回归误差界}
+ \Longrightarrow
+ \text{归一化 shared-path 误差 }\varepsilon
+ \Longrightarrow
+ 2\varepsilon\le\tau<\lambda_*-2\varepsilon
+ \Longrightarrow
+ \text{RNJ 精确恢复}.
+\end{equation*}
+真 clade 的 oracle 收缩在模型内严格精确，但“平均 $k$ 个终端”不自动等于“总体样本
+复杂度降低 $k$ 倍”。正确的两阶段结论必须使用 backbone 与所有 local stage 的最大
+样本需求，并显式传播 noisy $P/Q$、共模电压和边界行误差。固定树 EIV/AC 层的价值是
+物理重估与留出排序；它不能弥补候选覆盖缺失，也不能把 generalized posterior 自动
+解释为校准的真实后验概率。
+
+这组结论给出了一个可投稿的理论框架，也给出了下一步研究的明确方向：把默认容差改成
+不确定度校准量、为 pseudo 边界建立完整 EIV 协方差、用候选覆盖定理连接 quartet
+局部编辑与 AC 风险，以及为非线性 AC/三相模型建立可验证的局部可辨识条件。
+
+\begin{thebibliography}{99}
+\bibitem{Buneman1971}
+P. Buneman, The recovery of trees from measures of dissimilarity, 1971.
+\bibitem{SaitouNei1987}
+N. Saitou and M. Nei, The neighbor-joining method, \emph{Molecular Biology and Evolution}, 1987.
+\bibitem{Atteson1999}
+K. Atteson, The performance of neighbor-joining methods of phylogenetic reconstruction,
+\emph{Algorithmica}, 1999.
+\bibitem{NiTatikonda}
+J. Ni and S. Tatikonda, Network tomography based on additive metrics,
+\emph{IEEE Transactions on Information Theory}, 2011.
+\bibitem{ChoiEtAl}
+M. J. Choi, V. Y. F. Tan, A. Anandkumar, and A. S. Willsky,
+Learning latent tree graphical models, \emph{JMLR}, 2011.
+\bibitem{DekaTerminal}
+D. Deka, S. Backhaus, and M. Chertkov,
+Learning topology of distribution grids using only terminal node measurements, 2016.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,151 @@
+\chapter{MST 何时能恢复真实配电网拓扑}
+\label{chap:mst_recovery}
+
+\section*{本章目标}
+本章给出 MST 恢复真实配电网树的严格条件。核心结论是：当完整节点集上的边权来自真实树上的精确加性路径距离时，在完全图上求 MST 会恢复原树；当距离带噪时，恢复稳定性由每条真实边的割间隔控制。本章结果建立在\cref{chap:mst}的 cut property 上，并为\cref{chap:counterexamples}中的失败情形提供对照。
+
+\section{完整节点集与加性树距离}
+
+设真实拓扑为树 $T=(V,E_T)$，每条真实线路 $e\in E_T$ 带正权 $w_e>0$。树上路径距离定义为
+\begin{equation}
+  d_{ij}=\sum_{e\in \pathset_{ij}} w_e,\qquad i,j\in V,
+  \label{eq:additive_distance}
+\end{equation}
+其中 $\pathset_{ij}$ 是 $T$ 中从 $i$ 到 $j$ 的唯一路径。若配电网中 $w_e$ 表示线路电阻、电抗或某种可加阻抗，则 $d_{ij}$ 是两节点之间路径阻抗和。
+
+注意这里的节点集是完整的：每个真实节点，包括中间分支节点，都在 $V$ 中并可进入距离矩阵。若只观测叶节点，结论不能直接使用，见\cref{chap:hidden_tree}。
+
+\begin{theorem}[完整节点集上的精确加性树距离可由 MST 恢复真实树]
+\label{thm:additive_mst_recovery}
+设真实拓扑 $T=(V,E_T)$ 为一棵树，每条边权 $w_e>0$。若对任意 $i,j\in V$，距离 $d_{ij}$ 等于 $T$ 中 $i$ 到 $j$ 路径上的边权和，则在完全图 $K_V$ 上以 $d_{ij}$ 为边权求 MST，所得生成树等于 $T$。
+\end{theorem}
+
+\begin{proof}
+任取真实边 $e=(u,v)\in E_T$。删除 $e$ 后，树 $T$ 被分成两个连通分量，记为 $A_e$ 与 $B_e$，其中 $u\in A_e$、$v\in B_e$。这给出完全图 $K_V$ 上的一个割 $(A_e,B_e)$。
+
+对任意跨割边 $(a,b)$，其中 $a\in A_e$、$b\in B_e$，树中从 $a$ 到 $b$ 的唯一路径必须先从 $a$ 走到 $u$，经过真实边 $e=(u,v)$，再从 $v$ 走到 $b$。因此
+\begin{equation}
+  d_{ab}=d_{au}+w_e+d_{vb}.
+  \label{eq:cut_decomposition}
+\end{equation}
+当 $(a,b)=(u,v)$ 时，$d_{ab}=w_e$。当 $(a,b)\ne (u,v)$ 时，至少有 $a\ne u$ 或 $b\ne v$。由于所有边权严格为正，若 $a\ne u$ 则 $d_{au}>0$，若 $b\ne v$ 则 $d_{vb}>0$，故
+\begin{equation}
+  d_{ab}=d_{au}+w_e+d_{vb}>w_e=d_{uv}.
+\end{equation}
+也就是说，真实边 $e=(u,v)$ 是割 $(A_e,B_e)$ 上唯一最小的跨割边。
+
+由\cref{thm:cut_property}，唯一最小跨割边属于每一棵 MST。因此每条真实边 $e\in E_T$ 都属于完全图 $K_V$ 的任意 MST。真实树共有 $|V|-1$ 条边，而任意生成树也只有 $|V|-1$ 条边，所以 MST 的边集只能等于 $E_T$。故 MST 恢复真实树 $T$。
+\end{proof}
+
+\section{Cut-consistency 充分条件}
+
+定理~\ref{thm:additive_mst_recovery}利用加性距离推出了“每条真实边在其基本割上唯一最小”。事实上，MST 恢复并不要求全局距离严格等于树路径和，只需要这个割一致性条件成立。
+
+\begin{theorem}[MST 恢复的 cut-consistency 充分条件]
+\label{thm:cut_consistency}
+给定真实树 $T=(V,E_T)$ 与完全图 $K_V$ 上的边权 $c_{ij}$。对任意真实边 $e=(u,v)$，删除 $e$ 得到基本割 $(A_e,B_e)$。若 $e$ 都是其基本割上的唯一最小跨割边，即
+\begin{equation}
+  c_e < c_{ab},\qquad
+  \forall a\in A_e,\ b\in B_e,\ (a,b)\ne e,
+  \label{eq:cut_consistency}
+\end{equation}
+则在 $K_V$ 上以 $c_{ij}$ 为边权求 MST 会恢复真实树 $T$。
+\end{theorem}
+
+\begin{proof}
+对每条真实边 $e\in E_T$，条件\eqref{eq:cut_consistency}说明 $e$ 是割 $(A_e,B_e)$ 上唯一最小跨割边。由 cut property，$e$ 属于所有 MST。于是所有 $|V|-1$ 条真实边均属于任意 MST。任意生成树只有 $|V|-1$ 条边，所以 MST 的边集必为 $E_T$。
+\end{proof}
+
+\begin{example}[非加性但割一致的权重]
+真实树为链 $1$--$2$--$3$，令 $c_{12}=1$、$c_{23}=1$、$c_{13}=10$。这组权重是某棵树距离，但若把 $c_{13}$ 改成 $3$、$4$ 或 $100$，只要仍大于 $1$，MST 都会恢复真实链。MST 只关心每个基本割上的相对大小，而不是所有三角关系或 four-point condition。
+\end{example}
+
+\section{噪声下的 margin 条件}
+
+实际距离矩阵来自回归、相关性或通信特征，通常含有误差。定义每条真实边 $e=(u,v)$ 的割间隔
+\begin{equation}
+  \gamma_e =
+  \min_{\substack{a\in A_e,\ b\in B_e\\(a,b)\ne e}}
+  \left(d_{ab}-d_e\right),
+  \label{eq:cut_margin}
+\end{equation}
+其中 $(A_e,B_e)$ 是删除 $e$ 后的基本割。若 $d$ 是正边权加性树距离，则由\cref{thm:additive_mst_recovery}的证明可知 $\gamma_e>0$。最小间隔
+\begin{equation}
+  \gamma_{\min}=\min_{e\in E_T}\gamma_e
+\end{equation}
+越大，MST 对距离估计误差越稳健。
+
+\begin{theorem}[带噪距离矩阵下 MST 恢复的 margin 条件]
+\label{thm:noisy_margin_mst}
+设 $d_{ij}$ 是完整节点集上的真实距离，并满足\cref{thm:cut_consistency}。对每条真实边按式\eqref{eq:cut_margin}定义 $\gamma_e$，且 $\gamma_{\min}=\min_e\gamma_e>0$。若估计距离 $\widehat d_{ij}$ 满足
+\begin{equation}
+  \max_{i,j\in V}|\widehat d_{ij}-d_{ij}|
+  < \frac{1}{2}\gamma_{\min},
+  \label{eq:noise_margin_bound}
+\end{equation}
+则在完全图 $K_V$ 上以 $\widehat d_{ij}$ 为边权求 MST 仍恢复真实树 $T$。
+\end{theorem}
+
+\begin{proof}
+令
+\begin{equation}
+  \varepsilon=\max_{i,j\in V}|\widehat d_{ij}-d_{ij}|.
+\end{equation}
+任取真实边 $e=(u,v)$ 及其基本割 $(A_e,B_e)$。对任意跨割边 $(a,b)\ne e$，有
+\begin{align}
+  \widehat d_{ab}-\widehat d_e
+  &= (d_{ab}-d_e)
+     +(\widehat d_{ab}-d_{ab})
+     -(\widehat d_e-d_e)  \notag\\
+  &\ge \gamma_e - |\widehat d_{ab}-d_{ab}|-|\widehat d_e-d_e| \notag\\
+  &\ge \gamma_{\min}-2\varepsilon .
+\end{align}
+由条件\eqref{eq:noise_margin_bound}，$\gamma_{\min}-2\varepsilon>0$，故
+\begin{equation}
+  \widehat d_e < \widehat d_{ab},\qquad
+  \forall a\in A_e,\ b\in B_e,\ (a,b)\ne e .
+\end{equation}
+因此每条真实边在估计距离下仍是其基本割上的唯一最小跨割边。应用\cref{thm:cut_consistency}，MST 恢复真实树。
+\end{proof}
+
+\begin{corollary}[加性距离的可恢复噪声半径]
+\label{cor:additive_noise_radius}
+若 $d$ 来自正权真实树的加性路径距离，且估计误差满足式\eqref{eq:noise_margin_bound}，则估计距离上的 MST 恢复真实树。
+\end{corollary}
+
+\begin{proof}
+由\cref{thm:additive_mst_recovery}，加性路径距离满足 cut-consistency，且 $\gamma_{\min}>0$。再由\cref{thm:noisy_margin_mst}即得。
+\end{proof}
+
+\section{配电网物理解释}
+
+在配电网中，一条真实线路 $e=(u,v)$ 把网络分成上游侧 $A_e$ 与下游侧 $B_e$。若边权是线路电阻，跨越该割的任意两个节点 $a\in A_e$、$b\in B_e$ 的路径都必须经过线路 $e$，并额外包含 $a$ 到 $u$ 或 $v$ 到 $b$ 的路径。因此真实端点 $(u,v)$ 是跨割节点对中电气距离最短的一对。这就是 MST 能恢复拓扑的物理原因：它不是“相关性越大越相邻”的经验规则，而是“每条真实线路是其上下游割上的最近跨割连接”的结构事实。
+
+噪声定理则说明，估计误差并不需要为零；只要误差小于最薄弱割间隔的一半，所有割上的最近跨割关系仍不改变。实际算法中，可把小间隔边视为脆弱边：短支线、阻抗相近的并行候选路径、未量测负荷严重的区域，往往具有较小 margin。
+
+\section{MST 使用检查清单}
+
+\begin{algorithm}[htbp]
+  \caption{MST 拓扑恢复的理论检查流程}
+  \label{alg:mst_checklist}
+  \KwIn{节点集合 $V$，估计距离 $\widehat D$，可用先验 $\mathcal{I}$}
+  \KwOut{是否适合直接使用 MST 的判断}
+  检查 $V$ 是否接近完整电气节点集\;
+  检查距离是否应为树上路径可加量，如电阻距离或电抗距离\;
+  若有候选真实边或台账，估计基本割上的最小间隔\;
+  若仅叶节点可观测，则转向隐藏树重构而非直接解释 MST 为原始拓扑\;
+  若距离由相关性得到，先剔除公共模态并做物理一致性验证\;
+  \KwRet{满足完整节点、加性距离、足够 margin 时，直接 MST 较可靠}
+\end{algorithm}
+
+\section{本章小结}
+
+本章证明了三个核心结果。第一，完整节点集上的精确加性树距离保证 MST 恢复真实树。第二，更一般地，只要每条真实边是其基本割上的唯一最小跨割边，MST 就恢复真实树。第三，在距离带噪时，若最大误差小于最小割间隔的一半，MST 的输出仍不变。这些定理也指出了 MST 的边界：缺失隐藏节点、距离非加性、公共模态污染或强相关负荷都可能破坏割一致性。
+
+\section*{思考题}
+\begin{enumerate}
+  \item 对链 $1$--$2$--$3$--$4$，边权均为 $1$，计算每条真实边的 $\gamma_e$。
+  \item 若某条真实边的割间隔很小，实际数据采集应如何改进以提高辨识稳定性？
+  \item 定理~\ref{thm:cut_consistency}是充分条件。请尝试构造一个 MST 正确但某条真实边不是基本割唯一最小边的例子，并说明为什么不矛盾。
+  \item 在候选图不是完全图而是 GIS 图时，本章证明需要怎样修改？
+\end{enumerate}

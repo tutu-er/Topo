@@ -1,0 +1,53 @@
+\section{已知根约束的隐藏树生成}
+
+\subsection{直接共享路径分数}
+
+普通 NJ 只使用叶间距离，输出无根树；事后把根挂到某个节点或某条边不能保证
+恢复真实馈线根分区。对 reduced sensitivity matrix，$R_{ij}$ 与 $X_{ij}$
+本身就是根到 $\operatorname{LCA}(i,j)$ 的电阻/电抗公共路径和。因此当前主线
+直接使用式~\eqref{eq:direct-shared-score} 的 $S_{ij}$ 排序，并以
+$H_i=S_{ii}$ 作为末端根深度。公共路径分数越大，两个 active node 越可能在
+下游共享同一父节点。由同一 $S$ 构造距离后再计算
+$(H_i+H_j-d_{ij})/2$ 只会原样得到 $S_{ij}$，没有额外信息，代码已删除该往返。
+
+\subsection{RNJ 递归}
+
+每轮在 active 集合中选取 $S_{ij}$ 最大的一对。输入时已保证
+$0\le S_{ij}\le\min(H_i,H_j)$，故新隐藏父节点 $u$ 的深度直接取
+$H_u=S_{ij}$，不再重复计算一个恒等的 \texttt{min}。随后添加
+\[
+\ell(u,i)=H_i-H_u,\qquad \ell(u,j)=H_j-H_u.
+\]
+若其他 active node $k$ 满足
+\begin{equation}
+  H_u-\min\{S_{ik},S_{jk}\}\le \tau,
+\end{equation}
+则将 $k$ 一并归入该父节点，允许恢复多叉树而非强制二叉化。新父节点与其余节点
+的共享路径由家族成员估计的中位数更新。若最大共享路径不超过 $\tau$，剩余节点
+直接连接到指定根 $s$。最后收缩非终端之间的零长度边。
+
+容差写成
+\begin{equation}
+  \tau=\gamma\operatorname{median}(H_i),
+\end{equation}
+当前固定 $\gamma=0.16$。它来自合成 case bank 的跨算例选择，下一阶段应改为
+由最小物理边长或 bootstrap 不确定度自适应确定。RNJ 的加性度量思想源自网络
+层析中的根向拓扑推断\cite{ni2010,ni2011}。
+
+\subsection{根节点保证}
+
+RNJ 的根不是从最终无根树中“猜出”的。根标签、根到末端深度和根共享路径在每轮
+递归中均参与计算，收尾时所有剩余分支只连接到给定根。因此算法保证输出树含指定根，
+但不保证在灵敏度估计有偏时恢复正确的根分区。后者仍取决于 $H_i$ 与 $S_{ij}$ 的估计误差。
+
+\subsection{可恢复性的必要边界}
+
+若所有边权严格为正，且末端距离是精确 additive tree metric，则最小隐藏树在抑制
+degree-2 隐藏节点和忽略隐藏标签置换后可唯一恢复\cite{buneman1971,semple2003}。
+以下结构不能仅由末端距离唯一辨识：
+\begin{itemize}
+  \item degree-2 隐藏链：只能辨识链上总阻抗，无法确定中间节点个数；
+  \item 零阻抗内部边：边两端诱导完全相同的距离，必须收缩；
+  \item 无下游激励或严格共线注入：灵敏度列不可独立估计；
+  \item 被未量测内部负荷破坏的零注入假设。
+\end{itemize}
