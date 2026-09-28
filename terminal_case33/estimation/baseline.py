@@ -31,7 +31,6 @@ class CompleteBaselineResult:
     d_x: pd.DataFrame
     distance: pd.DataFrame
     root_depths: pd.Series
-    scenario_intercepts: dict[str, pd.Series]
     delta_v_residuals: dict[str, pd.DataFrame]
     residual_rmse: float
     r2_score: float
@@ -71,7 +70,7 @@ def _distance_and_depth(
 def fit_complete_rnj_baseline(
     scenarios: list[dict],
     root_bus: int,
-    preprocessing: str = "daily_demean",
+    preprocessing: str = "raw",
     distance_mode: str = "RX_75R_25X",
     constraint_mode: str = "ordered",
     alpha: float = 0.0,
@@ -81,7 +80,10 @@ def fit_complete_rnj_baseline(
 
     The load-positive squared-voltage-drop model is
 
-    ``Y_s = P_s R.T + Q_s X.T + gamma_s + delta_V_s``.
+    ``Y_s = P_s R.T + Q_s X.T + delta_V_s``.
+
+    Y is the squared-voltage drop from the observed root. No terminal offset
+    is fitted; explicit temporal preprocessing remains available for research.
 
     ``delta_V_s`` is not an additional degree of freedom. It is the fitted
     random/model residual and the objective includes
@@ -101,16 +103,14 @@ def fit_complete_rnj_baseline(
 
     recipe = _preprocessing_recipe(preprocessing)
     prepared = preprocess_scenarios(scenarios, recipe)
-    r_matrix, x_matrix, _, condition_number = fit_projected_sensitivity(
+    r_matrix, x_matrix, r2_score, condition_number = fit_projected_sensitivity(
         prepared,
         alpha=alpha,
         constraint_mode=constraint_mode,
     )
 
-    intercepts: dict[str, pd.Series] = {}
     residuals: dict[str, pd.DataFrame] = {}
     residual_sum = 0.0
-    total_sum = 0.0
     sample_count = 0
     for index, scenario in enumerate(prepared):
         name = str(scenario.get("name", f"scenario_{index}"))
@@ -119,21 +119,15 @@ def fit_complete_rnj_baseline(
         target_frame = scenario["drop_target"].loc[:, terminals]
         target = target_frame.to_numpy(dtype=float)
         physical_prediction = p @ r_matrix.T + q @ x_matrix.T
-        intercept = np.mean(target - physical_prediction, axis=0)
-        residual = target - physical_prediction - intercept[None, :]
-        intercepts[name] = pd.Series(intercept, index=terminals, name=name)
+        residual = target - physical_prediction
         residuals[name] = pd.DataFrame(
             residual,
             index=target_frame.index,
             columns=terminals,
         )
         residual_sum += float(np.sum(residual**2))
-        total_sum += float(
-            np.sum((target - target.mean(axis=0, keepdims=True)) ** 2)
-        )
         sample_count += residual.size
 
-    r2_score = 1.0 - residual_sum / total_sum if total_sum > 0.0 else 1.0
     objective = 0.5 * residual_sum
     objective += 0.5 * alpha * float(np.sum(r_matrix**2) + np.sum(x_matrix**2))
     residual_rmse = float(np.sqrt(residual_sum / max(sample_count, 1)))
@@ -165,7 +159,6 @@ def fit_complete_rnj_baseline(
         d_x=pd.DataFrame(d_x, index=labels, columns=labels),
         distance=pd.DataFrame(distance, index=labels, columns=labels),
         root_depths=pd.Series(root_depths, index=labels, name="root_depth"),
-        scenario_intercepts=intercepts,
         delta_v_residuals=residuals,
         residual_rmse=residual_rmse,
         r2_score=float(r2_score),

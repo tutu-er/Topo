@@ -336,29 +336,27 @@ def test_top_level_job_failure_retains_every_predeclared_method(runner, monkeypa
 
 
 @pytest.mark.parametrize("offset", [0.0, 0.2, 100.0])
-def test_validation_mae_uses_frozen_training_intercepts_without_truth(runner, monkeypatch, offset):
+def test_validation_mae_preserves_unexplained_offsets_without_truth(runner, monkeypatch, offset):
     def forbidden(*_args, **_kwargs):
         pytest.fail("validation-only selection must not call truth/test reporting")
 
     monkeypatch.setattr(runner, "prediction_metrics", forbidden)
     r = np.array([[2.0, 0.3], [0.8, 1.0]])
     x = np.array([[0.7, 0.1], [0.4, 0.9]])
-    b = np.array([[3.0, -5.0], [7.0, 2.0]])
     p1 = np.array([[1.0, 2.0], [-3.0, 4.0]])
     q1 = np.array([[0.5, -2.0], [1.0, 3.0]])
     p2, q2 = np.array([[4.0, 2.0]]), np.array([[1.0, 7.0]])
     errors = [np.array([[1.0, -2.0], [-3.0, 4.0]]) + offset,
               np.array([[5.0, -6.0]]) + offset]
     scenarios = []
-    for i, (p, q, error) in enumerate(zip((p1, p2), (q1, q2), errors)):
+    for p, q, error in zip((p1, p2), (q1, q2), errors):
         scenarios.append({"P_terminal": pd.DataFrame(p), "Q_terminal": pd.DataFrame(q),
-                          "drop_target": pd.DataFrame(p @ r.T + q @ x.T + b[i] + error)})
-    original, original_b = deepcopy(scenarios), b.copy()
-    actual = runner.validation_mae(scenarios, r, x, b)
+                          "drop_target": pd.DataFrame(p @ r.T + q @ x.T + error)})
+    original = deepcopy(scenarios)
+    actual = runner.validation_mae(scenarios, r, x)
     expected = np.mean(np.abs(np.vstack(errors)))
     assert actual == pytest.approx(expected, abs=1e-12)
     assert "truth" not in inspect.signature(runner.validation_mae).parameters
-    np.testing.assert_array_equal(b, original_b)
     for scenario, saved in zip(scenarios, original):
         for key in scenario:
             pd.testing.assert_frame_equal(scenario[key], saved[key])

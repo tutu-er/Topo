@@ -363,14 +363,12 @@ def run_one(
         test_noisy,
         result.r_matrix,
         result.x_matrix,
-        fixed_intercepts=result.intercepts,
         blocks_per_scenario=min(4, test_count),
     )
     clean_test_mae, _, _ = evaluate_l1_matrices(
         test_clean,
         result.r_matrix,
         result.x_matrix,
-        fixed_intercepts=result.intercepts,
         blocks_per_scenario=min(4, test_count),
     )
 
@@ -393,6 +391,7 @@ def run_one(
         "test": outlier_mask[test_slice],
     }
     metrics = {
+        "observation_model": "observed_root_zero_bias",
         "case": case_name,
         "regime": regime,
         "seed": seed,
@@ -415,10 +414,10 @@ def run_one(
         ),
         "stop_reason": result.stop_reason,
         "train_mae": result.train_mae,
-        "validation_mae_fixed_training_intercept": result.validation_mae,
-        "test_mae_noisy_fixed_training_intercept": test_mae,
+        "validation_mae_zero_bias": result.validation_mae,
+        "test_mae_noisy_zero_bias": test_mae,
         "test_mae_noisy_se": test_se,
-        "test_mae_clean_target_fixed_training_intercept": clean_test_mae,
+        "test_mae_clean_target_zero_bias": clean_test_mae,
         "test_mae_noisy_over_signal_mad": test_mae / noise["signal_mad"],
         "fit_wall_seconds": wall_seconds,
         "coefficient_bound": coefficient_bound,
@@ -494,7 +493,7 @@ def _aggregate(run_frame: pd.DataFrame) -> pd.DataFrame:
                     group["X_matrix_relative_frobenius_error"].max()
                 ),
                 "test_mae_noisy_mean": float(
-                    group["test_mae_noisy_fixed_training_intercept"].mean()
+                    group["test_mae_noisy_zero_bias"].mean()
                 ),
                 "test_mae_noisy_over_signal_mad_mean": float(
                     group["test_mae_noisy_over_signal_mad"].mean()
@@ -565,6 +564,7 @@ def run(
         output / "selected_atoms.csv", index=False
     )
     config = {
+        "observation_model": "observed_root_zero_bias; historical offset results require their archived source",
         "cases": list(cases),
         "seeds": list(seeds),
         "regimes": list(regimes),
@@ -579,7 +579,7 @@ def run(
         "outlier_fraction": outlier_fraction,
         "gross_outlier_fraction_of_signal_mad": gross_outlier_fraction,
         "truth_used_for_candidate_generation": False,
-        "validation_and_test_use_fixed_training_intercepts": True,
+        "zero_bias_for_training_validation_and_test": True,
     }
     payload = {
         "config": config,
@@ -593,7 +593,7 @@ def run(
         "# Laminar L1-MILP noisy multi-case benchmark",
         "",
         "Every run searches all nonempty supports implicitly. Truth is used only for post-fit scoring.",
-        "Validation and test predictions keep the training L1-median intercept fixed.",
+        "Training, validation and test predictions use observed-root Y = PR + QX with no fitted bias.",
         "",
         "```text",
         summary.to_string(index=False),

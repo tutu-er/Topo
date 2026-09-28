@@ -1,20 +1,17 @@
-"""Exact one-atom laminar L1 sensitivity regression with SciPy/HiGHS.
+"""Fit shared R/X laminar atoms with L1 loss and a forward support search.
 
-The estimator represents the reduced sensitivity matrices as
+R = sum_k r_k z_k z_k.T and X = sum_k x_k z_k z_k.T share binary
+terminal-clade supports. Each extension searches a new support and jointly
+refits all weights. Initial supports remain fixed; new supports are optimized
+over all nonempty, distinct extensions compatible with the current family.
+The observed-root target is Y = V_root**2 - V_terminal**2, with prediction
+P @ R.T + Q @ X.T and no fitted measurement offsets.
 
-    R = sum_k r_k z_k z_k.T,    X = sum_k x_k z_k z_k.T,
-
-where every ``z_k`` is a binary terminal-clade indicator.  Selected supports
-are required to be laminar: two supports are nested or disjoint.  At every
-forward step, a MILP searches all admissible nonempty supports and refits all
-previous atom weights and scenario-by-terminal intercepts with an L1 loss.
-
-"Exact" means globally optimal for one bounded MILP extension when HiGHS
-returns status 0 and the reported primal/dual bound or relative gap satisfies
-this module's strict certificate check. The complete forward path is greedy
-and is not claimed to be the globally optimal K-atom model.
+Data validation, standard matrix construction, solver dispatch and path
+selection live here. SciPy/HiGHS is the default; gurobi_milp provides the
+optional Gurobi adapter. Exactness covers one bounded extension only;
+the complete forward path remains greedy.
 """
-
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -28,17 +25,19 @@ from scipy.optimize import Bounds, LinearConstraint, milp
 from scipy.sparse import coo_array
 
 
-IndexSupport = tuple[int, ...]
+# Data and result records.
 
+IndexSupport = tuple[int, ...]
 _EXACT_MIP_REL_GAP_TOLERANCE = 1e-10
 _EXACT_MIP_ABS_GAP_TOLERANCE = 1e-10
 _SUPPORT_INTEGRAL_TOLERANCE = 1e-6
+_COEFFICIENT_BOUND_TOLERANCE = 1e-8
 _OBJECTIVE_REPRODUCTION_REL_TOLERANCE = 1e-7
 
 
 @dataclass(frozen=True)
 class SolverDiagnostics:
-    """Auditable information returned by one HiGHS LP/MILP solve."""
+    """One LP/MILP solve, with SciPy-compatible status and native provenance."""
 
     status: int
     success: bool
@@ -51,6 +50,8 @@ class SolverDiagnostics:
     variable_count: int
     binary_variable_count: int
     constraint_count: int
+    solver: str = "highs"
+    raw_status: int | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -63,7 +64,6 @@ class FixedSupportSolution:
     supports: tuple[IndexSupport, ...]
     r_values: np.ndarray
     x_values: np.ndarray
-    intercepts: np.ndarray
     objective: float
     diagnostics: SolverDiagnostics
 
@@ -75,7 +75,6 @@ class ExtensionSolution:
     support: IndexSupport | None
     r_values: np.ndarray
     x_values: np.ndarray
-    intercepts: np.ndarray
     objective: float | None
     diagnostics: SolverDiagnostics
 
@@ -89,7 +88,6 @@ class LaminarL1PathPoint:
     support_labels: tuple[tuple[Hashable, ...], ...]
     r_values: np.ndarray
     x_values: np.ndarray
-    intercepts: np.ndarray
     r_matrix: np.ndarray
     x_matrix: np.ndarray
     train_mae: float
@@ -108,7 +106,6 @@ class LaminarL1Result:
     support_labels: tuple[tuple[Hashable, ...], ...]
     r_values: np.ndarray
     x_values: np.ndarray
-    intercepts: np.ndarray
     r_matrix: np.ndarray
     x_matrix: np.ndarray
     train_mae: float
@@ -127,7 +124,6 @@ class LaminarL1Result:
             "support_labels": [list(item) for item in self.support_labels],
             "r_values": self.r_values.tolist(),
             "x_values": self.x_values.tolist(),
-            "intercepts": self.intercepts.tolist(),
             "train_mae": self.train_mae,
             "validation_mae": self.validation_mae,
             "selected_path_index": self.selected_path_index,
@@ -136,13 +132,13 @@ class LaminarL1Result:
             "r_upper_bound": self.r_upper_bound,
             "x_upper_bound": self.x_upper_bound,
             "bound_expansions": self.bound_expansions,
+            "solver": self.path[self.selected_path_index].solver.solver,
         }
 
 
 @dataclass(frozen=True)
 class _PreparedScenarios:
     labels: tuple[Hashable, ...]
-    names: tuple[str, ...]
     p: tuple[np.ndarray, ...]
     q: tuple[np.ndarray, ...]
     target: tuple[np.ndarray, ...]
@@ -152,12 +148,11 @@ class _PreparedScenarios:
         return len(self.labels)
 
     @property
-    def scenario_count(self) -> int:
-        return len(self.p)
-
-    @property
     def observation_count(self) -> int:
         return sum(block.shape[0] * self.n for block in self.p)
+
+
+# Input validation and support rules.
 
 
 def _require_positive_finite(name: str, value: float) -> float:
@@ -196,13 +191,18 @@ def _validate_solver_parameters(
     return r_bound, x_bound, checked_time_limit, checked_gap
 
 
+def _validate_solver(solver: str) -> None:
+    if solver not in ("highs", "gurobi"):
+        raise ValueError("solver must be 'highs' or 'gurobi'")
+
+
 def solver_diagnostics_prove_optimality(
     diagnostics: SolverDiagnostics,
     *,
     relative_gap_tolerance: float = _EXACT_MIP_REL_GAP_TOLERANCE,
     absolute_gap_tolerance: float = _EXACT_MIP_ABS_GAP_TOLERANCE,
 ) -> bool:
-    """Return whether HiGHS certified the requested numerical optimum."""
+    """Return whether the solver certified the requested numerical optimum."""
 
     if diagnostics.status != 0 or not diagnostics.success:
         return False
@@ -229,27 +229,265 @@ def solver_diagnostics_prove_optimality(
     )
 
 
-def _dual_bound_certifies_no_gain(
-    current_objective: float,
-    diagnostics: SolverDiagnostics,
-    gain_tolerance: float,
-) -> bool:
-    """Use a minimization dual bound to rule out a material extension gain."""
-
-    dual_bound = diagnostics.dual_bound
-    return bool(
-        dual_bound is not None
-        and np.isfinite(dual_bound)
-        and current_objective - float(dual_bound) <= gain_tolerance
-    )
-
-
 def _objectives_agree(left: float, right: float) -> bool:
     scale = max(1.0, abs(float(left)), abs(float(right)))
     return bool(
         abs(float(left) - float(right))
         <= _OBJECTIVE_REPRODUCTION_REL_TOLERANCE * scale
     )
+
+
+def _matrix_from_scenario(value, labels: tuple[Hashable, ...], key: str, index=None) -> np.ndarray:
+    if hasattr(value, "loc") and hasattr(value, "columns"):
+        if not value.columns.is_unique or set(value.columns) != set(labels):
+            raise ValueError(f"{key} must contain the same unique terminal columns")
+        if not value.index.is_unique or (index is not None and set(value.index) != set(index)):
+            raise ValueError(f"{key} must contain the same unique time indices")
+        array = value.loc[value.index if index is None else index, list(labels)].to_numpy(dtype=float)
+    else:
+        array = np.asarray(value, dtype=float)
+    if array.ndim != 2:
+        raise ValueError(f"{key} must be a two-dimensional table")
+    return array
+
+
+def _prepare_scenarios(scenarios: Sequence[dict] | _PreparedScenarios) -> _PreparedScenarios:
+    """Validate external tables once; reuse prepared blocks within a fit."""
+    if isinstance(scenarios, _PreparedScenarios):
+        return scenarios
+    if not scenarios:
+        raise ValueError("at least one scenario is required")
+    first_p = scenarios[0]["P_terminal"]
+    if hasattr(first_p, "columns"):
+        labels = tuple(first_p.columns.tolist())
+    else:
+        first_array = np.asarray(first_p)
+        if first_array.ndim != 2:
+            raise ValueError("P_terminal must be two-dimensional")
+        labels = tuple(range(first_array.shape[1]))
+    if not labels or len(set(labels)) != len(labels):
+        raise ValueError("terminal columns must be nonempty and unique")
+
+    p_blocks: list[np.ndarray] = []
+    q_blocks: list[np.ndarray] = []
+    target_blocks: list[np.ndarray] = []
+    for scenario in scenarios:
+        reference = scenario["P_terminal"]
+        index = reference.index if hasattr(reference, "columns") else None
+        p = _matrix_from_scenario(reference, labels, "P_terminal", index)
+        q = _matrix_from_scenario(scenario["Q_terminal"], labels, "Q_terminal", index)
+        target = _matrix_from_scenario(scenario["drop_target"], labels, "drop_target", index)
+        if p.shape != q.shape or p.shape != target.shape:
+            raise ValueError("P_terminal, Q_terminal, and drop_target must have equal shape")
+        if p.shape[0] == 0:
+            raise ValueError("each scenario must contain at least one time sample")
+        if p.shape[1] != len(labels):
+            raise ValueError("all scenarios must use the same terminal count")
+        if not (np.isfinite(p).all() and np.isfinite(q).all() and np.isfinite(target).all()):
+            raise ValueError("scenario data must contain only finite values")
+        p_blocks.append(p)
+        q_blocks.append(q)
+        target_blocks.append(target)
+    return _PreparedScenarios(
+        labels=labels,
+        p=tuple(p_blocks),
+        q=tuple(q_blocks),
+        target=tuple(target_blocks),
+    )
+
+
+def normalize_supports(
+    supports: Iterable[Iterable[int]], n: int
+) -> tuple[IndexSupport, ...]:
+    """Validate, sort, and canonicalize positional supports."""
+
+    normalized: list[IndexSupport] = []
+    seen: set[IndexSupport] = set()
+    for support in supports:
+        item = tuple(sorted({int(index) for index in support}))
+        if not item:
+            raise ValueError("supports must be nonempty")
+        if item[0] < 0 or item[-1] >= n:
+            raise ValueError("support index is outside the terminal range")
+        if item in seen:
+            raise ValueError("duplicate support")
+        seen.add(item)
+        normalized.append(item)
+    if not is_laminar_family(normalized):
+        raise ValueError("supports must form a laminar family")
+    return tuple(normalized)
+
+
+def is_laminar_family(supports: Iterable[Iterable[int]]) -> bool:
+    """Return whether every support pair is nested or disjoint."""
+
+    family = [set(item) for item in supports]
+    for left_index, left in enumerate(family):
+        for right in family[left_index + 1 :]:
+            overlap = left & right
+            if overlap and not (left <= right or right <= left):
+                return False
+    return True
+
+
+def is_admissible_extension(
+    support: Iterable[int], existing_supports: Iterable[Iterable[int]], n: int
+) -> bool:
+    """Check nonemptiness, uniqueness, range, and laminar compatibility."""
+
+    candidate = tuple(sorted({int(index) for index in support}))
+    if not candidate or candidate[0] < 0 or candidate[-1] >= n:
+        return False
+    family = [tuple(sorted(set(item))) for item in existing_supports]
+    if candidate in family:
+        return False
+    return is_laminar_family([*family, candidate])
+
+
+def _round_and_validate_support(
+    z_values: np.ndarray,
+    existing_supports: tuple[IndexSupport, ...],
+    n: int,
+) -> IndexSupport:
+    values = np.asarray(z_values, dtype=float)
+    if values.shape != (n,) or not np.isfinite(values).all():
+        raise RuntimeError("MILP returned an invalid support vector")
+    rounded = np.rint(values)
+    if float(np.max(np.abs(values - rounded))) > _SUPPORT_INTEGRAL_TOLERANCE:
+        raise RuntimeError("MILP support vector violates the integrality tolerance")
+    support = tuple(int(index) for index in np.flatnonzero(rounded > 0.5))
+    if not is_admissible_extension(support, existing_supports, n):
+        raise RuntimeError("MILP returned a nonempty/unique/laminar-infeasible support")
+    return support
+
+
+# Matrix reconstruction, evaluation and path selection.
+
+
+def build_matrices_from_atoms(
+    n: int,
+    supports: Sequence[Sequence[int]],
+    r_values: Sequence[float],
+    x_values: Sequence[float],
+) -> tuple[np.ndarray, np.ndarray]:
+    """Construct symmetric R/X matrices from nonnegative support atoms.
+
+    This low-level constructor intentionally permits crossing supports so it
+    can also build adversarial matrices for tests. The estimators themselves
+    call :func:`normalize_supports` and therefore require a laminar family.
+    """
+
+    if not isinstance(n, (int, np.integer)) or int(n) < 1:
+        raise ValueError("n must be a positive integer")
+    n = int(n)
+    support_values = tuple(tuple(support) for support in supports)
+    r_array = np.asarray(tuple(r_values), dtype=float)
+    x_array = np.asarray(tuple(x_values), dtype=float)
+    if r_array.ndim != 1 or x_array.ndim != 1:
+        raise ValueError("atom coefficients must be one-dimensional")
+    if len(support_values) != len(r_array) or len(support_values) != len(x_array):
+        raise ValueError("support and coefficient counts must agree")
+    if not (np.isfinite(r_array).all() and np.isfinite(x_array).all()):
+        raise ValueError("atom coefficients must be finite")
+    if np.any(r_array < 0.0) or np.any(x_array < 0.0):
+        raise ValueError("atom coefficients must be nonnegative")
+    r_matrix = np.zeros((n, n), dtype=float)
+    x_matrix = np.zeros((n, n), dtype=float)
+    for atom_index, (support, r_value, x_value) in enumerate(
+        zip(support_values, r_array, x_array, strict=True)
+    ):
+        index_tuple = tuple(int(value) for value in support)
+        if not index_tuple:
+            raise ValueError(f"support {atom_index} must be nonempty")
+        if len(set(index_tuple)) != len(index_tuple):
+            raise ValueError(f"support {atom_index} contains duplicate indices")
+        if min(index_tuple) < 0 or max(index_tuple) >= n:
+            raise ValueError(f"support {atom_index} is outside the terminal range")
+        index = np.asarray(index_tuple, dtype=int)
+        r_matrix[np.ix_(index, index)] += float(r_value)
+        x_matrix[np.ix_(index, index)] += float(x_value)
+    return r_matrix, x_matrix
+
+
+def estimate_atom_upper_bounds(
+    scenarios: Sequence[dict] | _PreparedScenarios, *, safety_factor: float = 2.0, floor: float = 1e-8
+) -> tuple[float, float]:
+    """Derive data-only atom bounds from the current dense OLS coefficient scale."""
+
+    if not np.isfinite(safety_factor) or safety_factor <= 1.0:
+        raise ValueError("safety_factor must exceed one")
+    floor = _require_positive_finite("floor", floor)
+    prepared = _prepare_scenarios(scenarios)
+    design = np.hstack([np.vstack(prepared.p), np.vstack(prepared.q)])
+    target = np.vstack(prepared.target)
+    coefficients, _, _, _ = np.linalg.lstsq(design, target, rcond=None)
+    n = prepared.n
+    r_raw = coefficients[:n, :].T
+    x_raw = coefficients[n : 2 * n, :].T
+    r_symmetric = np.maximum(0.0, 0.5 * (r_raw + r_raw.T))
+    x_symmetric = np.maximum(0.0, 0.5 * (x_raw + x_raw.T))
+    r_scale = max(float(np.max(r_symmetric)), float(floor))
+    x_scale = max(float(np.max(x_symmetric)), float(floor))
+    return safety_factor * r_scale, safety_factor * x_scale
+
+
+def evaluate_l1_matrices(
+    scenarios: Sequence[dict] | _PreparedScenarios,
+    r_matrix: np.ndarray,
+    x_matrix: np.ndarray,
+    *,
+    blocks_per_scenario: int = 4,
+) -> tuple[float, float, np.ndarray]:
+    """Evaluate the physical prediction P R.T + Q X.T without refitting."""
+
+    prepared = _prepare_scenarios(scenarios)
+    if not isinstance(blocks_per_scenario, (int, np.integer)) or blocks_per_scenario < 1:
+        raise ValueError("blocks_per_scenario must be a positive integer")
+    r_value = np.asarray(r_matrix, dtype=float)
+    x_value = np.asarray(x_matrix, dtype=float)
+    if r_value.shape != (prepared.n, prepared.n) or x_value.shape != r_value.shape:
+        raise ValueError("R/X shape does not match validation terminals")
+    if not (np.isfinite(r_value).all() and np.isfinite(x_value).all()):
+        raise ValueError("R/X must contain only finite values")
+    absolute_parts: list[np.ndarray] = []
+    block_means: list[float] = []
+    for p_block, q_block, target_block in zip(prepared.p, prepared.q, prepared.target, strict=True):
+        absolute = np.abs(target_block - p_block @ r_value.T - q_block @ x_value.T)
+        absolute_parts.append(absolute.reshape(-1))
+        for time_indices in np.array_split(np.arange(len(absolute)), blocks_per_scenario):
+            if time_indices.size:
+                block_means.append(float(np.mean(absolute[time_indices, :])))
+    all_absolute = np.concatenate(absolute_parts)
+    mae = float(np.mean(all_absolute))
+    block_array = np.asarray(block_means, dtype=float)
+    standard_error = (
+        float(np.std(block_array, ddof=1) / sqrt(len(block_array)))
+        if len(block_array) > 1
+        else 0.0
+    )
+    return mae, standard_error, block_array
+
+
+def _touches_bound(values: np.ndarray, bound: float, fraction: float) -> bool:
+    return bool(values.size and np.max(values) >= fraction * bound)
+
+
+def _choose_path_point(path: Sequence[LaminarL1PathPoint]) -> int:
+    if not path or path[0].validation_mae is None:
+        return len(path) - 1
+    means = np.asarray([point.validation_mae for point in path], dtype=float)
+    best = int(np.argmin(means))
+    threshold = means[best] + float(path[best].validation_se or 0.0)
+    eligible = np.flatnonzero(means <= threshold)
+    return min(
+        (int(index) for index in eligible),
+        key=lambda index: (len(path[index].support_indices), index),
+    )
+
+
+
+
+# Standard LP/MILP variables and constraints.
 
 
 class _VariableBuilder:
@@ -332,249 +570,244 @@ class _ConstraintBuilder:
         return len(self.lower)
 
 
-def _matrix_from_scenario(value, labels: tuple[Hashable, ...], key: str) -> np.ndarray:
-    if hasattr(value, "loc") and hasattr(value, "columns"):
-        try:
-            array = value.loc[:, list(labels)].to_numpy(dtype=float)
-        except KeyError as exc:
-            raise ValueError(f"{key} columns do not match the first scenario") from exc
-    else:
-        array = np.asarray(value, dtype=float)
-    if array.ndim != 2:
-        raise ValueError(f"{key} must be a two-dimensional table")
-    return array
-
-
-def _prepare_scenarios(scenarios: Sequence[dict]) -> _PreparedScenarios:
-    if not scenarios:
-        raise ValueError("at least one scenario is required")
-    first_p = scenarios[0]["P_terminal"]
-    if hasattr(first_p, "columns"):
-        labels = tuple(first_p.columns.tolist())
-    else:
-        first_array = np.asarray(first_p)
-        if first_array.ndim != 2:
-            raise ValueError("P_terminal must be two-dimensional")
-        labels = tuple(range(first_array.shape[1]))
-    if not labels:
-        raise ValueError("at least one terminal is required")
-
-    p_blocks: list[np.ndarray] = []
-    q_blocks: list[np.ndarray] = []
-    target_blocks: list[np.ndarray] = []
-    names: list[str] = []
-    for scenario_index, scenario in enumerate(scenarios):
-        p = _matrix_from_scenario(scenario["P_terminal"], labels, "P_terminal")
-        q = _matrix_from_scenario(scenario["Q_terminal"], labels, "Q_terminal")
-        target = _matrix_from_scenario(scenario["drop_target"], labels, "drop_target")
-        if p.shape != q.shape or p.shape != target.shape:
-            raise ValueError("P_terminal, Q_terminal, and drop_target must have equal shape")
-        if p.shape[0] == 0:
-            raise ValueError("each scenario must contain at least one time sample")
-        if p.shape[1] != len(labels):
-            raise ValueError("all scenarios must use the same terminal count")
-        if not (np.isfinite(p).all() and np.isfinite(q).all() and np.isfinite(target).all()):
-            raise ValueError("scenario data must contain only finite values")
-        p_blocks.append(p)
-        q_blocks.append(q)
-        target_blocks.append(target)
-        names.append(str(scenario.get("name", f"scenario_{scenario_index}")))
-    return _PreparedScenarios(
-        labels=labels,
-        names=tuple(names),
-        p=tuple(p_blocks),
-        q=tuple(q_blocks),
-        target=tuple(target_blocks),
-    )
-
-
-def normalize_supports(
-    supports: Iterable[Iterable[int]], n: int
-) -> tuple[IndexSupport, ...]:
-    """Validate, sort, and canonicalize positional supports."""
-
-    normalized: list[IndexSupport] = []
-    seen: set[IndexSupport] = set()
-    for support in supports:
-        item = tuple(sorted({int(index) for index in support}))
-        if not item:
-            raise ValueError("supports must be nonempty")
-        if item[0] < 0 or item[-1] >= n:
-            raise ValueError("support index is outside the terminal range")
-        if item in seen:
-            raise ValueError("duplicate support")
-        seen.add(item)
-        normalized.append(item)
-    if not is_laminar_family(normalized):
-        raise ValueError("supports must form a laminar family")
-    return tuple(normalized)
-
-
-def normalize_support_pool(
-    supports: Iterable[Iterable[int]], n: int
-) -> tuple[IndexSupport, ...]:
-    """Canonicalize a finite candidate pool without requiring mutual laminarity.
-
-    Candidate supports may cross each other because the MILP chooses only one
-    extension at a time. Each chosen support must still be laminar with the
-    already accepted family.
-    """
-
-    normalized: list[IndexSupport] = []
-    seen: set[IndexSupport] = set()
-    for support in supports:
-        item = tuple(sorted({int(index) for index in support}))
-        if not item:
-            raise ValueError("candidate supports must be nonempty")
-        if item[0] < 0 or item[-1] >= n:
-            raise ValueError("candidate support index is outside the terminal range")
-        if item not in seen:
-            seen.add(item)
-            normalized.append(item)
-    return tuple(normalized)
-
-
-def is_laminar_family(supports: Iterable[Iterable[int]]) -> bool:
-    """Return whether every support pair is nested or disjoint."""
-
-    family = [set(item) for item in supports]
-    for left_index, left in enumerate(family):
-        for right in family[left_index + 1 :]:
-            overlap = left & right
-            if overlap and not (left <= right or right <= left):
-                return False
-    return True
-
-
-def is_admissible_extension(
-    support: Iterable[int], existing_supports: Iterable[Iterable[int]], n: int
-) -> bool:
-    """Check nonemptiness, uniqueness, range, and laminar compatibility."""
-
-    candidate = tuple(sorted({int(index) for index in support}))
-    if not candidate or candidate[0] < 0 or candidate[-1] >= n:
-        return False
-    family = [tuple(sorted(set(item))) for item in existing_supports]
-    if candidate in family:
-        return False
-    return is_laminar_family([*family, candidate])
-
-
-def _round_and_validate_support(
-    z_values: np.ndarray,
-    existing_supports: tuple[IndexSupport, ...],
-    n: int,
-) -> IndexSupport:
-    values = np.asarray(z_values, dtype=float)
-    if values.shape != (n,) or not np.isfinite(values).all():
-        raise RuntimeError("MILP returned an invalid support vector")
-    rounded = np.rint(values)
-    if float(np.max(np.abs(values - rounded))) > _SUPPORT_INTEGRAL_TOLERANCE:
-        raise RuntimeError("MILP support vector violates the integrality tolerance")
-    support = tuple(int(index) for index in np.flatnonzero(rounded > 0.5))
-    if not is_admissible_extension(support, existing_supports, n):
-        raise RuntimeError("MILP returned a nonempty/unique/laminar-infeasible support")
-    return support
-
-
-def build_matrices_from_atoms(
-    n: int,
-    supports: Sequence[Sequence[int]],
-    r_values: Sequence[float],
-    x_values: Sequence[float],
-) -> tuple[np.ndarray, np.ndarray]:
-    """Construct symmetric R/X matrices from nonnegative support atoms.
-
-    This low-level constructor intentionally permits crossing supports so it
-    can also build adversarial matrices for tests. The estimators themselves
-    call :func:`normalize_supports` and therefore require a laminar family.
-    """
-
-    if not isinstance(n, (int, np.integer)) or int(n) < 1:
-        raise ValueError("n must be a positive integer")
-    n = int(n)
-    support_values = tuple(tuple(support) for support in supports)
-    r_array = np.asarray(tuple(r_values), dtype=float)
-    x_array = np.asarray(tuple(x_values), dtype=float)
-    if r_array.ndim != 1 or x_array.ndim != 1:
-        raise ValueError("atom coefficients must be one-dimensional")
-    if len(support_values) != len(r_array) or len(support_values) != len(x_array):
-        raise ValueError("support and coefficient counts must agree")
-    if not (np.isfinite(r_array).all() and np.isfinite(x_array).all()):
-        raise ValueError("atom coefficients must be finite")
-    if np.any(r_array < 0.0) or np.any(x_array < 0.0):
-        raise ValueError("atom coefficients must be nonnegative")
-    r_matrix = np.zeros((n, n), dtype=float)
-    x_matrix = np.zeros((n, n), dtype=float)
-    for atom_index, (support, r_value, x_value) in enumerate(
-        zip(support_values, r_array, x_array, strict=True)
-    ):
-        index_tuple = tuple(int(value) for value in support)
-        if not index_tuple:
-            raise ValueError(f"support {atom_index} must be nonempty")
-        if len(set(index_tuple)) != len(index_tuple):
-            raise ValueError(f"support {atom_index} contains duplicate indices")
-        if min(index_tuple) < 0 or max(index_tuple) >= n:
-            raise ValueError(f"support {atom_index} is outside the terminal range")
-        index = np.asarray(index_tuple, dtype=int)
-        r_matrix[np.ix_(index, index)] += float(r_value)
-        x_matrix[np.ix_(index, index)] += float(x_value)
-    return r_matrix, x_matrix
-
-
 def _fixed_atom_features(
     prepared: _PreparedScenarios, supports: tuple[IndexSupport, ...]
 ) -> tuple[np.ndarray, np.ndarray]:
     if not supports:
         empty = np.empty((prepared.observation_count, 0), dtype=float)
         return empty, empty.copy()
-    p_parts: list[np.ndarray] = []
-    q_parts: list[np.ndarray] = []
-    for p_block, q_block in zip(prepared.p, prepared.q, strict=True):
-        block_p: list[np.ndarray] = []
-        block_q: list[np.ndarray] = []
-        for support in supports:
-            indicator = np.zeros(prepared.n, dtype=float)
-            indicator[list(support)] = 1.0
-            block_p.append(((p_block @ indicator)[:, None] * indicator[None, :]).reshape(-1))
-            block_q.append(((q_block @ indicator)[:, None] * indicator[None, :]).reshape(-1))
-        p_parts.append(np.column_stack(block_p))
-        q_parts.append(np.column_stack(block_q))
-    return np.vstack(p_parts), np.vstack(q_parts)
+    indicators = np.zeros((len(supports), prepared.n))
+    for indicator, support in zip(indicators, supports, strict=True):
+        indicator[list(support)] = 1.0
+
+    def features(blocks):
+        # Each column is vec((P_s z_k) z_k.T), likewise for Q_s.
+        return np.vstack([
+            np.column_stack([((block @ z)[:, None] * z).ravel() for z in indicators])
+            for block in blocks
+        ])
+
+    return features(prepared.p), features(prepared.q)
 
 
-def _target_and_scenario_output(prepared: _PreparedScenarios) -> tuple[np.ndarray, np.ndarray]:
-    target = np.concatenate([block.reshape(-1) for block in prepared.target])
-    scenario_output: list[np.ndarray] = []
-    for scenario_index, block in enumerate(prepared.target):
-        time_count = block.shape[0]
-        output = np.tile(np.arange(prepared.n), time_count)
-        scenario_output.append(scenario_index * prepared.n + output)
-    return target, np.concatenate(scenario_output)
+def _add_absolute_residual_constraints(
+    prepared: _PreparedScenarios,
+    supports: tuple[IndexSupport, ...],
+    model: L1Model,
+    *,
+    new_u_r_block: slice | None = None,
+    new_u_x_block: slice | None = None,
+    pair_lookup: dict[tuple[int, int], int] | None = None,
+) -> None:
+    """For each observation impose prediction - e <= target <= prediction + e."""
+    rows = model.rows
+    p_features, q_features = _fixed_atom_features(prepared, supports)
+    has_new_atom = new_u_r_block is not None and new_u_x_block is not None
+    if has_new_atom and pair_lookup is None:
+        raise AssertionError("pair lookup is required for a new atom")
+    observation = 0
+    for p_block, q_block, target in zip(prepared.p, prepared.q, prepared.target, strict=True):
+        for time_index in range(p_block.shape[0]):
+            for output_index in range(prepared.n):
+                prediction: dict[int, float] = {}
+                for weights, features in ((model.r, p_features), (model.x, q_features)):
+                    prediction.update({
+                        weights.start + k: float(value)
+                        for k, value in enumerate(features[observation])
+                    })
+                if has_new_atom:
+                    for input_index in range(prepared.n):
+                        pair = (min(output_index, input_index), max(output_index, input_index))
+                        pair_index = pair_lookup[pair]
+                        prediction[new_u_r_block.start + pair_index] = float(p_block[time_index, input_index])
+                        prediction[new_u_x_block.start + pair_index] = float(q_block[time_index, input_index])
+
+                # The row builder drops zero coefficients for both residual sides.
+                error = model.absolute.start + observation
+                value = float(target[time_index, output_index])
+                rows.add({**prediction, error: 1.0}, lower=value)
+                rows.add({**prediction, error: -1.0}, upper=value)
+                observation += 1
+
+
+@dataclass
+class L1Model:
+    """Sparse model and the variable slices needed to read its solution."""
+
+    variables: _VariableBuilder
+    rows: _ConstraintBuilder
+    r: slice
+    x: slice
+    absolute: slice
+    new_r: slice | None = None
+    new_x: slice | None = None
+    z: slice | None = None
+
+
+def _base_model(
+    prepared: _PreparedScenarios,
+    atom_count: int,
+    *,
+    r_upper_bound: float,
+    x_upper_bound: float,
+    prefix: str = "",
+) -> L1Model:
+    """Create the shared weights and L1 residual variables."""
+    variables = _VariableBuilder()
+    r = variables.add(f"{prefix}r", atom_count, upper=r_upper_bound)
+    x = variables.add(f"{prefix}x", atom_count, upper=x_upper_bound)
+    absolute = variables.add(
+        "absolute_residual",
+        prepared.observation_count,
+        objective=1.0 / prepared.observation_count,
+    )
+    return L1Model(variables, _ConstraintBuilder(), r, x, absolute)
+
+
+def build_fixed_model(
+    prepared: _PreparedScenarios,
+    supports: tuple[IndexSupport, ...],
+    *,
+    r_upper_bound: float,
+    x_upper_bound: float,
+) -> L1Model:
+    """Fit every existing atom weight with an L1 loss."""
+    model = _base_model(
+        prepared, len(supports), r_upper_bound=r_upper_bound, x_upper_bound=x_upper_bound
+    )
+    _add_absolute_residual_constraints(prepared, supports, model)
+    return model
+
+
+def _add_atom_product_constraints(
+    rows: _ConstraintBuilder,
+    pairs: tuple[tuple[int, int], ...],
+    *,
+    z: slice,
+    y: slice,
+    products: tuple[tuple[slice, slice, float], ...],
+) -> None:
+    """Linearize y_ij = z_i*z_j and each bounded weight times y_ij."""
+    for pair_index, (i, j) in enumerate(pairs):
+        y_index = y.start + pair_index
+        z_i = z.start + i
+        z_j = z.start + j
+        # Binary z fixes y, so y itself can remain continuous.
+        if i == j:
+            rows.add({y_index: 1.0, z_i: -1.0}, lower=0.0, upper=0.0)
+        else:
+            rows.add({y_index: 1.0, z_i: -1.0}, upper=0.0)
+            rows.add({y_index: 1.0, z_j: -1.0}, upper=0.0)
+            rows.add({y_index: 1.0, z_i: -1.0, z_j: -1.0}, lower=-1.0)
+
+        # Keep R then X within each pair, preserving the solver row order.
+        for product, weight, upper_bound in products:
+            product_index = product.start + pair_index
+            rows.add({product_index: 1.0, y_index: -upper_bound}, upper=0.0)
+            rows.add({product_index: 1.0, weight.start: -1.0}, upper=0.0)
+            rows.add(
+                {product_index: 1.0, weight.start: -1.0, y_index: -upper_bound},
+                lower=-upper_bound,
+            )
+
+
+def _add_laminar_extension_constraints(
+    rows: _ConstraintBuilder,
+    n: int,
+    supports: tuple[IndexSupport, ...],
+    z: slice,
+    relations: slice,
+) -> None:
+    """Require a new, nested-or-disjoint support relative to every old atom."""
+    for atom_index, support in enumerate(supports):
+        support_set = set(support)
+        subset_relation = relations.start + 3 * atom_index
+        superset_relation = subset_relation + 1
+        disjoint_relation = subset_relation + 2
+        rows.add(
+            {subset_relation: 1.0, superset_relation: 1.0, disjoint_relation: 1.0},
+            lower=1.0,
+            upper=1.0,
+        )
+        for terminal in range(n):
+            z_index = z.start + terminal
+            if terminal not in support_set:
+                rows.add({z_index: 1.0, subset_relation: 1.0}, upper=1.0)
+            else:
+                rows.add({superset_relation: 1.0, z_index: -1.0}, upper=0.0)
+                rows.add({z_index: 1.0, disjoint_relation: 1.0}, upper=1.0)
+
+        # Hamming distance from each old support must be at least one.
+        duplicate_row = {
+            z.start + terminal: -1.0 if terminal in support_set else 1.0
+            for terminal in range(n)
+        }
+        rows.add(duplicate_row, lower=1.0 - len(support_set))
+
+
+def build_extension_model(
+    prepared: _PreparedScenarios,
+    supports: tuple[IndexSupport, ...],
+    *,
+    r_upper_bound: float,
+    x_upper_bound: float,
+) -> L1Model:
+    """Search a new zz.T atom while jointly refitting all accepted weights."""
+    pairs = tuple((i, j) for i in range(prepared.n) for j in range(i, prepared.n))
+    pair_lookup = {pair: index for index, pair in enumerate(pairs)}
+    model = _base_model(
+        prepared, len(supports), r_upper_bound=r_upper_bound,
+        x_upper_bound=x_upper_bound, prefix="old_",
+    )
+    variables, rows = model.variables, model.rows
+    model.new_r = variables.add("new_r", 1, upper=r_upper_bound)
+    model.new_x = variables.add("new_x", 1, upper=x_upper_bound)
+    model.z = variables.add("z", prepared.n, upper=1.0, integral=True)
+    y = variables.add("y", len(pairs), upper=1.0)
+    u_r = variables.add("u_r", len(pairs), upper=r_upper_bound)
+    u_x = variables.add("u_x", len(pairs), upper=x_upper_bound)
+    relations = variables.add("relations", 3 * len(supports), upper=1.0, integral=True)
+
+    _add_absolute_residual_constraints(
+        prepared, supports, model,
+        new_u_r_block=u_r,
+        new_u_x_block=u_x,
+        pair_lookup=pair_lookup,
+    )
+    rows.add({model.z.start + i: 1.0 for i in range(prepared.n)}, lower=1.0)
+    _add_atom_product_constraints(
+        rows,
+        pairs,
+        z=model.z,
+        y=y,
+        products=((u_r, model.new_r, r_upper_bound), (u_x, model.new_x, x_upper_bound)),
+    )
+    _add_laminar_extension_constraints(rows, prepared.n, supports, model.z, relations)
+    return model
+
+
+# Solver dispatch, fixed-support LP and one-support MILP.
 
 
 def _diagnostics(result, elapsed: float, variables: _VariableBuilder, rows: _ConstraintBuilder) -> SolverDiagnostics:
-    objective = getattr(result, "fun", None)
+    def optional(name, cast=float):
+        value = getattr(result, name, None)
+        return None if value is None else cast(value)
+
     return SolverDiagnostics(
         status=int(result.status),
         success=bool(result.success),
         message=str(result.message),
-        objective=None if objective is None else float(objective),
-        dual_bound=(
-            None
-            if getattr(result, "mip_dual_bound", None) is None
-            else float(result.mip_dual_bound)
-        ),
-        mip_gap=(None if getattr(result, "mip_gap", None) is None else float(result.mip_gap)),
-        node_count=(
-            None
-            if getattr(result, "mip_node_count", None) is None
-            else int(result.mip_node_count)
-        ),
+        objective=optional("fun"),
+        dual_bound=optional("mip_dual_bound"),
+        mip_gap=optional("mip_gap"),
+        node_count=optional("mip_node_count", int),
         runtime_seconds=float(elapsed),
         variable_count=variables.size,
         binary_variable_count=int(np.count_nonzero(variables.integrality)),
         constraint_count=rows.size,
+        solver=getattr(result, "solver", "highs"),
+        raw_status=getattr(result, "raw_status", None),
     )
 
 
@@ -586,7 +819,14 @@ def _run_milp(
     mip_rel_gap: float,
     presolve: bool,
     disp: bool,
+    solver: str = "highs",
 ):
+    """Build one standard-form input, dispatch it, then collect diagnostics."""
+    _validate_solver(solver)
+    solve = milp
+    if solver == "gurobi":
+        from .gurobi_milp import solve_gurobi_milp as solve
+
     options: dict[str, float | bool | int] = {
         "mip_rel_gap": float(mip_rel_gap),
         # SciPy forwards this native HiGHS option even though some SciPy
@@ -604,7 +844,7 @@ def _run_milp(
             message=r"Unrecognized options detected: .*mip_abs_gap.*",
             category=RuntimeWarning,
         )
-        result = milp(
+        result = solve(
             c=np.asarray(variables.objective, dtype=float),
             integrality=np.asarray(variables.integrality, dtype=np.uint8),
             bounds=Bounds(
@@ -618,65 +858,14 @@ def _run_milp(
     return result, _diagnostics(result, elapsed, variables, rows)
 
 
-def _add_absolute_residual_constraints(
-    prepared: _PreparedScenarios,
-    variables: _VariableBuilder,
-    rows: _ConstraintBuilder,
-    *,
-    r_block: slice,
-    x_block: slice,
-    intercept_block: slice,
-    absolute_block: slice,
-    supports: tuple[IndexSupport, ...],
-    new_u_r_block: slice | None = None,
-    new_u_x_block: slice | None = None,
-    pair_lookup: dict[tuple[int, int], int] | None = None,
-) -> None:
-    target, scenario_output = _target_and_scenario_output(prepared)
-    p_features, q_features = _fixed_atom_features(prepared, supports)
-    observation = 0
-    for scenario_index, (p_block, q_block) in enumerate(
-        zip(prepared.p, prepared.q, strict=True)
-    ):
-        for time_index in range(p_block.shape[0]):
-            for output_index in range(prepared.n):
-                prediction: dict[int, float] = {
-                    intercept_block.start + int(scenario_output[observation]): 1.0
-                }
-                for atom_index in range(len(supports)):
-                    p_value = p_features[observation, atom_index]
-                    q_value = q_features[observation, atom_index]
-                    if p_value != 0.0:
-                        prediction[r_block.start + atom_index] = float(p_value)
-                    if q_value != 0.0:
-                        prediction[x_block.start + atom_index] = float(q_value)
-                if new_u_r_block is not None and new_u_x_block is not None:
-                    if pair_lookup is None:
-                        raise AssertionError("pair lookup is required for a new atom")
-                    for input_index in range(prepared.n):
-                        pair = (min(output_index, input_index), max(output_index, input_index))
-                        pair_index = pair_lookup[pair]
-                        p_value = p_block[time_index, input_index]
-                        q_value = q_block[time_index, input_index]
-                        if p_value != 0.0:
-                            prediction[new_u_r_block.start + pair_index] = float(p_value)
-                        if q_value != 0.0:
-                            prediction[new_u_x_block.start + pair_index] = float(q_value)
-
-                positive = dict(prediction)
-                positive[absolute_block.start + observation] = 1.0
-                rows.add(positive, lower=float(target[observation]))
-
-                negative = dict(prediction)
-                negative[absolute_block.start + observation] = -1.0
-                rows.add(negative, upper=float(target[observation]))
-                observation += 1
-
-
-def _extract_intercepts(
-    vector: np.ndarray, block: slice, prepared: _PreparedScenarios
-) -> np.ndarray:
-    return np.asarray(vector[block], dtype=float).reshape(prepared.scenario_count, prepared.n)
+def _bounded_weights(values: np.ndarray, upper_bound: float) -> np.ndarray:
+    """Validate solver bounds, then remove only tolerated boundary roundoff."""
+    values = np.asarray(values, dtype=float)
+    if (not np.isfinite(values).all()
+            or np.any(values < -_COEFFICIENT_BOUND_TOLERANCE)
+            or np.any(values > upper_bound + _COEFFICIENT_BOUND_TOLERANCE)):
+        raise RuntimeError("solver atom coefficients violate their finite nonnegative bounds")
+    return np.clip(values, 0.0, upper_bound)
 
 
 def _solve_fixed_prepared(
@@ -688,43 +877,16 @@ def _solve_fixed_prepared(
     time_limit: float | None,
     presolve: bool,
     disp: bool,
+    solver: str = "highs",
 ) -> FixedSupportSolution:
-    atom_count = len(supports)
-    variables = _VariableBuilder()
-    r_block = variables.add("r", atom_count, upper=r_upper_bound)
-    x_block = variables.add("x", atom_count, upper=x_upper_bound)
-    intercept_block = variables.add(
-        "intercepts", prepared.scenario_count * prepared.n, lower=-np.inf, upper=np.inf
-    )
-    absolute_block = variables.add(
-        "absolute_residual",
-        prepared.observation_count,
-        objective=1.0 / prepared.observation_count,
-    )
-    rows = _ConstraintBuilder()
-    _add_absolute_residual_constraints(
-        prepared,
-        variables,
-        rows,
-        r_block=r_block,
-        x_block=x_block,
-        intercept_block=intercept_block,
-        absolute_block=absolute_block,
-        supports=supports,
+    model = build_fixed_model(
+        prepared, supports, r_upper_bound=r_upper_bound, x_upper_bound=x_upper_bound
     )
     result, diagnostics = _run_milp(
-        variables,
-        rows,
-        time_limit=time_limit,
-        mip_rel_gap=0.0,
-        presolve=presolve,
-        disp=disp,
+        model.variables, model.rows, time_limit=time_limit,
+        mip_rel_gap=0.0, presolve=presolve, disp=disp, solver=solver,
     )
-    if (
-        result.x is None
-        or result.fun is None
-        or not solver_diagnostics_prove_optimality(diagnostics)
-    ):
+    if result.x is None or result.fun is None or not solver_diagnostics_prove_optimality(diagnostics):
         raise RuntimeError(
             "fixed-support L1 LP was not proven optimal: "
             f"status={diagnostics.status}, gap={diagnostics.mip_gap}, "
@@ -732,9 +894,8 @@ def _solve_fixed_prepared(
         )
     return FixedSupportSolution(
         supports=supports,
-        r_values=np.asarray(result.x[r_block], dtype=float),
-        x_values=np.asarray(result.x[x_block], dtype=float),
-        intercepts=_extract_intercepts(result.x, intercept_block, prepared),
+        r_values=_bounded_weights(result.x[model.r], r_upper_bound),
+        x_values=_bounded_weights(result.x[model.x], x_upper_bound),
         objective=float(result.fun),
         diagnostics=diagnostics,
     )
@@ -749,9 +910,11 @@ def solve_fixed_support_l1(
     time_limit: float | None = None,
     presolve: bool = True,
     disp: bool = False,
+    solver: str = "highs",
 ) -> FixedSupportSolution:
-    """Solve the fully corrective L1 regression for fixed positional supports."""
+    """Fit fixed supports using ``solver='highs'`` or ``solver='gurobi'``."""
 
+    _validate_solver(solver)
     r_bound, x_bound, checked_time_limit, _ = _validate_solver_parameters(
         r_upper_bound=r_upper_bound,
         x_upper_bound=x_upper_bound,
@@ -760,221 +923,65 @@ def solve_fixed_support_l1(
     prepared = _prepare_scenarios(scenarios)
     family = normalize_supports(supports, prepared.n)
     return _solve_fixed_prepared(
-        prepared,
-        family,
-        r_upper_bound=r_bound,
-        x_upper_bound=x_bound,
-        time_limit=checked_time_limit,
-        presolve=presolve,
-        disp=disp,
+        prepared, family, r_upper_bound=r_bound, x_upper_bound=x_bound,
+        time_limit=checked_time_limit, presolve=presolve, disp=disp, solver=solver,
     )
-
-
-def _upper_pairs(n: int) -> tuple[tuple[tuple[int, int], ...], dict[tuple[int, int], int]]:
-    pairs = tuple((i, j) for i in range(n) for j in range(i, n))
-    return pairs, {pair: index for index, pair in enumerate(pairs)}
 
 
 def _solve_extension_prepared(
     prepared: _PreparedScenarios,
     supports: tuple[IndexSupport, ...],
     *,
-    candidate_supports: tuple[IndexSupport, ...] | None,
     r_upper_bound: float,
     x_upper_bound: float,
     time_limit: float | None,
     mip_rel_gap: float,
     presolve: bool,
     disp: bool,
+    solver: str = "highs",
 ) -> ExtensionSolution:
-    atom_count = len(supports)
-    admissible_candidates = (
-        None
-        if candidate_supports is None
-        else tuple(
-            support
-            for support in candidate_supports
-            if is_admissible_extension(support, supports, prepared.n)
-        )
+    model = build_extension_model(
+        prepared, supports,
+        r_upper_bound=r_upper_bound, x_upper_bound=x_upper_bound,
     )
-    pairs, pair_lookup = _upper_pairs(prepared.n)
-    pair_count = len(pairs)
-    variables = _VariableBuilder()
-    old_r = variables.add("old_r", atom_count, upper=r_upper_bound)
-    old_x = variables.add("old_x", atom_count, upper=x_upper_bound)
-    intercepts = variables.add(
-        "intercepts", prepared.scenario_count * prepared.n, lower=-np.inf, upper=np.inf
-    )
-    absolute = variables.add(
-        "absolute_residual",
-        prepared.observation_count,
-        objective=1.0 / prepared.observation_count,
-    )
-    new_r = variables.add("new_r", 1, upper=r_upper_bound)
-    new_x = variables.add("new_x", 1, upper=x_upper_bound)
-    z_block = variables.add("z", prepared.n, upper=1.0, integral=True)
-    candidate_selector = (
-        None
-        if admissible_candidates is None
-        else variables.add(
-            "candidate_selector",
-            len(admissible_candidates),
-            upper=1.0,
-            integral=True,
-        )
-    )
-    y_block = variables.add("y", pair_count, upper=1.0)
-    u_r_block = variables.add("u_r", pair_count, upper=r_upper_bound)
-    u_x_block = variables.add("u_x", pair_count, upper=x_upper_bound)
-    relation_block = variables.add("relations", 3 * atom_count, upper=1.0, integral=True)
-
-    rows = _ConstraintBuilder()
-    _add_absolute_residual_constraints(
-        prepared,
-        variables,
-        rows,
-        r_block=old_r,
-        x_block=old_x,
-        intercept_block=intercepts,
-        absolute_block=absolute,
-        supports=supports,
-        new_u_r_block=u_r_block,
-        new_u_x_block=u_x_block,
-        pair_lookup=pair_lookup,
-    )
-
-    # Nonempty candidate support.
-    rows.add({z_block.start + i: 1.0 for i in range(prepared.n)}, lower=1.0)
-
-    # Optional finite-domain encoding: choose exactly one admissible proposal
-    # and make z equal its incidence vector. This retains a genuine MILP and
-    # a global optimum certificate relative to the supplied candidate pool.
-    if candidate_selector is not None:
-        rows.add(
-            {
-                candidate_selector.start + index: 1.0
-                for index in range(len(admissible_candidates))
-            },
-            lower=1.0,
-            upper=1.0,
-        )
-        for terminal in range(prepared.n):
-            row = {z_block.start + terminal: 1.0}
-            for index, support in enumerate(admissible_candidates):
-                if terminal in support:
-                    row[candidate_selector.start + index] = -1.0
-            rows.add(row, lower=0.0, upper=0.0)
-
-    # y_ij = z_i z_j.  y can remain continuous because binary z fixes it.
-    for pair_index, (i, j) in enumerate(pairs):
-        y_index = y_block.start + pair_index
-        z_i = z_block.start + i
-        z_j = z_block.start + j
-        if i == j:
-            rows.add({y_index: 1.0, z_i: -1.0}, lower=0.0, upper=0.0)
-        else:
-            rows.add({y_index: 1.0, z_i: -1.0}, upper=0.0)
-            rows.add({y_index: 1.0, z_j: -1.0}, upper=0.0)
-            rows.add({y_index: 1.0, z_i: -1.0, z_j: -1.0}, lower=-1.0)
-
-        # Exact bounded products uR = new_r*y and uX = new_x*y.
-        u_r = u_r_block.start + pair_index
-        rows.add({u_r: 1.0, y_index: -r_upper_bound}, upper=0.0)
-        rows.add({u_r: 1.0, new_r.start: -1.0}, upper=0.0)
-        rows.add(
-            {u_r: 1.0, new_r.start: -1.0, y_index: -r_upper_bound},
-            lower=-r_upper_bound,
-        )
-        u_x = u_x_block.start + pair_index
-        rows.add({u_x: 1.0, y_index: -x_upper_bound}, upper=0.0)
-        rows.add({u_x: 1.0, new_x.start: -1.0}, upper=0.0)
-        rows.add(
-            {u_x: 1.0, new_x.start: -1.0, y_index: -x_upper_bound},
-            lower=-x_upper_bound,
-        )
-
-    # New support must be nested with or disjoint from every old support.
-    for atom_index, support in enumerate(supports):
-        support_set = set(support)
-        subset_relation = relation_block.start + 3 * atom_index
-        superset_relation = subset_relation + 1
-        disjoint_relation = subset_relation + 2
-        rows.add(
-            {
-                subset_relation: 1.0,
-                superset_relation: 1.0,
-                disjoint_relation: 1.0,
-            },
-            lower=1.0,
-            upper=1.0,
-        )
-        for terminal in range(prepared.n):
-            z_index = z_block.start + terminal
-            if terminal not in support_set:
-                rows.add({z_index: 1.0, subset_relation: 1.0}, upper=1.0)
-            else:
-                rows.add({superset_relation: 1.0, z_index: -1.0}, upper=0.0)
-                rows.add({z_index: 1.0, disjoint_relation: 1.0}, upper=1.0)
-
-        # Hamming distance from the old support is at least one.
-        duplicate_row: dict[int, float] = {}
-        for terminal in range(prepared.n):
-            duplicate_row[z_block.start + terminal] = (
-                -1.0 if terminal in support_set else 1.0
-            )
-        rows.add(duplicate_row, lower=1.0 - len(support_set))
-
     result, diagnostics = _run_milp(
-        variables,
-        rows,
-        time_limit=time_limit,
-        mip_rel_gap=mip_rel_gap,
-        presolve=presolve,
-        disp=disp,
+        model.variables, model.rows, time_limit=time_limit,
+        mip_rel_gap=mip_rel_gap, presolve=presolve, disp=disp, solver=solver,
     )
-    if (
-        result.x is None
-        or result.fun is None
-        or not np.isfinite(result.fun)
-        or not np.isfinite(result.x).all()
-    ):
+    has_incumbent = (
+        result.x is not None and result.fun is not None
+        and np.isfinite(result.fun) and np.isfinite(result.x).all()
+    )
+    if not has_incumbent or not solver_diagnostics_prove_optimality(diagnostics):
+        # Keep the objective and bound for the outer no-gain check, but never
+        # expose an unproved incumbent as an exact support.
         return ExtensionSolution(
             support=None,
             r_values=np.empty(0),
             x_values=np.empty(0),
-            intercepts=np.empty((prepared.scenario_count, prepared.n)),
-            objective=None,
-            diagnostics=diagnostics,
-        )
-    if not solver_diagnostics_prove_optimality(diagnostics):
-        # A time-limited incumbent is deliberately not exposed as an exact
-        # support. This also covers a nominal status-zero result for which the
-        # requested strict gap cannot be reconstructed from diagnostics. Its
-        # dual bound remains available for a certified no-gain decision in the
-        # outer algorithm.
-        return ExtensionSolution(
-            support=None,
-            r_values=np.empty(0),
-            x_values=np.empty(0),
-            intercepts=np.empty((prepared.scenario_count, prepared.n)),
-            objective=float(result.fun),
+            objective=float(result.fun) if has_incumbent else None,
             diagnostics=diagnostics,
         )
     support = _round_and_validate_support(
-        np.asarray(result.x[z_block], dtype=float), supports, prepared.n
+        np.asarray(result.x[model.z], dtype=float), supports, prepared.n
     )
-    combined_r = np.concatenate(
-        [np.asarray(result.x[old_r], dtype=float), [float(result.x[new_r.start])]]
+    r_values = _bounded_weights(np.r_[result.x[model.r], result.x[model.new_r]], r_upper_bound)
+    x_values = _bounded_weights(np.r_[result.x[model.x], result.x[model.new_x]], x_upper_bound)
+    r_matrix, x_matrix = build_matrices_from_atoms(
+        prepared.n, (*supports, support), r_values, x_values,
     )
-    combined_x = np.concatenate(
-        [np.asarray(result.x[old_x], dtype=float), [float(result.x[new_x.start])]]
-    )
+    objective = float(sum(
+        np.abs(y - p @ r_matrix.T - q @ x_matrix.T).sum()
+        for p, q, y in zip(prepared.p, prepared.q, prepared.target, strict=True)
+    ) / prepared.observation_count)
+    if not _objectives_agree(objective, float(result.fun)):
+        raise RuntimeError(
+            "physical prediction does not reproduce the optimal MILP objective: "
+            f"milp={result.fun:.12g}, physical={objective:.12g}"
+        )
     return ExtensionSolution(
-        support=support,
-        r_values=combined_r,
-        x_values=combined_x,
-        intercepts=_extract_intercepts(result.x, intercepts, prepared),
-        objective=float(result.fun),
+        support=support, r_values=r_values, x_values=x_values,
+        objective=objective,
         diagnostics=diagnostics,
     )
 
@@ -983,20 +990,22 @@ def solve_best_laminar_extension_l1(
     scenarios: Sequence[dict],
     supports: Iterable[Iterable[int]],
     *,
-    candidate_supports: Iterable[Iterable[int]] | None = None,
     r_upper_bound: float,
     x_upper_bound: float,
     time_limit: float | None = None,
     mip_rel_gap: float = 0.0,
     presolve: bool = True,
     disp: bool = False,
+    solver: str = "highs",
 ) -> ExtensionSolution:
     """Search for the best one-atom L1 extension.
 
-    With no candidate pool the search covers every admissible subset.
-    Otherwise it is exact over the supplied finite candidate pool.
+    Binary membership variables search every nonempty new support compatible
+    with the existing laminar family.
+    ``solver`` selects HiGHS (default) or the optional Gurobi backend.
     """
 
+    _validate_solver(solver)
     r_bound, x_bound, checked_time_limit, checked_gap = _validate_solver_parameters(
         r_upper_bound=r_upper_bound,
         x_upper_bound=x_upper_bound,
@@ -1005,118 +1014,15 @@ def solve_best_laminar_extension_l1(
     )
     prepared = _prepare_scenarios(scenarios)
     family = normalize_supports(supports, prepared.n)
-    candidate_pool = (
-        None
-        if candidate_supports is None
-        else normalize_support_pool(candidate_supports, prepared.n)
-    )
     return _solve_extension_prepared(
-        prepared,
-        family,
-        candidate_supports=candidate_pool,
-        r_upper_bound=r_bound,
-        x_upper_bound=x_bound,
-        time_limit=checked_time_limit,
-        mip_rel_gap=float(checked_gap),
-        presolve=presolve,
-        disp=disp,
+        prepared, family,
+        r_upper_bound=r_bound, x_upper_bound=x_bound,
+        time_limit=checked_time_limit, mip_rel_gap=float(checked_gap),
+        presolve=presolve, disp=disp, solver=solver,
     )
 
 
-def estimate_atom_upper_bounds(
-    scenarios: Sequence[dict], *, safety_factor: float = 2.0, floor: float = 1e-8
-) -> tuple[float, float]:
-    """Derive data-only atom bounds from the current dense OLS coefficient scale."""
-
-    if not np.isfinite(safety_factor) or safety_factor <= 1.0:
-        raise ValueError("safety_factor must exceed one")
-    floor = _require_positive_finite("floor", floor)
-    prepared = _prepare_scenarios(scenarios)
-    design_parts: list[np.ndarray] = []
-    target_parts: list[np.ndarray] = []
-    for scenario_index, (p_block, q_block, target_block) in enumerate(
-        zip(prepared.p, prepared.q, prepared.target, strict=True)
-    ):
-        indicator = np.zeros((p_block.shape[0], prepared.scenario_count), dtype=float)
-        indicator[:, scenario_index] = 1.0
-        design_parts.append(np.hstack([p_block, q_block, indicator]))
-        target_parts.append(target_block)
-    design = np.vstack(design_parts)
-    target = np.vstack(target_parts)
-    coefficients, _, _, _ = np.linalg.lstsq(design, target, rcond=None)
-    n = prepared.n
-    r_raw = coefficients[:n, :].T
-    x_raw = coefficients[n : 2 * n, :].T
-    r_symmetric = np.maximum(0.0, 0.5 * (r_raw + r_raw.T))
-    x_symmetric = np.maximum(0.0, 0.5 * (x_raw + x_raw.T))
-    r_scale = max(float(np.max(r_symmetric)), float(floor))
-    x_scale = max(float(np.max(x_symmetric)), float(floor))
-    return safety_factor * r_scale, safety_factor * x_scale
-
-
-def evaluate_l1_matrices(
-    scenarios: Sequence[dict],
-    r_matrix: np.ndarray,
-    x_matrix: np.ndarray,
-    *,
-    blocks_per_scenario: int = 4,
-    fixed_intercepts: np.ndarray | None = None,
-) -> tuple[float, float, np.ndarray]:
-    """Evaluate MAE with fixed intercepts or profiled scenario/output medians.
-
-    Passing ``fixed_intercepts`` is required for genuine held-out prediction.
-    The ``None`` mode is retained as an explicitly profiled nuisance-intercept
-    diagnostic for callers that provide a separate calibration interpretation.
-    """
-
-    prepared = _prepare_scenarios(scenarios)
-    if not isinstance(blocks_per_scenario, (int, np.integer)) or blocks_per_scenario < 1:
-        raise ValueError("blocks_per_scenario must be a positive integer")
-    r_value = np.asarray(r_matrix, dtype=float)
-    x_value = np.asarray(x_matrix, dtype=float)
-    if r_value.shape != (prepared.n, prepared.n) or x_value.shape != r_value.shape:
-        raise ValueError("R/X shape does not match validation terminals")
-    intercept_values: np.ndarray | None = None
-    if fixed_intercepts is not None:
-        intercept_values = np.asarray(fixed_intercepts, dtype=float)
-        expected_shape = (prepared.scenario_count, prepared.n)
-        if intercept_values.shape != expected_shape:
-            raise ValueError(
-                f"fixed_intercepts must have shape {expected_shape}"
-            )
-        if not np.isfinite(intercept_values).all():
-            raise ValueError("fixed_intercepts must contain only finite values")
-    absolute_parts: list[np.ndarray] = []
-    block_means: list[float] = []
-    for scenario_index, (p_block, q_block, target_block) in enumerate(
-        zip(prepared.p, prepared.q, prepared.target, strict=True)
-    ):
-        raw_residual = target_block - p_block @ r_value.T - q_block @ x_value.T
-        intercept = (
-            np.median(raw_residual, axis=0, keepdims=True)
-            if intercept_values is None
-            else intercept_values[scenario_index][None, :]
-        )
-        absolute = np.abs(raw_residual - intercept)
-        absolute_parts.append(absolute.reshape(-1))
-        for time_indices in np.array_split(np.arange(len(absolute)), blocks_per_scenario):
-            if time_indices.size:
-                block_means.append(float(np.mean(absolute[time_indices, :])))
-    all_absolute = np.concatenate(absolute_parts)
-    mae = float(np.mean(all_absolute))
-    block_array = np.asarray(block_means, dtype=float)
-    standard_error = (
-        float(np.std(block_array, ddof=1) / sqrt(len(block_array)))
-        if len(block_array) > 1
-        else 0.0
-    )
-    return mae, standard_error, block_array
-
-
-def _labels_for_supports(
-    supports: tuple[IndexSupport, ...], labels: tuple[Hashable, ...]
-) -> tuple[tuple[Hashable, ...], ...]:
-    return tuple(tuple(labels[index] for index in support) for support in supports)
+# Fully corrective forward path.
 
 
 def _make_path_point(
@@ -1124,7 +1030,7 @@ def _make_path_point(
     iteration: int,
     prepared: _PreparedScenarios,
     solution: FixedSupportSolution,
-    validation_scenarios: Sequence[dict] | None,
+    validation_scenarios: Sequence[dict] | _PreparedScenarios | None,
     validation_blocks: int,
     accepted_gain: float | None,
     solver: SolverDiagnostics,
@@ -1143,15 +1049,13 @@ def _make_path_point(
             r_matrix,
             x_matrix,
             blocks_per_scenario=validation_blocks,
-            fixed_intercepts=solution.intercepts,
         )
     return LaminarL1PathPoint(
         iteration=iteration,
         support_indices=solution.supports,
-        support_labels=_labels_for_supports(solution.supports, prepared.labels),
+        support_labels=tuple(tuple(prepared.labels[i] for i in support) for support in solution.supports),
         r_values=solution.r_values.copy(),
         x_values=solution.x_values.copy(),
-        intercepts=solution.intercepts.copy(),
         r_matrix=r_matrix,
         x_matrix=x_matrix,
         train_mae=float(solution.objective),
@@ -1162,29 +1066,11 @@ def _make_path_point(
     )
 
 
-def _touches_bound(values: np.ndarray, bound: float, fraction: float) -> bool:
-    return bool(values.size and np.max(values) >= fraction * bound)
-
-
-def _choose_path_point(path: Sequence[LaminarL1PathPoint]) -> int:
-    if not path or path[0].validation_mae is None:
-        return len(path) - 1
-    means = np.asarray([point.validation_mae for point in path], dtype=float)
-    best = int(np.argmin(means))
-    threshold = means[best] + float(path[best].validation_se or 0.0)
-    eligible = np.flatnonzero(means <= threshold)
-    return min(
-        (int(index) for index in eligible),
-        key=lambda index: (len(path[index].support_indices), index),
-    )
-
-
 def fit_laminar_l1_sensitivity(
     scenarios: Sequence[dict],
     *,
     validation_scenarios: Sequence[dict] | None = None,
     initial_supports: Iterable[Iterable[int]] | None = None,
-    candidate_supports: Iterable[Iterable[int]] | None = None,
     max_atoms: int | None = None,
     r_upper_bound: float | None = None,
     x_upper_bound: float | None = None,
@@ -1200,30 +1086,29 @@ def fit_laminar_l1_sensitivity(
     mip_rel_gap: float = 0.0,
     presolve: bool = True,
     disp: bool = False,
+    solver: str = "highs",
 ) -> LaminarL1Result:
     """Fit a forward path of exact bounded one-atom laminar L1 MILPs.
 
     A non-optimal extension (for example a time limit) is never accepted.
-    If candidate supports are supplied, each forward extension is globally
-    optimal over that finite data-derived pool; otherwise it searches all
-    admissible subsets.
+    Each extension searches all nonempty new supports compatible with the
+    existing laminar family.
     ``initial_supports`` are fixed topology blocks: their weights are jointly
     refitted, but the supports themselves are retained and constrain every
     later extension.  If validation scenarios are supplied, the returned model
     is the smallest path point within one standard error of the minimum
     validation MAE, starting from that initial family.
+    ``solver`` selects ``highs`` or ``gurobi`` for both extension MILPs and
+    fixed-support LP refits. It does not change the mathematical model.
     """
 
+    _validate_solver(solver)
     prepared = _prepare_scenarios(scenarios)
+    validation_prepared = None
     if validation_scenarios is not None:
         validation_prepared = _prepare_scenarios(validation_scenarios)
         if validation_prepared.labels != prepared.labels:
             raise ValueError("training and validation terminal labels must agree")
-        if validation_prepared.names != prepared.names:
-            raise ValueError(
-                "training and validation must contain the same scenarios in the same order "
-                "when training intercepts are reused"
-            )
     if max_atoms is None:
         max_atoms = 2 * prepared.n - 1
     if not isinstance(max_atoms, (int, np.integer)):
@@ -1234,11 +1119,6 @@ def fit_laminar_l1_sensitivity(
     initial_family = normalize_supports(
         () if initial_supports is None else initial_supports,
         prepared.n,
-    )
-    candidate_pool = (
-        None
-        if candidate_supports is None
-        else normalize_support_pool(candidate_supports, prepared.n)
     )
     if len(initial_family) > max_atoms:
         raise ValueError("initial_supports cannot exceed max_atoms")
@@ -1266,7 +1146,7 @@ def fit_laminar_l1_sensitivity(
 
     if r_upper_bound is None or x_upper_bound is None:
         estimated_r, estimated_x = estimate_atom_upper_bounds(
-            scenarios, safety_factor=bound_safety_factor
+            prepared, safety_factor=bound_safety_factor
         )
         if r_upper_bound is None:
             r_upper_bound = estimated_r
@@ -1286,27 +1166,22 @@ def fit_laminar_l1_sensitivity(
     supports: tuple[IndexSupport, ...] = initial_family
     frozen_support_count = len(initial_family)
 
-    def initialize_path() -> tuple[FixedSupportSolution, list[LaminarL1PathPoint]]:
-        base = _solve_fixed_prepared(
-            prepared,
-            initial_family,
-            r_upper_bound=r_bound,
-            x_upper_bound=x_bound,
-            time_limit=time_limit,
-            presolve=presolve,
-            disp=disp,
+    def refit(family):
+        return _solve_fixed_prepared(
+            prepared, family, r_upper_bound=r_bound, x_upper_bound=x_bound,
+            time_limit=time_limit, presolve=presolve, disp=disp, solver=solver,
         )
-        return base, [
-            _make_path_point(
-                iteration=frozen_support_count,
-                prepared=prepared,
-                solution=base,
-                validation_scenarios=validation_scenarios,
-                validation_blocks=validation_blocks,
-                accepted_gain=None,
-                solver=base.diagnostics,
-            )
-        ]
+
+    def path_point(solution, iteration, *, gain=None, solver=None):
+        return _make_path_point(
+            iteration=iteration, prepared=prepared, solution=solution,
+            validation_scenarios=validation_prepared, validation_blocks=validation_blocks,
+            accepted_gain=gain, solver=solution.diagnostics if solver is None else solver,
+        )
+
+    def initialize_path():
+        base = refit(initial_family)
+        return base, [path_point(base, frozen_support_count)]
 
     current, path = initialize_path()
     seen_families: set[frozenset[IndexSupport]] = {frozenset(initial_family)}
@@ -1319,21 +1194,24 @@ def fit_laminar_l1_sensitivity(
         extension = _solve_extension_prepared(
             prepared,
             supports,
-            candidate_supports=candidate_pool,
             r_upper_bound=r_bound,
             x_upper_bound=x_bound,
             time_limit=time_limit,
             mip_rel_gap=mip_rel_gap,
             presolve=presolve,
             disp=disp,
+            solver=solver,
         )
         attempts.append(extension)
         if extension.diagnostics.status == 2:
             stop_reason = "no_feasible_extension"
             break
         if not solver_diagnostics_prove_optimality(extension.diagnostics):
-            if _dual_bound_certifies_no_gain(
-                current.objective, extension.diagnostics, gain_tolerance
+            # current - lower_bound bounds the best possible extension gain.
+            lower_bound = extension.diagnostics.dual_bound
+            if (
+                lower_bound is not None and np.isfinite(lower_bound)
+                and current.objective - float(lower_bound) <= gain_tolerance
             ):
                 stop_reason = "no_significant_one_atom_gain_certified_by_dual_bound"
             else:
@@ -1343,28 +1221,20 @@ def fit_laminar_l1_sensitivity(
             stop_reason = "extension_without_incumbent"
             break
 
-        candidate_supports = (*supports, extension.support)
-        polished = _solve_fixed_prepared(
-            prepared,
-            candidate_supports,
-            r_upper_bound=r_bound,
-            x_upper_bound=x_bound,
-            time_limit=time_limit,
-            presolve=presolve,
-            disp=disp,
+        extended_supports = (*supports, extension.support)
+        # The MILP already jointly optimized every old and new coefficient.
+        candidate = FixedSupportSolution(
+            supports=extended_supports, r_values=extension.r_values,
+            x_values=extension.x_values, objective=extension.objective,
+            diagnostics=extension.diagnostics,
         )
-        if not _objectives_agree(polished.objective, extension.objective):
-            raise RuntimeError(
-                "fixed-support LP does not reproduce the optimal MILP objective: "
-                f"milp={extension.objective:.12g}, fixed={polished.objective:.12g}"
-            )
-        provisional_gain = current.objective - polished.objective
+        provisional_gain = current.objective - candidate.objective
         if provisional_gain <= gain_tolerance:
             stop_reason = "no_significant_one_atom_gain"
             break
 
-        r_active = _touches_bound(polished.r_values, r_bound, bound_active_fraction)
-        x_active = _touches_bound(polished.x_values, x_bound, bound_active_fraction)
+        r_active = _touches_bound(candidate.r_values, r_bound, bound_active_fraction)
+        x_active = _touches_bound(candidate.x_values, x_bound, bound_active_fraction)
         if r_active or x_active:
             if bound_expansions >= max_bound_expansions:
                 stop_reason = "bound_expansion_limit"
@@ -1384,53 +1254,37 @@ def fit_laminar_l1_sensitivity(
             iteration = frozen_support_count + 1
             continue
 
-        # Remove exactly inactive atoms only when a re-solve preserves the L1 optimum.
+        # Remove near-zero atoms only when a re-solve preserves the L1 optimum.
         active_indices = list(range(frozen_support_count))
         active_indices.extend(
             index
             for index, (r_value, x_value) in enumerate(
-                zip(polished.r_values, polished.x_values, strict=True)
+                zip(candidate.r_values, candidate.x_values, strict=True)
             )
             if index >= frozen_support_count
             and (r_value > zero_tolerance or x_value > zero_tolerance)
         )
-        if len(active_indices) < len(candidate_supports):
-            reduced_supports = tuple(candidate_supports[index] for index in active_indices)
-            reduced = _solve_fixed_prepared(
-                prepared,
-                reduced_supports,
-                r_upper_bound=r_bound,
-                x_upper_bound=x_bound,
-                time_limit=time_limit,
-                presolve=presolve,
-                disp=disp,
-            )
-            if reduced.objective <= polished.objective + gain_tolerance:
-                candidate_supports = reduced_supports
-                polished = reduced
+        if len(active_indices) < len(extended_supports):
+            reduced_supports = tuple(extended_supports[index] for index in active_indices)
+            reduced = refit(reduced_supports)
+            if reduced.objective <= candidate.objective + gain_tolerance:
+                extended_supports = reduced_supports
+                candidate = reduced
 
-        gain = current.objective - polished.objective
+        gain = current.objective - candidate.objective
         if gain <= gain_tolerance:
-            stop_reason = "no_significant_one_atom_gain_after_polishing"
+            stop_reason = "no_significant_one_atom_gain_after_pruning"
             break
 
-        family_signature = frozenset(candidate_supports)
+        family_signature = frozenset(extended_supports)
         if family_signature in seen_families:
             stop_reason = "repeated_family_after_zero_pruning"
             break
         seen_families.add(family_signature)
-        supports = candidate_supports
-        current = polished
+        supports = extended_supports
+        current = candidate
         path.append(
-            _make_path_point(
-                iteration=iteration,
-                prepared=prepared,
-                solution=current,
-                validation_scenarios=validation_scenarios,
-                validation_blocks=validation_blocks,
-                accepted_gain=float(gain),
-                solver=extension.diagnostics,
-            )
+            path_point(current, iteration, gain=float(gain), solver=extension.diagnostics)
         )
         if len(supports) >= 2 * prepared.n - 1:
             stop_reason = "laminar_family_limit"
@@ -1445,7 +1299,6 @@ def fit_laminar_l1_sensitivity(
         support_labels=selected.support_labels,
         r_values=selected.r_values.copy(),
         x_values=selected.x_values.copy(),
-        intercepts=selected.intercepts.copy(),
         r_matrix=selected.r_matrix.copy(),
         x_matrix=selected.x_matrix.copy(),
         train_mae=selected.train_mae,
@@ -1472,7 +1325,6 @@ __all__ = [
     "fit_laminar_l1_sensitivity",
     "is_admissible_extension",
     "is_laminar_family",
-    "normalize_support_pool",
     "normalize_supports",
     "solver_diagnostics_prove_optimality",
     "solve_best_laminar_extension_l1",

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 
-RECIPE = {"name": "daily_demean", "kind": "demean"}
+RECIPE = {"name": "raw", "kind": "raw"}
 
 
 def squared_voltage_drop_from_observed_root(
@@ -32,28 +32,21 @@ def squared_voltage_drop_from_observed_root(
 def daily_demean(data: pd.DataFrame | pd.Series, samples_per_day: int | None = None) -> pd.DataFrame | pd.Series:
     """Subtract the mean of each day independently."""
 
-    is_series = isinstance(data, pd.Series)
-    frame = data.to_frame() if is_series else data.copy()
-    n = len(frame)
+    n = len(data)
     if n == 0:
         return data.copy()
     day = int(samples_per_day or n)
     parts = []
     for start in range(0, n, day):
-        segment = frame.iloc[start : start + day]
+        segment = data.iloc[start : start + day]
         parts.append(segment - segment.mean(axis=0))
-    result = pd.concat(parts, axis=0)
-    return result.iloc[:, 0] if is_series else result
+    return pd.concat(parts, axis=0)
 
 
 def rolling_highpass(data: pd.DataFrame | pd.Series, window: int) -> pd.DataFrame | pd.Series:
     """Subtract a centered rolling mean from a signal."""
 
-    is_series = isinstance(data, pd.Series)
-    frame = data.to_frame() if is_series else data.copy()
-    smooth = frame.rolling(window=window, min_periods=1, center=True).mean()
-    result = frame - smooth
-    return result.iloc[:, 0] if is_series else result
+    return data - data.rolling(window=window, min_periods=1, center=True).mean()
 
 
 def apply_preprocessing_recipe(

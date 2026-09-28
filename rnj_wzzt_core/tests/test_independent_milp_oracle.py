@@ -11,6 +11,7 @@ from dataclasses import replace
 from itertools import combinations
 
 import numpy as np
+import pandas as pd
 import pytest
 from scipy.optimize import linprog
 
@@ -49,7 +50,7 @@ def _scenarios(n, supports, r, x, *, seed=1, noise=0.0, sizes=(13,), mode="norma
         elif mode == "constant":
             p[:] = 0.4
             q[:] = -0.7
-        target = p @ resistance + q @ reactance + (k + 1) * np.linspace(-0.3, 0.5, n)
+        target = p @ resistance + q @ reactance
         target += rng.laplace(0, noise, size=target.shape)
         result.append({"name": f"scenario_{k}", "P_terminal": p,
                        "Q_terminal": q, "drop_target": target})
@@ -61,7 +62,7 @@ def _lp_oracle(scenarios, family, r_bound=2.0, x_bound=2.0):
     n = scenarios[0]["P_terminal"].shape[1]
     atom_count = len(family)
     rows, targets = [], []
-    for scenario_index, scenario in enumerate(scenarios):
+    for scenario in scenarios:
         p, q, y = (scenario[key] for key in ("P_terminal", "Q_terminal", "drop_target"))
         for t in range(len(p)):
             for output in range(n):
@@ -69,15 +70,13 @@ def _lp_oracle(scenarios, family, r_bound=2.0, x_bound=2.0):
                        for support in family]
                 row += [sum(q[t, j] for j in support) if output in support else 0.0
                         for support in family]
-                row += [float(k == scenario_index * n + output)
-                        for k in range(len(scenarios) * n)]
                 rows.append(row)
                 targets.append(y[t, output])
     design = np.asarray(rows)
     count, coefficients = design.shape
     objective = np.r_[np.zeros(coefficients), np.full(2 * count, 1.0 / count)]
     bounds = ([(0.0, r_bound)] * atom_count + [(0.0, x_bound)] * atom_count
-              + [(None, None)] * (len(scenarios) * n) + [(0.0, None)] * (2 * count))
+              + [(0.0, None)] * (2 * count))
     solved = linprog(objective, A_eq=np.c_[design, np.eye(count), -np.eye(count)],
                      b_eq=targets, bounds=bounds, method="highs-ds")
     assert solved.success, solved.message
@@ -86,19 +85,18 @@ def _lp_oracle(scenarios, family, r_bound=2.0, x_bound=2.0):
     return float(solved.fun)
 
 
-def _extension_oracle(scenarios, initial, pool=None, r_bound=2.0, x_bound=2.0):
+def _extension_oracle(scenarios, initial, r_bound=2.0, x_bound=2.0):
     n = scenarios[0]["P_terminal"].shape[1]
-    pool = _supports(n) if pool is None else tuple(dict.fromkeys(tuple(sorted(s)) for s in pool))
     return {s: _lp_oracle(scenarios, (*initial, s), r_bound, x_bound)
-            for s in pool if s not in initial and _laminar((*initial, s))}
+            for s in _supports(n) if s not in initial and _laminar((*initial, s))}
 
 
 def _direct_mae(scenarios, family, solution):
     n = scenarios[0]["P_terminal"].shape[1]
     r = _matrix(n, family, solution.r_values)
     x = _matrix(n, family, solution.x_values)
-    residuals = [np.abs(s["drop_target"] - s["P_terminal"] @ r - s["Q_terminal"] @ x
-                        - solution.intercepts[k]).ravel() for k, s in enumerate(scenarios)]
+    residuals = [np.abs(s["drop_target"] - s["P_terminal"] @ r - s["Q_terminal"] @ x).ravel()
+                 for s in scenarios]
     return float(np.mean(np.concatenate(residuals)))
 
 
@@ -122,17 +120,15 @@ def test_fixed_family_matches_independent_residual_split_lp(n, family, noise, se
 
 
 @pytest.mark.parametrize("initial", [(), ((0,), (1,), (2,)), ((0, 1, 2),), ((0, 1),)])
-@pytest.mark.parametrize("pool_mode", ["all", "restricted", "duplicates"])
+@pytest.mark.parametrize("mode", ["normal", "collinear", "no_q"])
 @pytest.mark.parametrize("noise", [0.0, 0.06])
 @pytest.mark.parametrize("seed", [1801, 1802])
-def test_extension_matches_independent_enumeration(initial, pool_mode, noise, seed):
+def test_extension_matches_independent_enumeration(initial, mode, noise, seed):
     scenarios = _scenarios(3, ((0, 1, 2), (1, 2), (0,)), (.15, .6, .2), (.2, .35, .1),
-                          seed=seed, noise=noise, sizes=(9,))
-    pool = {"all": None, "restricted": ((0,), (2,), (0, 1), (0, 1, 2)),
-            "duplicates": ((2, 1), (1, 2), (0,), (2,), (2, 1, 0))}[pool_mode]
-    expected = _extension_oracle(scenarios, initial, pool)
+                          seed=seed, noise=noise, sizes=(9,), mode=mode)
+    expected = _extension_oracle(scenarios, initial)
     solved = core.solve_best_laminar_extension_l1(
-        scenarios, initial, candidate_supports=pool, r_upper_bound=2, x_upper_bound=2,
+        scenarios, initial, r_upper_bound=2, x_upper_bound=2,
         time_limit=20, mip_rel_gap=0)
     assert core.solver_diagnostics_prove_optimality(solved.diagnostics)
     best = min(expected.values())
@@ -177,37 +173,37 @@ def test_unequal_scenario_lengths_use_observation_weighted_mae():
     long = {"name": "long", "P_terminal": np.zeros((21, 1)), "Q_terminal": np.zeros((21, 1)),
             "drop_target": np.zeros((21, 1))}
     solved = core.solve_fixed_support_l1([short, long], (), r_upper_bound=1, x_upper_bound=1)
-    assert solved.objective == pytest.approx(100.0 / 24)
+    assert solved.objective == pytest.approx(101.0 / 24)
     assert solved.objective == pytest.approx(_lp_oracle([short, long], ()))
-    assert solved.objective != pytest.approx((100.0 / 3) / 2)
+    assert solved.objective != pytest.approx((101.0 / 3) / 2)
 
 
-def test_false_hard_prior_blocks_true_clade_while_candidate_prior_is_rejectable():
+def test_false_fixed_prior_blocks_true_clade_while_free_search_recovers_it():
     true_support, wrong_support = (1, 2), (0, 1)
     scenarios = _scenarios(3, (true_support,), (.8,), (.4,), seed=1901, sizes=(25,))
     hard = core.fit_laminar_l1_sensitivity(
         scenarios, initial_supports=(wrong_support,), max_atoms=3,
         r_upper_bound=2, x_upper_bound=2)
-    soft = core.fit_laminar_l1_sensitivity(
-        scenarios, candidate_supports=(wrong_support, true_support), max_atoms=3,
+    free = core.fit_laminar_l1_sensitivity(
+        scenarios, max_atoms=3,
         r_upper_bound=2, x_upper_bound=2)
     assert all(wrong_support in point.support_indices for point in hard.path)
     assert true_support not in hard.support_indices
     assert hard.train_mae > .05
-    assert soft.train_mae < 1e-8
-    assert soft.support_indices == (true_support,)
+    assert free.train_mae < 1e-8
+    assert free.support_indices == (true_support,)
 
 
-def test_candidate_certificate_cannot_certify_omitted_true_support():
+def test_extension_searches_all_subsets_without_candidate_input():
     scenarios = _scenarios(3, ((0, 2),), (.8,), (.4,), sizes=(20,))
-    pool = ((0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2))
-    restricted = core.solve_best_laminar_extension_l1(
-        scenarios, (), candidate_supports=pool, r_upper_bound=2, x_upper_bound=2)
-    unrestricted = _extension_oracle(scenarios, ())
-    assert core.solver_diagnostics_prove_optimality(restricted.diagnostics)
-    assert restricted.objective == pytest.approx(min(_extension_oracle(scenarios, (), pool).values()))
-    assert restricted.objective > min(unrestricted.values()) + .05
-    assert unrestricted[(0, 2)] < 1e-8
+    solved = core.solve_best_laminar_extension_l1(
+        scenarios, (), r_upper_bound=2, x_upper_bound=2)
+    expected = _extension_oracle(scenarios, ())
+    assert core.solver_diagnostics_prove_optimality(solved.diagnostics)
+    assert solved.support == (0, 2)
+    assert solved.objective == pytest.approx(min(expected.values()), abs=1e-8)
+    assert solved.objective < 1e-8
+    assert min(loss for support, loss in expected.items() if support != (0, 2)) > .05
 
 
 @pytest.mark.parametrize("shift", [-2.0, .5, 3.0])
@@ -217,21 +213,147 @@ def test_heldout_offset_is_not_refitted_and_changes_validation_loss(shift):
     heldout = [{**scenarios[0], "drop_target": scenarios[0]["drop_target"] + shift}]
     r = _matrix(2, solved.supports, solved.r_values)
     x = _matrix(2, solved.supports, solved.x_values)
-    fixed, _, _ = core.evaluate_l1_matrices(heldout, r, x, fixed_intercepts=solved.intercepts)
-    profiled, _, _ = core.evaluate_l1_matrices(heldout, r, x)
-    assert fixed == pytest.approx(abs(shift), abs=1e-8)
-    assert profiled < 1e-8
+    mae, _, _ = core.evaluate_l1_matrices(heldout, r, x)
+    assert mae == pytest.approx(abs(shift), abs=1e-8)
+
+
+def test_constant_scenarios_identify_physical_slopes_without_centering():
+    scenarios = [
+        {"name": "p_only", "P_terminal": np.ones((4, 1)), "Q_terminal": np.zeros((4, 1)),
+         "drop_target": np.full((4, 1), .7)},
+        {"name": "q_only", "P_terminal": np.zeros((5, 1)), "Q_terminal": np.ones((5, 1)),
+         "drop_target": np.full((5, 1), .3)},
+    ]
+    assert core.estimate_atom_upper_bounds(scenarios) == pytest.approx((1.4, .6))
+    solved = core.solve_fixed_support_l1(scenarios, ((0,),), r_upper_bound=2, x_upper_bound=2)
+    assert solved.r_values == pytest.approx([.7])
+    assert solved.x_values == pytest.approx([.3])
+    assert solved.objective < 1e-10
+
+
+def test_validation_can_use_different_scenario_count_names_and_operating_points():
+    train = _scenarios(2, ((0, 1),), (.8,), (.4,), sizes=(15,), seed=1971)
+    validation = _scenarios(2, ((0, 1),), (.8,), (.4,), sizes=(7, 11, 9), seed=1972)
+    for i, scenario in enumerate(validation):
+        scenario["name"] = f"new_operating_point_{i}"
+    solved = core.fit_laminar_l1_sensitivity(
+        train, validation_scenarios=validation, max_atoms=1, r_upper_bound=2, x_upper_bound=2,
+    )
+    assert solved.support_indices == ((0, 1),)
+    assert solved.validation_mae < 1e-8
+    mae, _, _ = core.evaluate_l1_matrices(validation, solved.r_matrix, solved.x_matrix)
+    assert mae == pytest.approx(solved.validation_mae, abs=1e-12)
+
+
+def test_regular_extension_reuses_joint_milp_weights_without_another_lp(monkeypatch):
+    initial = ((0,), (1,), (2,))
+    family = (*initial, (0, 1))
+    scenarios = _scenarios(3, family, (.2, .3, .4, .6), (.1, .2, .1, .4), sizes=(16,))
+    actual = core._run_milp
+    solve_kinds = []
+
+    def counted(*args, **kwargs):
+        result, diagnostics = actual(*args, **kwargs)
+        solve_kinds.append("MILP" if diagnostics.binary_variable_count else "LP")
+        return result, diagnostics
+
+    monkeypatch.setattr(core, "_run_milp", counted)
+    solved = core.fit_laminar_l1_sensitivity(
+        scenarios, initial_supports=initial, max_atoms=4, r_upper_bound=2, x_upper_bound=2,
+    )
+    assert solved.support_indices == family
+    assert solved.train_mae < 1e-8
+    assert solve_kinds == ["LP", "MILP"]
+    assert solved.r_values == pytest.approx(solved.attempted_extensions[0].r_values)
+    assert solved.x_values == pytest.approx(solved.attempted_extensions[0].x_values)
+
+
+def test_inconsistent_physical_milp_prediction_is_rejected(monkeypatch):
+    scenarios = _scenarios(2, ((0, 1),), (.6,), (.3,), sizes=(16,))
+    actual = core._run_milp
+
+    def corrupted(variables, *args, **kwargs):
+        result, diagnostics = actual(variables, *args, **kwargs)
+        if diagnostics.binary_variable_count:
+            result.x[variables.slices["new_r"]] += .1
+        return result, diagnostics
+
+    monkeypatch.setattr(core, "_run_milp", corrupted)
+    with pytest.raises(RuntimeError, match="physical prediction"):
+        core.solve_best_laminar_extension_l1(scenarios, (), r_upper_bound=2, x_upper_bound=2)
+
+
+@pytest.mark.parametrize("extension", [False, True])
+@pytest.mark.parametrize("truth,returned,expected", [
+    (0.0, -3.2455e-13, 0.0), (2.0, 2.0 + 3e-13, 2.0),
+    (0.0, -1e-3, None), (2.0, 2.01, None),
+])
+def test_solver_weight_extraction_repairs_only_boundary_roundoff(
+    monkeypatch, extension, truth, returned, expected,
+):
+    scenarios = _scenarios(1, ((0,),), (truth,), (.4,), sizes=(16,))
+    actual = core._run_milp
+
+    def perturbed(variables, *args, **kwargs):
+        result, diagnostics = actual(variables, *args, **kwargs)
+        result.x[variables.slices["new_r" if extension else "r"]] = returned
+        return result, diagnostics
+
+    monkeypatch.setattr(core, "_run_milp", perturbed)
+    solve = core.solve_best_laminar_extension_l1 if extension else core.solve_fixed_support_l1
+    family = () if extension else ((0,),)
+    if expected is None:
+        with pytest.raises(RuntimeError, match="coefficients.*bounds"):
+            solve(scenarios, family, r_upper_bound=2, x_upper_bound=2)
+    else:
+        solved = solve(scenarios, family, r_upper_bound=2, x_upper_bound=2)
+        assert solved.r_values == pytest.approx([expected], abs=1e-14)
+        r, x = core.build_matrices_from_atoms(1, ((0,),), solved.r_values, solved.x_values)
+        mae, _, _ = core.evaluate_l1_matrices(scenarios, r, x)
+        assert mae < 1e-8
+
+
+def test_public_milp_apis_align_shuffled_time_labels_before_fitting_and_evaluation():
+    index = pd.Index(["t1", "t0", "t3", "t2"])
+    p = pd.DataFrame({50: [1., 2., 3., 4.]}, index=index)
+    q = pd.DataFrame({50: [2., 1., 0., 3.]}, index=index)
+    y = 2 * p + .5 * q
+    scenarios = [{"P_terminal": p, "Q_terminal": q.iloc[[2, 0, 3, 1]],
+                  "drop_target": y.iloc[::-1]}]
+    for solve, family in ((core.solve_fixed_support_l1, ((0,),)),
+                          (core.solve_best_laminar_extension_l1, ())):
+        solved = solve(scenarios, family, r_upper_bound=3, x_upper_bound=3)
+        assert solved.r_values == pytest.approx([2.])
+        assert solved.x_values == pytest.approx([.5])
+        assert solved.objective < 1e-10
+    shifted = [{**scenarios[0], "drop_target": scenarios[0]["drop_target"] + .25}]
+    mae, _, _ = core.evaluate_l1_matrices(shifted, np.array([[2.]]), np.array([[.5]]))
+    assert mae == pytest.approx(.25)
+
+
+@pytest.mark.parametrize("key,indices", [
+    ("P_terminal", [0, 0, 2]),
+    ("Q_terminal", [0, 1, 1]),
+    ("drop_target", [0, 1, 3]),
+    ("drop_target", [0, 1]),
+])
+def test_milp_preparation_rejects_ambiguous_or_mismatched_time_labels(key, indices):
+    frame = pd.DataFrame({0: [1., 2., 3.]})
+    scenario = {name: frame.copy() for name in ("P_terminal", "Q_terminal", "drop_target")}
+    scenario[key] = pd.DataFrame({0: np.ones(len(indices))}, index=indices)
+    with pytest.raises(ValueError, match="time indices"):
+        core.solve_fixed_support_l1([scenario], ((0,),), r_upper_bound=2, x_upper_bound=2)
 
 
 def test_validation_selects_base_when_training_signal_disappears():
     train = _scenarios(2, ((0, 1),), (.8,), (.4,), seed=1951, sizes=(32,))
-    # Symmetric training observations give an exactly identified zero median.
+    # Symmetric observations identify the physical slopes without any offset.
     for key in ("P_terminal", "Q_terminal"):
         train[0][key] = np.r_[train[0][key], -train[0][key]]
     train[0]["drop_target"] = train[0]["P_terminal"] @ np.full((2, 2), .8) + train[0]["Q_terminal"] @ np.full((2, 2), .4)
     validation = [{**train[0], "drop_target": np.zeros_like(train[0]["drop_target"])}]
     solved = core.fit_laminar_l1_sensitivity(
-        train, validation_scenarios=validation, candidate_supports=((0, 1),),
+        train, validation_scenarios=validation,
         max_atoms=1, r_upper_bound=2, x_upper_bound=2)
     assert len(solved.path) == 2
     assert solved.path[-1].train_mae < 1e-8
@@ -281,8 +403,8 @@ def test_exact_noiseless_full_rank_counterexample_to_global_two_atom_optimality(
     scenarios = _scenarios(3, ((0, 1), (2,)), (.6, .9), (.3, .4),
                           seed=2152, sizes=(9,))
     scenario = scenarios[0]
-    design = np.c_[scenario["P_terminal"], scenario["Q_terminal"], np.ones(9)]
-    assert np.linalg.matrix_rank(design) == 7
+    design = np.c_[scenario["P_terminal"], scenario["Q_terminal"]]
+    assert np.linalg.matrix_rank(design) == 6
     first = _extension_oracle(scenarios, ())
     assert min(first, key=first.get) == (0, 1, 2)
     feasible_families = [()] + [(s,) for s in _supports(3)]
@@ -292,7 +414,7 @@ def test_exact_noiseless_full_rank_counterexample_to_global_two_atom_optimality(
         scenarios, max_atoms=2, r_upper_bound=2, x_upper_bound=2)
     assert global_objective < 1e-8
     assert greedy.path[1].support_indices == ((0, 1, 2),)
-    assert greedy.train_mae == pytest.approx(.17686780267431482, abs=2e-8)
+    assert greedy.train_mae == pytest.approx(_lp_oracle(scenarios, greedy.support_indices), abs=2e-8)
     assert greedy.train_mae > global_objective + .1
     assert all(core.solver_diagnostics_prove_optimality(point.solver) for point in greedy.path)
 
@@ -383,19 +505,19 @@ def test_bound_expansion_limit_keeps_previously_certified_path():
 
 
 def test_positive_pendants_and_fixed_leaf_initialization_do_not_prove_global_budget_optimum():
-    """Unrestricted-API witness; its first stem is absent from production RNJ pools.
+    """A complete-search witness with a finite two-extension budget.
 
     All true leaf edges are positive and all leaf supports are frozen. The
-    finite budget permits two additional atoms. This is not a counterexample
-    claiming failure of the default RNJ-pool pipeline or an unlimited path.
+    finite budget permits two additional atoms. This does not claim failure
+    of an unlimited path or an empirical AC feeder experiment.
     """
     initial = tuple((i,) for i in range(4))
     truth = (*initial, (0, 1), (2, 3))
     scenarios = _scenarios(4, truth, (.2, .3, .4, .5, .6, .8),
-                          (.4, .3, .2, .1, .4, .3), seed=2649, sizes=(9,))
+                          (.4, .3, .2, .1, .4, .3), seed=2712, sizes=(9,))
     scenario = scenarios[0]
-    design = np.c_[scenario["P_terminal"], scenario["Q_terminal"], np.ones(9)]
-    assert np.linalg.matrix_rank(design) == 9
+    design = np.c_[scenario["P_terminal"], scenario["Q_terminal"]]
+    assert np.linalg.matrix_rank(design) == 8
     all_extensions = _extension_oracle(scenarios, initial)
     assert min(all_extensions, key=all_extensions.get) == (0, 1, 2, 3)
     greedy = core.fit_laminar_l1_sensitivity(
@@ -403,20 +525,20 @@ def test_positive_pendants_and_fixed_leaf_initialization_do_not_prove_global_bud
         r_upper_bound=2, x_upper_bound=2)
     assert _lp_oracle(scenarios, truth) < 1e-8
     assert greedy.path[1].support_indices == (*initial, (0, 1, 2, 3))
-    assert greedy.train_mae == pytest.approx(.20244306097611986, abs=2e-8)
+    assert greedy.train_mae == pytest.approx(_lp_oracle(scenarios, greedy.support_indices), abs=2e-8)
+    assert greedy.train_mae > .1
     assert all(set(initial) <= set(point.support_indices) for point in greedy.path)
     assert all(core.solver_diagnostics_prove_optimality(point.solver) for point in greedy.path)
 
 
-def test_complete_proper_pool_positive_leaves_can_greedily_exclude_true_clade():
-    """Full coverage and positive leaves do not imply a globally optimal path.
+def test_complete_search_can_refit_and_prune_a_provisional_root_stem():
+    """A provisional root atom need not prevent later exact recovery.
 
     A single noisy-free, finite-sample linear scenario has correlated inputs
-    and full-rank [P,Q,1] (condition number about 112). All true pendant edges
-    are positive; all singletons are frozen; every proper internal support is
-    a candidate, and the default atom limit is used. This isolates greedy
-    path dependence, without a missing true candidate or a stem candidate.
-    It is not an empirical claim about the default RNJ-derived pool bank.
+    and full-rank [P,Q]. All true pendant edges
+    are positive, all singletons are frozen, and every nonempty subset is
+    searched. The first greedy root atom becomes inactive after adding both
+    true internal supports and can then be pruned without increasing loss.
     """
     initial = tuple((i,) for i in range(4))
     truth = (*initial, (0, 1), (2, 3))
@@ -428,21 +550,20 @@ def test_complete_proper_pool_positive_leaves_can_greedily_exclude_true_clade():
     scenario["P_terminal"] = .5 * scenario["P_terminal"] + rng.normal(size=(9, 1))
     scenario["Q_terminal"] = .5 * scenario["Q_terminal"] + rng.normal(size=(9, 1))
     scenario["drop_target"] = (scenario["P_terminal"] @ _matrix(4, truth, r)
-                               + scenario["Q_terminal"] @ _matrix(4, truth, x)
-                               + np.linspace(-.3, .5, 4))
-    design = np.c_[scenario["P_terminal"], scenario["Q_terminal"], np.ones(9)]
-    assert np.linalg.matrix_rank(design) == 9
-    pool = tuple(s for s in _supports(4) if 1 < len(s) < 4)
-    assert (0, 1) in pool and (2, 3) in pool
-    first = _extension_oracle(scenarios, initial, pool)
-    assert min(first, key=first.get) == (0, 1, 2)
+                               + scenario["Q_terminal"] @ _matrix(4, truth, x))
+    design = np.c_[scenario["P_terminal"], scenario["Q_terminal"]]
+    assert np.linalg.matrix_rank(design) == 8
+    first = _extension_oracle(scenarios, initial)
+    assert min(first, key=first.get) == (0, 1, 2, 3)
     greedy = core.fit_laminar_l1_sensitivity(
-        scenarios, initial_supports=initial, candidate_supports=pool,
+        scenarios, initial_supports=initial,
         r_upper_bound=2, x_upper_bound=2)
     # Zero is also the global lower bound of a nonnegative absolute loss.
     assert _lp_oracle(scenarios, truth) < 1e-8
-    assert greedy.support_indices == (*initial, (0, 1, 2), (0, 1))
-    assert greedy.train_mae == pytest.approx(.09568461826995488, abs=2e-8)
-    assert greedy.stop_reason == "no_feasible_extension"
-    assert _extension_oracle(scenarios, greedy.support_indices, pool) == {}
+    assert greedy.path[1].support_indices == (*initial, (0, 1, 2, 3))
+    assert greedy.support_indices == truth
+    assert greedy.train_mae < 1e-8
+    for point in greedy.path:
+        assert point.train_mae == pytest.approx(_lp_oracle(scenarios, point.support_indices), abs=2e-8)
+    assert min(_extension_oracle(scenarios, greedy.support_indices).values()) < 1e-8
     assert all(core.solver_diagnostics_prove_optimality(point.solver) for point in greedy.path)

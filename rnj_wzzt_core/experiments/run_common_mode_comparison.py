@@ -29,7 +29,11 @@ import pandas as pd
 from rnj_wzzt.data.paper_style_case_bank import CASE_BUILDERS
 from rnj_wzzt.estimation.constrained_least_squares import solve_symmetric_least_squares
 from rnj_wzzt.estimation.multiscenario import _aligned_arrays, fit_projected_sensitivity, preprocess_scenarios
-from rnj_wzzt.estimation.preprocessing import RECIPE, squared_voltage_drop_from_observed_root
+from rnj_wzzt.estimation.preprocessing import squared_voltage_drop_from_observed_root
+
+# This historical study explicitly profiles scenario offsets; do not inherit
+# the production observed-root model's raw-data default.
+RECIPE = {"name": "daily_demean", "kind": "demean"}
 from rnj_wzzt.graph.rooted_hierarchy import rooted_clades
 from rnj_wzzt.graph.rooted_neighbor_joining import rooted_neighbor_joining
 from rnj_wzzt.graph.sensitivity_geometry import sensitivity_geometry

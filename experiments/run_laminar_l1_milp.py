@@ -209,21 +209,10 @@ def _matrix_errors(estimate: np.ndarray, truth: np.ndarray, prefix: str) -> dict
     }
 
 
-def _fixed_training_intercept(
-    train: list[dict], r_matrix: np.ndarray, x_matrix: np.ndarray
-) -> np.ndarray:
-    scenario = train[0]
-    p = scenario["P_terminal"].to_numpy(dtype=float)
-    q = scenario["Q_terminal"].to_numpy(dtype=float)
-    target = scenario["drop_target"].to_numpy(dtype=float)
-    return np.median(target - p @ r_matrix.T - q @ x_matrix.T, axis=0)
-
-
 def _heldout_residual_frame(
     heldout: list[dict],
     r_matrix: np.ndarray,
     x_matrix: np.ndarray,
-    intercept: np.ndarray,
     outlier_mask: np.ndarray,
 ) -> tuple[pd.DataFrame, float]:
     scenario = heldout[0]
@@ -233,7 +222,6 @@ def _heldout_residual_frame(
     prediction = (
         p_frame.to_numpy(dtype=float) @ r_matrix.T
         + q_frame.to_numpy(dtype=float) @ x_matrix.T
-        + intercept[None, :]
     )
     target = target_frame.to_numpy(dtype=float)
     residual = target - prediction
@@ -498,10 +486,6 @@ def run(
 
         estimated_r = result.r_matrix
         estimated_x = result.x_matrix
-        # Preserve the exact intercept returned by the selected training LP.
-        # Recomputing a median is mathematically equivalent in generic cases,
-        # but can choose a different point when the L1 intercept is non-unique.
-        training_intercept = result.intercepts[0].copy()
         test_mask = (
             full_outlier_mask[test_slice]
             if regime == "laplace_outliers"
@@ -511,15 +495,16 @@ def run(
             test,
             estimated_r,
             estimated_x,
-            training_intercept,
             test_mask,
         )
-        test_refit_mae, test_refit_se, test_block_mae = evaluate_l1_matrices(
+        test_scored_mae, test_se, test_block_mae = evaluate_l1_matrices(
             test,
             estimated_r,
             estimated_x,
             blocks_per_scenario=4,
         )
+        if not np.isclose(test_mae, test_scored_mae, rtol=1e-12, atol=1e-15):
+            raise RuntimeError("held-out residual export disagrees with the core zero-bias scorer")
         predicted_clades = {
             frozenset(int(node) for node in support)
             for support in result.support_labels
@@ -533,10 +518,9 @@ def run(
             "attempted_extension_count": len(result.attempted_extensions),
             "stop_reason": result.stop_reason,
             "train_mae": result.train_mae,
-            "validation_mae_fixed_training_intercept": result.validation_mae,
-            "test_mae_fixed_training_intercept": test_mae,
-            "test_mae_refit_intercept": test_refit_mae,
-            "test_mae_refit_intercept_se": test_refit_se,
+            "validation_mae_zero_bias": result.validation_mae,
+            "test_mae_zero_bias": test_mae,
+            "test_mae_zero_bias_se": test_se,
             "fit_wall_seconds": fit_wall_seconds,
             "all_extension_attempts_certified_optimal": all(
                 solver_diagnostics_prove_optimality(attempt.diagnostics)
@@ -578,14 +562,11 @@ def run(
         pd.DataFrame(estimated_x, index=labels, columns=labels).to_csv(
             regime_dir / "X_estimated.csv"
         )
-        pd.Series(training_intercept, index=labels, name="intercept_pu2").to_csv(
-            regime_dir / "training_intercept.csv"
-        )
         test_residuals.to_csv(regime_dir / "test_residuals.csv", index=False)
         pd.DataFrame(
             {
                 "block_index": np.arange(len(test_block_mae)),
-                "test_mae_refit_intercept": test_block_mae,
+                "test_mae_zero_bias": test_block_mae,
             }
         ).to_csv(regime_dir / "test_block_mae.csv", index=False)
         regime_path = _path_frame(result, regime)
@@ -614,6 +595,7 @@ def run(
         out_dir / "all_selected_atoms.csv", index=False
     )
     config = {
+        "observation_model": "observed_root_zero_bias; historical offset results require their archived source",
         "case": "small_terminal_lv",
         "terminal_labels": terminals,
         "terminal_count": len(terminals),
@@ -653,8 +635,8 @@ def run(
         summary_frame.to_string(index=False),
         "```",
         "",
-        "`test_mae_fixed_training_intercept` is the primary held-out metric. "
-        "The refitted-intercept value is exported only as a nuisance-intercept diagnostic.",
+        "`test_mae_zero_bias` is the primary held-out metric. "
+        "All predictions use PR + QX without fitting a bias on any split.",
     ]
     (out_dir / "report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
     return output

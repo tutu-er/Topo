@@ -205,8 +205,10 @@ def main() -> int:
     sys.path.insert(0, str(ROOT / "rnj_wzzt_core"))
     from experiments.wzzt_benders_prototype import solve_best_laminar_extension_benders
     from rnj_wzzt.estimation.laminar_l1_milp import (
-        solve_best_laminar_extension_l1, solver_diagnostics_prove_optimality,
+        ExtensionSolution, solve_best_laminar_extension_l1, solver_diagnostics_prove_optimality,
     )
+    if "intercepts" not in ExtensionSolution.__dataclass_fields__:
+        parser.error("Benders retains free intercepts but current core does not. Replay the matched historical comparison with artifacts/observed_root_model_20260928/before.")
     records = []
     for name in args.cases:
         case = generate_case(name, args.seed + CASE_NAMES.index(name))

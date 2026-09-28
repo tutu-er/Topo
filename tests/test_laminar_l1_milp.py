@@ -20,7 +20,6 @@ from terminal_case33.estimation.laminar_l1_milp import (
     fit_laminar_l1_sensitivity,
     is_admissible_extension,
     is_laminar_family,
-    normalize_support_pool,
     solver_diagnostics_prove_optimality,
     solve_best_laminar_extension_l1,
     solve_fixed_support_l1,
@@ -44,8 +43,7 @@ def _scenario_from_atoms(
     r_matrix, x_matrix = build_matrices_from_atoms(
         n, supports, r_values, x_values
     )
-    intercept = np.linspace(-0.2, 0.2, n)
-    target = p @ r_matrix.T + q @ x_matrix.T + intercept
+    target = p @ r_matrix.T + q @ x_matrix.T
     if noise_scale:
         target += rng.laplace(0.0, noise_scale, size=target.shape)
     return {
@@ -186,11 +184,9 @@ def test_exact_single_atom_recovers_support_diagonal_and_values() -> None:
     assert r_matrix[0, 0] == r_matrix[0, 2] == r_matrix[2, 3]
 
 
-def test_finite_candidate_pool_is_canonical_and_exactly_enforced() -> None:
-    assert normalize_support_pool(((2, 0), (0, 2), (1, 2)), 3) == (
-        (0, 2),
-        (1, 2),
-    )
+@pytest.mark.parametrize("keyword", ["allowed_supports", "candidate_supports"])
+@pytest.mark.parametrize("solve", [solve_best_laminar_extension_l1, fit_laminar_l1_sensitivity])
+def test_removed_candidate_arguments_are_explicitly_rejected(keyword, solve) -> None:
     scenario = _scenario_from_atoms(
         n=4,
         supports=((0, 2, 3),),
@@ -199,23 +195,13 @@ def test_finite_candidate_pool_is_canonical_and_exactly_enforced() -> None:
         samples=48,
         seed=13,
     )
-    pool = ((0, 1), (0, 2, 3), (1, 3))
-
-    solution = solve_best_laminar_extension_l1(
-        [scenario],
-        (),
-        candidate_supports=pool,
-        r_upper_bound=2.0,
-        x_upper_bound=2.0,
-        mip_rel_gap=0.0,
-    )
-
-    assert solver_diagnostics_prove_optimality(solution.diagnostics)
-    assert solution.support == (0, 2, 3)
-    assert solution.support in pool
+    args = ([scenario], ()) if solve is solve_best_laminar_extension_l1 else ([scenario],)
+    with pytest.raises(TypeError, match=f"unexpected keyword argument '{keyword}'"):
+        solve(*args, **{keyword: ((0, 1), (0, 2, 3), (1, 3))},
+              r_upper_bound=2.0, x_upper_bound=2.0)
 
 
-def test_finite_candidate_pool_reports_exhaustion_after_laminar_filter() -> None:
+def test_maximal_laminar_family_exhausts_the_complete_search_domain() -> None:
     scenario = _scenario_from_atoms(
         n=3,
         supports=((0, 1),),
@@ -226,8 +212,7 @@ def test_finite_candidate_pool_reports_exhaustion_after_laminar_filter() -> None
     )
     solution = solve_best_laminar_extension_l1(
         [scenario],
-        ((0, 1),),
-        candidate_supports=((0, 1), (1, 2)),
+        ((0,), (1,), (2,), (0, 1), (0, 1, 2)),
         r_upper_bound=2.0,
         x_upper_bound=2.0,
     )
@@ -288,7 +273,6 @@ def test_milp_objective_matches_exhaustive_subset_oracle() -> None:
     prediction = (
         p @ r_matrix.T
         + q @ x_matrix.T
-        + milp_solution.intercepts[0][None, :]
     )
     assert np.isclose(
         np.mean(np.abs(target - prediction)),
@@ -421,20 +405,20 @@ def test_forward_path_is_fully_corrective_monotone_and_laminar() -> None:
     )
 
 
-def test_validation_path_reuses_training_intercept() -> None:
+def test_physical_residual_exposes_unmodelled_measurement_offsets() -> None:
     n = 2
     p_train = np.zeros((6, n))
     q_train = np.zeros((6, n))
     train_level = np.array([1.0, -2.0])
     validation_shift = np.array([7.0, -5.0])
     training = {
-        "name": "same_scenario",
+        "name": "training",
         "P_terminal": p_train,
         "Q_terminal": q_train,
         "drop_target": np.tile(train_level, (6, 1)),
     }
     validation = {
-        "name": "same_scenario",
+        "name": "independent_validation",
         "P_terminal": np.zeros((4, n)),
         "Q_terminal": np.zeros((4, n)),
         "drop_target": np.tile(train_level + validation_shift, (4, 1)),
@@ -446,19 +430,16 @@ def test_validation_path_reuses_training_intercept() -> None:
         r_upper_bound=1.0,
         x_upper_bound=1.0,
     )
-    fixed_mae, _, _ = evaluate_l1_matrices(
+    mae, _, _ = evaluate_l1_matrices(
         [validation],
         result.r_matrix,
         result.x_matrix,
-        fixed_intercepts=result.intercepts,
     )
-    profiled_mae, _, _ = evaluate_l1_matrices(
-        [validation], result.r_matrix, result.x_matrix
-    )
-    assert np.allclose(result.intercepts[0], train_level, atol=1e-9)
-    assert np.isclose(fixed_mae, np.mean(np.abs(validation_shift)))
-    assert np.isclose(result.validation_mae, fixed_mae)
-    assert profiled_mae < 1e-12
+    assert np.isclose(result.train_mae, np.mean(np.abs(train_level)))
+    assert np.isclose(mae, np.mean(np.abs(train_level + validation_shift)))
+    assert np.isclose(result.validation_mae, mae)
+    assert not hasattr(result, "intercepts")
+    assert "intercepts" not in result.summary()
 
 
 def test_zero_signal_stops_without_accepting_an_atom() -> None:
@@ -467,7 +448,7 @@ def test_zero_signal_stops_without_accepting_an_atom() -> None:
         "name": "zero_signal",
         "P_terminal": rng.normal(size=(16, 3)),
         "Q_terminal": rng.normal(size=(16, 3)),
-        "drop_target": np.tile(np.array([0.4, -0.2, 0.1]), (16, 1)),
+        "drop_target": np.zeros((16, 3)),
     }
     result = fit_laminar_l1_sensitivity(
         [scenario],

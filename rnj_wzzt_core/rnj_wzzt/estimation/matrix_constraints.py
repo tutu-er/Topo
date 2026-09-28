@@ -167,14 +167,13 @@ def project_tree_covariance_matrix(
         current = 0.5 * (current + current.T)
         change = np.linalg.norm(current - previous, ord="fro")
         reference = max(np.linalg.norm(previous, ord="fro"), 1e-15)
-        diagnostics = sensitivity_matrix_diagnostics(current)
-        if (
-            change / reference <= tolerance
-            and diagnostics.minimum_entry >= -10.0 * tolerance * scale
-            and diagnostics.minimum_diagonal_gap >= margin - 10.0 * tolerance * scale
-            and diagnostics.minimum_eigenvalue >= -10.0 * tolerance * scale
-        ):
-            break
+        if change / reference <= tolerance:
+            gap = np.diag(current)[:, None] - current
+            np.fill_diagonal(gap, np.inf)
+            slack = 10.0 * tolerance * scale
+            if (current.min() >= -slack and gap.min() >= margin - slack
+                    and np.linalg.eigvalsh(current).min() >= -slack):
+                break
 
     current = np.maximum(0.0, 0.5 * (current + current.T))
     minimum_eigenvalue = float(np.min(np.linalg.eigvalsh(current)))

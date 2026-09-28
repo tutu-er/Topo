@@ -39,9 +39,6 @@ def _export_condition(result: CompleteBaselineResult, output_dir: Path) -> None:
         condition_dir / "rooted_clades.csv",
         index=False,
     )
-    pd.DataFrame(result.scenario_intercepts).T.to_csv(
-        condition_dir / "scenario_intercepts.csv"
-    )
     residual = pd.concat(
         result.delta_v_residuals,
         names=["scenario", "sample"],
@@ -71,7 +68,7 @@ def run(
     data_replicates: int = 2,
     pq_noise_rel: float = 0.005,
     v_noise_rel: float = 0.0002,
-    preprocessing: str = "daily_demean",
+    preprocessing: str = "raw",
     distance_mode: str = "RX_75R_25X",
     constraint_mode: str = "ordered",
     alpha: float = 0.0,
@@ -217,7 +214,6 @@ def run(
             "dX",
             "distance",
             "root_depths",
-            "scenario_intercepts",
             "delta_v_residuals",
             "rnj_tree_edges",
             "rooted_clades",
@@ -228,7 +224,8 @@ def run(
     (out_dir / "report.md").write_text(
         "# Complete constrained RNJ baseline\n\n"
         "The baseline uses only noisy measured terminal P/Q/V and observed root voltage. "
-        "It performs daily demeaning, one shared ordered symmetric nonnegative R/X fit, "
+        f"It uses {preprocessing} preprocessing and one shared ordered symmetric "
+        "nonnegative R/X fit without terminal offsets, "
         "RX75 additive-distance construction, and known-root RNJ. No pseudo aggregation, "
         "latent common modes, oracle values, bootstrap selection, or truth labels are used "
         "during fitting. Delta V is exported as the fitted voltage/model residual.\n\n"
@@ -251,7 +248,7 @@ def main() -> None:
     parser.add_argument("--data-replicates", type=int, default=2)
     parser.add_argument("--pq-noise-rel", type=float, default=0.005)
     parser.add_argument("--v-noise-rel", type=float, default=0.0002)
-    parser.add_argument("--preprocessing", choices=["raw", "daily_demean", "difference"], default="daily_demean")
+    parser.add_argument("--preprocessing", choices=["raw", "daily_demean", "difference"], default="raw")
     parser.add_argument(
         "--distance-mode",
         choices=["R", "X", "RX_equal_normalized", "RX_75R_25X", "RX_25R_75X"],

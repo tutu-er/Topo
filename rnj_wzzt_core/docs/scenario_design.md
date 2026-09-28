@@ -1,6 +1,6 @@
 # 算例设置：参考条件、根波动与压力测试
 
-更新：2026-09-07。普通 `run.py` 现在默认使用 `reference`；原结果所属设置保留为显式 `legacy`。改变的是数据生成配置，回归/RNJ/MILP 的数学目标没有在本轮切换。
+场景研究记录：2026-09-07；接口说明更新：2026-09-28。普通 `run.py` 默认使用 `reference`，原结果所属场景配置保留为显式 `legacy`。正式回归/RNJ/MILP 现已采用已观测根、原始 P/Q/Y 的零偏置模型；本文保留的历史研究数值不代表该新模型的重跑结果。
 
 ## 0.08% 的根波动是否过小
 
@@ -71,7 +71,8 @@ unobserved 的真实根轨迹仅存放在独立诊断字段，不能用于构造
 准确量测时，直接公共根项已经被消除；把真实根波动放大并不能证明“已观测根电压仍缺一个未建模自由度”。
 
 当前默认回归没有逐时公共项。因此 benchmark 的 unobserved + 当前回归是失配对照；它不是声称现有回归已正确处理缺失根量测。
-收缩模块当前依赖根观测，pipeline 明确拒绝 unobserved 与 contract_blocks=True；普通CLI在该模式下关闭收缩，并在结果中记录。
+正式 pipeline 和 CLI 只接受 exact/noisy 根观测，拒绝 unobserved，不论是否启用收缩。
+场景生成器保留 unobserved 仅供独立失配研究；它不符合正式模型“根电压已观测”的前提。
 
 ## 量测误差与物理波动分开配置
 
@@ -102,10 +103,10 @@ unobserved 的真实根轨迹仅存放在独立诊断字段，不能用于构造
 # 新研究参考主线；time-limit仍是单次MILP的上限
 python run.py --scenario-suite reference --output outputs/reference --time-limit 30
 
-# 重放旧场景与旧随机路径
+# 使用旧场景与旧随机路径，回归仍采用当前零偏置模型
 python run.py --scenario-suite legacy --output outputs/legacy_replay
 
-# 只核验场景和当前回归/RNJ，不运行bootstrap或MILP
+# 重放独立的历史去均值/训练截距研究协议，不运行bootstrap或MILP
 python experiments/run_scenario_benchmark.py --repeats 3 --output outputs/scenario_benchmark
 
 # 单独提高量测误差，保留同一物理参考场景
@@ -118,10 +119,10 @@ python experiments/run_scenario_benchmark.py --suites reference --root-sigma 0 -
 低层 `_simulate_pool` 原六位置参数、`pipeline.run` 和高级CLI保持legacy默认；这是明确的兼容边界。普通 `run.py` 默认reference、默认输出outputs/reference，历史outputs/mainline不会自动被覆盖。
 旧公共模态比较脚本继续调用legacy数据源，其结果不因本次新默认而被悄悄改变。已有结果源指纹改变时必须使用新输出目录，实际运行源码和旧数据均保留。
 
-`run_scenario_benchmark.py` 使用独立训练/测试重复（train=2k、test=2k+1），测试固定为3×96点。所有场景截距仅从所选训练点计算；测试电压只用于评分。
+`run_scenario_benchmark.py` 保留独立的历史去均值/训练截距研究协议，不代表 2026-09-28 起正式流程的零偏置模型。它使用独立训练/测试重复（train=2k、test=2k+1），测试固定为3×96点；研究协议中的场景截距仅从所选训练点计算，测试电压只用于评分。
 输出包括物理/观测数组、实际R/X真值、拟合矩阵、逐点残差、RNJ树、全部参数和源码SHA256。数据/算法失败单独记录，不把未完成模型算作成功。
 
-## 本轮验证
+## 历史研究协议的验证结果
 
 已完成四网络×五套件×三次独立重复×三种根观测，共180组条件。每组分别使用每场景8/16/32/96点拟合，合计720次，均完成；每个模型在独立的3×96点测试集评分。这里比较的是现有回归和直接RX75-RNJ，没有运行MILP，也没有重新拟合自由公共模态或双ridge。
 

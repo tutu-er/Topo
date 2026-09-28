@@ -17,6 +17,7 @@ from rnj_wzzt.estimation.multiscenario import (
     preprocess_scenarios,
 )
 from rnj_wzzt.estimation.preprocessing import (
+    RECIPE,
     apply_preprocessing_recipe,
     daily_demean,
     squared_voltage_drop_from_observed_root,
@@ -41,8 +42,8 @@ def _two_variable_nonnegative_oracle(design, target, alpha):
     unconstrained least-squares point covers the interior. Convexity makes
     the best of these four faces a global oracle even if A is rank deficient.
     """
-    a = design - design.mean(axis=0)
-    y = target - target.mean()
+    a = design
+    y = target
     augmented = np.vstack([a, np.sqrt(alpha) * np.eye(2)])
     candidates = [np.zeros(2)]
     unconstrained = np.linalg.lstsq(augmented, np.r_[y, 0.0, 0.0], rcond=None)[0]
@@ -85,9 +86,8 @@ def test_scalar_constrained_ridge_matches_all_active_faces(style, alpha, data_sc
     assert np.min(fitted) >= 0.0
     assert diagnostics["success"] is True
     assert 2.0 * diagnostics["objective"] / data_scale**2 == pytest.approx(loss, rel=2e-7, abs=2e-7)
-    a = design - design.mean(axis=0)
     # Null directions need not select the oracle's particular minimizer.
-    np.testing.assert_allclose(a @ fitted, a @ expected, rtol=2e-5, atol=2e-5)
+    np.testing.assert_allclose(design @ fitted, design @ expected, rtol=2e-5, atol=2e-5)
     if alpha > 0:
         np.testing.assert_allclose(fitted, expected, rtol=2e-5, atol=2e-5)
 
@@ -98,23 +98,21 @@ def test_multiple_power_factors_identify_shared_rx_when_each_scenario_cannot(n, 
     rng = np.random.default_rng(912 + n)
     r_true = 0.3 * np.ones((n, n)) + np.diag(np.linspace(1.0, 2.0, n))
     x_true = 0.12 * np.ones((n, n)) + np.diag(np.linspace(0.5, 0.9, n))
-    scenarios, intercepts, centered_designs = [], [], []
+    scenarios, designs = [], []
     for k, ratio in enumerate(ratios):
         p = rng.normal(size=(3 * n + 9, n)) + 3.0 * k
         q = ratio * p
-        intercept = np.linspace(-4.0, 7.0, n) * (k + 1)
-        y = p @ r_true + q @ x_true + intercept
+        y = p @ r_true + q @ x_true
         scenarios.append(_scenario(p, q, y, name=f"factor_{k}"))
-        intercepts.append(intercept)
-        a = np.column_stack([p - p.mean(axis=0), q - q.mean(axis=0)])
+        a = np.column_stack([p, q])
         assert np.linalg.matrix_rank(a) == n
-        centered_designs.append(a)
-    assert np.linalg.matrix_rank(np.vstack(centered_designs)) == 2 * n
+        designs.append(a)
+    assert np.linalg.matrix_rank(np.vstack(designs)) == 2 * n
     diagnostics = {}
     r, x, _, _ = fit_projected_sensitivity(scenarios, diagnostics=diagnostics)
     np.testing.assert_allclose(r, r_true, atol=3e-6, rtol=3e-6)
     np.testing.assert_allclose(x, x_true, atol=3e-6, rtol=3e-6)
-    np.testing.assert_allclose(diagnostics["intercepts"], intercepts, atol=5e-5)
+    assert diagnostics["squared_residual_sum"] < 1e-8
 
 
 @pytest.mark.parametrize("n", [2, 5])
@@ -175,18 +173,79 @@ def test_single_voltage_outlier_has_unbounded_least_squares_influence(outlier):
     assert x.item() == pytest.approx(1.0, abs=1e-6)
 
 
-def test_large_scenario_intercepts_can_hide_zero_within_scenario_predictive_power():
+def test_scenario_offsets_are_not_explained_by_zero_power():
     p = np.zeros((4, 1))
     fluctuations = np.array([1.0, -1.0, 1.0, -1.0])[:, None]
     scenarios = [_scenario(p, p, fluctuations + mean, name=str(mean)) for mean in (-100.0, 100.0)]
     diagnostics = {}
     r, x, r2, _ = fit_projected_sensitivity(scenarios, diagnostics=diagnostics)
     np.testing.assert_array_equal([r.item(), x.item()], [0.0, 0.0])
-    assert diagnostics["squared_residual_sum"] == pytest.approx(8.0)
-    assert r2 == pytest.approx(1.0 - 1.0 / 10001.0)
-    # A nearly perfect reported R2 here is explained entirely by intercepts;
-    # the centered variation is wholly unexplained and P/Q have zero rank.
-    assert r2 > 0.999
+    assert diagnostics["squared_residual_sum"] == pytest.approx(8.0 * 10001.0)
+    assert r2 == pytest.approx(0.0)
+    assert "intercepts" not in diagnostics
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_constant_nonzero_loads_identify_rx_across_operating_points(n):
+    """Each day is constant, but the combined operating points span every input."""
+    r_true = np.eye(n) + 0.2
+    x_true = 0.3 * np.eye(n) + 0.1
+    operating_points = np.diag(np.arange(2.0, 2.0 + 2 * n))
+    scenarios = []
+    for index, point in enumerate(operating_points):
+        p = np.tile(point[:n], (5, 1))
+        q = np.tile(point[n:], (5, 1))
+        scenarios.append(_scenario(p, q, p @ r_true + q @ x_true, name=str(index)))
+    transformed = preprocess_scenarios(scenarios, RECIPE)
+    assert RECIPE["kind"] == "raw"
+    for original, fitted in zip(scenarios, transformed):
+        for key in ("P_terminal", "Q_terminal", "drop_target"):
+            pd.testing.assert_frame_equal(original[key], fitted[key])
+    r, x, r2, condition = fit_projected_sensitivity(transformed)
+    np.testing.assert_allclose(r, r_true, atol=1e-8)
+    np.testing.assert_allclose(x, x_true, atol=1e-8)
+    assert r2 == pytest.approx(1.0)
+    assert condition == pytest.approx((2 * n + 1.0) / 2.0)
+
+
+def test_time_varying_observed_root_cancels_before_rx_regression():
+    rng = np.random.default_rng(314)
+    p, q = rng.uniform(0.002, 0.015, size=(2, 60, 2))
+    r_true = np.array([[0.8, 0.2], [0.2, 0.6]])
+    x_true = np.array([[0.3, 0.1], [0.1, 0.4]])
+    physical_drop = p @ r_true + q @ x_true
+    # Root variation is deliberately correlated with power and is observed.
+    root = pd.Series(1.02 + 2.0 * p.sum(axis=1))
+    terminal = pd.DataFrame(np.sqrt(root.to_numpy()[:, None]**2 - physical_drop), columns=[10, 20])
+    scenario = _scenario(p, q, squared_voltage_drop_from_observed_root(terminal, root), labels=[10, 20])
+    r, x, r2, _ = fit_projected_sensitivity([scenario])
+    np.testing.assert_allclose(r, r_true, atol=1e-8)
+    np.testing.assert_allclose(x, x_true, atol=1e-8)
+    assert r2 == pytest.approx(1.0)
+
+
+def test_independent_terminal_offsets_remain_in_the_physical_residual():
+    design = np.vstack([np.eye(4), -np.eye(4)])
+    p, q = design[:, :2], design[:, 2:]
+    r_true, x_true = np.eye(2) + 0.2, 0.4 * np.eye(2) + 0.1
+    offsets = [np.array([0.7, -0.3]), np.array([-0.2, 0.9])]
+    scenarios = [_scenario(p, q, p @ r_true + q @ x_true + offset, name=str(index))
+                 for index, offset in enumerate(offsets)]
+    diagnostics = {}
+    r, x, _, _ = fit_projected_sensitivity(scenarios, diagnostics=diagnostics)
+    # The constant offsets are orthogonal to every column of the design.
+    np.testing.assert_allclose(r, r_true, atol=1e-8)
+    np.testing.assert_allclose(x, x_true, atol=1e-8)
+    expected_sse = len(design) * sum(offset @ offset for offset in offsets)
+    assert diagnostics["squared_residual_sum"] == pytest.approx(expected_sse)
+    assert "intercepts" not in diagnostics
+
+
+@pytest.mark.parametrize("power,target,expected", [(0.0, 0.0, 1.0), (0.0, 4.0, 0.0), (2.0, 4.0, 1.0)])
+def test_constant_target_r2_uses_finite_residual_convention(power, target, expected):
+    p, q, y = np.full((7, 1), power), np.zeros((7, 1)), np.full((7, 1), target)
+    _, _, r2, _ = fit_projected_sensitivity([_scenario(p, q, y)])
+    assert r2 == expected
 
 
 @pytest.mark.parametrize("day_size", [1, 3, 7, 20])
@@ -221,11 +280,15 @@ def test_daily_demean_matches_block_projection_including_partial_final_day(day_s
     {"kind": "rolling_highpass", "window": 5},
     {"kind": "chain", "steps": [{"kind": "difference"}, {"kind": "rolling_highpass", "window": 3}]},
 ])
-def test_shared_temporal_operator_preserves_exact_physical_regression(recipe):
+@pytest.mark.parametrize("reorder_inputs", [False, True])
+def test_shared_temporal_operator_preserves_exact_physical_regression(recipe, reorder_inputs):
     rng = np.random.default_rng(871)
     p, q = rng.normal(size=(2, 45, 3))
     r_true, x_true = np.eye(3) + 0.3, 0.5 * np.eye(3) + 0.1
-    scenario = _scenario(p, q, p @ r_true + q @ x_true + [8.0, -5.0, 1.0])
+    scenario = _scenario(p, q, p @ r_true + q @ x_true)
+    if reorder_inputs:
+        for key in ("Q_terminal", "drop_target"):
+            scenario[key] = scenario[key].iloc[rng.permutation(len(p))]
     original = deepcopy(scenario)
     transformed = preprocess_scenarios([scenario], recipe)
     r, x, _, _ = fit_projected_sensitivity(transformed)
@@ -233,6 +296,22 @@ def test_shared_temporal_operator_preserves_exact_physical_regression(recipe):
     np.testing.assert_allclose(x, x_true, atol=3e-6)
     for key in ("P_terminal", "Q_terminal", "drop_target"):
         pd.testing.assert_frame_equal(scenario[key], original[key])
+
+
+@pytest.mark.parametrize("key", ["P_terminal", "Q_terminal", "drop_target"])
+@pytest.mark.parametrize("invalid_index", ["missing", "extra", "duplicate"])
+def test_preprocessing_rejects_mismatched_or_ambiguous_time_indices(key, invalid_index):
+    values = np.arange(6, dtype=float).reshape(3, 2)
+    scenario = _scenario(values, 2 * values, 3 * values)
+    frame = scenario[key]
+    if invalid_index == "missing":
+        scenario[key] = frame.iloc[:-1]
+    elif invalid_index == "extra":
+        scenario[key] = pd.concat([frame, frame.iloc[:1].rename(index={0: 3})])
+    else:
+        scenario[key] = pd.concat([frame, frame.iloc[:1]])
+    with pytest.raises(ValueError, match="time indices"):
+        preprocess_scenarios([scenario], {"kind": "difference"})
 
 
 @pytest.mark.parametrize("window", [2, 3, 5, 21])

@@ -26,7 +26,8 @@ def test_mainline_forwards_the_reviewed_configuration(monkeypatch) -> None:
     assert captured["selection_only"] is False
     assert captured["run_baseline"] is False
     assert captured["contract_blocks"] is True
-    assert captured["candidate_pool_mode"] == "rnj"
+    assert "support_search_mode" not in captured
+    assert "candidate_pool_mode" not in captured
     assert captured["time_limit"] == 321.0
 
 

@@ -1,4 +1,7 @@
 from pathlib import Path
+import sys
+
+import pytest
 
 import rnj_wzzt.cli as cli
 from rnj_wzzt.data.paper_style_case_bank import CASE_BUILDERS
@@ -42,5 +45,28 @@ def test_cli_forwards_reviewed_configuration(monkeypatch) -> None:
     assert captured["scenario_count"] == 3
     assert captured["samples_per_scenario"] == 96
     assert captured["contract_blocks"] is True
-    assert captured["candidate_pool_mode"] == "rnj"
+    assert "support_search_mode" not in captured
+    assert "candidate_pool_mode" not in captured
     assert captured["time_limit"] == 123.0
+
+
+def test_advanced_search_has_no_pool_switch(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(sys, "argv", ["advanced"])
+    cli.advanced_main(runner=lambda output, **kwargs: captured.update(kwargs))
+    assert "candidate_pool_mode" not in captured
+
+
+@pytest.mark.parametrize("flag", ["--support-search-mode", "--candidate-pool-mode"])
+def test_advanced_cli_rejects_removed_search_switch(monkeypatch, flag):
+    monkeypatch.setattr(sys, "argv", ["advanced", flag, "rnj"])
+    with pytest.raises(SystemExit) as exc:
+        cli.advanced_main(runner=lambda *_args, **_kwargs: pytest.fail("must not run"))
+    assert exc.value.code == 2
+
+
+def test_cli_requires_observed_root(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["advanced", "--root-observation", "unobserved"])
+    with pytest.raises(SystemExit) as exc:
+        cli.advanced_main(runner=lambda *_args, **_kwargs: pytest.fail("must not run"))
+    assert exc.value.code == 2

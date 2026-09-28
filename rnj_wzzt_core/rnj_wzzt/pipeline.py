@@ -1,7 +1,7 @@
-"""RX75-RNJ blocks followed by finite-candidate laminar L1-MILP completion.
+"""Fix selected RX75-RNJ blocks, then search new laminar L1-MILP supports.
 
-The default data configuration intentionally matches the earlier high-F1 RNJ
-benchmark: three noisy AC scenarios, 96 samples per scenario, daily demeaning,
+Fit raw squared-voltage drops relative to the observed root, without terminal
+offsets. Defaults use three noisy AC scenarios, 96 samples per scenario,
 ordered R/X least-squares QP, RX75 score, and RNJ tolerance factor 0.16.
 """
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
@@ -29,7 +29,7 @@ from rnj_wzzt.reporting import (
 )
 from rnj_wzzt.data.paper_style_case_bank import CASE_BUILDERS
 from rnj_wzzt.estimation.laminar_l1_milp import (
-    fit_laminar_l1_sensitivity,
+    _validate_solver, fit_laminar_l1_sensitivity,
 )
 from rnj_wzzt.estimation.multiscenario import (
     fit_projected_sensitivity,
@@ -87,8 +87,6 @@ def _validate_run_options(
     deembedding_weight: float,
     time_limit: float,
     coefficient_bound: float,
-    candidate_pool_mode: str,
-    contract_blocks: bool,
     root_observation: str,
 ) -> None:
     """Reject invalid orchestration settings before creating output files."""
@@ -114,10 +112,8 @@ def _validate_run_options(
         or 96 % samples_per_scenario != 0
     ):
         raise ValueError("new scenario suites require 4..96 samples dividing 96")
-    if root_observation == "unobserved" and contract_blocks:
-        raise ValueError("unobserved root requires contract_blocks=False")
-    if candidate_pool_mode not in {"unrestricted", "rnj", "rnj_one_edit"}:
-        raise ValueError("unknown candidate_pool_mode")
+    if root_observation not in {"exact", "noisy"}:
+        raise ValueError("the model requires observed root voltage (exact or noisy)")
 
 
 def _scenario_manifest_rows(
@@ -211,17 +207,6 @@ def _select_boundary_blocks(
     return full_clades, confidence, selected, r2_score, condition
 
 
-def _align_scenario_names(reference: list[dict], candidate: list[dict]) -> list[dict]:
-    if len(reference) != len(candidate):
-        raise ValueError("scenario lists must have the same length")
-    aligned: list[dict] = []
-    for reference_item, candidate_item in zip(reference, candidate, strict=True):
-        copied = dict(candidate_item)
-        copied["name"] = str(reference_item["name"])
-        aligned.append(copied)
-    return aligned
-
-
 def _prepare_case(
     case_name: str,
     *,
@@ -267,10 +252,7 @@ def _prepare_case(
         )
 
     training = preprocess_scenarios(training_raw, RECIPE)
-    validation = _align_scenario_names(
-        training,
-        preprocess_scenarios(validation_raw, RECIPE),
-    )
+    validation = preprocess_scenarios(validation_raw, RECIPE)
     terminals = _terminal_buses(net)
     truth_clades = _truth_nontrivial_clades(net, terminals)
     return (
@@ -387,13 +369,10 @@ def _contracted_milp_inputs(
     if validation_members != pseudo_members:
         raise RuntimeError("training and validation pseudo mappings differ")
     contracted_training = preprocess_scenarios(contracted_training_raw, RECIPE)
-    contracted_validation = _align_scenario_names(
-        contracted_training,
-        preprocess_scenarios(contracted_validation_raw, RECIPE),
+    contracted_validation = preprocess_scenarios(contracted_validation_raw, RECIPE)
+    frozen_singletons = _leaf_singletons(
+        len(contracted_training[0]["P_terminal"].columns)
     )
-    pseudo_labels = list(contracted_training[0]["P_terminal"].columns)
-    pseudo_position = {int(label): index for index, label in enumerate(pseudo_labels)}
-    frozen_singletons = [(pseudo_position[int(label)],) for label in pseudo_labels]
     return contracted_training, contracted_validation, frozen_singletons, pseudo_members
 
 
@@ -405,75 +384,15 @@ def _leaf_singletons(terminal_count: int) -> list[tuple[int, ...]]:
     return [(index,) for index in range(terminal_count)]
 
 
-def _map_clade_to_reduced_support(
-    clade: frozenset[int],
-    reduced_labels: list[int],
-    pseudo_members: dict[int, frozenset[int]],
-) -> tuple[int, ...] | None:
-    """Map an original-terminal clade to reduced positional indices.
-
-    A proposal that cuts through a contracted trusted block is deliberately
-    rejected because it would contradict the frozen RNJ boundary decision.
-    """
-
-    support: list[int] = []
-    covered: set[int] = set()
-    for index, label in enumerate(reduced_labels):
-        members = pseudo_members[int(label)]
-        overlap = members & clade
-        if overlap and overlap != members:
-            return None
-        if overlap:
-            support.append(index)
-            covered.update(members)
-    if covered != set(clade):
-        return None
-    return tuple(support)
-
-
-def _rnj_reduced_candidate_pool(
-    full_rnj_clades: set[frozenset[int]],
-    reduced_labels: list[int],
-    pseudo_members: dict[int, frozenset[int]],
-    *,
-    include_one_edit: bool,
-) -> tuple[tuple[int, ...], ...]:
-    """Build a finite, truth-free MILP proposal pool from the RX75 hierarchy."""
-
-    terminal_count = len(reduced_labels)
-    base: set[tuple[int, ...]] = set()
-    for clade in full_rnj_clades:
-        support = _map_clade_to_reduced_support(clade, reduced_labels, pseudo_members)
-        if support is not None and 1 < len(support) <= terminal_count:
-            base.add(support)
-    candidates = set(base)
-    if include_one_edit:
-        universe = set(range(terminal_count))
-        for support in base:
-            current = set(support)
-            for added in universe - current:
-                enlarged = tuple(sorted((*current, added)))
-                if 1 < len(enlarged) <= terminal_count:
-                    candidates.add(enlarged)
-            if len(current) > 2:
-                for removed in current:
-                    reduced = tuple(sorted(current - {removed}))
-                    if len(reduced) > 1:
-                        candidates.add(reduced)
-    return tuple(sorted(candidates, key=lambda item: (len(item), item)))
-
-
-def _expand_candidate_pool(
-    supports: tuple[tuple[int, ...], ...],
-    reduced_labels: list[int],
+def _expand_support_labels(
+    supports: Iterable[Iterable[int]],
     pseudo_members: dict[int, frozenset[int]],
     terminal_count: int,
 ) -> set[frozenset[int]]:
+    """Expand reduced labels to original terminals, excluding trivial clades."""
     expanded: set[frozenset[int]] = set()
     for support in supports:
-        members = frozenset().union(
-            *(pseudo_members[int(reduced_labels[index])] for index in support)
-        )
+        members = frozenset().union(*(pseudo_members[int(label)] for label in support))
         if 1 < len(members) < terminal_count:
             expanded.add(members)
     return expanded
@@ -484,12 +403,7 @@ def _expand_pseudo_result_clades(
     pseudo_members: dict[int, frozenset[int]],
     terminal_count: int,
 ) -> set[frozenset[int]]:
-    expanded: set[frozenset[int]] = set()
-    for support in result.support_labels:
-        members = frozenset().union(*(pseudo_members[int(label)] for label in support))
-        if 1 < len(members) < terminal_count:
-            expanded.add(members)
-    return expanded
+    return _expand_support_labels(result.support_labels, pseudo_members, terminal_count)
 
 
 def _fit_milp_variants(
@@ -499,11 +413,11 @@ def _fit_milp_variants(
     run_baseline: bool,
     contract_blocks: bool,
     deembedding_weight: float,
-    candidate_pool_mode: str,
     coefficient_bound: float,
     time_limit: float,
+    milp_solver: str = "highs",
 ) -> Iterator[dict]:
-    """Complete topology candidates and yield one auditable row per variant."""
+    """Search for new supports and yield one auditable row per variant."""
 
     position = {label: index for index, label in enumerate(case.terminals)}
     selected_supports = [
@@ -546,31 +460,15 @@ def _fit_milp_variants(
             pseudo_members = {
                 label: frozenset({label}) for label in reduced_labels
             }
-        candidate_supports = None
-        candidate_clades: set[frozenset[int]] = set()
-        if initializer != "milp_only" and candidate_pool_mode != "unrestricted":
-            candidate_supports = _rnj_reduced_candidate_pool(
-                selection.full_clades,
-                reduced_labels,
-                pseudo_members,
-                include_one_edit=candidate_pool_mode == "rnj_one_edit",
-            )
-            candidate_clades = _expand_candidate_pool(
-                candidate_supports,
-                reduced_labels,
-                pseudo_members,
-                len(case.terminals),
-            )
-
         started = perf_counter()
         result = fit_laminar_l1_sensitivity(
             fit_training,
             validation_scenarios=fit_validation,
             initial_supports=supports,
-            candidate_supports=candidate_supports,
             r_upper_bound=coefficient_bound,
             x_upper_bound=coefficient_bound,
             time_limit=time_limit,
+            solver=milp_solver,
         )
         elapsed = perf_counter() - started
         predicted = _expand_pseudo_result_clades(
@@ -582,11 +480,8 @@ def _fit_milp_variants(
             case_name=case.name,
             initializer=initializer,
             result=result,
-            selected=selection.selected,
+            selected=[] if initializer == "milp_only" else selection.selected,
             supports=supports,
-            candidate_supports=candidate_supports,
-            candidate_clades=candidate_clades,
-            candidate_pool_mode=candidate_pool_mode,
             predicted=predicted,
             truth_clades=case.truth_clades,
             elapsed=elapsed,
@@ -612,7 +507,6 @@ def run(
     run_baseline: bool = True,
     contract_blocks: bool = False,
     deembedding_weight: float = 0.5,
-    candidate_pool_mode: str = "rnj",
     time_limit: float = 1800.0,
     coefficient_bound: float = 2.0,
     scenario_suite: str = "legacy",
@@ -620,7 +514,10 @@ def run(
     root_meter_noise_rel: float | None = None,
     root_sigma: float | None = None,
     impedance_scale: float | None = None,
+    milp_solver: str = "highs",
 ) -> dict:
+    """Fit observed-root voltage drops, retain RNJ blocks, and extend supports."""
+    _validate_solver(milp_solver)
     scenario_options = dict(
         scenario_suite=scenario_suite, root_observation=root_observation,
         root_meter_noise_rel=root_meter_noise_rel, root_sigma=root_sigma,
@@ -639,8 +536,6 @@ def run(
         deembedding_weight=deembedding_weight,
         time_limit=time_limit,
         coefficient_bound=coefficient_bound,
-        candidate_pool_mode=candidate_pool_mode,
-        contract_blocks=contract_blocks,
         root_observation=scenario_settings["root_observation"],
     )
     output = Path(output_dir)
@@ -709,9 +604,9 @@ def run(
             run_baseline=run_baseline,
             contract_blocks=contract_blocks,
             deembedding_weight=deembedding_weight,
-            candidate_pool_mode=candidate_pool_mode,
             coefficient_bound=coefficient_bound,
             time_limit=time_limit,
+            milp_solver=milp_solver,
         ):
             milp_rows.append(row)
             pd.DataFrame(milp_rows).to_csv(output / "milp_results.csv", index=False)
@@ -738,8 +633,9 @@ def run(
             "run_baseline": run_baseline,
             "contract_blocks": contract_blocks,
             "deembedding_weight": deembedding_weight,
-            "candidate_pool_mode": candidate_pool_mode,
+            "support_search_mode": "unrestricted",
             "time_limit_seconds_per_extension": time_limit,
+            "milp_solver": milp_solver,
             "coefficient_bound": coefficient_bound,
             "truth_used_for_candidate_generation": False,
             "scenario_settings": scenario_settings,

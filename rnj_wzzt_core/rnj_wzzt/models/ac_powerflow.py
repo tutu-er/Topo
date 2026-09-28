@@ -32,6 +32,24 @@ class ACPowerFlowSnapshot:
     max_voltage_error: float
 
 
+def _validate_solver_inputs(max_iter: int, tol: float, *values) -> float:
+    """Reject invalid stopping rules and nonfinite electrical inputs."""
+
+    if isinstance(max_iter, (bool, np.bool_)) or not isinstance(max_iter, (int, np.integer)) or max_iter < 1:
+        raise ValueError("max_iter must be a positive integer")
+    if isinstance(tol, (bool, np.bool_)):
+        raise ValueError("tol must be finite and positive")
+    try:
+        tol = float(tol)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("tol must be finite and positive") from exc
+    if not np.isfinite(tol) or tol <= 0.0:
+        raise ValueError("tol must be finite and positive")
+    if any(not np.isfinite(np.asarray(value, dtype=complex)).all() for value in values):
+        raise ValueError("power-flow inputs must be finite")
+    return tol
+
+
 def _oriented_tree(net: TerminalizedNetwork) -> tuple[list[int], dict[int, int], dict[int, list[int]], dict[tuple[int, int], complex]]:
     """Return root-oriented nodes, parents, children, and per-unit impedances."""
 
@@ -54,6 +72,8 @@ def _oriented_tree(net: TerminalizedNetwork) -> tuple[list[int], dict[int, int],
             ohm_to_pu(net, float(edge["r_ohm"])),
             ohm_to_pu(net, float(edge["x_ohm"])),
         )
+    if not np.isfinite(list(z_pu.values())).all():
+        raise ValueError("branch impedances must be finite")
     return [int(node) for node in bfs_nodes], {int(k): int(v) for k, v in parent.items()}, children, z_pu
 
 
@@ -80,6 +100,7 @@ def solve_ac_power_flow_snapshot(
         powers at sending/receiving ends, losses, and convergence metadata.
     """
 
+    tol = _validate_solver_inputs(max_iter, tol, list(p_load_pu.values()), list(q_load_pu.values()), v_root)
     nodes, parent, children, z_pu = _oriented_tree(net)
     return _solve_ac_power_flow_snapshot_oriented(
         net,
@@ -140,7 +161,7 @@ def _solve_ac_power_flow_snapshot_oriented(
             for child in children.get(node, []):
                 voltages[child] = voltages[node] - z_pu[(node, child)] * branch_current[(node, child)]
 
-        max_error = max(abs(voltages[node] - old_voltages[node]) for node in nodes)
+        max_error = float(np.max([abs(voltages[node] - old_voltages[node]) for node in nodes]))
         if max_error <= tol:
             converged = True
             break
@@ -224,6 +245,7 @@ def solve_ac_power_flow_timeseries(
     else:
         slack = np.full(t_count, complex(v_root), dtype=complex)
 
+    tol = _validate_solver_inputs(max_iter, tol, P_load_pu, Q_load_pu, slack)
     voltage = np.repeat(slack[:, None], n_nodes, axis=1)
     current = np.zeros((t_count, n_edges), dtype=complex)
     s_load = p_arr + 1j * q_arr

@@ -14,9 +14,9 @@ compute post-fit diagnostics.  It is never used to construct candidate
 supports: every extension MILP searches all nonempty terminal subsets that are
 laminar with the already selected supports.
 
-Validation and test metrics keep the scenario/output intercept estimated on
-the training prefix fixed.  The core helper that refits a validation intercept
-is deliberately not used for model selection in this experiment.
+Training, validation and test use the observed-root zero-bias model directly:
+squared-voltage drop = P R^T + Q X^T. Historical intercept-model results require
+their archived source and are not overwritten by this protocol.
 """
 
 from __future__ import annotations
@@ -34,6 +34,7 @@ import scipy
 from terminal_case33.data.case33bw_raw import load_raw_case33bw
 from terminal_case33.estimation.laminar_l1_milp import (
     LaminarL1PathPoint,
+    evaluate_l1_matrices,
     fit_laminar_l1_sensitivity,
     is_laminar_family,
     solver_diagnostics_prove_optimality,
@@ -126,72 +127,9 @@ def _scenario(
     ]
 
 
-def _training_intercepts(
-    training: list[dict], r_matrix: np.ndarray, x_matrix: np.ndarray
-) -> tuple[np.ndarray, ...]:
-    """Return one L1-optimal output intercept vector per training scenario."""
-
-    fitted: list[np.ndarray] = []
-    for scenario in training:
-        p = scenario["P_terminal"].to_numpy(dtype=float)
-        q = scenario["Q_terminal"].to_numpy(dtype=float)
-        target = scenario["drop_target"].to_numpy(dtype=float)
-        fitted.append(np.median(target - p @ r_matrix.T - q @ x_matrix.T, axis=0))
-    return tuple(fitted)
-
-
-def _fixed_intercept_score(
-    scenarios: list[dict],
-    r_matrix: np.ndarray,
-    x_matrix: np.ndarray,
-    intercepts: tuple[np.ndarray, ...],
-    *,
-    blocks_per_scenario: int,
-) -> tuple[float, float, np.ndarray]:
-    """Score held-out observations without using their targets to refit intercepts."""
-
-    if len(scenarios) != len(intercepts):
-        raise ValueError("held-out scenarios and training intercepts must align")
-    absolute_parts: list[np.ndarray] = []
-    block_means: list[float] = []
-    for scenario, intercept in zip(scenarios, intercepts, strict=True):
-        p = scenario["P_terminal"].to_numpy(dtype=float)
-        q = scenario["Q_terminal"].to_numpy(dtype=float)
-        target = scenario["drop_target"].to_numpy(dtype=float)
-        prediction = p @ r_matrix.T + q @ x_matrix.T + intercept[None, :]
-        absolute = np.abs(target - prediction)
-        absolute_parts.append(absolute.reshape(-1))
-        for indices in np.array_split(np.arange(len(absolute)), blocks_per_scenario):
-            if indices.size:
-                block_means.append(float(np.mean(absolute[indices, :])))
-    block_array = np.asarray(block_means, dtype=float)
-    standard_error = (
-        float(np.std(block_array, ddof=1) / np.sqrt(len(block_array)))
-        if len(block_array) > 1
-        else 0.0
-    )
-    return float(np.mean(np.concatenate(absolute_parts))), standard_error, block_array
-
-
-def _fixed_intercept_path(
-    path: tuple[LaminarL1PathPoint, ...],
-    training: list[dict],
-    validation: list[dict],
-    *,
-    validation_blocks: int,
-) -> tuple[list[dict], int, tuple[np.ndarray, ...]]:
+def _path_rows(path: tuple[LaminarL1PathPoint, ...], selected: int) -> list[dict]:
     rows: list[dict] = []
-    intercepts_by_path: list[tuple[np.ndarray, ...]] = []
     for path_index, point in enumerate(path):
-        intercepts = _training_intercepts(training, point.r_matrix, point.x_matrix)
-        validation_mae, validation_se, _ = _fixed_intercept_score(
-            validation,
-            point.r_matrix,
-            point.x_matrix,
-            intercepts,
-            blocks_per_scenario=validation_blocks,
-        )
-        intercepts_by_path.append(intercepts)
         rows.append(
             {
                 "path_index": path_index,
@@ -201,8 +139,8 @@ def _fixed_intercept_path(
                     ",".join(map(str, support)) for support in point.support_labels
                 ),
                 "train_mae": float(point.train_mae),
-                "validation_mae_fixed_training_intercept": validation_mae,
-                "validation_se_fixed_training_intercept": validation_se,
+                "validation_mae_zero_bias": point.validation_mae,
+                "validation_se_zero_bias": point.validation_se,
                 "accepted_gain": (
                     None if point.accepted_gain is None else float(point.accepted_gain)
                 ),
@@ -215,17 +153,9 @@ def _fixed_intercept_path(
                 "solver_runtime_seconds": float(point.solver.runtime_seconds),
             }
         )
-    validation_means = np.asarray(
-        [row["validation_mae_fixed_training_intercept"] for row in rows], dtype=float
-    )
-    best = int(np.argmin(validation_means))
-    threshold = validation_means[best] + float(
-        rows[best]["validation_se_fixed_training_intercept"]
-    )
-    selected = int(np.flatnonzero(validation_means <= threshold)[0])
     for index, row in enumerate(rows):
-        row["selected_by_fixed_intercept_one_se"] = index == selected
-    return rows, selected, intercepts_by_path[selected]
+        row["selected_by_zero_bias_one_se"] = index == selected
+    return rows
 
 
 def _truth_atoms(net, terminals: list[int]) -> pd.DataFrame:
@@ -394,7 +324,8 @@ def _run_one_case(
     started = perf_counter()
     result = fit_laminar_l1_sensitivity(
         training,
-        validation_scenarios=None,
+        validation_scenarios=validation,
+        validation_blocks=min(4, validation_count),
         max_atoms=max_atoms,
         r_upper_bound=coefficient_bound,
         x_upper_bound=coefficient_bound,
@@ -410,18 +341,11 @@ def _run_one_case(
     )
     fit_wall_seconds = perf_counter() - started
 
-    path_rows, selected_path_index, selected_intercepts = _fixed_intercept_path(
-        result.path,
-        training,
-        validation,
-        validation_blocks=min(4, validation_count),
-    )
+    selected_path_index = result.selected_path_index
+    path_rows = _path_rows(result.path, selected_path_index)
     selected = result.path[selected_path_index]
-    test_mae, test_se, test_blocks = _fixed_intercept_score(
-        test,
-        selected.r_matrix,
-        selected.x_matrix,
-        selected_intercepts,
+    test_mae, test_se, test_blocks = evaluate_l1_matrices(
+        test, selected.r_matrix, selected.x_matrix,
         blocks_per_scenario=min(4, test_count),
     )
     attempt_rows = _attempt_rows(result)
@@ -457,18 +381,18 @@ def _run_one_case(
         "test_count": test_count,
         "max_atoms_requested": max_atoms,
         "accepted_path_length_excluding_zero": len(result.path) - 1,
-        "selected_path_index_fixed_intercept_one_se": selected_path_index,
+        "selected_path_index_zero_bias_one_se": selected_path_index,
         "selected_atom_count": len(selected.support_indices),
         "selected_supports": [list(item) for item in selected.support_labels],
         "train_mae": float(selected.train_mae),
-        "validation_mae_fixed_training_intercept": float(
-            path_rows[selected_path_index]["validation_mae_fixed_training_intercept"]
+        "validation_mae_zero_bias": float(
+            path_rows[selected_path_index]["validation_mae_zero_bias"]
         ),
-        "validation_se_fixed_training_intercept": float(
-            path_rows[selected_path_index]["validation_se_fixed_training_intercept"]
+        "validation_se_zero_bias": float(
+            path_rows[selected_path_index]["validation_se_zero_bias"]
         ),
-        "test_mae_fixed_training_intercept": test_mae,
-        "test_se_fixed_training_intercept": test_se,
+        "test_mae_zero_bias": test_mae,
+        "test_se_zero_bias": test_se,
         "stop_reason": result.stop_reason,
         "attempt_count": len(attempt_rows),
         "attempt_statuses": attempted_statuses,
@@ -488,7 +412,7 @@ def _run_one_case(
             "implicit exhaustive search over all nonempty terminal subsets; "
             "laminar compatibility only with already selected supports"
         ),
-        "validation_intercept_policy": "fixed training L1-median intercept",
+        "observation_model": "observed-root zero-bias: Y = PR + QX",
         "exactness_scope": (
             "each extension with HiGHS/SciPy status 0 is globally optimal for the "
             "bounded one-atom MILP up to solver numerical tolerances; the forward "
@@ -532,7 +456,7 @@ def _run_one_case(
     pd.DataFrame(
         {
             "block_index": np.arange(len(test_blocks)),
-            "test_mae_fixed_training_intercept": test_blocks,
+            "test_mae_zero_bias": test_blocks,
         }
     ).to_csv(case_dir / "test_block_mae.csv", index=False)
     pd.DataFrame(
@@ -556,10 +480,6 @@ def _run_one_case(
             )
         ]
     ).to_csv(case_dir / "selected_atoms.csv", index=False)
-    for scenario_index, intercept in enumerate(selected_intercepts):
-        pd.Series(intercept, index=labels, name="training_intercept_pu2").to_csv(
-            case_dir / f"training_intercept_scenario_{scenario_index}.csv"
-        )
     _write_json(case_dir / "metrics.json", metrics)
     return metrics
 
@@ -621,11 +541,11 @@ def run(
                 "maximum_reported_mip_gap": metrics["maximum_reported_mip_gap"],
                 "fit_wall_seconds": metrics["fit_wall_seconds"],
                 "train_mae": metrics["train_mae"],
-                "validation_mae_fixed_training_intercept": metrics[
-                    "validation_mae_fixed_training_intercept"
+                "validation_mae_zero_bias": metrics[
+                    "validation_mae_zero_bias"
                 ],
-                "test_mae_fixed_training_intercept": metrics[
-                    "test_mae_fixed_training_intercept"
+                "test_mae_zero_bias": metrics[
+                    "test_mae_zero_bias"
                 ],
                 "R_matrix_relative_frobenius_error": metrics[
                     "R_matrix_relative_frobenius_error"
@@ -640,6 +560,7 @@ def run(
     )
     summary.to_csv(output / "summary.csv", index=False)
     config = {
+        "observation_model": "observed_root_zero_bias; historical offset results require their archived source",
         "seed": seed,
         "solver": "scipy.optimize.milp/HiGHS",
         "scipy_version": scipy.__version__,
@@ -648,7 +569,7 @@ def run(
         "hybrid_time_limit_seconds_per_solve": hybrid_time_limit,
         "coefficient_bound_for_both_R_and_X": coefficient_bound,
         "truth_used_for_candidate_generation": False,
-        "fixed_training_intercept_for_validation_and_test": True,
+        "zero_bias_for_training_validation_and_test": True,
         "hybrid_case_skipped": skip_hybrid,
     }
     payload = {"config": config, "cases": cases}
@@ -660,8 +581,8 @@ def run(
         "case is used to generate data and post-fit truth metrics only; the solver "
         "searches every nonempty subset implicitly and receives no true clade list.",
         "",
-        "Validation and test MAE use the intercept estimated from the training prefix "
-        "without held-out-target refitting. Status 0 denotes HiGHS/SciPy optimality "
+        "Training, validation and test MAE use Y - PR - QX without any fitted bias. "
+        "Status 0 denotes HiGHS/SciPy optimality "
         "within numerical tolerances for that bounded one-atom MILP. It does not turn "
         "the greedy multi-atom path into a globally optimal K-atom solution.",
         "",

@@ -6,18 +6,27 @@ import argparse
 from pathlib import Path
 
 from rnj_wzzt.pipeline import DEFAULT_CASES, DEFAULT_OUTPUT as LEGACY_OUTPUT, run as run_pipeline
-from rnj_wzzt.scenario.settings import ROOT_OBSERVATIONS, SCENARIO_SUITES, resolve_scenario_settings
+from rnj_wzzt.scenario.settings import SCENARIO_SUITES
 
 
 DEFAULT_OUTPUT = Path("outputs/reference")
 
 
-def _add_scenario_options(parser: argparse.ArgumentParser, default_suite: str) -> None:
+def _argument_parser(output: Path, default_suite: str) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Run the standalone RX75-RNJ plus L1-wzzT pipeline."
+    )
+    parser.add_argument("--output", type=Path, default=output)
+    parser.add_argument("--cases", nargs="+", choices=DEFAULT_CASES, default=list(DEFAULT_CASES))
+    parser.add_argument("--time-limit", type=float, default=1800.0,
+                        help="Solver wall-time limit for each LP/MILP solve")
+    parser.add_argument("--milp-solver", choices=("highs", "gurobi"), default="highs")
     parser.add_argument("--scenario-suite", choices=tuple(SCENARIO_SUITES), default=default_suite)
-    parser.add_argument("--root-observation", choices=tuple(ROOT_OBSERVATIONS))
+    parser.add_argument("--root-observation", choices=("exact", "noisy"))
     parser.add_argument("--root-sigma", type=float, help="Physical root background standard-deviation scale, p.u.")
     parser.add_argument("--root-meter-noise-rel", type=float, help="Root meter random error standard deviation, relative")
     parser.add_argument("--impedance-scale", type=float, help="Absolute multiplier of the synthetic line library")
+    return parser
 
 
 def _scenario_options(args) -> dict:
@@ -37,13 +46,13 @@ def run(
     root_meter_noise_rel: float | None = None,
     root_sigma: float | None = None,
     impedance_scale: float | None = None,
+    milp_solver: str = "highs",
 ) -> dict:
     scenario_options = dict(
         scenario_suite=scenario_suite, root_observation=root_observation,
         root_meter_noise_rel=root_meter_noise_rel, root_sigma=root_sigma,
         impedance_scale=impedance_scale,
     )
-    settings = resolve_scenario_settings(**scenario_options)
     return run_pipeline(
         output_dir,
         cases=cases,
@@ -60,61 +69,36 @@ def run(
         maximum_candidate_count=2,
         selection_only=False,
         run_baseline=False,
-        contract_blocks=settings["root_observation"] != "unobserved",
+        contract_blocks=True,
         deembedding_weight=0.5,
-        candidate_pool_mode="rnj",
         time_limit=time_limit,
+        milp_solver=milp_solver,
         coefficient_bound=2.0,
         **scenario_options,
     )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run the standalone RX75-RNJ plus L1-wzzT pipeline."
-    )
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument(
-        "--cases",
-        nargs="+",
-        choices=DEFAULT_CASES,
-        default=list(DEFAULT_CASES),
-    )
-    parser.add_argument("--time-limit", type=float, default=1800.0)
-    _add_scenario_options(parser, "reference")
-    args = parser.parse_args()
-    run(args.output, cases=tuple(args.cases), time_limit=args.time_limit, **_scenario_options(args))
+    args = _argument_parser(DEFAULT_OUTPUT, "reference").parse_args()
+    run(args.output, cases=tuple(args.cases), time_limit=args.time_limit,
+        milp_solver=args.milp_solver, **_scenario_options(args))
 
 
 def advanced_main(*, runner=None) -> None:
     """Parse research options, optionally using the historical caller's runner."""
     if runner is None:
         runner = run_pipeline
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=LEGACY_OUTPUT)
-    parser.add_argument("--cases", nargs="+", choices=DEFAULT_CASES, default=list(DEFAULT_CASES))
+    parser = _argument_parser(LEGACY_OUTPUT, "legacy")
     parser.add_argument("--scenario-count", type=int, default=3)
     parser.add_argument("--samples-per-scenario", type=int, default=96)
     parser.add_argument("--bootstrap-replicates", type=int, default=100)
     parser.add_argument("--block-length", type=int, default=4)
     parser.add_argument("--confidence-threshold", type=float, default=0.75)
     parser.add_argument("--maximum-candidate-count", type=int, default=2)
-    parser.add_argument(
-        "--time-limit",
-        type=float,
-        default=1800.0,
-        help="HiGHS wall-time limit for each one-block MILP extension",
-    )
     parser.add_argument("--run-milp", action="store_true")
     parser.add_argument("--hybrid-only", action="store_true")
     parser.add_argument("--contract-blocks", action="store_true")
     parser.add_argument("--deembedding-weight", type=float, default=0.5)
-    parser.add_argument(
-        "--candidate-pool-mode",
-        choices=("unrestricted", "rnj", "rnj_one_edit"),
-        default="rnj",
-    )
-    _add_scenario_options(parser, "legacy")
     args = parser.parse_args()
     runner(
         args.output,
@@ -129,7 +113,7 @@ def advanced_main(*, runner=None) -> None:
         run_baseline=not args.hybrid_only,
         contract_blocks=args.contract_blocks,
         deembedding_weight=args.deembedding_weight,
-        candidate_pool_mode=args.candidate_pool_mode,
         time_limit=args.time_limit,
+        milp_solver=args.milp_solver,
         **_scenario_options(args),
     )

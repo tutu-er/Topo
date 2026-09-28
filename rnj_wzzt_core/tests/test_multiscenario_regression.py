@@ -34,8 +34,6 @@ def _squared_residual(scenario, r_matrix, x_matrix):
     q = scenario["Q_terminal"].to_numpy()
     target = scenario["drop_target"].to_numpy()
     residual = p @ r_matrix.T + q @ x_matrix.T - target
-    # Eliminate the scenario intercept analytically, just as the objective does.
-    residual -= residual.mean(axis=0)
     return float(np.sum(residual**2))
 
 
@@ -76,7 +74,7 @@ def test_ordered_margin_is_fixed_from_initial_ols_scale():
 
 
 @pytest.mark.parametrize("mode", ["basic", "ordered", "tree_covariance"])
-def test_recovers_shared_matrices_with_distinct_scenario_intercepts(mode):
+def test_recovers_shared_matrices_with_distinct_scenario_power_means(mode):
     rng = np.random.default_rng(20260907)
     r_true = np.array([[2.0, 0.4], [0.4, 1.4]])
     x_true = np.array([[1.1, 0.2], [0.2, 0.8]])
@@ -84,7 +82,7 @@ def test_recovers_shared_matrices_with_distinct_scenario_intercepts(mode):
     for i, samples in enumerate([37, 53]):
         p = rng.normal(size=(samples, 2)) + np.array([3.0, -2.0]) * i
         q = rng.normal(size=(samples, 2)) + np.array([-1.0, 4.0]) * i
-        target = p @ r_true.T + q @ x_true.T + np.array([7.0, -9.0]) * (i + 1)
+        target = p @ r_true.T + q @ x_true.T
         scenarios.append({
             "name": f"scenario_{i}",
             "P_terminal": pd.DataFrame(p, columns=[10, 20]),
@@ -97,19 +95,23 @@ def test_recovers_shared_matrices_with_distinct_scenario_intercepts(mode):
     assert r2 == pytest.approx(1.0, abs=1e-10)
 
 
-def test_ridge_penalizes_matrices_but_leaves_intercept_unpenalized():
+def test_ridge_keeps_orthogonal_meter_offset_in_residual():
     r_true = np.array([[2.0, 0.4], [0.4, 1.4]])
     x_true = np.array([[1.1, 0.2], [0.2, 0.8]])
     scenario = _orthogonal_scenario(r_true, x_true)
     scenario["drop_target"] += [13.0, -7.0]
     alpha = 3.0
+    diagnostics = {}
     r_hat, x_hat, _, _ = fit_projected_sensitivity(
-        [scenario], alpha=alpha, diagonal_margin_ratio=0.0,
+        [scenario], alpha=alpha, diagonal_margin_ratio=0.0, diagnostics=diagnostics,
     )
     # A.T @ A=2 I; unconstrained ridge is 2/(2+alpha) times the true slopes.
     scale = 2.0 / (2.0 + alpha)
     np.testing.assert_allclose(r_hat, scale * r_true, atol=2e-6)
     np.testing.assert_allclose(x_hat, scale * x_true, atol=2e-6)
+    expected_sse = 2 * (1 - scale)**2 * (np.sum(r_true**2) + np.sum(x_true**2))
+    expected_sse += len(scenario["drop_target"]) * (13.0**2 + 7.0**2)
+    assert diagnostics["squared_residual_sum"] == pytest.approx(expected_sse)
 
 
 @pytest.mark.parametrize("mode", ["basic", "ordered", "tree_covariance"])
@@ -255,7 +257,7 @@ def test_rank_deficient_design_fits_identifiable_combination(reactive_design):
     p = scenario["P_terminal"]
     scenario["Q_terminal"] = p.copy() if reactive_design == "same_as_p" else p * 0.0
     scenario["drop_target"] = pd.DataFrame(
-        p.to_numpy() @ true_r + scenario["Q_terminal"].to_numpy() @ true_x + [4.0, -6.0],
+        p.to_numpy() @ true_r + scenario["Q_terminal"].to_numpy() @ true_x,
         index=p.index, columns=p.columns,
     )
     diagnostics = {}
@@ -273,10 +275,10 @@ def test_rank_deficient_design_fits_identifiable_combination(reactive_design):
 
 
 @pytest.mark.parametrize("varying_target", [False, True])
-def test_no_excitation_returns_zero_slopes_and_fitted_intercepts(varying_target):
+def test_zero_power_cannot_explain_nonzero_voltage_drop(varying_target):
     scenario = _orthogonal_scenario(np.eye(2), np.eye(2))
-    scenario["P_terminal"].iloc[:, :] = [3.0, -2.0]
-    scenario["Q_terminal"].iloc[:, :] = [-1.0, 4.0]
+    scenario["P_terminal"].iloc[:, :] = 0.0
+    scenario["Q_terminal"].iloc[:, :] = 0.0
     if varying_target:
         target = scenario["drop_target"] + [5.0, -8.0]
     else:
@@ -286,8 +288,15 @@ def test_no_excitation_returns_zero_slopes_and_fitted_intercepts(varying_target)
     r_hat, x_hat, r2, _ = fit_projected_sensitivity([scenario], diagnostics=diagnostics)
     np.testing.assert_array_equal(r_hat, np.zeros((2, 2)))
     np.testing.assert_array_equal(x_hat, np.zeros((2, 2)))
-    np.testing.assert_allclose(diagnostics["intercepts"], [[5.0, -8.0]], atol=1e-12)
-    assert r2 == pytest.approx(0.0 if varying_target else 1.0, abs=1e-12)
+    expected_sse = float(np.sum(target.to_numpy()**2))
+    assert diagnostics["squared_residual_sum"] == pytest.approx(expected_sse)
+    assert "intercepts" not in diagnostics
+    if varying_target:
+        expected_r2 = 1.0 - expected_sse / float(np.sum((target - target.mean()).to_numpy()**2))
+        assert r2 == pytest.approx(expected_r2)
+        assert r2 < 0.0
+    else:
+        assert r2 == 0.0
     assert diagnostics["coordinates"] == "original_rank_deficient"
     assert diagnostics["success"] is True
 
@@ -342,7 +351,7 @@ def test_tiny_excitation_with_fixed_ridge_has_bounded_known_slopes():
     np.testing.assert_allclose(x_hat, expected_scale * true_x, rtol=2e-6, atol=1e-28)
 
 
-def test_diagnostics_match_original_objective_and_scenario_intercepts():
+def test_diagnostics_match_unshifted_objective_and_raw_design_condition():
     true_r = np.array([[1.0, 3.0], [3.0, 1.0]])
     true_x = np.eye(2)
     first = _orthogonal_scenario(true_r, true_x, name="first")
@@ -357,24 +366,32 @@ def test_diagnostics_match_original_objective_and_scenario_intercepts():
         )
     diagnostics = {}
     alpha = 0.7
-    r_hat, x_hat, r2, _ = fit_projected_sensitivity(
+    r_hat, x_hat, r2, condition = fit_projected_sensitivity(
         [first, second], alpha=alpha, diagonal_margin_ratio=0.1,
         diagnostics=diagnostics,
     )
     sse = 0.0
-    for scenario, intercept in zip([first, second], diagnostics["intercepts"]):
+    for scenario in [first, second]:
         p = scenario["P_terminal"].to_numpy()
         q = scenario["Q_terminal"].to_numpy()
         y = scenario["drop_target"].to_numpy()
-        np.testing.assert_allclose(intercept, (y - p @ r_hat - q @ x_hat).mean(axis=0), atol=1e-10)
-        residual = p @ r_hat + q @ x_hat + intercept - y
+        residual = p @ r_hat + q @ x_hat - y
         sse += float(np.sum(residual**2))
     expected_objective = 0.5 * (sse + alpha * (np.sum(r_hat**2) + np.sum(x_hat**2)))
     assert diagnostics["squared_residual_sum"] == pytest.approx(sse, abs=1e-10)
     assert diagnostics["objective"] == pytest.approx(expected_objective, abs=1e-10)
-    # Two independent designs have total A.T@A=4 I; initial ridge scale is 4/(4+alpha).
-    assert diagnostics["r_margin"] == pytest.approx(0.1 * 4.0 / (4.0 + alpha), abs=1e-10)
-    assert diagnostics["x_margin"] == pytest.approx(0.1 * 4.0 / (4.0 + alpha), abs=1e-10)
+    design = np.vstack([
+        np.hstack([scenario["P_terminal"], scenario["Q_terminal"]])
+        for scenario in [first, second]
+    ])
+    target = np.vstack([scenario["drop_target"] for scenario in [first, second]])
+    initial = np.linalg.solve(design.T @ design + alpha * np.eye(4), design.T @ target)
+    for key, block in zip(["r_margin", "x_margin"], [initial[:2], initial[2:]]):
+        diagonal = np.diag(block)
+        assert diagnostics[key] == pytest.approx(0.1 * np.median(diagonal[diagonal > 0]), abs=1e-10)
+    assert condition == pytest.approx(np.linalg.cond(design))
+    assert "intercepts" not in diagnostics
+    assert "centered_design_condition_number" not in diagnostics
     assert diagnostics["method"] == "SLSQP_convex_QP"
     assert diagnostics["success"] is True
     assert np.isfinite(r2)
@@ -441,19 +458,16 @@ def test_nearly_collinear_nonnegative_fit_matches_boundary_oracle(epsilon):
         "Q_terminal": pd.DataFrame(q, columns=[10]),
         "drop_target": pd.DataFrame(y, columns=[10]),
     }
-    p_centered = p - p.mean(axis=0)
-    q_centered = q - q.mean(axis=0)
-    y_centered = y - y.mean(axis=0)
-    expected_x = max(float((q_centered.T @ y_centered).item() / (q_centered.T @ q_centered).item()), 0.0)
-    oracle_residual = q_centered * expected_x - y_centered
+    expected_x = max(float((q.T @ y).item() / (q.T @ q).item()), 0.0)
+    oracle_residual = q * expected_x - y
     oracle_sse = float(np.sum(oracle_residual**2))
     # The unconstrained solution is R=-1/epsilon, X=1/epsilon. At R=0,
     # X is its one-dimensional LS optimum and the R directional derivative
     # is nonnegative, so this feasible boundary point is globally optimal.
-    assert float((p_centered.T @ oracle_residual).item()) >= -1e-12
+    assert float((p.T @ oracle_residual).item()) >= -1e-12
     diagnostics = {}
     r_hat, x_hat, _, _ = fit_projected_sensitivity([scenario], diagnostics=diagnostics)
-    fitted_residual = p_centered @ r_hat + q_centered @ x_hat - y_centered
+    fitted_residual = p @ r_hat + q @ x_hat - y
     fitted_sse = float(np.sum(fitted_residual**2))
     assert fitted_sse == pytest.approx(oracle_sse, abs=1e-10, rel=0.0)
     assert r_hat.min() >= 0.0

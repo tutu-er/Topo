@@ -45,6 +45,8 @@ def validate_terminal_load_only_scenario(
     terminals = net.buses[net.buses["bus_type"].eq("observed_terminal")]
     if bool((~terminals["has_load"]).any()):
         violations.append("observed_terminal node without load")
+    if bool((~terminals["is_observed"]).any()):
+        violations.append("observed_terminal node is not observed")
     root_rows = net.buses[net.buses["bus_id"].eq(net.root_bus)]
     if root_rows.empty or not bool(root_rows.iloc[0]["is_observed"]):
         violations.append("root is not observed")

@@ -1,0 +1,258 @@
+{
+  "evidence_level": "independent mathematical counterexamples; not feeder/AC or end-to-end validation",
+  "script_sha256": "a053a6ada03aedb0c38531d35ccfb4b8b5d24b1a7f98483dc61999b9495d4738",
+  "numpy_version": "2.4.6",
+  "topology_ambiguity": {
+    "R_A": [
+      [
+        5.0,
+        2.0,
+        1.0
+      ],
+      [
+        2.0,
+        5.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0,
+        4.0
+      ]
+    ],
+    "R_B": [
+      [
+        5.0,
+        1.0,
+        2.0
+      ],
+      [
+        1.0,
+        6.0,
+        1.0
+      ],
+      [
+        2.0,
+        1.0,
+        3.0
+      ]
+    ],
+    "nontrivial_clade_A": [
+      1,
+      2
+    ],
+    "nontrivial_clade_B": [
+      1,
+      3
+    ],
+    "max_passive_response_gap": 8.881784197001252e-16,
+    "response_gap_for_unit_energy_actions": {
+      "common_mode": 0.0,
+      "terminal_1": 1.4142135623730951,
+      "terminal_2": 1.4142135623730951,
+      "terminal_3": 1.4142135623730951
+    },
+    "limitation": "Known fixed candidate matrices; no nuisance refit or AC model."
+  },
+  "theft_confounding": {
+    "max_voltage_gap_between_normal_and_hidden": 4.440892098500626e-16,
+    "lossless_root_balance_normal": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "lossless_root_balance_hidden": [
+      0.6000000000000001,
+      0.6,
+      1.0,
+      1.6
+    ],
+    "probe_gaps_if_hidden_load_is_frozen": {
+      "balanced": 0.0,
+      "single_terminal": 1.4142135623730951
+    },
+    "same_network_different_hidden_sites_increment_gap": 2.220446049250313e-16,
+    "limitation": "Same clades with different parameters; root bias/legal unmetered load excluded."
+  },
+  "nuisance_projection": {
+    "scores": {
+      "large_common_mode": {
+        "raw_squared_gap": 200.0,
+        "profiled_squared_gap": 1.932709217791479e-29
+      },
+      "small_differential": {
+        "raw_squared_gap": 2.0,
+        "profiled_squared_gap": 1.9999999999999996
+      }
+    },
+    "limitation": "Unbounded common linear nuisance and identity covariance; a local illustration."
+  },
+  "query_value": {
+    "prior_risk": 0.125,
+    "queries": {
+      "structure_bit_no_decision_value": {
+        "information_bits": 1.0,
+        "expected_risk_after": 0.125,
+        "risk_reduction": 0.0
+      },
+      "theft_fact": {
+        "information_bits": 0.5435644431995964,
+        "expected_risk_after": 0.0,
+        "risk_reduction": 0.125
+      }
+    },
+    "limitation": "Eight abstract states, explicit uniform prior, perfect queries, equal costs; no feeder data."
+  },
+  "split_likelihood_bounds": {
+    "seed": 20260927,
+    "n_train": 32,
+    "n_test": 32,
+    "alpha": 0.05,
+    "null_mean_interval": [
+      -1.0,
+      0.0
+    ],
+    "relaxed_interval": [
+      "-infinity",
+      0.1
+    ],
+    "incumbent_mean": -1.0,
+    "known_sigma": 1.0,
+    "scenarios": [
+      {
+        "true_mean": -1.0,
+        "is_null": true,
+        "results": {
+          "exact_composite_null": {
+            "rejections": 4,
+            "trials": 10000,
+            "rejection_rate": 0.0004,
+            "wilson_95_interval": [
+              0.0001555628366230749,
+              0.0010281283353569793
+            ]
+          },
+          "valid_relaxation_lower_bound": {
+            "rejections": 0,
+            "trials": 10000,
+            "rejection_rate": 0.0,
+            "wilson_95_interval": [
+              0.0,
+              0.00038399837067659557
+            ]
+          },
+          "UNSAFE_feasible_incumbent_as_lower_bound": {
+            "rejections": 12,
+            "trials": 10000,
+            "rejection_rate": 0.0012,
+            "wilson_95_interval": [
+              0.0006866043187699608,
+              0.0020964724558170107
+            ]
+          }
+        }
+      },
+      {
+        "true_mean": -0.5,
+        "is_null": true,
+        "results": {
+          "exact_composite_null": {
+            "rejections": 0,
+            "trials": 10000,
+            "rejection_rate": 0.0,
+            "wilson_95_interval": [
+              0.0,
+              0.00038399837067659557
+            ]
+          },
+          "valid_relaxation_lower_bound": {
+            "rejections": 0,
+            "trials": 10000,
+            "rejection_rate": 0.0,
+            "wilson_95_interval": [
+              0.0,
+              0.00038399837067659557
+            ]
+          },
+          "UNSAFE_feasible_incumbent_as_lower_bound": {
+            "rejections": 5685,
+            "trials": 10000,
+            "rejection_rate": 0.5685,
+            "wilson_95_interval": [
+              0.5587681065772792,
+              0.5781792856459382
+            ]
+          }
+        }
+      },
+      {
+        "true_mean": 0.0,
+        "is_null": true,
+        "results": {
+          "exact_composite_null": {
+            "rejections": 8,
+            "trials": 10000,
+            "rejection_rate": 0.0008,
+            "wilson_95_interval": [
+              0.0004054337198968799,
+              0.001577950253386633
+            ]
+          },
+          "valid_relaxation_lower_bound": {
+            "rejections": 0,
+            "trials": 10000,
+            "rejection_rate": 0.0,
+            "wilson_95_interval": [
+              0.0,
+              0.00038399837067659557
+            ]
+          },
+          "UNSAFE_feasible_incumbent_as_lower_bound": {
+            "rejections": 9817,
+            "trials": 10000,
+            "rejection_rate": 0.9817,
+            "wilson_95_interval": [
+              0.978882009258095,
+              0.9841480467115951
+            ]
+          }
+        }
+      },
+      {
+        "true_mean": 0.5,
+        "is_null": false,
+        "results": {
+          "exact_composite_null": {
+            "rejections": 5685,
+            "trials": 10000,
+            "rejection_rate": 0.5685,
+            "wilson_95_interval": [
+              0.5587681065772792,
+              0.5781792856459382
+            ]
+          },
+          "valid_relaxation_lower_bound": {
+            "rejections": 3299,
+            "trials": 10000,
+            "rejection_rate": 0.3299,
+            "wilson_95_interval": [
+              0.3207515650097509,
+              0.33917907123595326
+            ]
+          },
+          "UNSAFE_feasible_incumbent_as_lower_bound": {
+            "rejections": 10000,
+            "trials": 10000,
+            "rejection_rate": 1.0,
+            "wilson_95_interval": [
+              0.9996160016293234,
+              1.0
+            ]
+          }
+        }
+      }
+    ],
+    "limitation": "Three null parameters and one alternative, not supremum-null validation; paired noise across scenarios."
+  }
+}

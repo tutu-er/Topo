@@ -285,6 +285,17 @@ def test_lindistflow_against_hand_matrix_with_open_tie_and_reversed_edges(voltag
     assert net.observed_buses() == [0, 1, 2, 3]
 
 
+@pytest.mark.parametrize("voltage_model,factor", [("magnitude", 1.0), ("squared-voltage", 2.0)])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_lindistflow_rectangular_observation_injection_paths(voltage_model, factor, reverse):
+    """A hidden-node injection shares the stem, but never a terminal's service edge."""
+    net = _small_network(reverse=reverse)
+    r, x = build_reduced_sensitivity_matrices(net, [3, 1], [2, 10, 3], voltage_model=voltage_model)
+    scale = factor / 50.0
+    np.testing.assert_allclose(r, scale * np.array([[0.0, 0.0, 5.0], [2.0, 2.0, 0.0]]), rtol=1e-15)
+    np.testing.assert_allclose(x, scale * np.array([[0.0, 0.0, 3.0], [1.0, 1.0, 0.0]]), rtol=1e-15)
+
+
 @pytest.mark.parametrize("base_kv,base_mva,expected", [(10.0, 2.0, 0.1), (0.4, 0.1, 3.125), (20.0, 8.0, 0.1)])
 def test_impedance_base_conversion_has_independent_units(base_kv, base_mva, expected):
     assert ohm_to_pu(_small_network(base_kv, base_mva), 5.0) == pytest.approx(expected)
@@ -302,7 +313,13 @@ def test_clade_constructor_roundtrip_uses_independent_descendants(kind, include_
     assert float(np.min(shared)) == float(include_stem)
 
 
-@pytest.mark.parametrize("clades", [{frozenset({1, 2}), frozenset({2, 3})}, {frozenset({1, 9})}])
+@pytest.mark.parametrize("clades", [
+    {frozenset({1, 2}), frozenset({2, 3})},
+    {frozenset({1, 9})},
+    {frozenset({9})},
+    {frozenset({1, 2, 3, 9})},
+    {frozenset({1, 2, 3, 4, 9})},
+])
 def test_clade_constructor_rejects_crossing_or_foreign_supports(clades):
     with pytest.raises(ValueError):
         rooted_tree_from_clades(clades, [1, 2, 3, 4], 0)
@@ -420,6 +437,43 @@ def test_cherry_deembedding_matches_independently_calculated_boundary_voltage(we
     np.testing.assert_allclose(actual["drop_target"][900001], root_sq - expected_sq, atol=1e-15)
     assert actual["V_terminal"].index.equals(index)
     assert not np.allclose(mean_sq, boundary_sq)
+
+
+@pytest.mark.parametrize("weight", [0.0, 0.5, 1.0])
+@pytest.mark.parametrize("order", [[2, 7, 11, 20], [20, 11, 7, 2]])
+def test_deembedding_matches_scalar_formula_for_asymmetric_estimates(weight, order):
+    # Imperfect estimates need not be symmetric. Distinct row coefficients
+    # expose a missing transpose; the last terminal is outside the clade.
+    labels = [2, 7, 11, 20]
+    r = np.array([[0.7, 0.1, 0.4, 0.9], [-0.2, 0.8, 0.2, 0.3],
+                  [0.3, 0.05, 0.9, 0.4], [0.1, 0.2, 0.3, 0.8]])
+    x = np.array([[0.4, 0.05, 0.1, 0.1], [0.08, 0.5, 0.2, 0.3],
+                  [0.12, 0.09, 0.6, 0.1], [0.1, 0.2, 0.1, 0.4]])
+    p = np.array([[0.1, 0.2, 0.3, 7.0], [-0.2, 0.3, 0.1, -4.0]])
+    q = np.array([[0.02, 0.01, -0.03, -2.0], [-0.01, 0.03, 0.02, 5.0]])
+    v = np.array([[0.95, 0.96, 0.94, 0.99], [0.97, 0.95, 0.93, 0.98]])
+    scenario = {
+        "name": "asymmetric",
+        "P_terminal": pd.DataFrame(p, columns=labels),
+        "Q_terminal": pd.DataFrame(q, columns=labels),
+        "V_terminal": pd.DataFrame(v, columns=labels),
+        "root_voltage": pd.Series([1.01, 1.02]),
+    }
+    cluster = PseudoCluster(900000, frozenset(labels[:3]), 1.0, (), ())
+    positions = [labels.index(label) for label in order]
+    actual, _ = aggregate_rooted_scenarios(
+        [scenario], order, r[np.ix_(positions, positions)], x[np.ix_(positions, positions)],
+        [cluster], "deembedded_vsq", weight,
+    )
+    # Upper-triangle 20th percentiles are 0.14 for R and 0.07 for X.
+    recovered = [[v[t, j] ** 2 + sum(
+        p[t, i] * max(r[j, i] - 0.14, 0.0)
+        + q[t, i] * max(x[j, i] - 0.07, 0.0)
+        for i in range(3)
+    ) for j in range(3)] for t in range(2)]
+    mean_sq = np.mean(v[:, :3] ** 2, axis=1)
+    expected = mean_sq + weight * (np.median(recovered, axis=1) - mean_sq)
+    np.testing.assert_allclose(actual[0]["V_terminal"][900000] ** 2, expected, atol=1e-14)
 
 
 @pytest.mark.parametrize("kind", ["star", "balanced", "comb", "multifurcating"])

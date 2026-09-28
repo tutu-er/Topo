@@ -117,7 +117,7 @@ def _mock_models(tuning, monkeypatch, *, fail=(), tie=False, nonfinite=False):
         if nonfinite:
             coefficient = np.nan
         diagnostics = SimpleNamespace(certified=True, to_dict=lambda: {"status": 0, "success": True})
-        solution = SimpleNamespace(intercepts=np.zeros((len(train), len(terminals))), diagnostics=diagnostics)
+        solution = SimpleNamespace(diagnostics=diagnostics)
         return solution, coefficient * np.eye(2), np.zeros((2, 2)), clades
 
     monkeypatch.setattr(tuning, "fit_projected_sensitivity", regression)

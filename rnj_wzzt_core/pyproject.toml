@@ -5,12 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rnj-wzzt-core"
 version = "0.1.0"
-description = "Standalone RX75-RNJ and finite-candidate L1-wzzT topology recovery"
+description = "Standalone RX75-RNJ and laminar L1-wzzT topology recovery"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24", "pandas>=2.0", "scipy>=1.10", "networkx>=3.0"]
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+gurobi = ["gurobipy>=11"]
 
 [tool.setuptools.packages.find]
 include = ["rnj_wzzt*"]

@@ -160,6 +160,8 @@ def worker(config_path):
         sys.path.insert(0, str(ROOT / "rnj_wzzt_core"))
         from experiments import wzzt_benders_prototype as prototype
         from rnj_wzzt.estimation import laminar_l1_milp as original
+        if config["method"] == "original_milp" and "intercepts" not in original.ExtensionSolution.__dataclass_fields__:
+            raise RuntimeError("Historical Benders comparison requires the intercept core in artifacts/observed_root_model_20260928/before; current core uses a different model.")
         scenarios, supports, bounds, meta = build_case(config)
         record["input"] = meta
         warmup()
@@ -377,6 +379,10 @@ def main():
     args = parser.parse_args()
     if args.worker:
         return worker(args.worker)
+    sys.path.insert(0, str(ROOT / "rnj_wzzt_core"))
+    from rnj_wzzt.estimation.laminar_l1_milp import ExtensionSolution
+    if "intercepts" not in ExtensionSolution.__dataclass_fields__:
+        parser.error("Benders retains free intercepts but current core does not. Replay the matched historical comparison with artifacts/observed_root_model_20260928/before.")
     if any(n < 4 for n in args.sizes) or args.repeats < 1 or args.samples_per_scenario < 4 or args.time_limit <= 0:
         parser.error("sizes >= 4, repeats >= 1, samples >= 4, time limit > 0 required")
     args.output_dir = args.output_dir.resolve()

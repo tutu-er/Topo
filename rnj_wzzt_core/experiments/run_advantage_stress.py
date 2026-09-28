@@ -33,11 +33,11 @@ from rnj_wzzt.graph.sensitivity_geometry import sensitivity_geometry
 from rnj_wzzt.graph.rooted_neighbor_joining import rooted_neighbor_joining
 from rnj_wzzt.graph.rooted_hierarchy import rooted_clades, aggregate_rooted_scenarios, PseudoCluster
 from rnj_wzzt.graph.bootstrap import _boundary_cherries
-from rnj_wzzt.pipeline import (_rnj_reduced_candidate_pool, _select_boundary_blocks,
-                               _map_clade_to_reduced_support, _expand_pseudo_result_clades)
-from rooted_ablation_support import BoundedPath, rooted_scores, serialized
+from rnj_wzzt.pipeline import _select_boundary_blocks, _expand_pseudo_result_clades
+from rooted_ablation_support import (BoundedPath, rooted_scores, serialized,
+    _rnj_reduced_candidate_pool, _map_clade_to_reduced_support)
 from rooted_study_baselines import infer_classical_nj
-from run_rooted_ablation import fixed_fit, intercepts, prediction_metrics
+from run_rooted_ablation import fixed_fit, prediction_metrics
 from stress_support import (generate_tree, perturb_matrices, synthetic_splits,
                             plain, write_json, source_fingerprint, paired_summary)
 
@@ -53,12 +53,12 @@ MEASUREMENT_METHODS = ('rnj_R', 'rnj_X', 'rnj_RX75', 'rnj_fixed_tree_lp',
                        'validation_selected_hybrid')
 
 
-def validation_mae(scenarios, r, x, fitted_intercepts):
-    """Prediction loss using training intercepts; no truth/test input exists."""
+def validation_mae(scenarios, r, x):
+    """Observed-root prediction loss; no fitted bias or truth/test input exists."""
     residual = np.concatenate([
         (s['drop_target'].to_numpy() - s['P_terminal'].to_numpy() @ r.T
-         - s['Q_terminal'].to_numpy() @ x.T - fitted_intercepts[i]).ravel()
-        for i, s in enumerate(scenarios)
+         - s['Q_terminal'].to_numpy() @ x.T).ravel()
+        for s in scenarios
     ])
     return float(np.mean(np.abs(residual)))
 
@@ -187,13 +187,13 @@ def measurement_job(job):
     base.update(n=n, bootstrap_replicates=job['bootstrap'], search_budget_seconds=job['search_seconds'])
     models = {}
 
-    def record(name, clades, rr=None, xx=None, b=None, *, elapsed=0., status='complete', extra=None):
+    def record(name, clades, rr=None, xx=None, *, elapsed=0., status='complete', extra=None):
         row = dict(base, method=name, elapsed_seconds=elapsed, status=status, clade_f1=None)
         if clades is not None:
             row.update(rooted_scores(clades, true_clades, terminals))
         if rr is not None:
-            row.update(prediction_metrics(sets, rr, xx, b, truth))
-            models[name] = (clades, rr, xx, b)
+            row.update(prediction_metrics(sets, rr, xx, truth))
+            models[name] = (clades, rr, xx)
         if extra:
             row.update({k: v for k, v in extra.items() if v is None or isinstance(v, (str, int, float, bool))})
         rows.append(row)
@@ -211,7 +211,7 @@ def measurement_job(job):
         start = time.perf_counter()
         clades[name] = infer(r, x, terminals, mode=mode, root=root)
         rnj_seconds[name] = time.perf_counter()-start
-        record(name, clades[name], r, x, intercepts(sets['train'], r, x),
+        record(name, clades[name], r, x,
                elapsed=qp_seconds+time.perf_counter()-start, extra={'regression_diagnostics': diagnostics})
     rnj = clades['rnj_RX75']
 
@@ -219,7 +219,7 @@ def measurement_job(job):
         start = time.perf_counter()
         try:
             sol, rr, xx, active = fixed_fit(sets['train'], family, terminals, job['solve_seconds'])
-            record(name, family, rr, xx, sol.intercepts, elapsed=required+time.perf_counter()-start,
+            record(name, family, rr, xx, elapsed=required+time.perf_counter()-start,
                    extra={'fixed_solver': sol.diagnostics.to_dict(),
                           'fixed_refit_certified': solver_diagnostics_prove_optimality(sol.diagnostics),
                           'active_weight_clades': serialized(active), **(extra or {})})
@@ -238,13 +238,13 @@ def measurement_job(job):
             nc = rooted_clades(nt.edges, root, terminals)
             sol, rr, xx, active = fixed_fit(sets['train'], nc, terminals, job['solve_seconds'])
             # No test-set or truth metrics are computed before threshold choice.
-            val = validation_mae(sets['validation'], rr, xx, sol.intercepts)
-            nj_models.append((val, factor, nc, rr, xx, sol.intercepts))
+            val = validation_mae(sets['validation'], rr, xx)
+            nj_models.append((val, factor, nc, rr, xx))
         except Exception as exc:
             nj_errors.append({'factor': factor, 'error': repr(exc)})
     if nj_models:
         best = min(nj_models, key=lambda m: (m[0], m[1]))
-        record('classical_nj_validation', best[2], best[3], best[4], best[5],
+        record('classical_nj_validation', best[2], best[3], best[4],
                elapsed=qp_seconds+time.perf_counter()-start,
                extra={'selected_collapse_factor': best[1], 'candidate_errors': nj_errors})
     else:
@@ -324,8 +324,7 @@ def measurement_job(job):
             extra['structural_search_complete'] = not extra['search_incomplete']
             # All structured methods receive the same original-terminal L1
             # parameter refit. Native path matrices and diagnostics are saved.
-            np.savez_compressed(out/f'{name}_native.npz', R=result.r_matrix, X=result.x_matrix,
-                                intercepts=result.intercepts)
+            np.savez_compressed(out/f'{name}_native.npz', R=result.r_matrix, X=result.x_matrix)
             refit(name, recovered, required=required+time.perf_counter()-start, extra=extra)
         except Exception as exc:
             record(name, None, elapsed=required+time.perf_counter()-start, status='failed',
@@ -413,7 +412,8 @@ def main():
     args.output.mkdir(parents=True)
     jobs = build_jobs(args)
     write_json(args.output/'protocol.json', {
-        'schema_version': 2, 'jobs': jobs, 'arguments': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+        'schema_version': 3, 'jobs': jobs, 'arguments': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+        'observation_model': 'Observed-root raw drop = PR + QX, without fitted terminal/scenario bias. Synthetic injected offsets remain deliberate model mismatch; old intercept results require artifacts/observed_root_model_20260928/before.',
         'environment': {'python': platform.python_version(), 'numpy': np.__version__, 'scipy': scipy.__version__, 'pandas': pd.__version__},
         'source_sha256': source_fingerprint(CORE),
         'primary_reference': 'rnj_RX75', 'primary_metric': 'nontrivial rooted clade F1 of structural support family, including zero-weight fixed supports',
@@ -425,7 +425,7 @@ def main():
         'synthetic_noise': 'noise relative to population squared-drop RMS, not meter percentage',
         'ac_noise': 'P/Q relative meter SD .005; terminal voltage SD .0002 or .001; noisy root .0002',
         'search_budget_scope': 'per structural model search, not entire runtime; preprocessing/bootstrap/refit separately included in elapsed',
-        'solver_adapter': 'finite pools: bounded exact LP enumeration; wzzt_rnj_pool_native uses identical RNJ pool with native MILP to separate solver from candidate-domain effects; unrestricted uses native MILP; paths are greedy',
+        'solver_adapter': 'finite pools: bounded exact LP enumeration; unrestricted uses native MILP; paths are greedy. Historical wzzt_rnj_pool_native is unsupported by the current core and records an explicit failure; replay it with artifacts/core_audit_20260927/before.',
         'production_relation': 'component ablations, 20 bootstrap by default versus production 100; original-terminal L1 refit after contraction; production defaults unchanged',
         'statistics': 'paired by job, cluster bootstrap by independent tree/AC replicate; descriptive 95% intervals for this bank; all failed rows retained',
         'hypotheses': ['No universal winner on exact identifiable trees.',

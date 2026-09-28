@@ -45,12 +45,14 @@ def test_coverage_handles_unrestricted_empty_and_star_domains(pool, truth, expec
     assert all(value == expected for value in result.values())
 
 
-@pytest.mark.parametrize('enumerate_pool,required,forbidden', [
-    (True, 'fixed-support LP', 'native MILP'),
-    (False, 'native MILP', 'all certified fixed-support LP'),
+@pytest.mark.parametrize('enumerate_pool,pool,required,forbidden', [
+    (True, ((0, 1),), 'fixed-support LP', 'native MILP'),
+    (True, (), 'fixed-support LP', 'native MILP'),
+    (True, None, 'native MILP', 'all certified fixed-support LP'),
+    (False, None, 'native MILP', 'all certified fixed-support LP'),
 ])
-def test_certificate_scope_identifies_the_actual_solver_adapter(enumerate_pool, required, forbidden):
-    adapter = BoundedPath(enumerate_pool=enumerate_pool)
+def test_certificate_scope_identifies_the_actual_solver_adapter(enumerate_pool, pool, required, forbidden):
+    adapter = BoundedPath(enumerate_pool=enumerate_pool, pool=pool)
     adapter.started = perf_counter()
     scope = adapter.records()['certificate_scope']
     assert required in scope

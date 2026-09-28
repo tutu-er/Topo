@@ -130,12 +130,13 @@ def test_noisy_grid4_smoke_run_is_auditable() -> None:
         outlier_fraction=0.05,
         gross_outlier_fraction=1.0,
     )
+    assert metrics["observation_model"] == "observed_root_zero_bias"
     assert metrics["terminal_count"] == 4
     assert metrics["truth_used_for_candidate_generation"] is False
     assert metrics["selected_family_is_laminar"] is True
     assert metrics["all_attempts_certified_optimal"] is True
     assert 0.0 <= metrics["nontrivial_support_f1"] <= 1.0
-    assert np.isfinite(metrics["test_mae_noisy_fixed_training_intercept"])
+    assert np.isfinite(metrics["test_mae_noisy_zero_bias"])
     assert np.isfinite(metrics["R_matrix_relative_frobenius_error"])
     assert np.isfinite(metrics["X_matrix_relative_frobenius_error"])
     assert set(atoms.columns) >= {"support_labels", "r_value", "x_value"}
@@ -152,7 +153,7 @@ def test_aggregate_reports_rates_and_solver_failures() -> None:
                 "nontrivial_support_f1": 1.0,
                 "R_matrix_relative_frobenius_error": 0.1,
                 "X_matrix_relative_frobenius_error": 0.2,
-                "test_mae_noisy_fixed_training_intercept": 0.01,
+                "test_mae_noisy_zero_bias": 0.01,
                 "test_mae_noisy_over_signal_mad": 0.1,
                 "all_attempts_certified_optimal": True,
                 "fit_wall_seconds": 1.0,
@@ -165,7 +166,7 @@ def test_aggregate_reports_rates_and_solver_failures() -> None:
                 "nontrivial_support_f1": 0.5,
                 "R_matrix_relative_frobenius_error": 0.3,
                 "X_matrix_relative_frobenius_error": 0.4,
-                "test_mae_noisy_fixed_training_intercept": 0.03,
+                "test_mae_noisy_zero_bias": 0.03,
                 "test_mae_noisy_over_signal_mad": 0.3,
                 "all_attempts_certified_optimal": False,
                 "fit_wall_seconds": 3.0,

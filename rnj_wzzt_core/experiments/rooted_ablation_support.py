@@ -4,17 +4,59 @@ No production solver implementation or default is changed. The adapter is
 installed only inside the worker process for the duration of one experiment.
 """
 from __future__ import annotations
-from dataclasses import replace
 from time import perf_counter
 import numpy as np
 from rnj_wzzt.estimation import laminar_l1_milp as core
 
+NATIVE_POOL_UNSUPPORTED = (
+    'Native support allowlists were removed from core; replay this historical '
+    'experiment with artifacts/core_audit_20260927/before. '
+    'Its finite search domain cannot be silently replaced by unrestricted MILP.'
+)
+
+
+def _map_clade_to_reduced_support(clade, reduced_labels, pseudo_members):
+    """Map a research candidate without cutting through a contracted block."""
+    support = []
+    covered = set()
+    for index, label in enumerate(reduced_labels):
+        members = pseudo_members[int(label)]
+        overlap = members & clade
+        if overlap and overlap != members:
+            return None
+        if overlap:
+            support.append(index)
+            covered.update(members)
+    return tuple(support) if covered == set(clade) else None
+
+
+def _rnj_reduced_candidate_pool(full_rnj_clades, reduced_labels, pseudo_members, *, include_one_edit):
+    """Build the explicit finite domain used only by historical pool experiments."""
+    terminal_count = len(reduced_labels)
+    base = set()
+    for clade in full_rnj_clades:
+        support = _map_clade_to_reduced_support(clade, reduced_labels, pseudo_members)
+        if support is not None and 1 < len(support) <= terminal_count:
+            base.add(support)
+    pool = set(base)
+    if include_one_edit:
+        universe = set(range(terminal_count))
+        for support in base:
+            current = set(support)
+            pool.update(tuple(sorted(current | {added})) for added in universe - current)
+            if len(current) > 2:
+                pool.update(tuple(sorted(current - {removed})) for removed in current)
+    return tuple(sorted(pool, key=lambda item: (len(item), item)))
+
+
 class ExperimentBudgetExpired(RuntimeError):pass
 
 class BoundedPath:
-    def __init__(self, *, total_seconds=12.0, solve_seconds=2.0, enumerate_pool=True):
+    def __init__(self, *, total_seconds=12.0, solve_seconds=2.0, enumerate_pool=True, pool=None):
         self.total_seconds=float(total_seconds);self.solve_seconds=float(solve_seconds)
         self.enumerate_pool=bool(enumerate_pool);self.solves=[];self.enumerations=[];self.path=[];self.attempts=[]
+        self.pool=pool
+        if pool is not None and not self.enumerate_pool:raise ValueError(NATIVE_POOL_UNSUPPORTED)
         self.r_bound=2.0;self.x_bound=2.0;self.initial_count=0;self.bound_restart_count=0
     def __enter__(self):
         self.started=perf_counter();self.deadline=self.started+self.total_seconds
@@ -47,9 +89,9 @@ class BoundedPath:
             node_count=0,runtime_seconds=elapsed,variable_count=0,binary_variable_count=0,constraint_count=0)
     def blank(self,prepared,diag):
         return core.ExtensionSolution(support=None,r_values=np.empty(0),x_values=np.empty(0),
-            intercepts=np.empty((prepared.scenario_count,prepared.n)),objective=diag.objective,diagnostics=diag)
+            objective=diag.objective,diagnostics=diag)
     def extension(self,prepared,supports,**kw):
-        start=perf_counter();pool=kw.get('candidate_supports')
+        start=perf_counter();pool=self.pool
         if self.remaining()<=0:
             answer=self.blank(prepared,self.diagnostic(1,'experiment total budget exhausted before extension'))
         elif not self.enumerate_pool or pool is None:
@@ -82,30 +124,33 @@ class BoundedPath:
                     # The bound is the minimum of certified LP optima over the
                     # exhaustive supplied finite domain, not a HiGHS MIP bound.
                     diag=self.diagnostic(0,'EXPERIMENT: exact finite candidate enumeration; every fixed-support LP optimal',best.objective,record['wall_seconds'])
-                    answer=core.ExtensionSolution(best_support,best.r_values,best.x_values,best.intercepts,best.objective,diag)
+                    answer=core.ExtensionSolution(best_support,best.r_values,best.x_values,best.objective,diag)
                 else:
                     answer=self.blank(prepared,self.diagnostic(1,'EXPERIMENT: incomplete finite candidate enumeration',None if best is None else best.objective,record['wall_seconds']))
             self.enumerations.append(record)
         self.attempts.append(answer)
         return answer
     def fit(self,scenarios,*,validation_scenarios,initial_supports,candidate_supports,max_atoms=None):
+        if candidate_supports is not None and not self.enumerate_pool:raise ValueError(NATIVE_POOL_UNSUPPORTED)
+        self.pool=candidate_supports
         self.initial_count=len(initial_supports)
         try:
             result=core.fit_laminar_l1_sensitivity(scenarios,validation_scenarios=validation_scenarios,
-                initial_supports=initial_supports,candidate_supports=candidate_supports,max_atoms=max_atoms,
+                initial_supports=initial_supports,max_atoms=max_atoms,
                 r_upper_bound=2.0,x_upper_bound=2.0,time_limit=self.solve_seconds,mip_rel_gap=0.0)
             return result
         except ExperimentBudgetExpired:
             if not self.path:raise
             selected_index=core._choose_path_point(self.path);s=self.path[selected_index]
             return core.LaminarL1Result(tuple(scenarios[0]['P_terminal'].columns),s.support_indices,s.support_labels,
-                s.r_values,s.x_values,s.intercepts,s.r_matrix,s.x_matrix,s.train_mae,s.validation_mae,
+                s.r_values,s.x_values,s.r_matrix,s.x_matrix,s.train_mae,s.validation_mae,
                 selected_index,tuple(self.path),tuple(self.attempts),'experiment_total_budget',self.r_bound,self.x_bound,
                 self.bound_restart_count)
     def records(self):
-        return {'adapter':'bounded_exact_lp_enumeration' if self.enumerate_pool else 'bounded_native_milp',
+        using_pool=self.enumerate_pool and self.pool is not None
+        return {'adapter':'bounded_exact_lp_enumeration' if using_pool else 'bounded_native_milp',
             'certificate_scope':('all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy'
-                if self.enumerate_pool else 'native MILP optimality requires the strict per-solve status and gap certificate; domain is the supplied pool or all admissible subsets when no pool is supplied; forward path remains greedy'),
+                if using_pool else 'native MILP optimality requires the strict per-solve status and gap certificate; domain is all admissible subsets; forward path remains greedy'),
             'solver_calls':self.solves,'enumerations':self.enumerations,'model_wall_seconds':perf_counter()-self.started,
             'solver_seconds':sum(d['runtime_seconds'] for d in self.solves)}
 

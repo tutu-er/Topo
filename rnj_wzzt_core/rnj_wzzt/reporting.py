@@ -130,45 +130,30 @@ def _rnj_candidate_rows(
     return rows
 
 
+def _format_optional_number(value: float | None) -> str:
+    return "" if value is None else f"{value:.12g}"
+
+
 def _milp_result_row(
     *, case_name, initializer, result, selected, supports,
-    candidate_supports, candidate_clades, candidate_pool_mode,
     predicted, truth_clades, elapsed,
 ) -> dict:
     """Keep topology scores and solver evidence in one output schema."""
     score = _family_score(predicted, truth_clades)
     missing = truth_clades - predicted
     extra = predicted - truth_clades
+    diagnostics = [attempt.diagnostics for attempt in result.attempted_extensions]
     return {
         "case": case_name,
         "initializer": initializer,
+        "milp_solver": result.path[result.selected_path_index].solver.solver,
         "rnj_initial_supports": ";".join(
             _serialize(clade) for clade in selected
         ),
         "frozen_support_count": len(supports),
         "frozen_leaf_singleton_count": len(result.terminal_labels),
         "frozen_rnj_block_count": len(selected),
-        "candidate_pool_mode": (
-            "unrestricted" if candidate_supports is None else candidate_pool_mode
-        ),
-        "candidate_pool_count": (
-            "" if candidate_supports is None else len(candidate_supports)
-        ),
-        "candidate_pool_only_truth_recall": (
-            ""
-            if candidate_supports is None
-            else _family_score(candidate_clades, truth_clades)[
-                "nontrivial_support_recall"
-            ]
-        ),
-        "candidate_pool_plus_frozen_truth_recall": (
-            ""
-            if candidate_supports is None
-            else _family_score(
-                candidate_clades | set(selected), truth_clades
-            )["nontrivial_support_recall"]
-        ),
-        "candidate_pool_clades": _serialize_family(candidate_clades),
+        "support_search_mode": "unrestricted",
         "milp_terminal_count": len(result.terminal_labels),
         "elapsed_seconds": elapsed,
         "support_count": len(result.support_labels),
@@ -186,39 +171,30 @@ def _milp_result_row(
             str(len(point.support_labels)) for point in result.path
         ),
         "path_validation_mae": ";".join(
-            "" if point.validation_mae is None else f"{point.validation_mae:.12g}"
+            _format_optional_number(point.validation_mae)
             for point in result.path
         ),
-        "attempt_statuses": ";".join(
-            str(attempt.diagnostics.status)
-            for attempt in result.attempted_extensions
+        "attempt_statuses": ";".join(str(item.status) for item in diagnostics),
+        "attempt_raw_statuses": ";".join(
+            "" if item.raw_status is None else str(item.raw_status) for item in diagnostics
         ),
         "attempts_proven_optimal": sum(
-            solver_diagnostics_prove_optimality(attempt.diagnostics)
-            for attempt in result.attempted_extensions
+            solver_diagnostics_prove_optimality(item) for item in diagnostics
         ),
         "attempt_runtimes": ";".join(
-            f"{attempt.diagnostics.runtime_seconds:.6g}"
-            for attempt in result.attempted_extensions
+            f"{item.runtime_seconds:.6g}" for item in diagnostics
         ),
         "attempt_objectives": ";".join(
-            "" if attempt.diagnostics.objective is None
-            else f"{attempt.diagnostics.objective:.12g}"
-            for attempt in result.attempted_extensions
+            _format_optional_number(item.objective) for item in diagnostics
         ),
         "attempt_dual_bounds": ";".join(
-            "" if attempt.diagnostics.dual_bound is None
-            else f"{attempt.diagnostics.dual_bound:.12g}"
-            for attempt in result.attempted_extensions
+            _format_optional_number(item.dual_bound) for item in diagnostics
         ),
         "attempt_mip_gaps": ";".join(
-            "" if attempt.diagnostics.mip_gap is None
-            else f"{attempt.diagnostics.mip_gap:.12g}"
-            for attempt in result.attempted_extensions
+            _format_optional_number(item.mip_gap) for item in diagnostics
         ),
         "attempt_messages": " | ".join(
-            attempt.diagnostics.message.replace("\n", " ")
-            for attempt in result.attempted_extensions
+            item.message.replace("\n", " ") for item in diagnostics
         ),
         "predicted_clades": _serialize_family(predicted),
         "true_clades": _serialize_family(truth_clades),

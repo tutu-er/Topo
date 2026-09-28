@@ -4,6 +4,9 @@ import pandas as pd
 import pytest
 
 import experiments.run_rx75_rnj_milp_hybrid_ac as hybrid
+from rnj_wzzt_core.experiments.rooted_ablation_support import (
+    _map_clade_to_reduced_support, _rnj_reduced_candidate_pool,
+)
 
 
 def test_leaf_singletons_cover_every_reduced_terminal() -> None:
@@ -84,13 +87,13 @@ def test_rnj_candidate_pool_maps_contracted_blocks_and_adds_one_edits() -> None:
         frozenset({4, 5}),
     }
 
-    base = hybrid._rnj_reduced_candidate_pool(
+    base = _rnj_reduced_candidate_pool(
         full_clades,
         reduced_labels,
         members,
         include_one_edit=False,
     )
-    augmented = hybrid._rnj_reduced_candidate_pool(
+    augmented = _rnj_reduced_candidate_pool(
         full_clades,
         reduced_labels,
         members,
@@ -100,17 +103,6 @@ def test_rnj_candidate_pool_maps_contracted_blocks_and_adds_one_edits() -> None:
     assert base == ((0, 1), (2, 3))
     assert (0, 1, 2) in augmented
     assert (1, 2, 3) in augmented
-    assert hybrid._map_clade_to_reduced_support(
+    assert _map_clade_to_reduced_support(
         frozenset({1, 3}), reduced_labels, members
     ) is None
-
-    expanded = hybrid._expand_candidate_pool(
-        base,
-        reduced_labels,
-        members,
-        terminal_count=5,
-    )
-    assert expanded == {
-        frozenset({1, 2, 3}),
-        frozenset({4, 5}),
-    }

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from terminal_case33.data.small_terminal_lv import build_small_terminal_lv_case
 from terminal_case33.models.ac_powerflow import solve_ac_power_flow_snapshot, solve_ac_power_flow_timeseries
@@ -91,3 +92,41 @@ def test_batched_timeseries_matches_independent_snapshots() -> None:
         assert np.allclose(batched["V_bus_mag"].loc[row], expected_voltage, atol=1e-12)
         assert np.allclose(batched["branch_p_from_pu"].loc[row], expected_p_from, atol=1e-12)
         assert int(batched["iterations"].loc[row]) == snapshot.iterations
+
+
+def _solve_input_case(net, batched, p=0.01, q=0.005, v_root=1.0, **options):
+    terminal = net.load_buses()[0]
+    if batched:
+        return solve_ac_power_flow_timeseries(
+            net, pd.DataFrame({terminal: [p]}), pd.DataFrame({terminal: [q]}),
+            v_root=v_root, **options,
+        )
+    return solve_ac_power_flow_snapshot(net, {terminal: p}, {terminal: q}, v_root=v_root, **options)
+
+
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("field", ["p", "q", "v_root"])
+@pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
+def test_ac_rejects_nonfinite_electrical_inputs(batched, field, value):
+    """A NaN load must never produce a successful zero-error snapshot."""
+    with pytest.raises(ValueError, match="inputs must be finite"):
+        _solve_input_case(build_small_terminal_lv_case(), batched, **{field: value})
+
+
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("option,value", [
+    ("max_iter", 0), ("max_iter", -1), ("max_iter", 1.5), ("max_iter", True),
+    ("tol", 0.0), ("tol", -1.0), ("tol", np.nan), ("tol", np.inf), ("tol", True),
+])
+def test_ac_rejects_invalid_stopping_rules(batched, option, value):
+    with pytest.raises(ValueError, match=option):
+        _solve_input_case(build_small_terminal_lv_case(), batched, **{option: value})
+
+
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("field", ["r_ohm", "x_ohm"])
+def test_ac_rejects_nonfinite_branch_impedance(batched, field):
+    net = build_small_terminal_lv_case()
+    net.branches.loc[net.branches["is_true_closed"], field] = np.nan
+    with pytest.raises(ValueError, match="impedances must be finite"):
+        _solve_input_case(net, batched)

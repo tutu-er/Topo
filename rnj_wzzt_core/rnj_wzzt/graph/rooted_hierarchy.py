@@ -51,10 +51,10 @@ def rooted_tree_from_clades(
     normalized = {
         frozenset(int(node) for node in clade)
         for clade in clades
-        if 1 < len(clade) < len(terminal_tuple)
     }
     if any(not clade <= terminal_set for clade in normalized):
         raise ValueError("clades must contain only supplied terminals")
+    normalized = {clade for clade in normalized if 1 < len(clade) < len(terminal_tuple)}
     ordered = sorted(normalized, key=lambda item: (len(item), tuple(sorted(item))))
     for index, left in enumerate(ordered):
         for right in ordered[index + 1 :]:
@@ -185,27 +185,17 @@ def select_peripheral_clusters(
     return clusters
 
 
-def _boundary_sensitivity_row(
+def _boundary_differential(
     matrix: np.ndarray,
     member_positions: list[int],
 ) -> np.ndarray:
-    """Estimate a clade-boundary sensitivity row from descendant rows."""
+    """Return descendant-to-boundary coefficients for injections inside a clade."""
 
-    n = matrix.shape[0]
     submatrix = matrix[np.ix_(member_positions, member_positions)]
     off_diagonal = submatrix[np.triu_indices(len(member_positions), 1)]
-    boundary_depth = (
-        float(np.quantile(off_diagonal, 0.2)) if off_diagonal.size else float(submatrix[0, 0])
-    )
-    boundary_depth = float(np.clip(boundary_depth, 0.0, np.min(np.diag(submatrix))))
-    row = np.zeros(n, dtype=float)
-    member_set = set(member_positions)
-    for position in range(n):
-        if position in member_set:
-            row[position] = boundary_depth
-        else:
-            row[position] = float(np.median(matrix[member_positions, position]))
-    return np.maximum(row, 0.0)
+    boundary_depth = np.quantile(off_diagonal, 0.2)
+    boundary_depth = np.maximum(np.clip(boundary_depth, 0.0, np.min(np.diag(submatrix))), 0.0)
+    return np.maximum(submatrix - boundary_depth, 0.0)
 
 
 def aggregate_rooted_scenarios(
@@ -243,51 +233,46 @@ def aggregate_rooted_scenarios(
             pseudo_members[next_id] = frozenset([terminal])
             next_id += 1
 
-    boundary_rows = {}
-    for pseudo_id, members in pseudo_members.items():
-        indices = [position[node] for node in sorted(members)]
-        boundary_rows[pseudo_id] = (
-            _boundary_sensitivity_row(r_matrix, indices),
-            _boundary_sensitivity_row(x_matrix, indices),
-        )
+    differentials = {}
+    if voltage_mode == "deembedded_vsq":
+        for pseudo_id, members in pseudo_members.items():
+            if len(members) > 1:
+                indices = [position[node] for node in sorted(members)]
+                differentials[pseudo_id] = (
+                    _boundary_differential(r_matrix, indices),
+                    _boundary_differential(x_matrix, indices),
+                )
 
     aggregated = []
     for scenario in scenarios:
         p_terminal = scenario["P_terminal"].loc[:, terminals]
         q_terminal = scenario["Q_terminal"].loc[:, terminals]
         v_terminal = scenario["V_terminal"].loc[:, terminals]
-        p_values = p_terminal.to_numpy(dtype=float)
-        q_values = q_terminal.to_numpy(dtype=float)
         p_pseudo = pd.DataFrame(index=p_terminal.index)
         q_pseudo = pd.DataFrame(index=q_terminal.index)
         v_pseudo_sq = pd.DataFrame(index=v_terminal.index)
         for pseudo_id, members in pseudo_members.items():
             children = sorted(members)
-            p_pseudo[pseudo_id] = p_terminal[children].sum(axis=1)
-            q_pseudo[pseudo_id] = q_terminal[children].sum(axis=1)
+            p_children = p_terminal[children]
+            q_children = q_terminal[children]
+            voltage_sq = v_terminal[children].pow(2)
+            p_pseudo[pseudo_id] = p_children.sum(axis=1)
+            q_pseudo[pseudo_id] = q_children.sum(axis=1)
             if len(children) == 1:
-                v_pseudo_sq[pseudo_id] = v_terminal[children[0]].pow(2)
+                v_pseudo_sq[pseudo_id] = voltage_sq[children[0]]
                 continue
+            mean_voltage_sq = voltage_sq.mean(axis=1)
             if voltage_mode == "mean_vsq":
-                v_pseudo_sq[pseudo_id] = v_terminal[children].pow(2).mean(axis=1)
+                v_pseudo_sq[pseudo_id] = mean_voltage_sq
                 continue
-            r_boundary, x_boundary = boundary_rows[pseudo_id]
-            member_indices = [position[child] for child in children]
-            mean_voltage_sq = v_terminal[children].pow(2).mean(axis=1).to_numpy(dtype=float)
-            recovered = []
-            for child in children:
-                child_position = position[child]
-                delta_r = np.zeros(len(terminals), dtype=float)
-                delta_x = np.zeros(len(terminals), dtype=float)
-                delta_r[member_indices] = np.maximum(
-                    r_matrix[child_position, member_indices] - r_boundary[member_indices], 0.0
-                )
-                delta_x[member_indices] = np.maximum(
-                    x_matrix[child_position, member_indices] - x_boundary[member_indices], 0.0
-                )
-                differential_drop = p_values @ delta_r + q_values @ delta_x
-                recovered.append(v_terminal[child].pow(2).to_numpy(dtype=float) + differential_drop)
-            deembedded = np.median(np.column_stack(recovered), axis=1)
+            delta_r, delta_x = differentials[pseudo_id]
+            recovered = (
+                voltage_sq.to_numpy(dtype=float)
+                + p_children.to_numpy(dtype=float) @ delta_r.T
+                + q_children.to_numpy(dtype=float) @ delta_x.T
+            )
+            deembedded = np.median(recovered, axis=1)
+            mean_voltage_sq = mean_voltage_sq.to_numpy(dtype=float)
             v_pseudo_sq[pseudo_id] = mean_voltage_sq + deembedding_weight * (
                 deembedded - mean_voltage_sq
             )

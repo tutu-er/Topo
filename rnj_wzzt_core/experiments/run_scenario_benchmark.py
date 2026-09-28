@@ -24,7 +24,8 @@ import pandas as pd
 from rnj_wzzt.scenario.settings import SCENARIO_SUITES, ROOT_OBSERVATIONS
 from rnj_wzzt.scenario.simulation import _simulate_pool, _terminal_buses
 from rnj_wzzt.estimation.multiscenario import fit_projected_sensitivity, preprocess_scenarios
-from rnj_wzzt.estimation.preprocessing import RECIPE
+# This historical diagnostic estimates its own offsets after centered fitting.
+RECIPE = {"name": "daily_demean", "kind": "demean"}
 from rnj_wzzt.models.lin_distflow import build_reduced_sensitivity_matrices
 from rnj_wzzt.graph.sensitivity_geometry import sensitivity_geometry
 from rnj_wzzt.graph.rooted_neighbor_joining import rooted_neighbor_joining
@@ -144,7 +145,7 @@ def main():
     manifest={str(p.relative_to(CORE)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     mp=output/"source_manifest.json"
     if mp.exists() and json.loads(mp.read_text(encoding="utf-8"))!=manifest: raise ValueError("Source changed; choose a fresh output directory")
-    config={**vars(args),"output":str(output),"estimator":"current ordered squared-loss regression, latent c=0","split":"train replicate=2*k; test replicate=2*k+1","test_intercepts":"training only","physical_voltage_screen":"0.93..1.07 pu is a diagnostic screen, not a full standards compliance test","noise_parameters":"Gaussian standard deviations, not instrument maximum-error specifications"}
+    config={**vars(args),"output":str(output),"estimator":"historical daily-demeaned regression with training-only offsets","split":"train replicate=2*k; test replicate=2*k+1","test_intercepts":"training only","physical_voltage_screen":"0.93..1.07 pu is a diagnostic screen, not a full standards compliance test","noise_parameters":"Gaussian standard deviations, not instrument maximum-error specifications"}
     config={k:str(v) if isinstance(v,Path) else v for k,v in config.items()}
     cp=output/"config.json"
     if cp.exists() and json.loads(cp.read_text(encoding="utf-8"))!=config: raise ValueError("Configuration changed; choose a fresh output directory")

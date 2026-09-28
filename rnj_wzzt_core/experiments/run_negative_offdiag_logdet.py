@@ -1,8 +1,8 @@
 """Isolated negative off-diagonal / log-det experiment; never patches core code.
 
 Run with an existing environment containing CVXPY + CLARABEL and core dependencies:
-  python -B experiments/test_negative_offdiag_logdet.py --self-test
-  python -B experiments/test_negative_offdiag_logdet.py --repeats 3 --workers 3
+  python -B experiments/run_negative_offdiag_logdet.py --self-test
+  python -B experiments/run_negative_offdiag_logdet.py --skip-milp --repeats 3 --workers 3
 
 Physical matrices remain symmetric, nonnegative and ordered. Thus -|M_ij|
 is exactly -M_ij on the feasible domain, and the objective remains convex.
@@ -34,13 +34,14 @@ from rnj_wzzt.data.paper_style_case_bank import CASE_BUILDERS
 from rnj_wzzt.estimation.multiscenario import (
     _aligned_arrays, fit_projected_sensitivity, preprocess_scenarios,
 )
-from rnj_wzzt.estimation.preprocessing import RECIPE
-from rnj_wzzt.estimation.laminar_l1_milp import fit_laminar_l1_sensitivity
+# The independent regularized model retains its historical centered loss
+# and training-only offsets; these are not parameters of the current core.
+RECIPE = {"name": "daily_demean", "kind": "demean"}
 from rnj_wzzt.graph.rooted_hierarchy import rooted_clades
 from rnj_wzzt.graph.rooted_neighbor_joining import rooted_neighbor_joining
 from rnj_wzzt.graph.sensitivity_geometry import sensitivity_geometry
 from rnj_wzzt.models.lin_distflow import build_reduced_sensitivity_matrices
-from rnj_wzzt.pipeline import _rnj_reduced_candidate_pool, _expand_pseudo_result_clades
+from rooted_ablation_support import NATIVE_POOL_UNSUPPORTED
 from rnj_wzzt.reporting import _truth_nontrivial_clades
 from rnj_wzzt.scenario.simulation import _simulate_pool, _terminal_buses
 
@@ -230,6 +231,8 @@ def admissible(row):
 
 
 def run_job(job):
+    if job["milp"]:
+        raise ValueError(NATIVE_POOL_UNSUPPORTED + ' Use --skip-milp for the regression/RNJ study.')
     out = Path(job["output"]) / f"{job['case']}_n{job['samples']}_repeat{job['repeat']}"
     out.mkdir(parents=True, exist_ok=True)
     result_path = out / "result.json"
@@ -302,37 +305,6 @@ def run_job(job):
         row = row.copy()
         np.savez_compressed(out / f"{method}.npz", R=blocks[0], X=blocks[1], intercepts=b)
         row["rnj_clades"] = sorted([sorted(c) for c in clades], key=lambda c: (len(c), c))
-        if job["milp"]:
-            identity = {t: frozenset({t}) for t in terminals}
-            pool = _rnj_reduced_candidate_pool(clades, terminals, identity, include_one_edit=False)
-            pool_clades = {frozenset(terminals[i] for i in s) for s in pool}
-            row["candidate_count"] = len(pool)
-            row["candidate_truth_recall"] = len(pool_clades & truth_clades) / max(len(truth_clades), 1)
-            st = perf_counter()
-            try:
-                # Direct core call, no monkeypatch, no altered solver, no frozen RNJ blocks.
-                # Existing structurally known singleton leaf atoms remain fixed.
-                fitted = fit_laminar_l1_sensitivity(training,
-                    validation_scenarios=preprocess_scenarios(sets["path_validation"], RECIPE),
-                    initial_supports=[(i,) for i in range(len(terminals))], candidate_supports=pool,
-                    r_upper_bound=2.0, x_upper_bound=2.0, time_limit=job["milp_seconds"])
-                recovered = _expand_pseudo_result_clades(fitted, identity, len(terminals))
-                row.update({f"milp_{k}": v for k, v in family_score(recovered, truth_clades).items()})
-                row.update(milp_seconds=perf_counter() - st, milp_stop=fitted.stop_reason,
-                           milp_path_length=len(fitted.path), milp_selected_path=fitted.selected_path_index)
-                # Reconstruct only the intercept on raw training means for raw test predictions.
-                mb = np.array([fitted.r_matrix, fitted.x_matrix])
-                raw_b = intercepts(sets["train"], mb) + fitted.intercepts
-                row.update({f"milp_test_{k}": v for k, v in prediction(sets["test"], mb, raw_b).items()})
-                write_json(out / f"{method}_milp.json", {"summary": fitted.summary(),
-                    "clades": sorted([sorted(c) for c in recovered], key=lambda c: (len(c), c)),
-                    "attempts": [e.diagnostics.to_dict() for e in fitted.attempted_extensions],
-                    "path": [{"iteration": p.iteration, "train_mae": p.train_mae,
-                              "validation_mae": p.validation_mae, "validation_se": p.validation_se,
-                              "solver": p.solver.to_dict()} for p in fitted.path]})
-                np.savez_compressed(out / f"{method}_milp.npz", R=mb[0], X=mb[1], intercepts=raw_b)
-            except Exception as exc:
-                row.update(milp_error=repr(exc), milp_seconds=perf_counter() - st)
         rows.append(row)
     result = {"job": job, "rows": rows, "failures": failures, "seconds": perf_counter() - started,
               "truth_clades": sorted([sorted(c) for c in truth_clades], key=lambda c: (len(c), c))}
@@ -341,6 +313,10 @@ def run_job(job):
 
 
 class AnalyticalTests(unittest.TestCase):
+    def test_removed_native_allowlist_fails_before_starting_a_job(self):
+        with self.assertRaisesRegex(ValueError, 'replay this historical'):
+            run_job({"milp": True})
+
     def test_negative_offdiagonal_has_positive_closed_form_shift(self):
         baseline = np.array([[[2.0, .2], [.2, 2.0]], [[1.0, .1], [.1, 1.0]]])
         model = RegularizedRegression(np.eye(4), np.vstack(baseline), baseline, np.zeros(2), sse_scale=1)
@@ -396,6 +372,8 @@ def main():
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(AnalyticalTests)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         raise SystemExit(0 if result.wasSuccessful() else 1)
+    if not args.skip_milp:
+        parser.error(NATIVE_POOL_UNSUPPORTED + ' Use --skip-milp for the regression/RNJ study.')
     before = fingerprints()
     output = args.output.resolve()
     protocol = {"cases": args.cases, "samples": args.samples, "repeats": args.repeats,
@@ -404,7 +382,7 @@ def main():
         "coefficient_guard": "SSE/SSE0<=1.10; each matrix Frobenius ratio<=1.25; normalized off reward<=1.25",
         "tuning": "Minimum tune raw prediction RMSE among eligible candidates within each ablation; no truth/test use",
         "splits": "Per repeat: independent replicates 4r=train,4r+1=tune,4r+2=path validation,4r+3=test; test has 96 points/scenario",
-        "downstream": "Direct unchanged finite-pool L1-MILP; RX75 RNJ candidates; singleton initial supports; no bootstrap, freezing or contraction",
+        "downstream": "RX75 RNJ only; historical native finite-pool MILP requires the archived core",
         "milp_time_limit_per_extension": args.milp_seconds, "milp": not args.skip_milp,
         "core_before": before, "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "python": sys.executable, "cvxpy": cp.__version__, "numpy": np.__version__}

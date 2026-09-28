@@ -1,6 +1,6 @@
 # Terminal-only topology identification
 
-本目录的主路径是 **RX75-RNJ 末端分块 + 有限候选域 L1-MILP**。目标是在仅末端节点可观测、内部节点零注入且不可观的径向配电网中，由含噪声的终端 P/Q/V 时序恢复可辨识线路（以下游终端 clade 表示）。
+本目录的主路径是 **固定 RX75-RNJ 末端分块 + L1-MILP 搜索相容的新支撑**。根节点电压已有观测；内部节点零注入且不可观。由含噪声的终端 P/Q/V 时序和公共根电压恢复可辨识线路（以下游终端 clade 表示）。
 
 ## 环境
 
@@ -15,7 +15,7 @@ python -m pip install -e rnj_wzzt_core
 
 已有该环境时可直接 `conda activate Topo`。也可用 `conda env create -f environment.yml` 重建同名环境。
 
-## 一条命令复现主结果
+## 运行主流程
 
 在本目录执行：
 
@@ -35,16 +35,16 @@ python -m experiments.run_mainline --cases paper15 flynn16
 
 ## 主算法
 
-1. 用含噪 AC 潮流生成的终端 P/Q/V 数据做 daily_demean。
+1. 用公共根电压观测构造 Y_i(t)=V_0(t)²−V_i(t)²，直接使用原始 P/Q/Y，不去均值或拟合末端截距。
 2. 联合多场景估计对称、非负且对角占优有序的 R、X 灵敏度矩阵。
 3. 分别归一化 R、X，构造 RX75 = 0.75 R + 0.25 X 的 shared-path 核；它不是 R/X 比值。
 4. 用 RNJ 和 0.16 × median(root_depth) 容差重构完整候选层次。
 5. 做 100 次 circular moving-block bootstrap（块长 4），只从完整 RNJ 树的 inclusion-minimal 非平凡 clade 中选择支持度不低于 0.75 的候选；最多固定 2 个互不相交的末端块。
 6. 收缩可信末端块，聚合 P/Q，以 0.5 权重反嵌入伪末端电压；固定约化系统的全部 singleton 叶边原子。
-7. 完整 RNJ 的其余 clade 只定义有限候选域。L1-MILP 每次精确选择一个与当前 family 层叠相容的新 w z z^T 块，并 fully-corrective 重估所有非负 R/X 系数。
+7. L1-MILP 每次直接优化新的二进制支撑 z，在全部与当前 family 层状相容且不重复的支撑中搜索新 w z z^T 块，并 fully-corrective 重估所有非负 R/X 系数。
 8. 只接受具有原始/对偶最优性证书的扩展；最终用独立验证集的一标准误差规则选择路径点。
 
-真拓扑不参与候选生成或模型选择，只用于最终 precision、recall、F1 评价。每一步 MILP 在给定有限候选域和当前 family 下是全局最优；多步贪心路径不是固定 K 块的联合全局最优。
+真拓扑不参与支撑搜索或模型选择，只用于最终 precision、recall、F1 评价。获证的每一步 MILP 在当前 family 和系数界下是全局最优单次扩展；多步贪心路径不是固定 K 块的联合全局最优。
 
 ## 代码与结果结构
 
@@ -64,7 +64,10 @@ Topo/
 
 rnj_wzzt_core/ 可脱离其余项目源码独立运行，并且是上述核心算法的唯一权威源码。experiments/ 的两个主入口及 terminal_case33/ 中同名的 R/X、RNJ、收缩、AC 和 MILP 模块均为兼容转发层；其他文件用于消融、文献基线或历史研究。outputs/ 中除 mainline/ 外的目录是保留的历史实验数据。
 
-## 主结果
+## 历史白名单模式结果
+
+下表来自先前限制 RNJ 白名单的运行，不代表当前默认自由搜索的重跑结果。
+核心现已移除白名单模式；重放旧结果应使用相应运行保存的源码快照。
 
 | case | 完整 RX75-RNJ F1 | 联合方法 F1 | MILP 时间（秒） |
 |---|---:|---:|---:|
@@ -83,3 +86,14 @@ conda activate Topo
 ~~~
 
 依赖声明在 requirements.txt、environment.yml 和 pyproject.toml。运行与测试统一使用 conda 环境 Topo，不要再用 `py -3.12` 或 `.codex-rnj-deps/`。
+
+## Git 提交
+
+在仓库目录先预览，再创建本地提交：
+
+~~~powershell
+.\scripts\submit.ps1 -Preview
+.\scripts\submit.ps1 -Message "描述本次修改"
+~~~
+
+默认会暂存所有未忽略的变更。只提交指定文件时，在预览和提交命令后均加 `-Paths @('README.md', 'scripts/submit.ps1')`；此模式要求暂存区原本为空。确认需要上传到 GitHub 时，在提交命令末尾显式加 `-Push`。`-Preview` 只读取状态，不修改暂存区。脚本会检查 `origin`、常见凭证文件与令牌格式，以及超过 25 MB 的新增或修改文件；生成结果和本地依赖遵循 `.gitignore`。

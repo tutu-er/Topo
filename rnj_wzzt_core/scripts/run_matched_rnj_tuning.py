@@ -48,13 +48,13 @@ class NoValidCandidate(RuntimeError):
         self.candidates = candidates
 
 
-def validation_mae(scenarios, r, x, fitted_intercepts):
-    """Use frozen training intercepts; this function has no test/truth inputs."""
+def validation_mae(scenarios, r, x):
+    """Score the observed-root model without fitting bias or reading test/truth."""
     residual = np.vstack([
         scenario["drop_target"].to_numpy()
         - scenario["P_terminal"].to_numpy() @ r.T
-        - scenario["Q_terminal"].to_numpy() @ x.T - fitted_intercepts[day]
-        for day, scenario in enumerate(scenarios)
+        - scenario["Q_terminal"].to_numpy() @ x.T
+        for scenario in scenarios
     ])
     return float(np.mean(np.abs(residual)))
 
@@ -89,7 +89,7 @@ def choose_rnj_on_validation(train, validation, terminals, root, solve_seconds):
         try:
             clades = infer_clades(r, x, terminals, root, factor)
             solution, rr, xx, active = fixed_fit(train, clades, terminals, solve_seconds)
-            error = validation_mae(validation, rr, xx, solution.intercepts)
+            error = validation_mae(validation, rr, xx)
             if not np.isfinite(error):
                 raise ValueError("validation MAE is not finite")
             record.update(
@@ -98,7 +98,7 @@ def choose_rnj_on_validation(train, validation, terminals, root, solve_seconds):
                 fixed_solver=solution.diagnostics.to_dict(),
                 fixed_refit_certified=solver_diagnostics_prove_optimality(solution.diagnostics),
             )
-            models[factor] = dict(clades=clades, r=rr, x=xx, intercepts=solution.intercepts)
+            models[factor] = dict(clades=clades, r=rr, x=xx)
         except Exception as exc:
             record.update(error=repr(exc))
         record["elapsed_seconds"] = time.perf_counter() - candidate_started
@@ -195,7 +195,7 @@ def evaluate_selected(selected, sets, truth, true_clades, terminals):
     """Truth and test enter only after threshold and model have been frozen."""
     return {
         **rooted_scores(selected["clades"], true_clades, terminals),
-        **prediction_metrics(sets, selected["r"], selected["x"], selected["intercepts"], truth),
+        **prediction_metrics(sets, selected["r"], selected["x"], truth),
     }
 
 
@@ -232,7 +232,7 @@ def run_cached_job(source, output, job):
                        selected_clades=serialized(selected["clades"]),
                        regression_diagnostics=selected["regression_diagnostics"])
         np.savez_compressed(directory / "selected_model.npz", R=selected["r"], X=selected["x"],
-                            intercepts=selected["intercepts"], terminals=cached["terminals"])
+                            terminals=cached["terminals"])
     except Exception as exc:
         row["error"] = repr(exc)
         details.update(error=repr(exc), traceback=traceback.format_exc())
@@ -292,7 +292,7 @@ def main(argv=None):
         "jobs": jobs, "factors": FACTORS, "method": METHOD, "baselines": BASELINES,
         "selection": "Minimum validation MAE; ties choose smaller factor, identical to primary NJ.",
         "observations": "Original inputs.npz and metadata.json only; no simulation or extra observations.",
-        "fit": "Same daily-demeaned ordered RX75 fit and raw original-terminal fixed-tree L1 fits as primary NJ.",
+        "fit": "Same raw observed-root ordered RX75 fit and zero-bias original-terminal fixed-tree L1 fits as primary NJ. Historical intercept-model results require their source snapshot.",
         "solver_policy": "Same per-candidate solve_seconds and fixed_fit acceptance; certification recorded.",
         "score": "Structural clades retained even when a refitted edge coefficient is zero.",
         "test_truth_policy": "test observations and truth are passed only to post-selection evaluation.",
