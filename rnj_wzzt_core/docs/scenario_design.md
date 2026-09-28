@@ -57,7 +57,7 @@ w_0\sim\mathcal N(0,(1-f^2)\sigma^2),
 除tap_step外，s_t=0；tap_step在12–18小时增加0.00625 p.u.并减去全天均值，所以入段上升、出段下降各为该幅度。它模拟外生调压事件，不是带死区/延时/负荷反馈的调压器闭环模型。
 选择该阶跃量级参考了NREL关于线路调压器与LTC离散档位约0.625%的说明，而非把所有变压器档位都假定相同。[NREL报告](https://docs.nrel.gov/docs/fy18osti/70517.pdf)
 
-## 三种根观测必须分别评价
+## 研究对照中的三种根观测
 
 物理根电压先进入AC潮流；观测模式之后才决定拟合目标。切换观测模式不会重新选择物理负荷、端表噪声或实际根轨迹。
 
@@ -71,8 +71,9 @@ unobserved 的真实根轨迹仅存放在独立诊断字段，不能用于构造
 准确量测时，直接公共根项已经被消除；把真实根波动放大并不能证明“已观测根电压仍缺一个未建模自由度”。
 
 当前默认回归没有逐时公共项。因此 benchmark 的 unobserved + 当前回归是失配对照；它不是声称现有回归已正确处理缺失根量测。
-正式 pipeline 和 CLI 只接受 exact/noisy 根观测，拒绝 unobserved，不论是否启用收缩。
-场景生成器保留 unobserved 仅供独立失配研究；它不符合正式模型“根电压已观测”的前提。
+核心场景生成器、pipeline 和 CLI 均只接受 exact/noisy 根观测，拒绝 unobserved。
+unobserved 的目标变换保存在父仓库 `research_experiments/rnj/scenario_observation.py`，仅用于独立失配研究；
+它不符合正式模型“根电压已观测”的前提。上表是研究对照的观测模式全集。
 
 ## 量测误差与物理波动分开配置
 
@@ -116,7 +117,7 @@ python experiments/run_scenario_benchmark.py --suites reference --voltage-noise-
 python experiments/run_scenario_benchmark.py --suites reference --root-sigma 0 --output outputs/constant_root
 ```
 
-低层 `_simulate_pool` 原六位置参数、`pipeline.run` 和高级CLI保持legacy默认；这是明确的兼容边界。普通 `run.py` 默认reference、默认输出outputs/reference，历史outputs/mainline不会自动被覆盖。
+`pipeline.run`、普通 CLI 及历史高级 CLI 默认均为 reference、完整 RNJ＋MILP，输出 outputs/reference。只有低层 `_simulate_pool` 原六位置参数接口保留 legacy 数据生成默认；历史 outputs/mainline 不会自动被覆盖。
 旧公共模态比较脚本继续调用legacy数据源，其结果不因本次新默认而被悄悄改变。已有结果源指纹改变时必须使用新输出目录，实际运行源码和旧数据均保留。
 
 `run_scenario_benchmark.py` 保留独立的历史去均值/训练截距研究协议，不代表 2026-09-28 起正式流程的零偏置模型。它使用独立训练/测试重复（train=2k、test=2k+1），测试固定为3×96点；研究协议中的场景截距仅从所选训练点计算，测试电压只用于评分。

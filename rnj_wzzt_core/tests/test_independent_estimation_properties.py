@@ -1,7 +1,7 @@
 """Independent numerical oracles and falsifiable estimator limitations.
 
-These tests use physical arrays, elementary two-variable active faces, and
-explicit temporal operators. They do not import solver packing/projection
+These tests use physical arrays and elementary two-variable active faces.
+They do not import solver packing/projection
 helpers. Counterexamples deliberately distinguish a good fit from an identified
 R/X pair or an estimator that is robust to corrupted meter observations.
 """
@@ -13,13 +13,10 @@ import pandas as pd
 import pytest
 
 from rnj_wzzt.estimation.multiscenario import (
+    align_scenarios,
     fit_projected_sensitivity,
-    preprocess_scenarios,
 )
 from rnj_wzzt.estimation.preprocessing import (
-    RECIPE,
-    apply_preprocessing_recipe,
-    daily_demean,
     squared_voltage_drop_from_observed_root,
 )
 
@@ -196,8 +193,7 @@ def test_constant_nonzero_loads_identify_rx_across_operating_points(n):
         p = np.tile(point[:n], (5, 1))
         q = np.tile(point[n:], (5, 1))
         scenarios.append(_scenario(p, q, p @ r_true + q @ x_true, name=str(index)))
-    transformed = preprocess_scenarios(scenarios, RECIPE)
-    assert RECIPE["kind"] == "raw"
+    transformed = align_scenarios(scenarios)
     for original, fitted in zip(scenarios, transformed):
         for key in ("P_terminal", "Q_terminal", "drop_target"):
             pd.testing.assert_frame_equal(original[key], fitted[key])
@@ -206,6 +202,20 @@ def test_constant_nonzero_loads_identify_rx_across_operating_points(n):
     np.testing.assert_allclose(x, x_true, atol=1e-8)
     assert r2 == pytest.approx(1.0)
     assert condition == pytest.approx((2 * n + 1.0) / 2.0)
+
+
+def test_raw_alignment_restores_row_pairing_for_positional_bootstrap():
+    original = _scenario(
+        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+        [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
+        [[13.0, 14.0], [15.0, 16.0], [17.0, 18.0]],
+    )
+    shuffled = deepcopy(original)
+    shuffled["Q_terminal"] = shuffled["Q_terminal"].iloc[[2, 0, 1]]
+    shuffled["drop_target"] = shuffled["drop_target"].iloc[[1, 2, 0]]
+    [aligned] = align_scenarios([shuffled])
+    for key in ("P_terminal", "Q_terminal", "drop_target"):
+        pd.testing.assert_frame_equal(aligned[key], original[key])
 
 
 def test_time_varying_observed_root_cancels_before_rx_regression():
@@ -248,59 +258,9 @@ def test_constant_target_r2_uses_finite_residual_convention(power, target, expec
     assert r2 == expected
 
 
-@pytest.mark.parametrize("day_size", [1, 3, 7, 20])
-@pytest.mark.parametrize("as_series", [False, True])
-def test_daily_demean_matches_block_projection_including_partial_final_day(day_size, as_series):
-    rng = np.random.default_rng(903)
-    values = rng.normal(size=(11, 2)) + [4.0, -9.0]
-    index = pd.Index([f"t{i * 3}" for i in range(11)], name="meter_time")
-    frame = pd.DataFrame(values, index=index, columns=["a", "b"])
-    data = frame["a"] if as_series else frame
-    original = data.copy(deep=True)
-    operator = np.eye(len(frame))
-    for start in range(0, len(frame), day_size):
-        stop = min(start + day_size, len(frame))
-        operator[start:stop, start:stop] -= 1.0 / (stop - start)
-    result = daily_demean(data, samples_per_day=day_size)
-    expected = operator @ data.to_numpy()
-    np.testing.assert_allclose(result, expected, atol=5e-15)
-    np.testing.assert_allclose(daily_demean(result, day_size), result, atol=2e-15)
-    assert result.index.equals(index)
-    if as_series:
-        pd.testing.assert_series_equal(data, original)
-        assert result.name == data.name
-    else:
-        pd.testing.assert_frame_equal(data, original)
-
-
-@pytest.mark.parametrize("recipe", [
-    {"kind": "raw"},
-    {"kind": "demean"},
-    {"kind": "difference"},
-    {"kind": "rolling_highpass", "window": 5},
-    {"kind": "chain", "steps": [{"kind": "difference"}, {"kind": "rolling_highpass", "window": 3}]},
-])
-@pytest.mark.parametrize("reorder_inputs", [False, True])
-def test_shared_temporal_operator_preserves_exact_physical_regression(recipe, reorder_inputs):
-    rng = np.random.default_rng(871)
-    p, q = rng.normal(size=(2, 45, 3))
-    r_true, x_true = np.eye(3) + 0.3, 0.5 * np.eye(3) + 0.1
-    scenario = _scenario(p, q, p @ r_true + q @ x_true)
-    if reorder_inputs:
-        for key in ("Q_terminal", "drop_target"):
-            scenario[key] = scenario[key].iloc[rng.permutation(len(p))]
-    original = deepcopy(scenario)
-    transformed = preprocess_scenarios([scenario], recipe)
-    r, x, _, _ = fit_projected_sensitivity(transformed)
-    np.testing.assert_allclose(r, r_true, atol=3e-6)
-    np.testing.assert_allclose(x, x_true, atol=3e-6)
-    for key in ("P_terminal", "Q_terminal", "drop_target"):
-        pd.testing.assert_frame_equal(scenario[key], original[key])
-
-
 @pytest.mark.parametrize("key", ["P_terminal", "Q_terminal", "drop_target"])
 @pytest.mark.parametrize("invalid_index", ["missing", "extra", "duplicate"])
-def test_preprocessing_rejects_mismatched_or_ambiguous_time_indices(key, invalid_index):
+def test_alignment_rejects_mismatched_or_ambiguous_time_indices(key, invalid_index):
     values = np.arange(6, dtype=float).reshape(3, 2)
     scenario = _scenario(values, 2 * values, 3 * values)
     frame = scenario[key]
@@ -311,21 +271,7 @@ def test_preprocessing_rejects_mismatched_or_ambiguous_time_indices(key, invalid
     else:
         scenario[key] = pd.concat([frame, frame.iloc[:1]])
     with pytest.raises(ValueError, match="time indices"):
-        preprocess_scenarios([scenario], {"kind": "difference"})
-
-
-@pytest.mark.parametrize("window", [2, 3, 5, 21])
-def test_rolling_highpass_matches_explicit_finite_sample_weights(window):
-    values = np.array([[1.0, 10.0], [4.0, -3.0], [2.0, 8.0], [9.0, 1.0], [-4.0, 5.0], [3.0, 7.0]])
-    frame = pd.DataFrame(values, columns=["x", "y"])
-    operator = np.eye(len(frame))
-    # pandas' centered even window places the extra sample on the left.
-    for t in range(len(frame)):
-        start = max(0, t - window // 2)
-        stop = min(len(frame), t + (window + 1) // 2)
-        operator[t, start:stop] -= 1.0 / (stop - start)
-    actual = apply_preprocessing_recipe(frame, {"kind": "rolling_highpass", "window": window}, 6)
-    np.testing.assert_allclose(actual, operator @ values, atol=2e-15)
+        align_scenarios([scenario])
 
 
 @pytest.mark.parametrize("root_error", [0.0, 0.005, -0.01])

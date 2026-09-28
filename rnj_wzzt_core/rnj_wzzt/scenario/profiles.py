@@ -91,40 +91,6 @@ def _curve_description(profile_class: str) -> str:
     }.get(profile_class, "root or unassigned")
 
 
-def _customer_type(original_bus: int, profile_class: str) -> str:
-    """Assign a demand-shape family to an original case33 customer node."""
-
-    if profile_class == "small_generator" or original_bus in {6, 24, 25, 30, 31}:
-        return "industrial"
-    if original_bus in {2, 3, 4, 5, 23, 24, 25}:
-        return "commercial"
-    return "residential"
-
-
-def _resource_components(original_bus: int, profile_class: str, der_kw: float) -> dict[str, float]:
-    """Split DER capacity into mixed PV/wind/generator components."""
-
-    if profile_class == "pv":
-        if original_bus in {7, 8, 18}:
-            return {"pv_kw": der_kw, "wind_kw": 0.0, "small_generator_kw": 0.0}
-        if original_bus in {4, 5, 23}:
-            return {"pv_kw": 0.78 * der_kw, "wind_kw": 0.0, "small_generator_kw": 0.22 * der_kw}
-        return {"pv_kw": 0.70 * der_kw, "wind_kw": 0.30 * der_kw, "small_generator_kw": 0.0}
-    if profile_class == "wind":
-        if original_bus in {26, 27, 32, 33}:
-            return {"pv_kw": 0.25 * der_kw, "wind_kw": 0.75 * der_kw, "small_generator_kw": 0.0}
-        if original_bus in {11, 12, 29}:
-            return {"pv_kw": 0.0, "wind_kw": 0.72 * der_kw, "small_generator_kw": 0.28 * der_kw}
-        return {"pv_kw": 0.0, "wind_kw": der_kw, "small_generator_kw": 0.0}
-    if profile_class == "small_generator":
-        if original_bus in {24, 30}:
-            return {"pv_kw": 0.25 * der_kw, "wind_kw": 0.0, "small_generator_kw": 0.75 * der_kw}
-        if original_bus == 31:
-            return {"pv_kw": 0.0, "wind_kw": 0.25 * der_kw, "small_generator_kw": 0.75 * der_kw}
-        return {"pv_kw": 0.0, "wind_kw": 0.0, "small_generator_kw": der_kw}
-    return {"pv_kw": 0.0, "wind_kw": 0.0, "small_generator_kw": 0.0}
-
-
 def _demand_power_factor(t_count: int, customer_type: str, phase: float) -> np.ndarray:
     """Return a time-varying lagging demand power factor."""
 
@@ -212,7 +178,21 @@ def _build_terminal_profiles(
     seed: int,
     profile_scenario: str = "default",
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Create terminal net-load P/Q profiles from deterministic node classes."""
+    """Create terminal P/Q and diagnostics from explicit customer/resource fields.
+
+    Each terminal's assignment must declare a residential, commercial or
+    industrial customer type and finite nonnegative PV/wind/generator capacities.
+    """
+
+    capacity_fields = {
+        "pv_kw": "pv_capacity_kw",
+        "wind_kw": "wind_capacity_kw",
+        "small_generator_kw": "small_generator_capacity_kw",
+    }
+    required = {"customer_type", *capacity_fields.values()}
+    missing = required.difference(raw_assignment.columns)
+    if missing:
+        raise ValueError(f"resource assignment missing required columns: {', '.join(sorted(missing))}")
 
     rng = np.random.default_rng(seed)
     terminals = net.buses.loc[net.buses["bus_type"].eq("observed_terminal"), "bus_id"].astype(int).tolist()
@@ -232,7 +212,20 @@ def _build_terminal_profiles(
         q0_kvar = float(bus_df.loc[terminal, "qd_kvar"])
         profile_class = str(row["profile_class"])
         der_kw = float(row["der_capacity_kw"])
-        customer = str(row["customer_type"]) if "customer_type" in row.index and pd.notna(row["customer_type"]) else _customer_type(original, profile_class)
+        customer = row["customer_type"]
+        if not isinstance(customer, str) or customer not in {"residential", "commercial", "industrial"}:
+            raise ValueError(
+                f"resource assignment bus {original}: customer_type must be residential, commercial or industrial"
+            )
+        components = {}
+        for component, field in capacity_fields.items():
+            try:
+                capacity = float(row[field])
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"resource assignment bus {original}: {field} must be finite and nonnegative") from exc
+            if not np.isfinite(capacity) or capacity < 0.0:
+                raise ValueError(f"resource assignment bus {original}: {field} must be finite and nonnegative")
+            components[component] = capacity
         demand_scale, pv_scale, wind_scale, generator_scale, scenario_note = _scenario_shape(t_count, original, k, profile_scenario)
         phase_hours = float((original * 0.37 + k * 0.11) % 2.8 - 1.4)
         demand = _daily_demand_multiplier(t_count, customer, phase=phase_hours)
@@ -240,14 +233,6 @@ def _build_terminal_profiles(
         local_variation += pd.Series(rng.normal(0.0, 0.02, size=t_count)).rolling(5, min_periods=1, center=True).mean().to_numpy()
         demand_kw = np.maximum(0.05 * p0_kw, p0_kw * demand * local_variation * demand_scale)
 
-        if {"pv_capacity_kw", "wind_capacity_kw", "small_generator_capacity_kw"}.issubset(set(assignment.columns)):
-            components = {
-                "pv_kw": float(row["pv_capacity_kw"]),
-                "wind_kw": float(row["wind_capacity_kw"]),
-                "small_generator_kw": float(row["small_generator_capacity_kw"]),
-            }
-        else:
-            components = _resource_components(original, profile_class, der_kw)
         orientation = orientations[(original + k) % len(orientations)]
         gen_mode = gen_modes[(original + 2 * k) % len(gen_modes)]
         pv_shape = _pv_profile(t_count, rng, orientation=orientation, cloud_offset=((original % 7) - 3) * 0.25)

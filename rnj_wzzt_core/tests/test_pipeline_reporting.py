@@ -18,7 +18,6 @@ VALID_OPTIONS = {
     "confidence_threshold": 0.75,
     "maximum_candidate_count": 2,
     "tolerance_factor": 0.16,
-    "deembedding_weight": 0.5,
     "time_limit": 1800.0,
     "coefficient_bound": 2.0,
     "root_observation": "noisy",
@@ -34,7 +33,6 @@ VALID_OPTIONS = {
         ("confidence_threshold", 1.01),
         ("maximum_candidate_count", -1),
         ("tolerance_factor", float("nan")),
-        ("deembedding_weight", 1.01),
         ("time_limit", 0.0),
         ("coefficient_bound", float("inf")),
     ),
@@ -45,12 +43,10 @@ def test_validate_run_options_rejects_invalid_values(name, value) -> None:
         _validate_run_options(**options)
 
 
-@pytest.mark.parametrize("contract_blocks", [False, True])
-def test_pipeline_requires_observed_root_before_creating_output(tmp_path, contract_blocks):
+def test_pipeline_requires_observed_root_before_creating_output(tmp_path):
     output = tmp_path / "unsupported"
-    with pytest.raises(ValueError, match="requires observed root voltage"):
-        pipeline.run(output, cases=(), root_observation="unobserved",
-                     contract_blocks=contract_blocks)
+    with pytest.raises(ValueError, match="root_observation"):
+        pipeline.run(output, cases=(), root_observation="unobserved")
     assert not output.exists()
 
 
@@ -92,18 +88,40 @@ def test_rnj_reporting_keeps_summary_and_candidate_evidence_separate() -> None:
 
 def test_pipeline_default_search_has_no_rnj_allowlist(tmp_path) -> None:
     result = pipeline.run(tmp_path, cases=())
+    assert result["config"]["scenario_settings"]["scenario_suite"] == "reference"
+    assert result["config"]["selection_only"] is False
+    assert result["config"]["run_baseline"] is False
     assert result["config"]["support_search_mode"] == "unrestricted"
     assert result["config"]["preprocessing"] == "raw"
     assert "candidate_pool_mode" not in result["config"]
+    assert "contract_blocks" not in result["config"]
+    assert "deembedding_weight" not in result["config"]
 
 
-@pytest.mark.parametrize("keyword", ["candidate_pool_mode", "support_search_mode"])
-def test_pipeline_rejects_removed_search_switch(tmp_path, keyword):
+@pytest.mark.parametrize(
+    ("keyword", "value"),
+    [
+        ("candidate_pool_mode", "rnj"),
+        ("support_search_mode", "rnj"),
+        ("contract_blocks", True),
+        ("deembedding_weight", 0.5),
+    ],
+)
+def test_pipeline_rejects_removed_option(tmp_path, keyword, value):
     with pytest.raises(TypeError, match=keyword):
-        pipeline.run(tmp_path, cases=(), **{keyword: "rnj"})
+        pipeline.run(tmp_path, cases=(), **{keyword: value})
 
 
-def test_case_preserves_observed_root_levels_and_validation_identity():
+def test_case_preserves_observed_root_levels_and_validation_identity(monkeypatch):
+    simulate_pool = pipeline._simulate_pool
+    generated = []
+
+    def capture_pool(*args, **kwargs):
+        net, raw = simulate_pool(*args, **kwargs)
+        generated.append(raw)
+        return net, raw
+
+    monkeypatch.setattr(pipeline, "_simulate_pool", capture_pool)
     case, _ = pipeline._prepare_case(
         "paper15", samples_per_scenario=12, scenario_count=1,
         training_replicate=0, validation_replicate=1,
@@ -111,8 +129,9 @@ def test_case_preserves_observed_root_levels_and_validation_identity():
         scenario_options={"scenario_suite": "reference", "root_observation": "exact"},
         root_observation="exact",
     )
-    for raw_scenarios, fitted_scenarios in (
-        (case.training_raw, case.training), (case.validation_raw, case.validation),
+    assert len(generated) == 2
+    for raw_scenarios, fitted_scenarios in zip(
+        generated, (case.training, case.validation), strict=True,
     ):
         for raw, fitted in zip(raw_scenarios, fitted_scenarios, strict=True):
             expected = raw["root_voltage"].to_numpy()[:, None]**2 - raw["V_terminal"].to_numpy()**2
@@ -160,8 +179,7 @@ def test_hybrid_keeps_rnj_preset_and_recovers_support_outside_rnj_tree(monkeypat
 
     monkeypatch.setattr(pipeline, "fit_laminar_l1_sensitivity", fit)
     baseline, row = pipeline._fit_milp_variants(
-        case, selection, run_baseline=True, contract_blocks=False,
-        deembedding_weight=.5,
+        case, selection, run_baseline=True,
         coefficient_bound=2., time_limit=20., milp_solver=solver,
     )
     assert "allowed_supports" not in captured

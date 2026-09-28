@@ -1,6 +1,6 @@
 # Terminal-only topology identification
 
-本目录的主路径是 **固定 RX75-RNJ 末端分块 + L1-MILP 搜索相容的新支撑**。根节点电压已有观测；内部节点零注入且不可观。由含噪声的终端 P/Q/V 时序和公共根电压恢复可辨识线路（以下游终端 clade 表示）。
+本目录的主路径是 **固定少量 RX75-RNJ 边界支撑 + L1-MILP 搜索相容的新支撑**。根节点电压已有观测；内部节点零注入且不可观。由含噪声的终端 P/Q/V 时序和公共根电压恢复可辨识线路（以下游终端 clade 表示）。
 
 ## 环境
 
@@ -24,7 +24,11 @@ conda activate Topo
 python -m experiments.run_mainline
 ~~~
 
-默认同时测试 paper15、soumalas11、flynn16、pengwah18，每个算例使用 3 个训练场景 × 96 点和独立的 3 × 96 验证数据。每次 MILP 扩展的时间上限为 1800 秒。结果写入 outputs/mainline/。
+默认同时测试 paper15、soumalas11、flynn16、pengwah18，每个算例使用 3 个训练场景 × 96 点和独立的 3 × 96 验证数据。每次 MILP 扩展的时间上限为 1800 秒。默认使用 reference 场景，结果写入 outputs/reference/。
+
+`rnj_wzzt.pipeline.run()` 统一定义计算流程和默认参数；CLI 解析用户选项并转发。
+命令行、直接 Python 调用及历史入口默认均运行完整 RNJ＋MILP。
+`--selection-only` 和 `--run-baseline` 分别显式启用仅 RNJ 筛选和额外纯 MILP 对照。
 
 只运行部分算例：
 
@@ -36,33 +40,41 @@ python -m experiments.run_mainline --cases paper15 flynn16
 ## 主算法
 
 1. 用公共根电压观测构造 Y_i(t)=V_0(t)²−V_i(t)²，直接使用原始 P/Q/Y，不去均值或拟合末端截距。
-2. 联合多场景估计对称、非负且对角占优有序的 R、X 灵敏度矩阵。
+2. 联合多场景估计对称、非负且对角有序的 R、X 灵敏度矩阵（对角元不小于同行非对角元加固定裕量）。
 3. 分别归一化 R、X，构造 RX75 = 0.75 R + 0.25 X 的 shared-path 核；它不是 R/X 比值。
 4. 用 RNJ 和 0.16 × median(root_depth) 容差重构完整候选层次。
 5. 做 100 次 circular moving-block bootstrap（块长 4），只从完整 RNJ 树的 inclusion-minimal 非平凡 clade 中选择支持度不低于 0.75 的候选；最多固定 2 个互不相交的末端块。
-6. 收缩可信末端块，聚合 P/Q，以 0.5 权重反嵌入伪末端电压；固定约化系统的全部 singleton 叶边原子。
+6. 保留全部原始终端及其 P/Q/Y；将每个终端的 singleton 叶边支撑和筛选后的 RNJ 边界块放入 MILP 的固定初始支撑族，不聚合为伪终端。
 7. L1-MILP 每次直接优化新的二进制支撑 z，在全部与当前 family 层状相容且不重复的支撑中搜索新 w z z^T 块，并 fully-corrective 重估所有非负 R/X 系数。
 8. 只接受具有原始/对偶最优性证书的扩展；最终用独立验证集的一标准误差规则选择路径点。
 
 真拓扑不参与支撑搜索或模型选择，只用于最终 precision、recall、F1 评价。获证的每一步 MILP 在当前 family 和系数界下是全局最优单次扩展；多步贪心路径不是固定 K 块的联合全局最优。
 
-## 代码与结果结构
+## 目录导航
 
-~~~text
-Topo/
-├─ rnj_wzzt_core/                              # 独立可运行、唯一权威实现
-├─ experiments/run_mainline.py                 # 兼容入口，转发到核心目录
-├─ terminal_case33/                            # 保留的研究与基线模块
-├─ docs/mainline_algorithm.md                   # 算法、边界与结果说明
-├─ docs/laminar_l1_milp_implementation_report.tex
-├─ output/pdf/                                # 当前编译后的 PDF 报告
-├─ artifacts/snapshots/                       # 可复核的冻结快照
-├─ outputs/mainline/                            # 四算例可追溯结果
-├─ tests/                                       # 单元与集成测试
-└─ archive/                                     # 只读历史项目与旧构建产物
-~~~
+| 目录 | 用途 |
+|---|---|
+| `rnj_wzzt_core/` | 独立安装和运行的 RNJ＋MILP 权威实现，内含核心测试、文档及旧入口的兼容转发 |
+| `research_experiments/` | 从核心移出的 RNJ 聚合、替代模型、时序处理等研究代码与测试；`theft/` 提供独立偷电实验启动器 |
+| `experiments/` | 仓库级运行入口及历史对照实验；`run_mainline.py` 转发到核心，其他脚本并不都属于当前主线 |
+| `terminal_case33/` | 早期算例、基线和研究接口；与核心同名的部分模块是兼容转发 |
+| `theft_wzzt/` | 保持原路径和校验协议的独立偷电研究工作区 |
+| `configs/` | 算例和旧实验使用的 YAML 配置 |
+| `data_external/` | 外部数据集及来源说明；部分原始数据按 `.gitignore` 留在本地 |
+| `docs/` | 算法、实验、论文与文献文档；当前主线见 `mainline_algorithm.md` |
+| `tests/` | 仓库级兼容及集成测试；核心测试另在 `rnj_wzzt_core/tests/` |
+| `scripts/` | 测试、Git 提交、数据处理和研究分析脚本 |
+| `artifacts/` | 报告、冻结快照和本地核验记录；大部分临时核验产物不入 Git |
+| `outputs/` | 算法与实验的数值结果；默认主线使用 `outputs/reference/`，`outputs/mainline/` 是历史结果 |
+| `output/` | LaTeX 编译和 PDF 成品，与数值实验结果分开 |
+| `archive/` | 旧项目的可逆归档，不参与默认运行 |
+| `tmp/` | 本地临时文件，不纳入 Git |
 
-rnj_wzzt_core/ 可脱离其余项目源码独立运行，并且是上述核心算法的唯一权威源码。experiments/ 的两个主入口及 terminal_case33/ 中同名的 R/X、RNJ、收缩、AC 和 MILP 模块均为兼容转发层；其他文件用于消融、文献基线或历史研究。outputs/ 中除 mainline/ 外的目录是保留的历史实验数据。
+`.codex-rnj-deps/` 是旧本地依赖环境，`.pytest_cache/` 是测试缓存，
+`terminal_load_only_case33.egg-info/` 是 Python 安装元数据，`.vscode/` 是编辑器设置；
+这些目录均不属于项目源码提交范围。
+
+rnj_wzzt_core/ 可脱离其余项目源码独立运行，并且是上述核心算法的唯一权威源码。experiments/ 的两个主入口及 terminal_case33/ 中同名的 R/X、RNJ、AC 和 MILP 模块均为兼容转发层。RNJ 聚合、替代几何、时序变换与独立对照集中在 [research_experiments](research_experiments/README.md)，旧研究入口保留转发。偷电实验通过新目录的独立启动器进入原工作区，保留其源码签名、校准和结果路径。outputs/ 中除 mainline/ 外的目录是保留的历史实验数据。
 
 ## 历史白名单模式结果
 

@@ -1,7 +1,9 @@
 from pathlib import Path
+from inspect import signature
 
 import experiments.run_mainline as mainline
 import rnj_wzzt.cli as core_cli
+import rnj_wzzt.pipeline as pipeline
 
 
 def test_mainline_forwards_the_reviewed_configuration(monkeypatch) -> None:
@@ -18,17 +20,18 @@ def test_mainline_forwards_the_reviewed_configuration(monkeypatch) -> None:
     assert result == {"ok": True}
     assert captured["output_dir"] == Path("result")
     assert captured["cases"] == ("paper15",)
-    assert captured["scenario_count"] == 3
-    assert captured["samples_per_scenario"] == 96
-    assert captured["bootstrap_replicates"] == 100
-    assert captured["confidence_threshold"] == 0.75
-    assert captured["maximum_candidate_count"] == 2
-    assert captured["selection_only"] is False
-    assert captured["run_baseline"] is False
-    assert captured["contract_blocks"] is True
-    assert "support_search_mode" not in captured
-    assert "candidate_pool_mode" not in captured
     assert captured["time_limit"] == 321.0
+    assert set(captured) == {"output_dir", "cases", "time_limit"}
+    effective = signature(pipeline.run).bind(**captured)
+    effective.apply_defaults()
+    assert effective.arguments["scenario_suite"] == "reference"
+    assert effective.arguments["scenario_count"] == 3
+    assert effective.arguments["samples_per_scenario"] == 96
+    assert effective.arguments["bootstrap_replicates"] == 100
+    assert effective.arguments["confidence_threshold"] == .75
+    assert effective.arguments["maximum_candidate_count"] == 2
+    assert effective.arguments["selection_only"] is False
+    assert effective.arguments["run_baseline"] is False
 
 
 def test_root_entrypoint_is_the_standalone_core() -> None:

@@ -1,23 +1,23 @@
 # RNJ-wzzT 代码审核指南
 
-更新日期：2026-09-27。本文只描述独立运行权威实现 **rnj_wzzt_core/rnj_wzzt**；
+更新日期：2026-09-28。本文只描述独立运行权威实现 **rnj_wzzt_core/rnj_wzzt**；
 父项目同名脚本是兼容转发，不是第二套算法。
 
 ## 一条主调用链
 
 ~~~mermaid
 flowchart TD
-    A[run.py / cli.run] --> B[pipeline.run]
+    A[run.py → cli.main: 解析命令行] --> B[pipeline.run]
     B --> C[_prepare_case: 独立训练与验证数据]
-    C --> D[preprocessing + multiscenario]
-    D --> E[constrained_least_squares: 有序 R/X QP]
-    E --> F[_select_case_rnj]
-    F --> G[sensitivity_geometry: RX75]
-    G --> H[rooted_neighbor_joining]
-    H --> I[bootstrap: 边界 cherry 稳定频率]
-    I --> J[_fit_milp_variants]
-    J --> K[rooted_hierarchy: 可选收缩/去嵌入]
-    J --> L[laminar_l1_milp: 数据、模型、求解与前向扩展]
+    C --> D[preprocessing: 构造已观测根平方电压降 Y]
+    D --> E[multiscenario.align_scenarios: 对齐原始 P/Q/Y]
+    E --> F[_select_case_rnj: fit_projected_sensitivity]
+    F --> G[constrained_least_squares: ordered R/X QP]
+    G --> H[sensitivity_geometry + rooted_neighbor_joining: RX75/RNJ]
+    H --> I[bootstrap: 重拟合并筛选边界 cherry]
+    I --> J[固定原终端 singleton 与筛选后的 RNJ 支撑]
+    J --> K[_fit_milp_variants: 原终端 P/Q/Y]
+    K --> L[laminar_l1_milp: 数据、模型、求解与前向扩展]
     L --> Q[gurobi_milp: 可选 Gurobi 矩阵适配]
     L --> M[独立验证集选择路径点]
     M --> N[reporting: 结构评分和求解证据]
@@ -25,18 +25,35 @@ flowchart TD
 
 **pipeline.run** 现在只负责阶段编排、逐案例落盘和最终配置汇总。数据准备、RNJ
 选择和 MILP 完成分别有单一入口，人工审核时不需要在一个长循环中同时跟踪二十多个局部变量。
+它同时定义所有计算默认值；`cli.py` 解析命令行，仅将用户明确给出的选项转发给它。
+CLI、直接 Python 调用及历史入口默认统一为 reference 场景、完整 RNJ＋MILP、
+不运行纯 MILP 对照、输出 `outputs/reference`。历史高级入口没有独立的一套默认配置。
+`preprocessing.py` 只把根/终端电压变成目标 `drop_target`；`align_scenarios` 对齐原始
+`P/Q/drop_target`，`fit_projected_sensitivity` 才估计 R/X。核心 `multiscenario.py`
+只承担原始数据对齐与有序 QP 调用；历史研究的时序配方及 `preprocess_scenarios`
+位于 `research_experiments/rnj/temporal_preprocessing.py`（父仓库），不进入此主流程。
+`rooted_hierarchy.rooted_clades` 将 RNJ 树转换为终端支撑；伪终端聚合实现已移至
+`research_experiments/rnj/rooted_aggregation.py`（父仓库），主流程保持原终端数据和标签。
+研究基线所用的独立矩阵修正与诊断位于父项目
+`research_experiments/rnj/matrix_constraints.py`，不属于核心有序最小二乘。
+
+核心场景生成器只接受 `exact/noisy` 根观测；固定标称根的 `unobserved` 对照由父仓库
+`research_experiments/rnj/scenario_observation.py` 提供。资源表必须显式提供客户类型和
+PV/风电/小机组容量，已删除按节点编号推断资源的旧回退。
+`network.injection_buses` 和 `candidate_edges` 两个未使用接口已移除；当前 MILP 搜索终端支撑。
+曲线统计表、场景真值诊断和完整 AC 输出继续保留。
 
 ## 推荐阅读顺序
 
 | 顺序 | 文件或入口 | 先核对什么 |
 |---|---|---|
-| 1 | README.md；rnj_wzzt/cli.py: run | 正式默认值；注意普通入口和高级/历史入口的默认场景不同 |
+| 1 | README.md；rnj_wzzt/cli.py: main；pipeline.py: run | CLI 解析用户输入；pipeline 定义统一默认值和计算流程 |
 | 2 | rnj_wzzt/pipeline.py: run | 只看主流程、训练/验证分离、输出时点 |
 | 3 | pipeline.py: _validate_run_options、_prepare_case、_select_case_rnj、_fit_milp_variants | 参数边界、三个阶段的输入输出，以及 RNJ 支持在何处变成固定支持 |
 | 4 | scenario/settings.py、simulation.py、profiles.py；models/ac_powerflow.py | 功率符号、量纲、随机种子、根电压过程、量测噪声、AC 数据生成 |
 | 5 | estimation/preprocessing.py、multiscenario.py、constrained_least_squares.py | 已观测公共根的平方电压降、无截距设计矩阵、R/X 对称/非负/有序约束 |
 | 6 | graph/sensitivity_geometry.py、rooted_neighbor_joining.py、bootstrap.py | RX75 归一化、共享路径、合并阈值、bootstrap 候选筛选 |
-| 7 | pipeline.py 的收缩函数；graph/rooted_hierarchy.py | 伪终端映射、簇内去嵌入及 RNJ 预设的保留 |
+| 7 | graph/rooted_hierarchy.py: rooted_clades；pipeline.py: _fit_milp_variants | RNJ clade 转换、固定初始支撑及原终端 MILP 输入；实验聚合模块不进入主流程 |
 | 8 | estimation/laminar_l1_milp.py: fit_laminar_l1_sensitivity | 主循环依次做扩展、固定族重拟合、扩界重启、零权重剪枝、路径选择 |
 | 8a | 同文件：build_extension_model、build_fixed_model | 按顺序检查残差、非空、乘积线性化、层状及不重复约束 |
 | 8b | 同文件：数据类型、normalize_supports、evaluate_l1_matrices | 输入校验、支撑规则、矩阵重建和验证误差 |
@@ -58,14 +75,14 @@ flowchart TD
 固定支撑 LP 仅用于初始化、扩界重启和必要的近零原子剪枝。
 
 运行源码、独立研究、回归测试和本地结果的目录边界见 [README](../README.md#目录用途)。
-实验入口统一使用 `run_` 前缀；`scripts/run_matched_rnj_tuning.py` 留在独立目录，
+实验入口统一使用 `run_` 前缀；`research_experiments/rnj/scripts/run_matched_rnj_tuning.py` 留在独立目录，
 避免补充脚本进入主实验的源码指纹集合。历史复现使用各次运行保存的源码快照。
 
 ## 审核时应先卡住的四个语义
 
-1. **RNJ 支撑作为预设保留。** initial_supports 在 MILP 中是固定支持，不是暖启动。
-   因而即使 contract_blocks=False，混合变体仍会冻结被选 RNJ 块；开启收缩只是进一步
-   改写数据和终端集合。固定的是支撑结构，R/X 权重仍参与联合重估。
+1. **RNJ 支撑作为预设保留。** `initial_supports` 在 MILP 中是固定支持，不是暖启动。
+   混合变体将全部原终端 singleton 和被选 RNJ 块放入初始族；不收缩终端，也不改写
+   P/Q/Y。固定的是支撑结构，R/X 权重仍参与联合重估。
 2. **新支撑直接自由搜索。** 核心不接收候选白名单；MILP 直接决定新支撑的二进制
    成员，并要求与已有 RNJ 预设相容。结果中的 support_search_mode=unrestricted
    是固定语义记录，不再是可选输入。
@@ -88,7 +105,7 @@ flowchart TD
 ## 2026-09-28 已观测根模型
 
 - L2 与 L1 均使用 `Y = P Rᵀ + Q Xᵀ`；删除自由截距、场景指示列、中位数校准及相关结果字段。
-- 默认配方改为 raw；显式时序变换继续供研究使用，核心回归不会自动去掉绝对观测水平。
+- 正式流程直接对齐原始 P/Q/Y，不再传递 raw 空配方；历史研究所需的显式时序变换保留在 `research_experiments/rnj/temporal_preprocessing.py`（父仓库），不会自动去掉绝对观测水平。
 - 主流程拒绝 unobserved 根；训练和验证不再为复用截距而改写名称或要求一一对应。
 - 普通 MILP 扩展直接使用全部权重，删除同一支撑族的无条件 LP 复解。
 - 本轮模型变化与验证记录在 `artifacts/observed_root_model_20260928/`；此前结果需使用当时源码重放。

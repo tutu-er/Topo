@@ -10,9 +10,9 @@ requires-python = ">=3.10"
 dependencies = ["numpy", "pandas", "scipy", "networkx", "matplotlib", "PyYAML"]
 
 [tool.setuptools.packages.find]
-include = ["terminal_case33*", "experiments*"]
+include = ["terminal_case33*", "experiments*", "research_experiments*"]
+exclude = ["research_experiments.tests*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
-
+testpaths = ["rnj_wzzt_core/tests", "tests", "research_experiments/tests"]
+pythonpath = [".", "rnj_wzzt_core"]

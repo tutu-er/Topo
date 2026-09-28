@@ -1,5 +1,5 @@
-"""Compatibility alias; authoritative source is rnj_wzzt_core."""
+"""Compatibility alias for the independent matrix-repair experiment."""
+import sys
+from research_experiments.rnj import matrix_constraints as _implementation
 
-from terminal_case33._standalone_core import alias_module
-
-alias_module(__name__, "rnj_wzzt.estimation.matrix_constraints")
+sys.modules[__name__] = _implementation

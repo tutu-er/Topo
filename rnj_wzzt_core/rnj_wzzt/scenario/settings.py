@@ -6,7 +6,7 @@ import math
 
 
 SCENARIO_SUITES = ("legacy", "reference", "weak_root", "strong_root", "tap_step")
-ROOT_OBSERVATIONS = ("exact", "noisy", "unobserved")
+ROOT_OBSERVATIONS = ("exact", "noisy")
 
 
 def _finite_number(value, name: str, *, positive: bool = False) -> float:

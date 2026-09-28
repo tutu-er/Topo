@@ -2,7 +2,7 @@
 
 本目录是当前算法的唯一维护位置，可以单独复制、安装和运行，不导入父项目源码。
 默认流程为：多场景约束最小二乘估计 R、X → RX75 共享路径分数 → RNJ 变体 →
-循环分块 bootstrap → 固定可信 RNJ 边界子树（可收缩）→ MILP 自由搜索相容的新支撑 → 独立验证集选模型。
+循环分块 bootstrap → 筛选可信 RNJ 边界子树并固定其原终端支撑 → MILP 自由搜索相容的新支撑 → 独立验证集选模型。
 
 根节点电压已观测，所有末端共用同一根参考：`Y[t,i] = V_root(t)^2 - V_i(t)^2`。
 两个回归阶段均直接拟合 `Y = P @ R.T + Q @ X.T`，不估计截距或节点偏置。
@@ -27,7 +27,6 @@ python run.py
 ```powershell
 python run.py --scenario-suite reference --cases paper15 --output outputs/reference_paper15 --time-limit 30
 python run.py --scenario-suite legacy --output outputs/legacy_replay
-python experiments/run_scenario_benchmark.py --repeats 3 --output outputs/scenario_benchmark
 python -m pip install -e ".[test]"
 python -m pytest -q
 ```
@@ -38,28 +37,34 @@ python -m pytest -q
 独立验证样本和 100 次 bootstrap。`--time-limit` 是每次 LP/MILP 求解的时间上限，并非全流程预算。
 新旧设置、独立控制的波动/量测/根可观测性以及压力测试见[算例设置](docs/scenario_design.md)。
 场景核验脚本不启动 bootstrap 或 MILP；低数据量从完整 96 点曲线抽取。
-高级研究参数由 `rnj_wzzt.cli.advanced_main` 统一解析，历史 `pipeline.main` 仍转发到它。
-低层 Python `pipeline.run`、高级 CLI 与六位置参数 `_simulate_pool` 的数据套件保持 legacy 默认；
+`pipeline.run()` 是唯一计算入口和默认参数来源，负责数据准备、RNJ、MILP、验证选模及结果写出。
+`cli.py` 负责命令行解析和参数转发，`run.py` 负责启动 CLI；不另存一套算法参数。
+普通 CLI、历史高级入口与直接 Python 调用默认均为 `reference`、完整 RNJ＋MILP，
+输出 `outputs/reference`，不默认运行纯 MILP 对照。
+仅运行 RNJ 筛选需显式使用 `--selection-only`；增加纯 MILP 对照需使用 `--run-baseline`。
+Python 调用对应 `selection_only=True`、`run_baseline=True`。这些选项不改变默认主线。
+历史 `cli.run`、`cli.advanced_main` 和 `pipeline.main` 继续转发到同一流程。
+旧 `--run-milp` 仅作为取消 `--selection-only` 的别名保留，不再隐含纯 MILP 对照；对照需显式 `--run-baseline`。
+低层六位置参数 `_simulate_pool` 保留 legacy 数据生成协议以复现研究；它不再决定主流程默认值。
 支撑搜索统一为自由扩展；历史白名单 MILP 需用相应运行保存的源码快照重放。
-新研究在这些入口应显式指定 `scenario_suite="reference"` 或 `--scenario-suite reference`。
 
 ## 目录用途
 
 | 目录 | 内容 |
 |---|---|
 | `rnj_wzzt/` | 正式运行代码；算法只在这里维护 |
-| `experiments/` | 独立研究入口 `run_*.py`、结果分析及实验辅助模块 |
-| `scripts/` | 主实验完成后的缓存复用与补充分析 |
-| `tests/` | 回归测试与隔离的研究试验代码 |
+| `experiments/`、`scripts/` | 历史研究路径的薄转发层；实现位于父仓库 `research_experiments/` |
+| `tests/` | 主线数值与集成测试；原 `meter_theft_pilot/` 因冻结校验保留原位、不自动收集 |
 | `docs/` | 数学说明、审查指南和历史研究记录 |
 | `outputs/` | 本地实验结果与复现源码快照，不属于运行依赖 |
 
-`scripts/run_matched_rnj_tuning.py` 刻意放在主实验源码指纹范围之外，
-以便校验原实验后追加匹配调参；不要仅为合并目录把它移入 `experiments/`。
-`estimation/recipes.py` 是仍被父项目使用的兼容导入入口。
+独立研究实现与对应测试已移至父仓库 [research_experiments/](../research_experiments/README.md)。
+其中 `rnj/scripts/run_matched_rnj_tuning.py` 继续位于主实验源码指纹范围之外。
+历史研究的时序变换、聚合及矩阵修正均在该研究目录；正式流程只做原始数据对齐。
+旧研究脚本仅在完整仓库中提供兼容转发；单独复制本目录仍可运行主线与核心测试。
 `__pycache__/` 和 `.pytest_cache/` 是可再生成的运行缓存。
 
-负非对角项 / log-det 实验统一使用 `experiments/run_negative_offdiag_logdet.py`，
+负非对角项 / log-det 实验使用父仓库 `research_experiments/rnj/run_negative_offdiag_logdet.py`，
 原 `experiments/test_negative_offdiag_logdet.py` 已更名。它额外依赖 CVXPY 和 CLARABEL，
 可用 `--self-test` 执行内置解析校验，不属于默认核心回归测试。
 当前回归/RNJ 研究需加 `--skip-milp`；旧的原生白名单 MILP 对照需用历史源码快照，
@@ -70,8 +75,8 @@ python -m pytest -q
 ```text
 run.py                         固定主线入口
 rnj_wzzt/
-├─ cli.py                      默认配置与高级参数解析
-├─ pipeline.py                 回归、RNJ 预设、收缩和 MILP 补全的流程编排
+├─ cli.py                      统一命令行解析与参数转发
+├─ pipeline.py                 回归、RNJ 边界筛选和原终端 MILP 补全的流程编排
 ├─ reporting.py                真值评分和 MILP 结果记录
 ├─ data/                       四个案例的网络及资源配置
 ├─ scenario/
@@ -81,21 +86,21 @@ rnj_wzzt/
 │  └─ validate_scenario.py     网络与终端观测假设检查
 ├─ models/                     网络对象、AC 潮流及理想 R/X 物理模型
 ├─ estimation/
-│  ├─ preprocessing.py         平方电压降、时序变换及预处理配方
-│  ├─ multiscenario.py          标签对齐、原始数据堆叠、初始化及回归诊断
+│  ├─ preprocessing.py         已观测根的平方电压降目标
+│  ├─ multiscenario.py          原始数据标签对齐、堆叠、初始化及回归诊断
 │  ├─ constrained_least_squares.py  对称/非负/有序约束的凸 QP
 │  ├─ laminar_l1_milp.py        通用版：数据、约束建模、求解与前向路径
-│  ├─ gurobi_milp.py            gurobipy 版：标准矩阵输入与状态转换
-│  ├─ matrix_constraints.py     矩阵修正、诊断及可选 PSD 兼容模式
-│  └─ recipes.py               历史配方导入路径的薄兼容模块
+│  └─ gurobi_milp.py            gurobipy 版：标准矩阵输入与状态转换
 └─ graph/
-   ├─ sensitivity_geometry.py  R/X 距离组合与共享路径分数
+   ├─ sensitivity_geometry.py  固定 RX75 归一化与共享路径分数
    ├─ rooted_neighbor_joining.py  RNJ 变体的递归合并
    ├─ bootstrap.py             循环分块重采样和边界子树选择工具
-   └─ rooted_hierarchy.py      根子树、伪终端收缩和展开
+   └─ rooted_hierarchy.py      从 RNJ 树提取非平凡根子树支撑
 ```
 
 建议从 [结构分析与审查顺序](docs/code_structure.md) 开始。
+`estimation/multiscenario.py` 处理原始数据的标签对齐、堆叠和有序 R/X QP 调用；
+时序配方及其场景变换位于父仓库 `research_experiments/rnj/temporal_preprocessing.py`，用于研究复现。
 MILP 实现集中在两个文件：`laminar_l1_milp.py` 包含完整模型与流程，默认走
 SciPy/HiGHS；`gurobi_milp.py` 提供 `solver="gurobi"` 的标准矩阵适配。
 R/X 数学模型与数值修正见 [回归审查报告](docs/rx_regression_review.md)。
@@ -108,31 +113,34 @@ R/X 数学模型与数值修正见 [回归审查报告](docs/rx_regression_revie
 
 RNJ 前的默认 R/X 回归使用平方损失与固定线性约束，是凸 QP；RNJ 后的 L1-MILP
 使用绝对值损失并搜索新的树结构原子。两者属于不同阶段。
-有序约束或 PSD 修正不保证矩阵对应某棵树，bootstrap 频率也不是校准后的拓扑后验。
+有序约束不保证矩阵对应某棵树，bootstrap 频率也不是校准后的拓扑后验。
 
-主流程只接受根观测 `exact` 或 `noisy`。场景生成器的 `unobserved` 仅供独立失配研究，
-不会以固定标称电压代替正式模型的已观测根。旧 `fixed_intercepts` 输入及结果的
+核心场景生成器和主流程均只接受根观测 `exact` 或 `noisy`。`unobserved` 的固定标称根
+失配对照保存在父仓库研究目录，核心拒绝该模式。旧 `fixed_intercepts` 输入及结果的
 `intercepts` 字段已删除；验证只计算给定 R/X 的原始残差，不在验证集重新校准。
 MILP 已联合优化所有权重，普通扩展直接使用输出参数；保留初始化和剪枝时必要的 LP。
 
 RNJ+MILP 将筛选后的 RNJ 块作为固定 `initial_supports`，系数参与联合重估，
-后续 MILP 直接优化二进制支撑，不要求新支撑来自完整 RNJ 树。
+并保留全部原终端 singleton；后续 MILP 直接优化二进制支撑，不要求新支撑来自完整 RNJ 树。
+主流程不聚合 P/Q、不构造伪终端，也不做电压去嵌入。历史聚合实现位于
+`experiments/rooted_aggregation.py`，供独立消融和结果复现使用。
 核心已移除白名单模式及兼容别名：`allowed_supports`、`candidate_supports`、
 `candidate_pool_mode`、`support_search_mode` 不再是输入参数，相应 CLI 开关也已删除。
 传入旧参数会报错；输出中的 `support_search_mode="unrestricted"` 仅记录固定的搜索语义。
 独立研究的有限池 LP 枚举保留在 `experiments/rooted_ablation_support.py`，不进入正式模型。
 
-`fit_projected_sensitivity` 保留历史四返回值接口。`constraint_refine_iterations` 是求解器
-迭代预算（默认 500），设为 0 时只返回可行初始化；`tree_covariance` 仍为可行性启发式。
+`fit_projected_sensitivity` 只接受 `constraint_mode="ordered"`，保留历史四返回值接口。
+`constraint_refine_iterations` 是正整数求解器迭代预算（默认 500）。
+依赖旧 `basic` 或 `tree_covariance` 模式的历史对照脚本需用对应源码快照运行。
 
-父项目的两个主线命令及相应算法模块继续转发到这里。部分矩阵诊断、预处理和层次图工具
-仍供父项目研究脚本使用，因而保留；父项目并非每个模块都采用转发。
+父项目的两个主线命令及相应算法模块继续转发到这里。研究用矩阵修正与诊断
+由父项目实现；部分预处理和层次图工具仍供研究脚本使用。
 
 根电压建模、低样本效果与限时联合求解见[根电压与低样本 MILP 审查](docs/root_voltage_low_sample_milp.md)。
 
 ## 根信息、结构消融与人工核查研究
 
-本轮完整研究见[统一研究报告](docs/research_study_20260908.md)：固定4网络、36个低样本主条件和12个候选扩展条件，分别报告根部、末端、R/X、运行时间与失败。结果支持RNJ候选+wzzT的条件性优势；自动冻结/收缩并非本批最优配置，生产默认未据此更换。
+2026-09-08 的完整研究见[统一研究报告](docs/research_study_20260908.md)：固定4网络、36个低样本主条件和12个候选扩展条件，分别报告根部、末端、R/X、运行时间与失败。当时结果支持RNJ候选+wzzT的条件性优势；自动冻结/收缩并非该批实验的最优配置。该结论与结果记录属于历史配置，当前主流程见上文。
 
 - [根量测锚定模型与528个回归结果](docs/root_information_model.md)：准确根、噪根、无根量测及公共项/RX正则。
 - [先验语义与人工核查排序](docs/prior_acquisition_design.md)：区分完整clade、末端兄弟、根分区和物理接线事实。

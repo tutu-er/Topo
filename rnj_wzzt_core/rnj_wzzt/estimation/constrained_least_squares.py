@@ -110,7 +110,7 @@ def solve_symmetric_least_squares(
 
     design, target, initial have shapes (samples, 2*n), (samples, n),
     (2, n, n). Initial blocks are symmetric; margins is None or a fixed
-    nonnegative pair. Temporal preprocessing belongs to the caller.
+    nonnegative pair. Scenario alignment belongs to the caller.
 
     Upper-triangular variables encode symmetry exactly. Ridge is appended as
     extra least-squares rows, with off-diagonal entries counted twice.

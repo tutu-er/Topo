@@ -18,7 +18,7 @@ def tuning(monkeypatch):
     monkeypatch.setattr(sys, "path", sys.path.copy())
     for key in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "OMP_NUM_THREADS"):
         monkeypatch.setenv(key, os.environ.get(key, "1"))
-    path = Path(__file__).resolve().parents[1] / "scripts" / "run_matched_rnj_tuning.py"
+    path = Path(__file__).resolve().parents[1] / "rnj" / "scripts" / "run_matched_rnj_tuning.py"
     spec = importlib.util.spec_from_file_location("independent_matched_rnj_tuning", path)
     module = importlib.util.module_from_spec(spec)
     monkeypatch.setitem(sys.modules, spec.name, module)

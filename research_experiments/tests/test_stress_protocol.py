@@ -15,9 +15,8 @@ import pandas as pd
 import pytest
 
 
-# The standalone core's experiments folder is intentionally not an installed
-# package. Do not accidentally import the parent repository's experiments.
-_path = Path(__file__).resolve().parents[1] / "experiments" / "stress_support.py"
+# Load a separate module instance so monkeypatches stay local to this protocol test.
+_path = Path(__file__).resolve().parents[1] / "rnj" / "stress_support.py"
 _spec = importlib.util.spec_from_file_location("independent_stress_protocol_support", _path)
 support = importlib.util.module_from_spec(_spec)
 sys.modules[_spec.name] = support

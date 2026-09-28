@@ -60,7 +60,7 @@ def _legacy_oracle(case_key, samples, replicate, pq_noise, v_noise):
 
 def test_settings_registry_defaults_and_json_roundtrip():
     assert tuple(SCENARIO_SUITES) == ("legacy", "reference", "weak_root", "strong_root", "tap_step")
-    assert tuple(ROOT_OBSERVATIONS) == ("exact", "noisy", "unobserved")
+    assert tuple(ROOT_OBSERVATIONS) == ("exact", "noisy")
     legacy = resolve_scenario_settings()
     reference = resolve_scenario_settings("reference")
     assert legacy["scenario_suite"] == "legacy"
@@ -113,18 +113,21 @@ def test_root_observation_modes_preserve_paired_physics_and_terminal_noise():
             "paper15", 16, 1, 3, 0.015, 0.0003,
             scenario_suite="reference", root_observation=mode,
         )
-    for exact, noisy, unobserved in zip(pools["exact"], pools["noisy"], pools["unobserved"]):
-        for item in [noisy, unobserved]:
-            for key in ARRAY_KEYS[:-1]:
-                np.testing.assert_array_equal(item[key].to_numpy(), exact[key].to_numpy(), err_msg=key)
+    for exact, noisy in zip(pools["exact"], pools["noisy"]):
+        for key in ARRAY_KEYS[:-1]:
+            np.testing.assert_array_equal(noisy[key].to_numpy(), exact[key].to_numpy(), err_msg=key)
         np.testing.assert_array_equal(exact["root_voltage"], exact["root_voltage_true"])
         assert not np.array_equal(noisy["root_voltage"], noisy["root_voltage_true"])
-        assert unobserved["root_voltage"] is None
         for item in [exact, noisy]:
             expected = item["root_voltage"].to_numpy()[:, None]**2 - item["V_terminal"].to_numpy()**2
             np.testing.assert_array_equal(item["drop_target"], expected)
-        expected = 1.02**2 - unobserved["V_terminal"].to_numpy()**2
-        np.testing.assert_array_equal(unobserved["drop_target"], expected)
+
+
+def test_core_rejects_unobserved_root_before_simulation():
+    with pytest.raises(ValueError, match="root_observation"):
+        resolve_scenario_settings(root_observation="unobserved")
+    with pytest.raises(ValueError, match="root_observation"):
+        _simulate_pool("paper15", 8, 0, 1, 0.0, 0.0, root_observation="unobserved")
 
 
 @pytest.mark.parametrize("samples", [8, 16, 32])

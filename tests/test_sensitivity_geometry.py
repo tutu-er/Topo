@@ -36,3 +36,19 @@ def test_sensitivity_geometry_rejects_unknown_mode():
     matrix = np.eye(2)
     with pytest.raises(ValueError, match="unknown distance mode"):
         sensitivity_geometry(matrix, matrix, "unknown")
+
+
+def test_parent_geometry_exports_research_implementation():
+    from research_experiments.rnj.sensitivity_geometry import (
+        sensitivity_geometry as research_geometry,
+    )
+
+    assert sensitivity_geometry is research_geometry
+
+
+def test_parent_distance_adapter_exports_research_implementation():
+    from research_experiments.rnj.graph_adapters import (
+        shared_paths_from_distances as research_adapter,
+    )
+
+    assert shared_paths_from_distances is research_adapter

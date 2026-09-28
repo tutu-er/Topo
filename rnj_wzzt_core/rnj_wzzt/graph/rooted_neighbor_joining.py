@@ -2,8 +2,8 @@
 
 The RNJ recursion ranks terminal pairs by their shared root-path length. For
 reduced power-system sensitivity matrices this score is supplied directly by
-``R_ij``, ``X_ij``, or a normalized weighted combination of both. A generic
-distance-to-score adapter remains available for non-sensitivity inputs.
+the RX75 normalized weighted combination of ``R_ij`` and ``X_ij``. Generic
+distance adapters live in the separate research experiments package.
 """
 
 from __future__ import annotations
@@ -26,24 +26,6 @@ class RootedTreeResult:
     edges: tuple[WeightedEdge, ...]
     group_tolerance: float
 
-
-def shared_paths_from_distances(distance: np.ndarray, root_depths: np.ndarray) -> np.ndarray:
-    """Convert a generic additive distance to root-to-LCA shared-path scores.
-
-    Reduced R/X matrices should use ``sensitivity_geometry`` instead, because
-    their off-diagonal entries are already these scores.
-    """
-
-    matrix = np.asarray(distance, dtype=float)
-    depths = np.asarray(root_depths, dtype=float)
-    if matrix.shape != (len(depths), len(depths)):
-        raise ValueError("distance shape must match root_depths")
-    shared = 0.5 * (depths[:, None] + depths[None, :] - matrix)
-    shared = 0.5 * (shared + shared.T)
-    shared = np.maximum(shared, 0.0)
-    shared = np.minimum(shared, np.minimum(depths[:, None], depths[None, :]))
-    np.fill_diagonal(shared, depths)
-    return shared
 
 
 def _contract_zero_internal_edges(

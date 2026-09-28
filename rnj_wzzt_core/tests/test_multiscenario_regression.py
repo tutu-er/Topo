@@ -37,26 +37,24 @@ def _squared_residual(scenario, r_matrix, x_matrix):
     return float(np.sum(residual**2))
 
 
-@pytest.mark.parametrize("mode", ["basic", "ordered"])
-def test_active_constraint_matches_independent_analytic_optimum(mode):
+def test_active_constraint_matches_independent_analytic_optimum():
     """The ordered optimum has all four R entries equal to 1/2.
 
     For the ordered problem, symmetry permits R=[[d,t],[t,d]], d>=t>=0.
     The objective is proportional to 2*d**2 + 2*(t-1)**2, whose minimum is
-    d=t=1/2. The legacy tree_covariance path promises feasibility only and is
-    deliberately excluded from this exact-optimality contract.
+    d=t=1/2.
     """
 
     raw_r = np.array([[0.0, 1.0], [1.0, 0.0]])
     true_x = np.eye(2)
     scenario = _orthogonal_scenario(raw_r, true_x)
     r_hat, x_hat, _, _ = fit_projected_sensitivity(
-        [scenario], constraint_mode=mode, diagonal_margin_ratio=0.0,
+        [scenario], constraint_mode="ordered", diagonal_margin_ratio=0.0,
     )
-    expected_r = raw_r if mode == "basic" else np.full((2, 2), 0.5)
+    expected_r = np.full((2, 2), 0.5)
     np.testing.assert_allclose(r_hat, expected_r, atol=2e-6)
     np.testing.assert_allclose(x_hat, true_x, atol=2e-6)
-    expected_sse = 0.0 if mode == "basic" else 2.0
+    expected_sse = 2.0
     assert _squared_residual(scenario, r_hat, x_hat) == pytest.approx(
         expected_sse, abs=2e-6,
     )
@@ -73,8 +71,7 @@ def test_ordered_margin_is_fixed_from_initial_ols_scale():
     np.testing.assert_allclose(x_hat, np.eye(2), atol=2e-6)
 
 
-@pytest.mark.parametrize("mode", ["basic", "ordered", "tree_covariance"])
-def test_recovers_shared_matrices_with_distinct_scenario_power_means(mode):
+def test_recovers_shared_matrices_with_distinct_scenario_power_means():
     rng = np.random.default_rng(20260907)
     r_true = np.array([[2.0, 0.4], [0.4, 1.4]])
     x_true = np.array([[1.1, 0.2], [0.2, 0.8]])
@@ -89,7 +86,7 @@ def test_recovers_shared_matrices_with_distinct_scenario_power_means(mode):
             "Q_terminal": pd.DataFrame(q, columns=[10, 20]),
             "drop_target": pd.DataFrame(target, columns=[10, 20]),
         })
-    r_hat, x_hat, r2, _ = fit_projected_sensitivity(scenarios, constraint_mode=mode)
+    r_hat, x_hat, r2, _ = fit_projected_sensitivity(scenarios, constraint_mode="ordered")
     np.testing.assert_allclose(r_hat, r_true, atol=2e-6)
     np.testing.assert_allclose(x_hat, x_true, atol=2e-6)
     assert r2 == pytest.approx(1.0, abs=1e-10)
@@ -114,8 +111,7 @@ def test_ridge_keeps_orthogonal_meter_offset_in_residual():
     assert diagnostics["squared_residual_sum"] == pytest.approx(expected_sse)
 
 
-@pytest.mark.parametrize("mode", ["basic", "ordered", "tree_covariance"])
-def test_rows_and_columns_align_by_labels(mode):
+def test_rows_and_columns_align_by_labels():
     r_true = np.array([[2.0, 0.4], [0.4, 1.4]])
     x_true = np.array([[1.1, 0.2], [0.2, 0.8]])
     original = _orthogonal_scenario(r_true, x_true)
@@ -124,14 +120,13 @@ def test_rows_and_columns_align_by_labels(mode):
     shuffled["drop_target"] = shuffled["drop_target"].sample(
         frac=1.0, random_state=18,
     ).iloc[:, ::-1]
-    r_hat, x_hat, r2, _ = fit_projected_sensitivity([shuffled], constraint_mode=mode)
+    r_hat, x_hat, r2, _ = fit_projected_sensitivity([shuffled], constraint_mode="ordered")
     np.testing.assert_allclose(r_hat, r_true, atol=2e-6)
     np.testing.assert_allclose(x_hat, x_true, atol=2e-6)
     assert r2 == pytest.approx(1.0, abs=1e-10)
 
 
-@pytest.mark.parametrize("mode", ["basic", "ordered"])
-def test_terminal_permutation_preserves_active_constraint_solution(mode):
+def test_terminal_permutation_preserves_active_constraint_solution():
     raw_r = np.array([[0.0, 1.0], [1.0, 0.0]])
     raw_x = np.eye(2)
     original = _orthogonal_scenario(raw_r, raw_x)
@@ -140,10 +135,10 @@ def test_terminal_permutation_preserves_active_constraint_solution(mode):
     for key in ("P_terminal", "Q_terminal", "drop_target"):
         permuted[key] = original[key].iloc[:, permutation]
     r_base, x_base, _, _ = fit_projected_sensitivity(
-        [original], constraint_mode=mode, diagonal_margin_ratio=0.0,
+        [original], constraint_mode="ordered", diagonal_margin_ratio=0.0,
     )
     r_permuted, x_permuted, _, _ = fit_projected_sensitivity(
-        [permuted], constraint_mode=mode, diagonal_margin_ratio=0.0,
+        [permuted], constraint_mode="ordered", diagonal_margin_ratio=0.0,
     )
     np.testing.assert_allclose(
         r_permuted, r_base[np.ix_(permutation, permutation)], atol=3e-6,
@@ -157,21 +152,22 @@ def test_ordered_mode_does_not_impose_psd():
     ordered_indefinite = np.array([[1.0, 0.9, 0.9], [0.9, 1.0, 0.0], [0.9, 0.0, 1.0]])
     scenario = _orthogonal_scenario(ordered_indefinite, np.eye(3))
     r_ordered, _, _, _ = fit_projected_sensitivity([scenario], constraint_mode="ordered")
-    r_psd, _, _, _ = fit_projected_sensitivity([scenario], constraint_mode="tree_covariance")
     np.testing.assert_allclose(r_ordered, ordered_indefinite, atol=2e-6)
     assert np.linalg.eigvalsh(r_ordered).min() < -0.2
-    assert np.linalg.eigvalsh(r_psd).min() >= -1e-8
 
 
 @pytest.mark.parametrize("kwargs", [
     {"alpha": -1.0},
     {"alpha": np.nan},
     {"alpha": np.inf},
+    {"constraint_mode": "basic"},
+    {"constraint_mode": "tree_covariance"},
     {"constraint_mode": "unknown"},
     {"diagonal_margin_ratio": -1.0},
     {"diagonal_margin_ratio": np.nan},
     {"diagonal_margin_ratio": np.inf},
     {"constraint_refine_iterations": -1},
+    {"constraint_refine_iterations": 0},
     {"constraint_refine_iterations": 1.5},
 ])
 def test_invalid_parameters_fail_explicitly(kwargs):
@@ -395,29 +391,6 @@ def test_diagnostics_match_unshifted_objective_and_raw_design_condition():
     assert diagnostics["method"] == "SLSQP_convex_QP"
     assert diagnostics["success"] is True
     assert np.isfinite(r2)
-
-
-def test_zero_iterations_returns_feasible_initializer_without_calling_qp(monkeypatch):
-    import rnj_wzzt.estimation.multiscenario as multiscenario
-
-    def unexpected_solver(*_args, **_kwargs):
-        pytest.fail("zero iterations must not call the QP solver")
-
-    monkeypatch.setattr(multiscenario, "solve_symmetric_least_squares", unexpected_solver)
-    scenario = _orthogonal_scenario(np.array([[0.0, 1.0], [1.0, 0.0]]), np.eye(2))
-    diagnostics = {}
-    r_hat, x_hat, _, _ = fit_projected_sensitivity(
-        [scenario], diagonal_margin_ratio=0.0, constraint_refine_iterations=0,
-        diagnostics=diagnostics,
-    )
-    # This initializer only raises diagonals. It is feasible but not the QP optimum.
-    np.testing.assert_allclose(r_hat, np.ones((2, 2)), atol=1e-12)
-    np.testing.assert_allclose(x_hat, np.eye(2), atol=1e-12)
-    assert diagnostics["method"] == "feasible_initialization_only"
-    assert diagnostics["success"] is False
-    assert diagnostics["iterations"] == 0
-    assert diagnostics["objective"] == pytest.approx(2.0, abs=1e-12)
-
 
 
 def test_collinear_noisy_pq_does_not_use_unstable_whitening():

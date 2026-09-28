@@ -1,13 +1,10 @@
 """Audit-record regressions; no production numerical behavior is changed."""
-from pathlib import Path
-import sys
 from time import perf_counter
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'experiments'))
-import run_advantage_stress as study
-from rooted_ablation_support import BoundedPath
+from research_experiments.rnj import run_advantage_stress as study
+from research_experiments.rnj.rooted_ablation_support import BoundedPath
 
 
 @pytest.mark.parametrize('initial,raw,admissible', [

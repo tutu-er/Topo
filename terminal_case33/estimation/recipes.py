@@ -1,5 +1,17 @@
-"""Compatibility alias; authoritative source is rnj_wzzt_core."""
+"""Compatibility exports for research-only temporal preprocessing."""
 
-from terminal_case33._standalone_core import alias_module
+from terminal_case33._standalone_core import load_core_module
 
-alias_module(__name__, "rnj_wzzt.estimation.recipes")
+load_core_module("rnj_wzzt.estimation.multiscenario")
+
+from research_experiments.rnj.temporal_preprocessing import (
+    apply_preprocessing_recipe,
+    daily_demean,
+    preprocess_scenarios,
+    rolling_highpass,
+)
+
+__all__ = [
+    "daily_demean", "rolling_highpass", "apply_preprocessing_recipe",
+    "preprocess_scenarios",
+]

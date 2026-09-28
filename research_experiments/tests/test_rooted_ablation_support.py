@@ -1,12 +1,9 @@
-from pathlib import Path
 from itertools import combinations
-import sys
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'experiments'))
 import numpy as np
 import pandas as pd
 import pytest
 from rnj_wzzt.estimation import laminar_l1_milp as core
-from rooted_ablation_support import BoundedPath, rooted_scores
+from research_experiments.rnj.rooted_ablation_support import BoundedPath, rooted_scores
 
 def scenarios():
     rng=np.random.default_rng(3090801);p=rng.normal(size=(18,4));q=rng.normal(size=(18,4))
@@ -73,7 +70,7 @@ def test_root_terminal_partition_uses_clades_only():
 
 
 def test_validation_fallback_can_select_candidate_itself_and_ties_reference():
-    from rooted_ablation_support import validation_selection
+    from research_experiments.rnj.rooted_ablation_support import validation_selection
     baseline={'method':'rnj_fixed_tree_lp','validation_mae':.2,'clade_f1':.8,'test_rmse':100}
     candidate={'method':'joint','validation_mae':.1,'clade_f1':.3,'test_rmse':200}
     candidate.update(validation_selection(candidate,baseline))
@@ -85,7 +82,7 @@ def test_validation_fallback_can_select_candidate_itself_and_ties_reference():
 
 
 def test_validation_selection_reference_wins_on_validation_despite_worse_test():
-    from rooted_ablation_support import validation_selection
+    from research_experiments.rnj.rooted_ablation_support import validation_selection
     reference={'method':'rnj_fixed_tree_lp','validation_mae':.1,'test_rmse':100}
     candidate={'method':'joint','validation_mae':.2,'test_rmse':0}
     assert validation_selection(candidate,reference)['validation_selected_method']=='rnj_fixed_tree_lp'

@@ -4,36 +4,25 @@ from __future__ import annotations
 
 import numpy as np
 
-from rnj_wzzt.estimation.constrained_least_squares import (
-    make_feasible,
-    solve_symmetric_least_squares,
-)
-from rnj_wzzt.estimation.matrix_constraints import project_tree_covariance_matrix
-from rnj_wzzt.estimation.preprocessing import apply_preprocessing_recipe
-from rnj_wzzt.graph.sensitivity_geometry import distance_candidates  # Historical API re-export.
+from rnj_wzzt.estimation.constrained_least_squares import solve_symmetric_least_squares
 
 
-def preprocess_scenarios(scenarios: list[dict], recipe: dict) -> list[dict]:
-    """Align observations, then apply one temporal recipe to P, Q, and voltage drop."""
+def align_scenarios(scenarios: list[dict]) -> list[dict]:
+    """Align raw P, Q, and voltage-drop rows for positional resampling."""
 
-    fitted = []
+    aligned = []
     for scenario in scenarios:
         index = scenario["P_terminal"].index
         if len(index) == 0 or not index.is_unique:
             raise ValueError("scenario time indices must be nonempty and unique")
-        transformed = []
+        frames = {}
         for key in ("P_terminal", "Q_terminal", "drop_target"):
             frame = scenario[key]
             if not frame.index.is_unique or set(frame.index) != set(index):
                 raise ValueError(f"{key} must contain the same unique time indices")
-            transformed.append(apply_preprocessing_recipe(frame.loc[index], recipe, len(index)))
-        p, q, drop = transformed
-        index = p.index.intersection(q.index).intersection(drop.index)
-        fitted.append({
-            "name": scenario["name"], "P_terminal": p.loc[index],
-            "Q_terminal": q.loc[index], "drop_target": drop.loc[index],
-        })
-    return fitted
+            frames[key] = frame.loc[index].copy()
+        aligned.append({"name": scenario["name"], **frames})
+    return aligned
 
 
 def _aligned_arrays(scenarios: list[dict]) -> tuple[list[np.ndarray], list[np.ndarray]]:
@@ -84,44 +73,6 @@ def _fixed_margins(blocks: np.ndarray, ratio: float) -> np.ndarray:
     return np.asarray(margins)
 
 
-def _fit_tree_covariance_compatibility(
-    design: np.ndarray,
-    target: np.ndarray,
-    initial: np.ndarray,
-    alpha: float,
-    margin_ratio: float,
-    iterations: int,
-) -> np.ndarray:
-    """Retain optional PSD feasibility refinement, without claiming optimality."""
-
-    def repair(coefficients: np.ndarray) -> np.ndarray:
-        return np.vstack([
-            project_tree_covariance_matrix(block, margin_ratio=margin_ratio)
-            for block in _symmetric_blocks(coefficients)
-        ])
-
-    def loss(coefficients: np.ndarray) -> float:
-        residual = design @ coefficients - target
-        return 0.5 * float(np.sum(residual**2) + alpha * np.sum(coefficients**2))
-
-    coefficients = repair(np.vstack(initial))
-    step = 1.0 / max(float(np.linalg.norm(design, ord=2))**2 + alpha, 1e-15)
-    value = loss(coefficients)
-    for _ in range(iterations):
-        gradient = design.T @ (design @ coefficients - target) + alpha * coefficients
-        proposal = repair(coefficients - step * gradient)
-        candidate_value = loss(proposal)
-        if candidate_value > value:
-            step *= 0.5
-            continue
-        change = np.linalg.norm(proposal - coefficients)
-        reference = max(np.linalg.norm(coefficients), 1e-15)
-        coefficients, value = proposal, candidate_value
-        if change <= 1e-8 * reference:
-            break
-    return coefficients.reshape(2, target.shape[1], target.shape[1])
-
-
 def fit_projected_sensitivity(
     scenarios: list[dict],
     alpha: float = 0.0,
@@ -133,16 +84,16 @@ def fit_projected_sensitivity(
 ) -> tuple[np.ndarray, np.ndarray, float, float]:
     """Fit Y = P R + Q X through the origin over all observed-root scenarios.
 
-    The RNJ default, ordered, and basic solve a fixed-domain convex QP with
+    The sole supported mode, ordered, solves a fixed-domain convex QP with
     SciPy. Y is the measured squared-voltage drop V_root^2 - V_terminal^2;
     P, Q, and Y are stacked directly, without centering or fitted intercepts.
     Matrix symmetry is encoded by upper-triangular variables; bounds enforce
-    nonnegativity and linear inequalities enforce the optional diagonal order.
+    nonnegativity and linear inequalities enforce the diagonal order.
     Margins are fixed once from the initial unconstrained least-squares fit.
 
-    constraint_refine_iterations is the solver iteration budget; zero requests
-    only a feasible initializer. tree_covariance retains a PSD feasibility
-    heuristic, not an optimal SDP solver. No mode certifies a shared tree.
+    constraint_refine_iterations is a positive solver iteration budget.
+    The ordered constraints do not certify a shared tree or positive
+    semidefiniteness.
 
     Returns R, X, the pooled centered R-squared, and the condition number of
     A = [P Q]. For constant targets, the finite R-squared convention is 1
@@ -150,16 +101,16 @@ def fit_projected_sensitivity(
     undefined in that case. Optional diagnostics record solver status and loss.
     """
 
-    if constraint_mode not in {"basic", "ordered", "tree_covariance"}:
-        raise ValueError("unknown sensitivity constraint mode")
+    if constraint_mode != "ordered":
+        raise ValueError("only the 'ordered' sensitivity constraint mode is supported")
     if not np.isfinite(alpha) or alpha < 0.0:
         raise ValueError("alpha must be finite and nonnegative")
     if not np.isfinite(diagonal_margin_ratio) or diagonal_margin_ratio < 0.0:
         raise ValueError("diagonal_margin_ratio must be finite and nonnegative")
     if (isinstance(constraint_refine_iterations, (bool, np.bool_))
             or not isinstance(constraint_refine_iterations, (int, np.integer))
-            or constraint_refine_iterations < 0):
-        raise ValueError("constraint_refine_iterations must be a nonnegative integer")
+            or constraint_refine_iterations <= 0):
+        raise ValueError("constraint_refine_iterations must be a positive integer")
     designs, targets = _aligned_arrays(scenarios)
     design = np.vstack(designs)
     target = np.vstack(targets)
@@ -171,19 +122,10 @@ def fit_projected_sensitivity(
         fitted_design, fitted_target = design, target
     coefficients = np.linalg.lstsq(fitted_design, fitted_target, rcond=None)[0]
     blocks = _symmetric_blocks(coefficients)
-    margins = _fixed_margins(blocks, diagonal_margin_ratio) if constraint_mode == "ordered" else None
-    solver = {"method": "feasible_initialization_only", "success": False, "iterations": 0}
-    if constraint_mode == "tree_covariance":
-        blocks = _fit_tree_covariance_compatibility(
-            design, target, blocks, alpha, diagonal_margin_ratio, constraint_refine_iterations,
-        )
-        solver = {"method": "PSD_feasibility_heuristic", "success": False}
-    elif constraint_refine_iterations:
-        blocks, solver = solve_symmetric_least_squares(
-            design, target, blocks, margins, alpha, constraint_refine_iterations,
-        )
-    else:
-        blocks = make_feasible(blocks, margins)
+    margins = _fixed_margins(blocks, diagonal_margin_ratio)
+    blocks, solver = solve_symmetric_least_squares(
+        design, target, blocks, margins, alpha, constraint_refine_iterations,
+    )
     r_matrix, x_matrix = blocks
     coefficients = np.vstack(blocks)
     residual_sum = float(np.sum((design @ coefficients - target)**2))
@@ -199,8 +141,8 @@ def fit_projected_sensitivity(
             **solver,
             "constraint_mode": constraint_mode,
             "alpha": float(alpha),
-            "r_margin": float(margins[0]) if constraint_mode == "ordered" else None,
-            "x_margin": float(margins[1]) if constraint_mode == "ordered" else None,
+            "r_margin": float(margins[0]),
+            "x_margin": float(margins[1]),
             "squared_residual_sum": residual_sum,
             "objective": 0.5 * (residual_sum + alpha * float(np.sum(coefficients**2))),
         })

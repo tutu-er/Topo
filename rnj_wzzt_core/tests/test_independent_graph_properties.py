@@ -1,4 +1,4 @@
-"""Independent tree, resampling, and aggregation oracles.
+"""Independent tree and resampling oracles.
 
 These fixtures do not use production feeder builders, graph truth helpers,
 matrix generators, or reconstructed hidden-node IDs to construct expectations.
@@ -19,21 +19,12 @@ from rnj_wzzt.graph.bootstrap import (
     _moving_block_bootstrap_copy,
     _select_disjoint,
 )
-from rnj_wzzt.graph.rooted_hierarchy import (
-    PseudoCluster,
-    aggregate_rooted_scenarios,
-    rooted_clades,
-    rooted_tree_from_clades,
-)
-from rnj_wzzt.graph.rooted_neighbor_joining import (
-    rooted_neighbor_joining,
-    shared_paths_from_distances,
-)
+from rnj_wzzt.graph.rooted_hierarchy import rooted_clades
+from rnj_wzzt.graph.rooted_neighbor_joining import rooted_neighbor_joining
 from rnj_wzzt.graph.sensitivity_geometry import sensitivity_geometry
 from rnj_wzzt.models.lin_distflow import (
     build_reduced_sensitivity_matrices,
     impedance_distance_from_reduced_R,
-    impedance_distance_from_reduced_X,
     ohm_to_pu,
 )
 from rnj_wzzt.models.network import TerminalizedNetwork
@@ -172,15 +163,6 @@ def test_rnj_scale_permutation_and_positive_relabeling_equivariance(kind, scale)
     assert result.terminals == tuple(labels)
 
 
-def test_distance_adapter_against_hand_calculated_three_terminal_values():
-    depths = np.array([7.0, 9.0, 5.0])
-    distances = np.array([[0.0, 12.0, 12.0], [12.0, 0.0, 14.0], [12.0, 14.0, 0.0]])
-    expected = np.array([[7.0, 2.0, 0.0], [2.0, 9.0, 0.0], [0.0, 0.0, 5.0]])
-    np.testing.assert_array_equal(shared_paths_from_distances(distances, depths), expected)
-    np.testing.assert_array_equal(impedance_distance_from_reduced_R(expected), distances)
-    np.testing.assert_array_equal(impedance_distance_from_reduced_X(expected), distances)
-
-
 @pytest.mark.parametrize("internal_weight, expected_cherry", [(0.0, False), (1e-12, False), (1e-8, True)])
 def test_zero_and_short_internal_edges_expose_absolute_contraction_resolution(internal_weight, expected_cherry):
     # An unrelated deeper cherry forces this edge to be internal-to-internal.
@@ -217,21 +199,17 @@ def test_group_tolerance_resolution_has_an_explicit_topology_boundary(gap, toler
     assert (frozenset({1, 2}) in clades) is expected
 
 
-@pytest.mark.parametrize("mode", ["R", "X", "RX_equal_normalized", "RX_75R_25X", "RX_25R_75X"])
-def test_channel_geometry_agrees_with_independent_edge_incidence(mode):
+def test_rx75_geometry_agrees_with_independent_edge_incidence():
     edges, terminals = _fixture_tree("multifurcating", 12, 14)
     r, expected = _edge_incidence_oracle(edges, terminals)
     x_edges = [(parent, child, 0.5 + 0.125 * index) for index, (parent, child, _) in enumerate(edges)]
     x, _ = _edge_incidence_oracle(x_edges, terminals)
-    geometry = sensitivity_geometry(r, x, mode)
+    geometry = sensitivity_geometry(r, x, "RX_75R_25X")
     # Independent normalization counts unordered pairs exactly once.
     pairs = list(combinations(range(len(terminals)), 2))
     r_scale = np.mean([r[i, i] + r[j, j] - 2 * r[i, j] for i, j in pairs])
     x_scale = np.mean([x[i, i] + x[j, j] - 2 * x[i, j] for i, j in pairs])
-    weights = {"R": (1.0, 0.0), "X": (0.0, 1.0),
-               "RX_equal_normalized": (1 / r_scale, 1 / x_scale),
-               "RX_75R_25X": (0.75 / r_scale, 0.25 / x_scale),
-               "RX_25R_75X": (0.25 / r_scale, 0.75 / x_scale)}[mode]
+    weights = (0.75 / r_scale, 0.25 / x_scale)
     combined_edges = [(u, v, weights[0] * w + weights[1] * x_edge[2])
                       for (u, v, w), x_edge in zip(edges, x_edges, strict=True)]
     expected_shared, _ = _edge_incidence_oracle(combined_edges, terminals)
@@ -247,7 +225,7 @@ def test_normalized_rx_geometry_is_invariant_to_independent_channel_units(r_scal
     original = sensitivity_geometry(r, x, "RX_75R_25X")
     changed = sensitivity_geometry(r_scale * r, x_scale * x, "RX_75R_25X")
     np.testing.assert_allclose(changed.shared_paths, original.shared_paths, rtol=1e-14)
-    np.testing.assert_allclose(changed.distance, original.distance, rtol=1e-14)
+    np.testing.assert_allclose(changed.root_depths, original.root_depths, rtol=1e-14)
 
 
 def _small_network(base_kv=10.0, base_mva=2.0, reverse=False):
@@ -300,29 +278,6 @@ def test_lindistflow_rectangular_observation_injection_paths(voltage_model, fact
 def test_impedance_base_conversion_has_independent_units(base_kv, base_mva, expected):
     assert ohm_to_pu(_small_network(base_kv, base_mva), 5.0) == pytest.approx(expected)
 
-
-@pytest.mark.parametrize("kind", ["star", "balanced", "comb", "multifurcating", "stem"])
-@pytest.mark.parametrize("include_stem", [False, True])
-def test_clade_constructor_roundtrip_uses_independent_descendants(kind, include_stem):
-    edges, terminals = _fixture_tree(kind, 12, 3)
-    _, expected_clades = _edge_incidence_oracle(edges, terminals)
-    result = rooted_tree_from_clades(expected_clades, list(reversed(terminals)), 0, include_stem)
-    shared, actual_clades = _inspect_result(result)
-    assert actual_clades == expected_clades
-    assert rooted_clades(result.edges, 0, result.terminals) == expected_clades
-    assert float(np.min(shared)) == float(include_stem)
-
-
-@pytest.mark.parametrize("clades", [
-    {frozenset({1, 2}), frozenset({2, 3})},
-    {frozenset({1, 9})},
-    {frozenset({9})},
-    {frozenset({1, 2, 3, 9})},
-    {frozenset({1, 2, 3, 4, 9})},
-])
-def test_clade_constructor_rejects_crossing_or_foreign_supports(clades):
-    with pytest.raises(ValueError):
-        rooted_tree_from_clades(clades, [1, 2, 3, 4], 0)
 
 
 def _bootstrap_scenario(count, offset=0):
@@ -400,80 +355,6 @@ def test_disjoint_selection_respects_confidence_size_and_lexical_ties(maximum, e
     confidence = {frozenset({1, 2}): 0.9, frozenset({1, 2, 3}): 0.9,
                   frozenset({3, 4}): 0.8, frozenset({4, 5}): 0.8, frozenset({6, 7}): 0.8}
     assert _select_disjoint(set(confidence), confidence, maximum) == [frozenset(item) for item in expected]
-
-
-@pytest.mark.parametrize("weight", [0.0, 0.5, 1.0])
-@pytest.mark.parametrize("order", [[1, 2, 3], [3, 2, 1]])
-def test_cherry_deembedding_matches_independently_calculated_boundary_voltage(weight, order):
-    # Root -- stem -- {cherry boundary, terminal 3}; external power contributes
-    # to the stem drop but must disappear from the cherry's differential drop.
-    p = np.array([[0.1, 0.2, 0.3], [0.4, -0.1, 0.5], [-0.2, 0.3, -0.1]])
-    q = np.array([[0.02, 0.03, 0.01], [-0.01, 0.02, 0.03], [0.03, -0.02, 0.01]])
-    r = np.array([[0.10, 0.06, 0.02], [0.06, 0.13, 0.02], [0.02, 0.02, 0.09]])
-    x = np.array([[0.06, 0.04, 0.01], [0.04, 0.09, 0.01], [0.01, 0.01, 0.07]])
-    root_sq = np.array([1.0, 1.02, 0.98])
-    boundary_sq = root_sq - 0.02 * p.sum(axis=1) - 0.01 * q.sum(axis=1)
-    boundary_sq -= 0.04 * p[:, :2].sum(axis=1) + 0.03 * q[:, :2].sum(axis=1)
-    terminal_sq = root_sq[:, None] - p @ r.T - q @ x.T
-    index = pd.Index([7, 13, 19], name="timestamp")
-    p_frame = pd.DataFrame(p, columns=[1, 2, 3], index=index)
-    q_frame = pd.DataFrame(q, columns=[1, 2, 3], index=index)
-    voltage = pd.DataFrame(np.sqrt(terminal_sq), columns=[1, 2, 3], index=index)
-    scenario = {"name": "independent", "P_terminal": p_frame, "Q_terminal": q_frame,
-                "V_terminal": voltage, "root_voltage": pd.Series(np.sqrt(root_sq), index=index)}
-    cluster = PseudoCluster(900001, frozenset({1, 2}), 1.0, (frozenset({1, 2}),), ((1, 2),))
-    positions = [terminal - 1 for terminal in order]
-    aggregated, mapping = aggregate_rooted_scenarios(
-        [scenario], order, r[np.ix_(positions, positions)], x[np.ix_(positions, positions)],
-        [cluster], "deembedded_vsq", weight)
-    actual = aggregated[0]
-    mean_sq = terminal_sq[:, :2].mean(axis=1)
-    expected_sq = (1 - weight) * mean_sq + weight * boundary_sq
-    np.testing.assert_allclose(actual["V_terminal"][900001] ** 2, expected_sq, rtol=1e-14)
-    np.testing.assert_allclose(actual["P_terminal"][900001], p[:, :2].sum(axis=1), rtol=1e-14)
-    np.testing.assert_allclose(actual["Q_terminal"][900001], q[:, :2].sum(axis=1), rtol=1e-14)
-    singleton = next(pseudo for pseudo, members in mapping.items() if members == frozenset({3}))
-    np.testing.assert_array_equal(actual["V_terminal"][singleton], voltage[3])
-    np.testing.assert_allclose(actual["drop_target"][900001], root_sq - expected_sq, atol=1e-15)
-    assert actual["V_terminal"].index.equals(index)
-    assert not np.allclose(mean_sq, boundary_sq)
-
-
-@pytest.mark.parametrize("weight", [0.0, 0.5, 1.0])
-@pytest.mark.parametrize("order", [[2, 7, 11, 20], [20, 11, 7, 2]])
-def test_deembedding_matches_scalar_formula_for_asymmetric_estimates(weight, order):
-    # Imperfect estimates need not be symmetric. Distinct row coefficients
-    # expose a missing transpose; the last terminal is outside the clade.
-    labels = [2, 7, 11, 20]
-    r = np.array([[0.7, 0.1, 0.4, 0.9], [-0.2, 0.8, 0.2, 0.3],
-                  [0.3, 0.05, 0.9, 0.4], [0.1, 0.2, 0.3, 0.8]])
-    x = np.array([[0.4, 0.05, 0.1, 0.1], [0.08, 0.5, 0.2, 0.3],
-                  [0.12, 0.09, 0.6, 0.1], [0.1, 0.2, 0.1, 0.4]])
-    p = np.array([[0.1, 0.2, 0.3, 7.0], [-0.2, 0.3, 0.1, -4.0]])
-    q = np.array([[0.02, 0.01, -0.03, -2.0], [-0.01, 0.03, 0.02, 5.0]])
-    v = np.array([[0.95, 0.96, 0.94, 0.99], [0.97, 0.95, 0.93, 0.98]])
-    scenario = {
-        "name": "asymmetric",
-        "P_terminal": pd.DataFrame(p, columns=labels),
-        "Q_terminal": pd.DataFrame(q, columns=labels),
-        "V_terminal": pd.DataFrame(v, columns=labels),
-        "root_voltage": pd.Series([1.01, 1.02]),
-    }
-    cluster = PseudoCluster(900000, frozenset(labels[:3]), 1.0, (), ())
-    positions = [labels.index(label) for label in order]
-    actual, _ = aggregate_rooted_scenarios(
-        [scenario], order, r[np.ix_(positions, positions)], x[np.ix_(positions, positions)],
-        [cluster], "deembedded_vsq", weight,
-    )
-    # Upper-triangle 20th percentiles are 0.14 for R and 0.07 for X.
-    recovered = [[v[t, j] ** 2 + sum(
-        p[t, i] * max(r[j, i] - 0.14, 0.0)
-        + q[t, i] * max(x[j, i] - 0.07, 0.0)
-        for i in range(3)
-    ) for j in range(3)] for t in range(2)]
-    mean_sq = np.mean(v[:, :3] ** 2, axis=1)
-    expected = mean_sq + weight * (np.median(recovered, axis=1) - mean_sq)
-    np.testing.assert_allclose(actual[0]["V_terminal"][900000] ** 2, expected, atol=1e-14)
 
 
 @pytest.mark.parametrize("kind", ["star", "balanced", "comb", "multifurcating"])
@@ -580,30 +461,11 @@ def test_rnj_negative_labels_never_collide_with_allocated_hidden_nodes(labels, r
     assert result.terminals == tuple(labels)
 
 
-@pytest.mark.parametrize("labels,root", [
-    ([-1, -2, -3], -4), ([-1, -2, -3], 0), ([1, 2, 3], -1),
-    ([-1, 20, -3], -2), ([1, 2, 3], -20),
-])
-@pytest.mark.parametrize("include_stem", [False, True])
-def test_clade_constructor_negative_labels_keep_terminals_as_leaves(labels, root, include_stem):
-    clades = {frozenset(labels[:2])}
-    result = rooted_tree_from_clades(clades, labels, root, include_stem)
-    shared, actual_clades = _inspect_result(result)
-    expected = np.array([[2.0, 1.0, 0.0], [1.0, 2.0, 0.0], [0.0, 0.0, 1.0]])
-    if include_stem:
-        expected += 1.0
-    np.testing.assert_array_equal(shared, expected)
-    assert actual_clades == clades
-
 
 @pytest.mark.parametrize("labels,root", [([1, 1], 0), ([1, 2], 1), ([-1, -1], 0), ([-1, 2], -1)])
-@pytest.mark.parametrize("constructor", ["rnj", "clades"])
-def test_tree_constructors_reject_repeated_or_root_overlapping_terminal_labels(labels, root, constructor):
+def test_rnj_rejects_repeated_or_root_overlapping_terminal_labels(labels, root):
     with pytest.raises(ValueError, match="unique|root"):
-        if constructor == "rnj":
-            rooted_neighbor_joining(np.eye(2), np.ones(2), labels, root)
-        else:
-            rooted_tree_from_clades(set(), labels, root)
+        rooted_neighbor_joining(np.eye(2), np.ones(2), labels, root)
 
 
 @pytest.mark.parametrize("tolerance", [np.nan, np.inf, -np.inf])
@@ -643,3 +505,8 @@ def test_default_rx75_tolerance_loses_unit_caterpillar_clades_as_depth_grows(cou
     resolved = rooted_neighbor_joining(
         geometry.shared_paths, geometry.root_depths, labels, 0, 0.01 * scale)
     assert _inspect_result(resolved)[1] == expected
+
+
+def test_rx75_geometry_rejects_alternative_research_modes():
+    with pytest.raises(ValueError, match="only RX_75R_25X"):
+        sensitivity_geometry(np.eye(2), np.eye(2), "R")

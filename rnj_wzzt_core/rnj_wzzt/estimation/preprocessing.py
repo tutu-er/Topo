@@ -1,11 +1,8 @@
-"""Preprocessing helpers for terminal smart-meter data."""
+"""Construct observed-root squared-voltage-drop targets."""
 
 from __future__ import annotations
 
 import pandas as pd
-
-
-RECIPE = {"name": "raw", "kind": "raw"}
 
 
 def squared_voltage_drop_from_observed_root(
@@ -14,9 +11,8 @@ def squared_voltage_drop_from_observed_root(
 ) -> pd.DataFrame:
     """Return ``V_root(t)^2 - V_i(t)^2`` for each terminal meter.
 
-    This is the preferred target when the transformer/root bus voltage magnitude
-    is directly observed, because root voltage fluctuations are removed before
-    sensitivity fitting.
+    Subtracting the simultaneously observed root level removes its direct
+    additive contribution. Root-meter error remains in the target.
     """
 
     common_index = V_terminal.index.intersection(root_voltage.index)
@@ -27,47 +23,3 @@ def squared_voltage_drop_from_observed_root(
         index=common_index,
         columns=V_sq.columns,
     )
-
-
-def daily_demean(data: pd.DataFrame | pd.Series, samples_per_day: int | None = None) -> pd.DataFrame | pd.Series:
-    """Subtract the mean of each day independently."""
-
-    n = len(data)
-    if n == 0:
-        return data.copy()
-    day = int(samples_per_day or n)
-    parts = []
-    for start in range(0, n, day):
-        segment = data.iloc[start : start + day]
-        parts.append(segment - segment.mean(axis=0))
-    return pd.concat(parts, axis=0)
-
-
-def rolling_highpass(data: pd.DataFrame | pd.Series, window: int) -> pd.DataFrame | pd.Series:
-    """Subtract a centered rolling mean from a signal."""
-
-    return data - data.rolling(window=window, min_periods=1, center=True).mean()
-
-
-def apply_preprocessing_recipe(
-    frame: pd.DataFrame,
-    recipe: dict,
-    samples_per_day: int,
-) -> pd.DataFrame:
-    """Apply one temporal recipe, shared by P, Q, and voltage-drop observations."""
-
-    kind = str(recipe["kind"])
-    if kind == "raw":
-        return frame.copy()
-    if kind == "demean":
-        return daily_demean(frame, samples_per_day=samples_per_day)
-    if kind == "rolling_highpass":
-        return rolling_highpass(frame, window=int(recipe["window"]))
-    if kind == "difference":
-        return frame.diff().dropna()
-    if kind == "chain":
-        result = frame.copy()
-        for step in recipe["steps"]:
-            result = apply_preprocessing_recipe(result, step, samples_per_day)
-        return result
-    raise ValueError(f"unknown preprocessing kind: {kind}")

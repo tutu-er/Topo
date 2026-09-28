@@ -256,7 +256,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--constraint-mode",
-        choices=["basic", "ordered", "tree_covariance"],
+        choices=["ordered"],
         default="ordered",
     )
     parser.add_argument("--alpha", type=float, default=0.0)

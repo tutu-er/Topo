@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from rnj_wzzt.estimation.matrix_constraints import (
+from terminal_case33.estimation.matrix_constraints import (
     _project_diagonal_order,
     project_ordered_sensitivity_matrix,
     project_tree_covariance_matrix,

@@ -114,8 +114,8 @@ print(result.path[-1].solver.to_dict())
 ```
 
 `initial_supports` 是必须保留的结构，使用从 0 开始的终端位置。
-主流程将全部叶边 singleton 和筛选后的 RNJ 支撑放入初始族；收缩时，RNJ 块
-由伪末端 singleton 表示。固定的是支撑向量，已有与新增原子的 R/X 系数仍联合拟合。
+主流程在原终端数据上，将全部叶边 singleton 和筛选后的 RNJ 支撑放入初始族。
+不聚合 P/Q 或构造伪末端；固定的是支撑向量，已有与新增原子的 R/X 系数仍联合拟合。
 
 设当前支撑族为 \(\mathcal F\)，本次新增支撑的搜索域直接写成
 

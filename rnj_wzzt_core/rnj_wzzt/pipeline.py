@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
@@ -17,7 +17,6 @@ from time import perf_counter
 import numpy as np
 import pandas as pd
 
-from rnj_wzzt.estimation.preprocessing import RECIPE
 from rnj_wzzt.graph.bootstrap import (
     _boundary_cherries, _moving_block_bootstrap_copy, _select_disjoint,
 )
@@ -32,19 +31,15 @@ from rnj_wzzt.estimation.laminar_l1_milp import (
     _validate_solver, fit_laminar_l1_sensitivity,
 )
 from rnj_wzzt.estimation.multiscenario import (
+    align_scenarios,
     fit_projected_sensitivity,
-    preprocess_scenarios,
 )
-from rnj_wzzt.graph.rooted_hierarchy import (
-    PseudoCluster,
-    aggregate_rooted_scenarios,
-    rooted_clades,
-)
+from rnj_wzzt.graph.rooted_hierarchy import rooted_clades
 from rnj_wzzt.graph.rooted_neighbor_joining import rooted_neighbor_joining
 from rnj_wzzt.graph.sensitivity_geometry import sensitivity_geometry
 
 
-DEFAULT_OUTPUT = Path("outputs/mainline")
+DEFAULT_OUTPUT = Path("outputs/reference")
 DEFAULT_CASES = tuple(CASE_BUILDERS)
 SensitivityFit = tuple[np.ndarray, np.ndarray, float, float]
 
@@ -52,8 +47,6 @@ SensitivityFit = tuple[np.ndarray, np.ndarray, float, float]
 @dataclass(frozen=True)
 class _CaseData:
     name: str
-    training_raw: list[dict]
-    validation_raw: list[dict]
     training: list[dict]
     validation: list[dict]
     terminals: list[int]
@@ -64,7 +57,6 @@ class _CaseData:
 
 @dataclass(frozen=True)
 class _RnjSelection:
-    sensitivity_fit: SensitivityFit
     full_clades: set[frozenset[int]]
     full_cherries: set[frozenset[int]]
     confidence: dict[frozenset[int], float]
@@ -84,7 +76,6 @@ def _validate_run_options(
     confidence_threshold: float,
     maximum_candidate_count: int,
     tolerance_factor: float,
-    deembedding_weight: float,
     time_limit: float,
     coefficient_bound: float,
     root_observation: str,
@@ -97,14 +88,11 @@ def _validate_run_options(
     _integer(block_length, "block_length", 1)
     _integer(maximum_candidate_count, "maximum_candidate_count", 0)
     confidence = _finite_number(confidence_threshold, "confidence_threshold")
-    deembedding = _finite_number(deembedding_weight, "deembedding_weight")
     _finite_number(tolerance_factor, "tolerance_factor")
     _finite_number(time_limit, "time_limit", positive=True)
     _finite_number(coefficient_bound, "coefficient_bound", positive=True)
     if confidence > 1.0:
         raise ValueError("confidence_threshold must be in [0, 1]")
-    if deembedding > 1.0:
-        raise ValueError("deembedding_weight must be in [0, 1]")
     if scenario_suite == "legacy" and samples_per_scenario < 96:
         raise ValueError("at least 96 samples per scenario are required")
     if scenario_suite != "legacy" and (
@@ -148,7 +136,7 @@ def _rx75_rnj_clades(
     sensitivity_fit: SensitivityFit | None = None,
 ) -> tuple[set[frozenset[int]], float, float]:
     if sensitivity_fit is None:
-        sensitivity_fit = fit_projected_sensitivity(scenarios, constraint_mode="ordered")
+        sensitivity_fit = fit_projected_sensitivity(scenarios)
     r_matrix, x_matrix, r2_score, condition = sensitivity_fit
     geometry = sensitivity_geometry(r_matrix, x_matrix, "RX_75R_25X")
     scale = max(float(np.median(geometry.root_depths)), 1e-12)
@@ -251,15 +239,13 @@ def _prepare_case(
             )
         )
 
-    training = preprocess_scenarios(training_raw, RECIPE)
-    validation = preprocess_scenarios(validation_raw, RECIPE)
+    training = align_scenarios(training_raw)
+    validation = align_scenarios(validation_raw)
     terminals = _terminal_buses(net)
     truth_clades = _truth_nontrivial_clades(net, terminals)
     return (
         _CaseData(
             name=case_name,
-            training_raw=training_raw,
-            validation_raw=validation_raw,
             training=training,
             validation=validation,
             terminals=terminals,
@@ -284,10 +270,7 @@ def _select_case_rnj(
     """Fit R/X once, then bootstrap and select RNJ boundary blocks."""
 
     started = perf_counter()
-    sensitivity_fit = fit_projected_sensitivity(
-        case.training,
-        constraint_mode="ordered",
-    )
+    sensitivity_fit = fit_projected_sensitivity(case.training)
     full_clades, confidence, selected, r2_score, condition = (
         _select_boundary_blocks(
             case.training,
@@ -303,7 +286,6 @@ def _select_case_rnj(
         )
     )
     return _RnjSelection(
-        sensitivity_fit=sensitivity_fit,
         full_clades=full_clades,
         full_cherries=_boundary_cherries(full_clades),
         confidence=confidence,
@@ -314,68 +296,6 @@ def _select_case_rnj(
     )
 
 
-def _contracted_milp_inputs(
-    training_raw: list[dict],
-    validation_raw: list[dict],
-    training_preprocessed: list[dict],
-    terminals: list[int],
-    selected: list[frozenset[int]],
-    confidence: dict[frozenset[int], float],
-    *,
-    deembedding_weight: float,
-    sensitivity_fit: SensitivityFit | None = None,
-) -> tuple[list[dict], list[dict], list[tuple[int, ...]], dict[int, frozenset[int]]]:
-    """Contract RNJ cherries and freeze every reduced leaf-edge singleton.
-
-    Every observed terminal in the reduced problem is a physical leaf.  Its
-    singleton atom is therefore structural, rather than a topology candidate:
-    ordinary pseudo terminals represent original terminal leaf edges, while a
-    contracted pseudo terminal represents the trusted RNJ boundary block.
-    """
-
-    if sensitivity_fit is None:
-        sensitivity_fit = fit_projected_sensitivity(
-            training_preprocessed, constraint_mode="ordered",
-        )
-    r_matrix, x_matrix, _, _ = sensitivity_fit
-    clusters = [
-        PseudoCluster(
-            pseudo_id=900000 + index,
-            members=clade,
-            confidence=float(confidence[clade]),
-            frozen_clades=tuple(),
-            frozen_sibling_pairs=tuple(),
-        )
-        for index, clade in enumerate(selected)
-    ]
-    contracted_training_raw, pseudo_members = aggregate_rooted_scenarios(
-        training_raw,
-        terminals,
-        r_matrix,
-        x_matrix,
-        clusters,
-        voltage_mode="deembedded_vsq",
-        deembedding_weight=deembedding_weight,
-    )
-    contracted_validation_raw, validation_members = aggregate_rooted_scenarios(
-        validation_raw,
-        terminals,
-        r_matrix,
-        x_matrix,
-        clusters,
-        voltage_mode="deembedded_vsq",
-        deembedding_weight=deembedding_weight,
-    )
-    if validation_members != pseudo_members:
-        raise RuntimeError("training and validation pseudo mappings differ")
-    contracted_training = preprocess_scenarios(contracted_training_raw, RECIPE)
-    contracted_validation = preprocess_scenarios(contracted_validation_raw, RECIPE)
-    frozen_singletons = _leaf_singletons(
-        len(contracted_training[0]["P_terminal"].columns)
-    )
-    return contracted_training, contracted_validation, frozen_singletons, pseudo_members
-
-
 def _leaf_singletons(terminal_count: int) -> list[tuple[int, ...]]:
     """Return the structurally known leaf-edge atoms for a terminal-only tree."""
 
@@ -384,35 +304,11 @@ def _leaf_singletons(terminal_count: int) -> list[tuple[int, ...]]:
     return [(index,) for index in range(terminal_count)]
 
 
-def _expand_support_labels(
-    supports: Iterable[Iterable[int]],
-    pseudo_members: dict[int, frozenset[int]],
-    terminal_count: int,
-) -> set[frozenset[int]]:
-    """Expand reduced labels to original terminals, excluding trivial clades."""
-    expanded: set[frozenset[int]] = set()
-    for support in supports:
-        members = frozenset().union(*(pseudo_members[int(label)] for label in support))
-        if 1 < len(members) < terminal_count:
-            expanded.add(members)
-    return expanded
-
-
-def _expand_pseudo_result_clades(
-    result,
-    pseudo_members: dict[int, frozenset[int]],
-    terminal_count: int,
-) -> set[frozenset[int]]:
-    return _expand_support_labels(result.support_labels, pseudo_members, terminal_count)
-
-
 def _fit_milp_variants(
     case: _CaseData,
     selection: _RnjSelection,
     *,
     run_baseline: bool,
-    contract_blocks: bool,
-    deembedding_weight: float,
     coefficient_bound: float,
     time_limit: float,
     milp_solver: str = "highs",
@@ -425,45 +321,17 @@ def _fit_milp_variants(
         for clade in selection.selected
     ]
     leaf_singletons = _leaf_singletons(len(case.terminals))
-    # The MILP API treats every initial support as fixed.  Thus the hybrid
-    # variant freezes selected RNJ blocks even when physical contraction is off.
+    # The MILP API treats every initial support as fixed. The selected RNJ
+    # boundary blocks are therefore retained while the MILP extends the tree.
     variants = [("rx75_rnj_plus_milp", [*leaf_singletons, *selected_supports])]
     if run_baseline:
         variants.insert(0, ("milp_only", leaf_singletons))
 
     for initializer, supports in variants:
-        fit_training = case.training
-        fit_validation = case.validation
-        pseudo_members = None
-        if initializer == "rx75_rnj_plus_milp" and contract_blocks:
-            (
-                fit_training,
-                fit_validation,
-                supports,
-                pseudo_members,
-            ) = _contracted_milp_inputs(
-                case.training_raw,
-                case.validation_raw,
-                case.training,
-                case.terminals,
-                selection.selected,
-                selection.confidence,
-                deembedding_weight=deembedding_weight,
-                sensitivity_fit=selection.sensitivity_fit,
-            )
-            initializer = "rx75_rnj_contracted_plus_milp"
-
-        reduced_labels = [
-            int(label) for label in fit_training[0]["P_terminal"].columns
-        ]
-        if pseudo_members is None:
-            pseudo_members = {
-                label: frozenset({label}) for label in reduced_labels
-            }
         started = perf_counter()
         result = fit_laminar_l1_sensitivity(
-            fit_training,
-            validation_scenarios=fit_validation,
+            case.training,
+            validation_scenarios=case.validation,
             initial_supports=supports,
             r_upper_bound=coefficient_bound,
             x_upper_bound=coefficient_bound,
@@ -471,11 +339,11 @@ def _fit_milp_variants(
             solver=milp_solver,
         )
         elapsed = perf_counter() - started
-        predicted = _expand_pseudo_result_clades(
-            result,
-            pseudo_members,
-            len(case.terminals),
-        )
+        predicted = {
+            frozenset(support)
+            for support in result.support_labels
+            if 1 < len(support) < len(case.terminals)
+        }
         yield _milp_result_row(
             case_name=case.name,
             initializer=initializer,
@@ -503,20 +371,23 @@ def run(
     block_length: int = 4,
     confidence_threshold: float = 0.75,
     maximum_candidate_count: int = 2,
-    selection_only: bool = True,
-    run_baseline: bool = True,
-    contract_blocks: bool = False,
-    deembedding_weight: float = 0.5,
+    selection_only: bool = False,
+    run_baseline: bool = False,
     time_limit: float = 1800.0,
     coefficient_bound: float = 2.0,
-    scenario_suite: str = "legacy",
+    scenario_suite: str = "reference",
     root_observation: str | None = None,
     root_meter_noise_rel: float | None = None,
     root_sigma: float | None = None,
     impedance_scale: float | None = None,
     milp_solver: str = "highs",
 ) -> dict:
-    """Fit observed-root voltage drops, retain RNJ blocks, and extend supports."""
+    """Run the Python computation API and define defaults for every entrypoint.
+
+    The default reference workflow fits observed-root voltage drops, selects
+    RNJ boundary blocks, and extends their supports with MILP. Explicit
+    ``selection_only`` and ``run_baseline`` enable diagnostics and comparison.
+    """
     _validate_solver(milp_solver)
     scenario_options = dict(
         scenario_suite=scenario_suite, root_observation=root_observation,
@@ -533,7 +404,6 @@ def run(
         confidence_threshold=confidence_threshold,
         maximum_candidate_count=maximum_candidate_count,
         tolerance_factor=tolerance_factor,
-        deembedding_weight=deembedding_weight,
         time_limit=time_limit,
         coefficient_bound=coefficient_bound,
         root_observation=scenario_settings["root_observation"],
@@ -602,8 +472,6 @@ def run(
             case,
             selection,
             run_baseline=run_baseline,
-            contract_blocks=contract_blocks,
-            deembedding_weight=deembedding_weight,
             coefficient_bound=coefficient_bound,
             time_limit=time_limit,
             milp_solver=milp_solver,
@@ -620,7 +488,7 @@ def run(
             "validation_replicate": validation_replicate,
             "pq_noise_rel": pq_noise_rel,
             "voltage_noise_rel": voltage_noise_rel,
-            "preprocessing": RECIPE["name"],
+            "preprocessing": "raw",
             "constraint_mode": "ordered",
             "distance_mode": "RX_75R_25X",
             "tolerance_factor": tolerance_factor,
@@ -631,8 +499,6 @@ def run(
             "maximum_candidate_count": maximum_candidate_count,
             "selection_only": selection_only,
             "run_baseline": run_baseline,
-            "contract_blocks": contract_blocks,
-            "deembedding_weight": deembedding_weight,
             "support_search_mode": "unrestricted",
             "time_limit_seconds_per_extension": time_limit,
             "milp_solver": milp_solver,
@@ -652,10 +518,10 @@ def run(
 
 
 def main() -> None:
-    """Preserve the historical advanced entry point."""
-    from rnj_wzzt.cli import advanced_main
+    """Delegate the historical module entrypoint to the shared CLI parser."""
+    from rnj_wzzt.cli import main as cli_main
 
-    advanced_main(runner=run)
+    cli_main(runner=run)
 
 
 if __name__ == "__main__":

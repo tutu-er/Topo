@@ -26,11 +26,6 @@ class TerminalizedNetwork:
 
         return self.buses.loc[self.buses["is_observed"], "bus_id"].astype(int).tolist()
 
-    def injection_buses(self) -> list[int]:
-        """Return non-root buses that carry nonzero load/injection."""
-
-        return self.load_buses()
-
     def hidden_buses(self) -> list[int]:
         """Return hidden internal buses."""
 
@@ -46,16 +41,6 @@ class TerminalizedNetwork:
 
         rows = self.branches[self.branches["is_true_closed"]]
         return [(int(r.from_bus), int(r.to_bus)) for r in rows.itertuples()]
-
-    def candidate_edges(self, include_ties: bool = False, include_false_edges: bool = False) -> list[tuple[int, int]]:
-        """Return candidate topology edges."""
-
-        df = self.branches[self.branches["is_candidate"]].copy()
-        if not include_ties:
-            df = df[df["branch_type"].ne("tie")]
-        if not include_false_edges:
-            df = df[df["is_true_closed"]]
-        return [(int(r.from_bus), int(r.to_bus)) for r in df.itertuples()]
 
     def to_networkx_graph(self) -> nx.Graph:
         """Build a NetworkX graph from closed edges."""

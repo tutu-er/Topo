@@ -83,14 +83,10 @@ def _diagnostics(p_true, q_true, voltage_true, root_true, p_measured, q_measured
     """Keep truth-based checks in diagnostics, separate from estimator inputs."""
 
     physical_drop = squared_voltage_drop_from_observed_root(voltage_true, root_true)
-    if root_observed is None:
-        clean_target = settings["root_mean"]**2 - voltage_true.pow(2)
-    else:
-        clean_target = physical_drop
     signal = _dynamic_rms(physical_drop)
     target_error = _dynamic_rms(drop_target - physical_drop)
-    meter_error = _dynamic_rms(drop_target - clean_target)
-    root_error = None if root_observed is None else float(np.std(root_observed - root_true))
+    meter_error = target_error
+    root_error = float(np.std(root_observed - root_true))
     snr = signal / target_error if target_error > 0.0 else None
     return {
         "sample_basis": "full_physical_grid",
@@ -100,7 +96,7 @@ def _diagnostics(p_true, q_true, voltage_true, root_true, p_measured, q_measured
         "root_voltage_std_pu": float(np.std(root_true)),
         "root_voltage_min_pu": float(root_true.min()),
         "root_voltage_max_pu": float(root_true.max()),
-        "root_observed_std_pu": None if root_observed is None else float(np.std(root_observed)),
+        "root_observed_std_pu": float(np.std(root_observed)),
         "root_meter_noise_std_pu": root_error,
         "terminal_voltage_true_min_pu": float(voltage_true.to_numpy().min()),
         "terminal_voltage_true_max_pu": float(voltage_true.to_numpy().max()),
@@ -137,8 +133,8 @@ def _simulate_pool(
     New suites generate all 96 physical and measured samples before uniform
     subsampling. Legacy generates the requested sample count directly, keeping
     its original seeds, random-draw order, impedance scales, and observations.
-    Truth fields and diagnostics are never used to build an unobserved-root
-    regression target; that mode uses the fixed reference voltage 1.02 pu.
+    Both observation modes use an available root meter to form the regression
+    target. Truth fields remain available for simulation diagnostics.
     """
 
     settings = resolve_scenario_settings(
@@ -217,19 +213,14 @@ def _simulate_pool(
         root_meter_seed = 70_000_019 + 100_003 * replicate + scenario_index
         if observation == "exact":
             root_observed = root_true.copy()
-        elif observation == "noisy":
+        else:
             root_rng = np.random.default_rng(root_meter_seed)
             root_observed = root_true + root_rng.normal(
                 0.0, settings["root_meter_noise_rel"] * np.maximum(np.abs(root_true), 1e-12),
                 size=physical_count,
             )
             root_observed.name = "V_root_measured"
-        else:
-            root_observed = None
-        if root_observed is None:
-            drop_target = settings["root_mean"]**2 - voltage_measured.pow(2)
-        else:
-            drop_target = squared_voltage_drop_from_observed_root(voltage_measured, root_observed)
+        drop_target = squared_voltage_drop_from_observed_root(voltage_measured, root_observed)
         actual_settings = deepcopy(settings)
         actual_settings.update({"profile_scenario": profile, "replicate": replicate,
                                 "scenario_index": scenario_index, "profile_seed": shifted_seed,
@@ -246,7 +237,7 @@ def _simulate_pool(
             "P_terminal": p_measured.iloc[sample_indices].copy(),
             "Q_terminal": q_measured.iloc[sample_indices].copy(),
             "V_terminal": voltage_measured.iloc[sample_indices].copy(),
-            "root_voltage": None if root_observed is None else root_observed.iloc[sample_indices].copy(),
+            "root_voltage": root_observed.iloc[sample_indices].copy(),
             "drop_target": drop_target.iloc[sample_indices].copy(),
             "P_true": p_true.iloc[sample_indices].copy(),
             "Q_true": q_true.iloc[sample_indices].copy(),

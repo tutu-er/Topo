@@ -1,6 +1,4 @@
 """Independent exact-tree and root-anchor checks for the experiment NJ control."""
-from pathlib import Path
-import importlib.util
 import networkx as nx
 import numpy as np
 import pytest
@@ -8,9 +6,7 @@ from rnj_wzzt.scenario.simulation import _simulate_pool, _terminal_buses
 from rnj_wzzt.models.lin_distflow import build_reduced_sensitivity_matrices
 from rnj_wzzt.graph.rooted_hierarchy import rooted_clades
 from rnj_wzzt.reporting import _truth_nontrivial_clades
-spec=importlib.util.spec_from_file_location('study_nj',Path(__file__).resolve().parents[1]/'experiments/rooted_study_baselines.py')
-module=importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
+from research_experiments.rnj import rooted_study_baselines as module
 
 @pytest.mark.parametrize('case',['paper15','soumalas11','flynn16','pengwah18'])
 def test_exact_case_tree(case):
