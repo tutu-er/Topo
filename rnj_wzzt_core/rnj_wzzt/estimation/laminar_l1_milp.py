@@ -14,6 +14,7 @@ the complete forward path remains greedy.
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 from math import sqrt
 from time import perf_counter
@@ -598,15 +599,25 @@ def _add_absolute_residual_constraints(
     new_u_r_block: slice | None = None,
     new_u_x_block: slice | None = None,
     pair_lookup: dict[tuple[int, int], int] | None = None,
+    source_terms: SourceTermProvider | None = None,
 ) -> None:
-    """For each observation impose prediction - e <= target <= prediction + e."""
+    """Impose prediction - e <= target <= prediction + e for each observation.
+
+    An optional provider returns affine source coefficients and a constant for
+    (scenario, time, output). It may use existing non-residual variables only;
+    source variables and their constraints must be allocated before this call.
+    """
     rows = model.rows
+    if source_terms is not None and not callable(source_terms):
+        raise ValueError("source_terms must be callable or None")
     p_features, q_features = _fixed_atom_features(prepared, supports)
     has_new_atom = new_u_r_block is not None and new_u_x_block is not None
     if has_new_atom and pair_lookup is None:
         raise AssertionError("pair lookup is required for a new atom")
     observation = 0
-    for p_block, q_block, target in zip(prepared.p, prepared.q, prepared.target, strict=True):
+    for scenario_index, (p_block, q_block, target) in enumerate(
+        zip(prepared.p, prepared.q, prepared.target, strict=True)
+    ):
         for time_index in range(p_block.shape[0]):
             for output_index in range(prepared.n):
                 prediction: dict[int, float] = {}
@@ -622,9 +633,48 @@ def _add_absolute_residual_constraints(
                         prediction[new_u_r_block.start + pair_index] = float(p_block[time_index, input_index])
                         prediction[new_u_x_block.start + pair_index] = float(q_block[time_index, input_index])
 
+                value = float(target[time_index, output_index])
+                if source_terms is not None:
+                    variable_count, row_count = model.variables.size, rows.size
+                    terms = source_terms(model, scenario_index, time_index, output_index)
+                    if model.variables.size != variable_count or model.rows.size != row_count:
+                        raise ValueError("source_terms must not add variables or constraints")
+                    try:
+                        coefficients, constant = terms
+                    except (TypeError, ValueError) as exc:
+                        raise ValueError("source_terms must return (coefficient mapping, constant)") from exc
+                    if not isinstance(coefficients, Mapping):
+                        raise ValueError("source coefficients must be a mapping")
+                    try:
+                        constant = float(constant)
+                    except (TypeError, ValueError, OverflowError) as exc:
+                        raise ValueError("source constant must be finite") from exc
+                    if not np.isfinite(constant):
+                        raise ValueError("source constant must be finite")
+                    for column, coefficient in coefficients.items():
+                        if isinstance(column, (bool, np.bool_)) or not isinstance(column, (int, np.integer)):
+                            raise ValueError("source columns must be integer variable indices, not bool")
+                        column = int(column)
+                        if not 0 <= column < variable_count:
+                            raise ValueError("source columns must refer to already allocated variables")
+                        if model.absolute.start <= column < model.absolute.stop:
+                            raise ValueError("source terms cannot use absolute residual variables")
+                        try:
+                            coefficient = float(coefficient)
+                        except (TypeError, ValueError, OverflowError) as exc:
+                            raise ValueError("source coefficients must be finite") from exc
+                        if not np.isfinite(coefficient):
+                            raise ValueError("source coefficients must be finite")
+                        combined = prediction.get(column, 0.0) + coefficient
+                        if not np.isfinite(combined):
+                            raise ValueError("combined prediction coefficients must be finite")
+                        prediction[column] = combined
+                    value -= constant
+                    if not np.isfinite(value):
+                        raise ValueError("source-adjusted residual target must be finite")
+
                 # The row builder drops zero coefficients for both residual sides.
                 error = model.absolute.start + observation
-                value = float(target[time_index, output_index])
                 rows.add({**prediction, error: 1.0}, lower=value)
                 rows.add({**prediction, error: -1.0}, upper=value)
                 observation += 1
@@ -642,6 +692,21 @@ class L1Model:
     new_r: slice | None = None
     new_x: slice | None = None
     z: slice | None = None
+
+
+SourceTermProvider = Callable[[L1Model, int, int, int], tuple[Mapping[int, float], float]]
+
+
+@dataclass(frozen=True)
+class _ExtensionBlocks:
+    """Allocated atom-product and relation blocks for one support extension."""
+
+    pairs: tuple[tuple[int, int], ...]
+    pair_lookup: dict[tuple[int, int], int]
+    y: slice
+    u_r: slice
+    u_x: slice
+    relations: slice
 
 
 def _base_model(
@@ -745,6 +810,53 @@ def _add_laminar_extension_constraints(
         rows.add(duplicate_row, lower=1.0 - len(support_set))
 
 
+def _base_extension_model(
+    prepared: _PreparedScenarios,
+    supports: tuple[IndexSupport, ...],
+    *,
+    r_upper_bound: float,
+    x_upper_bound: float,
+) -> tuple[L1Model, _ExtensionBlocks]:
+    """Allocate the original extension variables without adding constraints."""
+    pairs = tuple((i, j) for i in range(prepared.n) for j in range(i, prepared.n))
+    pair_lookup = {pair: index for index, pair in enumerate(pairs)}
+    model = _base_model(
+        prepared, len(supports), r_upper_bound=r_upper_bound,
+        x_upper_bound=x_upper_bound, prefix="old_",
+    )
+    variables = model.variables
+    model.new_r = variables.add("new_r", 1, upper=r_upper_bound)
+    model.new_x = variables.add("new_x", 1, upper=x_upper_bound)
+    model.z = variables.add("z", prepared.n, upper=1.0, integral=True)
+    y = variables.add("y", len(pairs), upper=1.0)
+    u_r = variables.add("u_r", len(pairs), upper=r_upper_bound)
+    u_x = variables.add("u_x", len(pairs), upper=x_upper_bound)
+    relations = variables.add("relations", 3 * len(supports), upper=1.0, integral=True)
+    return model, _ExtensionBlocks(pairs, pair_lookup, y, u_r, u_x, relations)
+
+
+def _add_extension_constraints(
+    prepared: _PreparedScenarios,
+    supports: tuple[IndexSupport, ...],
+    model: L1Model,
+    blocks: _ExtensionBlocks,
+    *,
+    r_upper_bound: float,
+    x_upper_bound: float,
+) -> None:
+    """Add the original nonempty-support, product and laminar rows in order."""
+    rows = model.rows
+    rows.add({model.z.start + i: 1.0 for i in range(prepared.n)}, lower=1.0)
+    _add_atom_product_constraints(
+        rows,
+        blocks.pairs,
+        z=model.z,
+        y=blocks.y,
+        products=((blocks.u_r, model.new_r, r_upper_bound), (blocks.u_x, model.new_x, x_upper_bound)),
+    )
+    _add_laminar_extension_constraints(rows, prepared.n, supports, model.z, blocks.relations)
+
+
 def build_extension_model(
     prepared: _PreparedScenarios,
     supports: tuple[IndexSupport, ...],
@@ -753,36 +865,19 @@ def build_extension_model(
     x_upper_bound: float,
 ) -> L1Model:
     """Search a new zz.T atom while jointly refitting all accepted weights."""
-    pairs = tuple((i, j) for i in range(prepared.n) for j in range(i, prepared.n))
-    pair_lookup = {pair: index for index, pair in enumerate(pairs)}
-    model = _base_model(
-        prepared, len(supports), r_upper_bound=r_upper_bound,
-        x_upper_bound=x_upper_bound, prefix="old_",
+    model, blocks = _base_extension_model(
+        prepared, supports, r_upper_bound=r_upper_bound, x_upper_bound=x_upper_bound,
     )
-    variables, rows = model.variables, model.rows
-    model.new_r = variables.add("new_r", 1, upper=r_upper_bound)
-    model.new_x = variables.add("new_x", 1, upper=x_upper_bound)
-    model.z = variables.add("z", prepared.n, upper=1.0, integral=True)
-    y = variables.add("y", len(pairs), upper=1.0)
-    u_r = variables.add("u_r", len(pairs), upper=r_upper_bound)
-    u_x = variables.add("u_x", len(pairs), upper=x_upper_bound)
-    relations = variables.add("relations", 3 * len(supports), upper=1.0, integral=True)
-
     _add_absolute_residual_constraints(
         prepared, supports, model,
-        new_u_r_block=u_r,
-        new_u_x_block=u_x,
-        pair_lookup=pair_lookup,
+        new_u_r_block=blocks.u_r,
+        new_u_x_block=blocks.u_x,
+        pair_lookup=blocks.pair_lookup,
     )
-    rows.add({model.z.start + i: 1.0 for i in range(prepared.n)}, lower=1.0)
-    _add_atom_product_constraints(
-        rows,
-        pairs,
-        z=model.z,
-        y=y,
-        products=((u_r, model.new_r, r_upper_bound), (u_x, model.new_x, x_upper_bound)),
+    _add_extension_constraints(
+        prepared, supports, model, blocks,
+        r_upper_bound=r_upper_bound, x_upper_bound=x_upper_bound,
     )
-    _add_laminar_extension_constraints(rows, prepared.n, supports, model.z, relations)
     return model
 
 
@@ -1319,6 +1414,7 @@ __all__ = [
     "LaminarL1PathPoint",
     "LaminarL1Result",
     "SolverDiagnostics",
+    "SourceTermProvider",
     "build_matrices_from_atoms",
     "estimate_atom_upper_bounds",
     "evaluate_l1_matrices",
