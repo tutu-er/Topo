@@ -138,6 +138,144 @@ RNJ+MILP 将筛选后的 RNJ 块作为固定 `initial_supports`，系数参与�
 
 根电压建模、低样本效果与限时联合求解见[根电压与低样本 MILP 审查](docs/root_voltage_low_sample_milp.md)。
 
+## 固定拓扑后的 AC P/Q/V 联合拟合
+
+`estimation/ac_measurement_fit.py` 提供 `fit_ac_pqv`：固定候选树的连接关系，
+联合拟合跨时段共享的线路 R/X、逐时段真实分表 P/Q，以及可选的真实根电压。
+它是独立可调用的后处理入口，尚未自动接入 `pipeline.run()` 或 MILP 的候选选择。
+现有 MILP 的 L1 目标和这里的 AC 加权平方损失是两个不同目标。
+
+令候选拓扑为 G，线路参数为 theta=(r,x)，真实分表负荷为 p_t、q_t；
+固定源位置为 b，固定额外负荷为 uP_t、uQ_t。内部潮流计算使用
+`p_physical = p_meter + e_b*uP`、`q_physical = q_meter + e_b*uQ`，
+其中 p_meter/q_meter 是待拟合的潜在真实分表负荷，不是直接固定为带噪观测。
+没有源时 u=0。非终端节点默认零注入，指定源节点除外。
+
+优化目标是：
+
+```text
+min L = sum_t,i [ (p_ti-P_obs_ti)^2/sigmaP_ti^2
+                +(q_ti-Q_obs_ti)^2/sigmaQ_ti^2
+                +(V_AC_ti(theta,p_t,q_t,v0_t,u_t)-V_obs_ti)^2/sigmaV_ti^2 ]
+        + 可选的根电压、总表 P0/Q0 标准化残差平方
+s.t. 每条闭合线路的 R/X 位于调用方给定的有限非负区间。
+```
+
+每次目标计算都用 `models/ac_powerflow.py` 的径向 AC 后推前推潮流求电压、
+根注入和损耗，物理平衡不是可被牺牲的罚项。调用 SciPy 的稀疏三点差分
+Jacobian + trust-region reflective 非线性最小二乘；这是利用梯度/Jacobian
+的局部优化，不提供全局最优证明。AC 任一试探点不收敛会明确报错；达到
+优化预算则返回 `success=False` 和实际损失，不自动给出正常通过结论。
+内部稀疏 LSMR 子问题采用 atol=btol=1e-10、maxiter=1000，避免弱激励的
+共享 R/X 导致外层大量微小步。`success=True` 表示满足某个停止条件；
+应同时检查 `message/status/optimality`，例如 ftol 停止不等于梯度已达到 gtol。
+第一版不尝试从失败 AC 点恢复，边界和初值需要处于可求解的运行区间。
+
+输入与输出：
+
+| 参数/字段 | 含义与格式 |
+|---|---|
+| `net` | 候选 `TerminalizedNetwork`；`is_true_closed` 在此表示候选闭合边；R/X 是物理线路 Ω 初值，不是终端灵敏度矩阵或 MILP 原子系数 |
+| `observed` | 原始 `bundle.observed`；P/Q/V 为 T×n DataFrame，列为物理终端 bus ID；`root_voltage` 为 T 长 Series；标签严格对齐 |
+| `sigma` | `ACMeasurementSigma(p=...,q=...,v=...)`；绝对标准差 pu，均须正；可为标量或与量测同标签的数据，不能直接填相对噪声率 |
+| `sigma.root_v` | 给正标准差则根电压参与拟合；None 表示已知准确根电压；标记 noisy 的根量测必须提供标准差 |
+| `sigma.master_p/master_q` | 提供正标准差才将对应 `P0_measured/Q0_measured` 纳入目标，否则忽略该量测 |
+| `r_bounds_ohm/x_bounds_ohm` | 每类参数一个 `(lower,upper)`，所有闭合线路共用；有限、非负且包含初值；应来自物理先验 |
+| `source/source_bus_id` | 可选 `SourceInputs` 及一个非根物理节点；幅值 pu 按观测时刻对齐；固定 P>=0、Q 可正负；此步不搜索源位置或更新源幅值 |
+| `fit_impedances` | 默认 True；False 冻结传入的线路 R/X，但仍校正该批量测的潜在 P/Q/根电压，可用于独立验证 |
+| `result.loss` | L=sum(标准化残差²)，不是 SciPy cost；`cost=L/2`；返回 `initial_loss` 供比较 |
+| `result.fitted_net` | 独立网络副本，包含拟合后的物理 R/X；不修改输入网络 |
+| `result.fitted/ac` | 各拟合量测通道以及完整 AC 电压、支路功率、损耗、收敛记录 |
+| `result.per_time` | 逐时段 L、量测数 m、L/m，以及 `quality_score=1/(1+L/m)`；分数越高越好，但不是概率 |
+| `result.diagnostics` | 完整残差数、参数数、数值 Jacobian 秩、自由度、活跃界数、AC 次数及功率平衡误差 |
+
+不要传 `align_scenarios` 删减后的字典：这里需要保留原始 V、根电压及可选总表。
+不再叠加 `drop_target` 残差，因为它由同一电压量测计算，会重复利用信息。
+有功负荷允许负值以支持 DER。线路拓扑、隐藏节点、终端 ID 及源节点映射必须由
+调用方明确构造；不能把终端灵敏度 R/X 直接填入物理网络。函数不会读取 truth。
+多场景共同拟合时可先将各量测沿时间拼接，使用唯一的 `(scenario,time)` MultiIndex，
+所有通道与 sigma/source 同步拼接，终端列保持一致。
+
+```python
+from rnj_wzzt.estimation.ac_measurement_fit import ACMeasurementSigma, fit_ac_pqv
+
+# 下面的标准差与边界只是接口示例，应替换为表计规格和线路物理先验。
+fit = fit_ac_pqv(
+    candidate_net, train_observed,
+    sigma=ACMeasurementSigma(p=0.001, q=0.001, v=0.0002, root_v=0.0002),
+    r_bounds_ohm=(0.0, 0.1), x_bounds_ohm=(0.0, 0.1), max_nfev=200,
+    # source=train_source, source_bus_id=candidate_source_bus,
+)
+if not fit.success:
+    raise RuntimeError(fit.message)
+validation = fit_ac_pqv(
+    fit.fitted_net, independent_observed, fit_impedances=False,
+    sigma=ACMeasurementSigma(p=0.001, q=0.001, v=0.0002, root_v=0.0002),
+    # source=validation_source, source_bus_id=candidate_source_bus,
+)
+if not validation.success:
+    raise RuntimeError(validation.message)
+print(fit.initial_loss, fit.loss, validation.success, validation.loss)
+```
+
+`approx_source_inputs` 的 1.01 倍率估计可以显式传入，但其偏差也会进入 AC 残差。
+如果源幅值由同批总分表量测估算，源与量测误差相关；固定幅值后的普通卡方参照
+不能自动处理这些相关性，统计校准必须覆盖整个估计流程。当前目标仅实现对角
+协方差权重，不支持任意相关量测的协方差白化，也不自动估计噪声标准差。
+
+### L 与假设检验的关系
+
+`estimation/ac_validation.py` 提供四个显式统计辅助接口，不自动宣称线路正确。
+
+- `chi_square_wls_diagnostic(L,m,rank)`：返回 `dof=m-rank(J)`、`L/dof` 和
+  卡方上尾近似 p 值。需要已知正确噪声模型、正则内点及局部线性近似；
+  活跃界、秩退化、强非线性、同数据选模或估计噪声尺度时不能直接使用。
+  R/X 跨时段共享，必须用完整联合 Jacobian，不能每个时段重复扣除这些参数。
+  输出秩以局部 QR 正交补 + 共享块 SVD 计算，相对容差 1e-7；是数值诊断，
+  不是物理参数可辨识性证明。局部极小值也不能作为全局排除候选的证书。
+- `empirical_upper_tail_pvalue(L,null_scores)`：返回
+  `(1 + count(null_scores >= L))/(B+1)`。校准和待测必须可交换、采用相同冻结
+  评分流程，且 H0 校准分布匹配；可使用整个独立日/窗口的 L 以保留窗口内相关性。
+- `binomial_exceedance_test(k,N,q0)`：在独立同分布事件模型下，检验超阈次数
+  是否显著高于 q0；q0 必须有独立依据，不能把共用经验校准库的边际 alpha
+  直接当作条件超阈率。同一校准库可让不同测试时段的拒绝事件相关。
+- `one_sided_rate_lower_bound(k,N,confidence_level=0.95)`：对事先冻结的通过规则，
+  用独立验证样本计算通过率的单侧 Clopper-Pearson 下界。59/59 个独立样本通过
+  对应下界 95.05%；100/100 对应 97.05%；299/299 对应 99.00%。这描述未来
+  同分布样本的通过率，不是“线路正确的概率”。相邻 15 分钟点不能默认独立。
+
+若想由“持续通过”推断线路本身，需要另行证明错误线路模型的通过概率至多 q0。
+在这一可证的分离条件和独立性下，错误线路连续 N 次通过的概率至多 q0**N。
+没有该条件，错误拓扑也可能通过调整 R/X 拟合相同终端量测，任意多次低残差
+都不自动提供线路正确性保证。整体残差偏大也不能直接定位哪一条线路有误。
+冻结拟合 R/X 后的拒绝仅针对这个固定参数模型，不能排除该拓扑下所有其他 R/X。
+
+运行可复现实例和新增回归：
+
+```powershell
+python demo_ac_measurement_fit.py
+python -m pytest tests/test_ac_measurement_fit.py tests/test_ac_validation.py -q
+```
+
+本机默认示例实跑（paper15，12 时段、15 分表，已知正确拓扑，无额外源）：
+
+| 阶段 | 初始 L | 最终 L | 停止状态 |
+|---|---:|---:|---|
+| 训练，共享 R/X | 16615.524533 | 182.984697 | 13 次外层调用，ftol 停止 |
+| 独立验证，冻结训练 R/X | 366.325559 | 241.638801 | 6 次外层调用，ftol 停止 |
+
+训练有 6 个活跃边界，optimality=0.8299，未达到 gtol；其停止含义是损失变化
+足够小，不是严格一阶或全局最优性证明。验证有 204 个局部剩余自由度，
+L/df=1.1845；冻结参数的这一参照不包含训练 R/X 的不确定性，不能据此断言
+线路是否正确。求解后的参数也并非逐条精确恢复。不同数值库可能有微小差异。
+
+拟合测试使用独立两节点解析 AC 方程作为数值参照，覆盖参数恢复、P/Q/root 校正、
+固定源与总表、标签/单位约束、失败状态及数值秩；统计测试覆盖尾概率、计数边界
+和独立计算的区间结果。示例展示正确已知拓扑的数值拟合，尚不是错误线路检出的
+功效验证。参考 [SciPy least_squares](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html)、
+[可交换校准](https://arxiv.org/abs/2107.07511) 和
+[精确二项区间](https://arxiv.org/abs/1303.1288)。
+
 ## 根信息、结构消融与人工核查研究
 
 2026-09-08 的完整研究见[统一研究报告](docs/research_study_20260908.md)：固定4网络、36个低样本主条件和12个候选扩展条件，分别报告根部、末端、R/X、运行时间与失败。当时结果支持RNJ候选+wzzT的条件性优势；自动冻结/收缩并非该批实验的最优配置。该结论与结果记录属于历史配置，当前主流程见上文。
