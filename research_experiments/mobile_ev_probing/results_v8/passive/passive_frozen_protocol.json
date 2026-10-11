@@ -1,0 +1,84 @@
+{
+  "version": 8,
+  "created": "2026-10-11T18:53:50.008740+00:00",
+  "central_claim": "certified passive screening can avoid unnecessary EV and target remaining ambiguity",
+  "model": "unchanged v7 linear P-only known common source; no AC or PQ measurement errors",
+  "histories": [
+    "flat",
+    "single_node",
+    "rich"
+  ],
+  "seeds": [
+    8101,
+    8102
+  ],
+  "profiles": {
+    "symmetric": [
+      0.02,
+      0.01,
+      0.06,
+      0.06,
+      0.06
+    ],
+    "asymmetric": [
+      0.027,
+      0.018,
+      0.035,
+      0.081,
+      0.052
+    ],
+    "weak": [
+      0.02,
+      1e-06,
+      0.06,
+      0.06,
+      0.06
+    ]
+  },
+  "box": [
+    [
+      0.01,
+      0.05
+    ],
+    [
+      1e-06,
+      0.03
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ]
+  ],
+  "history_samples": 12,
+  "future_samples": 24,
+  "time_step_hours": 0.25,
+  "epsilon": 1e-05,
+  "history_variation_pu": 0.02,
+  "actual_source_uniform": [
+    -0.02,
+    0.02
+  ],
+  "source_budget": 0.1,
+  "future_policies": [
+    "none",
+    "same-site constant 1.5 kW",
+    "committee-site endpoint 0/3 kW"
+  ],
+  "energy_kwh": 9,
+  "site_selection": "equal committee T over retained history-compatible candidates",
+  "source_hash": "317250ea0c56a2c7147cb3754aeceaaa39bed44e796a1a2ddc8412de5a8d8cf2",
+  "v7_hash": "5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13",
+  "v6_hash": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5",
+  "python": "3.11.15",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "interpretation": "descriptive matched synthetic grid; two seeds are not population confidence intervals"
+}
