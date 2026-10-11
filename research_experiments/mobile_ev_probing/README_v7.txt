@@ -66,6 +66,7 @@ Reproduce (PowerShell, repository root)
 & D:\apps\miniconda3\envs\Topo\python.exe research_experiments\mobile_ev_probing\design_v7.py --mode formal --output research_experiments\mobile_ev_probing\results_v7\new_formal
 & D:\apps\miniconda3\envs\Topo\python.exe research_experiments\mobile_ev_probing\controls_v7.py --output research_experiments\mobile_ev_probing\results_v7\new_controls
 & D:\apps\miniconda3\envs\Topo\python.exe research_experiments\mobile_ev_probing\audit_design_v7.py research_experiments\mobile_ev_probing\results_v7\new_formal
+& D:\apps\miniconda3\envs\Topo\python.exe research_experiments\mobile_ev_probing\audit_design_v7.py research_experiments\mobile_ev_probing\results_v7\new_controls --controls
 & D:\apps\miniconda3\envs\Topo\python.exe research_experiments\mobile_ev_probing\controls_v7.py --formal research_experiments\mobile_ev_probing\results_v7\new_formal\formal_results.json --output research_experiments\mobile_ev_probing\results_v7\new_formal\reference_sensitivity.json
 
 Use a fresh output directory: a frozen formal protocol is never overwritten.
@@ -97,3 +98,43 @@ transients. SOC is an energy check for a 50 kWh vehicle, charge efficiency .95,
 initial .4, bounds [.2,.9]. The .571 final SOC is feasible, not field validation.
 No calibrated stochastic error law or probability is assumed. Finite candidate
 exclusion does not imply a global topology certificate or posterior certainty.
+
+Frozen formal results (27 episodes, source SHA-256
+5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13)
+--------------------------------------------------------------------------
+972 design QPs + 81 historical-reference QPs; 486 final shared-source joint LPs.
+Both wrong candidates excluded: local 15/27, uniform committee 18/27, fixed
+site 1 endpoint 12/27. The same selected-site constant policies achieve the
+same exclusion counts at this error budget. Endpoint excitation improves the
+margin, not the success count. All 9 weak-edge episodes remain unresolved.
+All actual truth candidates are retained. All saved-input/hash/domain/pairing
+checks pass in formal/artifact_audit.json. Exact upper bounds are below the
+implementation tau cap 1 (maximum .00134708992891096), so the cap is inactive.
+Maximum design-QP gap: 9.831085430514451e-10; historical-reference normalized
+midpoint objective gap: 9.957578297506894e-7; final-LP gap: 5.595933717367997e-10.
+
+Important negative: true cherry13, asymmetric profile, all three seeds select
+the wrong local reference cherry23. Its site2/site3 scores tie; lexicographic
+site2 execution excludes no rival, while fixed site1 and committee-selected
+site3 both exclude two. Do not call the local site a uniquely optimal choice.
+Among 18 strong-edge episodes the L2-selected site hits the best posterior
+L-infinity margin site in 8 local / 10 committee / 6 fixed cases, not universally.
+The other 9 weak-edge cases have all-zero tied margins; reporting them as
+successful oracle matches would hide the absence of information.
+
+Mean endpoint / same-site constant certified nearest-wrong margin:
+local       .0005479512449679735 / .00027269744008658276
+committee   .0006975323266846827 / .00034725165329833874
+fixed site1 .00046462644985143   / .00023125177910579816
+These are descriptive averages over this frozen synthetic grid, not confidence
+intervals, population rates, topology probabilities, or universal dominance.
+
+The 57 prespecified control LPs also pass exact certificates and saved-artifact
+audits. Source perfectly following EV retains site1 endpoint margin
+.00074706902055583; larger epsilon=.002 leaves all six actions unresolved.
+Independent source boxes remove the gain. Historical parameter reset removes
+constant charging discrimination but leaves within-window endpoint excitation
+useful. Rich history alone excludes both wrong candidates with margin lower
+9.396797592990971e-5, so EV is unnecessary in that control. All truths retained.
+Maximum control-LP gap 4.195382034853368e-16, maximum verified upper bound
+.0007471440205558415 < implementation cap 1.

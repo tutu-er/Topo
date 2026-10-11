@@ -47,6 +47,8 @@ def run_controls(output):
     report=dict(protocol=protocol,episodes=episodes,other_records=records,
                 lp_count=len(all_lp),all_certified=all(r.get("exact_primal_verified") and r.get("exact_box_corrected_dual_verified") for r in all_lp),
                 max_lp_gap=max(r.get("exact_gap",float("inf")) for r in all_lp),
+                max_verified_lp_upper_bound=max(r["verified_upper_bound"] for r in all_lp),
+                all_lp_upper_bounds_below_tau_cap=all(r["verified_upper_bound"]<1. for r in all_lp),
                 design_source_hash_unchanged=d.sha(d.__file__)==protocol["design_source_hash"],
                 control_source_hash_unchanged=d.sha(__file__)==protocol["control_source_hash"])
     d.dump(output/"controls_results.json",report)

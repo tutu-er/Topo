@@ -1,0 +1,122 @@
+{
+  "version": 7,
+  "created": "2026-10-11T14:26:42.685514+00:00",
+  "central_claim": "history-only local T site design improves actual local discrimination, tested rather than assumed",
+  "model": "three-terminal linear squared-drop; one known common source direction; P only; no AC",
+  "box": [
+    [
+      0.01,
+      0.05
+    ],
+    [
+      1e-06,
+      0.03
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ]
+  ],
+  "profiles": {
+    "symmetric": [
+      0.02,
+      0.01,
+      0.06,
+      0.06,
+      0.06
+    ],
+    "asymmetric": [
+      0.027,
+      0.018,
+      0.035,
+      0.081,
+      0.052
+    ],
+    "weak": [
+      0.02,
+      1e-06,
+      0.06,
+      0.06,
+      0.06
+    ]
+  },
+  "topologies": [
+    "cherry12",
+    "cherry13",
+    "cherry23"
+  ],
+  "seeds": [
+    7201,
+    7202,
+    7203
+  ],
+  "pilot_seeds": [
+    601,
+    602
+  ],
+  "historical_samples": 12,
+  "new_samples": 24,
+  "background_pu": [
+    0.2,
+    0.2,
+    0.2
+  ],
+  "epsilon": 1e-05,
+  "source_budget": 0.1,
+  "actual_source_uniform": [
+    -0.02,
+    0.02
+  ],
+  "actual_noise_fraction": 0.8,
+  "actions": [
+    "site1_constant",
+    "site1_endpoint",
+    "site2_constant",
+    "site2_endpoint",
+    "site3_constant",
+    "site3_endpoint"
+  ],
+  "ev": {
+    "energy_kwh": 9,
+    "slots": 24,
+    "hours_per_slot": 0.25,
+    "kw_max": 3,
+    "constant_kw": 1.5,
+    "q": 0,
+    "battery_kwh": 50,
+    "efficiency": 0.95,
+    "initial_soc": 0.4,
+    "soc_limits": [
+      0.2,
+      0.9
+    ]
+  },
+  "local_reference": "minimum normalized distance to box midpoint; interval overlap with tolerance breaks lexicographically",
+  "committee": "uniform average of per-reference minimum rival squared scores; design weights only",
+  "score_tie": 1e-10,
+  "reference_tie": 1e-07,
+  "planned_controls": [
+    "same-power-count permutations",
+    "endpoint vs interior amplitudes",
+    "source perfectly correlated with EV",
+    "large measurement box",
+    "informative history alone",
+    "box and reset refits",
+    "wrong reference sensitivity"
+  ],
+  "certificate": "exact rational feasible QP upper; convex tangent plus box-corrected outer LP dual lower",
+  "evaluation": "unchanged v6 full common-source joint LP with exact rational primal/dual certificates",
+  "source_hash": "5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13",
+  "v6_hash": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5",
+  "python": "3.11.15",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1"
+}
