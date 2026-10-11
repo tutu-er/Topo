@@ -1,0 +1,3288 @@
+{
+  "protocol": {
+    "cases": [
+      [
+        "cherry12",
+        "flat",
+        "symmetric",
+        8201
+      ],
+      [
+        "cherry13",
+        "flat",
+        "symmetric",
+        8201
+      ],
+      [
+        "cherry23",
+        "flat",
+        "symmetric",
+        8201
+      ]
+    ],
+    "formal_results_sha256": "6718268e058cf241bad2a97a5f374b42e08f05b5cf5ac7099a7f01f8a39837ee",
+    "formal_core_sha256": "95b8c95d1aedccf12539c74c286c12832e8f36772d6efc91414baf87381283a7",
+    "control_source_sha256": "4839d3fd9fd8e3db8e6ec7ecdf158ab2571c04428dd67af3a35a0965c057c2ae",
+    "core_source_sha256": "95b8c95d1aedccf12539c74c286c12832e8f36772d6efc91414baf87381283a7",
+    "dependency_sha256": {
+      "design_v7.py": "5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13",
+      "local_shared_source_v6.py": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5"
+    },
+    "python": "3.11.15",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "voltage_error_budgets": [
+      0.0001,
+      0.0005,
+      0.002
+    ],
+    "voltage_control": "same recorded physical data and tiny realized voltage noise; only declared error budget enlarged",
+    "pq_error_bound": 0.001,
+    "pq_noise_fraction": 0.8,
+    "pq_noise_seeds": [
+      9101,
+      9102,
+      9103
+    ],
+    "pq_control": "new bounded P/Q meter errors on original physical observations; original voltage error retained",
+    "policies": [
+      "selected_stationary",
+      "selected_mobile",
+      "fixed_site1_endpoint",
+      "fixed_mobile12"
+    ],
+    "action_selection": "frozen original formal selections; never rerun under modified measurements/budgets",
+    "duplicate_actions": "computed once per episode/control; policy aliases retained explicitly",
+    "statistical_scope": "three predetermined synthetic truth cases; no population inference"
+  },
+  "passed": true,
+  "issues": [],
+  "summaries": [
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "policies": {
+        "selected_stationary": "site1_endpoint",
+        "selected_mobile": "mobile23",
+        "fixed_site1_endpoint": "site1_endpoint",
+        "fixed_mobile12": "mobile12"
+      },
+      "by_action": {
+        "site1_endpoint": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        },
+        "mobile23": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        },
+        "mobile12": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        }
+      },
+      "missing_selections": []
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "policies": {
+        "selected_stationary": "site1_endpoint",
+        "selected_mobile": "mobile23",
+        "fixed_site1_endpoint": "site1_endpoint",
+        "fixed_mobile12": "mobile12"
+      },
+      "by_action": {
+        "site1_endpoint": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        },
+        "mobile23": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        },
+        "mobile12": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        }
+      },
+      "missing_selections": []
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "policies": {
+        "selected_stationary": "site1_endpoint",
+        "selected_mobile": "mobile12",
+        "fixed_site1_endpoint": "site1_endpoint",
+        "fixed_mobile12": "mobile12"
+      },
+      "by_action": {
+        "site1_endpoint": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          }
+        },
+        "mobile12": {
+          "epsilon_0.0001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.0005": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          },
+          "epsilon_0.002": {
+            "wrong_excluded": 0,
+            "truth_retained": true
+          },
+          "pq_error_0.001": {
+            "wrong_excluded": 2,
+            "truth_retained": true
+          }
+        }
+      },
+      "missing_selections": []
+    }
+  ],
+  "records": [
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry12_flat_symmetric_8201_site1_endpoint_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10813509998843074,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.347834300295843e-17,
+          "gap": 2.347834300295843e-17,
+          "theta": [
+            0.018372051572633687,
+            0.009993778151250384,
+            0.05908434516629311,
+            0.05908684975918126,
+            0.058936486661408424
+          ],
+          "exact_lower": "0",
+          "exact_upper": "34180643260412745404701863651542443254568731668287399/1455837120026134548912018814699060056376405798817190913979594953457664",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.1037265999475494,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0006181494568622263,
+          "upper": 0.0006181494568622401,
+          "gap": 1.361562825178569e-17,
+          "theta": [
+            0.02114307528475321,
+            1e-06,
+            0.07128354114194439,
+            0.07805917040610803,
+            0.05127472169458637
+          ],
+          "exact_lower": "7578490289840264683899892966665899654575873984639853/12259964326927110866866776217202473468949912977468817408",
+          "exact_upper": "8332638194667062995927211361457725627357356090307642316941893587/13479973333575319897333507543509815336818572211270286240551805124608",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10446900001261383,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0006180790700553008,
+          "upper": 0.000618079070055342,
+          "gap": 4.110200781392522e-17,
+          "theta": [
+            0.021143621241176733,
+            1e-06,
+            0.07128357008581816,
+            0.07805456963915242,
+            0.05127276947440662
+          ],
+          "exact_lower": "62075923252005036839359557251975889848458323925855498245/100433627766186892221372630771322662657637687111424552206336",
+          "exact_upper": "1118260419305711932557090509100144531744497650646142953637065799791502739/1809251394333065553493296640760748560207343510400633813116524750123642650624",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry12_flat_symmetric_8201_site1_endpoint_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10403639997821301,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.920407016753395e-17,
+          "gap": 1.920407016753395e-17,
+          "theta": [
+            0.021795927464696444,
+            0.003321396854281041,
+            0.059974911058613696,
+            0.061090218989075476,
+            0.04292690074266483
+          ],
+          "exact_lower": "0",
+          "exact_upper": "398852932807875663/20769187434139310514121985316880384",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10363959998358041,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.00021814945686222617,
+          "upper": 0.00021814945686224118,
+          "gap": 1.498103928436511e-17,
+          "theta": [
+            0.021143075284753197,
+            1e-06,
+            0.07128354114194442,
+            0.07805917040610812,
+            0.05127472169458643
+          ],
+          "exact_lower": "2674504559069417603505359422968969312493657648083821/12259964326927110866866776217202473468949912977468817408",
+          "exact_upper": "394687209001010757305505201415288358566008232155980487921700370730984851/1809251394333065553493296640760748560207343510400633813116524750123642650624",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10409749997779727,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0002180790700553006,
+          "upper": 0.00021807907005533858,
+          "gap": 3.794052387971777e-17,
+          "theta": [
+            0.02114362124117674,
+            1e-06,
+            0.07128357008581813,
+            0.07805456963915242,
+            0.0512727694744066
+          ],
+          "exact_lower": "21902472145530256720520792731488840129187556449808412677/100433627766186892221372630771322662657637687111424552206336",
+          "exact_upper": "18552115533586939943509118416513987/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry12_flat_symmetric_8201_site1_endpoint_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10289570002350956,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.2792183126644788e-17,
+          "gap": 1.2792183126644788e-17,
+          "theta": [
+            0.020536042054032238,
+            1e-06,
+            0.06758043741266984,
+            0.07575213604945244,
+            0.04274060364642954
+          ],
+          "exact_lower": "0",
+          "exact_upper": "86219143712691940196417984241772802692477919830981/6739986666787659948666753771754907668409286105635143120275902562304",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10373570001684129,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.365221789280986e-17,
+          "gap": 1.365221789280986e-17,
+          "theta": [
+            0.015287464333332135,
+            1e-06,
+            0.0874208627146593,
+            0.10475303286915227,
+            0.07110465670296628
+          ],
+          "exact_lower": "0",
+          "exact_upper": "290350563642857864085/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10316880000755191,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.029857303720077e-17,
+          "gap": 1.029857303720077e-17,
+          "theta": [
+            0.015287649369534874,
+            1e-06,
+            0.08742186271465929,
+            0.10475003286915226,
+            0.07110496105079236
+          ],
+          "exact_lower": "0",
+          "exact_upper": "876105702251709047747/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "site1_endpoint",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry12_flat_symmetric_8201_site1_endpoint_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10907349991612136,
+          "max_rounding_guard": 1.0985136411623132e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.683123722249764e-17,
+          "gap": 1.683123722249764e-17,
+          "theta": [
+            0.018786252468158703,
+            0.010200978053481791,
+            0.059130315264736506,
+            0.05921433244031972,
+            0.05951296534288896
+          ],
+          "exact_lower": "0",
+          "exact_upper": "5593137929960253321/332306998946228968225951765070086144",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.649534903017929
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10739939997438341,
+          "max_rounding_guard": 1.1054525350662203e-17,
+          "status": "excluded",
+          "lower": 0.0005497443107161272,
+          "upper": 0.0005497443107163518,
+          "gap": 2.2441011919632183e-16,
+          "theta": [
+            0.02441250827546551,
+            1e-06,
+            0.07162831432080152,
+            0.07862576285437685,
+            0.05179126801418113
+          ],
+          "exact_lower": "1725400483407578500526557088632712478515071787785150825/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "2993092724030079655567343263621388147/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.649534903017929
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10751799994613975,
+          "max_rounding_guard": 1.0022364882456003e-17,
+          "status": "excluded",
+          "lower": 0.0005496710045538897,
+          "upper": 0.0005496710045539927,
+          "gap": 1.0293383447178312e-16,
+          "theta": [
+            0.024413248221294235,
+            1e-06,
+            0.07162833334962286,
+            0.07862114359756858,
+            0.05178930005637077
+          ],
+          "exact_lower": "1725170408288480552842282914698951217413819129829529875/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "2992693607319080906083475176069338311/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.649534903017929
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile23",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile23_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.10352960007730871,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6630415915641682e-17,
+          "gap": 1.6630415915641682e-17,
+          "theta": [
+            0.01887504393709962,
+            0.009202712845274425,
+            0.06296797367128253,
+            0.06213451624867833,
+            0.06062679837192169
+          ],
+          "exact_lower": "0",
+          "exact_upper": "86350056314913891/5192296858534827628530496329220096",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.40570859995204955,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0007930575784820496,
+          "upper": 0.00079305757848207,
+          "gap": 2.025419201004774e-17,
+          "theta": [
+            0.02025815436555514,
+            1e-06,
+            0.08199110534185623,
+            0.0736778080352499,
+            0.05677019791863453
+          ],
+          "exact_lower": "622262887768904095047218261773147430722567805206615861/784637716923335095479473677900958302012794430558004314112",
+          "exact_upper": "16866469369404166885024162858532971/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4462479999056086,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0007930618105028456,
+          "upper": 0.0007930618105028586,
+          "gap": 1.2920240330838733e-17,
+          "theta": [
+            0.02026695322633527,
+            1e-06,
+            0.081994223852059,
+            0.0736768794927054,
+            0.056770078530473826
+          ],
+          "exact_lower": "2489064833488157684243484356506179708598067662402758249/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "464890812408051135917894826661708980685342461974334120482769924508780746379/586197451763913239331828111606482533507179297369805355449754019040060218802176",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile23",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile23_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4456202000146732,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.9504106274170368e-17,
+          "gap": 1.9504106274170368e-17,
+          "theta": [
+            0.01942611647530007,
+            0.005108436750998301,
+            0.0717795678741812,
+            0.06746784958201173,
+            0.05938774113286446
+          ],
+          "exact_lower": "0",
+          "exact_upper": "25317777433976053/1298074214633706907132624082305024",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4736532000824809,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0003930575784820491,
+          "upper": 0.0003930575784820765,
+          "gap": 2.7376059058422876e-17,
+          "theta": [
+            0.020258154365555142,
+            1e-06,
+            0.08199110534185625,
+            0.07367780803524991,
+            0.05677019791863453
+          ],
+          "exact_lower": "308407800999569622684120873387083551221949828122629941/784637716923335095479473677900958302012794430558004314112",
+          "exact_upper": "1986902128686779844959820555843838138706166973685694454060776947/5054990000090744961500065328816180751306964579226357340206926921728",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.45079570007510483,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.00039306181050284507,
+          "upper": 0.00039306181050286436,
+          "gap": 1.9246701689401734e-17,
+          "theta": [
+            0.020266953226335264,
+            1e-06,
+            0.08199422385205905,
+            0.07367687949270542,
+            0.056770078530473854
+          ],
+          "exact_lower": "1233644486410819864480221338712056578991947377014351465/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "8359500201509004641522277696344171/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile23",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile23_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4658923000097275,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.447286325235533e-17,
+          "gap": 1.447286325235533e-17,
+          "theta": [
+            0.02039370767004189,
+            1e-06,
+            0.07649666908439565,
+            0.06792189512782926,
+            0.053103204806224984
+          ],
+          "exact_lower": "0",
+          "exact_upper": "97546905351116018759612838230741974598842657741935/6739986666787659948666753771754907668409286105635143120275902562304",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4974645000183955,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.123911389407181e-17,
+          "gap": 1.123911389407181e-17,
+          "theta": [
+            0.015901729327148624,
+            1e-06,
+            0.10476305962671484,
+            0.08743690721878464,
+            0.07114401289156286
+          ],
+          "exact_lower": "0",
+          "exact_upper": "956118069492190170051/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.49698759999591857,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.2796077828884817e-17,
+          "gap": 1.2796077828884817e-17,
+          "theta": [
+            0.01588500557165949,
+            1e-06,
+            0.10476605962671483,
+            0.08743590721878464,
+            0.07114370854373675
+          ],
+          "exact_lower": "0",
+          "exact_upper": "272142478182341777301/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile23",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile23_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.48432309995405376,
+          "max_rounding_guard": 1.180045644533223e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.3297218096559532e-17,
+          "gap": 1.3297218096559532e-17,
+          "theta": [
+            0.01894933077642924,
+            0.008206218427569306,
+            0.06524426872257548,
+            0.06352235791482368,
+            0.06047881529413388
+          ],
+          "exact_lower": "0",
+          "exact_upper": "8837517280002370005/664613997892457936451903530140172288",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.65106738472672
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.48837899998761714,
+          "max_rounding_guard": 1.0473392986209972e-17,
+          "status": "excluded",
+          "lower": 0.0007134634104433987,
+          "upper": 0.0007134634104434494,
+          "gap": 5.0693921714719833e-17,
+          "theta": [
+            0.022953856016026244,
+            1e-06,
+            0.08204316711777046,
+            0.07364335097239141,
+            0.05675531005163746
+          ],
+          "exact_lower": "1119620602957289422321984335944652351632444103078414617/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "118544442391202132157649461431307/166153499473114484112975882535043072",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.65106738472672
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5044356998987496,
+          "max_rounding_guard": 1.1817803680091998e-17,
+          "status": "excluded",
+          "lower": 0.000713467859528708,
+          "upper": 0.0007134678595287404,
+          "gap": 3.221779705277599e-17,
+          "theta": [
+            0.022953901866141206,
+            1e-06,
+            0.08204629912084055,
+            0.07364243093902385,
+            0.05675519532773438
+          ],
+          "exact_lower": "4478510339190274203691302883806793172109681721501720257/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "3884488511399286322646033989128915943/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.65106738472672
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile12",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile12_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5229053000221029,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.1643275277612948e-17,
+          "gap": 2.1643275277612948e-17,
+          "theta": [
+            0.0186815118912704,
+            0.00995398314091477,
+            0.05938953894895408,
+            0.05981102232480949,
+            0.059080598542372596
+          ],
+          "exact_lower": "0",
+          "exact_upper": "2953976582633706340546480701974163556989705820895917/136484730002450113960501763878036880285288043639111648185587026886656",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5332472999580204,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0006311296066561942,
+          "upper": 0.0006311296066562933,
+          "gap": 9.898342068469372e-17,
+          "theta": [
+            0.02336765421045779,
+            1e-06,
+            0.06608778933856663,
+            0.06608730287262583,
+            0.03930875884738309
+          ],
+          "exact_lower": "31693317993564078215680716900502181161405248316049737273/50216813883093446110686315385661331328818843555712276103168",
+          "exact_upper": "1141872120847777634660545789751407112120201911933724017598270068117464467/1809251394333065553493296640760748560207343510400633813116524750123642650624",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5452004999388009,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0006312028742864162,
+          "upper": 0.0006312028742865305,
+          "gap": 1.141671158792336e-16,
+          "theta": [
+            0.023368056266960452,
+            1e-06,
+            0.06608988668556107,
+            0.06608618960013916,
+            0.039308208896937195
+          ],
+          "exact_lower": "31696997260514597019011769355499681694451499970736581891/50216813883093446110686315385661331328818843555712276103168",
+          "exact_upper": "409674087657013231390067990273/649037107316853453566312041152512",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile12",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile12_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5632250999333337,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.5489017967173218e-17,
+          "gap": 2.5489017967173218e-17,
+          "theta": [
+            0.02152178138838188,
+            0.003588515517564945,
+            0.06121931423013825,
+            0.06124006479244223,
+            0.04424187742276587
+          ],
+          "exact_lower": "0",
+          "exact_upper": "8271659244880705/324518553658426726783156020576256",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.523928500013426,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.000231129606656194,
+          "upper": 0.00023112960665628305,
+          "gap": 8.902725117361752e-17,
+          "theta": [
+            0.023367654210457802,
+            1e-06,
+            0.0660877893385666,
+            0.06608730287262576,
+            0.03930875884738304
+          ],
+          "exact_lower": "11606592440326690744727665191609857135112230529346061881/50216813883093446110686315385661331328818843555712276103168",
+          "exact_upper": "19662332404626371395471866080209859/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5314466999843717,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0002312028742864161,
+          "upper": 0.00023120287428653093,
+          "gap": 1.148236799406409e-16,
+          "theta": [
+            0.02336805626696046,
+            1e-06,
+            0.06608988668556105,
+            0.06608618960013915,
+            0.039308208896937154
+          ],
+          "exact_lower": "11610271707277209016697716916913742401082272528687328515/50216813883093446110686315385661331328818843555712276103168",
+          "exact_upper": "1200473957842177220505735092823/5192296858534827628530496329220096",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile12",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile12_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.6105249999091029,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.546973581650152e-17,
+          "gap": 1.546973581650152e-17,
+          "theta": [
+            0.021252288829746196,
+            1e-06,
+            0.07171482963982387,
+            0.07191774487487322,
+            0.03915792641067658
+          ],
+          "exact_lower": "0",
+          "exact_upper": "329004894955047040917/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5408243000274524,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.3669613153192444e-17,
+          "gap": 1.3669613153192444e-17,
+          "theta": [
+            0.020953464819746543,
+            1e-06,
+            0.07413248798897416,
+            0.07413199545779094,
+            0.040483619291604864
+          ],
+          "exact_lower": "0",
+          "exact_upper": "141953378865414973/10384593717069655257060992658440192",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5447287000715733,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.7819509865803924e-17,
+          "gap": 1.7819509865803924e-17,
+          "theta": [
+            0.02100319455306926,
+            1e-06,
+            0.07351387454822421,
+            0.07386123868161643,
+            0.0402139490538077
+          ],
+          "exact_lower": "0",
+          "exact_upper": "46262092548422037/2596148429267413814265248164610048",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry12_flat_symmetric_8201",
+      "truth": "cherry12",
+      "action": "mobile12",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry12_flat_symmetric_8201_mobile12_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry12_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5483053000643849,
+          "max_rounding_guard": 1.2242810931706316e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.223792884814826e-17,
+          "gap": 1.223792884814826e-17,
+          "theta": [
+            0.01921759389854712,
+            0.007793145079192535,
+            0.06161417729517165,
+            0.06164550369880885,
+            0.055464187567880206
+          ],
+          "exact_lower": "0",
+          "exact_upper": "16266997635382514411/1329227995784915872903807060280344576",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6510431617059853
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5614614000078291,
+          "max_rounding_guard": 1.1722393888913274e-17,
+          "status": "excluded",
+          "lower": 0.0005536011108173725,
+          "upper": 0.0005536011108174817,
+          "gap": 1.0909743677362571e-16,
+          "theta": [
+            0.027671029904880313,
+            1e-06,
+            0.06615149113734728,
+            0.06619941805203768,
+            0.039337899935434274
+          ],
+          "exact_lower": "3475010493423723332829421599085514445719505247280074873/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "367931047498112112816463732332497/664613997892457936451903530140172288",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6510431617059853
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5512078000465408,
+          "max_rounding_guard": 1.1679025802013854e-17,
+          "status": "excluded",
+          "lower": 0.0005535226970235869,
+          "upper": 0.000553522697023672,
+          "gap": 8.499622693483187e-17,
+          "theta": [
+            0.02766623832482984,
+            2.117473276364209e-05,
+            0.06617563638002227,
+            0.06617851719145576,
+            0.039319669593778625
+          ],
+          "exact_lower": "54289348157229282159455214896088661255963593823108553/98079714615416886934934209737619787751599303819750539264",
+          "exact_upper": "22992433287069899538336553510417/41538374868278621028243970633760768",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6510431617059853
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry13_flat_symmetric_8201_site1_endpoint_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.6044489999767393,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0006196375594980907,
+          "upper": 0.0006196375594984735,
+          "gap": 3.826760340605131e-16,
+          "theta": [
+            0.021127261058278425,
+            1e-06,
+            0.0713252531432745,
+            0.0513588134903788,
+            0.07813031575104412
+          ],
+          "exact_lower": "972382000009058275566728258287438550684040533863367521/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "261021805578784764292782548358932243084379914739788910033556797/421249166674228746791672110734681729275580381602196445017243910144",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5992637000745162,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.954481554856201e-17,
+          "gap": 1.954481554856201e-17,
+          "theta": [
+            0.018400459417959952,
+            0.009961780587354068,
+            0.059061985687543374,
+            0.05878822941381563,
+            0.05901827176445302
+          ],
+          "exact_lower": "0",
+          "exact_upper": "101482484373441175/5192296858534827628530496329220096",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4701670000795275,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0006195671737355929,
+          "upper": 0.0006195671737356138,
+          "gap": 2.0775562017433785e-17,
+          "theta": [
+            0.021120554005764063,
+            1e-06,
+            0.07132528210455652,
+            0.05135686128760729,
+            0.07812571499233965
+          ],
+          "exact_lower": "31112689451554494109369632845006567162099053214806933681/50216813883093446110686315385661331328818843555712276103168",
+          "exact_upper": "3216976689838729009776416593707/5192296858534827628530496329220096",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry13_flat_symmetric_8201_site1_endpoint_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.48130949994083494,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.00021963755949809037,
+          "upper": 0.00021963755949847106,
+          "gap": 3.806671743514145e-16,
+          "theta": [
+            0.021127261058278425,
+            1e-06,
+            0.0713252531432745,
+            0.05135881349037882,
+            0.07813031575104416
+          ],
+          "exact_lower": "344671826470389618973122032602357273270381224591688545/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "397379560770520389194403608038448656590754833376361839512418089498846611/1809251394333065553493296640760748560207343510400633813116524750123642650624",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4745947999181226,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6667521398372593e-17,
+          "gap": 1.6667521398372593e-17,
+          "theta": [
+            0.02173993837367772,
+            0.003327138466608198,
+            0.060060050951750724,
+            0.04319700250325374,
+            0.06132471952531481
+          ],
+          "exact_lower": "0",
+          "exact_upper": "173085437992664063/10384593717069655257060992658440192",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.48466880002524704,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.00021956717373559272,
+          "upper": 0.00021956717373561286,
+          "gap": 2.0106128453037456e-17,
+          "theta": [
+            0.021120554005764056,
+            1e-06,
+            0.07132528210455652,
+            0.05135686128760732,
+            0.07812571499233971
+          ],
+          "exact_lower": "11025963898317104398399394311819449946714271696666591409/50216813883093446110686315385661331328818843555712276103168",
+          "exact_upper": "570028973212396658758696023703/2596148429267413814265248164610048",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry13_flat_symmetric_8201_site1_endpoint_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.46782989997882396,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.4388367036543345e-17,
+          "gap": 1.4388367036543345e-17,
+          "theta": [
+            0.01527812062815902,
+            1e-06,
+            0.08744191070551982,
+            0.07116628744332412,
+            0.10479017758482545
+          ],
+          "exact_lower": "0",
+          "exact_upper": "306006724457636151403/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4620384000008926,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.3817804281190882e-17,
+          "gap": 2.3817804281190882e-17,
+          "theta": [
+            0.020541612918457207,
+            1e-06,
+            0.06756737215893352,
+            0.042723848674451746,
+            0.07570908653721425
+          ],
+          "exact_lower": "0",
+          "exact_upper": "506548675978955866219/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.49542070005554706,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.5549415819019438e-17,
+          "gap": 1.5549415819019438e-17,
+          "theta": [
+            0.015259546291185673,
+            1e-06,
+            0.08744291070551982,
+            0.07126797396879314,
+            0.10478717758482542
+          ],
+          "exact_lower": "0",
+          "exact_upper": "322948731636585533/20769187434139310514121985316880384",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "site1_endpoint",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry13_flat_symmetric_8201_site1_endpoint_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5974246000405401,
+          "max_rounding_guard": 1.2728533504979823e-17,
+          "status": "excluded",
+          "lower": 0.0005425983887289097,
+          "upper": 0.000542598388729102,
+          "gap": 1.9222117765807235e-16,
+          "theta": [
+            0.02448648173800598,
+            1e-06,
+            0.07154121216249283,
+            0.05153463053283132,
+            0.07823582658090457
+          ],
+          "exact_lower": "108990249200264201816181824509911558201942652689762078663/200867255532373784442745261542645325315275374222849104412672",
+          "exact_upper": "2954186624067620547468297741520563003/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6506122853490495
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4779935999540612,
+          "max_rounding_guard": 1.220811646218678e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.195774326013222e-17,
+          "gap": 2.195774326013222e-17,
+          "theta": [
+            0.019153961376738946,
+            0.009669227424065098,
+            0.05909887382074146,
+            0.058113222334721784,
+            0.059010066894312825
+          ],
+          "exact_lower": "0",
+          "exact_upper": "14593423532812647545/664613997892457936451903530140172288",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6506122853490495
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5722593000391498,
+          "max_rounding_guard": 1.1453511750136869e-17,
+          "status": "excluded",
+          "lower": 0.0005425251601352426,
+          "upper": 0.0005425251601353669,
+          "gap": 1.2420435770884792e-16,
+          "theta": [
+            0.024487230900942705,
+            1e-06,
+            0.07154121551479047,
+            0.05153263717994754,
+            0.07823119058152113
+          ],
+          "exact_lower": "3405485624175868324450765141512670711705548395964509849/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "360569815634812090712695662169435/664613997892457936451903530140172288",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6506122853490495
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile23",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile23_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5735203000949696,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.000793289741785798,
+          "upper": 0.000793289741785819,
+          "gap": 2.0987016961513994e-17,
+          "theta": [
+            0.020190927998168205,
+            1e-06,
+            0.08202137154380958,
+            0.056786421936774543,
+            0.07368704204911405
+          ],
+          "exact_lower": "4979560414828084858492449231899379976046900730146907927/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "16871406936811162816315555621308523/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4884765000315383,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.860920116680758e-17,
+          "gap": 1.860920116680758e-17,
+          "theta": [
+            0.01882469224797968,
+            0.00921560257307297,
+            0.06297969782660963,
+            0.06065630593143854,
+            0.062135408049612276
+          ],
+          "exact_lower": "0",
+          "exact_upper": "193248993516515293/10384593717069655257060992658440192",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5187664000550285,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.000793155721249098,
+          "upper": 0.0007931557212491225,
+          "gap": 2.443142559333468e-17,
+          "theta": [
+            0.02020249542060116,
+            3.869596730301322e-06,
+            0.08203643919425425,
+            0.056787680953613306,
+            0.07368671167937312
+          ],
+          "exact_lower": "2489359577142293955932387149941712803803737099353380043/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "4217139158805242044467420978196633/5316911983139663491615228241121378304",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile23",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile23_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.563291999977082,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0003932897417858,
+          "upper": 0.00039328974178582646,
+          "gap": 2.6411924668579318e-17,
+          "theta": [
+            0.020190927998168202,
+            1e-06,
+            0.08202137154380959,
+            0.056786421936774543,
+            0.07368704204911407
+          ],
+          "exact_lower": "2468719720673424808743413613749257510552509983718434583/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "8364347763787858128974077973950571/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4686397999757901,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6938279993662426e-17,
+          "gap": 1.6938279993662426e-17,
+          "theta": [
+            0.019375764786180128,
+            0.005121326478796864,
+            0.07179129202950826,
+            0.05941724869238132,
+            0.06746874138294563
+          ],
+          "exact_lower": "0",
+          "exact_upper": "175897156000153469/10384593717069655257060992658440192",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4622186999768019,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0003931557212490996,
+          "upper": 0.0003931557212491164,
+          "gap": 1.6739532596349837e-17,
+          "theta": [
+            0.02020249542060112,
+            3.86959673035466e-06,
+            0.08203643919425445,
+            0.05678768095361331,
+            0.0736867116793731
+          ],
+          "exact_lower": "1233939230064962645940723807401037572543516392538690763/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "1600464457934968065569854325558430474513752667459107886174721460247871813/4070815637249397495359917441711684260466522898401426079512180687778195963904",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile23",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile23_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4991376999532804,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.1671139628745777e-17,
+          "gap": 1.1671139628745777e-17,
+          "theta": [
+            0.015962062984505393,
+            1e-06,
+            0.10476421939786952,
+            0.07114869308992405,
+            0.0874325091737461
+          ],
+          "exact_lower": "0",
+          "exact_upper": "30300010814929015/2596148429267413814265248164610048",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5204177999403328,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.5048580178457605e-17,
+          "gap": 1.5048580178457605e-17,
+          "theta": [
+            0.020131529737174577,
+            1e-06,
+            0.07757159860915164,
+            0.053850878965782285,
+            0.06840395457914168
+          ],
+          "exact_lower": "0",
+          "exact_upper": "320047905120317001835/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.45914389996323735,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.4701369276968578e-17,
+          "gap": 2.4701369276968578e-17,
+          "theta": [
+            0.015920643208464858,
+            1e-06,
+            0.10476882637727462,
+            0.07114999572150305,
+            0.08743220654216718
+          ],
+          "exact_lower": "0",
+          "exact_upper": "525340025234688589931/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile23",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile23_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile23_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4930594000034034,
+          "max_rounding_guard": 1.0100427438874959e-17,
+          "status": "excluded",
+          "lower": 0.0007064305945938706,
+          "upper": 0.0007064305945938917,
+          "gap": 2.09326074866916e-17,
+          "theta": [
+            0.022754544852682097,
+            1e-06,
+            0.08194544829911636,
+            0.056648540253718675,
+            0.07353585332742923
+          ],
+          "exact_lower": "8660813889170763132591173407210157713520440284618445/12259964326927110866866776217202473468949912977468817408",
+          "exact_upper": "3846173996700405946219549685941495235/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6498640638139555
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5400295000290498,
+          "max_rounding_guard": 1.139279642847768e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.494447356243147e-17,
+          "gap": 1.494447356243147e-17,
+          "theta": [
+            0.01892421626899378,
+            0.008151735434768551,
+            0.06530499808809495,
+            0.06036291237169928,
+            0.0635193077623304
+          ],
+          "exact_lower": "0",
+          "exact_upper": "4966153160362860817/332306998946228968225951765070086144",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6498640638139555
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5644610000308603,
+          "max_rounding_guard": 1.0776969594505915e-17,
+          "status": "excluded",
+          "lower": 0.0007064343155924055,
+          "upper": 0.0007064343155924455,
+          "gap": 3.986280653364883e-17,
+          "theta": [
+            0.022754586959016318,
+            1e-06,
+            0.08194858863621916,
+            0.05664842938452284,
+            0.07353493480982905
+          ],
+          "exact_lower": "34643438033920246287534664970531755749525227673538315/49039857307708443467467104868809893875799651909875269632",
+          "exact_upper": "414109995638875632048438894654354801782976772824990740199654181430679712171/586197451763913239331828111606482533507179297369805355449754019040060218802176",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6498640638139555
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile12",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile12_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5205465999897569,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0007927587114642952,
+          "upper": 0.0007927587114643103,
+          "gap": 1.5049482794994366e-17,
+          "theta": [
+            0.020260113668569727,
+            3.8552781652073745e-06,
+            0.07368150851302581,
+            0.05678840398618421,
+            0.08202689299196952
+          ],
+          "exact_lower": "9952454166950872826978092969334213718527735535147955971/12554203470773361527671578846415332832204710888928069025792",
+          "exact_upper": "58089142065502753546782419693135821727463451830482332261287887770307409641/73274681470489154916478513950810316688397412171225669431219252380007527350272",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4940623000729829,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.5797632839885396e-17,
+          "gap": 1.5797632839885396e-17,
+          "theta": [
+            0.018869887026782897,
+            0.009209397639916598,
+            0.06215100519442857,
+            0.060657869393231555,
+            0.06298795979926848
+          ],
+          "exact_lower": "0",
+          "exact_upper": "82025999366823567/5192296858534827628530496329220096",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5108877000166103,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0007928925861735394,
+          "upper": 0.0007928925861735658,
+          "gap": 2.6183784178143885e-17,
+          "theta": [
+            0.020255196134247946,
+            1e-06,
+            0.07368183888208282,
+            0.05678714496905281,
+            0.08201187346527922
+          ],
+          "exact_lower": "1244266857161289546871983158110505963511351782534878435/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "54108865272421762103500494169337837582971408641644340638938083049/68242365001225056980250881939018440142644021819555824092793513443328",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile12",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile12_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5707591000245884,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0003927587114642967,
+          "upper": 0.00039275871146432706,
+          "gap": 3.03035920726563e-17,
+          "theta": [
+            0.020260113668569717,
+            3.855278165245474e-06,
+            0.07368150851302578,
+            0.05678840398618412,
+            0.0820268929919696
+          ],
+          "exact_lower": "4930772778641547099182638381315874359854571943124547331/12554203470773361527671578846415332832204710888928069025792",
+          "exact_upper": "28779269477308319535531298875701175200602425700179580549692983289784885567/73274681470489154916478513950810316688397412171225669431219252380007527350272",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5381383000640199,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.427237164017118e-17,
+          "gap": 1.427237164017118e-17,
+          "theta": [
+            0.01942095956498335,
+            0.005115121545640507,
+            0.06748433852776187,
+            0.05941881215417432,
+            0.07179955400216703
+          ],
+          "exact_lower": "0",
+          "exact_upper": "148212780862204747/10384593717069655257060992658440192",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5247927999589592,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.00039289258617354145,
+          "upper": 0.000392892586173569,
+          "gap": 2.7492285166974844e-17,
+          "theta": [
+            0.020255196134247956,
+            1e-06,
+            0.07368183888208281,
+            0.056787144969052794,
+            0.0820118734652792
+          ],
+          "exact_lower": "616556683622624543145952846748796186906957019702170851/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "558581651498582546372073288169761003682691462251457407036215347/1421715937525522020421893373729550836305083787907413001933198196736",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile12",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile12_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5145565000129864,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.0119225000096945e-17,
+          "gap": 2.0119225000096945e-17,
+          "theta": [
+            0.01587756348033659,
+            1e-06,
+            0.08743305763506436,
+            0.07114432166728964,
+            0.10476973558798046
+          ],
+          "exact_lower": "0",
+          "exact_upper": "427888593977994133611/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5643194000003859,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.5289529349748664e-17,
+          "gap": 1.5289529349748664e-17,
+          "theta": [
+            0.02040375639871663,
+            1e-06,
+            0.06789068471372134,
+            0.053067016023372236,
+            0.07644709449840131
+          ],
+          "exact_lower": "0",
+          "exact_upper": "325172327264976984171/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4736096999840811,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.2723954715121732e-17,
+          "gap": 1.2723954715121732e-17,
+          "theta": [
+            0.015899740985653346,
+            1e-06,
+            0.08743336026664328,
+            0.07114301903571069,
+            0.10476512860857534
+          ],
+          "exact_lower": "0",
+          "exact_upper": "33033275047732985/2596148429267413814265248164610048",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry13_flat_symmetric_8201",
+      "truth": "cherry13",
+      "action": "mobile12",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry13_flat_symmetric_8201_mobile12_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry13_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.593868299969472,
+          "max_rounding_guard": 1.0239205316953104e-17,
+          "status": "excluded",
+          "lower": 0.0007118790096057884,
+          "upper": 0.0007118790096058079,
+          "gap": 1.943437118124463e-17,
+          "theta": [
+            0.022854662022744474,
+            0.00010680836936887981,
+            0.07377687023525581,
+            0.05671551909000312,
+            0.08225664226584133
+          ],
+          "exact_lower": "1117134241645461588008354947349724903716163768411341521/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "30279984293749725030769457351201887/42535295865117307932921825928971026432",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6494350092531755
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.49504670000169426,
+          "max_rounding_guard": 1.044737213407032e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.984820804777045e-17,
+          "gap": 1.984820804777045e-17,
+          "theta": [
+            0.018961716259499634,
+            0.008102170673250034,
+            0.06368606264508068,
+            0.060421030958641056,
+            0.06533477546660273
+          ],
+          "exact_lower": "0",
+          "exact_upper": "6595698450814987745/332306998946228968225951765070086144",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6494350092531755
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4980906000128016,
+          "max_rounding_guard": 1.0698907038086958e-17,
+          "status": "excluded",
+          "lower": 0.0007129629610799301,
+          "upper": 0.0007129629610799505,
+          "gap": 2.0301274747291466e-17,
+          "theta": [
+            0.02293690221056194,
+            1e-06,
+            0.07377694140019925,
+            0.056714145877281574,
+            0.0818958697382777
+          ],
+          "exact_lower": "4475341040261256051971173358801871331976951334032053793/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "473845163912590755962315195954801/664613997892457936451903530140172288",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6494350092531755
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry23_flat_symmetric_8201_site1_endpoint_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4723668999504298,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.5485055927273312e-17,
+          "gap": 1.5485055927273312e-17,
+          "theta": [
+            0.018301162742835185,
+            1e-06,
+            0.06208070967935928,
+            0.083062117614274,
+            0.08305418887249978
+          ],
+          "exact_lower": "0",
+          "exact_upper": "329330717677229318251/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.469077100045979,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6506725374563752e-17,
+          "gap": 1.6506725374563752e-17,
+          "theta": [
+            0.018301589130606703,
+            1e-06,
+            0.06207970967935931,
+            0.08306311761427403,
+            0.08304858017684769
+          ],
+          "exact_lower": "0",
+          "exact_upper": "351059223785654210453/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.481494199950248,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.3840199841880159e-17,
+          "gap": 1.3840199841880159e-17,
+          "theta": [
+            0.01830177416680944,
+            1e-06,
+            0.062080709679359296,
+            0.08306011761427401,
+            0.08304888452467372
+          ],
+          "exact_lower": "0",
+          "exact_upper": "1177393990213444651971/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry23_flat_symmetric_8201_site1_endpoint_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.44293080002535135,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6610645914359235e-17,
+          "gap": 1.6610645914359235e-17,
+          "theta": [
+            0.016348896719772694,
+            1e-06,
+            0.06741404301269265,
+            0.0918737118171726,
+            0.09186578307539837
+          ],
+          "exact_lower": "0",
+          "exact_upper": "353269369238985975701/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5341741000302136,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.3267767944842696e-17,
+          "gap": 1.3267767944842696e-17,
+          "theta": [
+            0.016349323107544222,
+            1e-06,
+            0.06741304301269262,
+            0.09187471181717258,
+            0.09186017437974617
+          ],
+          "exact_lower": "0",
+          "exact_upper": "282174217501801711723/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4932715999893844,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6898912802572025e-17,
+          "gap": 1.6898912802572025e-17,
+          "theta": [
+            0.01634950814374695,
+            1e-06,
+            0.06741404301269266,
+            0.09187171181717262,
+            0.0918604787275723
+          ],
+          "exact_lower": "0",
+          "exact_upper": "87744171857448697/5192296858534827628530496329220096",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "site1_endpoint",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry23_flat_symmetric_8201_site1_endpoint_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4904712999705225,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.036572811838059e-17,
+          "gap": 1.036572811838059e-17,
+          "theta": [
+            0.01,
+            1e-06,
+            0.0850429191587885,
+            0.11966361887229202,
+            0.11965357130305133
+          ],
+          "exact_lower": "0",
+          "exact_upper": "215287750181974633/20769187434139310514121985316880384",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.49348369997460395,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.3279930145569872e-17,
+          "gap": 1.3279930145569872e-17,
+          "theta": [
+            0.01,
+            1e-06,
+            0.0850429191587885,
+            0.11966692322011807,
+            0.11965026695522527
+          ],
+          "exact_lower": "0",
+          "exact_upper": "275813358305617585/20769187434139310514121985316880384",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5283348000375554,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.0878233189092794e-17,
+          "gap": 1.0878233189092794e-17,
+          "theta": [
+            0.010899838149593846,
+            1e-06,
+            0.08135558274545374,
+            0.11480188487253047,
+            0.11478853295546372
+          ],
+          "exact_lower": "0",
+          "exact_upper": "925417734375601114051/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "site1_endpoint",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry23_flat_symmetric_8201_site1_endpoint_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_site1_endpoint_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5539475999539718,
+          "max_rounding_guard": 1.332701310419182e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.999106299183065e-17,
+          "gap": 1.999106299183065e-17,
+          "theta": [
+            0.018021378728241097,
+            1e-06,
+            0.06278647394088123,
+            0.08412967344231446,
+            0.08418475791705872
+          ],
+          "exact_lower": "0",
+          "exact_upper": "108841699714011378124719/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.647576647139495
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.539621299947612,
+          "max_rounding_guard": 1.197392879292991e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.206817042815915e-17,
+          "gap": 2.206817042815915e-17,
+          "theta": [
+            0.018042633933693805,
+            1e-06,
+            0.0627867450678345,
+            0.0841327681626363,
+            0.0841812448767102
+          ],
+          "exact_lower": "0",
+          "exact_upper": "916675935901935447/41538374868278621028243970633760768",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.647576647139495
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5209489000262693,
+          "max_rounding_guard": 1.1687699419393737e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.4496345578416306e-17,
+          "gap": 1.4496345578416306e-17,
+          "theta": [
+            0.01802160447334243,
+            1e-06,
+            0.0627864488546492,
+            0.08412763429984457,
+            0.08418154065817729
+          ],
+          "exact_lower": "0",
+          "exact_upper": "78925612562038086677867/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.647576647139495
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "mobile12",
+      "control": "epsilon_0.0001",
+      "observations_file": "cherry23_flat_symmetric_8201_mobile12_epsilon_0.0001.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.549609599984251,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0007922685458426062,
+          "upper": 0.0007922685458427611,
+          "gap": 1.5484642432238302e-16,
+          "theta": [
+            0.020202331342454954,
+            1e-06,
+            0.056779899909149216,
+            0.07367957065578487,
+            0.08200967247563394
+          ],
+          "exact_lower": "77705472875014151890759060258404509761264966847303917/98079714615416886934934209737619787751599303819750539264",
+          "exact_upper": "10679758870990915418726240521291318621759479926616116679342194535/13479973333575319897333507543509815336818572211270286240551805124608",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.48719510005321354,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.000792264313975966,
+          "upper": 0.000792264313975987,
+          "gap": 2.0979487244469415e-17,
+          "theta": [
+            0.020202547197510665,
+            1e-06,
+            0.056780019301753464,
+            0.0736804992018617,
+            0.08200655396850619
+          ],
+          "exact_lower": "2486561850071737194781759168052358878006486347674559043/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "108131980983588949247783330781111611856360243435134484561155067271/136484730002450113960501763878036880285288043639111648185587026886656",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5093485999386758,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.5000841406285878e-17,
+          "gap": 1.5000841406285878e-17,
+          "theta": [
+            0.01882971085573431,
+            0.009194817804705564,
+            0.060639819761150696,
+            0.0621526570300176,
+            0.06299248464853065
+          ],
+          "exact_lower": "0",
+          "exact_upper": "38944410854618661/2596148429267413814265248164610048",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "mobile12",
+      "control": "epsilon_0.0005",
+      "observations_file": "cherry23_flat_symmetric_8201_mobile12_epsilon_0.0005.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5487100000027567,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0003922685458426056,
+          "upper": 0.000392268545842767,
+          "gap": 1.6138131789936468e-16,
+          "theta": [
+            0.02020233134245495,
+            1e-06,
+            0.05677989990914923,
+            0.07367957065578488,
+            0.08200967247563398
+          ],
+          "exact_lower": "38473587028847336311928497776281203867727301893820653/98079714615416886934934209737619787751599303819750539264",
+          "exact_upper": "8342629328000713357148846107871339/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.5479220000561327,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "excluded",
+          "lower": 0.0003922643139759654,
+          "upper": 0.00039226431397599437,
+          "gap": 2.889799956637828e-17,
+          "theta": [
+            0.020202547197510655,
+            1e-06,
+            0.056780019301753484,
+            0.07368049920186173,
+            0.08200655396850623
+          ],
+          "exact_lower": "1231141502994399340174283987209875561806307847967875651/3138550867693340381917894711603833208051177722232017256448",
+          "exact_upper": "26769044491304955206222640397674320544618187117196990971760901833/68242365001225056980250881939018440142644021819555824092793513443328",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.48546260001603514,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.0338167036646796e-17,
+          "gap": 2.0338167036646796e-17,
+          "theta": [
+            0.01938078339393476,
+            0.005100541710429466,
+            0.059400762522093475,
+            0.06748599036335096,
+            0.07180407885142924
+          ],
+          "exact_lower": "0",
+          "exact_upper": "26400450203184433/1298074214633706907132624082305024",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "mobile12",
+      "control": "epsilon_0.002",
+      "observations_file": "cherry23_flat_symmetric_8201_mobile12_epsilon_0.002.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "original_pq_unchanged": true,
+        "actual_noise_within_declared": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.46853380009997636,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.3575648392676642e-17,
+          "gap": 1.3575648392676642e-17,
+          "theta": [
+            0.01596419735196702,
+            1e-06,
+            0.07114646058662177,
+            0.08743102187883543,
+            0.10475729827645693
+          ],
+          "exact_lower": "0",
+          "exact_upper": "288722110471652601749/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.47455789998639375,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.1736900675211039e-17,
+          "gap": 1.1736900675211039e-17,
+          "theta": [
+            0.015964752778143083,
+            1e-06,
+            0.07114515795504285,
+            0.08743132451041438,
+            0.10475269129705189
+          ],
+          "exact_lower": "0",
+          "exact_upper": "998465085519193197507/85070591730234615865843651857942052864",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.44799360004253685,
+          "max_rounding_guard": 7.494005416219807e-18,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 1.6764589686653956e-17,
+          "gap": 1.6764589686653956e-17,
+          "theta": [
+            0.020172491592996673,
+            1e-06,
+            0.053747168519515574,
+            0.06829526576413013,
+            0.07739528020185314
+          ],
+          "exact_lower": "0",
+          "exact_upper": "356543391189560121451/21267647932558653966460912964485513216",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6352332075469354
+        }
+      }
+    },
+    {
+      "case": "cherry23_flat_symmetric_8201",
+      "truth": "cherry23",
+      "action": "mobile12",
+      "control": "pq_error_0.001",
+      "observations_file": "cherry23_flat_symmetric_8201_mobile12_pq_error_0.001.npz",
+      "evaluation_truth_reference": "cherry23_flat_symmetric_8201_mobile12_truth.json",
+      "physical_checks": {
+        "original_y_unchanged": true,
+        "p_error_within_declared": true,
+        "q_error_within_declared": true,
+        "original_source_caps_unchanged": true
+      },
+      "results": {
+        "cherry12": {
+          "candidate": "cherry12",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4766444999258965,
+          "max_rounding_guard": 1.1574942393455246e-17,
+          "status": "excluded",
+          "lower": 0.0007132617058553958,
+          "upper": 0.0007132617058554631,
+          "gap": 6.716449259384592e-17,
+          "theta": [
+            0.022773756169891194,
+            1e-06,
+            0.05668607286478984,
+            0.07365400232572682,
+            0.08190276360956221
+          ],
+          "exact_lower": "1119304072902442440417860658254692051707773366634374663/1569275433846670190958947355801916604025588861116008628224",
+          "exact_upper": "3883366104041010569169044820930388543/5444517870735015415413993718908291383296",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6477132470165674
+        },
+        "cherry13": {
+          "candidate": "cherry13",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.47356289997696877,
+          "max_rounding_guard": 1.1236671315639768e-17,
+          "status": "excluded",
+          "lower": 0.0007132579904794359,
+          "upper": 0.0007132579904795668,
+          "gap": 1.3071730095895465e-16,
+          "theta": [
+            0.022773714527086927,
+            1e-06,
+            0.05668618106951031,
+            0.07365491800079325,
+            0.08189962419498142
+          ],
+          "exact_lower": "4477192969816884278526086036806537874935650736613421967/6277101735386680763835789423207666416102355444464034512896",
+          "exact_upper": "474041244581365530435066908950787/664613997892457936451903530140172288",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6477132470165674
+        },
+        "cherry23": {
+          "candidate": "cherry23",
+          "sharing": "path",
+          "linear_only": false,
+          "solver_status": 0,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.4893898000009358,
+          "max_rounding_guard": 1.2199442844806895e-17,
+          "status": "unresolved",
+          "lower": 0.0,
+          "upper": 2.5332844325645287e-17,
+          "gap": 2.5332844325645287e-17,
+          "theta": [
+            0.01889304214490222,
+            0.008188206842188777,
+            0.06041877363205401,
+            0.06357020722634199,
+            0.06518841870702274
+          ],
+          "exact_lower": "0",
+          "exact_upper": "2104570368156797455/83076749736557242056487941267521536",
+          "exact_primal_verified": true,
+          "exact_box_dual_verified": true,
+          "outer_feasibility_is_not_AC_feasibility": true,
+          "max_current_cap": 1.6477132470165674
+        }
+      }
+    }
+  ],
+  "original_input_sha256": {
+    "cherry12_flat_symmetric_8201_site1_endpoint.npz": "04463ccefe6da6cfb79de3ab97e43f13974e587d1178f3aa3ccb787cdf4c1235",
+    "cherry12_flat_symmetric_8201_site1_endpoint_truth.json": "16b9aa485a2507dd0a6a7a4701d4a5b570c521ab47c15755cab641847c9cc186",
+    "cherry12_flat_symmetric_8201_mobile23.npz": "0ea07fa187d3ada1aa926f379c87377c03bef8af10696ff8ab1120189aa568f9",
+    "cherry12_flat_symmetric_8201_mobile23_truth.json": "0aacd0a3c2e996e6ecf583b4e2daa6ddaf77ec60368918f1a6b893d074cbf91d",
+    "cherry12_flat_symmetric_8201_mobile12.npz": "1fb06dde2bc528d009ac868d118a6b68fbd9e1a69581a674d1c55206e2d92409",
+    "cherry12_flat_symmetric_8201_mobile12_truth.json": "0365d0eaec0045caae3efca43325e41f2054680d1b3ba97bcddcec3c935aa6c3",
+    "cherry13_flat_symmetric_8201_site1_endpoint.npz": "9be9d8fcf7d60136cc922d3341995ba1250df986e2977dc8b3e3d4a01a42d1c6",
+    "cherry13_flat_symmetric_8201_site1_endpoint_truth.json": "5f83f42f3639cd8c86ddc56f835119b302d5470069db577cef59253d810ecdc9",
+    "cherry13_flat_symmetric_8201_mobile23.npz": "f6e5bed754c38e41d92225a85cc2c46a4deac6dde501d3311826cc157d9a988d",
+    "cherry13_flat_symmetric_8201_mobile23_truth.json": "9984b3eca55ae9f5559b9e5d64df6ca5d6d97dc112e614db5cc7b26f6ebfc848",
+    "cherry13_flat_symmetric_8201_mobile12.npz": "97674bebba021677e71184f8d562e715c0609429a76443c74241338d4272bc37",
+    "cherry13_flat_symmetric_8201_mobile12_truth.json": "33a2058040cf8a0037e06ab9e7e847d70f3d4e76f2567da276999c1b2e798853",
+    "cherry23_flat_symmetric_8201_site1_endpoint.npz": "134d89ca0205e65f43f302e11655edda022a1ce2f1a63f7ddbabeb45e0ef76ce",
+    "cherry23_flat_symmetric_8201_site1_endpoint_truth.json": "797da45c21ed491e12b2f0eb05f55579fc9d4a69726a77887d90114d54fbdd08",
+    "cherry23_flat_symmetric_8201_mobile12.npz": "d06dd5b1d8ee5afc127de0731bb2d313c766d5d0dc3036dbafdc2f2adba627c4",
+    "cherry23_flat_symmetric_8201_mobile12_truth.json": "22ac14f989b707b47f2db4aee36f3a6d6af4f54720f4d0963ca79e55f5874177"
+  },
+  "control_input_sha256": {
+    "cherry12_flat_symmetric_8201_pq_errors.npz": "5ac1b2bc8ccba983dc7cc84c511c4836a69f0a696a16657e09649256eba841b1",
+    "cherry12_flat_symmetric_8201_site1_endpoint_epsilon_0.0001.npz": "6af0761f9f1919d3b2b980d69dc72870dfa849d3a606e343d2efea0b4515f88b",
+    "cherry12_flat_symmetric_8201_site1_endpoint_epsilon_0.0005.npz": "f13fd8bce17f67f662c62d9db31983a2d3e0705847b962f67ced935bb1486fe5",
+    "cherry12_flat_symmetric_8201_site1_endpoint_epsilon_0.002.npz": "615c59718ec492e535488624dbdf76b29eed4dfe18dc6e4451f49b5bb747403a",
+    "cherry12_flat_symmetric_8201_site1_endpoint_pq_error_0.001.npz": "cc567aa1df5dc4b12666f3f065af4bdcfeaa01a5e364454f9ff6211908c7bc03",
+    "cherry12_flat_symmetric_8201_mobile23_epsilon_0.0001.npz": "a94ee7467c0957fdeaa02be657b3e2eb6e33647160e652002f6e0104c8f20192",
+    "cherry12_flat_symmetric_8201_mobile23_epsilon_0.0005.npz": "8078774f99b3e984c3d926d47c2d96a6f71fd09177aa2720ba3b0a8f1bbd4ced",
+    "cherry12_flat_symmetric_8201_mobile23_epsilon_0.002.npz": "99b33b0e0a76a48ca808adb1c71ee171cb7e8bb69f867680ee175c5528ce8659",
+    "cherry12_flat_symmetric_8201_mobile23_pq_error_0.001.npz": "077bc290dadd1fbd67a925fc9425449a78db0cd8acae401761e0d96904445c69",
+    "cherry12_flat_symmetric_8201_mobile12_epsilon_0.0001.npz": "b343007531d3e9cdd90caf271a9d5b3e2c7f8ea14ff7b6490c6ba9e4e229a7f7",
+    "cherry12_flat_symmetric_8201_mobile12_epsilon_0.0005.npz": "f31863a4f6984965b42149b3f7f0815300ecab23270ea314592219188997be8e",
+    "cherry12_flat_symmetric_8201_mobile12_epsilon_0.002.npz": "996568781cd96e52f938e8656de17a57cafb53f5783a16f4da89f098008578e1",
+    "cherry12_flat_symmetric_8201_mobile12_pq_error_0.001.npz": "0bf5638407455a935cac2d4870aa3a9abc7b74f10b9e96ab5d07c477bdef667a",
+    "cherry13_flat_symmetric_8201_pq_errors.npz": "e13892dcbc88665824517bbecd74e28cd8d95d1e293bc7ca2ae5b7e71e82099b",
+    "cherry13_flat_symmetric_8201_site1_endpoint_epsilon_0.0001.npz": "41948cb1247de87c1852db720dd0897aadfce65a7e8476c6d423e21f499183d3",
+    "cherry13_flat_symmetric_8201_site1_endpoint_epsilon_0.0005.npz": "d5537fc40efc43cac9beca19fb1f89214d9cf0bdbf41aa529b24b0bc903ea04c",
+    "cherry13_flat_symmetric_8201_site1_endpoint_epsilon_0.002.npz": "d9162983bb3385a8bfe89bb68107e99a8957964c05f65f684a287d56ede36d83",
+    "cherry13_flat_symmetric_8201_site1_endpoint_pq_error_0.001.npz": "9d89240c930804056249da4aadb32a115923b26541da6a06891917b6a09fdb54",
+    "cherry13_flat_symmetric_8201_mobile23_epsilon_0.0001.npz": "d59a89ce5bf674917da073626a40266d8d8a22c676acbe984b0cdb7add01d49d",
+    "cherry13_flat_symmetric_8201_mobile23_epsilon_0.0005.npz": "47d98c6c92b7f3adf37e5b5f7636bc9ecd9d2a6ab29d513d39ac9acee5c21344",
+    "cherry13_flat_symmetric_8201_mobile23_epsilon_0.002.npz": "44218385c0813d69c4fe831fcaf0cf14a7b625d0000a6d26d5806510823e6599",
+    "cherry13_flat_symmetric_8201_mobile23_pq_error_0.001.npz": "9703a23b2c8187bd55820460df077c2d7dc263b83c7b69dba6b4e73452633467",
+    "cherry13_flat_symmetric_8201_mobile12_epsilon_0.0001.npz": "1adea7731753562f4f3978882cb7bfdca2b9aa5fb0ea255da30ec92c00edb98e",
+    "cherry13_flat_symmetric_8201_mobile12_epsilon_0.0005.npz": "f019d427b677b3df49c92dd8f3b46a1af6113ab7d5974dfb9fc129e2727ab040",
+    "cherry13_flat_symmetric_8201_mobile12_epsilon_0.002.npz": "e56cebaa578f82bfcf59b5f79f2195f80751384fa7e8c0c81ff89bc8d9e93d61",
+    "cherry13_flat_symmetric_8201_mobile12_pq_error_0.001.npz": "d912f7eec2f6b0d79afa8d80af56ae6bcb4b98415aaa8c9d05821dda9a4cabd7",
+    "cherry23_flat_symmetric_8201_pq_errors.npz": "f1d93c404858246db5130a9e3e8c9ad4126b2d6e01ef0ad968c126fd5b19af60",
+    "cherry23_flat_symmetric_8201_site1_endpoint_epsilon_0.0001.npz": "d4662c15e007a62ff29435368c1235b12bd5835bb6f92420cb615eae0bcda086",
+    "cherry23_flat_symmetric_8201_site1_endpoint_epsilon_0.0005.npz": "dea719a2a1561a81a7c96d308f780a0f195b1217a7e4d4ac247cb79ee4ad3872",
+    "cherry23_flat_symmetric_8201_site1_endpoint_epsilon_0.002.npz": "062ff9bdb89358631867b35b9fd8c89fe1e662286fbe11aba397733c04cacc65",
+    "cherry23_flat_symmetric_8201_site1_endpoint_pq_error_0.001.npz": "4afa51847e6c67774648a5bfc6e60c91645621f238dd383314d82dad3cf346d2",
+    "cherry23_flat_symmetric_8201_mobile12_epsilon_0.0001.npz": "11b7cc39c371bacb0a17b06830ba6c07c3be9f0849b775d90a9138006e3ac192",
+    "cherry23_flat_symmetric_8201_mobile12_epsilon_0.0005.npz": "f44e1bb4c2e0a0eca303d1d7850cc8a8a4a6c38721f1145bad6a6b51829366b6",
+    "cherry23_flat_symmetric_8201_mobile12_epsilon_0.002.npz": "ccaee30a575b0b146d3b14d7e114918b24c18e8840e684c43028c60b60916c47",
+    "cherry23_flat_symmetric_8201_mobile12_pq_error_0.001.npz": "18bb120d9298e17e1ee0c8cb82d3df4670f0dd554190c72a489230953b9f98d2"
+  },
+  "distinct_lp_count": 96,
+  "policy_aliases_are_not_independent_trials": true,
+  "max_gap": 3.826760340605131e-16,
+  "source_unchanged": true
+}

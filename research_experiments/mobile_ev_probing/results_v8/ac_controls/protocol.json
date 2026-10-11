@@ -1,0 +1,57 @@
+{
+  "cases": [
+    [
+      "cherry12",
+      "flat",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry13",
+      "flat",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry23",
+      "flat",
+      "symmetric",
+      8201
+    ]
+  ],
+  "formal_results_sha256": "6718268e058cf241bad2a97a5f374b42e08f05b5cf5ac7099a7f01f8a39837ee",
+  "formal_core_sha256": "95b8c95d1aedccf12539c74c286c12832e8f36772d6efc91414baf87381283a7",
+  "control_source_sha256": "4839d3fd9fd8e3db8e6ec7ecdf158ab2571c04428dd67af3a35a0965c057c2ae",
+  "core_source_sha256": "95b8c95d1aedccf12539c74c286c12832e8f36772d6efc91414baf87381283a7",
+  "dependency_sha256": {
+    "design_v7.py": "5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13",
+    "local_shared_source_v6.py": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5"
+  },
+  "python": "3.11.15",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "voltage_error_budgets": [
+    0.0001,
+    0.0005,
+    0.002
+  ],
+  "voltage_control": "same recorded physical data and tiny realized voltage noise; only declared error budget enlarged",
+  "pq_error_bound": 0.001,
+  "pq_noise_fraction": 0.8,
+  "pq_noise_seeds": [
+    9101,
+    9102,
+    9103
+  ],
+  "pq_control": "new bounded P/Q meter errors on original physical observations; original voltage error retained",
+  "policies": [
+    "selected_stationary",
+    "selected_mobile",
+    "fixed_site1_endpoint",
+    "fixed_mobile12"
+  ],
+  "action_selection": "frozen original formal selections; never rerun under modified measurements/budgets",
+  "duplicate_actions": "computed once per episode/control; policy aliases retained explicitly",
+  "statistical_scope": "three predetermined synthetic truth cases; no population inference"
+}

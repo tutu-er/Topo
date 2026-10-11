@@ -1,0 +1,168 @@
+{
+  "mode": "formal",
+  "cases": [
+    [
+      "cherry12",
+      "flat",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry12",
+      "flat",
+      "symmetric",
+      8202
+    ],
+    [
+      "cherry12",
+      "rich",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry12",
+      "rich",
+      "symmetric",
+      8202
+    ],
+    [
+      "cherry12",
+      "flat",
+      "weak",
+      8201
+    ],
+    [
+      "cherry12",
+      "flat",
+      "weak",
+      8202
+    ],
+    [
+      "cherry13",
+      "flat",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry13",
+      "flat",
+      "symmetric",
+      8202
+    ],
+    [
+      "cherry13",
+      "rich",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry13",
+      "rich",
+      "symmetric",
+      8202
+    ],
+    [
+      "cherry13",
+      "flat",
+      "weak",
+      8201
+    ],
+    [
+      "cherry13",
+      "flat",
+      "weak",
+      8202
+    ],
+    [
+      "cherry23",
+      "flat",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry23",
+      "flat",
+      "symmetric",
+      8202
+    ],
+    [
+      "cherry23",
+      "rich",
+      "symmetric",
+      8201
+    ],
+    [
+      "cherry23",
+      "rich",
+      "symmetric",
+      8202
+    ],
+    [
+      "cherry23",
+      "flat",
+      "weak",
+      8201
+    ],
+    [
+      "cherry23",
+      "flat",
+      "weak",
+      8202
+    ]
+  ],
+  "box": [
+    [
+      0.01,
+      0.05
+    ],
+    [
+      1e-06,
+      0.03
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ]
+  ],
+  "source_sha256": "95b8c95d1aedccf12539c74c286c12832e8f36772d6efc91414baf87381283a7",
+  "dependency_sha256": {
+    "design_v7.py": "5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13",
+    "local_shared_source_v6.py": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5"
+  },
+  "python": "3.11.15",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "model": "balanced constant-power radial AC, no shunts, known X/R=.5 and trunk source",
+  "EV": "P-only, 20kW base; constant4.5kW / endpoint0or6kW duty75%; both27kWh/6h; min nonzero4.5kW; 60kWh SOC .4 to .8275",
+  "nominal_source_P": 0.12,
+  "source_error_P": 0.1,
+  "source_Q_P_ratio": 0.3,
+  "epsilon": 1e-05,
+  "current_voltage_domain": [
+    0.9,
+    1.1
+  ],
+  "selection": "historical AC outer exclusion then nominal AC refit design",
+  "no_truth_in_selector": true,
+  "actions": [
+    "site1_none",
+    "site1_constant",
+    "site1_endpoint",
+    "site2_constant",
+    "site2_endpoint",
+    "site3_constant",
+    "site3_endpoint",
+    "mobile12",
+    "mobile13",
+    "mobile23"
+  ],
+  "mobile": "three routes, two11-slot dwells and2-slot travel gap;9on6kW slots per dwell; same27kWh/6h plus2kWh battery trip"
+}
