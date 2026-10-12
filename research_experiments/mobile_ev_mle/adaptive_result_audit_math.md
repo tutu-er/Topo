@@ -71,3 +71,7 @@ python -m research_experiments.mobile_ev_mle.adaptive_result_audit --calibration
 ```
 
 输出 `fits.csv`、`actions.csv`、`numerical_bounds.csv`，推断性报告还包括逐历史候选保留记录及汇总 JSON。所有输入 JSON 保存 SHA-256；原始记录不被修改。
+
+## 浮点交叉的审计约定
+
+collector 继续保存每一个原始负 gap。QP 和 MILP incumbent/best-bound 使用相对 1e-7 核验；整体代理上下界使用冻结 core 已声明的相对 1e-6 一致性容差。容差内交叉仍输出 raw_bound_crossings，不截成零、不称严格有序界或最优证书。大于合同容差则中止核验并保留原始批次。普通浮点防护不是区间算术严格舍入证明。collector 的容差只用于审计既有冻结程序，不改变优化策略或校准分数。

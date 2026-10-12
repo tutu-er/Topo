@@ -79,7 +79,7 @@ def _measurement_summary(values):
                 descriptive_complete_subset=True)
 
 
-def validate_numeric_bounds(value, *, tolerance=1e-7, path="root"):
+def validate_numeric_bounds(value, *, tolerance=1e-7, proxy_tolerance=None, path="root"):
     """Check bound direction without mixing proxy, QP, MILP, or AC quantities."""
     checked = 0
     if isinstance(value, dict):
@@ -92,7 +92,8 @@ def validate_numeric_bounds(value, *, tolerance=1e-7, path="root"):
                     lo, hi = float(lo), float(hi)
                     if not math.isfinite(lo) or not math.isfinite(hi):
                         raise ValueError(f"nonfinite numerical bound at {path}")
-                    if lo > hi + tolerance * max(1.0, abs(lo), abs(hi)):
+                    allowed=tolerance if lo_key!="proxy_lower" or proxy_tolerance is None else proxy_tolerance
+                    if lo > hi + allowed * max(1.0, abs(lo), abs(hi)):
                         raise ValueError(f"invalid lower > upper at {path}: {lo_key}, {hi_key}")
                     checked += 1
         # All stored solver records are maximization masters; best-bound is
@@ -106,13 +107,35 @@ def validate_numeric_bounds(value, *, tolerance=1e-7, path="root"):
                     raise ValueError(f"invalid max-MILP incumbent > best-bound at {path}")
                 checked += 1
         for key, child in value.items():
-            checked += validate_numeric_bounds(child, tolerance=tolerance,
+            checked += validate_numeric_bounds(child, tolerance=tolerance, proxy_tolerance=proxy_tolerance,
                                                 path=f"{path}.{key}")
     elif isinstance(value, (list, tuple)):
         for index, child in enumerate(value):
-            checked += validate_numeric_bounds(child, tolerance=tolerance,
+            checked += validate_numeric_bounds(child, tolerance=tolerance, proxy_tolerance=proxy_tolerance,
                                                 path=f"{path}[{index}]")
     return checked
+
+
+
+def raw_bound_crossings(value, *, path="root"):
+    """Retain every raw crossing; accepting a numerical tolerance is not ordering."""
+    rows=[]
+    if isinstance(value,dict):
+        pairs=[("q_lower","q_upper"),("proxy_lower","proxy_upper"),("none_proxy_lower","none_proxy_upper")]
+        if value.get("kind") in ("direction_lower","secant_upper"):pairs.append(("incumbent","bound"))
+        for lo_key,hi_key in pairs:
+            lo,hi=value.get(lo_key),value.get(hi_key)
+            if lo is not None and hi is not None and float(lo)>float(hi):
+                lo,hi=float(lo),float(hi)
+                allowed=1e-6 if lo_key=="proxy_lower" else 1e-7
+                rows.append(dict(path=path,lower_key=lo_key,upper_key=hi_key,raw_lower=lo,raw_upper=hi,
+                  raw_gap=hi-lo,absolute_crossing=lo-hi,relative_crossing=(lo-hi)/max(1.,abs(lo),abs(hi)),
+                  validation_tolerance=allowed,within_declared_tolerance=lo-hi<=allowed*max(1.,abs(lo),abs(hi)),
+                  strictly_ordered=False,strict_optimality_certificate=False))
+        for key,child in value.items():rows.extend(raw_bound_crossings(child,path=path+"."+key))
+    elif isinstance(value,(list,tuple)):
+        for index,child in enumerate(value):rows.extend(raw_bound_crossings(child,path=f"{path}[{index}]"))
+    return rows
 
 
 def load_batch(folder):
@@ -148,8 +171,9 @@ def load_batch(folder):
         for record in records:
             if len(record["losses"]) != len(names) or len(record["success"]) != len(names):
                 raise ValueError("candidate loss/success axes do not match names")
-        validate_numeric_bounds(row)
-    return dict(folder=folder, config=config, rows=rows,
+        validate_numeric_bounds(row,proxy_tolerance=1e-6)
+    crossings=[dict(history_id=row["history_id"],**item) for row in rows for item in raw_bound_crossings(row)]
+    return dict(raw_bound_crossings=crossings,folder=folder, config=config, rows=rows,
                 manifest={"config_sha256": _sha(config_path),
                           "trial_sha256": {file.name: _sha(file) for file in files},
                           "observation_archive_sha256": {file.name: _sha(file)
@@ -482,6 +506,11 @@ def run_audit(calibration, evaluation, out, alpha=.1, *, allow_stress=False, rep
         requested_calibration_history_count=cal["requested_history_count"],
         requested_evaluation_history_count=ev["requested_history_count"],
         out_of_population_stress=stressed, marginal_rank_gate_claim=not stressed,
+        numerical_bound_contract=dict(QP_and_master_tolerance=1e-7,proxy_crossing_tolerance=1e-6,
+            calibration_raw_crossing_count=len(cal["raw_bound_crossings"]),
+            evaluation_raw_crossing_count=len(ev["raw_bound_crossings"]),
+            raw_negative_gaps_preserved=True,strict_interval_arithmetic_certificate=False,
+            scope="frozen core explicit 1e-6 proxy consistency tolerance; raw crossings are not zero-gap certificates"),
         conditional_history_or_uniform_parameter_guarantee=False,
         gates_influence_shadow_policy=False, topology_correct_probability_reported=False,
         **_aggregate(ev["rows"], evaluated, methods))
@@ -502,6 +531,7 @@ def run_audit(calibration, evaluation, out, alpha=.1, *, allow_stress=False, rep
     _csv(out/"fits.csv", fits); _csv(out/"actions.csv", actions); _csv(out/"numerical_bounds.csv", bounds)
     _dump(out/"history_gates.json", [dict(history_id=row["history_id"], methods=item)
                                     for row, item in zip(ev["rows"], evaluated)])
+    _dump(out/"raw_bound_crossings.json",dict(calibration=cal["raw_bound_crossings"],evaluation=ev["raw_bound_crossings"]))
     _dump(out/"audit_summary.json", summary)
     if any(fit.get("ac_audit_status")=="mismatch" for fit in fits):
         raise ValueError("saved AC objective replay mismatch; inspect fits.csv")

@@ -134,6 +134,7 @@ class NonlinearPairProblem:
         self.residual_count=self.future_start+cfg['horizon']*sum(
             context['history'].n if channel in ('p','q','v') else 1 for channel in context['channels'])
         self.cache=None;self.best=None;self.ac_calls=0;self.evaluations=0
+        self.current_origin='unlabelled_evaluation'
         self.feasible_evaluations=0;self.infeasible_evaluations=0
 
     def full(self,x):
@@ -192,6 +193,7 @@ class NonlinearPairProblem:
         loss=float(residual@residual);self.evaluations+=1
         self.feasible_evaluations+=int(feasible);self.infeasible_evaluations+=int(not feasible)
         result=dict(x=x.copy(),full=full,residual=residual,jacobian=csr_matrix(jac[:,self.free]),
+            origin=self.current_origin,
             loss=loss,feasible=feasible,geometries=geometries,
             history_costs=[float(r@r) for r in H],future_distance_squared=float(np.sum((N[0]-N[1])**2)))
         self.cache=result
@@ -225,6 +227,7 @@ def _best_summary(problem):
         proxy=problem.raw['c']+problem.raw['B']@problem.u.ravel()+problem.raw['A']@reduced
         affine=float(proxy@proxy);taylor=float(np.linalg.norm(best['residual']-proxy))
     return dict(cost_upper=best['loss'],history_costs=best['history_costs'],
+        witness_origin=best['origin'],
         future_distance_squared=best['future_distance_squared'],explanations=explanations,
         full_delta=best['full'],free_delta=best['x'],within_original_local_box=original_feasible,
         affine_cost_at_best_point=affine,Taylor_residual_norm=taylor,
@@ -236,11 +239,75 @@ def _best_summary(problem):
         physically_feasible=True,nonlinear_infimum_computed=False,global_optimality_certified=False)
 
 
-def solve_nonlinear_pair(context,raw_pair,u_kw,domain='same_local',starts=2,max_nfev=300):
+def recover_inherited_point(problem,witness):
+    """Validate an old feasible explanation and recover all absolute parameters.
+
+    Identical raw-context fingerprints permit exact delta-coordinate reuse;
+    absolute beta/H-state/source checks still validate coordinate semantics.
+    Original fixed coordinates can therefore become new free coordinates.
+    """
+    if not isinstance(witness,dict) or witness.get('best') is None:
+        raise ValueError('no inherited feasible explanation')
+    if witness.get('pair')!=problem.raw['name'] or witness.get('control_hash')!=_hash(problem.u):
+        raise ValueError('inherited pair/control context differs')
+    if witness.get('historical_inputs_hash')!=problem.md['historical_inputs_hash']:
+        raise ValueError('inherited historical context differs')
+    best=witness['best']
+    if not best.get('physically_feasible',False):raise ValueError('inherited witness was not physically feasible')
+    given={item['candidate']:item for item in best['explanations']}
+    if set(given)!=set(problem.md['candidate_names']):raise ValueError('inherited candidate labels differ')
+    full=problem.template.copy()
+    for name,centre,layout,nominal in zip(problem.md['candidate_names'],problem.centres,
+                                        problem.md['variable_layout'],problem.nominal):
+        old=given[name];candidate=centre['candidate'];m,n=candidate.m,candidate.n
+        beta=np.r_[old['r_pu'],old['x_pu']]
+        state=np.c_[old['historical_p'],old['historical_q'],old['historical_source_p'],old['historical_source_q']]
+        source=np.c_[old['future_source_p'],old['future_source_q']]
+        if beta.shape!=(2*m,) or state.shape!=centre['history_state'].shape or source.shape!=nominal['source'].shape:
+            raise ValueError('inherited absolute parameter shapes differ')
+        if not np.array_equal(old['future_total_p'],nominal['p']) or not np.array_equal(old['future_total_q'],nominal['q']):
+            raise ValueError('inherited future prediction differs')
+        if old.get('source_node')!=1 or not old.get('beta_shared_history_future'):
+            raise ValueError('inherited physical source/line semantics differ')
+        full[slice(*layout['beta'])]=beta-centre['beta']
+        full[slice(*layout['history_state'])]=(state-centre['history_state']).ravel()
+        a,b=layout['future_source']
+        if b>a:full[a:b]=(source-nominal['source']).ravel()
+        elif not np.array_equal(source,nominal['source']):raise ValueError('fixed future source changed')
+    exact_reuse=witness.get('raw_pair_fingerprint')==FrozenPair(**problem.raw).fingerprint()
+    if exact_reuse:
+        original=np.asarray(best['full_delta'],float)
+        if original.shape!=full.shape or not np.allclose(original,full,rtol=0,atol=1e-12):
+            raise ValueError('inherited delta and absolute parameters disagree')
+        full=original.copy()
+    fixed=np.ones(problem.full_count,bool);fixed[problem.free]=False
+    if not np.array_equal(full[fixed],problem.template[fixed]):raise ValueError('inherited fixed coordinates differ')
+    x=full[problem.free]
+    if not np.isfinite(x).all() or np.any(x<problem.lower) or np.any(x>problem.upper):
+        raise ValueError('inherited point outside expanded coordinate box')
+    return x,dict(source_domain=witness.get('domain'),source_optimizer_success=witness.get('success'),
+        source_cost_upper=best['cost_upper'],exact_delta_reuse=exact_reuse,
+        absolute_parameters_recovered=True,released_original_fixed_columns=len(set(problem.free)-set(problem.original_free)))
+
+
+def solve_nonlinear_pair(context,raw_pair,u_kw,domain='same_local',starts=2,max_nfev=300,*,inherited_witness=None):
     """Refit both explanations; save local attempts and a feasible upper bound."""
     if not isinstance(starts,int) or not 1<=starts<=2 or not isinstance(max_nfev,int) or max_nfev<1:
         raise ValueError('one/two declared starts and positive integer max_nfev required')
     began=perf_counter();problem=NonlinearPairProblem(context,raw_pair,u_kw,domain)
+    inheritance=dict(status='not_requested',optimizer_success_not_inherited=True)
+    if inherited_witness is not None:
+        before=problem.ac_calls
+        try:
+            point,provenance=recover_inherited_point(problem,inherited_witness)
+            problem.current_origin='inherited_'+str(provenance['source_domain'])+'_feasible_witness'
+            checked=problem.evaluate(point)
+            if not checked['feasible']:raise ValueError('inherited point failed current full AC physical checks')
+            inheritance.update(provenance,status='feasible_witness_recomputed',
+                recomputed_cost_upper=checked['loss'],source_cost_difference=checked['loss']-provenance['source_cost_upper'])
+        except (ValueError,RuntimeError,np.linalg.LinAlgError,FloatingPointError) as error:
+            inheritance.update(status='inherited_witness_rejected',error_type=type(error).__name__,error=str(error))
+        inheritance['ac_predict_calls']=problem.ac_calls-before
     qp=None;warm_failure=None
     try:
         qp=solve_pair(FrozenPair(**raw_pair),u_kw)
@@ -251,6 +318,7 @@ def solve_nonlinear_pair(context,raw_pair,u_kw,domain='same_local',starts=2,max_
     initial=[('QP_witness',problem.from_original(qp['z']) if qp is not None else zero),('zero_adjustment',zero)][:starts]
     restarts=[]
     for index,(kind,x0) in enumerate(initial):
+        problem.current_origin=kind+'_restart_'+str(index)
         before_calls=problem.ac_calls;before_eval=problem.evaluations;before_bad=problem.infeasible_evaluations
         row=dict(restart=index,start_kind=kind,initial_hash=_hash(x0),duplicate_previous_start=bool(
             index and np.array_equal(x0,initial[0][1])),success=False)
@@ -282,6 +350,8 @@ def solve_nonlinear_pair(context,raw_pair,u_kw,domain='same_local',starts=2,max_
         'feasible_upper_with_optimization_failure' if best is not None else 'required_optimization_or_physical_failure',
         success=converged,feasible_witness_available=best is not None,best=best,restarts=restarts,
         warm_QP_failure=warm_failure,proxy_QP_lower=None if qp is None else qp['q_lower'],
+        inherited_feasible_witness=inheritance,historical_inputs_hash=problem.md['historical_inputs_hash'],
+        raw_pair_fingerprint=FrozenPair(**raw_pair).fingerprint(),
         proxy_QP_upper=None if qp is None else qp['q_upper'],
         domain_hash=_hash(problem.lower,problem.upper,problem.free),control_hash=_hash(problem.u),
         variable_count=len(problem.free),residual_count=problem.residual_count,
@@ -331,10 +401,13 @@ def audit_history(history,actions,*,starts=2,max_nfev=300,extra_pairs=2):
     result['partial_centre_family_scope']=len(choices)<len(raw);result['proxy_activity']=activity
     for method in METHODS:
         for index in sorted(choices):
+            local_result=None
             for domain in DOMAINS:
                 try:
-                    row=solve_nonlinear_pair(context,raw[index],actions[method]['u_kw'],domain,starts,max_nfev)
+                    row=solve_nonlinear_pair(context,raw[index],actions[method]['u_kw'],domain,starts,max_nfev,
+                        inherited_witness=local_result if domain=='full_physical' else None)
                     row['method']=method
+                    if domain=='same_local' and row.get('best') is not None:local_result=row
                 except (ValueError,RuntimeError,np.linalg.LinAlgError,FloatingPointError) as error:
                     row=dict(method=method,pair=raw[index]['name'],domain=domain,
                         status='required_pair_failure',error_type=type(error).__name__,error=str(error),

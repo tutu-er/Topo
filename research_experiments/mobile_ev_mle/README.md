@@ -1,5 +1,25 @@
 # AC 最大似然拟合与 EV 模型判别设计
 
+## 本轮优化式自适应研究（2026-10-13，进行中）
+
+先读 adaptive_milp_protocol.md、adaptive_milp_checkpoint.json。完整方案和验收条件已经保存；下面旧章节记录前期动作库研究，不代表本轮主选择器。本轮通过时间展开移动网络和连续功率变量配置 EV，未枚举完整路线。主框架允许竞争线路、历史状态及同点逐时源在冻结局部域内调整；完整 AC 回代和实际 H+新增联合拟合分别核查代理与统计效果。
+
+- adaptive_history.py / symmetric_ac_local_math.md：完整 AC 白化导数、历史 profile 信息、补偿、活动面和多个展开点。
+- ev_operations_milp.py / ev_information_milp_math.md：接入、移动、SOC、效率、行驶能耗、互斥与充电任务。
+- ev_information_milp.py / ev_information_milp_math.md：support 下界、固定竞争见证及平方弦上界，QP 与 MILP 的界方向。
+- adaptive_milp_study.py、adaptive_rolling_study.py：冻结的一轮与滚动独立历史实验；全部失败保留。
+- adaptive_statistics_math.md、adaptive_result_audit.py：独立历史校准、实测 AC 重放、求解界审计。局部代理域不等于统计覆盖。
+- empirical_design_analysis.py、impedance_component_audit.py：代理与真实排错关系、逐类边的 R/X 误差；分析不改策略。
+- wzzt_export_audit.md：WZZT 默认 Source=None；当前提供可修正结构提议，尚未把内部阻抗权重作为 AC 初值。
+- domain_nonlinear_evidence.md、nonlinear_taylor_stress_v2_evidence.md：宽解释域、完整 AC 竞争见证及代理失败。
+- ac_reflection_counterexample_math.md：总表已知且局部根线路 profile 满秩，仍可有两个全局等价参数点的完整 AC 反例。
+- history_cost_centering_math.md、independent_math_review.md：共同常数归一化与改变判据的逐对消融；v2 证据更正字段语义，原 v1 保留。
+- future_prediction_math.md、control_gradient_math.md：追踪与背景不可分、proper 预测的待实现模型、补偿后的控制梯度与零梯度情形。
+
+C 冻结 128 个校准历史、256 个独立评价历史；D 使用自身的 64+96 条完整两轮轨迹校准/评价。种子、源码哈希、物理/优化失败和原始负 gap 均保存。名义风险仅针对声明模拟分布下冻结的整策略，不能迁移到现场、任意参数或模型失配。有限 prior 的 4 条历史适合度诊断均拒绝，故不把这次有限 EIG 当作连续模型的概率证据。
+
+当前进度以检查点为准。原报告方法部分已经原位编译并检查，最终结果部分待正式批次结束。outputs/ 保存详细 JSON/NPZ；evidence/ 只提交紧凑审计证据。未扩网。
+
 本目录已实现新研究原型。旧路线见 ../mobile_ev_probing/README.md。
 旧外 LP 的未决不用于判断 MLE 路线。
 

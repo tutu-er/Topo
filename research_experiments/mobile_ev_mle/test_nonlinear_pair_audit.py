@@ -174,7 +174,56 @@ def test_short_budget_keeps_feasible_upper_even_without_convergence():
 def test_predictive_inputs_have_no_truth_or_future_observation_argument():
     import inspect
     signature=inspect.signature(audit.solve_nonlinear_pair)
-    assert tuple(signature.parameters)==('context','raw_pair','u_kw','domain','starts','max_nfev')
+    assert tuple(signature.parameters)==('context','raw_pair','u_kw','domain','starts','max_nfev','inherited_witness')
     context,raw,u=fixture();p=audit.NonlinearPairProblem(context,raw,u)
     assert not hasattr(p,'truth') and not hasattr(p,'future_observations')
     np.testing.assert_array_equal(p.nominal[0]['p'],p.nominal[1]['p'])
+
+
+def witness_from_problem(problem):
+    problem.evaluate(np.zeros(len(problem.free)))
+    return dict(pair=problem.raw['name'],domain=problem.domain,control_hash=audit._hash(problem.u),
+        historical_inputs_hash=problem.md['historical_inputs_hash'],
+        raw_pair_fingerprint=audit.FrozenPair(**problem.raw).fingerprint(),
+        best=audit._best_summary(problem),success=False)
+
+
+def test_inheritance_recovers_absolute_parameters_when_fixed_lines_release():
+    context,raw,u=fixture()
+    fixed=audit.build_frozen_pairs(context,u,line_trust_fraction=0.,source_delta_bound=.05)[0]
+    local=audit.NonlinearPairProblem(context,fixed,u,'same_local')
+    witness=witness_from_problem(local)
+    full=audit.NonlinearPairProblem(context,fixed,u,'full_physical')
+    point,provenance=audit.recover_inherited_point(full,witness)
+    checked=full.evaluate(point)
+    assert provenance['released_original_fixed_columns']==18
+    assert provenance['absolute_parameters_recovered'] and provenance['exact_delta_reuse']
+    assert checked['loss']==pytest.approx(witness['best']['cost_upper'],abs=1e-12)
+    assert checked['feasible']
+
+
+def test_inherited_upper_does_not_turn_failed_optimization_into_success(monkeypatch):
+    context,raw,u=fixture()
+    local=audit.solve_nonlinear_pair(context,raw,u,'same_local',starts=1,max_nfev=50)
+    def exhausted(fun,x0,**kwargs):
+        return SimpleNamespace(x=x0.copy(),success=False,status=0,message='independent budget failure',
+            nfev=1,njev=1,optimality=1.,active_mask=np.zeros(len(x0),int))
+    monkeypatch.setattr(audit,'least_squares',exhausted)
+    full=audit.solve_nonlinear_pair(context,raw,u,'full_physical',starts=2,max_nfev=1,inherited_witness=local)
+    assert full['best']['cost_upper']<=local['best']['cost_upper']+1e-10
+    assert full['inherited_feasible_witness']['status']=='feasible_witness_recomputed'
+    assert not full['success'] and full['status']=='feasible_upper_with_optimization_failure'
+    assert len(full['restarts'])==2 and all(not row['success'] for row in full['restarts'])
+    assert full['inherited_feasible_witness']['optimizer_success_not_inherited']
+
+
+def test_inheritance_rejects_changed_predictive_control_and_candidate_context():
+    import copy
+    context,raw,u=fixture();local=audit.NonlinearPairProblem(context,raw,u)
+    witness=witness_from_problem(local);full=audit.NonlinearPairProblem(context,raw,u,'full_physical')
+    bad=copy.deepcopy(witness);bad['best']['explanations'][0]['future_total_p'][0,0]+=.01
+    with pytest.raises(ValueError,match='future prediction'):
+        audit.recover_inherited_point(full,bad)
+    bad=copy.deepcopy(witness);bad['control_hash']='different'
+    with pytest.raises(ValueError,match='pair/control'):
+        audit.recover_inherited_point(full,bad)

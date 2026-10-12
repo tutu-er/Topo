@@ -244,3 +244,18 @@ def test_rolling_joint_archive_replays_each_round_without_truth_or_future(tmp_pa
         assert result["status"]=="verified"
         assert result["replay_loss"]==pytest.approx(float((1 if round_id==1 else 3)**2),abs=1e-9)
     assert audit.replay_saved_fit(tmp_path,dict(seed=300),dict(method="rolling",round=3),fits[2])["status"]=="unavailable"
+
+
+def test_frozen_proxy_tolerance_preserves_raw_crossing_instead_of_zero_gap():
+    value=dict(proxy_lower=26.825963154828287,proxy_upper=26.825959746504417)
+    with pytest.raises(ValueError,match="invalid lower > upper"):
+        audit.validate_numeric_bounds(value)
+    assert audit.validate_numeric_bounds(value,proxy_tolerance=1e-6)==1
+    ledger=audit.raw_bound_crossings(value)
+    assert len(ledger)==1 and ledger[0]["raw_gap"]<0
+    assert ledger[0]["within_declared_tolerance"] and not ledger[0]["strictly_ordered"]
+    assert not ledger[0]["strict_optimality_certificate"]
+    with pytest.raises(ValueError,match="invalid lower > upper"):
+        audit.validate_numeric_bounds(dict(proxy_lower=1.0001,proxy_upper=1.),proxy_tolerance=1e-6)
+    with pytest.raises(ValueError,match="invalid lower > upper"):
+        audit.validate_numeric_bounds(dict(q_lower=1.0000002,q_upper=1.),proxy_tolerance=1e-6)
