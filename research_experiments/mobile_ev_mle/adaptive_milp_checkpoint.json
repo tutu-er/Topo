@@ -2,7 +2,7 @@
   "started_at_utc": "2026-10-12T17:00:00Z",
   "deadline_utc": "2026-10-13T01:00:00Z",
   "budget_hours": 8,
-  "phase": "A_B_verified_C_policy_frozen",
+  "phase": "C_evaluation_running_D_frozen",
   "base_commit": "6c37cf8b9d5b16f97a8b619897b14794b9d10eb7",
   "branch": "research/ev-history-t-design",
   "base_source_sha256": {
@@ -205,20 +205,14 @@
     "report_compile_visual_review"
   ],
   "ongoing_agents": [
-    "ac_likelihood",
-    "milp_solver",
-    "theory_report"
+    "experiment_audit",
+    "report_methods",
+    "empirical_metrics"
   ],
   "checkpoint_semantics": "budget is an upper work limit; no claim of completed research at deadline",
   "foundation_tests_passed": 169,
-  "active_process": {
-    "exec_session": 89438,
-    "pid": 26816,
-    "batch": "outputs/adaptive_milp/pilot_v1",
-    "first_trial_not_yet_completed": true
-  },
-  "last_stage_commit": "4ac1826",
-  "tests_passed": 240,
+  "last_stage_commit": "4a4ceb7",
+  "tests_passed": 292,
   "pilot_completed": [
     {
       "directory": "outputs/adaptive_milp/pilot_v1",
@@ -242,22 +236,67 @@
     "count": 256,
     "start_seed": 730001
   },
-  "last_updated_at_utc": "2026-10-12T18:16:00Z",
+  "last_updated_at_utc": "2026-10-12T19:18:00Z",
   "active_processes": [
     {
-      "session_id": 53565,
-      "phase": "proper_finite_EIG_audit"
+      "session_id": 71350,
+      "phase": "C_frozen_evaluation"
+    },
+    {
+      "session_id": 73228,
+      "phase": "nonlinear_competitor_audit"
     }
   ],
   "next_actions": [
-    "Verify pilot v3 and freeze exact policy/source hashes before independent C calibration and evaluation",
-    "Calibrate rolling wholetrajectory separately after fullpolicy pilot",
-    "Run declared domain sensitivity and preserve AC proxy failures",
-    "Update original report and PDF, commit and normal push"
+    "Finish frozen C evaluation and independent replay",
+    "Run frozen 64+96 two-round D after C",
+    "Analyze model-distance versus actual AC rejection",
+    "Declared stress experiments if time",
+    "Update final report evidence and original PDF",
+    "Commit/push verified stages and budget checkpoint"
   ],
   "completed_pilot_v3": {
     "histories": 6,
     "all_required_joint_fits_completed": true,
     "independent_replayed_fits": 168
-  }
+  },
+  "C_calibration_completed": {
+    "histories": 128,
+    "complete_histories": 127,
+    "joint_failure_histories": 1,
+    "selection_failure_histories": 0
+  },
+  "rolling_pilot_completed": {
+    "histories": 2,
+    "complete_histories": 2,
+    "replayed_joint_fits": 16,
+    "mean_seconds": 25.09563595004147
+  },
+  "D_predeclared": {
+    "calibration": 64,
+    "calibration_start_seed": 920001,
+    "evaluation": 96,
+    "evaluation_start_seed": 930001,
+    "alpha_total": 0.1
+  },
+  "finite_prior_adequacy": {
+    "histories": 4,
+    "rejected": 4,
+    "threshold_df132_alpha01": 172.71082439669203,
+    "formal_scope": "fixed pre-H atom means only"
+  },
+  "domain_audit_completed": {
+    "histories": 4,
+    "variant": "v2",
+    "input_roundoff_kw": 2e-06,
+    "old_failed_v1_preserved": true
+  },
+  "report_methods": {
+    "original_source_updated": true,
+    "pdf_compiled": true,
+    "pages": 32,
+    "visual_review_all_pages": true,
+    "final_results_pending": true
+  },
+  "baseline_snapshot_note": "baseline status was captured after writing this task adaptive_milp_protocol.md; that one entry belongs to this task"
 }

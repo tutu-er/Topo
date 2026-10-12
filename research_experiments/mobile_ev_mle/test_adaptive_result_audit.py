@@ -199,3 +199,48 @@ def test_one_round_calibration_cannot_be_reused_for_two_round_trace(tmp_path):
     ev=batch(tmp_path,"evaluation",[row])
     with pytest.raises(ValueError,match="method-round trace differs"):
         audit.run_audit(cal,ev,tmp_path/"report",replay=False)
+
+
+def test_rolling_proxy_selection_merges_exact_original_round_and_counters():
+    row=dict(selection=dict(methods=dict(rolling=dict(rounds={
+        "1":dict(original_selection_index=0,total_selection_seconds=3.),
+        "2":dict(original_selection_index=1,selection_ac_predict_calls=17)}))),
+        selections=[dict(proxy_search=dict(proxy_lower=2.,records=[dict(pair_values=[])])),
+                    dict(proxy_search=dict(proxy_lower=5.,actual_rollback=[dict(name="pair2")]))])
+    first=audit._selection_for_record(row,dict(method="rolling",round=1))
+    last=audit._selection_for_record(row,dict(method="rolling",round=2))
+    assert first["proxy_lower"]==2. and first["total_selection_seconds"]==3.
+    assert last["proxy_lower"]==5. and last["selection_ac_predict_calls"]==17
+    assert last["actual_rollback"][0]["name"]=="pair2"
+    missing=audit._selection_for_record(row,dict(method="rolling",round=3))
+    assert missing=={}
+
+
+def test_rolling_joint_archive_replays_each_round_without_truth_or_future(tmp_path):
+    from research_experiments.mobile_ev_mle.likelihood import ac_predict
+    from research_experiments.mobile_ev_mle.candidates import RadialCandidate
+    from research_experiments.mobile_ev_mle.simulation import model
+    c=RadialCandidate.from_supports("star",3,())
+    meter=model(3);r=np.array([.005,.03,.03,.03]);x=np.array([.003,.01,.01,.01])
+    arrays={};fits={}
+    for round_id,count,offset in ((1,2,1.),(2,4,3.)):
+        p=np.full((count,3),.12);q=np.full((count,3),.04)
+        sp=np.full(count,.1);sq=np.full(count,.035)
+        physical=ac_predict(c,r,x,p,q,sp,sq)
+        observed={k:physical[k].copy() for k in ("p","q","v","master_p","master_q","root_v")}
+        for key in ("p","q","v"):observed[key]+=getattr(meter,"bias_"+key)
+        observed["v"][0,1]+=offset*.00012
+        norm=sum(float(np.broadcast_to(np.log(2*np.pi*getattr(meter,key+"_sigma")**2),observed[key].shape).sum())
+                 for key in ("p","q","v","master_p","master_q"))
+        arrays.update({f"round_{round_id}_joint_{k}":v for k,v in observed.items()})
+        arrays.update({f"round_{round_id}__star__fit_{k}":v for k,v in
+                       dict(p=p,q=q,source_p=sp,source_q=sq).items()})
+        fits[round_id]=dict(name="star",supports=[list(s) for s in c.supports],r_pu=r.tolist(),
+            x_pu=x.tolist(),loss=offset**2,loglik=-.5*(offset**2+norm))
+    np.savez(tmp_path/"trial_300_observations.npz",**arrays)
+    # No truth, action or future-only arrays exist in this archive.
+    for round_id in (1,2):
+        result=audit.replay_saved_fit(tmp_path,dict(seed=300),dict(method="rolling",round=round_id),fits[round_id])
+        assert result["status"]=="verified"
+        assert result["replay_loss"]==pytest.approx(float((1 if round_id==1 else 3)**2),abs=1e-9)
+    assert audit.replay_saved_fit(tmp_path,dict(seed=300),dict(method="rolling",round=3),fits[2])["status"]=="unavailable"

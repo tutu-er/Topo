@@ -217,16 +217,19 @@ def replay_saved_fit(batch_folder, row, record, fit):
     filename = Path(batch_folder) / f"trial_{row['seed']}_observations.npz"
     if not filename.exists():
         return dict(status="unavailable", reason="observation archive absent")
-    prefix = f"{record['method']}__{fit['name']}__fit_"
+    round_id=record.get('round',0)
+    prefix = f"round_{round_id}__{fit['name']}__fit_" if round_id else f"{record['method']}__{fit['name']}__fit_"
     with np.load(filename, allow_pickle=False) as archive:
         keys = [prefix + key for key in ("p", "q", "source_p", "source_q")]
         if not all(key in archive for key in keys):
             return dict(status="unavailable", reason="fitted latent states not saved")
-        if record.get("round", 0) != 0:
-            return dict(status="unavailable", reason="rolling observation archive contract not specified")
         states = {key: np.array(archive[prefix + key]) for key in ("p", "q", "source_p", "source_q")}
         observed = {}
         for key in ("p", "q", "v", "master_p", "master_q", "root_v"):
+            if round_id:
+                key_name=f'round_{round_id}_joint_{key}'
+                if key_name not in archive:return dict(status='unavailable',reason=f'round channel {key} absent')
+                observed[key]=np.array(archive[key_name]);continue
             h, f = f"history_{key}", f"{record['method']}_{key}"
             if h not in archive or f not in archive:
                 return dict(status="unavailable", reason=f"channel {key} absent")
@@ -264,6 +267,19 @@ def replay_saved_fit(batch_folder, row, record, fit):
                 global_optimum_certified=False)
 
 
+def _selection_for_record(row,record):
+    selection=row.get('selection',{}).get('methods',{}).get(record['method'],{})
+    round_id=record.get('round',0)
+    if not round_id:return selection
+    leaf=selection.get('rounds',{}).get(str(round_id),{})
+    original_index=leaf.get('original_selection_index')
+    originals=row.get('selections',[])
+    if original_index is not None and 0<=original_index<len(originals):
+        original=originals[original_index]
+        return {**original,**original.get('proxy_search',{}),**leaf}
+    return leaf
+
+
 def _flat_evidence(batch, *, replay=True):
     fits, actions, bounds = [], [], []
     for row in batch["rows"]:
@@ -273,7 +289,7 @@ def _flat_evidence(batch, *, replay=True):
         for record in row["records"]:
             method = record["method"]
             base = dict(common, method=method, round=record.get("round", 0))
-            selection = row.get("selection", {}).get("methods", {}).get(method, {})
+            selection = _selection_for_record(row,record)
             action = record.get("action", {})
             actions.append(dict(base, action_name=action.get("name"),
                 energy_kwh=action.get("energy_kwh"), max_kw=action.get("max_kw"),
@@ -308,6 +324,7 @@ def _flat_evidence(batch, *, replay=True):
                     scope="frozen affine proxy only", ac_taylor_norm_max=max(errors, default=None),
                     ac_cost_minus_affine_min=min(discrepancies, default=None),
                     ac_cost_minus_affine_max=max(discrepancies, default=None),
+                    active_pair_name=active.get("pair",active.get("name")),
                     active_affine_witness_cost=active.get("affine_soft_cost"),
                     active_ac_witness_cost=active.get("actual_soft_cost"),
                     active_actual_history_costs=active.get("actual_history_costs"),
@@ -371,8 +388,8 @@ def _events_for_history(row, methods, calibration, config):
             wrong_elimination_fraction=eliminated/wrong_count if wrong_count else None,
             true_loss=last.get("true_loss"), true_gap=last.get("true_gap"),
             impedance_relative_rmse=last.get("impedance_relative_rmse"),
-            evaluation_seconds=sum(record.get("seconds",0) for record in grouped[method]),
-            joint_fit_ac_calls=sum(record.get("ac_calls",0) for record in grouped[method]))
+            evaluation_seconds=None if any(record.get('seconds') is None for record in grouped[method]) else sum(record['seconds'] for record in grouped[method]),
+            joint_fit_ac_calls=None if any(record.get('ac_calls') is None for record in grouped[method]) else sum(record['ac_calls'] for record in grouped[method]))
     return result
 
 

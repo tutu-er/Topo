@@ -1,0 +1,450 @@
+{
+  "version": "frozen_D_execution_v1",
+  "predeclared_before_calibration": true,
+  "declared_at_utc": "2026-10-12T19:18:00Z",
+  "pilot_independent_histories": 2,
+  "pilot_mean_seconds": 25.09563595004147,
+  "schedule_rule": {
+    "fast_pilot_seconds_threshold": 45.0,
+    "alpha_total": 0.1,
+    "if_pilot_mean_at_most_threshold": {
+      "calibration": 64,
+      "evaluation": 96
+    },
+    "otherwise": {
+      "calibration": 32,
+      "evaluation": 64
+    },
+    "choose_before_calibration": true,
+    "limited_power": true
+  },
+  "alpha_total": 0.1,
+  "relative_fraction": 0.5,
+  "calibration": {
+    "phase": "calibration",
+    "count": 64,
+    "start_seed": 920001,
+    "policy": {
+      "version": "rolling_two_round_shadow_v1",
+      "max_centers": 2,
+      "max_attempts": 3,
+      "source_delta": 0.05,
+      "line_trust": 0.3,
+      "history_loss_slack": 12.0,
+      "forecast": "mean",
+      "fit_multistart": 2,
+      "fit_max_nfev": 300,
+      "iterations": 3,
+      "segments": 2,
+      "max_segments": 8,
+      "solver_seconds": 3.0,
+      "search_seconds": 25.0,
+      "relative_gap": 0.001,
+      "absolute_gap": 0.0001,
+      "post_selection_voltage_limits": [
+        0.9,
+        1.1
+      ],
+      "baseline_action_count": 11,
+      "full_audit_bank": "all_three_terminal_star_and_cherries",
+      "gates_influence_shadow_policy": false,
+      "Q_over_P": 0.0,
+      "history_points": 12,
+      "future_points": 8,
+      "execute_first_slots": 2,
+      "tracking_gain": 1.0,
+      "run_wzzt": true,
+      "rolling_audit_bank": "all_four_star_cherries_every_round"
+    },
+    "population": {
+      "version": "independent_history_ac_v1",
+      "topology_mass": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "strong_probability": 0.5,
+      "independent_edge_R_X_scale": [
+        0.8,
+        1.2
+      ],
+      "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+      "root_voltage": 1.0,
+      "calibrated_bias": true,
+      "tracking_gain": 1.0,
+      "observation_policy": "rolling_two_round_shadow_v1",
+      "history_points": 12,
+      "future_points": 8,
+      "stress": null
+    },
+    "policy_id": "aa3e33c0bfc65df6235232381e2fe5cc5952b2ca71c25a84e435df61d184b874",
+    "population_id": "1b8cf1a71befacc6b163ff491a4952584a4d8a9ac0ecb52d9f149d2e5a363405",
+    "controller_policy_id": "e5c92f6468c3de2326f2c2d150bdf3cd6a81991ad9025628ba15068d3885573f",
+    "source_sha256": {
+      "adaptive_milp_study.py": "0693b573131838330a1a48a5099d39f418ef05ea825898558d2838578d0b078f",
+      "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+      "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+      "ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+      "history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+      "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+      "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+      "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+      "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+      "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+      "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+      "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+      "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+      "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+      "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf",
+      "adaptive_rolling_study.py": "3c39ebeb68ac88a12da056ad7d5c7e6dfeef8012a9ca14915169fa599a9f25e4",
+      "adaptive_rolling_batch.py": "7bf65004771b25ef8a5a113e7085f333cc965960b12bcf80f4fdf1a0d537c5ed",
+      "loaded::adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+      "loaded::ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+      "loaded::adaptive_rolling_study.py": "3c39ebeb68ac88a12da056ad7d5c7e6dfeef8012a9ca14915169fa599a9f25e4"
+    },
+    "stress": null,
+    "methods": [
+      "rolling_refit_milp"
+    ],
+    "mandatory_rounds": 2,
+    "round_ids": [
+      1,
+      2
+    ],
+    "initial_ev_config": {
+      "n_slots": 8,
+      "n_sites": 3,
+      "dt_hours": 0.25,
+      "p_max_kw": 6.0,
+      "p_discharge_max_kw": 6.0,
+      "net_grid_energy_kwh": 6.0,
+      "battery_capacity_kwh": 60.0,
+      "initial_soc": 0.4,
+      "soc_min": 0.1,
+      "soc_max": 0.9,
+      "eta_charge": 0.95,
+      "eta_discharge": 0.95,
+      "initial_site": 0,
+      "access": [
+        [
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ]
+      ],
+      "travel_slots": 1,
+      "travel_energy_kwh": 0.2,
+      "travel_allowed": null,
+      "allow_discharge": false,
+      "max_throughput_kwh": null,
+      "terminal_energy_kwh": null,
+      "terminal_site": null,
+      "require_terminal_connection": true
+    },
+    "operational_requirements": {
+      "planned_horizons": [
+        8,
+        6
+      ],
+      "executed_slots": [
+        2,
+        6
+      ],
+      "original_grid_task_kwh": 6.0,
+      "source_node": 1,
+      "tracking_gain": 1.0,
+      "audit_bank": "star,clade_01,clade_02,clade_12 every round",
+      "carry": [
+        "SOC",
+        "site",
+        "grid_energy",
+        "throughput",
+        "access",
+        "terminal_constraints"
+      ],
+      "allowed_travel_slots": 1,
+      "statistical_pruning": false
+    },
+    "latent_archive_contract": {
+      "version": "rolling_joint_states_v1",
+      "latent": "round_{round}__{candidate}__fit_{p|q|source_p|source_q}",
+      "observations": "round_{round}_joint_{p|q|v|master_p|master_q|root_v}",
+      "executed": "round_{round}_observed_{channel}",
+      "truth_needed_for_replay": false
+    },
+    "history_unit": "one independent generator path and its entire two-round shadow trajectory",
+    "requires_independent_rolling_calibration": true,
+    "may_reuse_one_round_gates": false,
+    "predeclared_schedule": {
+      "fast_pilot_seconds_threshold": 45.0,
+      "alpha_total": 0.1,
+      "if_pilot_mean_at_most_threshold": {
+        "calibration": 64,
+        "evaluation": 96
+      },
+      "otherwise": {
+        "calibration": 32,
+        "evaluation": 64
+      },
+      "choose_before_calibration": true,
+      "limited_power": true
+    },
+    "runtime": {
+      "python": "3.11.15",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1"
+    }
+  },
+  "evaluation": {
+    "phase": "evaluation",
+    "count": 96,
+    "start_seed": 930001,
+    "policy": {
+      "version": "rolling_two_round_shadow_v1",
+      "max_centers": 2,
+      "max_attempts": 3,
+      "source_delta": 0.05,
+      "line_trust": 0.3,
+      "history_loss_slack": 12.0,
+      "forecast": "mean",
+      "fit_multistart": 2,
+      "fit_max_nfev": 300,
+      "iterations": 3,
+      "segments": 2,
+      "max_segments": 8,
+      "solver_seconds": 3.0,
+      "search_seconds": 25.0,
+      "relative_gap": 0.001,
+      "absolute_gap": 0.0001,
+      "post_selection_voltage_limits": [
+        0.9,
+        1.1
+      ],
+      "baseline_action_count": 11,
+      "full_audit_bank": "all_three_terminal_star_and_cherries",
+      "gates_influence_shadow_policy": false,
+      "Q_over_P": 0.0,
+      "history_points": 12,
+      "future_points": 8,
+      "execute_first_slots": 2,
+      "tracking_gain": 1.0,
+      "run_wzzt": true,
+      "rolling_audit_bank": "all_four_star_cherries_every_round"
+    },
+    "population": {
+      "version": "independent_history_ac_v1",
+      "topology_mass": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "strong_probability": 0.5,
+      "independent_edge_R_X_scale": [
+        0.8,
+        1.2
+      ],
+      "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+      "root_voltage": 1.0,
+      "calibrated_bias": true,
+      "tracking_gain": 1.0,
+      "observation_policy": "rolling_two_round_shadow_v1",
+      "history_points": 12,
+      "future_points": 8,
+      "stress": null
+    },
+    "policy_id": "aa3e33c0bfc65df6235232381e2fe5cc5952b2ca71c25a84e435df61d184b874",
+    "population_id": "1b8cf1a71befacc6b163ff491a4952584a4d8a9ac0ecb52d9f149d2e5a363405",
+    "controller_policy_id": "e5c92f6468c3de2326f2c2d150bdf3cd6a81991ad9025628ba15068d3885573f",
+    "source_sha256": {
+      "adaptive_milp_study.py": "0693b573131838330a1a48a5099d39f418ef05ea825898558d2838578d0b078f",
+      "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+      "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+      "ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+      "history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+      "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+      "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+      "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+      "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+      "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+      "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+      "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+      "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+      "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+      "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf",
+      "adaptive_rolling_study.py": "3c39ebeb68ac88a12da056ad7d5c7e6dfeef8012a9ca14915169fa599a9f25e4",
+      "adaptive_rolling_batch.py": "7bf65004771b25ef8a5a113e7085f333cc965960b12bcf80f4fdf1a0d537c5ed",
+      "loaded::adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+      "loaded::ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+      "loaded::adaptive_rolling_study.py": "3c39ebeb68ac88a12da056ad7d5c7e6dfeef8012a9ca14915169fa599a9f25e4"
+    },
+    "stress": null,
+    "methods": [
+      "rolling_refit_milp"
+    ],
+    "mandatory_rounds": 2,
+    "round_ids": [
+      1,
+      2
+    ],
+    "initial_ev_config": {
+      "n_slots": 8,
+      "n_sites": 3,
+      "dt_hours": 0.25,
+      "p_max_kw": 6.0,
+      "p_discharge_max_kw": 6.0,
+      "net_grid_energy_kwh": 6.0,
+      "battery_capacity_kwh": 60.0,
+      "initial_soc": 0.4,
+      "soc_min": 0.1,
+      "soc_max": 0.9,
+      "eta_charge": 0.95,
+      "eta_discharge": 0.95,
+      "initial_site": 0,
+      "access": [
+        [
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          false
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true
+        ]
+      ],
+      "travel_slots": 1,
+      "travel_energy_kwh": 0.2,
+      "travel_allowed": null,
+      "allow_discharge": false,
+      "max_throughput_kwh": null,
+      "terminal_energy_kwh": null,
+      "terminal_site": null,
+      "require_terminal_connection": true
+    },
+    "operational_requirements": {
+      "planned_horizons": [
+        8,
+        6
+      ],
+      "executed_slots": [
+        2,
+        6
+      ],
+      "original_grid_task_kwh": 6.0,
+      "source_node": 1,
+      "tracking_gain": 1.0,
+      "audit_bank": "star,clade_01,clade_02,clade_12 every round",
+      "carry": [
+        "SOC",
+        "site",
+        "grid_energy",
+        "throughput",
+        "access",
+        "terminal_constraints"
+      ],
+      "allowed_travel_slots": 1,
+      "statistical_pruning": false
+    },
+    "latent_archive_contract": {
+      "version": "rolling_joint_states_v1",
+      "latent": "round_{round}__{candidate}__fit_{p|q|source_p|source_q}",
+      "observations": "round_{round}_joint_{p|q|v|master_p|master_q|root_v}",
+      "executed": "round_{round}_observed_{channel}",
+      "truth_needed_for_replay": false
+    },
+    "history_unit": "one independent generator path and its entire two-round shadow trajectory",
+    "requires_independent_rolling_calibration": true,
+    "may_reuse_one_round_gates": false,
+    "predeclared_schedule": {
+      "fast_pilot_seconds_threshold": 45.0,
+      "alpha_total": 0.1,
+      "if_pilot_mean_at_most_threshold": {
+        "calibration": 64,
+        "evaluation": 96
+      },
+      "otherwise": {
+        "calibration": 32,
+        "evaluation": 64
+      },
+      "choose_before_calibration": true,
+      "limited_power": true
+    },
+    "runtime": {
+      "python": "3.11.15",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1"
+    }
+  },
+  "scheduled_after_C_full_evaluation": true,
+  "batch_deadline_utc": "2026-10-13T00:00:00+00:00",
+  "conditional_alpha_spending_claim": false,
+  "one_round_gates_reused": false,
+  "purpose": "entire two-round trajectory calibration, independent history is statistical unit"
+}
