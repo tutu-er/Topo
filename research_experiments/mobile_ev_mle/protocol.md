@@ -50,3 +50,15 @@ Optimization failures do not count as rejection.
 15-minute snapshots are synthetic steady states; equations at averaged loads
 need not equal average measured voltages. Balanced constant-power AC, fixed
 source junction, radial topology and time-invariant impedances delimit scope.
+
+Final execution metadata:
+- calibration: 41000..41019 per strong/weak; evaluation: 51000..51019.
+- alpha=.1, order statistic of per-trial maxima across5methods.
+- same initial site0 for all actions; initial travel is inside observation window.
+- max_actions11 retains all3 sites' stationary early/late pulses plus2mobile routes.
+- calibration and primary evaluation both condition on complete paired5method trials.
+- initial sequential run was stopped after11completed strong calibration trials for
+  performance diagnosis. Unchanged frozen scientific source was resumed in3
+  disjoint batches; no optimizer or objective change enters statistical cohorts.
+- sparse LSMR remains the actual fitter. In-memory dense/exact profiling did not
+  demonstrate acceleration and is not used for any calibration threshold.
