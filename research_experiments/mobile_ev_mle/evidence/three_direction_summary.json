@@ -1,0 +1,5368 @@
+{
+  "config": {
+    "output": "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\outputs\\three_directions",
+    "histories_per_case": 3,
+    "training": 64,
+    "calibration": 99,
+    "evaluation": 512,
+    "eig_counts": [
+      128,
+      512,
+      2048
+    ],
+    "integration_repeats": 3,
+    "continuous": true,
+    "max_nfev": 150,
+    "stress": true,
+    "alpha": 0.1,
+    "scope": "finite AC composite audit plus optional wider-model check",
+    "prior_external": true,
+    "continuous_global_mle": false,
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "meter": {
+      "p_sigma": 0.0006,
+      "q_sigma": 0.0004,
+      "v_sigma": 0.00012,
+      "master_p_sigma": 0.001,
+      "master_q_sigma": 0.001,
+      "source_p_sigma": null,
+      "source_q_sigma": null,
+      "bias_p": [
+        -0.00015,
+        0.0,
+        0.00015
+      ],
+      "bias_q": [
+        0.0001,
+        0.0,
+        -0.0001
+      ],
+      "bias_v": [
+        -4e-05,
+        0.0,
+        4e-05
+      ],
+      "fit_bias": false,
+      "calibration": null
+    },
+    "bank_mean_hash": "7b0b4799f870fedfe679eaf357657c51a1d62774076c0f560cef48a8fe0b67fa",
+    "source_hashes": {
+      "audit_common.py": "1676f7a3eda9222d3b6b9124f7d45da5f446f28d4e868d9e3bf8be07134d93b7",
+      "symmetric.py": "75f11f6291f42465f189b0779a2f78f7a17f9d7e7dc5003384fe4cb585cf6ff7",
+      "power.py": "4ac5cb5efbaf92203256f4b254d2785d1a7bcca3fdf05d518825f429c99c3f52",
+      "bayes.py": "03cc46ee4f60efad12e34fca93683fcb42a68e13263b2b0d70dcb247a13a2643",
+      "run_three_directions.py": "31fe9b46a75e5f197173519ae87ad516d75dfb96eb665271eb7e32e541c7971d",
+      "likelihood.py": "943d4f90dbd1e1f07734a1cce5cfee6370f4126a54804243bb18d0789a5ab901",
+      "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+      "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+      "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+      "ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf",
+      "passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d"
+    }
+  },
+  "bank": {
+    "atom_count": 48,
+    "atoms_per_topology": 24,
+    "source_point": "node1",
+    "ac_equation_residual": 5.072605824025798e-15,
+    "power_balance_residual": 2.7674603126419186e-15,
+    "voltage_min": 0.9676781023098138,
+    "voltage_max": 0.9978291502139074,
+    "action_checks": {
+      "constant_site_0": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.41187500000000005,
+          0.42375,
+          0.43562500000000004,
+          0.4475,
+          0.45937500000000003,
+          0.47125,
+          0.483125,
+          0.495
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.41187500000000005,
+          0.42375,
+          0.43562500000000004,
+          0.4475,
+          0.45937500000000003,
+          0.47125,
+          0.483125
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.0
+      },
+      "constant_site_1": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.41023809523809524,
+          0.4238095238095238,
+          0.4373809523809524,
+          0.450952380952381,
+          0.46452380952380956,
+          0.47809523809523813,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.41023809523809524,
+          0.4238095238095238,
+          0.4373809523809524,
+          0.450952380952381,
+          0.46452380952380956,
+          0.47809523809523813
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "constant_site_2": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.41250000000000003,
+          0.42833333333333334,
+          0.4441666666666667,
+          0.46,
+          0.47583333333333333,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.41250000000000003,
+          0.42833333333333334,
+          0.4441666666666667,
+          0.46,
+          0.47583333333333333
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "early_site_0": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495,
+          0.495,
+          0.495,
+          0.495,
+          0.495
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495,
+          0.495,
+          0.495,
+          0.495
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.0
+      },
+      "late_site_0": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.0
+      },
+      "early_site_1": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "late_site_1": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665
+        ],
+        "energy_pu_hours": 0.29999999999999993,
+        "movement_energy_pu_hours": 0.01
+      },
+      "early_site_2": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "late_site_2": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "mobile_0_1": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "mobile_0_2": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    "rejected_actions": [
+      {
+        "name": "mobile_1_0",
+        "feasible": true,
+        "issues": [
+          "finite_library_size_cap"
+        ]
+      },
+      {
+        "name": "mobile_1_2",
+        "feasible": true,
+        "issues": [
+          "finite_library_size_cap"
+        ]
+      },
+      {
+        "name": "mobile_2_0",
+        "feasible": true,
+        "issues": [
+          "finite_library_size_cap"
+        ]
+      },
+      {
+        "name": "mobile_2_1",
+        "feasible": true,
+        "issues": [
+          "finite_library_size_cap"
+        ]
+      }
+    ],
+    "continuous_prior_approximation_claim": false
+  },
+  "records": [
+    {
+      "seed": 66001,
+      "strength": 2,
+      "stress": null,
+      "true_atom_covered": true,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "early_site_0",
+        "symmetric": "late_site_1",
+        "power": "constant_site_0",
+        "bayes": "constant_site_0",
+        "best_constant_symmetric": "constant_site_1",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "late_site_1",
+          "score": 40902.61875039847,
+          "versus_none": 26844.535598097726,
+          "versus_fixed_constant": 8176.247149756371,
+          "versus_best_constant": 5653.928925703585,
+          "best_constant": "constant_site_1"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_1",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_1",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "12752f2dec189ef30eb8c8bb59689ecb4413b051b2684b524bdf43e5d2b7f206",
+          "finite_scope": true,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 1.0,
+          "1": 0.0
+        },
+        "log_topology_probabilities": {
+          "0": 0.0,
+          "1": -10505.425788851913
+        },
+        "topology_entropy": -0.0,
+        "log_evidence": -193.66962910820962,
+        "atom_ess": 1.0,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -38186.13918684109,
+        "floating_underflow_count": 46,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.001696400111541152,
+        "power": 0.18185309995897114,
+        "bayes": 8.081272899988107
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": -1.1243509787377235,
+        "constant_fixed": 752.1660221193572,
+        "fixed_pulse": 2041.2342102690584,
+        "random_action": 2041.2342102690584,
+        "symmetric": 1895.946452918905,
+        "power": 752.1660221193572,
+        "bayes": 752.1660221193572,
+        "best_constant_symmetric": 909.3810528488217,
+        "best_constant_power": 752.1660221193572,
+        "best_constant_bayes": 752.1660221193572
+      },
+      "independent_eig_gain_validation": {
+        "selected": "constant_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.0,
+        "gain_se": 0.0,
+        "entropy_gain_vs_constant": 0.0,
+        "entropy_gain_se": 0.0
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [
+        "1"
+      ],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.5,weak=0.1": "constant_site_0",
+        "topology0=0.5,weak=0.7": "constant_site_0"
+      }
+    },
+    {
+      "seed": 66002,
+      "strength": 2,
+      "stress": null,
+      "true_atom_covered": true,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "early_site_2",
+        "symmetric": "late_site_1",
+        "power": "constant_site_0",
+        "bayes": "constant_site_0",
+        "best_constant_symmetric": "constant_site_1",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "late_site_1",
+          "score": 10426.919613715349,
+          "versus_none": 6311.897253027623,
+          "versus_fixed_constant": 2757.216237789353,
+          "versus_best_constant": 1540.4188269439,
+          "best_constant": "constant_site_1"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 316,
+            "total": 512,
+            "rate": 0.6171875,
+            "interval95": [
+              0.5735289250900193,
+              0.6594847838999014
+            ]
+          },
+          "unresolved": {
+            "count": 196,
+            "total": 512,
+            "rate": 0.3828125,
+            "interval95": [
+              0.34051521610009866,
+              0.4264710749099807
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_2",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_1",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_1",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "4955cf0ddec02315bce583d7e4be6ffc7e8642fb1ca660fd678d397acb17c4bc",
+          "finite_scope": true,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 0.0,
+          "1": 1.0
+        },
+        "log_topology_probabilities": {
+          "0": -2631.399816220149,
+          "1": 0.0
+        },
+        "topology_entropy": -0.0,
+        "log_evidence": -201.5693765111999,
+        "atom_ess": 1.0,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -21443.18105389248,
+        "floating_underflow_count": 46,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.0016777999699115753,
+        "power": 0.1789260000223294,
+        "bayes": 8.028036399977282
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": -0.36427002659348773,
+        "constant_fixed": 578.0807972730636,
+        "fixed_pulse": 1182.3179263597963,
+        "random_action": 1160.6632076653186,
+        "symmetric": 3.1695529490245633,
+        "power": 578.0807972730636,
+        "bayes": 578.0807972730636,
+        "best_constant_symmetric": 2.896615562144177,
+        "best_constant_power": 578.0807972730636,
+        "best_constant_bayes": 578.0807972730636
+      },
+      "independent_eig_gain_validation": {
+        "selected": "constant_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.0,
+        "gain_se": 0.0,
+        "entropy_gain_vs_constant": 0.0,
+        "entropy_gain_se": 0.0
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [
+        "0"
+      ],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.5,weak=0.1": "constant_site_0",
+        "topology0=0.5,weak=0.7": "constant_site_0"
+      }
+    },
+    {
+      "seed": 66003,
+      "strength": 2,
+      "stress": null,
+      "true_atom_covered": true,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "late_site_2",
+        "symmetric": "early_site_2",
+        "power": "constant_site_0",
+        "bayes": "constant_site_0",
+        "best_constant_symmetric": "constant_site_2",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "early_site_2",
+          "score": 12012.669457138738,
+          "versus_none": 7480.873361188783,
+          "versus_fixed_constant": 3727.8807454155685,
+          "versus_best_constant": 1439.3283126703172,
+          "best_constant": "constant_site_2"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_2",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_2",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_2",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "90e186cee1becb14e44b0b9e6d7d94c373cc57a2690e44c2d785af35b067270f",
+          "finite_scope": true,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 1.0,
+          "1": 0.0
+        },
+        "log_topology_probabilities": {
+          "0": 0.0,
+          "1": -3096.8127115823336
+        },
+        "topology_entropy": -0.0,
+        "log_evidence": -201.33122589947686,
+        "atom_ess": 1.0,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -22473.260615521598,
+        "floating_underflow_count": 46,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.0017027000430971384,
+        "power": 0.18604459997732192,
+        "bayes": 8.203737800009549
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": 3.674045166665479,
+        "constant_fixed": 417.6098706690226,
+        "fixed_pulse": 1091.0456566660084,
+        "random_action": 3.730436099412273,
+        "symmetric": 5.315810790523166,
+        "power": 417.6098706690226,
+        "bayes": 417.6098706690226,
+        "best_constant_symmetric": 4.812875345361917,
+        "best_constant_power": 417.6098706690226,
+        "best_constant_bayes": 417.6098706690226
+      },
+      "independent_eig_gain_validation": {
+        "selected": "constant_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.0,
+        "gain_se": 0.0,
+        "entropy_gain_vs_constant": 0.0,
+        "entropy_gain_se": 0.0
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [
+        "1"
+      ],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.5,weak=0.1": "constant_site_0",
+        "topology0=0.5,weak=0.7": "constant_site_0"
+      }
+    },
+    {
+      "seed": 67001,
+      "strength": 0,
+      "stress": null,
+      "true_atom_covered": true,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "constant_site_0",
+        "symmetric": "late_site_0",
+        "power": "constant_site_0",
+        "bayes": "late_site_0",
+        "best_constant_symmetric": "constant_site_0",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "late_site_0",
+          "score": 0.17054683475945764,
+          "versus_none": 0.10460350802610491,
+          "versus_fixed_constant": 0.02093106893174837,
+          "versus_best_constant": 0.02093106893174837,
+          "best_constant": "constant_site_0"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "late_site_0",
+          "score": 0.020915721156431026,
+          "versus_none": 0.012533320786336228,
+          "versus_fixed_constant": 0.002359548438321115,
+          "versus_best_constant": 0.002359548438321115,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "972cbe031c377a562acf8a9e8dbefaa335a88c5705059cce7e05e0a7dafa3fdf",
+          "finite_scope": true,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 0.5767575448173569,
+          "1": 0.42324245518264314
+        },
+        "log_topology_probabilities": {
+          "0": -0.5503333004059366,
+          "1": -0.8598100840400188
+        },
+        "topology_entropy": 0.6813170141332532,
+        "log_evidence": -205.6036173085168,
+        "atom_ess": 1.9539514551656147,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -36190.10613078501,
+        "floating_underflow_count": 44,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.0014733999269083142,
+        "power": 0.18224760005250573,
+        "bayes": 8.039376399945468
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": 0.45829376947169465,
+        "constant_fixed": -0.000412500205698052,
+        "fixed_pulse": -0.032474130337561746,
+        "random_action": -0.000412500205698052,
+        "symmetric": 0.017277239357881058,
+        "power": -0.000412500205698052,
+        "bayes": 0.017277239357881058,
+        "best_constant_symmetric": -0.000412500205698052,
+        "best_constant_power": -0.000412500205698052,
+        "best_constant_bayes": -0.000412500205698052
+      },
+      "independent_eig_gain_validation": {
+        "selected": "late_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.0022480537733307417,
+        "gain_se": 0.0006953122381330363,
+        "entropy_gain_vs_constant": 0.0026525376197088914,
+        "entropy_gain_se": 0.00016306195514113398
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "late_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "late_site_0",
+        "topology0=0.5,weak=0.1": "late_site_0",
+        "topology0=0.5,weak=0.7": "late_site_0"
+      }
+    },
+    {
+      "seed": 67002,
+      "strength": 0,
+      "stress": null,
+      "true_atom_covered": true,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "constant_site_2",
+        "symmetric": "late_site_0",
+        "power": "constant_site_0",
+        "bayes": "early_site_0",
+        "best_constant_symmetric": "constant_site_0",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "late_site_0",
+          "score": 0.17389904664462238,
+          "versus_none": 0.10497492126354968,
+          "versus_fixed_constant": 0.019721444451901188,
+          "versus_best_constant": 0.019721444451901188,
+          "best_constant": "constant_site_0"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "early_site_0",
+          "score": 0.02261009143762637,
+          "versus_none": 0.014269043440417937,
+          "versus_fixed_constant": 0.0040207912619044175,
+          "versus_best_constant": 0.0040207912619044175,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_2",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "310d885278105da55d313daf46c6f6c8a9bbf33112fc3aba45d9fa84f539ba48",
+          "finite_scope": true,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 0.46416188813312337,
+          "1": 0.5358381118668768
+        },
+        "log_topology_probabilities": {
+          "0": -0.7675218907676026,
+          "1": -0.623923193630722
+        },
+        "topology_entropy": 0.6905762360272332,
+        "log_evidence": -192.28962710814628,
+        "atom_ess": 1.9897775555173165,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -38767.16214477514,
+        "floating_underflow_count": 44,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.0014640999725088477,
+        "power": 0.18342589994426817,
+        "bayes": 6.713756500044838
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": 0.38808266524437585,
+        "constant_fixed": 0.6889535755603049,
+        "fixed_pulse": 0.15963022706384322,
+        "random_action": -0.16904748946289772,
+        "symmetric": 0.986116266694566,
+        "power": 0.6889535755603049,
+        "bayes": 0.15963022706384322,
+        "best_constant_symmetric": 0.6889535755603049,
+        "best_constant_power": 0.6889535755603049,
+        "best_constant_bayes": 0.6889535755603049
+      },
+      "independent_eig_gain_validation": {
+        "selected": "early_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.000406736012284334,
+        "gain_se": 0.0007061799296408839,
+        "entropy_gain_vs_constant": 0.0016878992542933876,
+        "entropy_gain_se": 0.00013785068215792793
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "early_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "early_site_0",
+        "topology0=0.5,weak=0.1": "early_site_0",
+        "topology0=0.5,weak=0.7": "early_site_0"
+      }
+    },
+    {
+      "seed": 67003,
+      "strength": 0,
+      "stress": null,
+      "true_atom_covered": true,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "constant_site_1",
+        "symmetric": "late_site_0",
+        "power": "constant_site_0",
+        "bayes": "late_site_0",
+        "best_constant_symmetric": "constant_site_0",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "late_site_0",
+          "score": 0.17389904664462238,
+          "versus_none": 0.10497492126354968,
+          "versus_fixed_constant": 0.019721444451901188,
+          "versus_best_constant": 0.019721444451901188,
+          "best_constant": "constant_site_0"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "late_site_0",
+          "score": 0.020855515168064744,
+          "versus_none": 0.013910330442939604,
+          "versus_fixed_constant": 0.004296526889645304,
+          "versus_best_constant": 0.004296526889645304,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_1",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "unresolved": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "2194fbb72417aadd1be84d393b62d990903c0b75ede9b1457e1f20c0c290a5c0",
+          "finite_scope": true,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 0.5104765224144368,
+          "1": 0.48952347758556314
+        },
+        "log_topology_probabilities": {
+          "0": -0.6724106318288169,
+          "1": -0.7143228557806002
+        },
+        "topology_entropy": 0.6929276494510387,
+        "log_evidence": -190.83027540616104,
+        "atom_ess": 1.9991223251504406,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -38732.4340792158,
+        "floating_underflow_count": 44,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.0014474999625235796,
+        "power": 0.18823400000110269,
+        "bayes": 6.791954800020903
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": 0.7564605470541323,
+        "constant_fixed": -0.7116901399777333,
+        "fixed_pulse": -1.9551995156158526,
+        "random_action": 1.3647578619423726,
+        "symmetric": 0.33144265573675824,
+        "power": -0.7116901399777333,
+        "bayes": 0.33144265573675824,
+        "best_constant_symmetric": -0.7116901399777333,
+        "best_constant_power": -0.7116901399777333,
+        "best_constant_bayes": -0.7116901399777333
+      },
+      "independent_eig_gain_validation": {
+        "selected": "late_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.003275660401702534,
+        "gain_se": 0.0007092806498440752,
+        "entropy_gain_vs_constant": 0.0023827642159800757,
+        "entropy_gain_se": 0.00013227475964311421
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "late_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "late_site_0",
+        "topology0=0.5,weak=0.1": "late_site_0",
+        "topology0=0.5,weak=0.7": "late_site_0"
+      }
+    },
+    {
+      "seed": 68001,
+      "strength": 2,
+      "stress": "off_grid",
+      "true_atom_covered": false,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "constant_site_2",
+        "symmetric": "early_site_2",
+        "power": "constant_site_0",
+        "bayes": "constant_site_0",
+        "best_constant_symmetric": "constant_site_2",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "early_site_2",
+          "score": 12012.669457138738,
+          "versus_none": 7480.873361188783,
+          "versus_fixed_constant": 3727.8807454155685,
+          "versus_best_constant": 1439.3283126703172,
+          "best_constant": "constant_site_2"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_2",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_2",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_2",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "9bf4d4490d3ee718bbe2d50ed4569f6dc5bef438c9426a4494854894c1c05c46",
+          "finite_scope": false,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 1.0,
+          "1": 0.0
+        },
+        "log_topology_probabilities": {
+          "0": 0.0,
+          "1": -3141.7606016131263
+        },
+        "topology_entropy": -0.0,
+        "log_evidence": -937.4872638598014,
+        "atom_ess": 1.0,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -21496.134534106113,
+        "floating_underflow_count": 46,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.0014057999942451715,
+        "power": 0.18491080007515848,
+        "bayes": 6.7239675999153405
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": 1.0203044029126502,
+        "constant_fixed": 462.52411659430226,
+        "fixed_pulse": 1269.9862270410308,
+        "random_action": 2.403237095342888,
+        "symmetric": 3.608538792111233,
+        "power": 462.52411659430226,
+        "bayes": 462.52411659430226,
+        "best_constant_symmetric": 2.403237095342888,
+        "best_constant_power": 462.52411659430226,
+        "best_constant_bayes": 462.52411659430226
+      },
+      "independent_eig_gain_validation": {
+        "selected": "constant_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.0,
+        "gain_se": 0.0,
+        "entropy_gain_vs_constant": 0.0,
+        "entropy_gain_se": 0.0
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [
+        "1"
+      ],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.5,weak=0.1": "constant_site_0",
+        "topology0=0.5,weak=0.7": "constant_site_0"
+      }
+    },
+    {
+      "seed": 68002,
+      "strength": 2,
+      "stress": "bias_misspec",
+      "true_atom_covered": false,
+      "choices": {
+        "none": "none",
+        "constant_fixed": "constant_site_0",
+        "fixed_pulse": "early_site_0",
+        "random_action": "constant_site_2",
+        "symmetric": "late_site_1",
+        "power": "constant_site_0",
+        "bayes": "constant_site_0",
+        "best_constant_symmetric": "constant_site_1",
+        "best_constant_power": "constant_site_0",
+        "best_constant_bayes": "constant_site_0"
+      },
+      "gains": {
+        "symmetric": {
+          "selected": "late_site_1",
+          "score": 40902.61875039847,
+          "versus_none": 26844.535598097726,
+          "versus_fixed_constant": 8176.247149756371,
+          "versus_best_constant": 5653.928925703585,
+          "best_constant": "constant_site_1"
+        },
+        "power": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        },
+        "bayes": {
+          "selected": "constant_site_0",
+          "score": 0.0,
+          "versus_none": 0.0,
+          "versus_fixed_constant": 0.0,
+          "versus_best_constant": 0.0,
+          "best_constant": "constant_site_0"
+        }
+      },
+      "methods": {
+        "none": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "none",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "constant_fixed": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "fixed_pulse": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "early_site_0",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "random_action": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_2",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "late_site_1",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "best_constant_symmetric": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_1",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "best_constant_power": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        },
+        "best_constant_bayes": {
+          "false_rejection": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "correct_unique": {
+            "count": 512,
+            "total": 512,
+            "rate": 1.0,
+            "interval95": [
+              0.9928210499737405,
+              1.0
+            ]
+          },
+          "unresolved": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "empty": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "wrong_unique": {
+            "count": 0,
+            "total": 512,
+            "rate": 0.0,
+            "interval95": [
+              0.0,
+              0.007178950026259454
+            ]
+          },
+          "action": "constant_site_0",
+          "paired_future_noise_hash": "1697dd1bf22dc8cc750794c8a40acd360add1dce30dc7fa7406a89db5c830d49",
+          "finite_scope": false,
+          "failure_count": 0
+        }
+      },
+      "posterior": {
+        "topology_probabilities": {
+          "0": 1.0,
+          "1": 0.0
+        },
+        "log_topology_probabilities": {
+          "0": 0.0,
+          "1": -12179.004150473267
+        },
+        "topology_entropy": -0.0,
+        "log_evidence": -425.3547562236572,
+        "atom_ess": 1.0,
+        "conditional_atom_ess": {
+          "0": 1.0,
+          "1": 1.0
+        },
+        "atom_count": 48,
+        "atom_log_weight_min": -39666.206997111745,
+        "floating_underflow_count": 46,
+        "historical_screening": false
+      },
+      "selector_seconds": {
+        "symmetric": 0.001475699944421649,
+        "power": 0.19015280005987734,
+        "bayes": 6.829580600024201
+      },
+      "wide_model_signed_loss_gaps": {
+        "none": -4.716885729375633,
+        "constant_fixed": 803.1441109407813,
+        "fixed_pulse": 2025.7231385454445,
+        "random_action": 1.7570378292826803,
+        "symmetric": 1818.0000042797822,
+        "power": 803.1441109407813,
+        "bayes": 803.1441109407813,
+        "best_constant_symmetric": 852.0107631800228,
+        "best_constant_power": 803.1441109407813,
+        "best_constant_bayes": 803.1441109407813
+      },
+      "independent_eig_gain_validation": {
+        "selected": "constant_site_0",
+        "independent_repeats": 2,
+        "gain_vs_constant": 0.0,
+        "gain_se": 0.0,
+        "entropy_gain_vs_constant": 0.0,
+        "entropy_gain_se": 0.0
+      },
+      "power_action_preference": "flat_training_criterion",
+      "float_underflow_topologies": [
+        "1"
+      ],
+      "prior_sensitivity_choices": {
+        "topology0=0.2,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.8,weak=0.3333333333333333": "constant_site_0",
+        "topology0=0.5,weak=0.1": "constant_site_0",
+        "topology0=0.5,weak=0.7": "constant_site_0"
+      }
+    }
+  ],
+  "history_count": 8,
+  "continuous_fit_count": 84,
+  "continuous_failure_count": 0,
+  "seconds": 76.20559039991349,
+  "independent_validation": [
+    {
+      "seed": 66001,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": true
+    },
+    {
+      "seed": 66002,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": true
+    },
+    {
+      "seed": 66003,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": true
+    },
+    {
+      "seed": 67001,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": true
+    },
+    {
+      "seed": 67002,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": true
+    },
+    {
+      "seed": 67003,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": true
+    },
+    {
+      "seed": 68001,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": false
+    },
+    {
+      "seed": 68002,
+      "distance_recomputed": true,
+      "mean_hash_verified": true,
+      "continuous_initial_loss_verified": true,
+      "finite_scope": false
+    }
+  ],
+  "statistical_scope": "conditional fixed-history finite AC family only",
+  "continuous_threshold_transfer": false,
+  "scientific_tests_passed": 68,
+  "conclusions": [
+    "finite distance choice need not transfer to wider free-line model",
+    "training maximin power flat: no action preference in these cases",
+    "strong finite posterior numerically saturated; log weights retained",
+    "weak EIG gain does not yield successful unique retention",
+    "off-grid/bias stress lies outside finite-null guarantee"
+  ]
+}
