@@ -3,1287 +3,380 @@
 \usepackage{amsmath,amssymb,amsthm,booktabs,array,longtable,xurl}
 \usepackage[hidelinks]{hyperref}
 \newtheorem{proposition}{命题}
-\newtheorem{theorem}{定理}
 \newtheorem{remark}{说明}
 \newcommand{\R}{\mathbb R}
-\newcommand{\one}{\mathbf 1}
-\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
-\newcommand{\Th}{\Theta}
 \newcommand{\HH}{\mathcal H}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\KL}{D_{\mathrm{KL}}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \setlength{\parskip}{3pt}
 \setlength{\tabcolsep}{4pt}
 \setlength{\emergencystretch}{3em}
 \renewcommand{\arraystretch}{1.15}
 \raggedbottom
-\title{共同源干扰下的移动 EV 局部拓扑区分设计\\[4pt]
-\large 历史相容域、竞争参数重拟合与条件性判定}
-\author{Topo 研究记录：理论、实现与独立审查}
-\date{2026 年 10 月 12 日；v9：可替换被动候选、AC 核验与计量误差}
+\title{AC 计量似然与 EV 主动拓扑辨识\\[4pt]
+\large 共享线路参数、共同源重拟合与历史约束模型判别}
+\author{Topo 研究记录：数学模型、实现与证据边界}
+\date{2026 年 10 月 12 日；MLE 研究主线}
 \begin{document}
 \maketitle
 \begin{abstract}
-本文研究：已有 PQV 留下的局部拓扑歧义，能否由少量 EV 观测消除，同时允许隐藏源变化并计入 AC 非线性？流程是被动候选筛选、按需设计、实际新旧数据联合重拟合；历史已足够时停止。
-早期线性模型给出共同源历史域、端点设计条件及严格反例，证明特定结构信息不能用全方向最小奇异值概括。v8 进一步从精确 DistFlow 构造保留线路共享损耗的 AC 外包络，以经过验证的正下界排除候选，而不把局部拟合失败或设计分数当成证据。
-新增 54 个线性算例中，20 例历史已可区分，EV 再补充区分 16 例，18 个弱支路例子始终未决；同址调制提高余量但不提高成功次数。另以 18 个小型 AC 算例比较按需单点、同电量恒充、双地点和独立输出余项，并保留误差扩大与选址失败。
-v9 将项目现有 RNJ/WZZT 候选生成接入研究版 AC 验证，允许新观测修正未经认证的旧结构；并扩展到 6/12 末端合成树和含 PQ、根电压、末端电压误差的观测。固定计量增益是否可跨时间共享，是单独声明并对照检验的假设。
-结论严格区分物理假设、选址建议和实际排除。候选库有限，源位置和 AC 模型受限，生产流程默认设置未改；设计权重不是拓扑概率，合成完成比例不是现场准确率。研究重点是保留真实物理耦合、识别剩余争议并减少无效探测。
+被动 WZZT/RNJ 提供可修正的候选拓扑；固定各候选，以原始 P/Q/V 与根总表计量的概率模型联合拟合 AC 状态及线路阻抗，再依据竞争结构充分重拟合后的差异选择 EV 地点、时段和功率曲线。
+历史和新增数据共享线路 R/X；共同源 P/Q 允许逐时变化，但始终通过同一个物理接入点作用。先固定已校准的仪表偏差和可信根电压，并用总表 P/Q 为共同源提供锚点，避免一开始释放不可分离的全部未知量。
+设计准则为竞争候选的历史似然损失与未来响应的两倍 Gaussian KL 之和。完整 AC 方程用于每次拟合，线路与源重新估计；多初值局部求解只能报告最佳已发现局部似然，不能称为全局 MLE。
+小型局部网络比较同长度无 EV、同电量恒充、固定地点调制、随机动作及设计动作；通过独立校准与评价种子保留误拒绝、弱支路未决、候选漏真、选址和优化失败。目标是确定方法的有效条件及失败边界，不预设 EV 必须改善。
+旧外 LP 路线及结果作为历史记录保留在原实验目录与 Git 历史中，不再作为当前主判据，也不由其未决推断 MLE 无效。
 \end{abstract}
 \tableofcontents
 
-\section{当前算法总览：数学对象、作用与核心代码}
-\label{sec:overview9}
-本节先说明当前实际运行的 v9 研究接口。它调用项目现有 RNJ/WZZT 函数，再接入 AC 证据层；生产 \path{pipeline.run} 的默认行为没有被改写。后文保留 v6--v8 的理论和历史实验，各版本的模型和设计评分不能混用。
+\section{问题、范围与当前完成标准}
+\label{sec:scope}
+研究主线只有一个：\emph{历史中难区分的两个候选，能否被一个可执行 EV 动作区分，即使竞争结构重新拟合线路和共同源，也仍须同时解释历史和新增数据？}
+先在小型局部拓扑上检查计量模型、参数混淆和局部优化稳定性，再据证据决定是否扩大网络。候选来源是观测侧 WZZT/RNJ 与可修正邻域；真拓扑只用于生成合成数据及离线评价，不进入选择器。
 
-\subsection{输入、未知量和三种输出}
-共有 $n$ 个被测末端和 $T$ 个稳态时刻。$\widehat p_t,\widehat q_t\in\R^n$ 是\emph{含 EV 的总功率读数}，采用负荷消耗为正的约定；$\widehat v_{0t},\widehat v_{it}$ 是根和末端的电压幅值读数，使用
-\[
-\widehat y_{it}=\widehat v_{0t}^{\,2}-\widehat v_{it}^{\,2}.
-\]
-候选树为 $h$，末端--线路路径矩阵 $M_h\in\{0,1\}^{n\times m_h}$：$M_{ie}=1$ 表示边 $e$ 位于根到末端 $i$ 的路径。物理线路阻抗 $r_e+\mathrm jx_e$ 在所有时段固定；v9 声明 $x_e=\kappa r_e,\ \kappa=.5$，记 $\theta_e=2r_e$。物理根电压固定为 1 pu；共同源位于全末端共享干线的下端，$\theta_0$ 是该干线系数。未知源 $s_t$ 可逐时变化，其接入点和允许范围已声明。
+代码边界是 \path{research_experiments/mobile_ev_mle/}。生产 \path{rnj_wzzt_core} 默认流程未改。本文不再混排旧 v6--v9 的计量盒、外 LP 证书与新的概率模型结果。旧路线的位置和比较边界见第\ref{sec:old}节。
 
-算法分别输出：被动拟合的\emph{优先候选与排名}、经有效下界得到的\emph{排除/未决状态}、以及用于采样的\emph{EV 动作评分}。三者不合并成一个“置信度”。有限候选库内只剩一个，也不证明库外没有解释；当前数值 AC 参考没有给出区间存在性证明。
+完成标准包括：输出每候选的阻抗、实际计量对数似然、物理及优化诊断；设计时联合重拟合历史和预测新增响应；评价时重新拟合真实新增计量；跨种子报告候选覆盖、误拒绝、排错能力、未决及时间。有限候选库比较、局部优化和合成经验率分别说明，不合并成“拓扑置信度”。
 
-\subsection{被动 WZZT：提出结构，不冻结未经认证的 RNJ}
-令 $C$ 为一组末端，$b_C\in\{0,1\}^n$ 为其指示向量。树的支撑族 $\mathcal S$ 满足 laminar 条件：任意两集合互不相交或一方包含另一方。WZZT 的线性响应写为
-\[
-R=\sum_{C\in\mathcal S}\rho_Cb_Cb_C^\top,\qquad
-X=\sum_{C\in\mathcal S}\chi_Cb_Cb_C^\top,
-\quad \widehat y_t\approx R\widehat p_t+X\widehat q_t+G s_t.
-\]
-这里 $\rho_C,\chi_C$ 是平方压降系数，已吸收因子 2，$Gs_t$ 表示候选源路径上的线性响应。提案用的 WZZT 允许分别拟合 $R,X$ 和重选源路径，其域比最终 AC 核验域更大；这些拟合结果只用于提出树，不作为 AC 参数证据。流程为：约束最小二乘估计敏感度，RNJ 在若干容差下提出树；source-aware WZZT 从单点支撑重启，逐次新增合法集合并重拟合全部权重和源路径。每次 MILP 的最优性只对应该次固定族/新增一集合子问题，不等于整个前向搜索的全局最优性。
-
-当前桥接器实际调用 \path{fit_projected_sensitivity}、\path{rooted_neighbor_joining} 和 \path{fit_source_aware_wzzt}，最后者强制传入 \path{certified_supports=()}。未经认证的旧 RNJ 只放入 \path{prior_proposals}；候选扩展包括删除一个集合、局部根树交换、末端标签交换。因此 EV 之后可以重新生成更合适的结构，旧错误集合没有永久固定。候选数量预算只限制搜索覆盖，不能把未入库候选称为已排除。
-
-\subsection{AC 层：共同源、共享损耗和有效排除}
-固定候选 $h$ 的核心预测为
-\[
-\mu_t=M_h\operatorname{diag}(\theta)M_h^\top
- (\widehat p_t+\kappa\widehat q_t)
- +\theta_0\bar s_t^{\rm eff}\one+w_t\one+M_h\eta_t.
-\]
-$w_t$ 是共同源响应误差，满足 $|w_t|\le\theta_0B_t^{\rm eff}$；$\eta_{et}$ 是一条边的 AC 损耗余项，在所有下游测点共享。在所有物理节点电压均不小于 $.9$ pu 的前提下，KCL 电流界和参数乘积上平面给出 $0\le\eta_{et}\le F^k_{et}(\theta)$。这些是外放松；它们可能保留不对应真实 AC 状态的解释，但不删除声明域内真实 AC 解释。
-
-输入计量盒为 $|p_{it}-\widehat p_{it}|\le b^P_{it}$、$|q_{it}-\widehat q_{it}|\le b^Q_{it}$，在线性响应中产生
-\[
-E_{it}(\theta)=\sum_{e:M_{ie}=1}\theta_e
-              \sum_{j:M_{je}=1}(b^P_{jt}+\kappa b^Q_{jt}).
-\]
-独立电压误差模型下，解外 LP
-\[
-\tau_h^{\rm out}(D)=\min\tau,\qquad
-|\widehat y_{it}-\mu_{it}|\le\epsilon_{it}+E_{it}(\theta)+\tau,
-\quad\tau\ge0,
-\]
-并施加所有参数、源项及损耗约束。求解后用向外舍入和对偶残差盒修正取得有效下界 $L_h$。只有
-\[
-\tau_h^{\rm AC}(D)\ge\tau_h^{\rm out}(D)\ge L_h>0
-\]
-才排除候选；这里原 AC 松弛与外 LP 松弛使用同一平方压降尺度。$L_h=0$、超时和局部拟合失败均保留为未决。核心入口为 \path{ac_general_v9.solve_outer}。历史和新增时段共享 $\theta$；不能分别用两套线路解释后再声称联合相容。
-
-主试验还单独使用固定增益模型 $\widehat V_{it}=g_iV_{it}+\xi_{it}$。令 $\alpha_i=g_i^{-2}$、$b_i=1-\alpha_i g_0^2$，用
-\[
-|\mu_{it}-\alpha_i\widehat y_{it}-b_i|\le\alpha_iD_i+E_{it}(\theta)+\tau
-\]
-替换独立电压盒约束；$D_i$ 和增益域见第\ref{sec:v9}节。该模型的排除逻辑是：真实 AC 解释必映入 $\tau=0$ 的外 LP 可行点，因此有效 $L_h>0$ 可否证；不把这里的 $\tau$ 直接解释为原幅值测量需增加的误差。
-
-\subsection{EV 选择与追加观测：评分和证据分开}
-若历史筛选后还有争议，选择器从前两个被动候选拟合名义 AC 参数，预测各单地点/双地点动作。为控制较大算例的计算成本，v9 对这些预测用中心化线性模型做竞争重拟合：
-\[
-Q_h(D)=\min_{\theta\in\Theta_h}
- \|\mathcal C_D(Y-A_h(P+\kappa Q)\theta)\|_F^2,
-\]
-$A_h$ 表示线性算子，具体定义为 $[A_h(U)\theta]_{t,:}=(M_h\operatorname{diag}(\theta)M_h^\top u_t)^\top$，$u_t$ 是 $U$ 的第 $t$ 行转置；$\mathcal C_D$ 先去每时刻的共同空间分量，再去每个末端跨 $D$ 的时间均值。它仅用于设计近似，不能认为已消除全部 AC 源效应。动作评分为
-\[
-S_9(A)=\frac1{|\mathcal R|}\sum_{r\in\mathcal R}
-\min_{h\ne r}\bigl[Q_h(H\cup\widehat N_r(A))-Q_h(H)\bigr]_+ .
-\]
-$H$ 是历史观测，$\widehat N_r(A)$ 是参考 $r$ 的名义 AC 预测。参考可能只得到局部拟合而非同域相容见证，代码明确记录；因此 $S_9$ 是\emph{启发式选址分数}，不是 v7 的已验证 T 目标，也不是 v8 的 AC 外 LP 评分，更不产生排除证书。
-
-执行后重新调用 RNJ/WZZT，合并新提议与所有尚未排除的旧候选，再对真实 $H\cup N$ 运行 AC 验证。不能因新排序落后而删除旧未决候选。不同动作可能生成不同的新候选库，所以 EV 证据增益的主比较固定在\emph{同一个初始候选库}；扩展库覆盖、结构 F1 和最终未决数另报。
-
-\subsection{与公式对应的最小代码路径}
-所有新入口位于 \path{research_experiments/mobile_ev_probing/}。
-\begin{center}\small
-\begin{tabular}{L{.23\textwidth}L{.43\textwidth}L{.25\textwidth}}\toprule
-作用 & 文件与函数 & 结论边界\\\midrule
-历史候选生成 & \path{passive_bridge_v9.py}: \path{build_passive_candidates} & RNJ/WZZT 与可替换邻域\\
-候选转物理树 & \path{ac_general_v9.py}: \path{RadialCandidate.from_supports} & 显式根、隐节点与边参数域\\
-AC 排除 & 同文件 \path{solve_outer} & 有效正下界才排除\\
-名义 AC 参考 & 同文件 \path{fit_ac_reference} & 局部拟合，不给排除界\\
-流程控制 & \path{integrated_study_v9.py}: \path{screen}, \path{choose_probe}, \path{append_and_refit} & 历史先筛、实际新数据再提案/验证\\\bottomrule
-\end{tabular}
-\end{center}
-\noindent\begin{minipage}{\textwidth}
-核心调用关系如下；\path{meter} 指有依据的误差模型配置，不是真实仿真噪声：
-{\small\begin{verbatim}
-bank = build_passive_candidates(P_hist, Q_hist, Y_hist, ...)
-old = screen(history, bank, meter)
-plan = choose_probe(history, bank, old)
-# Execute plan, retain actual metered PQV, append to history.
-bank_new = append_and_refit(all_data, bank, old, ...)
-new = screen(all_data, bank_new, meter)
-\end{verbatim}}
-仿真真图、真实阻抗和误差实现值只用于离线评价，不传入以上选择流程。
-\end{minipage}
-
-\section{把问题缩成一条可检验的主线}
-\subsection{对当前算法的直接判断}
-\textbf{合理但未完整。} v6--v7 严格处理的是已知共同源方向下的局部线性模型；v8 新增保留共同源和线路共享损耗的 AC 外松弛。v9 已通过研究桥接器调用现有 RNJ/WZZT 并连接 AC 验证，但不是生产默认流程的全面替换，也没有覆盖任意源位置、三相不平衡或未知 $R/X$ 比。
-
-\textbf{排除必须由证据决定。} 只有覆盖完整声明物理域的最小不相容松弛具有有效正下界，才能排除候选。T 分数、残差排序、bootstrap 频率和局部 AC 求解失败均不够。零下界也不等于找到 AC 相容解释。
-
-\textbf{EV 应补证。} 历史信息丰富时应直接输出候选内辨识结果，不安排 EV；历史只有部分激励时，应在仍有分歧的节点补采；弱结构可能在允许功率与误差下根本不可分。下面保留早期线性理论及其版本范围，再给出 v8 的实现和反例。静态背景不能证明真实择时收益，有限候选不能证明全网唯一性。
-
-\subsection{研究对象与最小流程}
-目标不是恢复全部线路参数，而是区分当前仍相容的少数局部结构。早期三末端理论和当前扩展流程共同围绕：
-\[
-\boxed{\text{历史留下哪些解释}}
-\ \longrightarrow\
-\boxed{\text{什么 EV 动作最难被竞争解释吸收}}
-\ \longrightarrow\
-\boxed{\text{执行后究竟排除了什么}} .
-\]
-这三个问题分别由历史可行域、T 型设计和联合相容性 LP 回答。
-v9 已用 WZZT 提供候选结构，但没有改动生产 WZZT 默认设置，也没有完成全拓扑域的搜索与认证。有限候选实验仍是该接口的局部原型。
-
-EV 是移动的可控注入资源。具有合法接入点、可计量实际功率和电压、能够跟踪设定曲线时，车辆可以承担拓扑辨识的主动激励功能；仅把汽车开到节点并不构成可执行测量设备。车辆、连接装置、计量与通信共同组成实验装置。本文不要求放电或独立无功控制。
-
-\subsection{哪些量可以被称为什么}
-\begin{center}\small
-\begin{tabular}{L{2.7cm}L{6.4cm}L{5.8cm}}\toprule
-量 & 准确含义 & 不能据此宣称\\\midrule
-历史相容集 $\Th_h^H$ & 在声明误差域内能解释旧数据的参数 & 未校准的 $95\%$ 置信域\\
-T 型分数 $J(A)$ & 固定参考对竞争模型的预测平方分离 & 拓扑正确概率或实际排除余量\\
-LP 下界 $\underline\tau_h$ & 对完整声明域的最小额外松弛下界 & 候选库外结构被排除\\
-bootstrap 频率 & 特定重采样规则下的算法稳定性 & 后验正确概率\\
-真候选保留 & 模型、覆盖和误差条件成立时的保证 & 每次输出都正确或已能唯一辨识\\
-\bottomrule\end{tabular}
-\end{center}
-不把这些量合并为一个“置信度”。若需要概率保证，应另外验证联合误差事件的覆盖；当前小算例不假设已完成这项校准。
-
-\section{文献如何连接，以及创新性应落在哪里}
-\label{sec:lit}
-\subsection{从电网 probing 到竞争模型重拟合}
-主动逆变器 probing 已用电压对注入的响应恢复径向结构，已有图方法与 MILP 方法\cite{cavraro,taheri}。受运行约束的逆变器输入设计\cite{bhela}说明激励需要兼顾物理可行性；墙盒充电数据用于拓扑估计也已有研究\cite{hotz}。因此“EV 可用于拓扑辨识”本身不构成新贡献。
-已有 probing 工作也讨论负荷非平稳的噪声处理，不能把它们概括为只能处理完全不变负荷。本文采用不同的条件交换：允许源幅值逐时任意变化，但要求已知其共同空间响应。
-
-普通参数估计设计关注一个给定模型的参数精度；本文更接近模型区分设计：一个输入是否使\emph{另一个结构在重新选择参数后仍无法拟合}。Dette--Titoff 的 T-optimal discrimination 以最佳逼近的平方差衡量这种区分，并已讨论局部参数依赖及序贯、Bayesian、maximin 扩展\cite{dette}。不能把“加入历史，再优化 T 分数”当成此前没有的理论。
-Mogalle 等在多响应 T 设计表述中以已有数据确定参考，研究设计空间和参数空间的自适应离散化\cite{mogalle}。其一般非线性双层求解比当前小问题复杂；本文参数内层为凸 QP、动作只有六个，因此不需要照搬半无限全局算法。
-
-这里合理的迁移不是照搬其全部统计解释，而是保留其量词：
-\[
-\text{先选可执行动作}\quad
-\max_A\quad
-\text{再让最难竞争结构及其参数充分重拟合}\quad
-\min_{h,\theta_h}.
-\]
-本研究的额外内容是明确物理源的空间共享关系，并让竞争参数同时受到已观测历史的限制。后者与直接固定一个错误拓扑的估计参数不同。
-
-\subsection{Cerone 路线的适用边界}
-Cerone 等研究条件与鲁棒集合成员估计的统一求解框架，涉及多项式模型、半代数不确定性集和 min--max 投影估计\cite{cerone}，并非本文 EV 主动区分准则的直接来源。Scott 等的有界误差故障区分输入设计则提供另一种集合分离路线\cite{scott}。这些工作可供借鉴，但其不确定性域和最坏情形量词是实质假设。
-如果没有依据声明未来源或模型偏差落在哪个硬集合，就不能仅因算法形式相似而继承鲁棒区分保证。
-本文只在明确声明 $|w_t|\le aB_t$、$|e_{it}|\le\epsilon_{it}$ 时采用集合相容性；T 型设计仍是固定历史参考的局部设计，未对所有可能真参数做 maximin。
-共同源投影来自特定物理位置，不是为了迁移某篇鲁棒论文而人为添加的光滑、独立或小扰动假设。
-
-\subsection{保守而具体的创新性判断}
-成熟基础包括：T 型模型区分、已知加性干扰的投影、历史可行集交集、固定均值有界功率的二阶矩最大化，以及 LP 对偶下界。把它们并列并不能形成新理论。
-当前最可辩护的研究落点是：
-\begin{enumerate}
-\item 解释同样源幅值预算下，逐输出误差盒如何丢失物理共享关系，给出可解析的严格差异。
-\item 将历史相容域、竞争参数重拟合和可执行 EV 动作连起来；验证选点是否真能改善执行后的辨识。
-\item 同时给出收益条件、无收益条件、设计与判定不一致的反例，而不以高设计分数替代实际效果。
-\end{enumerate}
-其中第 1 项和局部机制已有严格例子；第 2 项仍须用不知道真值的选择器检验；端点定理应表述为简化设计的特例推论。尚无证据宣称首创一般拓扑主动辨识方法。
-
-\subsection{原文阅读范围与证据入口}
-主要判断来自合法开放正文的下列部分，而非仅凭论文题名或摘要推测；“已读正文”不表示逐页核验整篇所有定理。
-\begin{center}\small
-\begin{tabular}{L{3.4cm}L{6.5cm}L{4.9cm}}\toprule
-来源 & 本轮核查范围 & 用于支持什么\\\midrule
-Dette--Titoff & 第 2 节，式 (2.4)--(2.7) 及参数依赖讨论 & 竞争重拟合、参考依赖\\
-Mogalle 等 & 出版社正文第 2.2、5.2.2、6 节及附录 A & 多响应及双层求解背景\\
-Cavraro--Kekatos & 作者稿第 II--VI 节相关模型、假设和 reduced grid & 主动拓扑与观测范围\\
-Taheri 等 & 作者稿第 II-B、III 节开头 & 拓扑竞争中的阻抗重拟合\\
-Bhela 等 & 作者稿第 I--II-A/B 节，式 (1)--(8) & 可执行输入库和运行约束\\
-Hotz 等 & 公开 9 页作者资料中的第 1--2 页，式 (1)--(2) & EV 启停阶跃已有直接先例\\
-Cerone 等 & 开放正文第 II--III 节 & 集合相容与鲁棒估计的区别\\
-Scott 等 & 作者机构 PDF 摘要、引言及已有本地阅读记录 & 有界误差集合分离背景\\
-\bottomrule\end{tabular}
-\end{center}
-逐篇来源、版本和缺口见 \path{literature_novelty_v7.md}。本次核心论证所需开放来源足够，未使用 HKU 订阅，也未新增永久文献 PDF。Hotz 其余页未在本轮阅读全文，本文不据已读部分断言其是否解决移动选点。检索不是穷尽性的新颖性证明；未核验的正式出版信息没有补造。
-
-\section{最小物理模型与 EV 约束}
-\subsection{局部拓扑、线路参数与观测}
-观测三个带标签末端，候选为 $\HH=\{12,13,23\}$。$h=12$ 表示末端 1、2 共享一条额外支路。令 $e_j$ 为第 $j$ 个标准基向量，$z_{ij}=e_i+e_j$，$\one=(1,1,1)^\top$。
-树的线性响应写为
+\section{计量概率模型：随机误差、偏差和共同源}
+\label{sec:model}
+\subsection{符号及时间约定}
+候选径向树为 $h\in\HH$，线路为 $e=1,\ldots,m_h$，被测末端为 $i=1,\ldots,n$，历史时刻集合为 $H$，新增时刻集合为 $N$。线路阻抗
 \begin{equation}
-R_h(\theta_h)=a_h\one\one^\top+b_hz_hz_h^\top+
-\operatorname{diag}(c_{h1},c_{h2},c_{h3}),\qquad
-\theta_h=(a_h,b_h,c_{h1},c_{h2},c_{h3})\in\Th_h.
-\label{eq:R}
+z_e=r_e+\mathrm jx_e,\qquad \beta_h=(r_1,\ldots,r_{m_h},x_1,\ldots,x_{m_h})
+\label{eq:impedance}
 \end{equation}
-$a_h$ 对应公共干线，$b_h$ 对应二末端共享支路，$c_{hi}$ 对应末端独占支路；系数已吸收线性平方电压关系中的因子 2。
-$y_t\in\R^3$ 是平方电压降，$p_t\in\R^3$ 是包含 EV 的实际总有功输入，模型为
+在 $H\cup N$ 中共享，$r_e,x_e$ 的正有限参数域显式给出；不固定 $X/R$。潮流量使用 pu，动作约束使用 kW/kWh 后显式换算。负荷消耗为正；发电可表现为负消耗。
+
+逐时未知状态 $w_t=(p_t,q_t,s_t^P,s_t^Q,v_{0t})$ 中，$p_t,q_t\in\R^n$ 是末端\emph{总}负荷，已包含 EV；$s_t^P,s_t^Q$ 是不包含在末端读数中的额外共同源净消耗，正值表示消耗、负值表示注入。共同源可逐时变化，没有默认固定 Q/P 或时间平滑先验，但其物理接入点 $j_s$ 始终相同。
+首个局部网络令 $j_s$ 为公共干线下端；不同候选中的节点编号不是物理身份，必须代表同一个公共接口。允许候选改变该接口下游结构，不能为追随各测点误差而把共同源变成逐输出 nuisance。
+
+\subsection{完整 AC 状态与观测}
+令 $F_h(\beta_h,w_t)=0$ 表示完整平衡单相径向 AC 方程。以复电压 $V_{jt}$、电流 $I_{et}$ 和节点消耗 $S_{jt}$ 表示时，
 \begin{equation}
-y_t=R_h(\theta_h)p_t+a_h\bar s_t\one+w_t\one+e_t,\qquad
-|w_t|\le a_h B_t,\qquad |e_{it}|\le\epsilon_{it}.
-\label{eq:model}
+V_{kt}=V_{jt}-z_e I_{et},\qquad
+I_{et}=\sum_{g:k\to l} I_{gt}+\overline{S_{kt}/V_{kt}},\qquad e=(j,k).
+\label{eq:ac}
 \end{equation}
-$\bar s_t$ 是已知未测源名义功率；其允许偏差为 $\delta s_t\in[-B_t,B_t]$。源接在已知公共干线末端，故响应是 $a_h\delta s_t\one$。取 $w_t=a_h\delta s_t$，因 $a_h>0$，式 \eqref{eq:model} 与原乘积模型双向等价，未使用乘积外松弛。
+节点 $j_s$ 的 $S$ 含 $s_t^P+\mathrm j s_t^Q$，末端 $S$ 含总 $p_{it}+\mathrm j q_{it}$，其余未测内部节点在首阶段为零注入。根相角固定为零；可信根幅值首先固定为已校准值。消去电压和电流时，潮流函数每次均须检查原方程残差及声明的电压域。
 
-\begin{center}\small
-\begin{tabular}{L{3.2cm}L{11.8cm}}\toprule
-符号 & 作用及条件\\\midrule
-$\Th_h$ & 预先声明的非空紧多面体（本算例为参数盒），$a_h$ 下界严格正；旧、新数据共用一个 $\theta_h$\\
-$H,F$ & 历史时刻集合、未来实际采集时刻集合\\
-$w_t$ & 同一时刻各输出共用一个未知源响应；不同时间可任意变化\\
-$e_t,\epsilon_t$ & 剩余观测误差及其逐坐标预算；此处不含未建模的任意 AC 误差\\
-$A=(j,t_0,u_{1:N})$ & 接入点、开始时刻和槽平均功率；只允许可执行动作\\
-$p_t^{\rm bg}$ & 设计阶段使用的背景预测；正式小算例为固定且准确的背景\\
-$C$ & 消去已知共同方向的正交输出对比，$C\one=0$\\
-\bottomrule\end{tabular}
-\end{center}
+使用原始电压\emph{幅值}，观测模型为
+\begin{align}
+y_t&=(\widehat p_t,\widehat q_t,\widehat v_t,\widehat P_{0t},\widehat Q_{0t})
+       =m_h(\beta_h,w_t)+b+\varepsilon_t,\label{eq:obs}\\
+\varepsilon_t&\sim N(0,\Sigma_t),\qquad \Sigma_t\succ0.\label{eq:noise}
+\end{align}
+$m_h$ 包含末端 P/Q、AC 电压幅值和根总表 P/Q。$b$ 是各仪表\emph{跨时固定}的系统偏差；$\varepsilon_t$ 是\emph{逐时随机}误差。首阶段由先验校准给出非零 $b$ 并纠正，$\Sigma_t$ 由计量模型给定和冻结，不从每个候选残差重估；合成试验使用独立通道及跨时独立 Gaussian 误差。共同源是条件确定的 nuisance 序列，不能混作随机计量噪声。
 
-这里\textbf{不要求}源平滑、均值为零、跨时独立或独立于 EV。不同候选可以用不同源轨迹解释同一数据；不能要求互斥候选使用同一个未知数值轨迹。
-本节 v6--v7 线性模型需要：已知共同响应方向、线路参数跨批不变、准确测得总 $p_t$，以及声明的误差域有效。预算 $B_t,\epsilon_{it}$ 均非负且有限。该线性模型不包含未知源位置、P/Q 输入误差或 AC 非线性；第\ref{sec:v8}节另给有限范围的 AC 外包络与输入误差传播。
+可选 \path{fit_bias=True} 入口要求独立 \path{Calibration} 偏差读数 $c=b+\eta$，将其 Gaussian 损失 $\norm{c-b}_{\Omega^{-1}}^2$ 和 normalization 加入联合似然且只计入一次；主试验仍采用已校准 correction。估计的 $b$ 必须与线路参数一起跨历史和新增共享，并给出校准锚点和可识别性检查。当前校准模型不代表所有仪表的现实误差规律。根幅值若不能可信固定，可加入根电压计量和逐时根状态，但不能未经诊断同时释放其偏差与全部源项。
 
-\subsection{EV 的实际作用与能量单位}
-设计输入为
-\begin{equation}
-p_t(A)=p_t^{\rm bg}+e_ju_t,\qquad
-0\le u_t\le U,\qquad
-P_{\rm base}\Delta t\sum_{t=1}^Nu_t=E_{\rm grid}.
-\label{eq:EV}
-\end{equation}
-$u_t$ 是功率 pu，$P_{\rm base}$ 为 kW，$\Delta t$ 为小时，$E_{\rm grid}$ 为电网侧 kWh。若恒定充电效率为 $\eta$，容量为 $E_{\rm bat}$，则
-\begin{equation}
-{\rm SOC}_{t+1}={\rm SOC}_t+
-\frac{\eta P_{\rm base}\Delta t\,u_t}{E_{\rm bat}}.
-\end{equation}
-电网侧总电量中不能再乘一次效率。测试用 $P_{\rm base}=10$ kW、$N=24$、$\Delta t=0.25$ h、$E_{\rm grid}=9$ kWh，比较恒充 1.5 kW 和 0/3 kW 各 12 槽。
-50 kWh 电池、$\eta=0.95$、初始 SOC 为 0.4 时，最终 SOC 为 0.571，位于 $[0.2,0.9]$ 内。
+不得同时把原始 $V$ 和由同一 $V$ 计算的平方压降当作独立计量。平方压降会改变误差分布且引入共同根误差，需另建似然。逐时 15 分钟计量被当作一个稳态 AC 点是算例假设；一般有 $E[f(P,Q)]\ne f(E[P],E[Q])$，强烈时段内波动需额外模型。
 
-这只验证能量和槽平均功率。未验证车辆启动最小电流、暂停恢复、接入资质、爬坡、控制延迟和功率跟踪。相同电量不等于相同峰值或启停成本。现场应使用实际计量功率拟合，不能把指令功率直接当成准确输入。当前 $Q=0$，不存在通过假定独立无功能力获得的额外收益。
-在当前方程中，EV 与能够跟踪相同曲线的可控有功负荷等效；移动接入增加候选地点，但交通和接入调度收益未建模。
-单向充电、恒定效率和固定电量使 SOC 单调且终值固定，首末值满足界就保证全部中间值满足界。
-因此当前验证的是可执行注入与结构辨识的关系，尚不能把电池特性或移动性写成独有算法优势。只有路径、可用时窗、设备能力或多地点分配实际改变设计时，才需要增加相应调度模型。
-
-\section{历史数据怎样约束竞争解释}
-\subsection{完整历史域，而非历史最优点}
-对每个候选定义
-\begin{equation}
-\Th_h^H=\left\{\theta_h\in\Th_h:\ \exists(w_t)_{t\in H},
-\quad |w_t|\le a_hB_t,\quad
-|y_t-R_h(\theta_h)p_t-a_h\bar s_t\one-w_t\one|
-\le\epsilon_t,\ t\in H\right\}.
-\label{eq:hist}
-\end{equation}
-绝对值和不等式逐坐标解释。它保留所有允许解释；先做一次点估计再固定参数会人为缩小竞争能力。
-式 \eqref{eq:hist} 是线性约束下的紧多面体投影，仍为紧多面体；空域表示该候选已与声明历史域不相容。
-
-令
-\[
-q_{it}(\theta_h)=y_{it}-[R_h(\theta_h)p_t]_i-a_h\bar s_t.
-\]
-某时刻存在合法 $w_t$ 当且仅当
-\[
-[-a_hB_t,a_hB_t]\cap
-\bigcap_i[q_{it}-\epsilon_{it},q_{it}+\epsilon_{it}]\ne\varnothing.
-\]
-实数闭区间存在共同交点，当且仅当每个下端点不大于每个上端点。因此精确等价为
-\begin{equation}
-\begin{aligned}
-q_{it}-\epsilon_{it}&\le a_hB_t &&\forall i,t,\\
--a_hB_t&\le q_{it}+\epsilon_{it} &&\forall i,t,\\
-q_{it}-\epsilon_{it}&\le q_{jt}+\epsilon_{jt} &&\forall i,j,t.
-\end{aligned}
-\label{eq:elim}
-\end{equation}
-第三行保留空间共享关系；只保留前两行相当于让不同输出分别选择源响应。反之只保留第三行会丢失源幅值上限。当前标量共同源无需一般高维消元算法。
-
-\begin{proposition}[历史域与联合相容性]\label{prop:hist}
-旧、新数据在同一线路参数下满足式 \eqref{eq:model}，当且仅当存在 $\theta_h\in\Th_h^H$ 和未来合法源轨迹，使未来数据满足同一模型。
+\section{先检查未知量能否分离}
+\label{sec:identifiability}
+\subsection{精确 AC 混淆及锚点}
+\begin{proposition}[无上游锚点时的精确 AC 不识别；本项目推导]
+根复电压 $V_{0t}$ 已知，全部被测末端位于共同源节点 1 下游，只观测末端 P/Q 及电压幅值；没有根总表 P/Q、源遥测或其他上游计量。共同源两个分量逐时自由，原干线阻抗和各时刻源位于参数域内点。则不同的共享干线 R/X 与逐时源可给出完全相同的末端计量均值，有限 EV 观测不能消除此歧义。
 \end{proposition}
 \begin{proof}
-联合可行点限制到 $H$，立即得到 $\theta_h\in\Th_h^H$。
-反之，历史域保证该参数有一个历史源见证；与同一参数的未来源见证拼接即可。当前没有跨时源约束，故拼接有效。
+保持下游阻抗不变，对全部非根电压及下游边电流作 $V'_{jt}=e^{\mathrm j\phi_t}V_{jt}$、$I'_{et}=e^{\mathrm j\phi_t}I_{et}$。选同一附近干线阻抗 $z'_0$，定义
+\[
+I'_{0t}=\frac{V_{0t}-V'_{1t}}{z'_0},\qquad
+S'_{\mathrm{src},t}=V'_{1t}\overline{\left(I'_{0t}-\sum_{e:1\to k}I'_{et}\right)}.
+\]
+干线 Ohm 与节点 1 的 KCL 由定义满足，下游 Ohm/KCL 随共同旋转保持；末端 $S'=V'\overline{I'}=V\overline I$、$|V'|=|V|$。非零 $z'_0$、有限时刻与内点条件保证小 $\phi_t$ 和阻抗扰动仍在域内，形成精确连续等价族；即使取 $\phi_t=0$，改变干线 R/X 仍可由源补偿。EV 已含在末端总 $S$，其有限动作不会破坏该构造，除非增加源约束/独立信息。
 \end{proof}
-若加入源总量、动态或平滑约束，必须额外保存跨边界状态，不能直接沿用这个证明。
-命题只针对\textbf{零额外松弛的相容性}；后文 joint LP 的正松弛会同时放宽历史约束，它不等于固定 $\Th_h^H$ 上的未来距离。
+\path{test_identifiability.py} 对干线单独扰动、相角单独旋转、二者同时改变三种构造作数值核验：独立边/KCL 检查满足 $2\times10^{-12}$ 容差，前向 AC 复电压及末端幅值保持 $10^{-11}$ 精度，总表复功率变化超过 $10^{-3}$ pu；所有见证均在原声明域内。它验证该等价族及遥测作用，不改变算法或冻结统计 cohort。
 
-\subsection{共同源投影保留了什么、丢失了什么}
-取 $C\in\R^{2\times3}$ 满足 $C\one=0$、$CC^\top=I_2$。则
+该命题只针对上述共同源/计量配置，不声称任意源位置都有同一 gauge。根总表给出 $S_{0t}=V_{0t}\overline{I_{0t}}$，为干线电流提供锚点并破坏上述自由构造；是否足以稳定估计全部阻抗仍需激励和局部诊断。另在线性化压降 $d_{it}=a_{h,it}+c_t+b_i^d$ 中，$b_i^{d\prime}=b_i^d+\delta,c_t'=c_t-\delta$ 也说明公共固定偏差与源水平混淆；这是简化偏差反例，实际幅值偏差见式\eqref{eq:obs}。
+
+首阶段固定已校准偏差及根电压，并使用根总表：
+\begin{align}
+P_{0t}&=\sum_i p_{it}+s_t^P+\sum_e r_e|I_{et}|^2,\label{eq:masterP}\\
+Q_{0t}&=\sum_i q_{it}+s_t^Q+\sum_e x_e|I_{et}|^2.\label{eq:masterQ}
+\end{align}
+两通道为两个源分量提供锚点。源并不等于总表和分表简单相减，因为线路损耗同时依赖阻抗和 AC 状态。线路估计仍需充分的 P/Q 时空变化；激励不足时保持未决。
+
+\subsection{局部剖面信息的作用}
+白化残差对共享参数和逐时 nuisance 的 Jacobian 分别为 $J_\beta,J_w$。在内点、光滑及正则条件下，一阶剖面信息为
 \begin{equation}
-Cy_t=CR_h(\theta_h)p_t+Ce_t,\qquad
-\norm{Cd}_2^2=\frac13\sum_{i<j}(d_i-d_j)^2.
-\label{eq:contrast}
+\mathcal I_{\mathrm{prof}}=J_\beta^\top(I-J_wJ_w^+)J_\beta.
+\label{eq:information}
 \end{equation}
-因 $C^\top C=I-\one\one^\top/3$，第二个恒等式直接由去均值平方和展开得到。实现采用右侧，避免选择某个含无理数的正交基；评分不依赖基的具体选择。
-误差变为 $C[-\epsilon_t,\epsilon_t]$，不是自动独立同方差噪声。平方范数仅作为设计损失。
+其秩亏说明共享参数的一阶变化可被逐时状态吸收。数值满秩只支持该拟合点附近的一阶估计，不证明全局唯一或拓扑分离。报告 scaling、秩容差、参数数、贴边和多初值差异。奇异值用于参数诊断；针对竞争结构的设计评分见第\ref{sec:design}节，不能以所有参数方向的最小奇异值代替。
 
-对任意固定残差向量 $r\in\R^3$，令 $\bar r=\one^\top r/3$，有
+\section{固定候选的完整 AC 联合似然}
+\label{sec:fit}
+对相同通道、已知协方差及校准偏差，定义
+\begin{align}
+L_{h,D}(\beta,w_D)&=\sum_{t\in D}
+\norm{y_t-b-m_h(\beta,w_t)}_{\Sigma_t^{-1}}^2,\label{eq:loss}\\
+-2\ell_{h,D}(\beta,w_D)&=L_{h,D}(\beta,w_D)+C_D,\label{eq:likelihood}\\
+C_D&=\sum_{t\in D}\{d_t\log(2\pi)+\log\det\Sigma_t\},\nonumber
+\end{align}
+受完整 AC 方程\eqref{eq:ac}及声明参数/运行域约束。末端真实 P/Q 与读数的差有 Gaussian 计量代价，不能任意改变。这是本阶段明确的 errors-in-variables 处理。
+
+数学全域对象与实现输出分别记作
 \begin{equation}
-\min_{|w|\le aB}\norm{r-w\one}_2^2
-=\norm{Cr}_2^2+3\bigl(|\bar r|-aB\bigr)_+^2.
-\label{eq:lost}
+L_{h,D}^*=\inf_{\beta,w_D}L_{h,D},\quad
+\ell_{h,D}^*=-(L_{h,D}^*+C_D)/2,
+\qquad \widehat\ell_{h,D}=-(\widehat L_{h,D}+C_D)/2.
+\label{eq:localglobal}
 \end{equation}
-证明来自正交分解 $r=(r-\bar r\one)+\bar r\one$，第二项在区间内做标量投影。
-因此对比恰好丢弃了\emph{超出源预算的共同模式}信息；它是简化设计的选择，不是原数据的充分替代。最终判定必须回到式 \eqref{eq:model}。若源位置改变响应方向，固定 $C$ 的消元不再成立。
+实现用有限参数域内的多初值 nonlinear least squares，返回最佳已发现可行局部 $\widehat L$。没有全局下界，也没有证明覆盖所有 AC 解分支，因此\emph{不能将 $\widehat\ell$ 称为已认证全局最大似然}。实际潮流求解只使用 root 初始化的高电压固定点分支，没有枚举其他 AC 平衡；R/X 各自域 $[10^{-6},.1]$ pu，真实末端 P/Q 域 $[-1,1]$ pu，共同源 P/Q 域 $[-.5,.5]$ pu，最终电压域 $[.85,1.15]$ pu。通道数和协方差相同时，似然排名与 $L$ 的反向排名一致；仍保存 Gaussian normalization 以便核对真实对数似然。
 
-\section{从 Dette 的准则迁移到历史约束设计}
-\subsection{明确参考、内层重拟合和外层动作}
-仅由历史和预先声明规则确定参考 $(r,\widetilde\theta_r)$，其中 $\widetilde\theta_r\in\Th_r^H$。定义
+数值实现复用候选的全节点路径矩阵 $B_h$，令 $Z_h=B_h\operatorname{diag}(r+\mathrm jx)B_h^\top$，以 $V=v_0\mathbf1-Z_h\overline{S/V}$ 求固定点。对该式微分，$I=\overline{S/V}$、$A=Z_h\operatorname{diag}(\overline S/\overline V^2)$ 时有
 \begin{equation}
-\begin{aligned}
-T_{r\to h}(A)
-&=\min_{\theta_h\in\Th_h^H}
-\sum_{t=1}^N
-\norm{C\{R_r(\widetilde\theta_r)-R_h(\theta_h)\}p_t(A)}_2^2,\\
-J_r(A)&=\min_{\substack{h\ne r\\\Th_h^H\ne\varnothing}}T_{r\to h}(A),
-\qquad A^\star\in\arg\max_{A\in\mathcal A_E}J_r(A).
-\end{aligned}
+\mathrm dV-A\overline{\mathrm dV}=\mathrm dv_0\mathbf1-\mathrm dZ_h I-Z_h\overline{\mathrm dS}/\overline V.
+\label{eq:derivative}
+\end{equation}
+分开实部、虚部解线性系统得到局部分支的解析 Jacobian，用于稀疏 TRF/LSMR 有界拟合。式\eqref{eq:derivative}要求该局部分支的隐式 Jacobian 可逆；它不证明其他平衡不存在，也不证明目标全局最优。
+
+历史、新增须用同一组 $r,x$ 联合拟合；不能各自拟合线路后相加。共同源按时刻重估且使用同一物理节点；末端总功率直接使用真实读数，不再附加 EV。潮流失败、迭代预算耗尽、未收敛、边界活动和局部盆地差异分别输出。计算失败不是数学不可行，也不是统计拒绝。
+
+\section{依据 Dette 的 EV 模型判别设计}
+\label{sec:design}
+\subsection{原文依据及迁移边界}
+Dette--Titoff\cite{dette} 第 2 节式 (2.4) 对固定参考函数与竞争模型的平方差，先对竞争参数取最小，再选择最大化差异的设计；第 4.2 节式 (4.1) 用模型密度的 KL 推广。
+原文说明参考参数依赖及序贯、Bayesian、maximin 处理；并展示判别设计不必同时适合估计全部参数。本次读取开放电子重印正文第 2 节（PDF 页 2--9）及第 4.2 节（页 17--19），视觉核对页 4、5、18 的核心式，不是摘要依据。
+原文不直接给出本项目 AC、共同源、历史 penalty 或自适应选址的有限样本保证。下面的公式和证明是在本项目假设下自行推导的迁移。
+
+\subsection{参考响应及竞争结构的历史代价}
+从历史得到参考候选 $r$、$\widehat\beta_r$，以及未来基线/共同源 forecast。可执行动作 $a$ 含地点、时段及 P/Q 曲线；预测新增计量均值为 $\widehat\mu_{r,t}(a)$，包含参考的固定仪表偏差。竞争计量均值记为 $\mu_h(\beta,w_t;a)=m_h(\beta,w_t;a)+b_h$；主试验 $b_h=b$ 已知，可选 joint-bias 模型则将 $b_h$ 作为共享参数。参考使用历史和公开约束，不使用真拓扑、未来负荷真值或未来噪声。forecast 失配会改变选址；一个参考和一个 forecast 场景的分数是条件性的，不能宣称 robust。
+
+定义竞争候选的历史剖面损失与历史代价：
+\begin{align}
+L_{h,H}(\beta)&=\inf_{w_H}L_{h,H}(\beta,w_H),\label{eq:profile}\\
+R_h(\beta)&=L_{h,H}(\beta)-L_{h,H}^*.
+\label{eq:penalty}
+\end{align}
+设计准则为
+\begin{equation}
+T_{rh}(a)=\inf_{\beta,w_N}\left\{R_h(\beta)+
+\sum_{t\in N}\norm{\widehat\mu_{r,t}(a)-\mu_h(\beta,w_t;a)}_{\Sigma_t^{-1}}^2\right\}.
 \label{eq:T}
 \end{equation}
-$\mathcal A_E$ 表示同电量及真实设备约束下的可行动作集合。内层允许竞争阻抗在完整历史相容域重拟合；一个 $\theta_h$ 必须解释整段未来响应，不能每时刻任意换参。
-$T$ 衡量预测响应的平方距离，单位为 pu$^4$；没有除以噪声方差，也没有在这里定义似然。比较固定样本数和传感器集合。
+内层改变竞争线路并同时解释历史，新增源可逐时重拟合；线路和可拟合固定偏差跨 $H\cup N$ 共享。未来源不能改为测点独立输出误差。设计预测仅在 forecast 的非 EV 基线上附加一次 EV 曲线，实际联合拟合则直接用已含 EV 的总 P/Q。
 
-对固定动作，$R_h$ 关于 $\theta_h$ 线性，目标是凸二次函数，约束为多面体，故内层为凸 QP。当前只有三个节点、两种曲线，外层直接枚举即可，无需 MILP 或复杂全局设计求解器。
-若历史已排除所有竞争者，应停止此有限候选任务，而不是把空集最小值造成的无穷大称作信息量。
+可计入历史已有候选差 $g_{rh}=L_{h,H}^*-L_{r,H}^*$，得到
+\begin{align}
+g_{rh}+T_{rh}(a)
+&=\inf_{\beta,w_H,w_N}
+\left[L_{h,H}(\beta,w_H)+L_{rh,N}^{\mathrm{forecast}}(a;\beta,w_N)\right]-L_{r,H}^*.
+\label{eq:combined}
+\end{align}
+例如，在预先列出的可行动作集合 $\mathcal A$ 上，用
+\begin{equation}
+S(a)=\min_{h\ne r}[\widehat g_{rh}+\widehat T_{rh}(a)],\qquad
+\widehat a\in\arg\max_{a\in\mathcal A}S(a)
+\label{eq:score}
+\end{equation}
+选择最难区分的竞争者仍较难解释的动作。实现可以直接使用\eqref{eq:combined}，但所有最小值仍是局部计算近似。
 
-\begin{proposition}[固定参考下的历史单调性]
-若 $H\subseteq H'$，原模型、误差域和历史约束不变，则 $\Th_h^{H'}\subseteq\Th_h^H$。固定参考、动作及竞争集合时，
-$T_{r\to h}^{H'}(A)\ge T_{r\to h}^{H}(A)$。
+\begin{proposition}[同协方差 Gaussian KL；本项目推导]
+若同一未来观测向量在参考与竞争模型下分别服从 $N(\mu_r,\Sigma)$、$N(\mu_h,\Sigma)$，同一 $\Sigma\succ0$ 已知，则
+\begin{equation}
+2\KL\bigl(N(\mu_r,\Sigma)\Vert N(\mu_h,\Sigma)\bigr)
+=(\mu_r-\mu_h)^\top\Sigma^{-1}(\mu_r-\mu_h).
+\label{eq:kl}
+\end{equation}
 \end{proposition}
 \begin{proof}
-在更小的可行域上对同一函数取最小值不可能降低最优值。
+把两个 Gaussian log density 的差对参考分布取期望。令 $Y=\mu_r+\epsilon$，$E\epsilon=0$、$E\epsilon\epsilon^\top=\Sigma$。均值为零的交叉项为零；两个二次型的 trace 项以及相同协方差的 determinant 项抵消，只剩 $(\mu_r-\mu_h)^\top\Sigma^{-1}(\mu_r-\mu_h)/2$。独立时刻 KL 相加。
 \end{proof}
-新增历史后若重新选择参考、改变预测或预算，目标也变化，不能用该命题保证新分数或所选动作改善。
+不同或依赖参数的协方差须保留 trace、log determinant 和维数项，不继续只用平方差。式\eqref{eq:T}是未来两倍 KL 与历史相对损失的迁移，不是有限样本拒绝概率。
 
-\subsection{可复现而不冒充真值的参考规则}
-将参数盒归一化为 $x\in[0,1]^5$。每个候选选
-\[
-\widetilde x_h\in\arg\min_{x:\theta_h(x)\in\Th_h^H}
-\norm{x-\tfrac12\one}_2^2.
-\]
-严格凸目标在非空凸域内有唯一最优参数；不同候选仍可能并列。
-这是理想定义。实现使用经原历史域可行性核验的近似代表，并保存其目标与最优值下界；按最优值区间及预定容差 $10^{-7}$ 保留潜在最小候选，不宣称已精确算出唯一参考。
-局部方法选最靠近盒中心的候选作为参考；并列按预定标签处理。这是明确的设计偏好，\textbf{不是有物理定理支持的真拓扑估计器}。
-另用所有相容候选的参考等权平均
-\begin{equation}
-J_{\rm committee}(A)=\frac1{|\HH_H|}
-\sum_{r\in\HH_H}J_r(A),\qquad
-\HH_H=\{h:\Th_h^H\ne\varnothing\}.
-\label{eq:committee}
-\end{equation}
-这些权重不是后验概率。比较此法是为检查单参考偏差是否主导结果，不能称其消除了不确定性。
-
-到任意固定非空预测集的距离 $d_h(z)$ 是 1-Lipschitz。因此令 $z^\star,z^{\rm ref}$ 为堆叠后的真实与参考无噪声对比响应，
-\begin{equation}
-\left|d_h(z^\star)-\sqrt{T_{r\to h}(A)}\right|
-\le\norm{z^\star-z^{\rm ref}}_2.
-\label{eq:referror}
-\end{equation}
-证明由三角不等式对任意集合点取下确界，再交换两输入得到。
-没有可核验的参考误差界时，大 T 分数本身不能保证真实响应可区分；所以实验必须隔离生成真值与选择器。
-
-\subsection{场景和软历史：只在需要时引入}
-若 $s$ 表示互斥的未来背景，合理的加权设计可以定义为
-\begin{equation}
-J(A)=\sum_s\pi_s\min_{h\ne r_s}\min_{\theta_h\in\Th_h^H}
-L_{s,h}(\theta_h;A),\qquad \pi_s\ge0,\quad\sum_s\pi_s=1.
-\label{eq:scenario}
-\end{equation}
-每个实际发生的场景内共用参数，但互斥未来的最佳竞争解释允许不同。
-一般 $\sum_s\pi_s\min_\theta L_s\le\min_\theta\sum_s\pi_sL_s$。
-两等权目标 $+1,-1$ 用常数 $c$ 拟合时，前者为 0、后者为 1；错误共享会制造不存在的分离。只有这些场景数据将共同发生并联合拟合时，后者才对应正确实验。未校准的 $\pi_s$ 只是设计权重。
-
-若无法合理使用硬误差域，可以用历史与未来联合损失增量
-\[
-\Delta_h(A)=\min_{\theta_h}\{L_h^H(\theta_h)+L_h^F(\theta_h;A)\}
--\min_{\theta_h}L_h^H(\theta_h).
-\]
-它允许参数在旧、新拟合之间折中，损失尺度需声明；不等价于硬历史域，也没有自动的确定性排除意义。本报告优先检验硬历史路线，不为形式丰富同时堆叠多套未经验证的接口。
-
-\section{何时无需复杂波形优化：端点定理与反例}
-\subsection{静态背景下的严格表述}
-固定参考、节点 $j$ 和所有非空紧历史域，令 $p_t^{\rm bg}=p^{\rm bg}$，槽长、观测权重相同；曲线约束仅为
-\[
-0\le u_t\le U,\qquad \sum_tu_t=S,\qquad
-S=\frac{E_{\rm grid}}{P_{\rm base}\Delta t},\quad 0\le S\le NU.
-\]
-对每个竞争参数定义
-\begin{equation}
-\begin{aligned}
-d_{0h}(\theta)&=C[R_r(\widetilde\theta_r)-R_h(\theta)]p^{\rm bg},\\
-d_{1h}(\theta)&=C[R_r(\widetilde\theta_r)-R_h(\theta)]e_j,\\
-B_h(\theta)&=\norm{d_{1h}(\theta)}_2^2\ge0,\\
-A_h(\theta)&=N\norm{d_{0h}(\theta)}_2^2+
-2S\langle d_{0h}(\theta),d_{1h}(\theta)\rangle,\qquad
-v(u)=\sum_tu_t^2 .
-\end{aligned}
-\label{eq:AvB}
-\end{equation}
-展开每槽平方得到
-\begin{equation}
-J_r(u)=\min_{h\ne r,\,\theta\in\Th_h^H}
-\{A_h(\theta)+v(u)B_h(\theta)\}.
-\label{eq:Fv}
-\end{equation}
-$A_h$ 本身未必非负，但可行 $v$ 上整个表达式是平方和。
-
-\begin{theorem}[复合竞争模型下的端点非严格最优]\label{thm:endpoint}
-式 \eqref{eq:Fv} 关于 $v$ 非减且凹。设 $k=\lfloor S/U\rfloor$、$r_0=S-kU$（$U>0$），则最大可行二阶矩为
-\[
-v_{\max}=kU^2+r_0^2,
-\]
-由 $k$ 个满功率槽、至多一个 $r_0$ 槽及其余零槽达到。这类曲线最大化 $J_r$；恒充给出最小二阶矩 $S^2/N$，所以端点对该准则不差于同电量恒充。
-\end{theorem}
-\begin{proof}
-每个 $(h,\theta)$ 的 $A_h+vB_h$ 都是斜率非负的仿射函数，其逐点下确界非减且凹；这一步已包括竞争参数重拟合。
-若两个功率严格在 $(0,U)$ 内，保持其和，把较小者的一部分移至较大者，直至其中一个到边界，平方和严格增加。有限次处理后至多一个内点，和约束确定最大值。恒充的最小值由 Cauchy--Schwarz 不等式 $\sum u_t^2\ge S^2/N$ 得到。
-\end{proof}
-直觉是：固定总电量使一次项不变，增加二阶矩只会给每个竞争解释增加非负的激励差异，随后重新拟合也无法反转这一点。
-对于式 \eqref{eq:committee}，每个参考都满足同一结论，故非负加权和也满足。
-$U=0$ 只存在零输入，无设计问题。
-
-\begin{proposition}[严格增益的充要条件]\label{prop:strict}
-令 $F(v)$ 表示式 \eqref{eq:Fv}，非空紧域及连续性保证最小值达到。对 $v_2>v_1$，
-\[
-F(v_2)=F(v_1)
-\ \Longleftrightarrow\
-\exists(h,\theta)\in\arg\min(A_h+v_1B_h)
-\text{ 满足 }B_h(\theta)=0.
-\]
+\begin{proposition}[历史代价的非负性与局部优化例外]
+若 $L_{h,H}^*$ 是声明域内的真实 infimum，则每个可行 $\beta$ 均有 $R_h(\beta)\ge0$。用局部基准 $\widehat L_{h,H}$ 替代时，非负性不保证。
 \end{proposition}
 \begin{proof}
-若值相等，取 $v_2$ 的最优点 $x_2=(h,\theta)$，则
-\[
-F(v_1)\le A(x_2)+v_1B(x_2)
-\le A(x_2)+v_2B(x_2)=F(v_2)=F(v_1).
-\]
-因此全部相等，$B(x_2)=0$ 且 $x_2$ 也在 $v_1$ 最优集中。
-反之，取 $v_1$ 的一个 $B=0$ 最优点，其值不随 $v$ 增加；结合非减性即可。
+全域 infimum 不大于固定 $\beta$ 后对历史状态的 infimum，故相减非负。局部基准可能高于真 infimum；另一次重拟合找到更低历史损失时，二者差可为负。
 \end{proof}
-严格收益要求当前最难的最佳竞争解释都无法精确匹配这个节点的对比响应方向。
-全域 $B_h\ge\beta>0$ 给出更强的充分界 $F(v_2)-F(v_1)\ge\beta(v_2-v_1)$，但不是必要条件。无需用全方向最小奇异值替代这个针对结构和节点的条件。
+负的计算 penalty 表示基准优化不充分，不能裁剪为零后冒充精确设计。应以新参数重启历史拟合、更新基准并重算动作；预算不足时保留优化不稳定。当前选择器对 joint-minus-history 局部 increment 小于 $-10^{-7}$ 的动作记录 \path{historical_baseline_instability}，保留原始值并禁止选用；没有自动全域恢复。内层局部最小值可能高于真最小值而夸大可区分性，多初值降低此风险但不消除。
 
-\subsection{不应扩大成一般波形最优性}
-当前模型只依赖功率计数，不依赖顺序。采用 $(0,3,3,0)$ kW 重复六次只是一个实现；ABBA 次序没有额外理论优势，静态背景也不能支持“择时算法有效”的结论。下列反例均为模型区分平方损失的精确反例，不声称自动属于本三末端参数盒。
+直觉是：竞争结构能够改变线路去追随 EV，但改动后还须解释过去。设计寻找这种共同解释最困难的动作。历史和未来分别拟合线路会消除历史代价；源放宽为逐输出误差会吸收结构信息。弱支路即使设计后仍能共同解释时，未决应保留。
 
-\paragraph{时变背景。}
-两个槽、$U=1$、$u_1+u_2=1$，两个固定竞争解释的残差为
-$r_1=(u_1,u_2-1)$、$r_2=(u_1-1,u_2)$。
-写 $u=(t,1-t)$，则 $J=\min\{2t^2,2(1-t)^2\}$。
-两种端点分数均为 0，恒充为 $1/2$，而且全局最优。时变截距破坏了式 \eqref{eq:AvB} 的固定一次项。
+\section{动作、运行条件与公平对照}
+\label{sec:actions}
+动作包含地点 $j_t$、连接指示 $c_t$ 及 $u_t^P,u_t^Q$。仅可在有接入许可和时间窗口的地点连接，满足
+\begin{align}
+|u_t^P|&\le c_t P_j^{\max},&
+(u_t^P)^2+(u_t^Q)^2&\le c_t(S_j^{\max})^2,\label{eq:power}\\
+E_{t+1}&=E_t+\Delta t\bigl(\eta_c[u_t^P]_+-[-u_t^P]_+/\eta_d\bigr)-E_t^{\mathrm{move}},&
+E_{\min}&\le E_t\le E_{\max}.\label{eq:soc}
+\end{align}
+地点变更至少占用声明的移动时间 $\tau_{ij}$；行驶和插拔期间 $c_t=0$，功率为零。单地点计划仍需满足初始地点的 travel deadline；当前主试验统一初始地点 0，前往其他地点必须先在观测窗内预留一个移动时隙并扣 .2 kWh 电池能量；所有 EV 策略使用相同出发条件。终端能量满足任务要求，同电量对照明确采用 grid-side $\sum_tu_t^P\Delta t$ 或 battery-side 口径，不能混用。
 
-\paragraph{时间异权。}
-静态背景，竞争残差分别为 $u_t$ 和 $1-u_t$，时间权重为 $(100,1)$，则
-\[
-J=\min\{100u_1^2+u_2^2,\ 100(1-u_1)^2+(1-u_2)^2\}.
-\]
-端点均为 1，恒充为 $101/4=25.25$。简单改成加权二阶矩不能保留原证明。
+当前实现是仅充电、固定 charger Q/P（默认 0）的有限 stationary/mobile 动作库，没有独立 Q 优化或放电；11 个动作预算保留三地点 early/late/constant 与两个 mobile 计划，仍只是有限动作库；式\eqref{eq:power}--\eqref{eq:soc}说明一般物理约束。首个算例统一 grid energy 6 kWh、最大充电 6 kW、电池 60 kWh、效率 .95、初始 SOC .4、SOC 域 [.1,.9]，地点切换占用一个时隙并扣 .2 kWh 电池能量。
 
-\paragraph{爬坡约束。}
-再要求 $|u_2-u_1|\le0.4$，端点均不可行，最大二阶矩由 $(0.7,0.3)$ 或逆序达到，两个槽都在内部。SOC 路径、功率跟踪、变槽长等同样需要重新检查。
-定理的价值是识别可以省略的优化，而不是为现实约束外推结论。
+当前试验强制执行各对照以比较信息增益，没有独立校准的历史阈值及 EV 触发/停止规则；历史 winner 只表示排名，不能称为历史已统计区分。式\eqref{eq:combined}含历史已有 gap，整体分数不等于 EV 增益，应分别检查新增局部 increment 和实际联合似然结果。
 
-\section{执行后如何判定，以及数值界怎样可信}
-\subsection{完整 joint LP}
-采集未来数据后，对 $t\in H\cup F$ 求
+各策略使用相同观测长度、噪声模型和拟合预算：同长度无 EV；固定地点同电量恒充；固定地点调制；随机可行动作；历史数据设计动作。所有 EV 策略对齐电量、接入和功率预算；无 EV 的电量是零，只对齐观测时长。预测 AC 运行域通过局部拟合检查不等于现场运行安全保证。
+
+选择器可读取历史原始计量、固定校准、设备/地点约束和明确的 forecast 规则。真线路、真拓扑、未来扰动和未来噪声只供仿真器及离线评分。未来 AC 方程中的共同源可重拟合，不使用旧固定误差盒、外 LP 或所有方向最小奇异值作为主判据。
+
+\section{统计校准、候选漏真与失败分类}
+\label{sec:calibration}
+联合数据的有限库相对统计量可以定义为
 \begin{equation}
-\begin{aligned}
-\tau_h=\min_{\theta_h,w,\tau\ge0}\quad&\tau\\
-\text{s.t.}\quad&
-|y_t-R_h(\theta_h)p_t-a_h\bar s_t\one-w_t\one|
-\le\epsilon_t+\tau\one,\\
-&|w_t|\le a_hB_t,\qquad \theta_h\in\Th_h .
-\end{aligned}
-\label{eq:finalLP}
+D_h=\widehat L_{h,H\cup N}-\min_{k\in\HH}\widehat L_{k,H\cup N}.
+\label{eq:deviance}
 \end{equation}
-其参数和源均充分重拟合。有效正下界 $\underline\tau_h>0$ 才支持排除；低残差或求解器成功不等于认证。数值失败保留未决。
-当前实现额外限制 $\tau\le1$，本实验对每次求解核验原模型可行上界小于 1，故不改变所测最优值；这一实现上限不是一般模型定理，超界或无可行解时只能报未决。
-注意这里也放宽历史约束，故正的 $\tau_h$ 不是固定 $\Th_h^H$ 上的未来距离，只有 $\tau=0$ 的相容性满足命题 \ref{prop:hist} 的等价。
+不同非嵌套拓扑、边界阻抗、弱辨识、逐时 nuisance、自适应候选和 EV 选择使固定自由度 $\chi^2$ 阈值不能自动适用。$D_h$、似然、bootstrap 频率和设计分数均不称为拓扑正确概率。
 
-\begin{proposition}[条件性真候选保留]
-若真拓扑在候选库内，真参数在声明域内，源位置与模型正确，真实源偏差满足 $B_t$，全部观测误差满足预算，则真候选满足 $\tau_{h_\star}=0$。仅凭有效正下界排除的规则不会删除它。
-\end{proposition}
-\begin{proof}
-代入真参数、真源轨迹及 $\tau=0$ 即为可行点；目标非负，故最优值为零。
-\end{proof}
-若另有经证明的联合误差事件 $\Pr(\mathcal E)\ge1-\alpha$，上述确定性蕴含才导出
-$\Pr(h_\star\text{ 被保留})\ge1-\alpha$。它不是输出后正确概率。
-当前 27 个合成 episode 不提供这种概率校准。
+若使用 parametric bootstrap，在已拟合候选的 plug-in 参数、声明的 nuisance 和误差下生成历史，每个 replicate \emph{重新运行}被动候选生成、参考拟合、EV 选择、未来生成、联合拟合和统计量。只固定原动作重抽未来噪声不能校准整个自适应流程。源为条件确定 nuisance 时，须说明如何固定/预测其序列，不能无依据赋随机 prior。这样的校准仍条件于 plug-in 模型、参数和计算预算，不是一般有限样本证书。
 
-\begin{proposition}[设计分离通向实际排除的条件桥梁]
-固定历史和动作，把未来对比按时间堆叠，记
-$K_h(A)=\{(CR_h(\theta)p_t(A))_{t\in F}:\theta\in\Th_h^H\}$。
-设真实无噪声响应为 $z^\star$，参考响应为 $z^{\rm ref}$，并有可验证界
-$\norm{z^\star-z^{\rm ref}}_2\le\eta_A$。
-令 $\rho_F=(\sum_{t\in F,i}\epsilon_{it}^2)^{1/2}$。
-在真实误差满足预算的条件下，若
-\[
-\sqrt{T_{r\to h}(A)}>\eta_A+2\rho_F,
-\]
-则候选 $h$ 的联合零松弛不可行，且式 \eqref{eq:finalLP} 的最优值严格为正。
-\end{proposition}
-\begin{proof}
-若零松弛可行，命题 \ref{prop:hist} 保证其未来预测 $z_h\in K_h(A)$。
-观测对比同时等于 $z^\star+(Ce_t^\star)_{t\in F}$ 和
-$z_h+(Ce_t^h)_{t\in F}$。
-因 $\norm{C}_{\rm op}=1$，两误差范数均不超过 $\rho_F$，故三角不等式给出
-$\operatorname{dist}(z^{\rm ref},K_h(A))\le\eta_A+2\rho_F$，矛盾。
-参数和源域紧，残差最小值达到，因此不存在零松弛点就意味着最优松弛为正。
-\end{proof}
-这个命题解释大设计分数在什么额外条件下有意义；它不要求改变现有算法。
-当前没有核验实际参考误差 $\eta_A$，所以不能把这个条件当成已获得的现场保证。
-它也不给出 $\tau_h$ 的数值下界，因为正松弛会放宽历史域。
+当前实现没有执行上述 plug-in bootstrap，采用预声明合成分布的独立校准口径。在预先声明的合成参数族中，使用独立 calibration 与 evaluation seed cohort；前者冻结阈值，后者统计真实候选误拒绝、错误候选排除及保留真且排除所有错候选的次数。校准时每个 seed 对五种策略取 maximum，再对各 seed 的 maximum 取第 $k=\lceil(B+1)(1-\alpha)\rceil$ 个顺序统计量；B=20、$\alpha=.1$ 时 k=19。五种策略在同一 seed 内可以相关，不把 100 条方法记录视为 100 个独立样本。每个种子均重跑候选/参考/动作选择，因此能检查当前合成族的经验校准；不能外推为现场或全参数域保证。小样本必须保留次数与分母：即使 $0/M$ 次误拒绝，一侧 95\% Binomial 上界仍为 $1-0.05^{1/M}$，不能写成零风险。
 
-T 使用 $\ell_2$ 平方，而最终 LP 使用 $\ell_\infty$ 额外松弛，排序可能反转：
-残差 $(2,0)$ 与 $(1.5,1.5)$ 的平方和为 $4,4.5$，最大坐标为 $2,1.5$。因此端点 T 最优、参考正确、实际排除余量更大是三个不同结论，必须分别检验。
+若校准与评价的完整流水线 maximum 在同一固定合成生成分布和算法下可交换，新值的 rank 在 $B+1$ 个值中对称，故超过第 k 个校准值的边际概率至多 $(B+1-k)/(B+1)$，连续时为 $2/21$。此顺序统计量论证不要求策略间独立；但仅限该合成分布，不是对已实现阈值条件化后的现场保证。过滤优化失败、候选漏真或分布改变时不能直接沿用，应保留失败分母。
 
-\subsection{QP 和 LP 的可核验上下界}
-为避免把数值状态当证明，内层凸 QP 同时报告可行上界和凸性下界。
-在归一化参数盒 $x\in[0,1]^5$ 上，历史精确行写为 $A_*x\le b_*$。用向外舍入构造 $Ax\le b$，确保包含全部原域。
-对于任何有理数乘子 $\lambda\le0$ 及线性目标 $g^\top x$，令 $z=g-A^\top\lambda$，有
-\begin{equation}
-L(g)=b^\top\lambda+\sum_j\min(0,z_j)
-\le\min_{\substack{Ax\le b\\0\le x\le1}}g^\top x.
-\label{eq:dual}
-\end{equation}
-证明：$\lambda^\top Ax\ge\lambda^\top b$，且 $z^\top x\ge\sum_j\min(0,z_j)$。
-这对不满足浮点站立性的乘子也有效；将正乘子截为零后，剩余站立性误差由盒项完整补偿。
-式 \eqref{eq:dual} 是一般盒 $\ell\le x\le u$ 下有效界
-$b^\top\lambda+\sum_j\min(\ell_jz_j,u_jz_j)$ 的单位盒特例。
-最终 LP 包含可正可负的 $w$，使用这一一般形式，不能对其直接套用单位盒项。
+本次生成真拓扑仅从三种 cherry 抽取，star 只作竞争候选，因此校准结论仅针对该 cherry-truth 混合分布，未验证 star-truth 或全参数域。最佳候选的 $D=0$，非负阈值下保留集机械地非空，非空或唯一保留不能证明库内有真。
 
-对凸二次 $f$，任意点 $x_0$ 的切平面给出
-\begin{equation}
-f^\star\ge f(x_0)-\nabla f(x_0)^\top x_0+L(\nabla f(x_0)).
-\label{eq:QPbound}
-\end{equation}
-精确可行点 $\widehat x$ 则给出 $f^\star\le f(\widehat x)$。实现以输入浮点数对应的精确有理数校验可行性、目标及界，再向外舍入输出。
-QP 求解失败或薄域数值问题不能静默移除一个拓扑；此时设计应标为未决。
-下界属于凸优化对偶证据，不意味着 MILP 的 LP 松弛对偶是整数系统的真实边际价格。对于一般 MILP，它只能解释该松弛的局部敏感性；有限整数结构改变时需重新分析。
+候选漏真要单独标记。相对统计量可能偏好一个仍然错误的结构，需同时检查 absolute fit-loss adequacy（同样经过声明流程校准）、逐通道残差和源/偏差诊断。绝对拟合良好也不能证明真结构在库内，库外近似等价模型仍可能存在。
 
-候选和动作按区间比较：一个动作只有下界超过所有其他上界及预定容差时，才被称作唯一确定的最优动作；区间重叠保留并列，再按预定标签执行。
-向外舍入解决的是数值模型证书，无法补偿错误的物理假设、输入测量或过小的误差预算。
+\begin{center}\small
+\begin{tabular}{L{.17\textwidth}L{.34\textwidth}L{.39\textwidth}}\toprule
+类别 & 触发例子 & 应报告的结果\\\midrule
+信息不足 & 弱支路、激励小、关键地点不可接入、源吸收结构响应 & 似然差小、剩余候选、不可达动作；保留未决\\
+模型问题 & 源接入点错误、偏差未校准、稳态假设失败、候选漏真 & 绝对损失及残差异常；不强选真结构\\
+计算问题 & AC 不收敛、预算耗尽、局部盆地不一致 & 最佳可行点、状态、时间和未决；不算统计排除\\\bottomrule
+\end{tabular}
+\end{center}
 
-\section{算例：先证明机制，再检验可用的选点规则}
+\section{小型局部实验及本次证据}
 \label{sec:results}
-\subsection{v6 可解析机制：完整重拟合仍有收益}
-历史机制与 v7 使用不同参数域，不能混算。v6 取
-\[
-\Th=[.01,.05]\times[.005,.03]\times[.01,.12]^3,\qquad
-h_\star=12,\quad\theta_\star=(.02,.01,.06,.06,.06).
-\]
-背景 $p^{\rm bg}=(.2,.2,.2)$，$\bar s_t=.12$，允许源预算 $B=.10$，真实 $|\delta s_t|\le.02$。
-历史 12 点无 EV，未来 24 点在节点 1 施加等 9 kWh 曲线。
-附录 \ref{app:exact} 给出对完整竞争参数域的下界和达到下界的显式参数。
-无测量噪声时，错误候选的最小 $\ell_\infty$ 距离如下，尚未扣测量预算：
-\begin{center}
-\begin{tabular}{L{7.3cm}rr}\toprule
-模型与数据 & $d_{13}^0$ & $d_{23}^0$\\\midrule
-共同源，历史 + 恒充，联合参数 & $5.625\cdot10^{-4}$ & $3.750\cdot10^{-4}$\\
-共同源，历史 + 端点，联合参数 & $1.125\cdot10^{-3}$ & $7.500\cdot10^{-4}$\\
-共同源，恒充，分批重置参数 & 0 & 0\\
-共同源，端点，分批重置参数 & $1.125\cdot10^{-3}$ & $7.500\cdot10^{-4}$\\
-逐输出源盒，任一曲线，联合参数 & 0 & 0\\
-\bottomrule\end{tabular}
-\end{center}
-结论是局部机制成立，而不是每个动作都提高成功率。小误差 $\epsilon=10^{-5}$ 下，两种联合曲线都已排除两个错误候选；端点增加距离，未提高这个例子的排除个数。
-历史对恒充有严格作用，但端点新批本身已含两个功率极值，加入历史不再扩大这里的距离。
-原验证共 204 次 LP，误差大、弱/退化结构等未决结果保留在 v6 工件。
+\subsection{冻结配置、覆盖和评价分母}
+初始试验使用三末端 reduced star 与三种二末端共享支路候选。生成真拓扑从三种 cherry 中随机抽取，star 仅作竞争模型。强支路 $(r,x)=(.012,.007)$ pu；弱支路 $(3\times10^{-5},2\times10^{-5})$ pu。公共干线 $(r_0,x_0)=(.005,.0035)$ pu，末端线路按标签分别给定；完整真值、观测和各候选拟合向量保存在结果记录中。
 
-\subsection{v7 预先冻结的观测驱动协议}
-v7 改为只根据历史选择参考和节点，禁止读取生成真值或未来电压。所有方法共用
-\[
-\Th=[.01,.05]\times[10^{-6},.03]\times[.01,.12]^3 .
-\]
-扩大 $b$ 域是为了包含弱共享支路；不得把 v6 的 $b\ge.005$ 解析值当成 v7 的精确数值。
-正式表为三个真拓扑、三种参数和三个种子 $7201,7202,7203$ 的完整笛卡尔积：
-\begin{center}\small
-\begin{tabular}{lrrrrr}\toprule
-参数组 & $a$ & $b$ & $c_1$ & $c_2$ & $c_3$\\\midrule
-对称 & .020 & .010 & .060 & .060 & .060\\
-不对称 & .027 & .018 & .035 & .081 & .052\\
-弱支路 & .020 & $.000001$ & .060 & .060 & .060\\
-\bottomrule\end{tabular}
-\end{center}
-每个 episode 的六个动作是三个节点乘两种曲线，各做三个完整候选 joint LP，共 $27\times6\times3=486$ 次最终 LP。
-设计阶段每个 episode 为三个参考、两个竞争者、六个动作，共 36 个设计 QP，另有三个历史参考 QP。
-六个动作严格配对相同历史、实际源轨迹和噪声；只有动作输入改变。真实噪声幅度在声明 $\epsilon=10^{-5}$ 的 $0.8$ 倍内。
+历史 12 点，新增 8 点，15 分钟/点；根幅值可信固定，源 P/Q 各时刻独立变化并由根总表锚定，末端 P/Q/V 固定偏差已校准。随机计量标准差为 $(\sigma_P,\sigma_Q,\sigma_V)=(.0006,.0004,.00012)$ pu，根总表 P/Q 均为 $.001$ pu。源消耗 $s^P=.10\pm.035$、$s^Q=.035\pm.015$ pu，按声明的独立 uniform 分布生成；此源生成分布用于合成校准，不是估计时强制的固定比率。
 
-局部参考法、等权参考法与固定节点 1 比较；同时比较各自选中节点的恒充。
-用未来结果枚举出的最好节点仅作为评价上限，不参与决策。
-试运行种子 601、602 不进入正式统计；首次数值可行性修复前的失败输出亦保留，修复后才冻结核心代码和正式协议。
-结果中的“命中最佳”若存在数值区间并列，只表示选中节点在可能最优集合中，不是严格证明唯一最优。
+校准种子 41000--41019、评价种子 51000--51019，强/弱情景分别各 20 个校准和 20 个评价，共 80 trial、400 方法记录。\path{evidence/formal_summary.json} 保留配置、版本/hash、阈值和汇总；发布的 \path{evidence/formal_fits.csv} 保留逐候选 $r,x,L,\widehat\ell$ 和诊断，\path{formal_design.csv} 保留动作评分/竞争重拟合；\path{formal_trials.json} 保留 trial 摘要及计量 hash。本地完整 \path{formal_records.json} 留作详细审查，未纳入推送。线路/源外层拟合两初值，设计内层一个初值，最多 120 次目标求值；每种子调用观测侧 RNJ/WZZT，WZZT 每 solve 预算 .3 秒。所有统计 trial 使用同一稀疏局部求解器；数值源码冻结于 \path{434b2d3}，并行编排记录于 \path{f741aac}。
 
-\subsection{正式结果：选点有局部收益，单参考会失败}
-定义实际排除余量
-$m(A)=\min_{h\ne h_\star}\tau_h(A)$，
-表中使用经过核验的下界；真值仅用于评价哪些候选是错误候选，不进入选择器。
-“完全区分”表示两个错误候选均有有效正下界，且真候选未被排除。
-\begin{center}\small
-\begin{tabular}{L{3.8cm}rrrr}\toprule
-策略 & 端点完全区分 & 同址恒充 & 端点平均 $m$ & 恒充平均 $m$\\
- & 次数/27 & 次数/27 & \multicolumn{2}{c}{单位：$10^{-4}$}\\\midrule
-局部单参考选点 & 15 & 15 & 5.480 & 2.727\\
-等权多参考选点 & 18 & 18 & 6.975 & 3.473\\
-固定节点 1 & 12 & 12 & 4.646 & 2.313\\
-\bottomrule\end{tabular}
-\end{center}
-三组参数各含三个真拓扑和三个种子，结果分解如下：
-\begin{center}\small
-\begin{tabular}{lrrr}\toprule
-参数组 & 局部单参考 & 等权多参考 & 固定节点 1\\\midrule
-对称（9 例） & 9/9 & 9/9 & 6/9\\
-不对称（9 例） & 6/9 & 9/9 & 6/9\\
-弱支路（9 例） & 0/9 & 0/9 & 0/9\\
-\bottomrule\end{tabular}
-\end{center}
+被动提案及独立于真拓扑的预声明局部 repair bank 分开记录；两者在本次强、弱评价中均覆盖真实候选 20/20，但只证明该 reduced 三末端类的覆盖。强情景 seed 51007 的固定调制对 \path{clade_01} 拟合耗尽预算，因此该 seed 的五种方法统一从主要配对比较排除，原始数据和失败保留；不能将该失败当作统计排错。强情景主分母 19，弱情景 20。所有 40 个校准 trial 完整。
 
-这些是冻结小型合成测试的描述性结果，不是总体成功概率或统计显著性证明。
-多参考法相对固定点增加 6 个完全区分 episode；但不能因此宣称每次余量更好。
-在 18 个非弱支路 episode 中，按最终 LP 余量命中事后最好节点的次数仅为局部法 8/18、多参考法 10/18、固定点 6/18。
-若把 9 个所有节点都零余量的弱支路平局计为命中，会得到 17/27、19/27、15/27，因而明显美化指标；主解释不采用这种口径。
-
-对于局部法与多参考法，端点比同址恒充严格增大实际余量的次数分别为 15、18，其余未获得辨识增益。
-正余量样本的倍数范围约为 2.004--2.015，但恒充已足以排除相同错误候选，故没有新增完全区分次数。
-因此当前证据支持“增加排除余量”，不支持“同址调制提高识别成功率”的更强说法。
-
-\paragraph{必须保留的单参考失败。}
-真拓扑 13、不对称参数、种子 7201 时，历史中心规则选了错误参考 23。
-局部 T 分数对节点 2、3 的区间重叠，预定标签规则执行节点 2，两个错误候选均无法排除。
-同一 episode 的固定节点 1 能排除两个错误候选，最小余量约 $1.3437\times10^{-3}$；多参考法唯一选节点 3，余量约 $1.3464\times10^{-3}$。
-种子 7202、7203 出现相同的单参考失败结构。
-这是“参考选择加并列执行规则”的实际失败，不能改写成“唯一 T 最优节点被证明选错”，也不能在看过结果后改并列规则再重算正式成绩。
-
-局部历史参考在 20/27 例与真拓扑标签相同；节点区间比较在局部法 24/27、多参考法 27/27 例得到唯一排序。
-弱支路中仍可能出现唯一的 T 排名而最终全部未决，直接说明设计排名不等于辨识保证。
-对全部历史相容参考逐一重评分的事后敏感性记录已保存，不用于调整已冻结决策。
-
-\paragraph{数值与配对核验。}
-972 个设计 QP 的最大上下界间隙为 $9.84\times10^{-10}$；
-81 个参考 QP 的目标是归一化盒中心距离，最大间隙约 $9.96\times10^{-7}$，量纲及尺度不同，不能混报成同一精度。
-486 个最终 LP 的最大间隙为 $5.60\times10^{-10}$，所有原模型可行上界小于 $0.001348<1$，故实现的 $\tau\le1$ 上限未改变这些最优值。
-真实拓扑在所有动作中均未被排除。
-工件审计逐项核对源码哈希、27 例完整表、输入哈希、跨动作历史/源/噪声配对、等电量、参考可行性与向外舍入，全部通过。
-
-\subsection{额外控制：收益来自哪里，什么时候应当不再探测}
-另做 57 次最终 LP，使用独立种子 7301--7304，不混入 27 例正式统计。
-
-\paragraph{同一观测的源模型和历史消融。}
-在真拓扑 12、对称参数、节点 1、种子 7304 的同一观测上，仅改变允许解释的约束：
-\begin{center}\small
-\begin{tabular}{L{6.7cm}rr}\toprule
-解释模型 & 恒充最小错误余量 & 端点最小错误余量\\
- & \multicolumn{2}{c}{有效下界，单位：$10^{-4}$}\\\midrule
-共同源 + 历史新数据联合参数 & 3.7122 & 7.4660\\
-逐输出独立源盒 + 联合参数 & 0 & 0\\
-共同源 + 分批重置参数 & 0 & 7.4660\\
-\bottomrule\end{tabular}
-\end{center}
-零下界对应核验的近零可行上界（约 $10^{-17}$），不是求解失败。
-这与解析机制一致：空间共享约束和历史参数共享能够有实质作用；端点新批已提供所需变化，历史不一定再带来严格增益。
-
-\paragraph{源与 EV 同步变化。}
-种子 7301 把未来源偏差设为 $\delta s_t=(.02/.15)(u_t-.15)$，即端点充电对应 $\pm.02$，恒充对应 0。
-两种选点规则均选节点 1，端点排除两个错误候选，最小余量约 $7.4707\times10^{-4}$；恒充约 $3.6997\times10^{-4}$。
-该例检验不需要 EV 与共同源独立；因这里源会跟随动作改变，跨曲线源轨迹并不相同，不能并入主试验的严格配对均值。
-
-\paragraph{较大误差。}
-种子 7302 使用 $\epsilon=.002$，生成噪声也按同一 $0.8\epsilon$ 比例扩大；所有地点和曲线均无法排除错误候选。
-这是大测量误差场景的负结果，不是仅增加声明预算而固定原噪声的单因素消融。更强激励不能无限抵消测量误差。
-
-\paragraph{历史已足够。}
-种子 7303 的 12 个历史点逐节点轮换增加 $.02$ pu 有功，尚未追加 EV 新数据就排除了两个错误候选，最小余量约 $9.3968\times10^{-5}$。
-在这个有限候选任务上继续 EV probing 已无结构排除价值。合理算法应先检查现有歧义，而非总安排一次充电实验。
-
-57 次控制 LP 的可行上界和对偶下界均通过核验，最大间隙约 $4.20\times10^{-16}$，最大可行上界小于 $.000748<1$。
-时变背景、异权和爬坡的解析反例另由独立测试验证；没有为了显示更强结果而改写正式协议。
-
-\subsection{可复现性与验证范围}
-代码位于 \path{research_experiments/mobile_ev_probing/}：
-\path{design_v7.py} 为冻结选择器，\path{local_shared_source_v6.py} 为共同的最终 LP，\path{controls_v7.py} 保存预声明反例控制，\path{audit_design_v7.py} 核对结果工件。
-\path{README_v7.txt} 给出完整命令；\path{results_v7/} 保存协议、观测、独立评价真值、源码与输入哈希、全部上下界和负结果。
-生成真值文件不被设计 API 使用。
-
-v7 实现测试 6 项、独立审查测试 5 项全部通过。独立审查把消元域与显式 $(\theta,w)$ 历史 LP 在三个候选的 11 个目标方向对比，最优值最大差为 $1.81\times10^{-16}$；
-解析 QP 真值 $1/2$ 落在所报上下界内，间隙约 $2.0\times10^{-10}$。
-这些是有针对性的交叉验证，不是对任意输入的程序正确性证明。
-结果应连同模型范围解释：合成线性局部系统、已知源响应方向、准确总有功和有限三候选；不能写成实网 EV 显著性结论。
-
-\section{被动优先与 AC 补证：v8 的模型、证明和实现}
-\label{sec:v8}
-\subsection{先让已有数据发挥作用}
-记 $D$ 为已收集的全部 PQV 数据，$h\in\HH$ 为候选结构，$\theta_h$ 为跨时段不变的线路参数。令
-\[
-\mathcal F_h(D)=\{(\theta_h,x_t,p_t,q_t,s_t,e_t)_{t\in D}:
-F_h(x_t,\theta_h,p_t,q_t,s_t)=0,\quad
-y_t=M(x_t)+e_t,\quad\text{各变量在声明域内}\}.
-\]
-$F_h=0$ 是 AC 潮流方程，$x_t$ 是电压/电流状态，$s_t$ 是允许逐时变化的隐藏源，$e_t$ 是观测误差；$p_t,q_t$ 也是解释变量，取值须位于原始 PQ 计量盒，输入误差为零时才固定为观测值。$\theta_h$ 不能因新增数据或 EV 换点而重置。保留候选集为 $\mathcal K_D=\{h:\mathcal F_h(D)\ne\varnothing\}$，实际计算保留其外集 $\overline{\mathcal K}_D$，即所有尚未被可靠排除的候选。
-
-\begin{proposition}[增加真实观测保留已有证据]
-固定物理域、误差域和候选库时，把 $D\cup N$ 的解释限制到旧时段 $D$，必属于 $\mathcal F_h(D)$。因此 $\mathcal K_{D\cup N}\subseteq\mathcal K_D$。若真拓扑在候选库内、真实参数与状态满足声明域、误差被覆盖，则真实解释始终在其可行集中，任何有效排除均不能移除真拓扑。
-\end{proposition}
-\begin{proof}
-联合解释满足全部旧约束，删去新增时段仍满足旧约束；共享参数不变。真实物理过程本身给出真候选的可行点。两结论均不需要线性化，也不需要源与 EV 独立。\end{proof}
-这不是无条件现场保证。如果修改源预算、拓扑域或设备模型，应从原候选库重新检查，旧排除不能无条件继承。
-
-操作顺序应是：被动 WZZT 提议候选和排名，分别核验历史解释；若目标结构在全部保留候选中一致则停止；仍有分歧才设计 EV，采集后联合重拟合。空保留集表示候选遗漏或模型/数据不一致，不能选残差最小者冒充已确认。v8 线性控制器已实现这些分支；其唯一候选还必须给出精确零松弛见证。AC 版本另标记数值 AC 见证，未将浮点潮流解冒充区间存在性证明。
-
-\subsection{AC 中为什么不能直接消去共同源}
-采用平衡径向、无分流导纳的恒功率模型，正号表示负荷。边 $e=(i,j)$ 的发送端功率为 $P_e+\mathrm jQ_e$，$v_i=|V_i|^2$、$\ell_e=|I_e|^2$，阻抗为 $r_e+\mathrm jx_e$。精确支路方程为\cite{farivar}
-\begin{align}
-P_e&=p_j+\sum_{f:j\to k}P_f+r_e\ell_e,&
-Q_e&=q_j+\sum_{f:j\to k}Q_f+x_e\ell_e,\\
-v_i-v_j&=2(r_eP_e+x_eQ_e)-(r_e^2+x_e^2)\ell_e,&
-v_i\ell_e&=P_e^2+Q_e^2.
-\end{align}
-递推展开支路功率，记 $f\prec e$ 为严格下游边，得到
-\begin{align}
-v_i-v_j&=2r_e\sum_{k\downarrow e}p_k+2x_e\sum_{k\downarrow e}q_k+\eta_e,\\
-\eta_e&=(r_e^2+x_e^2)\ell_e+
-2\sum_{f\prec e}(r_er_f+x_ex_f)\ell_f\ge0 .\label{eq:etaedge8}
-\end{align}
-不等号来自非负 $r,x,\ell$，并非忽略损耗。对同一条边，所有下游末端共享同一个 $\eta_e$。设 $M_h$ 为末端--线路路径矩阵，平方电压降向量是线性压降加 $M_h\eta_t$。
-
-隐藏源即使位于共同干线末端，其 AC 影响也一般不是 $w_t\one$：它改变共同节点电压，继而改变各下游恒功率电流与损耗。$C\one=0$ 只消去其线性共同项，不能保证 $CM_h\eta_t=0$。不过，共同干线自身的余项也在全部输出共享；把它分别放进独立输出盒会丢失本来可消去的共同部分。因此 v8 保留\emph{每条线路一个余项，再沿路径共享}，而不为每个输出任意扩大一个不相关盒。
-
-\subsection{小型 AC 模型与有效外包络}
-新例子仍为三末端、五条线路和三个 cherry 候选；潮流中的功率、阻抗和电压采用标幺，车辆电量另用 kWh。为控制维度，明确声明已知 $x_e=\kappa r_e$、$\kappa=.5$，取 $\theta_e=2r_e$，而非估计任意独立 R/X。令 $\widetilde p=p+\kappa q$，则
-\begin{equation}
-y_t=M_h\operatorname{diag}(\theta)M_h^\top\widetilde p_t
- +a\bar s_t^{\rm eff}\one+w_t\one+M_h\eta_t+e_t,
-\quad |w_t|\le aB_t^{\rm eff}.\label{eq:acshared8}
-\end{equation}
-这里 $a=\theta_0=2r_0$ 是共同干线系数。隐藏源只有一个且位于共同干线末端，其功率因数已知，$q_t^{\rm src}=.3p_t^{\rm src}$；故 $\bar s^{\rm eff}=.138$、$B^{\rm eff}=.115$ 分别对应实际有功名义值 $.12$、允许误差 $.1$。EV 只控制有功，背景无功存在且已计量，不能把背景无功与 EV 无功混为一谈。
-
-对候选完整参数域及所有允许状态，KCL 与 $|V|\ge v_{\min}=.9$ 给出
-\begin{equation}
-\ell_{et}\le\bar\ell_{et}:=
-\left[\frac{\sum_{j\downarrow e}\overline{|S_{jt}|}
- +\mathbb 1_{e=0}\overline{|S_t^{\rm src}|}}{v_{\min}}\right]^2.
-\label{eq:current8}
-\end{equation}
-其中 $e=0$ 是共同干线；源不在其它边下游，因此不应向每条边重复添加源容量。
-$\overline{|S_{jt}|}=\sqrt{(|P^{\rm obs}_{jt}|+b^P_{jt})^2+(|Q^{\rm obs}_{jt}|+b^Q_{jt})^2}$ 来自计量盒，源容量同理由实际源总量界得到。平方根用有理数向上舍入；这些界不用真实阻抗或拟合点。
-
-代入式\eqref{eq:etaedge8} 得
-\[
-0\le\eta_{et}\le\frac{1+\kappa^2}{4}
-\left[\theta_e^2\bar\ell_{et}+2\sum_{f\prec e}\theta_e\theta_f\bar\ell_{ft}\right].
-\]
-对 $l_e\le\theta_e\le u_e$ 使用平方割线和乘积上平面
-\begin{align*}
-\theta_e^2&\le(l_e+u_e)\theta_e-l_eu_e,\\
-\theta_e\theta_f&\le u_f\theta_e+l_e\theta_f-l_eu_f,\\
-\theta_e\theta_f&\le l_f\theta_e+u_e\theta_f-u_el_f.
-\end{align*}
-各权重非负，分别采用两种乘积上平面即可构造两个仿射函数 $F^0_{et}(\theta),F^1_{et}(\theta)$；施加 $0\le\eta_{et}\le F^k_{et}(\theta)$，$k=0,1$。这是原 AC 解释集的外包络，\emph{没有声称所有包络内点都对应 AC 状态}。已知阻抗时某些 OPF 松弛的精确性定理，不能直接迁移到本研究的未知参数辨识问题。
-
-输入误差还产生参数相关半宽
-\[
-E_{it}(\theta)=\sum_{e:M_{ie}=1}\theta_e
-\sum_{j:M_{je}=1}(b^P_{jt}+\kappa b^Q_{jt}).
-\]
-最终 LP 共享所有时段的 $\theta$，共享每个时段的 $w_t$，共享路径上的 $\eta_{et}$，最小化额外松弛 $\tau\ge0$：用式\eqref{eq:acshared8} 代入观测 $p,q$ 且不含 $e$ 的预测值 $\mu_{it}$ 施加
-$|y_{it}^{\rm obs}-\mu_{it}|\le\epsilon_{it}+E_{it}(\theta)+\tau$，并保留全部源/余项/参数约束。
-
-\begin{proposition}[AC 外包络的排除方向]
-上述物理假设、共同源位置、参数域和计量盒均有效时，原 AC 相容点必能由真实 $\ell$ 构造 $\eta$，取真实 $\eta,w,\theta$ 进入 LP 的零松弛域；$\ell$ 本身已被上界消去。因此，经过有效数值验证的 LP 最优值下界 $L_h>0$ 足以排除候选 $h$；$L_h=0$ 不证明 AC 可行。
-\end{proposition}
-\begin{proof}
-式\eqref{eq:etaedge8} 是恒等式；KCL 上界与割线/乘积上平面依次放宽其可行域，未删除任何声明域内 AC 点。计量误差传播采用三角不等式，所以真实误差也被覆盖。若 AC 有零松弛解释，LP 最优值至多为零，与正下界矛盾。\end{proof}
-实现延续精确有理数的系数放宽、对偶残差盒修正和可行上界修复。独立节点 KCL 求解器用于核验潮流及余项；这仍是针对当前小型模型的验证，未覆盖不平衡三相、调压器、分流导纳、未知源位置或任意独立 R/X。
-逐输出消融把 $M_h\eta_t$ 换成三个独立变量，各自仅满足路径上界之和。以 $\eta_t^{\rm output}=M_h\eta_t$ 映射每个路径共享可行点，并将两个域投影到相同的 $(\theta,w,y,\tau)$ 坐标，分别记为 $\mathcal R_h^{\rm path},\mathcal R_h^{\rm output}$，则在相同数据和参数盒下
-\[
-\mathcal R_h^{\rm path}\subseteq\mathcal R_h^{\rm output},\qquad
-\tau_h^{\rm path}\ge\tau_h^{\rm output}.
-\]
-这比较的是两个外松弛的精确最优值；各自近似下界的大小还受证书间隙影响。它证明共享约束不会削弱排除能力，不保证严格增强，也不保证外松弛等于原 AC 问题。
-
-\subsection{选址怎样迁移到 AC，为什么仍可能选错}
-历史 AC 外包络先筛候选。随后对保留候选做多初值 AC 最小二乘，拟合线路参数及逐时共同源；只有实际残差在误差盒内、电压在声明域内的\emph{数值见证}才用作参考。没有找到见证的候选仍保留为竞争者，不能因局部 NLP 失败而排除；若一个参考也没有，则先报告计算未决。
-
-对动作 $A$，每个参考 $r$ 生成名义未来源下的 AC 预测 $\widehat y^r(A)$，再把该预测与真实历史联合交给各竞争候选的完整外包络。设计评分改为
-\[
-S(A)=\frac1{|\mathcal R_H|}\sum_{r\in\mathcal R_H}
-\min_{h\in\overline{\mathcal K}_H\setminus\{r\}}
-\tau_h^{\rm out}\bigl(H\cup\{p(A),q(A),\widehat y^r(A)\}\bigr).
-\]
-数值实现保存 $S$ 的上下界再比较动作。它是\emph{名义预测下的重拟合余量评分}，不是原 T 平方损失，不是对未来源的最坏情况保证，也不是候选概率。参考之间的权重只是设计权重。实际执行后的排除必须重新使用实际 PQV。
-当前代码分别在三个单点端点动作和三条双地点路线中排名；恒充用于对照，没有把九个充电动作统一做成本最优选择，也没有自动决定采用固定还是移动方案。设计阶段尚未对所有候选未来状态做运行安全筛选，最终仿真仅检查实际生成轨迹的电压/SOC；辨识证书不能替代设备与运行安全验收。
-
-选择器确实可能失误：正式试验的真拓扑 23、平坦普通历史、种子 8201 中，三个单点评分均为零并列，规则选择节点 1；实际两个错误候选都无法排除，而双地点 12 排除了二者。另在真拓扑 13、同类历史、种子 8202 中，所有动作评分也近零，实际节点 1 却排除了两个错误候选。历史拟合参考不唯一，可能恰好预测弱响应；因此低评分不等于 EV 无用，更不能据此证明无需派车。
-
-\subsection{移动到第二个地点有什么可能的价值}
-固定参考和同一个紧历史参数域 $\Th$，动作 $A,B$ 的非负连续重拟合损失为 $L_A(\theta),L_B(\theta)$。则
-\[
-\min_{\theta\in\Th}\{L_A(\theta)+L_B(\theta)\}
-\ge\min_{\theta\in\Th}L_A(\theta)+\min_{\theta\in\Th}L_B(\theta).
-\]
-若两个单动作最小值均为零，联合最小值严格为正，当且仅当两者的零损失参数集不相交。证明是：非空交集给出共同零点；反之连续正函数在紧集上达到严格正最小值。
-直觉是错误拓扑在两个地点可能需要两套互相冲突的线路参数，而实际线路不会随车辆换点重置。该基本性质不证明拆分同电量必胜；新实验只检验指定路线是否缓解单点失误，不能宣称已经证明一般最优移动调度。
-
-\subsection{v8 实验与现实边界}
-% V8_RESULT_TABLES
-线性控制器使用 54 个完整组合：三个真拓扑、三种参数、平坦/仅节点 1 变化/逐节点变化三种历史、两个种子。历史变化来自声明的合成被动轨迹；不把它当成实网自然负荷频率。
-\begin{center}\small
-\begin{tabular}{lrrr}\toprule
-线性历史组 & 例数 & EV 前完全区分 & 按需 EV 后完全区分\\\midrule
-恒定负荷 & 18 & 0 & 12\\
-仅节点 1 变化 & 18 & 8 & 12\\
-三节点分别变化 & 18 & 12 & 12\\
-合计 & 54 & 20 & 36\\\bottomrule
+\subsection{主结果：强支路有条件改善，弱支路保留未决}
+表\ref{tab:main}的“全排错”要求保留真候选且排除本库全部错误候选；“错 winner”只是局部似然排名错误。“未决”沿用输出的多候选保留计数，不能把单一错误保留说成成功。弱情景的恒充和设计各有一次误拒绝，说明排名和阈值筛选均不能直接转成正确概率。
+\begin{table}[htbp]\centering\small
+\caption{独立评价；五种方法使用同一 seed、同一未来噪声及配对完成分母。}\label{tab:main}
+\begin{tabular}{llrrrr}\toprule
+情景 & 方法 & 全排错 & 误拒绝真 & 多候选未决 & 错 winner\\\midrule
+强 & 同时长无 EV & 14/19 & 1/19 & 4/19 & 3/19\\
+强 & 固定点恒充 & 17/19 & 0/19 & 2/19 & 0/19\\
+强 & 固定点调制 & 17/19 & 0/19 & 2/19 & 1/19\\
+强 & 随机动作 & 17/19 & 0/19 & 2/19 & 0/19\\
+强 & 设计动作 & 19/19 & 0/19 & 0/19 & 0/19\\\midrule
+弱 & 同时长无 EV & 0/20 & 0/20 & 20/20 & 12/20\\
+弱 & 固定点恒充 & 0/20 & 1/20 & 19/20 & 9/20\\
+弱 & 固定点调制 & 0/20 & 0/20 & 20/20 & 12/20\\
+弱 & 随机动作 & 0/20 & 0/20 & 20/20 & 13/20\\
+弱 & 设计动作 & 0/20 & 1/20 & 19/20 & 14/20\\\bottomrule
 \end{tabular}
-\end{center}
-20 例自动免 EV，34 例执行补证并新增区分 16 例。普通参数的丰富历史为 12/12 已区分；只在节点 1 变化时，真 cherry 23 的争议仍存在，算法转到节点 2 或 3 补证。这说明选址需要对应尚未激励的结构，而不是选一个全局矩阵条件数最大的节点。
-同址恒充也新增区分同样 16 例；端点把 34 次探测的平均最小错误余量从 $2.5178\times10^{-4}$ 增至 $4.9925\times10^{-4}$，没有增加成功次数。
+\end{table}
 
-18 个弱支路例子全部未决，且仍消耗 162 kWh，占实际总探测电量 306 kWh 的一半以上。其失败可以解释为物理信息不足：$b=10^{-6}$ 且其它参数相同，对任意单点 $p=.2\one+ue_j$、$0\le u\le.3$，
+\begin{samepage}
+强情景设计比同电量恒充仅多全排错 2 个 seed，比无 EV 多 5 个；探索性配对二项/McNemar 两侧比较分别为 $p=.5$ 和 $.0625$，且未作多重比较确认，因此不能宣称设计已显示普遍或统计显著优势。19/19 也只覆盖当前合成条件和完成配对；设计的 $0/19$ 误拒绝 95\% 两侧 Binomial 区间为 $[0,.1765]$，不能称零风险。弱设计误拒绝 $1/20$ 的区间为 $[.0013,.2487]$。
+
+\end{samepage}
+
+定义实际联合对数似然余量
 \[
-\|(R_h-R_g)p\|_\infty\le b(.4+.3)=7\times10^{-7}.
+M=\tfrac12\{\min_{h\ne h_{\mathrm{true}}}\widehat L_h-\widehat L_{h_{\mathrm{true}}}\}.
 \]
-共同源和对角项相消；该差异加实际噪声上限 $.8\epsilon$ 仍严格小于 $\epsilon=10^{-5}$，故相同参数与源轨迹可给每个竞争拓扑提供解释。这里任何允许的单 EV 波形都无法完成排除，不能归咎于一次选址不佳，也不能宣称当前控制器已解决无效派车。
-该论证使用评价阶段已知的弱支路真值，并非选择器从历史已得到 $b=10^{-6}$。历史域中仅存在一个弱支路解释，并不足以证明实际探测无益；可执行的免派车判据还需要历史可验证的收益上界，不能读取真值后决定停止。
-
-528 次 LP 均通过证书核验，最大间隙 $3.95\times10^{-15}$；612 次设计 QP 最大间隙 $8.77\times10^{-10}$。8 项测试、2598 项工件检查及 27 次存档输入重放均通过；真实候选全部保留。逐例选择耗时最大 2.43 秒，不包括采集时间。与不问历史而固定安排 54 次充电相比，少用 20 次、180 kWh；这只是合成例子的成本记账。
-
-AC 正式试验为三个真拓扑、平坦普通/丰富普通/平坦弱支路三种情形、两个种子，共 18 例。每例同时保存不充电、三地点恒充、三地点端点、三条双地点路线；各动作严格配对同一源轨迹和计量噪声。
-\begin{center}\small
+$M>0$ 表示生成结构在局部似然排名中领先，$M<0$ 表示某竞争者领先；它不是概率。表\ref{tab:parameter}的 RMSE 对真实候选的全部 R/X 参数合并计算，不能用总体误差下降替代弱支路恢复。
+\begin{table}[htbp]\centering\small
+\caption{实际联合似然余量及线路误差的跨 seed 中位数；只用主要完整配对。}\label{tab:parameter}
 \begin{tabular}{lrrrr}\toprule
-路径共享 AC 模型 & 平坦普通 & 丰富普通 & 平坦弱支路 & 合计\\\midrule
-历史已完全区分，无需 EV & 0/6 & 6/6 & 0/6 & 6/18\\
-按需选点端点充电 & 5/6 & 6/6 & 0/6 & 11/18\\
-同选址、同电量恒充 & 5/6 & 6/6 & 0/6 & 11/18\\
-按需固定节点 1 端点 & 4/6 & 6/6 & 0/6 & 10/18\\
-按需选择双地点路线 & 6/6 & 6/6 & 0/6 & 12/18\\
-按需固定双地点 12 & 6/6 & 6/6 & 0/6 & 12/18\\\bottomrule
+方法 & 强 $M$ & 弱 $M$ & 强 R/X RMSE & 弱 R/X RMSE\\
+ & & & $10^{-3}$ pu & $10^{-3}$ pu\\\midrule
+同时长无 EV & 2.19 & $-.272$ & 7.41 & 6.83\\
+固定点恒充 & 287.22 & .079 & 6.01 & 5.24\\
+固定点调制 & 738.60 & $-.078$ & 6.36 & 5.49\\
+随机动作 & 318.19 & $-.435$ & 5.36 & 5.15\\
+设计动作 & 783.92 & $-.315$ & 4.94 & 4.54\\\bottomrule
+\end{tabular}
+\end{table}
+源 P/Q 合并 RMSE 中位数各方法约 $(1.30\text{--}1.34)\times10^{-3}$ pu。线路误差仍有 $10^{-3}$ pu 量级，不能称阻抗高精度恢复。所有主要情景的最终实际观测 AC 电压检查均通过声明运行域，但这是合成物理检查。
+
+弱支路没有任何策略实现全排错；设计 winner 错误 14/20、多候选保留 19/20，应视为重要失败结果。量级解释是：仅充 P 时，弱支路一阶电压幅值响应约 $r\Delta P\le3\times10^{-5}\times.3=9\times10^{-6}$ pu，低于单通道 $\sigma_V=1.2\times10^{-4}$ pu；强支路约 $.0036$ pu。这个线性化比较只解释信噪比，不能证明完整 AC 的全域不可辨识，因为竞争线路和源还会重拟合。当前证据支持在给定激励/计量预算下信息不足；没有从局部求解证明所有允许 AC 解释都不可区分。
+
+\subsection{逐候选阻抗与似然输出示例}
+例如，强情景 seed 51000 的真支撑是 $\{1,2\}$，设计为 \path{late_site_2}；联合 20 点后各候选最佳已发现局部拟合如下。
+\begin{center}\small
+\begin{tabular}{lrr}\toprule
+候选 & $\widehat L$ & $\widehat\ell$\\\midrule
+\path{clade_12} & 50.2013 & 1505.2818\\
+\path{star} & 1454.5020 & 803.1315\\
+\path{clade_01} & 1454.5133 & 803.1258\\
+\path{clade_02} & 1454.7287 & 803.0181\\\bottomrule
 \end{tabular}
 \end{center}
-“完全区分”指两个错误候选均被有效下界排除且真实候选保留；确认范围仍以真值在库、物理域有效为前提。丰富历史组的各策略均沿用历史结果并免 EV。该表支持先被动、后补证的组织方式；它没有证明真实负荷历史通常足够丰富，也没有验证生产 WZZT 的候选生成质量。
-
-普通平坦组，选定端点相对同址恒充只把平均最小错误下界由 $4.2846\times10^{-4}$ 提高到 $5.9094\times10^{-4}$，成功数同为 5/6。双地点弥补了一个单点失败，但固定路线同样为 6/6；\textbf{这里没有优化移动路线优于简单覆盖的证据}。三末端问题中任何两个不同地点至少有一个落在真实 cherry 内，覆盖本身就可能解释改善，不能把改善全部归因于设计评分。
-
-在同一批数据上，逐输出余项盒对丰富历史六例均未能排除错误候选，路径共享模型六例全部排除；这是真正已观测到的约束耦合收益。全体 540 个候选--动作比较中，204 对存在 $L_h^{\rm path}>U_h^{\rm output}$，证明最优松弛严格增强。相同按需动作下，独立输出盒只能完全区分选点 5/18、双地点 6/18；这些是同数据消融，不是独立优化的另一控制器。
-
-180 组动作观测中，路径/输出 AC 外包络都未误排真实候选；强行设 $\eta=0$ 的线性负对照误排 58/180 组。后者是模型错误示范，不是 AC 算法失败率。2322 条历史/设计/最终 LP 记录通过审计，最大证书间隙 $3.57\times10^{-10}$；9 次原始数据重放与原证书区间相容。独立节点 KCL、全部 32 个参数盒角点乘三个拓扑等 19 项测试通过。全部实际电压在 $[.96781,.99184]$ pu，最大 AC 方程残差 $2.81\times10^{-16}$；仿真残差小不等于现场模型误差小。
-
-AC 设备比较为 6 小时、24 槽、20 kW 功率基准；恒充 4.5 kW，单点端点为 0/6 kW 且占空比 $3/4$，各充电方案均为 27 kWh。双地点各驻留 11 槽，其中 9 槽充电 6 kW，中间 2 槽停充转移，另计 2 kWh 行驶耗电。电池 60 kWh、效率 $.95$、初始 SOC $.4$；这是可达时间和设备能力的声明，未验证实际路网、连接装置或现场跟踪。移动与固定方案同充电量，行驶的额外能耗另列，不能说成总能耗相同。
-
-基础电压降误差 $10^{-5}$ pu$^2$ 在 $V\simeq1$ 时仅相当于幅值误差约 $5\times10^{-6}$ pu；以 230 V 为例约 1.15 mV。这是很严格的测量假设，不是已验证仪表能力。补充误差预算和 PQ 误差控制应与该小误差主试验分开，不能把合成完成比例称为实网成功率。
-补充控制预先取三个真拓扑的平坦普通历史、种子 8201，冻结主试验选定动作。只把\emph{声明}电压误差界扩大到 $10^{-4}$ 或 $5\times10^{-4}$ pu$^2$ 时，选点与固定节点 1 都为 2/3，选路线与固定路线 12 都为 3/3；扩大到 $.002$ 时四者全部为 0/3。原始电压噪声不变，因此这检验界的保守性，没有模拟更吵的电压仪表。另一组实际新增 P/Q 计量误差，幅值不超过 $.0008$ pu、声明半宽 $.001$ pu（有功对应 20 W），电压界保持 $10^{-5}$，四者仍依次为 2/3、2/3、3/3、3/3。去重后共 96 个 LP，全部真候选保留，最大间隙 $3.83\times10^{-16}$。误差界过宽使本外包络失效，是保留的负结果，未证明原始非线性问题同样不可分。
-
-\subsection{创新性与下一步的优先顺序}
-非线性模型的仿射外包络和模型否证已有直接文献\cite{singh}，T 型区分、历史交集、路径参数化和 LP 对偶也都已有基础。当前较有价值的研究对象是：\emph{物理共享源与共享损耗在 AC 下保留多少结构证据；被动数据留下的具体歧义需要什么额外节点；何时只需改进计算而不用派车。}
-
-建议按三套方案推进：首先接通被动 WZZT 与按需 AC 核验；其次对争议局部结构研究两地点互补，并使用同时间/充电量/转移约束比较；最后区分“有真实 AC 相容竞争者”与“只有过宽松弛留下的未决候选”，在派车前给参数分支或包络收紧一个固定计算预算。不能为了制造新意，先增加未校准概率、多层优化或没有成本依据的移动策略。
-
-第三套方案有简单、可检查的数学依据。将完整参数域覆盖为有限个子盒 $\Theta_h=\bigcup_{k=1}^K\Theta_{hk}$，令 $\tau_{hk}^{\rm AC}$ 为子盒内原 AC 最小松弛，$L_{hk}$ 为对应外包络的有效下界，则
+真实候选的边顺序为公共干线、$\{1,2\}$ 内部边、末端 $\{0\},\{1\},\{2\}$；估计向量（$10^{-3}$ pu）为
 \[
-\tau_h^{\rm AC}=\min_k\tau_{hk}^{\rm AC}\ \ge\ \min_k L_{hk}.
+\widehat r=(4.982,11.445,30.775,35.724,34.745),\qquad
+\widehat x=(1.567,12.745,10.657,.001,12.335).
 \]
-每格下界都严格正才能排除整个候选；未算完或失败的格取零，不能删除。子格还可沿用父格有效界，取两者最大值，避免数值下界因重新求解而下降。平方割线的误差为 $(x-l)(u-x)\le(u-l)^2/4$；乘积的两个 McCormick 上平面取最小值后，误差至多为两坐标盒宽乘积的 $1/4$。所以细分可压低\emph{参数包络}造成的保守性。
+其中末端 1 的 $x$ 贴下界，提醒拓扑排名清晰并不意味着每个 R/X 都准确。所有竞争候选的完整 $r,x$ 向量、ohm 换算、初值损失差和 AC 残差均在发布的 \path{formal_fits.csv}（本地 \path{formal_records.json} 还保留完整嵌套记录），不以表中局部数值声称全局 MLE。
 
-但即使盒宽趋零，$\ell$ 仍被上界替换，$\eta$ 与电压、源项、电流之间的完整 AC 关系仍被放松，不能声称该方法必收敛到原 AC 判定。本轮未运行参数分支实验；建议下一步只检验一个具体问题：\emph{相同历史和固定计算预算下，能否少派一次车？} 没得到正界仍标未决，既不推断 EV 必要，也不推断 EV 有效。择时则应在有真实时变背景和可接入窗口后再比较；当前静态未来背景不足以验证时段算法。
+\subsection{漏真、偏差失配及计算代价}
+强/弱校准阈值分别为 $D=(1.2064,6.0020)$，absolute loss=(68.7614,71.9923)。漏真与大偏差各用 stress seeds 61000--61003，并沿用强情景阈值作为\emph{分布变化诊断}，没有声称该阈值在 stress 下仍有名义覆盖。
 
-\section{v9：接通被动候选、修正旧结构与更实际的计量}
-\label{sec:v9}
-\subsection{已接通的范围与不会被锁死的结构}
-\path{passive_bridge_v9.py} 调用生产库的敏感度拟合、RNJ，以及研究适配器的 source-aware WZZT。WZZT 从 singleton 重启，未经认证的 RNJ 支撑不进入强制约束。除了这些基准树，桥接器提出删边收缩、局部交换和末端标签交换；以去共同分量的线性残差排序，初始最多保留 12 个候选。该预算是搜索限制，不是排除依据。
+漏真是在观测侧提案后由评价器刻意移除真实 cherry，选择器仍只见缺真候选库。四个 stress seed 中，61001 的随机方法数值失败，主要比较保留 3 个完整配对：无 EV 的 absolute adequacy 报警 0/3，所有 EV 策略均 3/3 报警。另一个配对是计算失败，不能写成“EV 漏报 1/4”；成功的单方法诊断虽可使用更多 seed，主要比较维持共同分母。relative deviance 的最佳模型仍有 $D=0$，没有空集，本例说明需要 absolute adequacy。
 
-EV 后用所有实际 PQV 再生成候选，保留全部旧未决结构；新提议的 12 个预算不限制合并库大小。因此算法能够修正初始结构，同时不会用新排名替代历史证据。正式消融为了使两种计量模型可比，在各动作后保留同一个完整初始库，再分别核验；不能把较强模型的历史排除直接移给较弱模型。
+电压固定偏差扩大到 $\pm.00065$ pu、拟合却按零偏差时，五策略 absolute adequacy 均报警 0/4。设计的线路 RMSE 中位数为 $.00888$ pu，其余方法约 $.00933$--$.01050$ pu，明显高于正确校准的主结果；源和线路能够吸收部分偏差。通过 goodness-of-fit 不证明仪表已校准或线路估计可靠；本例把隐藏模型失配作为失败保留，不能由正确拓扑 winner 掩盖参数错误。
 
-\begin{proposition}[追加观测保留有效排除]
-固定候选、参数域、物理模型和计量假设，记 $\mathcal F_h(D)$ 为能解释数据 $D$ 的完整变量集合。新旧数据共享固定线路参数及固定计量参数，逐时状态和源项允许新增，则
-\[
-\operatorname{proj}_H\mathcal F_h(H\cup N)\subseteq\mathcal F_h(H).
-\]
-故历史已被有效正下界排除的候选，不会因追加观测重新相容。
+80 trial 的逐任务耗时之和：校准 1241.9 秒、评价 1308.9 秒（并行任务之和，非端到端墙钟时间）；评价 cohort 的设计选择平均 13.94 秒（校准 cohort 为 13.04 秒）。一次最终候选库联合拟合，各策略平均约 2.48--4.09 秒，另需历史拟合和设计内层拟合。总计 16 个内层动作拟合失败，全部保留并禁止计入高分；负 increment 动作 0，实际最终配对失败如前所述。曾比较 dense-exact 与 sparse 局部求解，未见加速，统计试验未切换求解器；这只是计算诊断。
+
+对原强 seed 51007 的失败另做一次观测数据恢复诊断，记录于 \path{evidence/optimizer_recovery.json}：原历史 warm start 两初值均用完 120 次求值，最佳 $L=1534.68809$；不读真值的中间阻抗 cold start 在 15 次求值获得 $L=1534.66025$；warm start 将预算提高到 360 后用 331/334 次求值，最佳 $L=1534.66107$。诊断总耗时约 13 秒，说明原失败与初值/预算有关，不证明 AC 不可行。终止是 \path{ftol}，cold/warm optimality 分别约 .224 和 7.26，未达到 \path{gtol} 的驻点检查，更没有全局最优证书。该选择性恢复不改原配对失败、主要 19 个评价分母或校准阈值。
+
+SOC 修复后现有物理、似然、设计和流程测试共 23 项通过（约 1.99 秒）；测试覆盖数值一致性及边界行为，不扩展统计覆盖范围。
+
+\subsection{五末端诊断：更丰富结构的排名失败}
+小型验证通过后运行 seed 71001 的五末端诊断，8 个候选包含真支撑 $\{0,1,2\},\{0,1\}$，耗时 68.37 秒。五种方法都完成原始 AC 拟合且通过实际电压检查，然而\emph{全部局部似然 winner 都错误}：无 EV、恒充和随机动作偏好额外支撑 $\{0,1,2,4\}$，真候选相对 deviance 分别为 3.1806、2.7590、2.7590；固定调制和设计偏好额外 $\{3,4\}$，真候选相对 deviance 为 .3318。设计动作是 \path{early_site_0}，与本例固定调制结果相同。
+
+真树有 8 条边、16 个共享 R/X；这些错误 winner 有 9 条边、18 个共享 R/X，额外支路带来拟合噪声的自由度。这里只报告原始排名，\path{evidence/scale_summary.json} 明确不使用三末端阈值；没有五末端校准，也不能声称真结构已被统计拒绝。本例验证更大网络的物理拟合可执行，同时展示单纯取最大局部似然及本次 EV 不足以恢复真结构。
+
+\begin{proposition}[任意弱额外边的统一判别失败；本项目推导]
+在某固定候选树中插入一个零注入内部节点和额外边 $z_\delta=\delta(r+\mathrm jx)$，保持同一共同源物理接入点。假设 $\delta=0$ 的边收缩恢复原树，并且所考察有限、有界 EV 动作及历史状态均位于随 $\delta$ 连续的稳定 AC 分支；Gaussian 协方差同一、已知且正定。若参数域允许 $\delta\downarrow0$，则该更丰富候选与原树的响应 KL 对全部这些动作趋于零，不能对该参数域取得统一正的 AC 响应 KL 分离。
 \end{proposition}
 \begin{proof}
-取任一联合解释，限制到旧时刻。原共享参数未改变，旧时刻所有方程和不等式仍满足，故得到历史解释。取逆否命题即可。若修改了参数域、误差模型、源位置或发现旧观测错误，前提不再成立，必须重新核验，不能永久沿用旧排除。
+额外边为零阻抗时，两端电压相同；零注入节点的 KCL 使收缩后的电流与原树一致，故历史和新增的物理计量均值均被恢复，源的位置没有改变。稳定分支连续性使每个动作下 $\mu_\delta\to\mu_0$。由式\eqref{eq:kl}，各时刻两倍 KL 为 $(\mu_\delta-\mu_0)^\top\Sigma^{-1}(\mu_\delta-\mu_0)\to0$；时刻数和动作数有限，因此最大差异也趋于零。既然竞争参数可任意接近这些响应，判别设计不能保证全参数域上的正分离。
 \end{proof}
-该结论不保证计算得到的浮点下界随样本数严格增大；旧有效下界可安全保留，新求解失败不撤销它。候选生成的遗漏则不在这一定理保护范围内。
+上述仅是有限历史/动作的 AC 均值响应 KL 分离结论；带噪历史的 $R_h$ 可因更丰富候选拟合噪声更好而为正，不将其单独说成零。在零边闭包中，用同一可行历史参考拟合作式\eqref{eq:combined}的 baseline，收缩候选同时复制其历史预测和未来参考均值，使 combined joint loss 减 baseline 趋于零，故该内层 infimum 至多为零；这也不保证局部求解器找到该序列。实际实现有正下界 $10^{-6}$ pu，\emph{不能在这个固定盒内据此宣称 infimum 精确为零}；它定义了有限结构分辨率，接近下界的额外支路仍可能难区分。五末端观测与这种近似嵌套/过拟合解释一致，但单例不证明所有失败均由此造成。扩大规模前需要结构复杂度及候选选择的统计校准、更广参考情景和明确的最小可分支路标准；不强迫选择生成真结构。
 
-\subsection{计量分解：额外结构必须有依据}
-本轮真实加入有功、无功、根电压和末端电压误差，区别于 v8 只扩大声明误差界的控制。主组电压总幅值界为 $10^{-3}$ pu：在 230 V 基准下约 0.23 V。Fluke 1770 资料给出电压约 $0.1\%$ 标称量级，同时功率精度还依赖读数、量程、传感器和功率因数；Hioki PW3360 给出电压 $0.3\%$ 读数加 $0.1\%$ 满量程，不能直接当作相同的 pu 界\cite{fluke1770,hioki3360}。这里用这些一手规格检查数量级，没有声称模拟了特定设备的完整误差模型。
+正式试验后的动作 API 修复另在 \path{5080d4e}：到达后先扣移动电池能量、检查充电之前的 SOC，再加入充电；避免同一时隙的后续充电掩盖移动中的 SOC 越界。已核对本次正式 11 动作库全部不受该修复影响，保守界 $.4-.02/3=.3933>.1$；因此正式动作选择和结果不因边界 API 修复改变。这个等价性只覆盖本次配置，其他低 SOC 任务需使用修复后的检查。
 
-独立误差盒允许每个时刻的电压误差任意变化。更强的备选模型为
-\begin{equation}
-\widehat V_{it}=g_i V_{it}+\xi_{it},\quad
-g_i\in[g_-,g_+],\quad |\xi_{it}|\le\delta_i,
-\qquad V_{0t}=1.
-\label{eq:meter9}
-\end{equation}
-根表也有未知固定增益 $g_0\in[g_-,g_+]$ 和扰动 $|\xi_{0t}|\le\delta_0$。所有增益跨旧、新数据固定，各时刻扰动可以任意变化。\textbf{厂家总精度规格不保证这个分解}；使用它需独立校准或时稳定性证据。两个模型分别运行，不能只展示更强假设的收益。
+下一阶段优先补充 star-truth、较多独立评价种子、偏差/源锚点和 forecast 失配；弱支路及五末端失败尚未解决，不将单例扩大解释为更大网络已通过统计验证。
 
-\begin{proposition}[固定增益的线性外表示]
-设 $0<g_-\le g_+$，$0<V_{it}\le V_{\max}$。定义
-\[
-\alpha_i=g_i^{-2},\qquad b_i=1-\alpha_i g_0^2,\qquad
-D_i=2g_+\delta_0+\delta_0^2+2g_+V_{\max}\delta_i+\delta_i^2.
-\]
-则真实平方压降 $y_{it}=1-V_{it}^2$ 必满足
-\begin{align}
-|y_{it}-\alpha_i\widehat y_{it}-b_i|&\le\alpha_i D_i,\label{eq:gainouter9}\\
-g_+^{-2}\le\alpha_i\le g_-^{-2},\qquad
-1-\alpha_i g_+^2&\le b_i\le1-\alpha_i g_-^2.\notag
-\end{align}
-这些约束对 $y,\alpha,b$ 是线性的；$\alpha_i,b_i$ 必须在全部时刻共享。
-\end{proposition}
-\begin{proof}
-展开读数平方差：$\widehat y_{it}=g_0^2-g_i^2V_{it}^2+e_{it}$，其中
-\[
-e_{it}=2g_0\xi_{0t}+\xi_{0t}^2-2g_iV_{it}\xi_{it}-\xi_{it}^2,
-\qquad |e_{it}|\le D_i.
-\]
-代入可得 $y_{it}=\alpha_i\widehat y_{it}+b_i-\alpha_i e_{it}$。增益范围立即推出所列线性界。不同末端的 $b_i$ 应共享同一个 $g_0$；实现将这层一致性放松为各自界，所以只能扩大解释集合，不会据此错误排除真实解释。
-\end{proof}
-实现用 $\alpha_i D_i$ 保留增益与误差预算关系，没有再替换为统一最坏常数。加上 PQ 输入误差和路径损耗外包络后，观测约束为
-\[
-|\mu_{it}-\alpha_i\widehat y_{it}-b_i|
-\le \alpha_iD_i+E_{it}(\theta)+\tau.
-\]
-仍由经过舍入及残差修正的 LP 对偶下界判定，不能由拟合增益点或优化器成功状态判定。\textbf{两个最终外 LP 不保证集合嵌套}：固定增益原物理模型更有结构，但本外包络用 $V_{\max}$ 构造扰动界，并放松根增益一致性，可能在某些方向更松。故只报告实测排除差异，不声称共享增益外 LP 必不劣。未来可同时施加两个有效电压约束，获得明确的交集收紧；本轮冻结试验未实施这一改动。
+\section{复用组件、实现限制与旧路线归档}
+\label{sec:old}
+当前入口按以下顺序连接：\path{candidates.py::propose} 生成观测侧候选及有限 repair bank；\path{likelihood.py::fit_candidate} 拟合共享 R/X、真实末端 P/Q 和逐时源；\path{design.py::select_action} 对历史与无噪声预测新增计量联合重拟合；\path{run_study.py::one_trial} 执行动作并对实际新增数据重新拟合；\path{calibrate}/\path{summarize} 冻结独立校准阈值并评价。默认 \path{FutureForecast.from_history} 使用参考拟合的历史 P/Q 和源 P/Q 均值，不能写成已知未来源。
+\begin{longtable}{L{.26\textwidth}L{.31\textwidth}L{.33\textwidth}}
+\toprule
+组件 & 复用对象 & 必须改变或保留的限制\\\midrule\endhead
+\path{ac_measurement_fit.py::fit_ac_pqv}
+& 原始 P/Q/V、总表残差、真实 P/Q EIV、共享 R/X、AC 求解
+& 源位置和幅值输入固定；局部优化；没有自由偏差及源幅值的完整 MLE。当前 sigma 由调用方冻结。\\
+\path{passive_bridge_v9.py}
+& observation-only RNJ/WZZT，空 certified supports，可删除/交换/重建候选
+& 有限库及提案预算影响覆盖；WZZT source nominal 入口要求非负 P；排名不认证。\\
+\path{ac_general_v9.py::RadialCandidate}
+& laminar support 到径向物理树、公共 source junction 和路径矩阵
+& degree-2 无负荷链聚合；内部未知负荷和任意源位置不在该接口范围。\\
+\path{ac_general_v9.py::ac_batch}
+& AC 固定点及方程残差检查思路
+& 原函数 root=1、$x=\kappa r$；新拟合须独立 R/X。原 \path{solve_outer} 不是当前统计判据。\\\bottomrule
+\end{longtable}
 
-\subsection{实验域与比较规则}
-6 末端树含 11 条边、12 个物理节点；12 末端树含 22 条边、23 个节点。包含公共干线、成对末端共享边、四末端共享边及独占末端边；这不是 IEEE 33 节点公开基准。已知 $\kappa=.5$，根真电压固定 1 pu，共同未测源只接在公共干线末端；全部 AC 仿真检查电压域 $[.9,1.1]$ pu，证书以真实状态处于该域为条件，外 LP 不逐节点重建电压。代码及本节结果用末端标签 $0,\ldots,n-1$；其中“地点 0”是第一个末端，不是公式中的根母线。普通成对共享边 $\theta=.02$，弱边组只将 $(0,1)$ 那条改为 $10^{-5}$。
+旧 v6--v9 实验、索引和源码保留于 \path{research_experiments/mobile_ev_probing/}；本报告原版本可从 Git 历史恢复。旧路线在声明确定误差域和外包络下讨论有效排除下界，新的概率路线则在声明误差分布下比较 AC 似然；二者的观测域、结论对象和校准方式不同。旧 LP 未决既不能证明 MLE 无效，新局部拟合成功也不能证明 MLE 普遍有效。
 
-历史为 24 或 36 个稳态样本；未来为 6 小时、24 槽。丰富历史具有各末端独立变化，部分激励历史令末端 0、1 几乎同动。未来背景含共同变化和独立变化，选择器只使用历史均值预测，不读取实际未来或真拓扑。每个采样点是槽内稳态值；非线性潮流在平均 PQ 上计算不等于平均电压，当前没有模拟槽内波动和聚合误差。
+下一阶段优先补充会改变结论的证据：源/偏差锚点移除后的混淆；更弱支路与不可达地点；forecast 和偏差失配；更大的独立评价种子及求解初值；候选覆盖改进。只有小型研究通过必要验证后再扩大网络。
 
-电压比较三组：主组总幅值误差界 $.001$，其中固定增益贡献最多 $.0008$、扰动 $.0002$；另一组同总界但全部为逐时扰动；精度控制组缩小十倍至 $.0001$。前两组比较误差时间结构，第三组只检验更高精度是否解决弱边。功率误差实际满足
-\[
-|\widehat P-P|\le .02|P|+.0005,\qquad
-|\widehat Q-Q|\le .025\sqrt{P^2+Q^2}+.0005.
-\]
-实际误差用固定分量与逐时分量生成；验证只使用从读数推导的保守 PQ 盒，不假设这套分解已知。例如
-\[
-B_P={.02|\widehat P|+.0005\over .98},\qquad
-B_Q={.025(|\widehat P|+B_P+|\widehat Q|)+.0005\over .975}.
-\]
-它们分别由三角不等式及 $\sqrt{P^2+Q^2}\le|P|+|Q|$ 推出，计算向外舍入。噪声生成比例保持配对，但随 EV 改变功率后绝对 PQ 误差可以改变，不能声称各策略逐点功率噪声相同。
-
-冻结协议包含 10 个机制算例：普通丰富、普通部分激励、弱边部分激励的 6 末端树，以及普通部分激励的 12 末端树，各比较两种主计量结构；再对两种 6 末端部分激励树加精度控制。评估种子固定 9101；这是机制测试，不是多次独立抽样的成功率估计。探索 seed 9001 的旧 pilot 单独保存，不并入正式表。
-
-所有充电策略同为 27 kWh：同址恒充 4.5 kW、单点 0/6 kW、双地点各 11 槽中 9 槽充电 6 kW，中间停充转移 2 槽。移动另耗电池电量 2 kWh。设备与 SOC 约束沿用 v8；各节点计量装置留在原位，移动的是 EV。现场接入能力、行驶时间和候选全集上的派车前安全认证仍未验证。
-
-\subsection{正式结果：排名、覆盖和实际排除分别报告}
-历史首选完全正确为 3/10，真结构入库为 7/10；加入等长无 EV 自然观测后为 5/10、8/10，选双地点后为 5/10、9/10。因此目前尚不能宣称被动识别稳定优秀，也不能将自然数据的收益归于 EV。主计量量级的 C1--C8 均未得到唯一候选；只在精度控制 C9 的共同增益模型中，单点或双点充电后保留唯一真候选，同址恒充仍剩 3 个，独立误差盒仍剩 6 个。
-
-按同一初始库的排除数量比较，选单相对固定单在共同增益模型中为 2 胜、6 平、2 负，选双相对固定双为 2 胜、5 平、3 负；独立盒中分别为 1/6/3、0/7/3。选单相对同址恒充，共同增益模型为 3/7/0，独立盒全部相同。相对等长无 EV 观测，选单在共同增益模型下 7 例多排、3 例相同，选双为 6 例多排、4 例相同。这里的“平”仅指数量相同；这些配对机制数不代表显著性检验或总体准确率。
-
-% Generated by build_summary_v9.py; requires booktabs and Chinese support.
-% Evidence counts below always use the same initial bank within a case.
-% Completed 10/10; complete=True.
-\noindent 本表覆盖已完成的 10/10 个冻结机制算例。
-表中“无 EV”也加入相同长度的未来自然观测；它不等于仅历史筛选。
-每例各策略比较同一初始候选库；新生成候选库大小不用于横向比较。
-
-\begin{table}[htbp]\centering\small
-\begin{tabular}{llrrllll}\toprule
-案例 & 条件 & 初始 F1 & 历史余数 & 初始在库 & 无 EV 后 & 选单后 & 选双后\\\midrule
-C1 & 6/R/G & 1.00 & 11 & 是 & 1.00/是 & 1.00/是 & 1.00/是\\
-C2 & 6/R/J & 1.00 & 12 & 是 & 1.00/是 & 1.00/是 & 1.00/是\\
-C3 & 6/P/G & 0.75 & 12 & 是 & 1.00/是 & 1.00/是 & 1.00/是\\
-C4 & 6/P/J & 0.86 & 12 & 否 & 1.00/是 & 1.00/是 & 1.00/是\\
-C5 & 6/P/G/W & 0.75 & 12 & 是 & 0.75/是 & 0.75/是 & 0.75/是\\
-C6 & 6/P/J/W & 0.75 & 12 & 否 & 0.86/否 & 0.86/否 & 0.75/否\\
-C7 & 12/P/G & 0.84 & 11 & 是 & 0.95/是 & 0.95/是 & 0.95/是\\
-C8 & 12/P/J & 0.84 & 12 & 否 & 0.84/否 & 0.95/否 & 0.95/是\\
-C9 & 6/P/C & 1.00 & 8 & 是 & 1.00/是 & 1.00/是 & 1.00/是\\
-C10 & 6/P/C/W & 0.75 & 5 & 是 & 0.75/是 & 0.75/是 & 0.75/是\\
-\bottomrule\end{tabular}
-\caption{被动候选质量与新数据后重建。R：丰富历史；P：部分相关历史；G：固定增益主导；J：时变扰动主导；C：精度控制；W：弱支路。无 EV/选单/选双后单元格为首选 F1/真结构是否在更新库中。历史余数采用共享增益验证。}
-\end{table}
-
-\begin{table}[htbp]\centering\small
-\begin{tabular}{lrrrrrr}\toprule
-案例（初始数） & 无 EV & 选单 & 恒充 & 固定单 & 选双 & 固定双\\\midrule
-C1（12） & 12 & 12 & 12 & 12 & 12 & 12\\
-C2（12） & 12 & 12 & 12 & 11 & 12 & 11\\
-C3（12） & 12 & 12 & 12 & 10 & 12 & 9\\
-C4（12） & 12 & 11 & 11 & 10 & 11 & 2\\
-C5（12） & 12 & 12 & 12 & 12 & 12 & 12\\
-C6（12） & 12 & 11 & 11 & 12 & 12 & 12\\
-C7（12） & 12 & 12 & 12 & 12 & 12 & 12\\
-C8（12） & 12 & 12 & 12 & 12 & 10 & 10\\
-C9（12） & 11 & 6 & 6 & 6 & 6 & 6\\
-C10（12） & 11 & 11 & 11 & 11 & 11 & 11\\
-\bottomrule\end{tabular}
-\caption{独立计量误差盒：联合重拟合后初始候选库的剩余数；越小表示排除证据越多，但不自动证明正确。}
-\end{table}
-
-\begin{table}[htbp]\centering\small
-\begin{tabular}{lrrrrrr}\toprule
-案例（初始数） & 无 EV & 选单 & 恒充 & 固定单 & 选双 & 固定双\\\midrule
-C1（12） & 11 & 9 & 11 & 9 & 4 & 9\\
-C2（12） & 12 & 12 & 12 & 11 & 12 & 11\\
-C3（12） & 12 & 8 & 8 & 8 & 5 & 5\\
-C4（12） & 12 & 11 & 11 & 10 & 11 & 3\\
-C5（12） & 12 & 8 & 11 & 11 & 8 & 11\\
-C6（12） & 12 & 11 & 11 & 12 & 12 & 12\\
-C7（12） & 11 & 11 & 11 & 11 & 11 & 5\\
-C8（12） & 12 & 12 & 12 & 12 & 12 & 12\\
-C9（12） & 8 & 1 & 3 & 1 & 1 & 1\\
-C10（12） & 5 & 4 & 4 & 4 & 4 & 4\\
-\bottomrule\end{tabular}
-\caption{共享增益及有界扰动：联合重拟合后初始候选库的剩余数；越小表示排除证据越多，但不自动证明正确。}
-\end{table}
-
-\begin{table}[htbp]\centering\small
-\begin{tabular}{lll}\toprule 案例 & 所选单地点 & 所选双地点\\\midrule
-C1 & 2 & 2,5\\
-C2 & 4 & 1,4\\
-C3 & 1 & 1,4\\
-C4 & 2 & 2,4\\
-C5 & 4 & 1,4\\
-C6 & 3 & 0,1\\
-C7 & 6 & 4,6\\
-C8 & 0 & 0,1\\
-C9 & 1 & 1,3\\
-C10 & 1 & 0,1\\
-\bottomrule\end{tabular}
-\caption{EV 地点采用从 0 开始的终端标签；地点 0 不是物理根。所有充电策略为 27 kWh；双地点另有 2 kWh 行驶耗电。}
-\end{table}
-
-\clearpage
-
-
-\paragraph{候选修正与排名收益不能混为 EV 收益。}
-12 末端、逐时扰动组的初始首选 F1 为 $.8421$，真结构不在初始库。双地点 $(0,1)$ 后真结构进入更新库，首选 F1 为 $.9474$，但共享增益外 LP 仍保留全部 12 个初始候选；独立电压盒排除 2 个。这证明接口实际修正了候选覆盖，也直接说明两种外 LP 不能预设包含关系。6 末端部分激励、固定增益组首选 F1 从 $.75$ 升到 1，但\emph{无 EV 的等长自然观测也达到 1}，所以该排名改善不能全部归于 EV。
-
-\paragraph{一个明确的选址失败。}
-12 末端固定增益组，无 EV 后初始库剩 11 个；评分选出的单点 6、双点 $(4,6)$ 均仍剩 11 个，简单固定双点 $(0,1)$ 则只剩 5 个。双点 $(4,6)$ 的代理分数为 $3.7974\times10^{-6}$，并非仅因完全平分而被任意选中。两个名义参考都没有真实的 $(0,1)$ 共享边，却含有错误的 $(1,2,3)$ 集合；真树在候选库中，但没有作为参考。它们通过了较宽独立盒的数值历史拟合，未证明在共同增益域相容。因此“参考已经拟合历史”仍不够；参考覆盖、设计近似与判定域不一致、未来均值预测都是待区分的因素，不能把失败只归咎于其中一个。
-
-丰富历史的 6 末端逐时扰动组也出现所选单/双点保留 12 个，而固定单/双点各保留 11 个的情况。相反，丰富历史固定增益组所选双点将无 EV 的 11 个降到 4 个，优于固定双点的 9 个。故自动设计有局部收益，也有明确失败，尚无稳定优于简单覆盖的证据。
-
-\paragraph{WZZT 的预算诊断。}
-以上丰富历史两例的被动首选真树来自 RNJ，不能把恢复能力全部归给 WZZT。逐时扰动组在每个 MILP 仅 2 秒的预算下，WZZT 扩展超时并保留星形。事后复用\emph{完全相同的已存历史读数}，只把单次预算增至 10 秒，6 末端组 WZZT 自身结构 F1 从 0 提升到 1，整个桥接耗时从 2.95 秒增至 13.50 秒；合并候选库本已有 RNJ 真树，因此整体首选 F1 和真结构覆盖没有提升。最慢被接受扩展约 3.36 秒，说明原来的 2 秒截断确实影响提案。
-
-12 末端逐时扰动组增加至 10 秒后仍超时：该次整数可行目标从约 $.004730$ 降到 $.000522$，但对偶下界为零、间隙为 1，当前契约不接受，WZZT 仍为星形，合并库仍漏真结构。这是计算预算和接受规则的限制，不能写成数据已经证明不可辨识。该事后诊断与正式冻结试验分开归档，24 项参数、源文件、历史配对和求解记录检查通过；未据此回改正式结果。
-
-该例保存的首名提案缺 $(0,1)$，多出 $(1,2,3)$ 及八末端集合；从这个提案恢复真图至少需要两次局部编辑，而当前邻域只扩展一层。另有 269 个提案生成后只保留 12 个，完整截断轨迹未保存，所以\emph{尚不能区分真图从未生成还是排序裁剪时丢失}。后续应先保存这条轨迹，不能在证据不足时把遗漏全归咎于 RNJ 或 MILP 超时。
-
-\emph{最小改进方向：提案不需要最优性证书。} 一个超时整数 incumbent 若通过整数性、laminar 与原始约束检查，可以另作 AC 待检提案；不能称为最优扩展，也不能直接固定其支撑或沿用其目标作排除界。当前 \path{wzzt_adapter._solve_once} 在最优性检查失败后丢弃结构，保存日志只有目标与下界，没有完整 incumbent；因此本轮不能事后确认那棵树是否有用。后续宜增加独立、显式启用的提案输出，保留现有严格接受路径的语义。这个修改尚未实施，预算诊断不是对它的验证。
-
-\subsection{用原 AC 竞争见证解释弱支路未决}
-仅有零外 LP 下界，不能断言原 AC 不可区分。诊断进一步删除真实树的 $(0,1)$ 共享边，继承其他阻抗，保持全部真实 PQ 和源轨迹，重新解 AC 得到 $V'_{it}$。这是离线反证诊断，不参与选址。
-
-正式 C5、C6、C10 的 16 组去重动作数据全部找到这种竞争数值解释：固定原增益通过 11 组，重新拟合一个跨全部时刻固定的增益救回另外 5 组，均来自精度控制 C10。重拟合见证的最小联合扰动余量为 $1.6280\times10^{-7}$ pu，独立节点导纳 KCL 最大残差 $2.2893\times10^{-13}$。这些是三场景内的配对数据批次，不是 16 个独立随机实验。七个普通边场景的 40 组去重动作，该特定删除构造均失败；失败本身不证明普通边必可辨识。
-
-对给定正电压序列 $V'$，一个固定增益能解释全部实际幅值读数，当且仅当
-\begin{equation}
-I_i=[g_-,g_+]\cap\bigcap_{t\in H\cup N}
-\left[{\widehat V_{it}-\delta_i\over V'_{it}},
-      {\widehat V_{it}+\delta_i\over V'_{it}}\right]\ne\varnothing.
-\label{eq:gainwitness9}
-\end{equation}
-证明只需把 $|\widehat V_{it}-g_iV'_{it}|\le\delta_i$ 除以正数 $V'_{it}$，再对所有时刻取交。根表同样检查。选取各交集中点并直接验证所有幅值、PQ、源项、阻抗和电压域，就得到原 AC 的具体数值竞争解释；没有使用外包络的自由损耗变量。独立节点导纳计算和 KCL 残差另行复核；有限精度数值见证仍不等于区间存在性证明，报告保留最小余量和贴边标记。
-
-若普通边删除未通过该构造，也不能断言没有其他阻抗或源项能解释数据。正结果是一个竞争解释的存在证据；负结果只是这个特定构造失败。
-
-\begin{proposition}[任一固定有限试验不能统一分辨任意弱支路]
-固定有限个观测时刻、注入、计量增益 $g$、扰动 $\xi$ 和其余参数，设一条边阻抗随 $\varepsilon\downarrow0$ 趋零。收缩网络须也属于允许拓扑类，并保留被测端口和源接入关系。假设对应高电压 AC 解的被测幅值 $V(\varepsilon)$ 连续趋向收缩网络解 $V(0)$，且其余参数、源项和电压仍在声明域中。若原计量扰动留有严格余量 $m=\min_{i,t}(\delta_i-|\xi_{it}|)>0$，则充分小的 $\varepsilon>0$ 下，该网络产生的同一批读数也可由收缩网络解释，甚至不必重新拟合计量增益。
-\end{proposition}
-\begin{proof}
-观测有限，连续性保证可选 $\varepsilon$ 使 $g_+\max_{i,t}|V_{it}(\varepsilon)-V_{it}(0)|<m$。收缩网络取原增益，所需扰动为 $\xi'_{it}=\xi_{it}+g_i(V_{it}(\varepsilon)-V_{it}(0))$，故 $|\xi'_{it}|<\delta_i$；其他已声明约束按前提满足。若用关于阻抗连续的潮流表示，且极限解处相应雅可比非奇异，可由隐函数定理保证这种局部连续性；不能跨电压崩溃点无条件使用。
-\end{proof}
-该定理针对允许任意小正阻抗的模型类，说明不存在统一分辨保证；它不直接判定本实验固定 $\theta=10^{-5}$ 是否足够小，后者由式\eqref{eq:gainwitness9}的实际数值见证检查。若先验规定更大的最小边阻抗，须按该先验重新评价。
-
-\subsection{选址失败的可检验原因与下一步}
-\paragraph{实现核验。}
-相关 78 项测试通过（桥接 14、通用 AC 25、集成 8、既有适配器 31）。正式工件完成 21783 项数据/域/结构一致性检查，检查 1651 条 LP 记录，最大存储上下界间隙 $4.132\times10^{-10}$；3 条原始数据重放的证书区间相交、状态一致。全部生成的真实模型均未被有效 AC 层排除，最大独立节点 KCL 残差 $6.908\times10^{-11}$。这些检查不等于 21783 个独立实验；全部原始对偶乘子未逐条保存，工件审计也未独立重建所有证书。完整清单、环境、观测和真值分离文件、失败诊断及汇总位于 \path{results_v9/}。
-
-当前设计使用两个名义 AC 参考和线性竞争重拟合，实际判定使用共同源、PQ 误差、增益与 AC 损耗外 LP。参考可能不在更强的共同增益历史域中；平方残差目标与最小不相容松弛也不同。因此分数最高不保证排除最多。弱候选可使所有动作的最小分数近似相同；标签顺序打破平分没有物理最优含义。
-
-下一步优先做三个有限改动，而不是直接增加大规模双层优化。第一，先在\emph{同一}历史计量域内构造数值 AC 参考，并标明多解或未找到；未找到不排除。第二，只对少量入围动作，计算竞争候选的预测 AC 下界，并保留简单固定点/两点覆盖作基线；预测下界仍不是执行后证书。第三，先对未决候选寻找原 AC 见证或收紧外包络：前者存在时改进测量或激励，后者纯计算保守时优先计算。择时需要另外改变开始窗口并比较，当前实验没有证明择时算法有效。
-
-\section{怎样形成连贯论文，以及下一步先解决什么}
-\subsection{建议的论文论证顺序}
-正文只围绕一个问题：\emph{可控输入能否留下允许源项和竞争参数都无法解释的结构响应？}
-先说明逐输出盒造成的信息损失，再给物理共享源与历史域；随后给局部 T 设计、可简化条件及其反例；最后用同电量、同源轨迹、同误差的配对实验检验实际排除。
-相关工作也按这条链组织：电网 probing 提供任务背景，T 型设计提供竞争重拟合准则，集合成员方法提供条件判定，数值对偶提供可复核实现。无需把所有理论写成平行章节。
-
-可写作“贡献”的范围应服从实验：若选点规则无稳定提升，就保留结构机制和失败分析，不把端点波形或委员会包装成完成的辨识算法。
-参数恢复、全拓扑认证、统计概率和移动调度是不同目标，不应一次性承诺。
-
-\subsection{与 WZZT 的最小接口：研究实现已接通，生产默认未改}
-v9 已在研究入口落实以下顺序；下一步重点是提高候选覆盖和诊断未决原因：
-\begin{enumerate}
-\item 用历史数据运行 WZZT，输出待比较的局部支撑和各自物理参数域；bootstrap 只用于搜索优先级，未经认证的初始支撑应允许替换。
-\item 对这些候选建立 $\Th_h^H$，区分可行、已由有效下界排除、数值未决三种状态。若候选生成没有覆盖全部允许拓扑，输出明确标为局部比较。
-\item 在车辆可接入的动作中，用历史参考与竞争重拟合评分选择；并列或弱分离必须保留其状态，不能把一次标签选择写成确定最优。
-\item 采集并保存实际功率、电压和执行偏差，将新数据与原历史合并，以同一参数重拟合；不要只保留旧估计点或丢弃旧数据重置参数。
-\item 若仍有竞争解释，更新候选与历史域再决定是否值得下一次 probing；若全部候选不相容，检查模型域或候选遗漏，不强行输出一个拓扑。
-\end{enumerate}
-v7 实现历史域构造、设计和联合检验；v8 接通历史停止和小型 AC 验证；v9 调用现有被动函数，加入可替换结构及 EV 后候选刷新。全拓扑域认证仍未完成。
-生产 \path{pipeline.py} 的 \path{_fit_milp_variants} 将 RNJ 块作为 \path{initial_supports} 固定，该默认行为本轮未修改。研究接口 \path{wzzt_adapter.py} 的 \path{fit_source_aware_wzzt} 从 singleton 重启并逐次重选源路径；v9 桥接器明确令 \path{certified_supports=()}。因此本报告的新结果属于可运行的研究集成，不能写成生产默认流程已经完成替换。
-
-\subsection{优先级明确的拓展}
-\begin{enumerate}
-\item \textbf{未知源位置。} 当可能源响应方向张成整个输出空间时，通用 $C$ 只能为零。应逐候选保留源位置及其物理响应并重拟合，检验哪些歧义真正不可消除；不应继续扩大“投影消去全部源”的范围。
-\item \textbf{参考误差与判定目标。} 先检验局部 T 分数与实际 joint LP 排序不一致来自参考错误、范数差异还是历史松弛；只有证据支持时再改用直接预测的 joint LP 余量或多参考准则。
-\item \textbf{时变背景与择时。} 用可观测或可预测的负荷背景，按实际开始时刻建立场景并逐场景重拟合，比较预测偏差。静态算例无法证明择时价值。
-\item \textbf{AC 和真实设备。} 将预测误差、输入测量和电压非线性放回声明域；先核验接入与充电跟踪，再考虑 Q 或 V2G。更大的误差域可能使局部正结果消失。
-\end{enumerate}
-数学上最值得补齐的是：复合假设与模型区分设计、集合成员辨识与投影消元、凸 QP/LP 对偶及数值界、干扰参数消除、实验设计中参考依赖。概率置信度则另需联合误差校准、选择后推断或序贯有效性；不应在当前确定性结果上补一个百分数代替。
-
-\appendix
-\section{三末端机制的完整构造证明}\label{app:exact}
-沿用 v6 的域与真值，令 $p_t=(P+u_t,P,P)$、$P=.2$，全部 $u_t\in[0,L]$，且观测含 $u=0,L$ 两个极值、$0\le L\le.3$。
-定义 $d_h^0$ 为无噪声真响应到候选完整预测集合的 $\ell_\infty$ 距离。
-
-\subsection{覆盖完整重拟合域的下界与达到点}
-真模型对比 $y_{2t}^0-y_{3t}^0$ 关于 $u$ 的斜率为 $.01$。
-候选 13 的该斜率为 $-b'$，$b'\ge.005$；候选 23 的斜率为 0。
-两个输出、两个极值时刻形成的对比差，其残差最多为 $4d$，因此
-\begin{equation}
-d_{13}^0\ge .015L/4,\qquad d_{23}^0\ge .010L/4.
-\label{eq:exactlower}
-\end{equation}
-这没有固定错误参数。达到下界的候选为
-\begin{align*}
-h=13:\quad&
-(a',b',c_1',c_2',c_3')\\
-&=(.0225,.005,.0625,.0725+.01875L,.0425-.01875L),\\
-&w'_t=-.0003+.02\delta s_t;\\
-h=23:\quad&
-(a',b',c_1',c_2',c_3')\\
-&=(.025,.005,.065,.055+.0125L,.035-.0125L),\\
-&w'_t=-.0006+.02\delta s_t .
-\end{align*}
-全部参数落在 v6 盒内，且分别满足 $|w'_t|\le.0007<.00225$、$|w'_t|\le.001<.0025$。
-直接代入，残差分别为
-\[
-(0,.0075(u_t-L/2),-.0075(u_t-L/2)),\qquad
-(0,.005(u_t-L/2),-.005(u_t-L/2)).
-\]
-其最大坐标达到式 \eqref{eq:exactlower}，故下界就是精确距离。恒充联合历史的 $L=.15$，端点的 $L=.3$，得到正文表格。
-第 2、3 行功率始终相同，输入矩阵的全行最小奇异值为零，且所有 Q 均为零；结构区分仍严格为正。这直接否定用全方向最小奇异值概括全部辨识信息。
-
-\subsection{逐输出源盒的零距离构造}
-将 $w_t\one$ 放宽为分别满足 $|w_{it}|\le aB$ 的三个源响应。
-令 $p_{1t}$ 范围的中点为 $m$、半径为 $r$。取真 $a=.02,b=.01,c=.06$。
-候选 13 取
-\[
-a'=a,\ b'=b,\quad
-c_1'=c,\quad c_2'=c+b(m+P)/P,\quad c_3'=c-b(m+P)/P,
-\]
-未含源的残差为 $(0,b(p_{1t}-m),-b(p_{1t}-m))$。
-候选 23 取
-\[
-a'=a,\ b'=b,\quad
-c_1'=c+b(m+P)/m,\quad
-c_2'=c+b(m-P)/P,\quad c_3'=c-2b,
-\]
-残差为 $(-(bP/m)(p_{1t}-m),b(p_{1t}-m),0)$。
-因 $m\ge P$，均逐坐标不超过 $br$。
-各自用独立源吸收该残差及真实源即可，只需
-\[
-a(.02)+br\le aB.
-\]
-最大 $r=.15$ 时左边为 $.0019<.002$，且参数在声明盒内，故两个错误候选都有零残差见证。
-这说明损失来自放宽空间共享关系，不代表旧 AC 四案例的所有平凡界都有同一个原因。
-
-\subsection{历史作用、噪声与非孤立性}
-分别允许历史、新批选择 $\theta_H,\theta_F$ 时，
-\[
-\tau_h^{\rm reset}=\max(\tau_h^H,\tau_h^F)
-\le\tau_h^{\rm joint},
-\]
-因为批次可独立达到最优值，而 joint 增加共享约束。
-恒定输入的一批可用上述构造取 $r=0$ 精确拟合，即使源共用；两批各自需要不同参数，joint 则有严格正距离。端点新批本身已有两个极值，因此本例历史并非总有额外严格增益。
-
-到固定集合的 $\ell_\infty$ 距离满足
-$|d_h(Y^0+E)-d_h(Y^0)|\le\norm{E}_\infty$。
-统一误差预算 $\epsilon$ 下，$\tau_h=[d_h-\epsilon]_+$，故 $\norm{E}_\infty\le\rho$ 时
-\[
-[d_h^0-\rho-\epsilon]_+\le\tau_h
-\le[d_h^0+\rho-\epsilon]_+ .
-\]
-若 $\rho\le\epsilon$，$d_h^0>2\epsilon$ 是统一排除的充分条件；不是必要条件。
-
-更进一步，真参数每坐标偏离上述点不超过 $\eta$ 时，响应变化不超过
-\[
-\bigl[(.9+.14)+.7+.5\bigr]\eta=2.24\eta .
-\]
-三项分别来自公共总输入、二末端输入与单端输入。
-因此最难错误候选的端点松弛至少 $.00075-2.24\eta-2\epsilon$，恒充松弛至多 $.000375+2.24\eta$。
-取 $\eta=5\times10^{-5}$、$\epsilon=10^{-5}$，分别为至少 $.000618$ 和至多 $.000487$。
-故收益不只存在于孤立真参数点，但这个邻域仍仅属于声明的局部线性模型。
-
-\section{保留的旧负面证据与版本边界}
-旧审计中四个 AC 案例的 376 个错误交换下界全部平凡。此负结果不因当前局部共同源例子成立而被撤销。
-后续另一次整盒 AC 外包络实验得到局部参数相关包络排除 $277/376$，全局包络排除 $0/376$。两者属于不同证书及不同源/误差处理，不能与 v7 的三候选线性实验混成一个成功率。
-本轮没有重新运行这些旧 AC 数字，也没有证明当前已知共同源假设覆盖那些未知源位置场景。
-
-旧报告把 bootstrap、模型相容性和结构风险放在相邻接口，容易产生语义混淆。本次重新组织后保留其审计结论：bootstrap 仅作稳定性提示；有限银行排除只覆盖所列候选；概率覆盖需要单独的随机条件和校准。旧完整报告可由 Git 基线提交 \texttt{1d93252} 恢复。
-本报告保留 v7 冻结协议及其工件、v8 被动优先与 AC 共享损耗，以及 v9 被动桥接、计量误差和较大树测试；v6 提供已核验的机制证明和对照。各版本假设和功率预算分开报告，不以旧高成功率替代新选择器测试。
-
-\begin{thebibliography}{99}
-\bibitem{fluke1770}
-Fluke. 1773/1775/1777 Power Quality Analyzers, datasheet 240498-en.
-\url{https://media.fluke.com/c69097c0-bf26-40a9-9095-b1060075faae_original\%20file.pdf}.
-核查官方规格正文第 8--10 页及产品页；只用于计量量级与条件，不支持固定增益和扰动的 80/20 分解。
-\bibitem{hioki3360}
-HIOKI. Clamp On Power Logger PW3360, Basic Specifications.
-\url{https://www.hioki.com/in-en/products/pqa/power-loggers/id_5822}.
-核查官方规格表的读数项、满量程项与传感器条件，未读完整操作手册。
-\bibitem{farivar}
-M. Farivar and S. H. Low.
-Branch Flow Model: Relaxations and Convexification---Part I.
-IEEE Transactions on Power Systems, 28(3):2554--2564, 2013.
-\url{https://arxiv.org/abs/1204.4865}.
-本轮核对开放作者稿第 II--III 节支路方程；不移用其 OPF 松弛精确性结论。
-
-\bibitem{singh}
-K. Singh, Y. Ding, N. Ozay, and S. Z. Yong.
-Input Design for Nonlinear Model Discrimination via Affine Abstraction.
-IFAC-PapersOnLine, 51(16):175--180, 2018.
-\url{https://doi.org/10.1016/j.ifacol.2018.08.030}.
-核对作者稿第 1、3--4 页，Problem 1.2、外包含性质及定理前提。
-
-\bibitem{cavraro}
-Cavraro, G.; Kekatos, V.
-Graph Algorithms for Topology Identification using Power Grid Probing.
-\url{https://arxiv.org/abs/1803.04506}.
-\bibitem{taheri}
-Taheri, S.; Kekatos, V.; Cavraro, G.
-An MILP Approach for Distribution Grid Topology Identification Using Inverter Probing.
-\url{https://arxiv.org/abs/2004.02370}.
-\bibitem{bhela}
-Bhela, S.; Kekatos, V.; Veeramachaneni, S.
-Smart Inverter Grid Probing for Learning Loads: Part II---Probing Injection Design.
-\url{https://arxiv.org/abs/1806.08836}.
-\bibitem{hotz}
-Hotz, C.; Baum, S.; Waffenschmidt, E.; Stadler, I.
-Topology Estimation in Low Voltage Grids Using Wallbox Charging Data Recordings.
-CIRED Porto, 2022. 开放仓储版本：
-\url{https://doi.org/10.5281/zenodo.10046340}.
+\begin{thebibliography}{9}
 \bibitem{dette}
 Dette, H.; Titoff, S.
 Optimal discrimination designs.
-The Annals of Statistics, 2009.
-\url{https://doi.org/10.1214/08-AOS635};
-\url{https://arxiv.org/abs/0908.1912}.
-\bibitem{mogalle}
-Mogalle, D.; Seufert, P.; Schwientek, J.; Bortz, M.; K\"ufer, K.-H.
-Computing T-optimal designs via nested semi-infinite programming and twofold adaptive discretization.
-Computational Statistics, 39:2451--2478, 2024（2023 年在线发表）.
-\url{https://doi.org/10.1007/s00180-023-01370-4}.
-\bibitem{cerone}
-Cerone, V.; Lasserre, J.-B.; Piga, D.; Regruto, D.
-A unified framework for solving a general class of conditional and robust set-membership estimation problems.
-\url{https://doi.org/10.1109/TAC.2014.2351695};
-\url{https://arxiv.org/abs/1408.0532}.
-\bibitem{scott}
-Scott, J. K.; Findeisen, R.; Braatz, R. D.; Raimondo, D. M.
-Input design for guaranteed fault diagnosis using zonotopes.
-Automatica, 50(6):1580--1589, 2014.
-\url{https://doi.org/10.1016/j.automatica.2014.03.016}.
+\emph{The Annals of Statistics}, 2009, 37(4):2056--2082.
+\url{https://doi.org/10.1214/08-AOS635}.
+本次采用开放电子重印 \url{https://arxiv.org/pdf/0908.1912}；正文第 2 节和第 4.2 节，PDF 页 2--9、17--19。
 \end{thebibliography}
 \end{document}
