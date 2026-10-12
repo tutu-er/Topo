@@ -1,0 +1,10 @@
+{
+  "stage": "model-design-implementation",
+  "date": "2026-10-12",
+  "tests": {"passed": 18, "command": "D:/apps/miniconda3/envs/Topo/python.exe -m pytest research_experiments/mobile_ev_mle -q -p no:cacheprovider"},
+  "independent_checks": ["rectangular nodal KCL versus AC forward", "analytic derivative versus central finite differences", "noiseless separate R/X and time-varying source recovery", "independent meter calibration counted once", "EV counted once", "history-anchored design analytic example", "travel/access/SOC/reactive-power failures retained"],
+  "initial_integration_error": "design import referred to ac_likelihood; corrected to likelihood before successful tests",
+  "pilot_limit": "first pilot weak branch below old default lower impedance bound; defaults repaired to 1e-6 and formal code frozen",
+  "global_mle_verified": false,
+  "physical_branch": "root-initialized fixed-point AC; other equilibria not enumerated"
+}
