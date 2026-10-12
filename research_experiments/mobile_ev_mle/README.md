@@ -14,11 +14,15 @@
 - domain_nonlinear_evidence.md、nonlinear_taylor_stress_v2_evidence.md：宽解释域、完整 AC 竞争见证及代理失败。
 - ac_reflection_counterexample_math.md：总表已知且局部根线路 profile 满秩，仍可有两个全局等价参数点的完整 AC 反例。
 - history_cost_centering_math.md、independent_math_review.md：共同常数归一化与改变判据的逐对消融；v2 证据更正字段语义，原 v1 保留。
+- weak_branch_information_math.md、weak_branch_peer_review.md：完整 AC 的弱内部边信息上界及因果自适应量词；不适用名义混合门控的统一 size 声明。
+- nonlinear_surrogate_bounds_math.md：代理界推广到完整 AC 所需的统一误差条件；当前仅有点值回代，未满足该条件。
+- expected_scenario_design_math.md：独立加权情景 MILP 原型及解析小例，尚未接入 C/D；一次微小数值界冲突保留为失败。
+- continuous_predictive_eig_protocol.md：有限 prior 失败后的连续 proper 积分尝试，独立诊断，不改正式策略。
 - future_prediction_math.md、control_gradient_math.md：追踪与背景不可分、proper 预测的待实现模型、补偿后的控制梯度与零梯度情形。
 
 C 冻结 128 个校准历史、256 个独立评价历史；D 使用自身的 64+96 条完整两轮轨迹校准/评价。种子、源码哈希、物理/优化失败和原始负 gap 均保存。名义风险仅针对声明模拟分布下冻结的整策略，不能迁移到现场、任意参数或模型失配。有限 prior 的 4 条历史适合度诊断均拒绝，故不把这次有限 EIG 当作连续模型的概率证据。
 
-当前进度以检查点为准。原报告方法部分已经原位编译并检查，最终结果部分待正式批次结束。outputs/ 保存详细 JSON/NPZ；evidence/ 只提交紧凑审计证据。未扩网。
+当前进度以检查点为准。原报告方法部分已经原位编译为36页并逐页检查，证据为 adaptive_extended_methods_delivery.json；最终结果部分待正式批次结束。outputs/ 保存详细 JSON/NPZ；evidence/ 只提交紧凑审计证据。未扩网。
 
 本目录已实现新研究原型。旧路线见 ../mobile_ev_probing/README.md。
 旧外 LP 的未决不用于判断 MLE 路线。

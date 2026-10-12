@@ -1,0 +1,1928 @@
+{
+  "status": "passed",
+  "kind": "conditional_full_AC_weak_pair_audit",
+  "scope": "72 fixed parameter/schedule paths; no fits, controllers, calibration, or route enumeration",
+  "control_relaxation": "changing_sites satisfies only pointwise power and grid energy; no route feasibility claim",
+  "source_workspace": "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo",
+  "random_seed": 2026101301,
+  "source_sha256": {
+    "research_experiments/mobile_ev_mle/simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+    "research_experiments/mobile_ev_mle/adaptive_milp_study.py": "0693b573131838330a1a48a5099d39f418ef05ea825898558d2838578d0b078f",
+    "research_experiments/mobile_ev_mle/likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "research_experiments/mobile_ev_mle/ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+    "research_experiments/mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+  },
+  "audit_sha256": {
+    "weak_branch_information.py": "9050ca768747d2c454b177e1bc2cb7fb2c46cd4553dda3129d717843bc7e3a31",
+    "weak_branch_ac_audit.py": "f8c542c283333d43ea101a83b52cdee7960ff6ec21323ee5dcda8939fead877f"
+  },
+  "runtime": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "rational_constants": {
+    "vmin": {
+      "fraction": "9/10",
+      "decimal": 0.9
+    },
+    "radius": {
+      "fraction": "1/10",
+      "decimal": 0.1
+    },
+    "mb": {
+      "fraction": "29/200",
+      "decimal": 0.145
+    },
+    "db": {
+      "fraction": "3/250",
+      "decimal": 0.012
+    },
+    "zleaf": {
+      "fraction": "9/200",
+      "decimal": 0.045
+    },
+    "dzleaf": {
+      "fraction": "11/500",
+      "decimal": 0.022
+    },
+    "zroot": {
+      "fraction": "1/125",
+      "decimal": 0.008
+    },
+    "zweak": {
+      "fraction": "11/250000",
+      "decimal": 4.4e-05
+    },
+    "msource": {
+      "fraction": "3/20",
+      "decimal": 0.15
+    },
+    "umax": {
+      "fraction": "3/10",
+      "decimal": 0.3
+    },
+    "mtot": {
+      "fraction": "177/200",
+      "decimal": 0.885
+    },
+    "mmax": {
+      "fraction": "89/200",
+      "decimal": 0.445
+    },
+    "zstar_leaf": {
+      "fraction": "1409/31250",
+      "decimal": 0.045088
+    },
+    "C": {
+      "fraction": "169651/6250000",
+      "decimal": 0.02714416
+    },
+    "K": {
+      "fraction": "169651/5062500",
+      "decimal": 0.03351130864197531
+    },
+    "L_den": {
+      "fraction": "3571/3600",
+      "decimal": 0.9919444444444444
+    },
+    "L0": {
+      "fraction": "203651/14462550",
+      "decimal": 0.01408126506044923
+    },
+    "L1": {
+      "fraction": "4000/3571",
+      "decimal": 1.1201344161299356
+    },
+    "a": {
+      "fraction": "2240161/3494472755800",
+      "decimal": 6.410583674695593e-07
+    },
+    "b": {
+      "fraction": "891000/17472363779",
+      "decimal": 5.099481737387423e-05
+    },
+    "sigma_v": {
+      "fraction": "3/25000",
+      "decimal": 0.00012
+    },
+    "sigma_master": {
+      "fraction": "1/1000",
+      "decimal": 0.001
+    },
+    "history_count": 12,
+    "future_count": 8,
+    "base_kw": {
+      "fraction": "20",
+      "decimal": 20.0
+    },
+    "dt_hours": {
+      "fraction": "1/4",
+      "decimal": 0.25
+    },
+    "grid_energy_kwh": {
+      "fraction": "6",
+      "decimal": 6.0
+    },
+    "sum_u": {
+      "fraction": "6/5",
+      "decimal": 1.2
+    },
+    "sum_u2": {
+      "fraction": "9/25",
+      "decimal": 0.36
+    },
+    "master_gain": {
+      "fraction": "59/54",
+      "decimal": 1.0925925925925926
+    },
+    "gaussian_weight": {
+      "fraction": "152745250000/729",
+      "decimal": 209527091.90672153
+    },
+    "sum_delta_v2": {
+      "fraction": "48039711086917/46966691696263255514000",
+      "decimal": 1.0228463907484273e-09
+    },
+    "kl_exact": {
+      "fraction": "3668918839949454447125/34238718246575913269706",
+      "decimal": 0.10715701486040206
+    },
+    "kl_upper": {
+      "fraction": "11/100",
+      "decimal": 0.11
+    },
+    "alpha": {
+      "fraction": "1/20",
+      "decimal": 0.05
+    }
+  },
+  "squared_nominal_checks": {
+    "baseline_load_sq": {
+      "fraction": "4141/200000",
+      "decimal": 0.020705
+    },
+    "baseline_load_cap_sq": {
+      "fraction": "841/40000",
+      "decimal": 0.021025
+    },
+    "baseline_pair_contrast_sq": {
+      "fraction": "2/15625",
+      "decimal": 0.000128
+    },
+    "baseline_pair_contrast_cap_sq": {
+      "fraction": "9/62500",
+      "decimal": 0.000144
+    },
+    "source_load_sq": {
+      "fraction": "829/40000",
+      "decimal": 0.020725
+    },
+    "source_load_cap_sq": {
+      "fraction": "9/400",
+      "decimal": 0.0225
+    },
+    "root_impedance_sq": {
+      "fraction": "1341/25000000",
+      "decimal": 5.364e-05
+    },
+    "root_impedance_cap_sq": {
+      "fraction": "1/15625",
+      "decimal": 6.4e-05
+    },
+    "weak_impedance_sq": {
+      "fraction": "117/62500000000",
+      "decimal": 1.872e-09
+    },
+    "weak_impedance_cap_sq": {
+      "fraction": "121/62500000000",
+      "decimal": 1.936e-09
+    },
+    "leaf_impedance_sq": {
+      "fraction": "12429/6250000",
+      "decimal": 0.00198864
+    },
+    "leaf_impedance_cap_sq": {
+      "fraction": "81/40000",
+      "decimal": 0.002025
+    },
+    "leaf_difference_sq": {
+      "fraction": "529/1250000",
+      "decimal": 0.0004232
+    },
+    "leaf_difference_cap_sq": {
+      "fraction": "121/250000",
+      "decimal": 0.000484
+    }
+  },
+  "positive_proof_margins": {
+    "baseline_load": {
+      "fraction": "1/3125",
+      "decimal": 0.00032
+    },
+    "baseline_pair_contrast": {
+      "fraction": "1/62500",
+      "decimal": 1.6e-05
+    },
+    "source_load": {
+      "fraction": "71/40000",
+      "decimal": 0.001775
+    },
+    "root_impedance": {
+      "fraction": "259/25000000",
+      "decimal": 1.036e-05
+    },
+    "weak_impedance": {
+      "fraction": "1/15625000000",
+      "decimal": 6.4e-11
+    },
+    "leaf_impedance": {
+      "fraction": "909/25000000",
+      "decimal": 3.636e-05
+    },
+    "leaf_difference": {
+      "fraction": "19/312500",
+      "decimal": 6.08e-05
+    },
+    "ball": {
+      "fraction": "392849/5625000",
+      "decimal": 0.06983982222222222
+    },
+    "contraction": {
+      "fraction": "4892849/5062500",
+      "decimal": 0.9664886913580247
+    },
+    "current_contrast": {
+      "fraction": "3571/3600",
+      "decimal": 0.9919444444444444
+    },
+    "kl": {
+      "fraction": "4867008358694800627133/1711935912328795663485300",
+      "decimal": 0.0028429851395979358
+    }
+  },
+  "path_count": 72,
+  "time_sample_count": 1440,
+  "max_actual_gaussian_kl": 0.035236562306136913,
+  "max_voltage_bound_ratio": 0.8681351169193876,
+  "max_reduced_full_voltage_error": 2.9277121906886207e-15,
+  "max_power_balance_residual": 1.6626589256941328e-15,
+  "records": [
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 0,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 4.497829406128551e-16,
+      "min_full_voltage": 0.9930393201687541,
+      "max_c_actual": 0.007027757827295035,
+      "max_voltage_difference": 3.2860257651571727e-07,
+      "max_voltage_bound_ratio": 0.5125938497812697,
+      "max_current_contrast_ratio": 0.8064089333758903,
+      "max_master_difference": 3.748743994009229e-09,
+      "actual_gaussian_kl": 3.718976452456853e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 4.771751009228363e-16,
+      "power_balance_residual": 2.75133514442034e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 0,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 1.1102569054260746e-16,
+      "min_full_voltage": 0.9898143129584901,
+      "max_c_actual": 0.010433034001281453,
+      "max_voltage_difference": 4.646768305622448e-06,
+      "max_voltage_bound_ratio": 0.5605079394109191,
+      "max_current_contrast_ratio": 0.8798804755941539,
+      "max_master_difference": 7.580619760699298e-07,
+      "actual_gaussian_kl": 0.007904224124092828,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.1796199357120883e-16,
+      "power_balance_residual": 1.191446929561954e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 0,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 2.2204746787793615e-15,
+      "min_full_voltage": 0.9848836122736154,
+      "max_c_actual": 0.015748144235684547,
+      "max_voltage_difference": 8.863200565144435e-06,
+      "max_voltage_bound_ratio": 0.5560524843741186,
+      "max_current_contrast_ratio": 0.8698227006860376,
+      "max_master_difference": 2.7619460197039563e-06,
+      "actual_gaussian_kl": 0.014829961496737347,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 2.2378174893230226e-15,
+      "power_balance_residual": 1.2404546535844258e-15
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 0,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 1.1103267813128674e-16,
+      "min_full_voltage": 0.9892005227604704,
+      "max_c_actual": 0.011185561876778655,
+      "max_voltage_difference": 4.646768305622448e-06,
+      "max_voltage_bound_ratio": 0.5605079394109191,
+      "max_current_contrast_ratio": 0.8798804755941539,
+      "max_master_difference": 7.580619760699298e-07,
+      "actual_gaussian_kl": 0.005682828787442107,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.5439099846307842e-16,
+      "power_balance_residual": 9.886592247057368e-17
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 1,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 1.1104564635394507e-16,
+      "min_full_voltage": 0.9895244970559857,
+      "max_c_actual": 0.010541636740942554,
+      "max_voltage_difference": 4.946400435545042e-07,
+      "max_voltage_bound_ratio": 0.7715990753025966,
+      "max_current_contrast_ratio": 0.8080110120323861,
+      "max_master_difference": 5.668902859603386e-09,
+      "actual_gaussian_kl": 9.299154894027696e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 1.249068663501002e-16,
+      "power_balance_residual": 1.2328213041351821e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 1,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 1.8873889076291277e-15,
+      "min_full_voltage": 0.9846457471394994,
+      "max_c_actual": 0.015649551001922175,
+      "max_voltage_difference": 7.035844408450567e-06,
+      "max_voltage_bound_ratio": 0.8486858805989471,
+      "max_current_contrast_ratio": 0.8856335413875205,
+      "max_master_difference": 1.1660277798997398e-06,
+      "actual_gaussian_kl": 0.017920070811000822,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.8856541931372503e-15,
+      "power_balance_residual": 9.16322008225524e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 1,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 1.409348327831237e-15,
+      "min_full_voltage": 0.9771511282063424,
+      "max_c_actual": 0.023622216353526813,
+      "max_voltage_difference": 1.3837642803740676e-05,
+      "max_voltage_bound_ratio": 0.8681351169193876,
+      "max_current_contrast_ratio": 0.9006560205257932,
+      "max_master_difference": 4.525590405975103e-06,
+      "actual_gaussian_kl": 0.035236562306136913,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.4442927312748189e-15,
+      "power_balance_residual": 8.842836932097069e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 1,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.9835742012259637,
+      "max_c_actual": 0.016958153742415754,
+      "max_voltage_difference": 7.035844408450567e-06,
+      "max_voltage_bound_ratio": 0.8486858805989471,
+      "max_current_contrast_ratio": 0.8856335413875205,
+      "max_master_difference": 1.1660277798997398e-06,
+      "actual_gaussian_kl": 0.013569126888593578,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.019546736790393e-16,
+      "power_balance_residual": 1.572869097819703e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 2,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 6.505213034913027e-19,
+      "min_full_voltage": 0.9900751690409819,
+      "max_c_actual": 0.009854781082588322,
+      "max_voltage_difference": 3.9138477806388404e-07,
+      "max_voltage_bound_ratio": 0.6105290842841529,
+      "max_current_contrast_ratio": 0.8147056591202065,
+      "max_master_difference": 4.591682008173263e-09,
+      "actual_gaussian_kl": 5.9841149748213536e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 8.15664912682515e-17,
+      "power_balance_residual": 1.388110777985057e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 2,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.1102247398655498e-15,
+      "min_full_voltage": 0.9851352598957698,
+      "max_c_actual": 0.01476898357610577,
+      "max_voltage_difference": 5.494455787871602e-06,
+      "max_voltage_bound_ratio": 0.6627586936318697,
+      "max_current_contrast_ratio": 0.886522028181855,
+      "max_master_difference": 9.092496297129206e-07,
+      "actual_gaussian_kl": 0.008001779023070933,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.1050205775156619e-15,
+      "power_balance_residual": 4.973268337875046e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 2,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.1951036172747165e-16,
+      "min_full_voltage": 0.9829404108126284,
+      "max_c_actual": 0.018306178830267906,
+      "max_voltage_difference": 1.061312671412868e-05,
+      "max_voltage_bound_ratio": 0.6658379704930448,
+      "max_current_contrast_ratio": 0.8867811276538736,
+      "max_master_difference": 3.374877731574772e-06,
+      "actual_gaussian_kl": 0.015384600313057564,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.6895752487193074e-16,
+      "power_balance_residual": 2.5154088575060103e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 2,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 2.442503128628713e-15,
+      "min_full_voltage": 0.9837954921420273,
+      "max_c_actual": 0.01614337247933601,
+      "max_voltage_difference": 5.494455787871602e-06,
+      "max_voltage_bound_ratio": 0.6627586936318697,
+      "max_current_contrast_ratio": 0.886522028181855,
+      "max_master_difference": 9.092496297129206e-07,
+      "actual_gaussian_kl": 0.005614517728766383,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 2.400868610610614e-15,
+      "power_balance_residual": 9.787949513683263e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 3,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.9918400123515649,
+      "max_c_actual": 0.008404502010535728,
+      "max_voltage_difference": 4.463954916576477e-07,
+      "max_voltage_bound_ratio": 0.6963414164917593,
+      "max_current_contrast_ratio": 0.8021469983790821,
+      "max_master_difference": 4.974102389619365e-09,
+      "actual_gaussian_kl": 6.657279529880665e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 6.767124095496848e-17,
+      "power_balance_residual": 9.109053454687977e-17
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 3,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 2.220598509946676e-16,
+      "min_full_voltage": 0.9893278913188449,
+      "max_c_actual": 0.011632319158461113,
+      "max_voltage_difference": 6.357858528223591e-06,
+      "max_voltage_bound_ratio": 0.7669050721571077,
+      "max_current_contrast_ratio": 0.8789900156956209,
+      "max_master_difference": 1.0356058150076255e-06,
+      "actual_gaussian_kl": 0.017196747709014117,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.856174384645724e-16,
+      "power_balance_residual": 1.61693188088283e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 3,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 6.853914186987533e-16,
+      "min_full_voltage": 0.9791129321852414,
+      "max_c_actual": 0.021323452567862184,
+      "max_voltage_difference": 1.2534662374422476e-05,
+      "max_voltage_bound_ratio": 0.7863897587400274,
+      "max_current_contrast_ratio": 0.8947612998190139,
+      "max_master_difference": 4.0548837377170105e-06,
+      "actual_gaussian_kl": 0.03493281190415143,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 6.349301204166045e-16,
+      "power_balance_residual": 4.253611294871294e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 3,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 1.222263267459108e-15,
+      "min_full_voltage": 0.9855543128989821,
+      "max_c_actual": 0.014744027762814539,
+      "max_voltage_difference": 6.357858528223591e-06,
+      "max_voltage_bound_ratio": 0.7669050721571077,
+      "max_current_contrast_ratio": 0.8789900156956209,
+      "max_master_difference": 1.0356058150076255e-06,
+      "actual_gaussian_kl": 0.012715508914089723,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.218796718196543e-15,
+      "power_balance_residual": 4.0284634362458664e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 4,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 3.2300057434496203e-18,
+      "reduced_full_voltage_error": 4.336808689942018e-19,
+      "min_full_voltage": 0.9905843892458241,
+      "max_c_actual": 0.009438438016619791,
+      "max_voltage_difference": 3.8339337922618413e-07,
+      "max_voltage_bound_ratio": 0.5980631385244177,
+      "max_current_contrast_ratio": 0.811222157729295,
+      "max_master_difference": 4.449966466804851e-09,
+      "actual_gaussian_kl": 5.517890174436306e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 7.459437015654989e-17,
+      "power_balance_residual": 1.2491910000762065e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 4,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.2300057434496203e-18,
+      "reduced_full_voltage_error": 7.771572062792074e-16,
+      "min_full_voltage": 0.9862646231385531,
+      "max_c_actual": 0.013891965016553424,
+      "max_voltage_difference": 5.415726665954496e-06,
+      "max_voltage_bound_ratio": 0.6532621371016044,
+      "max_current_contrast_ratio": 0.8844118089599426,
+      "max_master_difference": 8.939183680404332e-07,
+      "actual_gaussian_kl": 0.010434087553027977,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 7.806266483909828e-16,
+      "power_balance_residual": 3.688401612158707e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 4,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 3.2300057434496203e-18,
+      "reduced_full_voltage_error": 3.4170089680666063e-16,
+      "min_full_voltage": 0.9810206076421838,
+      "max_c_actual": 0.01960427873076118,
+      "max_voltage_difference": 1.044350968344442e-05,
+      "max_voltage_bound_ratio": 0.6551966710424769,
+      "max_current_contrast_ratio": 0.88352893137432,
+      "max_master_difference": 3.326737487279228e-06,
+      "actual_gaussian_kl": 0.0191918946423049,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 2.912062891899838e-16,
+      "power_balance_residual": 2.445544839512954e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 4,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.2300057434496203e-18,
+      "reduced_full_voltage_error": 2.331504652842248e-15,
+      "min_full_voltage": 0.9845611372448118,
+      "max_c_actual": 0.015878565402011522,
+      "max_voltage_difference": 5.415726665954496e-06,
+      "max_voltage_bound_ratio": 0.6532621371016044,
+      "max_current_contrast_ratio": 0.8844118089599426,
+      "max_master_difference": 8.939183680404332e-07,
+      "actual_gaussian_kl": 0.0071622493663599,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 2.3020198843068748e-15,
+      "power_balance_residual": 8.488471886679092e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 5,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 4.697535675969281e-18,
+      "reduced_full_voltage_error": 6.505213034913027e-19,
+      "min_full_voltage": 0.9917605864954738,
+      "max_c_actual": 0.008446384318765566,
+      "max_voltage_difference": 3.589488819173261e-07,
+      "max_voltage_bound_ratio": 0.559931669458118,
+      "max_current_contrast_ratio": 0.8061215800970297,
+      "max_master_difference": 4.081611931203583e-09,
+      "actual_gaussian_kl": 5.077347655747338e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 6.41862337324909e-17,
+      "power_balance_residual": 1.405395367116548e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 5,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.697535675969281e-18,
+      "reduced_full_voltage_error": 3.330849769336005e-16,
+      "min_full_voltage": 0.9879132465297723,
+      "max_c_actual": 0.012748317438362185,
+      "max_voltage_difference": 5.097313543380146e-06,
+      "max_voltage_bound_ratio": 0.6148541357817198,
+      "max_current_contrast_ratio": 0.8814526088314983,
+      "max_master_difference": 8.358845111178009e-07,
+      "actual_gaussian_kl": 0.009653025767664764,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 3.2439792827256746e-16,
+      "power_balance_residual": 2.1973544447561399e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 5,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 4.697535675969281e-18,
+      "reduced_full_voltage_error": 3.494725194689759e-16,
+      "min_full_voltage": 0.9805194464908118,
+      "max_c_actual": 0.020255888490246555,
+      "max_voltage_difference": 9.929320610901235e-06,
+      "max_voltage_bound_ratio": 0.6229378826822023,
+      "max_current_contrast_ratio": 0.8887940574865912,
+      "max_master_difference": 3.1823566203326764e-06,
+      "actual_gaussian_kl": 0.019269596549720595,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 3.5815318670039864e-16,
+      "power_balance_residual": 3.65779927127896e-16
+    },
+    {
+      "pair": [
+        0,
+        1
+      ],
+      "impedance_pattern": 5,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.697535675969281e-18,
+      "reduced_full_voltage_error": 6.664070680274407e-16,
+      "min_full_voltage": 0.9864429976526358,
+      "max_c_actual": 0.013998830099794985,
+      "max_voltage_difference": 5.097313543380146e-06,
+      "max_voltage_bound_ratio": 0.6148541357817198,
+      "max_current_contrast_ratio": 0.8814526088314983,
+      "max_master_difference": 8.358845111178009e-07,
+      "actual_gaussian_kl": 0.007276337808386501,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 7.166722996562776e-16,
+      "power_balance_residual": 2.7690752720498954e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 4.497829406128551e-16,
+      "min_full_voltage": 0.9933368095595235,
+      "max_c_actual": 0.0067829589067318966,
+      "max_voltage_difference": 3.274938046157888e-07,
+      "max_voltage_bound_ratio": 0.5108642539188756,
+      "max_current_contrast_ratio": 0.8040228265942925,
+      "max_master_difference": 3.703989974495459e-09,
+      "actual_gaussian_kl": 3.9008588811550796e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 4.2785755368142847e-16,
+      "power_balance_residual": 2.0062803069181282e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 1.110299254973338e-16,
+      "min_full_voltage": 0.9898143541538843,
+      "max_c_actual": 0.010433034001281453,
+      "max_voltage_difference": 4.645434418160922e-06,
+      "max_voltage_bound_ratio": 0.560347041672256,
+      "max_current_contrast_ratio": 0.8796300635132962,
+      "max_master_difference": 7.572026124901854e-07,
+      "actual_gaussian_kl": 0.007840365587291656,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.127603618958293e-16,
+      "power_balance_residual": 1.386022617347e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.9837583961337798,
+      "max_c_actual": 0.01697364639928706,
+      "max_voltage_difference": 8.993854059801684e-06,
+      "max_voltage_bound_ratio": 0.5642493202419686,
+      "max_current_contrast_ratio": 0.8816725132645331,
+      "max_master_difference": 2.842971728989943e-06,
+      "actual_gaussian_kl": 0.015205163134815253,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.1280038568858133e-16,
+      "power_balance_residual": 1.9105795794365347e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 1.110834837353142e-16,
+      "min_full_voltage": 0.9887388328689451,
+      "max_c_actual": 0.011672731581094142,
+      "max_voltage_difference": 4.645434418160922e-06,
+      "max_voltage_bound_ratio": 0.560347041672256,
+      "max_current_contrast_ratio": 0.8796300635132962,
+      "max_master_difference": 7.572026124901854e-07,
+      "actual_gaussian_kl": 0.004945911185687857,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.3531121110320344e-16,
+      "power_balance_residual": 1.5163954066484528e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 1.1104347626709818e-16,
+      "min_full_voltage": 0.9899909936230552,
+      "max_c_actual": 0.0101051638973831,
+      "max_voltage_difference": 4.92160652860865e-07,
+      "max_voltage_bound_ratio": 0.767731423276735,
+      "max_current_contrast_ratio": 0.8043606213096521,
+      "max_master_difference": 5.566271830185264e-09,
+      "actual_gaussian_kl": 7.696959129012875e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 1.127572344387175e-16,
+      "power_balance_residual": 1.6296362947593362e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 1.887386316716446e-15,
+      "min_full_voltage": 0.9846458419387345,
+      "max_c_actual": 0.01564955100192218,
+      "max_voltage_difference": 7.032778974242802e-06,
+      "max_voltage_bound_ratio": 0.8483161181967385,
+      "max_current_contrast_ratio": 0.8852526380066349,
+      "max_master_difference": 1.1640346117018971e-06,
+      "actual_gaussian_kl": 0.018454397809201464,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.870039148513506e-15,
+      "power_balance_residual": 8.270465868445859e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 2.9195370332355716e-15,
+      "min_full_voltage": 0.975434621691292,
+      "max_c_actual": 0.025460469598930592,
+      "max_voltage_difference": 1.348416349500265e-05,
+      "max_voltage_bound_ratio": 0.845958810927668,
+      "max_current_contrast_ratio": 0.8769154561611937,
+      "max_master_difference": 4.295008644238835e-06,
+      "actual_gaussian_kl": 0.03411474126070427,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 2.873399652050098e-15,
+      "power_balance_residual": 1.5889309500721632e-15
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.983247107310491,
+      "max_c_actual": 0.017199426715418017,
+      "max_voltage_difference": 7.032778974242802e-06,
+      "max_voltage_bound_ratio": 0.8483161181967385,
+      "max_current_contrast_ratio": 0.8852526380066349,
+      "max_master_difference": 1.1640346117018971e-06,
+      "actual_gaussian_kl": 0.011217605522508604,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 8.758206355544375e-17,
+      "power_balance_residual": 1.6339585017395042e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 5.421010862427522e-19,
+      "min_full_voltage": 0.990496061056048,
+      "max_c_actual": 0.009435256558835892,
+      "max_voltage_difference": 3.862441995250009e-07,
+      "max_voltage_bound_ratio": 0.602510191154071,
+      "max_current_contrast_ratio": 0.8043993401473098,
+      "max_master_difference": 4.3606045317885516e-09,
+      "actual_gaussian_kl": 5.353195824636037e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 7.80628575856455e-17,
+      "power_balance_residual": 1.5300270892145586e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.1102277891752612e-15,
+      "min_full_voltage": 0.9851355152694927,
+      "max_c_actual": 0.01476898357610577,
+      "max_voltage_difference": 5.4845577813839135e-06,
+      "max_voltage_bound_ratio": 0.6615647646782832,
+      "max_current_contrast_ratio": 0.88491914820294,
+      "max_master_difference": 9.04593666196192e-07,
+      "actual_gaussian_kl": 0.007993288679972602,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.1587998467917347e-15,
+      "power_balance_residual": 4.821831160994752e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.6978062665133016e-15,
+      "min_full_voltage": 0.975980992940039,
+      "max_c_actual": 0.02397973033085361,
+      "max_voltage_difference": 1.0607777908426585e-05,
+      "max_voltage_bound_ratio": 0.6655024013408832,
+      "max_current_contrast_ratio": 0.8873246787921008,
+      "max_master_difference": 3.413802744474608e-06,
+      "actual_gaussian_kl": 0.015789982139592335,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.7182295920066282e-15,
+      "power_balance_residual": 1.0020986429382368e-15
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.665378807937998e-15,
+      "min_full_voltage": 0.9844764739428321,
+      "max_c_actual": 0.015475409031277098,
+      "max_voltage_difference": 5.4845577813839135e-06,
+      "max_voltage_bound_ratio": 0.6615647646782832,
+      "max_current_contrast_ratio": 0.88491914820294,
+      "max_master_difference": 9.04593666196192e-07,
+      "actual_gaussian_kl": 0.00486555163275027,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.7139498106535642e-15,
+      "power_balance_residual": 5.099061718337987e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 2.4917676576570353e-18,
+      "reduced_full_voltage_error": 4.336808689942018e-19,
+      "min_full_voltage": 0.9914754438365672,
+      "max_c_actual": 0.0087352418227163,
+      "max_voltage_difference": 4.4673024762185525e-07,
+      "max_voltage_bound_ratio": 0.6968636091362901,
+      "max_current_contrast_ratio": 0.8037038305678117,
+      "max_master_difference": 5.05657679756278e-09,
+      "actual_gaussian_kl": 5.543425815145648e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 6.419392507096481e-17,
+      "power_balance_residual": 1.7699493373556813e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 2.4917676576570353e-18,
+      "reduced_full_voltage_error": 2.220513810852149e-16,
+      "min_full_voltage": 0.9893278661485307,
+      "max_c_actual": 0.011632319158461113,
+      "max_voltage_difference": 6.364828051039335e-06,
+      "max_voltage_bound_ratio": 0.7677457581167246,
+      "max_current_contrast_ratio": 0.8799560073352136,
+      "max_master_difference": 1.0392036125817076e-06,
+      "actual_gaussian_kl": 0.017770412443178778,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 2.203115888474344e-16,
+      "power_balance_residual": 2.649804305289673e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 2.4917676576570353e-18,
+      "reduced_full_voltage_error": 2.342390628316923e-16,
+      "min_full_voltage": 0.9832177588790267,
+      "max_c_actual": 0.01899420715520858,
+      "max_voltage_difference": 1.2185485618926796e-05,
+      "max_voltage_bound_ratio": 0.7644833829390976,
+      "max_current_contrast_ratio": 0.8700077579044558,
+      "max_master_difference": 3.810842179785881e-06,
+      "actual_gaussian_kl": 0.03352188037650645,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.9270271596481558e-16,
+      "power_balance_residual": 1.8850506568877406e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 2.4917676576570353e-18,
+      "reduced_full_voltage_error": 1.222467215373754e-15,
+      "min_full_voltage": 0.9856144812232169,
+      "max_c_actual": 0.01465386560206225,
+      "max_voltage_difference": 6.364828051039335e-06,
+      "max_voltage_bound_ratio": 0.7677457581167246,
+      "max_current_contrast_ratio": 0.8799560073352136,
+      "max_master_difference": 1.0392036125817076e-06,
+      "actual_gaussian_kl": 0.010909285709876631,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.203308119916041e-15,
+      "power_balance_residual": 5.091533457035109e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 4.5475052513198876e-18,
+      "reduced_full_voltage_error": 1.1102230246251565e-16,
+      "min_full_voltage": 0.991081828564991,
+      "max_c_actual": 0.009011958581886042,
+      "max_voltage_difference": 3.7493607826751493e-07,
+      "max_voltage_bound_ratio": 0.5848704225599533,
+      "max_current_contrast_ratio": 0.814189464047557,
+      "max_master_difference": 4.407845432717697e-09,
+      "actual_gaussian_kl": 5.5375763275776816e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 8.15366168666483e-17,
+      "power_balance_residual": 9.542556008903431e-17
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.5475052513198876e-18,
+      "reduced_full_voltage_error": 1.3323805624899693e-15,
+      "min_full_voltage": 0.9851294439891977,
+      "max_c_actual": 0.015196019099059037,
+      "max_voltage_difference": 5.29257667921877e-06,
+      "max_voltage_bound_ratio": 0.6384073948885692,
+      "max_current_contrast_ratio": 0.885869335090153,
+      "max_master_difference": 8.7763898029508e-07,
+      "actual_gaussian_kl": 0.00997810167520282,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.3757450893699883e-15,
+      "power_balance_residual": 6.48184626537795e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 4.5475052513198876e-18,
+      "reduced_full_voltage_error": 3.542161341076049e-16,
+      "min_full_voltage": 0.9808770828129524,
+      "max_c_actual": 0.02032881152042596,
+      "max_voltage_difference": 1.0037455636938976e-05,
+      "max_voltage_bound_ratio": 0.6297219726318993,
+      "max_current_contrast_ratio": 0.8700873935657112,
+      "max_master_difference": 3.142741798456932e-06,
+      "actual_gaussian_kl": 0.019228920525219736,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 3.738570575757691e-16,
+      "power_balance_residual": 4.158273654048234e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.5475052513198876e-18,
+      "reduced_full_voltage_error": 1.3323805624899693e-15,
+      "min_full_voltage": 0.9851294439891977,
+      "max_c_actual": 0.015196019099059037,
+      "max_voltage_difference": 5.29257667921877e-06,
+      "max_voltage_bound_ratio": 0.6384073948885692,
+      "max_current_contrast_ratio": 0.885869335090153,
+      "max_master_difference": 8.7763898029508e-07,
+      "actual_gaussian_kl": 0.006381353721855361,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.3757450893699883e-15,
+      "power_balance_residual": 6.48184626537795e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 2.775229482341979e-18,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.9911546229581435,
+      "max_c_actual": 0.00891039023697113,
+      "max_voltage_difference": 3.516995690750329e-07,
+      "max_voltage_bound_ratio": 0.5486233187522248,
+      "max_current_contrast_ratio": 0.8075956543059786,
+      "max_master_difference": 4.030203378514301e-09,
+      "actual_gaussian_kl": 5.004561839339299e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 7.459342464138701e-17,
+      "power_balance_residual": 1.0353353044220187e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 2.775229482341979e-18,
+      "reduced_full_voltage_error": 9.992121099851496e-16,
+      "min_full_voltage": 0.9857879939334009,
+      "max_c_actual": 0.014539869890543894,
+      "max_voltage_difference": 4.9958960683147435e-06,
+      "max_voltage_bound_ratio": 0.6026208380938651,
+      "max_current_contrast_ratio": 0.8845134626505746,
+      "max_master_difference": 8.252238353192288e-07,
+      "actual_gaussian_kl": 0.008690790000839764,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 9.627833478750253e-16,
+      "power_balance_residual": 4.792273681541446e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 2.775229482341979e-18,
+      "reduced_full_voltage_error": 5.947066246713157e-16,
+      "min_full_voltage": 0.9796873729857836,
+      "max_c_actual": 0.02157693875556601,
+      "max_voltage_difference": 9.58416000924602e-06,
+      "max_voltage_bound_ratio": 0.6012834691723439,
+      "max_current_contrast_ratio": 0.8777297324463471,
+      "max_master_difference": 3.03788685267368e-06,
+      "actual_gaussian_kl": 0.016772457003538334,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 6.044335221127665e-16,
+      "power_balance_residual": 3.538027961853269e-16
+    },
+    {
+      "pair": [
+        0,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 2.775229482341979e-18,
+      "reduced_full_voltage_error": 9.992121099851496e-16,
+      "min_full_voltage": 0.9857879939334009,
+      "max_c_actual": 0.014539869890543894,
+      "max_voltage_difference": 4.9958960683147435e-06,
+      "max_voltage_bound_ratio": 0.6026208380938651,
+      "max_current_contrast_ratio": 0.8845134626505746,
+      "max_master_difference": 8.252238353192288e-07,
+      "actual_gaussian_kl": 0.00551096565408164,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 9.627833478750253e-16,
+      "power_balance_residual": 4.792273681541446e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 4.477360126853032e-16,
+      "min_full_voltage": 0.993348582164985,
+      "max_c_actual": 0.006738555703777498,
+      "max_voltage_difference": 3.2894866151975017e-07,
+      "max_voltage_bound_ratio": 0.5131337148256946,
+      "max_current_contrast_ratio": 0.8069825658934227,
+      "max_master_difference": 3.759462528000642e-09,
+      "actual_gaussian_kl": 4.001344352555295e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 3.996072703079041e-16,
+      "power_balance_residual": 1.7159204386908703e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 1.1104347626709818e-16,
+      "min_full_voltage": 0.9890373715694122,
+      "max_c_actual": 0.011257609334813515,
+      "max_voltage_difference": 4.655037800674514e-06,
+      "max_voltage_bound_ratio": 0.5615054321471061,
+      "max_current_contrast_ratio": 0.8808225267799054,
+      "max_master_difference": 7.61325511861962e-07,
+      "actual_gaussian_kl": 0.007913090378379005,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.526612100009388e-16,
+      "power_balance_residual": 1.574613955381829e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.9837583961237968,
+      "max_c_actual": 0.01697364639928706,
+      "max_voltage_difference": 9.02166096768383e-06,
+      "max_voltage_bound_ratio": 0.565993848090231,
+      "max_current_contrast_ratio": 0.8843521548845035,
+      "max_master_difference": 2.863589235480614e-06,
+      "actual_gaussian_kl": 0.015150066629684964,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.1652707163708584e-16,
+      "power_balance_residual": 1.6072191941080657e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 0,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 4.797766888042862e-19,
+      "reduced_full_voltage_error": 2.2204502844110104e-16,
+      "min_full_voltage": 0.988882797439721,
+      "max_c_actual": 0.011546686167880502,
+      "max_voltage_difference": 4.645315128073759e-06,
+      "max_voltage_bound_ratio": 0.5603326525233787,
+      "max_current_contrast_ratio": 0.8793729762691913,
+      "max_master_difference": 7.564960836116679e-07,
+      "actual_gaussian_kl": 0.004889597524855682,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.942895133276265e-16,
+      "power_balance_residual": 2.29443412201584e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 1.1104792225312589e-16,
+      "min_full_voltage": 0.989915673077925,
+      "max_c_actual": 0.01020555457523839,
+      "max_voltage_difference": 4.95430199752538e-07,
+      "max_voltage_bound_ratio": 0.7728316560442735,
+      "max_current_contrast_ratio": 0.8088262144192182,
+      "max_master_difference": 5.691899561919517e-09,
+      "actual_gaussian_kl": 9.857564947189095e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 9.19444354646959e-17,
+      "power_balance_residual": 9.200578220247641e-17
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.9834682909989073,
+      "max_c_actual": 0.01688641400222027,
+      "max_voltage_difference": 7.055066749878386e-06,
+      "max_voltage_bound_ratio": 0.8510045404235231,
+      "max_current_contrast_ratio": 0.8870806093333441,
+      "max_master_difference": 1.1737093176091297e-06,
+      "actual_gaussian_kl": 0.018896065125469628,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 9.090762060477113e-17,
+      "power_balance_residual": 1.756578841784687e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 2.9277121906886207e-15,
+      "min_full_voltage": 0.975434621656471,
+      "max_c_actual": 0.025460469598930592,
+      "max_voltage_difference": 1.3581786162328685e-05,
+      "max_voltage_bound_ratio": 0.8520833848103064,
+      "max_current_contrast_ratio": 0.8833834992705798,
+      "max_master_difference": 4.354441418601167e-06,
+      "actual_gaussian_kl": 0.03428153607939846,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 2.917846655795077e-15,
+      "power_balance_residual": 1.6626589256941328e-15
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 1,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 1.3384278485618323e-18,
+      "reduced_full_voltage_error": 2.5535978058329605e-15,
+      "min_full_voltage": 0.9841944655145609,
+      "max_c_actual": 0.016286495149124978,
+      "max_voltage_difference": 7.033130200560742e-06,
+      "max_voltage_bound_ratio": 0.848358484229815,
+      "max_current_contrast_ratio": 0.8849390834227748,
+      "max_master_difference": 1.162787817892656e-06,
+      "actual_gaussian_kl": 0.011291076573125825,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 2.5015578667330023e-15,
+      "power_balance_residual": 1.0473881426979293e-15
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 4.336808689942018e-19,
+      "min_full_voltage": 0.9904762618650764,
+      "max_c_actual": 0.009480266993477718,
+      "max_voltage_difference": 3.855375811226023e-07,
+      "max_voltage_bound_ratio": 0.6014079227207179,
+      "max_current_contrast_ratio": 0.8029268172601057,
+      "max_master_difference": 4.3290326195389655e-09,
+      "actual_gaussian_kl": 5.7490929680822e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 6.938970136453726e-17,
+      "power_balance_residual": 1.1649498821942215e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 4.450673028270728e-16,
+      "min_full_voltage": 0.9873811050138273,
+      "max_c_actual": 0.013209606658411211,
+      "max_voltage_difference": 5.470834676516561e-06,
+      "max_voltage_bound_ratio": 0.6599094402193011,
+      "max_current_contrast_ratio": 0.8808446081990403,
+      "max_master_difference": 8.950851900991095e-07,
+      "actual_gaussian_kl": 0.008105979456247173,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 4.619057551618603e-16,
+      "power_balance_residual": 2.0731623941959199e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.6979753048890995e-15,
+      "min_full_voltage": 0.9759809929701855,
+      "max_c_actual": 0.02397973033085361,
+      "max_voltage_difference": 1.0619520330306363e-05,
+      "max_voltage_bound_ratio": 0.6662390881405137,
+      "max_current_contrast_ratio": 0.8886938137791988,
+      "max_master_difference": 3.4135329948328736e-06,
+      "actual_gaussian_kl": 0.015619592690292516,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 1.6571621878884691e-15,
+      "power_balance_residual": 8.97013080119917e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 2,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 3.76482276834174e-18,
+      "reduced_full_voltage_error": 1.887410282523043e-15,
+      "min_full_voltage": 0.9843304105122745,
+      "max_c_actual": 0.015639467356490935,
+      "max_voltage_difference": 5.459625969351067e-06,
+      "max_voltage_bound_ratio": 0.6585574103904867,
+      "max_current_contrast_ratio": 0.8793490510054872,
+      "max_master_difference": 8.890701347713921e-07,
+      "actual_gaussian_kl": 0.005058487393188878,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.842308234523648e-15,
+      "power_balance_residual": 6.990840100891155e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 8.673617379884035e-19,
+      "min_full_voltage": 0.991463986187857,
+      "max_c_actual": 0.008746545110631129,
+      "max_voltage_difference": 4.5434838623647165e-07,
+      "max_voltage_bound_ratio": 0.7087472986740889,
+      "max_current_contrast_ratio": 0.8152184803593018,
+      "max_master_difference": 5.419534869715762e-09,
+      "actual_gaussian_kl": 6.411519305968482e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 6.245945590328958e-17,
+      "power_balance_residual": 9.194136705331955e-17
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 1.3339189556748267e-15,
+      "min_full_voltage": 0.9851342456530053,
+      "max_c_actual": 0.015137274722393889,
+      "max_voltage_difference": 6.430539163779488e-06,
+      "max_voltage_bound_ratio": 0.7756720410677848,
+      "max_current_contrast_ratio": 0.8870293002370114,
+      "max_master_difference": 1.069483492424774e-06,
+      "actual_gaussian_kl": 0.017792589916082478,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.3616408712104836e-15,
+      "power_balance_residual": 4.800672882375717e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 2.377583923509399e-16,
+      "min_full_voltage": 0.9832177588194874,
+      "max_c_actual": 0.01899420715520858,
+      "max_voltage_difference": 1.2355543455132439e-05,
+      "max_voltage_bound_ratio": 0.7751523372986894,
+      "max_current_contrast_ratio": 0.8817930090897355,
+      "max_master_difference": 3.9142322116320625e-06,
+      "actual_gaussian_kl": 0.034292863709869136,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 2.0551897988468744e-16,
+      "power_balance_residual": 2.5219801032797316e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 3,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 8.356234817562742e-18,
+      "reduced_full_voltage_error": 1.0003182748063149e-15,
+      "min_full_voltage": 0.9858544664866394,
+      "max_c_actual": 0.014425845393800348,
+      "max_voltage_difference": 6.4071763918976345e-06,
+      "max_voltage_bound_ratio": 0.772853949382305,
+      "max_current_contrast_ratio": 0.8845201367324297,
+      "max_master_difference": 1.0578583271020715e-06,
+      "actual_gaussian_kl": 0.0114064064286803,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.0367081985359353e-15,
+      "power_balance_residual": 3.588163445255403e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 9.85130998947141e-19,
+      "reduced_full_voltage_error": 1.1102235540206224e-16,
+      "min_full_voltage": 0.9910627680177709,
+      "max_c_actual": 0.008908474111385657,
+      "max_voltage_difference": 3.421423026521897e-07,
+      "max_voltage_bound_ratio": 0.5337147442638074,
+      "max_current_contrast_ratio": 0.8098208146770809,
+      "max_master_difference": 3.9540703885669175e-09,
+      "actual_gaussian_kl": 3.870384094252897e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 6.592091865348838e-17,
+      "power_balance_residual": 1.3415607681397792e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 9.85130998947141e-19,
+      "reduced_full_voltage_error": 1.4433374302325544e-15,
+      "min_full_voltage": 0.9849429723251161,
+      "max_c_actual": 0.015217861828625716,
+      "max_voltage_difference": 4.856670354198954e-06,
+      "max_voltage_bound_ratio": 0.5858269906283842,
+      "max_current_contrast_ratio": 0.8857449124474039,
+      "max_master_difference": 8.047398509445343e-07,
+      "actual_gaussian_kl": 0.008462863422251304,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.3930321647474845e-15,
+      "power_balance_residual": 6.205444370622638e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 9.85130998947141e-19,
+      "reduced_full_voltage_error": 7.111271387479619e-16,
+      "min_full_voltage": 0.9788137787002841,
+      "max_c_actual": 0.02208894172970246,
+      "max_voltage_difference": 9.533176832675955e-06,
+      "max_voltage_bound_ratio": 0.5980849268642124,
+      "max_current_contrast_ratio": 0.8990760493814912,
+      "max_master_difference": 3.1009924374971686e-06,
+      "actual_gaussian_kl": 0.01721831533128267,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 7.540606701535434e-16,
+      "power_balance_residual": 4.239438456486006e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 4,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 9.85130998947141e-19,
+      "reduced_full_voltage_error": 1.443646684261648e-15,
+      "min_full_voltage": 0.9852246428939667,
+      "max_c_actual": 0.015201518192468852,
+      "max_voltage_difference": 4.840355568451667e-06,
+      "max_voltage_bound_ratio": 0.5838590493970389,
+      "max_current_contrast_ratio": 0.8833361681181967,
+      "max_master_difference": 7.963836878255228e-07,
+      "actual_gaussian_kl": 0.00551084837143325,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 1.4262845360878462e-15,
+      "power_balance_residual": 6.283419210345001e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "none",
+      "samples": 20,
+      "sum_u": 0.0,
+      "sum_u2": 0.0,
+      "matrix_identity_error": 2.5300067356060514e-19,
+      "reduced_full_voltage_error": 1.1389384415775183e-15,
+      "min_full_voltage": 0.9921455045584086,
+      "max_c_actual": 0.008050817132685394,
+      "max_voltage_difference": 4.1510490338814036e-07,
+      "max_voltage_bound_ratio": 0.6475305907427401,
+      "max_current_contrast_ratio": 0.8026122334630227,
+      "max_master_difference": 4.6721936740040296e-09,
+      "actual_gaussian_kl": 5.3576134802148505e-05,
+      "schedule_gaussian_kl_bound": 0.0008610638006734996,
+      "ac_equation_residual": 1.1876602196158232e-15,
+      "power_balance_residual": 5.201714130340231e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "constant",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 2.5300067356060514e-19,
+      "reduced_full_voltage_error": 2.2205519258444853e-16,
+      "min_full_voltage": 0.9885183559078069,
+      "max_c_actual": 0.011981812344276466,
+      "max_voltage_difference": 5.922096751761657e-06,
+      "max_voltage_bound_ratio": 0.714342103802695,
+      "max_current_contrast_ratio": 0.8808169543009435,
+      "max_master_difference": 9.688184272106264e-07,
+      "actual_gaussian_kl": 0.0142798655731244,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 2.3245941853956464e-16,
+      "power_balance_residual": 1.6531150192263252e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "pulse",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.36,
+      "matrix_identity_error": 2.5300067356060514e-19,
+      "reduced_full_voltage_error": 3.601588413742171e-16,
+      "min_full_voltage": 0.9810416212478251,
+      "max_c_actual": 0.020259900973635902,
+      "max_voltage_difference": 1.1587551142443865e-05,
+      "max_voltage_bound_ratio": 0.7269706414979528,
+      "max_current_contrast_ratio": 0.8902598108065466,
+      "max_master_difference": 3.7139269820571315e-06,
+      "actual_gaussian_kl": 0.028083853916626392,
+      "schedule_gaussian_kl_bound": 0.1071570148604021,
+      "ac_equation_residual": 3.782532617297634e-16,
+      "power_balance_residual": 1.5786936747382654e-16
+    },
+    {
+      "pair": [
+        1,
+        2
+      ],
+      "impedance_pattern": 5,
+      "schedule": "changing_sites",
+      "samples": 20,
+      "sum_u": 1.2,
+      "sum_u2": 0.17999999999999997,
+      "matrix_identity_error": 2.5300067356060514e-19,
+      "reduced_full_voltage_error": 6.661479318412932e-16,
+      "min_full_voltage": 0.9868666659254907,
+      "max_c_actual": 0.013821898331210641,
+      "max_voltage_difference": 5.908191949193615e-06,
+      "max_voltage_bound_ratio": 0.7126648623904432,
+      "max_current_contrast_ratio": 0.8792781763401161,
+      "max_master_difference": 9.62007541104471e-07,
+      "actual_gaussian_kl": 0.008905174737802404,
+      "schedule_gaussian_kl_bound": 0.05811878597678378,
+      "ac_equation_residual": 7.043062766305844e-16,
+      "power_balance_residual": 2.8909864147321224e-16
+    }
+  ]
+}

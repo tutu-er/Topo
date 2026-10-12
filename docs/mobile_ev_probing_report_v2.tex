@@ -1000,7 +1000,7 @@ $M_{jl}\ge\max\{0,\bar t-\inf_{u\in\mathcal U}t_{jl}(u)\}$有效；用更大的�
 本节落实上一节提出的计算方案：直接用混合整数线性规划（MILP）选择地点、移动和连续充电功率，竞争模型仍可调整线路、历史状态和同点源。
 需要分别回答三个问题：所选动作能否执行；对声明的冻结线性代理，离最优还差多少；执行后，完整 AC 计量拟合是否真正排除了错误候选。
 前两项已有明确模型与上下界；第三项由独立生成的新计量、联合重拟合和完整策略校准检验。
-冻结代理的优化界不替代非线性 AC 分离界，也不直接给出拓扑正确概率。
+冻结代理的优化界不替代非线性 AC 分离界，也不直接给出拓扑正确概率。本文的“展开点”就是已经拟合的一组线路和状态；“剖面（profile）信息”是消除状态补偿后留下的局部线路信息；“可行见证”只指一组确实满足约束的竞争解释；“界”指目标值的已知上下限。
 
 \subsection{文献框架与本项目新增内容}
 Dette--Titoff\cite{dette}第 2 节式 (2.4)（PDF 第 4 页）采用固定参考响应、竞争者内层重拟合、外层选择设计的次序；第 5--7 页的近似理论和第 7--9 页的 Remes 型算法讨论其判别设计。
@@ -1049,7 +1049,7 @@ $u=0$ 与有 EV 动作时长相同，但不满足非零充电任务，因而不�
 主策略的线路偏移限于历史展开点各 R/X 的 $\pm30\%$，与原物理范围相交；未来同点源 P/Q 偏移限于 $\pm.05$ pu，也与物理范围相交。
 这些是局部解释域，不是置信区间。多初值拟合和沿平坦方向得到的可行低损失展开点，并非全部历史 MLE，也未穷尽所有可接受解释。
 历史残差常数、非驻点的线性变化和活动状态边界均保留；不能未经证明用一个历史 Hessian 代替，再重复叠加同一历史惩罚。
-WZZT/RNJ 仅用于候选、邻域和初值；当前被动默认接口没有传入源 nominal，源感知适配器实际回退普通模型，不能据此称源已由 WZZT 估计，更不能增加一项独立似然。
+WZZT/RNJ 当前用于候选及邻域；内部阻抗权重尚未导出并作为 AC 初值使用。当前被动默认接口没有传入源 nominal，源感知适配器实际回退普通模型，不能据此称源已由 WZZT 估计，更不能增加一项独立似然。
 
 \subsection{固定动作的内层 QP：可行值与有效下界}
 令 $D_k=(A_k^\top,F_k^\top)^\top$、$a_k(u)=(c_k+B_ku,0)^\top$。
@@ -1195,16 +1195,32 @@ OLS 趋势、追踪增益 $.95/1.05$、同点源偏移以及均值/趋势共同�
 同矩阵下扩大盒 $Z_k^{(1)}\subseteq Z_k^{(2)}$ 必有 $q_k(u;Z_k^{(2)})\le q_k(u;Z_k^{(1)})$；增加允许展开点后再取最小值也只能降低分数。
 改变预测则改变矩阵，不属于该嵌套单调关系。宽域补偿、泰勒失配和求解失败分别解释。
 
-若需要真正的预测概率，可另声明非 EV 负荷 $\ell_t$、同接口源 $s_t$ 及设备追踪过程，例如
+若需要真正的预测概率，先明确不含本次 EV 的背景总态 $x_t=(p_t^0,q_t^0,s_t^P,s_t^Q)$（pu）与实际功率追踪误差 $e_t^{\rm EV}$（kW），例如
 \begin{equation}
- \ell_t=a_\ell+\Phi_\ell\ell_{t-1}+\nu_t,\qquad
- s_t=a_s+\Phi_ss_{t-1}+\omega_t,\qquad
- u_t^{\rm actual}=\gamma_tu_t^{\rm command}.
+ x_{t+1}=a+Gx_t+\xi_{t+1},\qquad
+ e_t^{\rm EV}=\operatorname{diag}(u_t)g+e_t,\qquad
+ p_t^{\rm total}=p_t^0+(u_t+e_t^{\rm EV})/S_{\rm base}.
  \label{eq:adapt-predictive}
 \end{equation}
-创新分布、时间相关性和 $\gamma_t$ 规律须由独立训练历史或设备校准确定并留出验证；短历史 Hessian 或人为步长盒不能替代它们。
-将不确定追踪增益与控制同时作为连续变量会出现乘积，须重推模型及界，不能沿用当前仿射 MILP 证明。
-完整预测分布下的 Bayesian 信息量也须按实际 MILP 动作回放，保留历史/未来共享参数；有限 proper 参数库的条件积分不是本节的 $q_k$，也不是全连续先验积分。
+$g$ 是本次行程跨时共享的无量纲追踪增益误差；$e_t$ 是 kW 的逐时误差；$G$ 和创新分布须另行训练并验证。源始终只有节点 $1$ 的两个 P/Q 分量。
+对任意仍在物理域内的 $\delta_t$，$p_t^0\mapsto p_t^0+\delta_t/S_{\rm base}$、$e_t^{\rm EV}\mapsto e_t^{\rm EV}-\delta_t$ 保持全部物理输入和 AC 均值相同。
+所以仅有总计量时，不能逐时分别自由估计背景与追踪；无 EV 历史的 $u=0$ 对增益 $g$ 没有直接计量信息。
+设备校准、实际 EV 功率读数或经过独立验证的预测关系才可补充约束。拟合始终使用总 P/Q，EV 只计一次。
+
+在明确的 proper 参数与过程模型下，共享线路的完整预测密度才是
+\[
+ p_h(y_N\mid H,u)=\int p_h(y_N\mid\beta_h,x_N,e_N^{\rm EV},u)
+  p_h(\beta_h,x_N,e_N^{\rm EV},\psi\mid H,u)
+  \,\mathrm d(\beta_h,x_N,e_N^{\rm EV},\psi).
+\]
+$\psi$ 为预测参数；历史只更新一次，WZZT 派生结果不能再乘作独立似然。
+令 $U(u)$ 竖向堆叠各格 $\operatorname{diag}(u_t)$，一阶传播矩阵为
+$K_h=[J_{\beta,h},J_{x,h},J_{u,h}U(u),J_{u,h}]$，分别对应共享线路、未来状态、增益和逐时追踪误差。
+完整联合条件协方差 $\Omega$ 保留交叉项；若计量误差独立，则近似预测协方差为 $\Gamma_h(u)=\Sigma_N+K_h\Omega K_h^\top$。
+$J_u$ 对 kW 求导，已含标幺换算；跨时共享增益产生跨时相关，不能只扩大 V 误差而保持 P 精确。
+仅在线性模型及联合 Gaussian 误差下该传播给精确 Gaussian；AC 下通常为局部近似，Hessian 不自动给 $\Omega$ 的统计覆盖。
+异协方差 Gaussian 的 KL 还含 trace 与 log determinant，不能只保留白化均值差。
+当前冻结策略未实现这一随机预测积分、动作相关白化或连续 proper EIG；这些改变须重新建立代理和界。少量均值/趋势/追踪情景属于敏感性设定。
 
 两轮影子策略先规划八格，仅执行前两格，取得真实总 P/Q/V 和根总表计量，形成 $H_1=H_0\cup Y_1$；随后用 $H_1$ 重拟合，重规划剩余六格并执行。
 第二轮携带实际位置、SOC、驾驶耗能、剩余网电任务及终端限制；剩余网电量为 $6$ kWh 减去已执行净网电量，不能重新启动一个 $6$ kWh 任务。
@@ -1213,6 +1229,196 @@ OLS 趋势、追踪增益 $.95/1.05$、同点源偏移以及均值/趋势共同�
 选择器接口只接收已有历史和公开设备状态；真拓扑、真实未来路径与未来噪声由返回动作后的独立 evaluator 读取。
 每轮保留全部 star 和三个 cherry，候选可据新增数据修正；新学门控不删影子策略的审计库。
 当前最小滚动器限允许的一格移动，在整数边界已到节点；更长在途弧须显式携带，不能被当成已到达地点。
+
+% BEGIN ADAPTIVE INDEPENDENT PROOFS
+\subsection{有界竞争补偿后的控制梯度}
+令 $d=(c,0)$、$E=(B,0)$、$D=(A,F)$ 按行堆叠，参数盒 $Z$ 在本次搜索中固定，则 $q(u)=\min_{z\in Z}\norm{d+Eu+Dz}^2$。
+这里的“冻结”指矩阵和局部区域不变，竞争调整 $z$ 仍在优化。
+集合 $\{Dz:z\in Z\}$ 紧且凸。若两个不同的最优像 $Dz_1,Dz_2$ 都达到最小值，它们的中点会由平方范数的严格凸性产生更小值，矛盾。
+所以最优残差 $r^*(u)$ 唯一，即使参数 $z^*$ 不唯一。
+闭凸投影的连续性及双边最优值比较给
+\begin{equation}
+ \nabla_uq(u)=2E^\top r^*(u).\label{eq:adapt-box-gradient}
+\end{equation}
+证明的一边把 $u$ 处最优 $z$ 代入 $u+\delta$，另一边反向代入；两边的一阶项均趋于 $2r^*(u)^\top E\delta$。
+因此应比较的是共同控制空间里的导数，且已扣除允许的竞争补偿，而非两组 MLE 参数梯度之差。
+近似内层解只有近似梯度；开放 QP gap 时不能声称已获得准确梯度。
+
+固定活动面上的自由列记为 $D_f$，代入固定坐标后截距为 $d_f$；只有在该面及其自由解在邻域保持时，才有
+\begin{equation}
+ q(u)=\norm{\Pi_f(d_f+Eu)}^2,\qquad
+ \Pi_f=I-D_fD_f^+,\qquad \nabla^2q=2E^\top\Pi_fE.
+\end{equation}
+面改变时式\eqref{eq:adapt-box-gradient}仍成立，但不能沿用一个固定 Hessian。
+例如 $q(u)=\operatorname{dist}^2(-u,[-1,1])$ 在 $u=1$ 梯度为零，邻域两侧却分别为 $0$ 与 $(u-1)^2$。
+两时段、共享一个抽象补偿的例子为
+\[
+ q(u)=\min_{|z|\le10}\{(u_0+z)^2+(u_1+z)^2\}
+      =\tfrac12(u_0-u_1)^2,\quad u_0+u_1=6.
+\]
+恒充 $(3,3)$ 分数和梯度均为零，脉冲 $(6,0)$ 分数为 $18$。
+这里的 $z$ 是跨时共享的抽象参数，不能冒充本项目逐时源；改为两个独立 $z_t$ 后此标量例子分数全零。
+若 $\Psi(u)=\min_kq_k(u)$、$I(u)=\{k:q_k(u)=\Psi(u)\}$，有限竞争集给方向导数
+$\Psi'(u;v)=\min_{k\in I(u)}\nabla q_k(u)^\top v$。
+只提高一个易分辨对，或只最大化未经补偿的响应范数，都不足以提高最难竞争对的分数。
+
+\subsection{局部满秩不保证历史参数只有一个解释}
+取根电压为 $1$，公共干线阻抗 $z_0=r+\mathrm jx$，根总表满足 $S_{0t}=P_t(1+\mathrm j\kappa)$。
+根电流为 $I_{0t}=\overline{S_{0t}}$，干线下端 $V_{1t}=1-z_0I_{0t}$，所以
+\begin{equation}
+ |V_{1t}|^2=1-2P_t(r+\kappa x)
+ +(1+\kappa^2)P_t^2(r^2+x^2).\label{eq:adapt-root-reflection}
+\end{equation}
+令 $\theta=(r,x)^\top$、$a=(1,\kappa)^\top$，反射
+$\theta'=(2aa^\top/(a^\top a)-I)\theta$ 保持 $a^\top\theta$ 和 $\norm{\theta}^2$，因而保持式\eqref{eq:adapt-root-reflection}。
+下游所有复电压和电流按同一个相位旋转，保持末端总 P/Q、电压幅值和线路关系；在原物理节点 $1$ 调整源为
+\[
+ s'_t=s_t-(z'_0-z_0)|I_{0t}|^2
+\]
+即可保持主表功率。它没有对各电压输出分别添加源项。
+因此在相同已知 Gaussian 计量协方差和固定校准偏差下，两个完整点解释对任意计量读数的密度相同。
+
+取 $\kappa=1/3$，$(r,x)=(.005,.0035)$ pu 得 $(r',x')=(.0061,.0002)$ pu，二者均物理可行。
+不变量 $(r+\kappa x,r^2+x^2)$ 对 $\theta$ 的 Jacobian 行列式为 $2(x-\kappa r)$，两点均非零；有两个不同非零 $P_t$ 时各点仍局部可分。
+项目完整白化导数的检验还消去了逐时末端 P/Q 及同点源的状态方向：12 点历史的两个根线路 profile 列均秩二。
+这明确条件于\emph{其他线路固定}，不是全线路 profile 的满秩证明。
+完整 AC 独立回代的计量均值差不超过 $3.4\times10^{-16}$；同一带噪声计量的点值对数似然差不超过 $3.0\times10^{-12}$。
+两个点没有经过最优化，不能叫两个 MLE。
+原点 $\pm30\%$ 的 X 区域不含另一点，说明局部信赖域可能漏掉全局等价解释。
+根功率方向改变、相角/源独立测量或明确的源过程模型可能打破这一构造；本例不证明任意 EV 都无效。
+
+\subsection{代理界什么时候才可转成完整 AC 的界}
+把同一参数映射、预测、白化和域下的完整 AC 残差记为 $R_k$，仿射残差记为 $L_k$；相同辅助项也增广到两侧。
+若对整个声明搜索区域独立证明
+\begin{equation}
+ \norm{R_k(u,z)-L_k(u,z)}\le\varepsilon_k
+ \qquad\forall u\in\mathcal U,\ z\in Z_k,\label{eq:adapt-uniform-taylor}
+\end{equation}
+且该域 AC 可解、分支相同，两侧取相同参数域的下确界，三角不等式给
+\begin{equation}
+ \left|\sqrt{q_k^{\rm AC}(u)}-\sqrt{q_k^{\rm lin}(u)}\right|
+ \le\varepsilon_k.
+\end{equation}
+取 $\varepsilon=\max_k\varepsilon_k$，再取最小竞争对、最大控制保持同一个误差。
+所以已验证的代理设计界 $LB\le\Psi_{\rm lin}^*\le UB$ 才能转为
+\begin{equation}
+ [\max(0,\sqrt{LB}-\varepsilon)]^2
+ \le\Psi_{\rm AC}^*\le(\sqrt{UB}+\varepsilon)^2.\label{eq:adapt-AC-bound}
+\end{equation}
+若 AC 仅在 $Z_k$ 子域可行，较大仿射域仍可给误差修正后的下界；上界须使用真实可行解释。
+仿射近优点还须保留其已认证次优量 $\eta$，不能不加 $\eta$ 就当最优点。
+数值找不到 AC 可行点，也不证明物理解释集合为空。
+
+一种充分条件是：在包含每条展开点到目标点线段的可解区域，完整白化残差的二阶导数有统一界 $M_k$，则积分 Taylor 余项给 $\varepsilon_k\le M_k\rho_k^2/2$。
+$\rho_k$ 和 $M_k$ 必须使用相同的 pu/kW 坐标尺度。
+AC 含共轭，隐式 Jacobian 应对 $(\operatorname{Re}V,\operatorname{Im}V)$ 求导；还须控制其逆、计量映射二阶导数及电压模正下界。
+有限抽样最大误差、一处 Hessian 或已选动作的回代值均不证明式\eqref{eq:adapt-uniform-taylor}。
+当前没有这一统一误差证书。
+匹配的 710011 局部模型中，重拟合动作代理下界 $320.824071$，却有同域完整 AC 可行成本 $90.125903$，直接说明未补偿的代理下界不是 AC 下界。
+该可行成本仍只是 AC 内层最小值的上界，未声称已求得其全局最小值。
+
+\subsection{弱共用支路：完整 AC 的有条件信息上界}
+本项目另推导一个不依赖仿射展开的难例。三末端 cherry 中，$i,j$ 共用很小的阻抗 $z_s$，叶边为 $z_i,z_j$。
+竞争 star 删除该共用边，并将两叶边固定为 $z_i+2z_s,z_j+2z_s$；公共干线、同点源路径和全部末端总 P/Q 相同。
+参数在历史和未来固定共享，star 源不在看到动作后再随意改写。
+删除零负载内部节点后，四个有负载节点的 AC 阻抗矩阵满足
+\begin{equation}
+ Z_{\rm star}-Z_{\rm cherry}=z_sdd^\top,\qquad d=e_i-e_j,
+ \label{eq:adapt-weak-matrix}
+\end{equation}
+因为 pair 子块分别为
+$\left(\begin{smallmatrix}z_i+z_s&z_s\\z_s&z_j+z_s\end{smallmatrix}\right)$
+与 $\operatorname{diag}(z_i+2z_s,z_j+2z_s)$。
+
+对声明的弱支路生成范围，精确有理数平方比较可取
+\[
+ \begin{gathered}
+ |S_j^0|\le .145,\quad |S_i^0-S_j^0|\le .012,\quad |S_s|\le .15,\\
+ |z_j|\le .045,\quad |z_i-z_j|\le .022,\\
+ |z_0|\le .008,\quad |z_s|\le .000044.
+ \end{gathered}
+\]
+其中 $S^0$ 为不含本次 EV 的负荷，$S_s$ 为节点 $1$ 的源净消耗；所有电气量使用 pu。
+一个纯 P、单位追踪、仅充电 EV 在各时刻至多一端接入，令 $u_t$ 为该时刻总 EV 功率（这里改用 pu），则 $0\le u_t\le .3$，12 历史加 8 新时段中 $\sum_tu_t\le1.2$、$\sum_tu_t^2\le .36$。
+这是 6 kW、6 kWh、20 kW 基准与 $.25$ h 时段的放宽可行集；移动及 SOC 进一步缩小它。
+
+两系统 $V=\mathbf1-Z\overline{S/V}$ 的所有行满足
+\[
+ \sum_j|Z_{ij}||S_j|\le C=.008(.885)+(.045+2\times.000044)(.445)=.02714416.
+\]
+在 $\norm{V-\mathbf1}_\infty\le .1$ 中，映射偏离 $1$ 不超过 $C/.9<.1$，收缩系数 $K=C/.9^2<1$；因此高电压解存在且在该分支唯一。
+选 pair 内未充电端为 $j$，$L=|I_i-I_j|$ 满足
+\[
+ L\le\frac{.012+u_t}{.9}+\frac{.145}{.9^2}
+       \left(.045L+\frac{.022\times.145}{.9}\right).
+\]
+移项后 $L\le L_0+L_1u_t$，其中
+\[
+ L_0=\frac{.012/.9+.145^2\times.022/.9^3}{1-.145\times.045/.9^2}
+ \approx .0140812651,\quad
+ L_1=\frac{1/.9}{1-.145\times.045/.9^2}\approx1.1201344161.
+\]
+共用路径压降在 pair 电压差中相消；结合式\eqref{eq:adapt-weak-matrix}和收缩界，完整 AC 两解的复电压差满足
+\begin{equation}
+ \delta_t=\norm{V_{\rm star}-V_{\rm cherry}}_\infty
+ \le\frac{.000044(L_0+L_1u_t)}{1-K}=a+bu_t,
+ \quad a\approx6.410584\times10^{-7},\ b\approx5.099482\times10^{-5}.
+\end{equation}
+主表也保留：$|\Delta S_{\rm master}|\le(.885/.9^2)\delta_t$，末端 P/Q 均值相同，三个电压幅值差各不超过 $\delta_t$。
+因此已知独立 Gaussian 计量噪声 $\sigma_V=.00012$、主表 P/Q 的 $\sigma_M=.001$ 给
+\begin{equation}
+ \begin{aligned}
+ D_{\rm KL}&\le\tfrac12\left[3/\sigma_V^2+(.885/.9^2)^2/\sigma_M^2\right]
+ \left(20a^2+2ab\times1.2+b^2\times.36\right)\\
+ &=\frac{3668918839949454447125}{34238718246575913269706}<.11.\label{eq:adapt-weak-KL}
+ \end{aligned}
+\end{equation}
+主表贡献用 $\Delta P^2+\Delta Q^2=|\Delta S|^2$，没有再乘 $2$。
+若采用共同因果控制器，在相同过去计量及动作下，两模型的动作条件分布相同，故 KL 链式分解的动作项为零。
+逐时条件 Gaussian 的计量项各满足上述界，且能量约束逐路径成立；积分共同外生负荷/源路径只能降低 KL。
+自适应和外生路径积分后的完整轨迹通常不再是联合 Gaussian。
+
+Pinsker 不等式给总变差 $\operatorname{TV}\le\sqrt{.11/2}=.234521$；这对过程的等先验二元检验平均错误率至少 $.382740$。
+该检验界也可直接推导：把读数映射为事件 $A$ 的指标，log-sum 不等式给 $\operatorname{KL}(P\|Q)\ge\operatorname{KL}(\operatorname{Bern}(P(A))\|\operatorname{Bern}(Q(A)))$。
+固定二元参数 $q$，二元 KL 对 $p$ 的二阶导数 $1/[p(1-p)]\ge4$，在 $p=q$ 的值及一阶导数为零，因此积分两次给 $\operatorname{KL}\ge2(p-q)^2$；对事件取上确界即得上述总变差界。
+令 $A$ 为拒绝 star 的事件，平均错误为 $[1-(P_{\rm cherry}(A)-P_{\rm star}(A))]/2$，从总变差定义得到下限；同理功效不超过 size 加总变差。
+若 null 物理域包含构造 star 且检验在该域统一 size 为 $.05$，该 alternative 的功效至多 $.284521$。
+构造 star 可能越出\emph{名义生成分布}的叶边范围；本轮边际经验校准不具备上述整个物理域统一 size 的前提，不能套用该功效上限。
+这个结论解释一类信息不足，不是当前历史的正确拓扑概率、名义总体平均准确率或任意 EV 无效定理。
+功率/电量、无功、相角或独立源计量改变后须重推。
+72 条固定参数与控制路径、1440 个时刻的完整 AC 核查均通过，最大实际 KL 为 $.03524$；有限核查支持实现，有条件统一界依靠以上解析不等式。
+
+\subsection{预测情景平均的 MILP 原型：与 EIG 的区别}
+另实现一个尚未接入冻结 C/D 的代理原型。
+令 $h$ 表示竞争者、$\omega$ 表示互斥的整段未来情景，历史条件权重 $w_\omega\ge0$、$\sum_\omega w_\omega=1$ 事先声明，动作仍只选一个共同 $u$。
+各情景允许数据出现后分别重拟合数值解释，但每情景内部的线路仍共享历史与整段未来。
+目标为
+\begin{equation}
+ \Phi^*=\max_{u\in\mathcal U}\min_h\sum_\omega w_\omega q_{h\omega}(u).
+ \label{eq:adapt-weighted}
+\end{equation}
+它不是 $\min_{h,\omega}q_{h\omega}$，也不能把竞争者最小值移到平均里面。
+已有单位方向下界 $L_v(u)\le\sqrt q(u)$，对任意 $\lambda\ge0$，平方恒等式给
+\[
+ 2\lambda L_v(u)-\lambda^2\le q(u).
+\]
+准确 QP 点取 $v=r^*/\norm{r^*}$、$\lambda=\norm{r^*}$ 时接触。
+每个 $(h,\omega)$ 用方向二进制选择这些仿射平方距离下界，再约束总分不超过各竞争者的加权和，得到下界 MILP。
+上界仍用固定可行解释和平方弦；取\emph{全局 best-bound}，不能取一个 incumbent 作为完整代理上界。
+两格等电量例 $u_0+u_1=6$、$q_1=u_0^2,q_2=u_1^2$，权重 $(.8,.2)$ 的平均目标选 $(6,0)$、值 $28.8$；最坏情景目标选 $(3,3)$、值 $9$。
+14 项测试通过，但一个非零辅助项的额外搜索因约 $9\times10^{-10}$ kW 外盒越界出现约 $5.4\times10^{-9}$ 分数界交叉，仍记失败，未放宽目标容差称成功。
+这些 toy 权重是工程声明，尚未预测校准。
+
+即使有共同合法权重与密度 $p_\omega,q_\omega$，log-sum 不等式仅给
+\[
+ \operatorname{KL}\!\left(\sum_\omega w_\omega p_\omega\,middle\|\,
+                         \sum_\omega w_\omega q_\omega\right)
+ \le\sum_\omega w_\omega\operatorname{KL}(p_\omega\|q_\omega).
+\]
+标签互换的两个 Gaussian 混合可有边缘 KL 为零而条件平均 KL 正；因此不能把情景平均距离叫边缘信息下界。
+当前逐情景 profile 分数还有历史惩罚，尚未定义完整 proper 预测密度，连已验证边缘 KL 上界也不能声称。
+有限 prior 的四条历史适合度诊断均拒绝，连续参数/过程积分与预测权重校准仍属未完成研究。
+% END ADAPTIVE INDEPENDENT PROOFS
 
 \subsection{独立历史单位的整策略校准及其证明范围}
 统计单位是一条独立生成的完整历史及其全部策略轨迹，记为 $X$；同历史不同方法、轮次或重复未来噪声不增加独立历史数。
@@ -1245,7 +1451,7 @@ $n_c+1$ 个分数可交换。给相等项附加独立连续排序后，新历史
 这是同时对随机校准集及新历史取概率的\emph{边际界}，不是给定当前历史的条件界、对所有连续线路参数的一致界，或每轮有效检验的 alpha-spending。
 两轮策略须独立校准整条轨迹的最大分数，不能复用单轮阈值。校准后改变策略、域或预算也须重新冻结并校准。
 漏真记为无穷使门控保守，却不能让库外真拓扑重新出现；应分别报告漏真率、计算失败率、在库误剔除率和总体真拓扑不保留率。
-合成模型的保证限于声明人口，现场数据目前只能按明确采样人口作经验评价。
+合成模型的保证限于声明人口，现场数据目前只能按明确采样人口作经验评价。限时求解还可能受硬件负载影响；冻结源码和预算本身不证明运行环境同分布，本轮保存耗时与失败并作经验核验。
 
 \subsection{冻结试验与当前证据状态}
 主试验预声明 $128$ 条校准历史（种子从 $720001$ 起）和 $256$ 条独立评价历史（从 $730001$ 起），每条历史独立生成。

@@ -205,13 +205,13 @@
     "report_compile_visual_review"
   ],
   "ongoing_agents": [
-    "experiment_audit",
-    "weak_information"
+    "continuous_ac_inverse",
+    "continuous_eig_sampling"
   ],
   "checkpoint_semantics": "budget is an upper work limit; no claim of completed research at deadline",
   "foundation_tests_passed": 169,
-  "last_stage_commit": "b74221d",
-  "tests_passed": 391,
+  "last_stage_commit": "194a99c",
+  "tests_passed": 399,
   "pilot_completed": [
     {
       "directory": "outputs/adaptive_milp/pilot_v1",
@@ -235,7 +235,7 @@
     "count": 256,
     "start_seed": 730001
   },
-  "last_updated_at_utc": "2026-10-12T20:37:11.405369+00:00",
+  "last_updated_at_utc": "2026-10-12T21:06:21.350086+00:00",
   "active_processes": [
     {
       "session_id": 71350,
@@ -248,6 +248,10 @@
     {
       "session_id": 12416,
       "phase": "stress_frozen_queue"
+    },
+    {
+      "session_id": 74822,
+      "phase": "independent_postprocess_frozen_queue"
     }
   ],
   "next_actions": [
@@ -297,7 +301,7 @@
   "report_methods": {
     "original_source_updated": true,
     "pdf_compiled": true,
-    "pages": 32,
+    "pages": 36,
     "visual_review_all_pages": true,
     "final_results_pending": true
   },
@@ -307,5 +311,16 @@
     "nonlinear_taylor_stress": "two H, 96 feasible inner witnesses; 37 unfinished; local proxy is not an AC bound",
     "impedance_reflection": "same-topology full AC two globally equal parameter points; local conditional root profile rank two",
     "wzzt_initials": "weights not used as AC initial in current frozen policy"
+  },
+  "continuous_predictive_attempt": {
+    "stage": "protocol_saved_implementation_pending",
+    "input": "outputs/continuous_eig_Honly/H_710009.json and .npz",
+    "HMC_plan": {
+      "theta_per_component": 2048,
+      "latent_per_time": 32,
+      "independent_repeats": 3
+    },
+    "proper_changeofvariables_proof_required": true,
+    "formal_policy_changes": false
   }
 }
