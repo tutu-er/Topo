@@ -158,9 +158,18 @@ def check_action(action: EVAction, constraints: EVConstraints) -> dict:
     increments = (constraints.efficiency * constraints.dt_hours * np.sum(p, axis=1)
                   - movement_by_slot) / constraints.battery_capacity
     soc = np.r_[constraints.initial_soc, constraints.initial_soc + np.cumsum(increments)]
-    if np.any(soc < constraints.soc_min - tolerance) or np.any(soc > constraints.soc_max + tolerance):
+    # Arrival consumes driving energy before that slot can charge the battery.
+    # Checking only the combined net increment can hide a pre-charge SOC dip.
+    # Driving energy is nonnegative and charging-only P is nonnegative, so
+    # arrival-before-charge and post-charge checks cover each monotone phase.
+    soc_before_charge = soc[:-1] - movement_by_slot / constraints.battery_capacity
+    if (np.any(soc < constraints.soc_min - tolerance)
+            or np.any(soc > constraints.soc_max + tolerance)
+            or np.any(soc_before_charge < constraints.soc_min - tolerance)
+            or np.any(soc_before_charge > constraints.soc_max + tolerance)):
         issues.append("soc")
     return dict(feasible=not issues, issues=sorted(set(issues)), soc=soc.tolist(),
+                soc_before_charge=soc_before_charge.tolist(),
                 energy_pu_hours=delivered, movement_energy_pu_hours=float(sum(movement_by_slot)))
 
 

@@ -203,3 +203,46 @@ def test_no_competitor_and_historical_failures_remain_visible():
     assert result["status"] == "no_competing_candidate"
     assert result["historical_fit_failures"] == ["failed"]
     assert result["selected"] is None
+
+
+def test_arrival_soc_is_checked_before_same_slot_charging():
+    p = np.zeros((8, 2))
+    p[1:5, 1] = .3
+    action = EVAction("boundary_soc", p, np.zeros_like(p),
+                      np.r_[-1, np.ones(7, int)])
+    constraints = EVConstraints(initial_site=0, initial_soc=.4, soc_min=.4,
+        travel_energy=.01 * (np.ones((2, 2)) - np.eye(2)))
+    result = check_action(action, constraints)
+    # The former net-at-arrival check passed every post-charge SOC, despite
+    # crossing the lower bound immediately before the first charging slot.
+    assert np.min(result["soc"]) >= constraints.soc_min
+    assert result["soc_before_charge"][1] == pytest.approx(.4 - .01 / 3)
+    assert result["soc_before_charge"][1] < constraints.soc_min
+    assert not result["feasible"]
+    assert result["issues"] == ["soc"]
+
+
+def test_formal_library_still_has_same_eleven_feasible_actions():
+    access = np.ones((8, 3), bool)
+    access[:2, -1] = False
+    constraints = EVConstraints(p_max=.3, energy=.3, base_kw=20.,
+        availability=access,
+        travel_slots=np.ones((3, 3), int) - np.eye(3, dtype=int),
+        travel_energy=.01 * (np.ones((3, 3)) - np.eye(3)),
+        soc_min=.1, initial_site=0)
+    actions, _ = enumerate_actions(8, 3, constraints, max_actions=11)
+    assert [a.name for a in actions] == [
+        "constant_site_0", "constant_site_1", "constant_site_2",
+        "early_site_0", "late_site_0", "early_site_1", "late_site_1",
+        "early_site_2", "late_site_2", "mobile_0_1", "mobile_0_2"]
+    # Even two .01 pu-hour moves without charging leave SOC above .3933;
+    # all prefixes are safe at the frozen .1 floor. Total charging bounds SOC
+    # above by .4 + .95*.3/3 = .495, well below the frozen .9 ceiling.
+    lower = .4 - 2 * .01 / 3
+    upper = .4 + .95 * .3 / 3
+    for action in actions:
+        result = check_action(action, constraints)
+        assert result["feasible"], (action.name, result)
+        assert result["energy_pu_hours"] == pytest.approx(.3)
+        assert np.min(result["soc_before_charge"]) >= lower
+        assert np.max(result["soc"]) <= upper + 1e-12
