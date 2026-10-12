@@ -1,0 +1,674 @@
+{
+  "pilot_v1": {
+    "config": {
+      "phase": "pilot",
+      "count": 2,
+      "start_seed": 710001,
+      "policy": {
+        "version": "adaptive_milp_v1_pilot",
+        "max_centers": 2,
+        "max_attempts": 3,
+        "source_delta": 0.05,
+        "line_trust": 0.3,
+        "history_loss_slack": 12.0,
+        "forecast": "mean",
+        "fit_multistart": 2,
+        "fit_max_nfev": 150,
+        "iterations": 3,
+        "segments": 2,
+        "max_segments": 8,
+        "solver_seconds": 3.0,
+        "search_seconds": 25.0,
+        "relative_gap": 0.001,
+        "absolute_gap": 0.0001,
+        "post_selection_voltage_limits": [
+          0.9,
+          1.1
+        ],
+        "baseline_action_count": 11,
+        "full_audit_bank": "all_three_terminal_star_and_cherries",
+        "gates_influence_shadow_policy": false,
+        "Q_over_P": 0.0,
+        "history_points": 12,
+        "future_points": 8
+      },
+      "population": {
+        "version": "independent_history_ac_v1",
+        "topology_mass": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "strong_probability": 0.5,
+        "independent_edge_R_X_scale": [
+          0.8,
+          1.2
+        ],
+        "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+        "root_voltage": 1.0,
+        "calibrated_bias": true,
+        "tracking_gain": 1.0
+      },
+      "policy_id": "40e0f9c6d5517d144f344d0e941a6b79438d2c4a6710973c20d54ee9f69d5d6d",
+      "population_id": "57d2810efa6543f41d76911c7cf59b5952fc4dfd5ec1d75e204f1039e6b2274c",
+      "source_sha256": {
+        "adaptive_milp_study.py": "0fd107f12e7714b53996e5f6a804329855c7be94cd15a577aa4c2cde63e85e6e",
+        "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+        "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+        "ev_information_milp.py": "0437bf290cfcdb0e7238274ccfba116134687bf6576f7defaf7de5f6a67a86c0",
+        "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+        "likelihood.py": "943d4f90dbd1e1f07734a1cce5cfee6370f4126a54804243bb18d0789a5ab901",
+        "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+        "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+        "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+        "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+        "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+        "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+        "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+        "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+      },
+      "stress": null,
+      "methods": [
+        "none",
+        "constant_fixed",
+        "fixed_pulse",
+        "random_action",
+        "legacy_library_proxy",
+        "fixed_mle_milp",
+        "refit_milp"
+      ],
+      "history_unit": "one independent generator path",
+      "runtime": {
+        "python": "3.11.15",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1"
+      }
+    },
+    "history_count": 2,
+    "seconds": 294.36584839993156,
+    "complete_history_count": 2,
+    "selection_failure_counts": {
+      "none": 0,
+      "constant_fixed": 0,
+      "fixed_pulse": 0,
+      "random_action": 0,
+      "legacy_library_proxy": 0,
+      "fixed_mle_milp": 0,
+      "refit_milp": 0
+    },
+    "joint_fit_failure_counts": {
+      "none": 0,
+      "constant_fixed": 0,
+      "fixed_pulse": 0,
+      "random_action": 0,
+      "legacy_library_proxy": 0,
+      "fixed_mle_milp": 0,
+      "refit_milp": 0
+    },
+    "truth_topology_counts": {
+      "0": 2,
+      "1": 0,
+      "2": 0,
+      "3": 0
+    },
+    "expansion_justified": false
+  },
+  "pilot_v2": {
+    "config": {
+      "phase": "pilot",
+      "count": 8,
+      "start_seed": 710003,
+      "policy": {
+        "version": "adaptive_milp_v2_qr_pilot",
+        "max_centers": 2,
+        "max_attempts": 3,
+        "source_delta": 0.05,
+        "line_trust": 0.3,
+        "history_loss_slack": 12.0,
+        "forecast": "mean",
+        "fit_multistart": 2,
+        "fit_max_nfev": 150,
+        "iterations": 3,
+        "segments": 2,
+        "max_segments": 8,
+        "solver_seconds": 3.0,
+        "search_seconds": 25.0,
+        "relative_gap": 0.001,
+        "absolute_gap": 0.0001,
+        "post_selection_voltage_limits": [
+          0.9,
+          1.1
+        ],
+        "baseline_action_count": 11,
+        "full_audit_bank": "all_three_terminal_star_and_cherries",
+        "gates_influence_shadow_policy": false,
+        "Q_over_P": 0.0,
+        "history_points": 12,
+        "future_points": 8
+      },
+      "population": {
+        "version": "independent_history_ac_v1",
+        "topology_mass": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "strong_probability": 0.5,
+        "independent_edge_R_X_scale": [
+          0.8,
+          1.2
+        ],
+        "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+        "root_voltage": 1.0,
+        "calibrated_bias": true,
+        "tracking_gain": 1.0
+      },
+      "policy_id": "5c4e04fc2a8275ed6db92339f2e7844896269b0daf898ca95813949e6861dae3",
+      "population_id": "57d2810efa6543f41d76911c7cf59b5952fc4dfd5ec1d75e204f1039e6b2274c",
+      "source_sha256": {
+        "adaptive_milp_study.py": "e97bba57686a2cd319502448c6719dd6926fd8657235ec421e1132d159d27b85",
+        "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+        "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+        "ev_information_milp.py": "5afa56944c899419e569da60228d7ad8a166af74c70e4f29c9048ce152e8409a",
+        "history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+        "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+        "likelihood.py": "943d4f90dbd1e1f07734a1cce5cfee6370f4126a54804243bb18d0789a5ab901",
+        "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+        "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+        "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+        "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+        "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+        "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+        "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+        "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+      },
+      "stress": null,
+      "methods": [
+        "none",
+        "constant_fixed",
+        "fixed_pulse",
+        "random_action",
+        "legacy_library_proxy",
+        "fixed_mle_milp",
+        "refit_milp"
+      ],
+      "history_unit": "one independent generator path",
+      "runtime": {
+        "python": "3.11.15",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1"
+      }
+    },
+    "history_count": 8,
+    "stop_reason": "count_complete",
+    "seconds": 192.55245919979643,
+    "complete_history_count": 7,
+    "selection_failure_counts": {
+      "none": 0,
+      "constant_fixed": 0,
+      "fixed_pulse": 0,
+      "random_action": 0,
+      "legacy_library_proxy": 0,
+      "fixed_mle_milp": 0,
+      "refit_milp": 0
+    },
+    "joint_fit_failure_counts": {
+      "none": 0,
+      "constant_fixed": 1,
+      "fixed_pulse": 0,
+      "random_action": 0,
+      "legacy_library_proxy": 0,
+      "fixed_mle_milp": 0,
+      "refit_milp": 0
+    },
+    "truth_topology_counts": {
+      "0": 3,
+      "1": 0,
+      "2": 4,
+      "3": 1
+    },
+    "expansion_justified": false,
+    "independent_audit": {
+      "config": {
+        "phase": "pilot",
+        "count": 8,
+        "start_seed": 710003,
+        "policy": {
+          "version": "adaptive_milp_v2_qr_pilot",
+          "max_centers": 2,
+          "max_attempts": 3,
+          "source_delta": 0.05,
+          "line_trust": 0.3,
+          "history_loss_slack": 12.0,
+          "forecast": "mean",
+          "fit_multistart": 2,
+          "fit_max_nfev": 150,
+          "iterations": 3,
+          "segments": 2,
+          "max_segments": 8,
+          "solver_seconds": 3.0,
+          "search_seconds": 25.0,
+          "relative_gap": 0.001,
+          "absolute_gap": 0.0001,
+          "post_selection_voltage_limits": [
+            0.9,
+            1.1
+          ],
+          "baseline_action_count": 11,
+          "full_audit_bank": "all_three_terminal_star_and_cherries",
+          "gates_influence_shadow_policy": false,
+          "Q_over_P": 0.0,
+          "history_points": 12,
+          "future_points": 8
+        },
+        "population": {
+          "version": "independent_history_ac_v1",
+          "topology_mass": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "strong_probability": 0.5,
+          "independent_edge_R_X_scale": [
+            0.8,
+            1.2
+          ],
+          "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+          "root_voltage": 1.0,
+          "calibrated_bias": true,
+          "tracking_gain": 1.0
+        },
+        "policy_id": "5c4e04fc2a8275ed6db92339f2e7844896269b0daf898ca95813949e6861dae3",
+        "population_id": "57d2810efa6543f41d76911c7cf59b5952fc4dfd5ec1d75e204f1039e6b2274c",
+        "source_sha256": {
+          "adaptive_milp_study.py": "e97bba57686a2cd319502448c6719dd6926fd8657235ec421e1132d159d27b85",
+          "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+          "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+          "ev_information_milp.py": "5afa56944c899419e569da60228d7ad8a166af74c70e4f29c9048ce152e8409a",
+          "history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+          "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+          "likelihood.py": "943d4f90dbd1e1f07734a1cce5cfee6370f4126a54804243bb18d0789a5ab901",
+          "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+          "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+          "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+          "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+          "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+          "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+          "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+          "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+        },
+        "stress": null,
+        "methods": [
+          "none",
+          "constant_fixed",
+          "fixed_pulse",
+          "random_action",
+          "legacy_library_proxy",
+          "fixed_mle_milp",
+          "refit_milp"
+        ],
+        "history_unit": "one independent generator path",
+        "runtime": {
+          "python": "3.11.15",
+          "numpy": "2.4.6",
+          "scipy": "1.17.1"
+        }
+      },
+      "manifest": {
+        "config_sha256": "55a69e9ea6c8a14d1a286fda3a774946776e94d177ee4e3b640683bcbd59b0ba",
+        "trial_sha256": {
+          "trial_710003.json": "7c9036e1da09aeda71b4b5899024f75e5e842e5e0a004fcd413f9e4f61b9910a",
+          "trial_710004.json": "438179b2aee1f250a99d15af23ec4d0ad2d571f845633d0fbe62a42ecf3f87b0",
+          "trial_710005.json": "7a66e1a80bf995fdb080b2566ace4014bf7a22f0a59662c84d590416469cfa35",
+          "trial_710006.json": "e2c8b23615f1eb2d19f2f61bb2dad68ea1fbef53c0136182783d5ebd489b1429",
+          "trial_710007.json": "3da377c225ee479a30e492217082886bb2c61c96520be5744d1803ae84ac6b27",
+          "trial_710008.json": "8d03d0a0d2d0147bc718cdb8aa52de67cbee63af90b5c5b0f779464ccee18d73",
+          "trial_710009.json": "a65f026de2822043c754fac78820da5f5fc3a713a938a9629eaea2c1fe922536",
+          "trial_710010.json": "17fe9deea6662dd3b8e4c2ddc61b998bd84e96254d30104e8a70da454f77aa7c"
+        },
+        "observation_archive_sha256": {
+          "trial_710003_observations.npz": "4e95c0a12b7c1131606bcb3d2cf7a0102a91c2d4c4ab1acde85bab8bf03df6cc",
+          "trial_710004_observations.npz": "ed45c8c0752b330ae0426174db75b1c97b423b3c15dd386fdb7b86378b8e7aa8",
+          "trial_710005_observations.npz": "fd57b0ebd7f695f74be73edda78b0b4f41c6432c98e6fb1ba679284952a8547c",
+          "trial_710006_observations.npz": "c12ef79c01e2c918a74d87c77baa3f04db8b5ecd5c6b77928cd187ce94735365",
+          "trial_710007_observations.npz": "7115297c2729e8cedab74d0a30aa3f9c7f2dfb6c540f16e76efdb3385927cd9b",
+          "trial_710008_observations.npz": "7e702d5b441303e013d3a3bf330af15979274f23b8aa434ca1774a6b19e164a7",
+          "trial_710009_observations.npz": "37f775e3311831ebf2c5607b13b0ef4502b57761554a3f921d73f1dfb8a09e93",
+          "trial_710010_observations.npz": "624d44e4f238d0de0df0d16990195cecbea34ea1dbd9c0f93dae3f8ded26bad9"
+        }
+      },
+      "requested_history_count": 8,
+      "history_count": 8,
+      "calibration_performed": false,
+      "inferential_gate_claim": false,
+      "topology_counts": {
+        "0": 3,
+        "1": 0,
+        "2": 4,
+        "3": 1
+      },
+      "ac_replay_status_counts": {
+        "verified": 224,
+        "unavailable": 0,
+        "mismatch": 0,
+        "not_requested": 0
+      },
+      "numerical_bound_check_count": 1331,
+      "selection_failure_counts": {
+        "none": 0,
+        "constant_fixed": 0,
+        "fixed_pulse": 0,
+        "random_action": 0,
+        "legacy_library_proxy": 0,
+        "fixed_mle_milp": 0,
+        "refit_milp": 0
+      },
+      "fit_failure_counts": {
+        "none": 0,
+        "constant_fixed": 1,
+        "fixed_pulse": 0,
+        "random_action": 0,
+        "legacy_library_proxy": 0,
+        "fixed_mle_milp": 0,
+        "refit_milp": 0
+      },
+      "physical_failure_counts": {
+        "none": 0,
+        "constant_fixed": 0,
+        "fixed_pulse": 0,
+        "random_action": 0,
+        "legacy_library_proxy": 0,
+        "fixed_mle_milp": 0,
+        "refit_milp": 0
+      },
+      "proxy_bounds_are_nonlinear_AC_bounds": false,
+      "local_fits_are_global_MLE": false
+    }
+  },
+  "pilot_v3": {
+    "config": {
+      "phase": "pilot",
+      "count": 6,
+      "start_seed": 710009,
+      "policy": {
+        "version": "adaptive_milp_v3_frozen",
+        "max_centers": 2,
+        "max_attempts": 3,
+        "source_delta": 0.05,
+        "line_trust": 0.3,
+        "history_loss_slack": 12.0,
+        "forecast": "mean",
+        "fit_multistart": 2,
+        "fit_max_nfev": 300,
+        "iterations": 3,
+        "segments": 2,
+        "max_segments": 8,
+        "solver_seconds": 3.0,
+        "search_seconds": 25.0,
+        "relative_gap": 0.001,
+        "absolute_gap": 0.0001,
+        "post_selection_voltage_limits": [
+          0.9,
+          1.1
+        ],
+        "baseline_action_count": 11,
+        "full_audit_bank": "all_three_terminal_star_and_cherries",
+        "gates_influence_shadow_policy": false,
+        "Q_over_P": 0.0,
+        "history_points": 12,
+        "future_points": 8
+      },
+      "population": {
+        "version": "independent_history_ac_v1",
+        "topology_mass": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "strong_probability": 0.5,
+        "independent_edge_R_X_scale": [
+          0.8,
+          1.2
+        ],
+        "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+        "root_voltage": 1.0,
+        "calibrated_bias": true,
+        "tracking_gain": 1.0
+      },
+      "policy_id": "a3cdcab050a103cb71650db0b023720bedd8b87c1bc4ff9da984217ea3726846",
+      "population_id": "57d2810efa6543f41d76911c7cf59b5952fc4dfd5ec1d75e204f1039e6b2274c",
+      "source_sha256": {
+        "adaptive_milp_study.py": "0693b573131838330a1a48a5099d39f418ef05ea825898558d2838578d0b078f",
+        "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+        "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+        "ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+        "history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+        "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+        "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+        "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+        "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+        "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+        "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+        "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+        "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+        "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+        "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+      },
+      "stress": null,
+      "methods": [
+        "none",
+        "constant_fixed",
+        "fixed_pulse",
+        "random_action",
+        "legacy_library_proxy",
+        "fixed_mle_milp",
+        "refit_milp"
+      ],
+      "history_unit": "one independent generator path",
+      "runtime": {
+        "python": "3.11.15",
+        "numpy": "2.4.6",
+        "scipy": "1.17.1"
+      }
+    },
+    "history_count": 6,
+    "stop_reason": "count_complete",
+    "seconds": 165.7209293000633,
+    "complete_history_count": 6,
+    "selection_failure_counts": {
+      "none": 0,
+      "constant_fixed": 0,
+      "fixed_pulse": 0,
+      "random_action": 0,
+      "legacy_library_proxy": 0,
+      "fixed_mle_milp": 0,
+      "refit_milp": 0
+    },
+    "joint_fit_failure_counts": {
+      "none": 0,
+      "constant_fixed": 0,
+      "fixed_pulse": 0,
+      "random_action": 0,
+      "legacy_library_proxy": 0,
+      "fixed_mle_milp": 0,
+      "refit_milp": 0
+    },
+    "truth_topology_counts": {
+      "0": 1,
+      "1": 1,
+      "2": 4,
+      "3": 0
+    },
+    "expansion_justified": false,
+    "independent_audit": {
+      "config": {
+        "phase": "pilot",
+        "count": 6,
+        "start_seed": 710009,
+        "policy": {
+          "version": "adaptive_milp_v3_frozen",
+          "max_centers": 2,
+          "max_attempts": 3,
+          "source_delta": 0.05,
+          "line_trust": 0.3,
+          "history_loss_slack": 12.0,
+          "forecast": "mean",
+          "fit_multistart": 2,
+          "fit_max_nfev": 300,
+          "iterations": 3,
+          "segments": 2,
+          "max_segments": 8,
+          "solver_seconds": 3.0,
+          "search_seconds": 25.0,
+          "relative_gap": 0.001,
+          "absolute_gap": 0.0001,
+          "post_selection_voltage_limits": [
+            0.9,
+            1.1
+          ],
+          "baseline_action_count": 11,
+          "full_audit_bank": "all_three_terminal_star_and_cherries",
+          "gates_influence_shadow_policy": false,
+          "Q_over_P": 0.0,
+          "history_points": 12,
+          "future_points": 8
+        },
+        "population": {
+          "version": "independent_history_ac_v1",
+          "topology_mass": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "strong_probability": 0.5,
+          "independent_edge_R_X_scale": [
+            0.8,
+            1.2
+          ],
+          "latent_load_source": "existing simulation.generate iid bounded per-time paths",
+          "root_voltage": 1.0,
+          "calibrated_bias": true,
+          "tracking_gain": 1.0
+        },
+        "policy_id": "a3cdcab050a103cb71650db0b023720bedd8b87c1bc4ff9da984217ea3726846",
+        "population_id": "57d2810efa6543f41d76911c7cf59b5952fc4dfd5ec1d75e204f1039e6b2274c",
+        "source_sha256": {
+          "adaptive_milp_study.py": "0693b573131838330a1a48a5099d39f418ef05ea825898558d2838578d0b078f",
+          "adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+          "ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+          "ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+          "history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+          "adaptive_statistics.py": "0c81a7e5351b9f5c192de774d06a9556a2a134b7396adcb734edd5c99ee2dacc",
+          "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+          "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+          "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+          "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+          "symmetric_ac_local.py": "2a05080bbf5fd1d81c87aef10bfab961e2db451c28fde9b707f5a9efc1cf3324",
+          "run_study.py": "95e00d26b0252b2e52f26dc74e6818ca2c96f78f4d2111d581a42f6d0cb380c0",
+          "../mobile_ev_probing/passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+          "../mobile_ev_probing/wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+          "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+        },
+        "stress": null,
+        "methods": [
+          "none",
+          "constant_fixed",
+          "fixed_pulse",
+          "random_action",
+          "legacy_library_proxy",
+          "fixed_mle_milp",
+          "refit_milp"
+        ],
+        "history_unit": "one independent generator path",
+        "runtime": {
+          "python": "3.11.15",
+          "numpy": "2.4.6",
+          "scipy": "1.17.1"
+        }
+      },
+      "manifest": {
+        "config_sha256": "3d559e9398c73cfd6904363ba167f11003b52af3d0c25c56f338e0c9ed9fd49c",
+        "trial_sha256": {
+          "trial_710009.json": "43a5012d59ea908c4dac76b6c15d71665ae988e7dcdea5d785c40b91b4a10e1a",
+          "trial_710010.json": "f12a9da7bc9aaf73f5a512c291c1b7d1fb41298b99a72198e9900eb05abdf29b",
+          "trial_710011.json": "6edfd7ad9f2d45ebb357b9475a2fa5a84a5f76418cd73a5384da1e974c5f4d0a",
+          "trial_710012.json": "b669674684f16a42d978541ad5358ee09205b08fef8431dee81b9c8be41a9c79",
+          "trial_710013.json": "95946298a3849ffa7ab3e3912528959186552a2cd7d65de11b62c12cb8b590a0",
+          "trial_710014.json": "3ea97338bb1827c0d8d5e02fb494ba188854da4b187b645fc64d9df436f4400b"
+        },
+        "observation_archive_sha256": {
+          "trial_710009_observations.npz": "33bbd403a288c542541d22321c4d32b54265702e3b1b795935f3d8c4c8a2fee8",
+          "trial_710010_observations.npz": "624d44e4f238d0de0df0d16990195cecbea34ea1dbd9c0f93dae3f8ded26bad9",
+          "trial_710011_observations.npz": "83253cda59cbb3de62f66538dbdce0cf4a12e6fb08ffa55376a4a03cda52da34",
+          "trial_710012_observations.npz": "13cc55d3ddc215ee3b69d3c5bd10404069a94318fd4d35a5a2e4a114329e0c7c",
+          "trial_710013_observations.npz": "fbc9aaf1cc792d00bef28569c8b4e57b3e92b3a02c7a5dd53fd9853650835803",
+          "trial_710014_observations.npz": "3a6d1a7fba413a32e1a873e15a7bdef133fe7c5047890b4688956907b1839038"
+        }
+      },
+      "requested_history_count": 6,
+      "history_count": 6,
+      "calibration_performed": false,
+      "inferential_gate_claim": false,
+      "topology_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 4,
+        "3": 0
+      },
+      "ac_replay_status_counts": {
+        "verified": 168,
+        "unavailable": 0,
+        "mismatch": 0,
+        "not_requested": 0
+      },
+      "numerical_bound_check_count": 1056,
+      "selection_failure_counts": {
+        "none": 0,
+        "constant_fixed": 0,
+        "fixed_pulse": 0,
+        "random_action": 0,
+        "legacy_library_proxy": 0,
+        "fixed_mle_milp": 0,
+        "refit_milp": 0
+      },
+      "fit_failure_counts": {
+        "none": 0,
+        "constant_fixed": 0,
+        "fixed_pulse": 0,
+        "random_action": 0,
+        "legacy_library_proxy": 0,
+        "fixed_mle_milp": 0,
+        "refit_milp": 0
+      },
+      "physical_failure_counts": {
+        "none": 0,
+        "constant_fixed": 0,
+        "fixed_pulse": 0,
+        "random_action": 0,
+        "legacy_library_proxy": 0,
+        "fixed_mle_milp": 0,
+        "refit_milp": 0
+      },
+      "proxy_bounds_are_nonlinear_AC_bounds": false,
+      "local_fits_are_global_MLE": false
+    }
+  },
+  "test_evidence": {
+    "command": "python -m pytest research_experiments/mobile_ev_mle -q -p no:cacheprovider",
+    "passed": 240,
+    "seconds": 12.32,
+    "whole_suite": true
+  },
+  "interpretation": {
+    "local_not_global_MLE": true,
+    "proxy_not_nonlinear_bound": true,
+    "EV_improvement_not_presumed": true,
+    "pilot_v2_failed_history_retained": true,
+    "pilot_v3_changed_solver_budget_before_calibration": true
+  }
+}

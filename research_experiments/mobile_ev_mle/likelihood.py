@@ -275,7 +275,7 @@ def _bounds(pair, shape, name):
 def fit_candidate(candidate, observations, model, *, initial=None, multistart=2,
                   seed=0, max_nfev=150, r_bounds=(.000001, .1), x_bounds=(.000001, .1),
                   p_bounds=(-1., 1.), q_bounds=(-1., 1.), source_bounds=(-.5, .5),
-                  voltage_bounds=(.85, 1.15), estimate_source=True, tol=1e-8):
+                  voltage_bounds=(.85, 1.15), estimate_source=True, tol=1e-8, linear_solver="lsmr"):
     """Best retained local complete Gaussian fit, with explicit diagnostics.
 
     Warm starts may be shorter than observations: their shared parameters and
@@ -291,6 +291,8 @@ def fit_candidate(candidate, observations, model, *, initial=None, multistart=2,
         raise ValueError("multistart must be a positive integer")
     if int(max_nfev) != max_nfev or max_nfev < 1:
         raise ValueError("max_nfev must be a positive integer")
+    if linear_solver not in ("lsmr","exact"):
+        raise ValueError("linear_solver must be lsmr or exact")
     t, n, m = observations.t, candidate.n, candidate.m
     channels = ["p", "q", "v"]
     sigmas = {}
@@ -478,10 +480,11 @@ def fit_candidate(candidate, observations, model, *, initial=None, multistart=2,
             loss0 = float(evaluate(z) @ evaluate(z))
             if initial_loss is None:
                 initial_loss = loss0
-            solution = least_squares(evaluate,z,jac=jacobian,bounds=(lower,upper),
+            solver_jac=jacobian if linear_solver=="lsmr" else lambda point:jacobian(point).toarray()
+            options={"atol":1e-10,"btol":1e-10,"maxiter":500} if linear_solver=="lsmr" else {}
+            solution = least_squares(evaluate,z,jac=solver_jac,bounds=(lower,upper),
                                      x_scale=scale,ftol=tol,xtol=tol,gtol=tol,
-                                     max_nfev=int(max_nfev),tr_solver="lsmr",
-                                     tr_options={"atol":1e-10,"btol":1e-10,"maxiter":500})
+                                     max_nfev=int(max_nfev),tr_solver=linear_solver,tr_options=options)
             residual = evaluate(solution.x)
             loss = float(residual@residual)
             physical = cache["physical"]
@@ -521,7 +524,7 @@ def fit_candidate(candidate, observations, model, *, initial=None, multistart=2,
     physical = cache["physical"]
     finite_losses = [x["loss"] for x in restarts if x.get("loss") is not None]
     diagnostics = dict(
-        objective="complete_known_diagonal_Gaussian",initial_loss=initial_loss,
+        objective="complete_known_diagonal_Gaussian",initial_loss=initial_loss,linear_solver=linear_solver,
         measurement_channels=channels,source_node=1,source_spatial_location_shared=True,
         source_anchored=bool(anchored),root_voltage_known=True,
         source_amplitude_ratio_fixed=False,source_sign="positive_consumption",

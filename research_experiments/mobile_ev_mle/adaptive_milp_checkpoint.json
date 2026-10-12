@@ -2,7 +2,7 @@
   "started_at_utc": "2026-10-12T17:00:00Z",
   "deadline_utc": "2026-10-13T01:00:00Z",
   "budget_hours": 8,
-  "phase": "A_B_foundation_verified_pilot_running",
+  "phase": "A_B_verified_C_policy_frozen",
   "base_commit": "6c37cf8b9d5b16f97a8b619897b14794b9d10eb7",
   "branch": "research/ev-history-t-design",
   "base_source_sha256": {
@@ -216,5 +216,48 @@
     "pid": 26816,
     "batch": "outputs/adaptive_milp/pilot_v1",
     "first_trial_not_yet_completed": true
+  },
+  "last_stage_commit": "4ac1826",
+  "tests_passed": 240,
+  "pilot_completed": [
+    {
+      "directory": "outputs/adaptive_milp/pilot_v1",
+      "histories": 2,
+      "source_variant": "full_BVLS"
+    },
+    {
+      "directory": "outputs/adaptive_milp/pilot_v2",
+      "histories": 8,
+      "source_variant": "QR_acceleration",
+      "whole_policy_joint_fit_failure_histories": 1
+    }
+  ],
+  "planned_C_calibration": {
+    "count": 128,
+    "start_seed": 720001,
+    "alpha_total": 0.1,
+    "relative_fraction": 0.5
+  },
+  "planned_C_evaluation": {
+    "count": 256,
+    "start_seed": 730001
+  },
+  "last_updated_at_utc": "2026-10-12T18:16:00Z",
+  "active_processes": [
+    {
+      "session_id": 53565,
+      "phase": "proper_finite_EIG_audit"
+    }
+  ],
+  "next_actions": [
+    "Verify pilot v3 and freeze exact policy/source hashes before independent C calibration and evaluation",
+    "Calibrate rolling wholetrajectory separately after fullpolicy pilot",
+    "Run declared domain sensitivity and preserve AC proxy failures",
+    "Update original report and PDF, commit and normal push"
+  ],
+  "completed_pilot_v3": {
+    "histories": 6,
+    "all_required_joint_fits_completed": true,
+    "independent_replayed_fits": 168
   }
 }

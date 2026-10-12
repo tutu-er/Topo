@@ -29,6 +29,7 @@ class FrozenPair:
     upper: np.ndarray
     scale: np.ndarray | None = None
     metadata: dict = field(default_factory=dict)
+    _solver_cache: dict = field(default_factory=dict,init=False,repr=False,compare=False)
 
     def __post_init__(self):
         for key in ('c', 'B', 'A', 'F', 'lower', 'upper'):
@@ -82,7 +83,12 @@ def solve_pair(pair: FrozenPair, u, *, tolerance=1e-10, max_iter=1000):
     z = np.clip(np.zeros(len(pair.lower)), pair.lower, pair.upper)
     z[fixed] = pair.lower[fixed]
     free = ~fixed
-    if free.any():
+    from .history_qp_acceleration import accelerate_history_qp
+    accelerated=accelerate_history_qp(pair,C,d,z,free,tolerance,max_iter) if free.any() else None
+    if accelerated is not None:
+        z=accelerated["z"]
+        status,message,success,optimality=(accelerated["status"],accelerated["message"],True,accelerated["optimality"])
+    elif free.any():
         scaled = C[:,free]*pair.scale[free]
         adjusted = d+C[:,fixed]@z[fixed]
         fit = lsq_linear(scaled, -adjusted,
@@ -102,6 +108,7 @@ def solve_pair(pair: FrozenPair, u, *, tolerance=1e-10, max_iter=1000):
     return dict(success=success,status=status,message=message,z=z,
         residual=residual,q_upper=primal,q_lower=lower,numeric_gap=primal-lower,
         optimality=optimality,roundoff_guard=guard,gradient=gradient,
+        acceleration='history_QR' if accelerated is not None else 'full_BVLS',
         semantics='frozen convex box QP; primal is upper; tangent is numerical lower')
 
 
@@ -336,7 +343,7 @@ def adaptive_search(config,pairs,*,initial_us=(),max_iterations=8,segments=2,
         qlo=min(s['q_lower'] for s in solved);qhi=min(s['q_upper'] for s in solved)
         row=dict(origin=origin,u_kw=u.tolist(),q_lower=qlo,q_upper=qhi,
             pair_values=[dict(name=p.name,q_lower=s['q_lower'],q_upper=s['q_upper'],
-                numeric_gap=s['numeric_gap'],optimality=s['optimality']) for p,s in zip(pairs,solved)])
+                numeric_gap=s['numeric_gap'],optimality=s['optimality'],acceleration=s['acceleration']) for p,s in zip(pairs,solved)])
         records.append(row);cache[key]=row
         if plan is not None and (best is None or qlo>LB):
             best=plan;LB=max(LB,qlo)
