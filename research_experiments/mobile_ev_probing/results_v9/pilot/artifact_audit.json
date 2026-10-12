@@ -1,0 +1,79 @@
+{
+  "passed": false,
+  "checks": 1763,
+  "issues": [
+    "source hash: integrated_study_v9.py",
+    "n6_ordinary_partial_gain_dominated_9001/constant_3: paired history Y_drop",
+    "n6_ordinary_partial_gain_dominated_9001/constant_3: paired history drop_error_bound",
+    "n6_ordinary_partial_gain_dominated_9001/endpoint_0: paired history Y_drop",
+    "n6_ordinary_partial_gain_dominated_9001/endpoint_0: paired history drop_error_bound",
+    "n6_ordinary_partial_gain_dominated_9001/endpoint_3: paired history Y_drop",
+    "n6_ordinary_partial_gain_dominated_9001/endpoint_3: paired history drop_error_bound",
+    "n6_ordinary_partial_gain_dominated_9001/mobile_0_1: paired history Y_drop",
+    "n6_ordinary_partial_gain_dominated_9001/mobile_0_1: paired history drop_error_bound",
+    "n6_ordinary_partial_gain_dominated_9001/mobile_0_4: paired history Y_drop",
+    "n6_ordinary_partial_gain_dominated_9001/mobile_0_4: paired history drop_error_bound"
+  ],
+  "completed_cases": 1,
+  "planned_cases": 1,
+  "source_hashes": {
+    "integrated_study_v9.py": "6ffe715d232f085ed6eb089e6af05d0cc756856f38e63f66ef3f151b6b788a20",
+    "ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf",
+    "passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d"
+  },
+  "lp_records_checked": 168,
+  "excluded_records": 29,
+  "maximum_serialized_gap": 5.445554359120343e-16,
+  "maximum_independent_KCL_residual": 1.8043587292685093e-13,
+  "cases": [
+    {
+      "case": "n6_ordinary_partial_gain_dominated_9001",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 0.75,
+      "physical_actions": 6,
+      "banks_checked": 1,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 5,
+          "updated_bank_survivors": 5,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 6,
+          "updated_bank_survivors": 6,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 2,
+          "updated_bank_survivors": 2,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    }
+  ],
+  "lp_replays": [],
+  "auditor_sha256": "0614fafae509ce48612ea77ce50b57f74ab6d18b17888dc6436c171591a6d090",
+  "protocol_sha256": "f956d6203d8a3252a0722b6145031740ff23587907080f7f87dc930a1abaa2b6",
+  "limitations": [
+    "Saved rational intervals are checked; unstored original dual multipliers are not reconstructed.",
+    "Candidate coverage is finite and post-hoc truth coverage is reported separately.",
+    "Raw updated-bank survivor counts cannot be compared alone across different candidate banks.",
+    "Synthetic error coverage is not field-calibrated confidence."
+  ]
+}

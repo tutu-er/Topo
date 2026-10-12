@@ -44,6 +44,63 @@ def metrics(supports, truth_supports, n):
                 f1=2 * common / (len(a) + len(b)) if a or b else 1.)
 
 
+def configured_case_name(config):
+    n, weak, history, meter, seed = config
+    return f"n{n}_{'weak' if weak else 'ordinary'}_{history}_{meter}_{seed}"
+
+
+def check_aggregate(data, protocol, output, case_files, checker):
+    """Accept embedded results or the launcher's hashed case-file manifest."""
+    output = Path(output).resolve()
+    checker.check(data.get("protocol") == protocol, "aggregate protocol matches frozen file")
+    actual = {read(path)["case"]: (path.resolve(), read(path)) for path in case_files}
+    planned = {configured_case_name(config): tuple(config) for config in protocol["cases"]}
+    checker.check(set(actual) == set(planned), "per-case artifacts cover every configured case")
+    if "results" in data:
+        items = data["results"]
+        by_id = {item["case"]: item for item in items}
+        checker.check(len(by_id) == len(items), "embedded aggregate case IDs unique")
+        checker.check(set(by_id) == set(actual), "embedded aggregate complete case set")
+        for name, (_, result) in actual.items():
+            checker.check(by_id.get(name) == result, name + ": embedded aggregate equals per-case artifact")
+        return "embedded_results"
+    if "cases" not in data:
+        checker.check(False, "aggregate has neither embedded results nor cases manifest")
+        return "unrecognized"
+    items = data["cases"]
+    by_id = {item["case"]: item for item in items}
+    checker.check(len(by_id) == len(items), "manifest case IDs unique")
+    checker.check(set(by_id) == set(actual), "manifest complete case set")
+    seen_paths = set()
+    for name, item in by_id.items():
+        relative = Path(item["file"].replace("\\", "/"))
+        checker.check(not relative.is_absolute(), name + ": manifest path is relative")
+        path = (output / relative).resolve()
+        try:
+            path.relative_to(output)
+            contained = True
+        except ValueError:
+            contained = False
+        checker.check(contained, name + ": manifest path stays in study directory")
+        if not contained:
+            continue
+        checker.check(path == (output / name / "result.json").resolve(), name + ": manifest points to its own result")
+        checker.check(path not in seen_paths, name + ": manifest result path unique")
+        seen_paths.add(path)
+        checker.check(path.is_file(), name + ": manifest result exists")
+        if not path.is_file():
+            continue
+        checker.check(sha(path) == item["sha256"], name + ": manifest result SHA256")
+        result = read(path)
+        checker.check(result.get("case") == name, name + ": manifest/result identity")
+        checker.check(tuple(result.get("config", ())) == planned.get(name), name + ": manifest result matches declared config")
+        checker.check(name in actual and actual[name][0] == path and actual[name][1] == result,
+                      name + ": manifest references the audited per-case artifact")
+        checker.check(np.isfinite(item["seconds"]) and item["seconds"] >= 0
+                      and item["seconds"] == result["seconds"], name + ": manifest runtime matches result")
+    return "hashed_case_manifest"
+
+
 def independent_nodal_ac(metadata, theta, p, q, source_p):
     """Separately assembled complex nodal current balance."""
     m = len(metadata["supports"])
@@ -218,6 +275,7 @@ def audit(output, replay_count=0, allow_incomplete=False):
         case = result["case"]
         checker.check(tuple(result["config"]) in planned, case + ": planned case")
         checker.check(folder.name == case, case + ": folder identity")
+        checker.check(configured_case_name(result["config"]) == case, case + ": configured case identity")
         arrays, truths, physical = {}, {}, {}
         for filename, expected in result["inputs"].items():
             path = folder / filename
@@ -331,14 +389,12 @@ def audit(output, replay_count=0, allow_incomplete=False):
                 replays.append(dict(case=case, action=key, candidate=candidate_id, model="shared_gain", intervals_overlap=overlapping, fresh=fresh))
     checker.check(len(replays) == replay_count, "requested LP replay count completed")
     aggregate = output / "results.json"
+    aggregate_schema = None
+    if not allow_incomplete:
+        checker.check(aggregate.is_file(), "complete study has a final aggregate")
     if aggregate.exists():
         data = read(aggregate)
-        checker.check(data["protocol"] == protocol, "aggregate protocol matches frozen file")
-        aggregated = {r["case"]: r for r in data["results"]}
-        checker.check(set(aggregated) == {read(p)["case"] for p in case_files}, "aggregate complete case set")
-        for path in case_files:
-            item = read(path)
-            checker.check(aggregated[item["case"]] == item, item["case"] + ": aggregate equals per-case artifact")
+        aggregate_schema = check_aggregate(data, protocol, output, case_files, checker)
     report = dict(passed=not checker.issues, checks=checker.checks, issues=checker.issues,
         completed_cases=len(case_files), planned_cases=len(protocol["cases"]), source_hashes=source_files,
         complete=len(case_files) == len(protocol["cases"]), allow_incomplete=allow_incomplete,
@@ -347,6 +403,8 @@ def audit(output, replay_count=0, allow_incomplete=False):
         maximum_accepted_WZZT_relative_gap=checker.max_accepted_wzzt_gap,
         cases=checker.cases, lp_replays=replays, auditor_sha256=sha(__file__),
         protocol_sha256=sha(output / "protocol.json"),
+        aggregate_schema=aggregate_schema,
+        aggregate_sha256=sha(aggregate) if aggregate.is_file() else None,
         limitations=["Saved rational intervals are checked; unstored original dual multipliers are not reconstructed.",
                      "WZZT stage acceptance uses the existing 1e-10 numerical gap contract, not rational global topology optimality.",
                      "Candidate coverage is finite and post-hoc truth coverage is reported separately.",

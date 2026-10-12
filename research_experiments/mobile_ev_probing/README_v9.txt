@@ -71,6 +71,7 @@ python research_experiments/mobile_ev_probing/integrated_study_v9.py --prepare-o
 python research_experiments/mobile_ev_probing/run_parallel_v9.py <new_directory> --workers 3
 python research_experiments/mobile_ev_probing/audit_integrated_v9.py <new_directory> --replays 3
 python research_experiments/mobile_ev_probing/diagnose_integrated_v9.py <new_directory> --require-complete
+python research_experiments/mobile_ev_probing/build_summary_v9.py <new_directory> --require-complete
 
 Protocol hashes cover raw source bytes including production dependencies. A
 different checkout's line endings may change hashes; generate a fresh protocol
@@ -95,6 +96,7 @@ results_v9/formal/protocol.json       frozen cases and source hashes
 results_v9/formal/<case>/result.json  actual candidates/actions/AC bounds/data hashes
 results_v9/formal/artifact_audit.json complete audit (partial audit named separately)
 results_v9/formal/diagnostics.json    selection failures and AC deletion witnesses
+results_v9/formal/summary.json        fixed-bank evidence, passive quality, and locations
 results_v9/*_tests/                  archived 14 + 25 + 39 tests
 results_v9/pilot/                    earlier exploratory negative result; not pooled
 docs/mobile_ev_probing_report_v2.tex editable report, current overview in first section
@@ -103,3 +105,15 @@ The old pilot used a different candidate refresh/rounding protocol. Its exact
 driver snapshot is retained. Do not combine its counts with the frozen study.
 PDF is compiled in place; verify_report_pdf_v9.py prepares content/render checks.
 Visual-review completion is recorded only after inspecting the generated pages.
+
+Completed-study interpretation
+------------------------------
+Ten mechanism episodes completed. Initial exact top family 3/10, truth in bank
+7/10; no-EV future data raise these to 5/10 and 8/10; selected mobile yields 5/10
+and 9/10. None of the eight .001-pu cases obtains a unique AC-surviving family.
+Only the higher-precision ordinary case has a singleton under shared-gain
+validation; independent boxes do not. Automatic sites have explicit losses to
+fixed sites. All 16 distinct weak-edge action batches admit numerical AC
+branch-deletion explanations, including five requiring gain refitting. These
+are conditional synthetic evidence and paired mechanisms, not field success
+rates or interval-certified nonlinear existence. See the report for full tables.

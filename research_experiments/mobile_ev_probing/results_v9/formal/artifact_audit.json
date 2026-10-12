@@ -1,0 +1,783 @@
+{
+  "passed": true,
+  "checks": 21783,
+  "issues": [],
+  "completed_cases": 10,
+  "planned_cases": 10,
+  "source_hashes": {
+    "research_experiments\\mobile_ev_probing\\integrated_study_v9.py": "6ffe715d232f085ed6eb089e6af05d0cc756856f38e63f66ef3f151b6b788a20",
+    "research_experiments\\mobile_ev_probing\\ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf",
+    "research_experiments\\mobile_ev_probing\\passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+    "research_experiments\\mobile_ev_probing\\wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+    "research_experiments\\mobile_ev_probing\\ac_shared_v8.py": "95b8c95d1aedccf12539c74c286c12832e8f36772d6efc91414baf87381283a7",
+    "research_experiments\\mobile_ev_probing\\local_shared_source_v6.py": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5",
+    "research_experiments\\mobile_ev_probing\\design_v7.py": "5d7fb37ad5e6c4e19def9d13333f39bc8b1792f881d29ef6c6e740e3dfa24b13",
+    "rnj_wzzt_core\\rnj_wzzt\\__init__.py": "533adf3d779ce5d0b73abd91506564f67aa4c0f3014620dee468bdc340a83d78",
+    "rnj_wzzt_core\\rnj_wzzt\\cli.py": "220648878287ac03fb7a1d02a3f8b6636f9659e386b9080ee8d1a8d1a5b9d589",
+    "rnj_wzzt_core\\rnj_wzzt\\data\\__init__.py": "2ae3408e4be4a8c2d779e56408950b9e1afa2757eb85e209a0108fbb57afdcb0",
+    "rnj_wzzt_core\\rnj_wzzt\\data\\paper_style_case_bank.py": "5b1c58d031a309404d2e51e4f97ddbed9cd9cb29dcbec003debb113eb1025c1c",
+    "rnj_wzzt_core\\rnj_wzzt\\data\\paper_style_terminal_lv.py": "14be84e837213219af98a27d9ad7d6781f065f31ec69baee0518842b4d1daa21",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\__init__.py": "fe2a6553bbd9b1db2978815a3f4141cf8f97b53ffd4c795c8a1bd3ca85490af5",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\ac_measurement_fit.py": "b4a03c9b7781f595b319315a55fc63fac75f1183fe2ffaa36f3ba14cc3cb5e9c",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\ac_validation.py": "a56e5c8b097052664fed77fe4781d04c8c849fc5df619dbedaf1100394e4f8d0",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\constrained_least_squares.py": "1a0e12b612a0c32f31e5240c12a9a522c3cd946445029640aedc49e358cf48b2",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\gurobi_milp.py": "e49ff32541c543f06e8a9434054f469809089ed87b0d607605cda485ecc5dab2",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\laminar_l1_milp.py": "5bdb90ed763f3500e4e475e93d78ff32e4ea3c510f7761b3ef473ee0dff208c6",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\laminar_l1_source.py": "d335c80f18f6ff3839a545f93bfb28579fe149a612b3e903c52fad1fa89725cd",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\multiscenario.py": "70012054463496236fc09c0a061d93719a214dd8ca5fd637d6a26b88af8080a9",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\preprocessing.py": "9b54666593df7ec17d66202739f3ef4aedc4965394d667307ae04d1fb97d6fa5",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\unmetered_inputs.py": "4960be0799cf4a2284f006144565c4e66fc03b84bfd511aee1dd2b604ccdbf7e",
+    "rnj_wzzt_core\\rnj_wzzt\\graph\\__init__.py": "e34af420483be378b80ab816700a878159303b4ba14ca008d88afae229e07575",
+    "rnj_wzzt_core\\rnj_wzzt\\graph\\bootstrap.py": "b01598ee271d74392e2e998863d03e65e534d82725ea9b29cb0846c73c01965b",
+    "rnj_wzzt_core\\rnj_wzzt\\graph\\rooted_hierarchy.py": "1cb118dee3f5658149fde5f110aaca82a87b98db1dab6b8e9ef93629f029c48e",
+    "rnj_wzzt_core\\rnj_wzzt\\graph\\rooted_neighbor_joining.py": "5ae9de996b367ddb8aa257d1288ca2d0a5313e7e253917aa457e8a56e5505772",
+    "rnj_wzzt_core\\rnj_wzzt\\graph\\sensitivity_geometry.py": "debc7bfcb5725804b5476c9a784a30a1449361986dedb8b65e433693d3d998d8",
+    "rnj_wzzt_core\\rnj_wzzt\\models\\__init__.py": "f347ca52678c25cb1f5cbf81cf07e947469bdaa0d0fe7e0e14894e4d73dfc4c9",
+    "rnj_wzzt_core\\rnj_wzzt\\models\\ac_powerflow.py": "20a76851c9b4635364b49a6a1a1ebb0d180ae7c890b69360adbfd2ebfbc775a3",
+    "rnj_wzzt_core\\rnj_wzzt\\models\\lin_distflow.py": "99a42ded4076f3bdca19cc55c3d7de28e7a24528d8ce5efd70b50f9e4a52b1f3",
+    "rnj_wzzt_core\\rnj_wzzt\\models\\network.py": "d9b4f4e466abd16f94627974c01f6630e9d72b3a20f5ffdde6c3f93d5a3fec87",
+    "rnj_wzzt_core\\rnj_wzzt\\pipeline.py": "37fb4cb97d8d7118fb66f3f34adfd3e0fb8a6b62727478114ab42f30eed56851",
+    "rnj_wzzt_core\\rnj_wzzt\\reporting.py": "552545d6578979e28735b91bd1a8f6087a6db826473cce81a64e7faf1050916e",
+    "rnj_wzzt_core\\rnj_wzzt\\scenario\\__init__.py": "bdab55b11cd78a3f46350eadaf3779078b723971f877eb01bf51ffbdc90435aa",
+    "rnj_wzzt_core\\rnj_wzzt\\scenario\\profiles.py": "6711dfdaa82f43919941c1e3667116937f07220c0f77dfdc09fd567d87ab333c",
+    "rnj_wzzt_core\\rnj_wzzt\\scenario\\settings.py": "06f05c74315c48db66abdc8ded2ac3f3dcf14585931fe963db53c7b0db3edf00",
+    "rnj_wzzt_core\\rnj_wzzt\\scenario\\simulation.py": "3a742186f06b93ad2b0afea2f12b7c12212592d93f717bcc70342eb2d18ddb2a",
+    "rnj_wzzt_core\\rnj_wzzt\\scenario\\unmetered_load.py": "f303df79f10986f8336de591ac5e6c65bf3d2a122274a6516b83e67098f29200",
+    "rnj_wzzt_core\\rnj_wzzt\\scenario\\validate_scenario.py": "a7ea515810c9d388326c237358040d4a24063b1d40d4c5fceaea16d00c326c70"
+  },
+  "complete": true,
+  "allow_incomplete": false,
+  "lp_records_checked": 1651,
+  "excluded_records": 260,
+  "maximum_serialized_gap": 4.1316686886323143e-10,
+  "maximum_independent_KCL_residual": 6.907658261052897e-11,
+  "maximum_accepted_WZZT_relative_gap": 1.1406237385185207e-15,
+  "cases": [
+    {
+      "case": "n12_ordinary_partial_gain_dominated_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 0.8421052631578947,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 5,
+          "updated_bank_survivors": 5,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n12_ordinary_partial_jitter_dominated_9101",
+      "truth_in_initial_bank": false,
+      "initial_rank_one_f1": 0.8421052631578947,
+      "physical_actions": 4,
+      "banks_checked": 5,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 13,
+          "updated_bank_size": 13
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 16,
+          "updated_bank_size": 16
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 16,
+          "updated_bank_size": 16
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 17,
+          "updated_bank_size": 17
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 16,
+          "updated_bank_size": 16
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 17,
+          "updated_bank_size": 17
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_ordinary_partial_gain_dominated_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 0.75,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 8,
+          "updated_bank_survivors": 8,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 8,
+          "updated_bank_survivors": 8,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 5,
+          "updated_bank_survivors": 5,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 8,
+          "updated_bank_survivors": 8,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 5,
+          "updated_bank_survivors": 5,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_ordinary_partial_jitter_dominated_9101",
+      "truth_in_initial_bank": false,
+      "initial_rank_one_f1": 0.8571428571428571,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 14,
+          "updated_bank_size": 14
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 13,
+          "updated_bank_size": 14
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 13,
+          "updated_bank_size": 14
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 13,
+          "updated_bank_size": 14
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 10,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 14
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 3,
+          "updated_bank_survivors": 5,
+          "updated_bank_size": 14
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_ordinary_partial_precision_control_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 1.0,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 8,
+          "updated_bank_survivors": 8,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 1,
+          "updated_bank_survivors": 1,
+          "updated_bank_size": 13
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 3,
+          "updated_bank_survivors": 3,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 1,
+          "updated_bank_survivors": 1,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 1,
+          "updated_bank_survivors": 1,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 1,
+          "updated_bank_survivors": 1,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_ordinary_rich_gain_dominated_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 1.0,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 9,
+          "updated_bank_survivors": 9,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 4,
+          "updated_bank_survivors": 4,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 9,
+          "updated_bank_survivors": 9,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 9,
+          "updated_bank_survivors": 9,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_ordinary_rich_jitter_dominated_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 1.0,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_weak_partial_gain_dominated_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 0.75,
+      "physical_actions": 6,
+      "banks_checked": 7,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 8,
+          "updated_bank_survivors": 8,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 8,
+          "updated_bank_survivors": 8,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 11,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_weak_partial_jitter_dominated_9101",
+      "truth_in_initial_bank": false,
+      "initial_rank_one_f1": 0.75,
+      "physical_actions": 5,
+      "banks_checked": 6,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 14,
+          "updated_bank_size": 14
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 13
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 11,
+          "updated_bank_survivors": 12,
+          "updated_bank_size": 13
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 14,
+          "updated_bank_size": 14
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 15,
+          "updated_bank_size": 15
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 12,
+          "updated_bank_survivors": 14,
+          "updated_bank_size": 14
+        }
+      },
+      "references_without_numeric_witness": 0
+    },
+    {
+      "case": "n6_weak_partial_precision_control_9101",
+      "truth_in_initial_bank": true,
+      "initial_rank_one_f1": 0.75,
+      "physical_actions": 5,
+      "banks_checked": 6,
+      "policy_counts": {
+        "no_EV": {
+          "initial_common_bank_survivors": 5,
+          "updated_bank_survivors": 5,
+          "updated_bank_size": 12
+        },
+        "selected_single": {
+          "initial_common_bank_survivors": 4,
+          "updated_bank_survivors": 4,
+          "updated_bank_size": 12
+        },
+        "matched_constant": {
+          "initial_common_bank_survivors": 4,
+          "updated_bank_survivors": 4,
+          "updated_bank_size": 12
+        },
+        "selected_mobile": {
+          "initial_common_bank_survivors": 4,
+          "updated_bank_survivors": 4,
+          "updated_bank_size": 12
+        },
+        "fixed_single": {
+          "initial_common_bank_survivors": 4,
+          "updated_bank_survivors": 4,
+          "updated_bank_size": 12
+        },
+        "fixed_mobile": {
+          "initial_common_bank_survivors": 4,
+          "updated_bank_survivors": 4,
+          "updated_bank_size": 12
+        }
+      },
+      "references_without_numeric_witness": 0
+    }
+  ],
+  "lp_replays": [
+    {
+      "case": "n12_ordinary_partial_gain_dominated_9101",
+      "action": "none_0",
+      "candidate": "evaluation_truth",
+      "model": "shared_gain",
+      "intervals_overlap": true,
+      "fresh": {
+        "candidate": "evaluation_truth",
+        "sharing": "path",
+        "linear_only": false,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "max_rounding_guard": 8.762446201316613e-17,
+        "n_variable": 1427,
+        "n_constraint": 4224,
+        "certificate_scope": "one candidate in stated balanced AC/source/measurement domain",
+        "certificate_valid_for_AC": true,
+        "outer_feasibility_is_not_AC_feasibility": true,
+        "voltage_model": "fixed_gain_bounded_jitter",
+        "shared_voltage_gain": {
+          "gain_bounds": [
+            0.9992727272727273,
+            1.0007272727272727
+          ],
+          "root_jitter": 0.0002,
+          "terminal_jitter": [
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002
+          ],
+          "vmax": 1.1,
+          "shared_across_all_rows": true,
+          "common_root_gain_relation": "outer relaxed separately for each terminal"
+        },
+        "status": "unresolved",
+        "lower": 0.0,
+        "upper": 1.937865813269897e-17,
+        "gap": 1.937865813269897e-17,
+        "theta": [
+          0.008127476266899906,
+          1e-06,
+          1e-06,
+          1e-06,
+          0.04,
+          0.02595248740140803,
+          0.02684942179632696,
+          0.033135544406712555,
+          0.03987134056014416,
+          0.02900864558892984,
+          0.04900645345291414,
+          0.05052625929508867,
+          0.07379773861800379,
+          0.07593399876511431,
+          0.07078332893497494,
+          0.0494361695909256,
+          0.08361068437690951,
+          0.07773139719119575,
+          0.06402749505113604,
+          0.0678039650313571,
+          0.06511174741857403,
+          0.09691392712698234
+        ],
+        "exact_lower": "0",
+        "exact_upper": "536447610583048509572001784634910482965185297301325237811551087009436988032981639/27682391985534996033778546158173165245464370814178822798340397333180739549512966213822464871366656",
+        "exact_primal_verified": true,
+        "exact_box_dual_verified": true,
+        "max_current_cap": 5.841798759487468,
+        "seconds": 3.2630134999053553,
+        "inverse_gain_squared": [
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.9985890588169279,
+          0.998547039785019,
+          0.9998393799996745,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019
+        ],
+        "gain_offset": [
+          0.0017053008047574953,
+          0.0012823370152837323,
+          0.0005821201868579252,
+          -4.20801727257452e-05,
+          0.0023318299736123102,
+          -0.0012942206657923178,
+          0.0019835027803770354,
+          0.0029048641157380785,
+          0.0029048641157380785,
+          0.0025358496166882887,
+          0.0003452704380398977,
+          0.0029048641157380785
+        ]
+      }
+    },
+    {
+      "case": "n12_ordinary_partial_gain_dominated_9101",
+      "action": "none_0",
+      "candidate": "passive_d96e6baef2e1",
+      "model": "shared_gain",
+      "intervals_overlap": true,
+      "fresh": {
+        "candidate": "passive_d96e6baef2e1",
+        "sharing": "path",
+        "linear_only": false,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "max_rounding_guard": 8.762446201316613e-17,
+        "n_variable": 878,
+        "n_constraint": 3144,
+        "certificate_scope": "one candidate in stated balanced AC/source/measurement domain",
+        "certificate_valid_for_AC": true,
+        "outer_feasibility_is_not_AC_feasibility": true,
+        "voltage_model": "fixed_gain_bounded_jitter",
+        "shared_voltage_gain": {
+          "gain_bounds": [
+            0.9992727272727273,
+            1.0007272727272727
+          ],
+          "root_jitter": 0.0002,
+          "terminal_jitter": [
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002
+          ],
+          "vmax": 1.1,
+          "shared_across_all_rows": true,
+          "common_root_gain_relation": "outer relaxed separately for each terminal"
+        },
+        "status": "excluded",
+        "lower": 0.00042488454316188043,
+        "upper": 0.00042488454316211765,
+        "gap": 2.3718628141054517e-16,
+        "theta": [
+          0.013802392481948835,
+          0.07539755521992736,
+          0.07701695728130281,
+          0.07680891576656676,
+          0.06863388360790089,
+          0.053648751467570956,
+          0.06018803527162943,
+          0.061727629965102775,
+          0.06134230689282252,
+          0.06711603637336785,
+          0.07327256984351935,
+          0.06746979956010302,
+          0.07539404225714372
+        ],
+        "exact_lower": "20347927118075690088790078849331149622454512459439/47890485652059026823698344598447161988085597568237568",
+        "exact_upper": "357964519479604862043582935549035229200435913454079432649999493/842498333348457493583344221469363458551160763204392890034487820288",
+        "exact_primal_verified": true,
+        "exact_box_dual_verified": true,
+        "max_current_cap": 5.841798759487468,
+        "seconds": 5.546736799995415,
+        "inverse_gain_squared": [
+          0.9985470397850192,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          1.000221702958558,
+          0.9992063683439693,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019
+        ],
+        "gain_offset": [
+          0.0029048641157378456,
+          0.0022107683777437843,
+          0.0023879833194808283,
+          0.0011838931095203226,
+          0.0010018868227322161,
+          0.0002199948194696582,
+          -0.001677099933018271,
+          -0.0006602879310444847,
+          0.0007722784897651654,
+          0.0004047706312249426,
+          0.00022124166047922215,
+          0.0
+        ]
+      }
+    },
+    {
+      "case": "n12_ordinary_partial_gain_dominated_9101",
+      "action": "none_0",
+      "candidate": "passive_f8fb4728b88c",
+      "model": "shared_gain",
+      "intervals_overlap": true,
+      "fresh": {
+        "candidate": "passive_f8fb4728b88c",
+        "sharing": "path",
+        "linear_only": false,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "max_rounding_guard": 8.762446201316613e-17,
+        "n_variable": 1488,
+        "n_constraint": 4344,
+        "certificate_scope": "one candidate in stated balanced AC/source/measurement domain",
+        "certificate_valid_for_AC": true,
+        "outer_feasibility_is_not_AC_feasibility": true,
+        "voltage_model": "fixed_gain_bounded_jitter",
+        "shared_voltage_gain": {
+          "gain_bounds": [
+            0.9992727272727273,
+            1.0007272727272727
+          ],
+          "root_jitter": 0.0002,
+          "terminal_jitter": [
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002,
+            0.0002
+          ],
+          "vmax": 1.1,
+          "shared_across_all_rows": true,
+          "common_root_gain_relation": "outer relaxed separately for each terminal"
+        },
+        "status": "unresolved",
+        "lower": 0.0,
+        "upper": 1.9687560183233802e-17,
+        "gap": 1.9687560183233802e-17,
+        "theta": [
+          0.009622548011816877,
+          1e-06,
+          1e-06,
+          1e-06,
+          1e-06,
+          0.038680821753815826,
+          0.023259157057720813,
+          0.01646075209895819,
+          0.025060888858056005,
+          0.030529735214716622,
+          0.022062176908464654,
+          0.03,
+          0.030102863652771608,
+          0.06723852906310397,
+          0.06165241235579157,
+          0.07605335045297568,
+          0.08449234161120016,
+          0.08456009786750807,
+          0.06821563841714035,
+          0.054552010595965136,
+          0.057569904639957675,
+          0.06448926312620913,
+          0.08502075496395183
+        ],
+        "exact_lower": "0",
+        "exact_upper": "1088610079710272305928319873638218410048669839497243429/55294311208625420542353336546865998018025644997869034535892446150131712",
+        "exact_primal_verified": true,
+        "exact_box_dual_verified": true,
+        "max_current_cap": 5.841798759487468,
+        "seconds": 11.354263099958189,
+        "inverse_gain_squared": [
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019,
+          0.998547039785019
+        ],
+        "gain_offset": [
+          0.0029048641157380785,
+          0.0021374756442278696,
+          0.0024711436004656432,
+          0.0011760915568261993,
+          0.0029048641157380785,
+          0.0022546136051953994,
+          0.0029048641157380785,
+          0.0029048641157380785,
+          0.0029048641157380785,
+          0.0029048641157380785,
+          0.0015698736050417106,
+          0.0029048641157380785
+        ]
+      }
+    }
+  ],
+  "auditor_sha256": "bbe0c06536b775896b8b606f7f18d6214450821e2777dfa5a40847dc952e2ec3",
+  "protocol_sha256": "e95e1fab0b649cd9dad085fcf5bd720ddbebc7856352040ac87aa1b60a342dc5",
+  "aggregate_schema": "hashed_case_manifest",
+  "aggregate_sha256": "94bf230f6496dea02a9d2b78d0a1184a11026b5e974f144b6cd10dee53f91d22",
+  "limitations": [
+    "Saved rational intervals are checked; unstored original dual multipliers are not reconstructed.",
+    "WZZT stage acceptance uses the existing 1e-10 numerical gap contract, not rational global topology optimality.",
+    "Candidate coverage is finite and post-hoc truth coverage is reported separately.",
+    "Raw updated-bank survivor counts cannot be compared alone across different candidate banks.",
+    "Synthetic error coverage is not field-calibrated confidence."
+  ]
+}
