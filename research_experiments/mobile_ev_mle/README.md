@@ -116,7 +116,7 @@ cold初值15nfev取得loss1534.66025，而原warm120超预算；
 详细JSON和NPZ仍保留在outputs/及本地evidence/*_records.json，后者约10MB
 冗余展开数据不推送；CSV保留参数、目标和求解诊断，种子和源码可重建。
 生成compact证据：先运行collect_results，再运行export_tables。
-报告为原docs/mobile_ev_probing_report_v2.tex及19页PDF，旧版本在Git历史中。
+首次MLE交付为原docs/mobile_ev_probing_report_v2.tex及19页PDF；当前原位更新为27页，核验见evidence/three_direction_delivery.json，旧版本在Git历史中。
 
 精确AC等价构造：无上游/源遥测时，改变公共干线阻抗与下游相位，可由同点逐时源补偿而保持末端P/Q及电压幅值不变。三种构造验证了该声明配置下的不可分离性；总表锚点仍不能自动证明全部线路参数唯一。
 
@@ -128,3 +128,54 @@ cold初值15nfev取得loss1534.66025，而原warm120超预算；
 恒定历史均值预测下，早/晚时段置换的理论分数相同；不能把返回某个时段解释为最佳实际时段已找到。
 补充了期望与重新拟合不能交换的反例、真实种子51014的评分示例，以及局部参考基准与全域最优基准的区别。
 本次只完善文档和交付核验，没有重算正式试验或改变算法、种子、阈值和既有失败分母。
+
+## 三方向推导与两轮小算例（2026-10-12）
+
+先读 three_direction_protocol.md 与 refined_protocol.md。
+完整数学稿：symmetric_math.md、power_math.md、bayes_math.md；第二轮为
+symmetric_ac_local_math.md、bayes_rb_math.md。原报告第10节汇总符号、
+证明、结果和MILP/连续概率模型的后续方案。
+
+    python -m pytest research_experiments/mobile_ev_mle -q -p no:cacheprovider
+    python -m research_experiments.mobile_ev_mle.run_three_directions --histories-per-case 3 --continuous --stress
+    python -m research_experiments.mobile_ev_mle.collect_three_directions
+    python -m research_experiments.mobile_ev_mle.run_refinement
+    python -m research_experiments.mobile_ev_mle.collect_refinement
+    python -m research_experiments.mobile_ev_mle.confirm_local_actions
+
+94项测试通过。第一轮8个历史（强/弱各3、域外和固定bias各1），每历史
+512未来noise；第二轮复用6个原历史、新future noise。两轮实际连续
+联合拟合共130次，全部完成；144个局部有界QP全部完成，程序累计计时
+约126秒。确认脚本另对局部候选动作执行H+预测未来均值的完整AC竞争
+重拟合，六例选择一致，仍只读历史和动作。所有结果保留局部优化限制。
+
+第一轮共同48atom family有比例线路结构和两条预声明latent path，
+其穷尽/后验/秩检验只属于该有限族；并非逐边连续MLE的统计保证。
+历史cutoff12及0/4/36敏感性中每topology均只有1支持atom，表明初始
+距离没有检验充分的参数调整。强案例中两次finite设计排序未迁移到
+连续模型；弱案例全部未决，power训练最坏平均分全部0（并列规则恒充）。
+strong有限后验exp下溢为0/1，对数质量保留；不说数学概率严格为0。
+
+第二轮局部soft-history QP放开逐边R/X，但30%线路范围和源±.02仅为
+局部求解/预测域，不是仪表误差盒或校准置信范围。三个strong案例移动
+动作实际局部损失差比恒充大；weak仍未解决，67003代理21.351而实际
+宽模型差-.313。后验KL积分8192×3seed选择均late_site0，独立确认对
+恒充增益约.0023-.0024 nat，仍没有推出排错。完整AC设计复核保留相同
+weak选择，说明参考MLE参数/预测不确定性也须检查，不能仅换求解器。
+
+history_gate用完整finite null历史秩检验：strong剩1、weak剩2；校准
+RNG为history seed+80000，gate.seed记录历史标识。alpha_H+alpha_N
+联合界仅属于该有限模型。绝对Gaussian历史支持域的chi-square原理
+已推导（原始噪声维数，不给MLE后损失套Wilks），尚未作为连续QCQP
+实施。MILP支持平面/分段线性搜索和proper连续先验积分留在修订方案。
+当前不扩网；先解决历史参数长平坦方向和未来baseline/source预测域。
+
+紧凑证据：evidence/three_direction_summary.json、three_direction_fits.csv、
+three_direction_scores.csv、refinement_summary.json、refinement_qp.csv、
+refinement_fits.csv、nonlinear_confirmation.json。详细JSON/NPZ保留在
+outputs/three_directions与outputs/refinement。原80试验、原阈值和失败
+分母未覆盖；delivery_verification.json是先前19页报告的验证快照，
+本轮编译与视觉核验另存three_direction_delivery.json。
+
+H中不含本次受控EV；若历史已含它，baseline预测应先扣已知历史控制
+轨迹，观测后的AC拟合始终直接使用末端计量总P/Q。

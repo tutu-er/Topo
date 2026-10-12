@@ -17,7 +17,7 @@
 \title{AC 计量似然与 EV 主动拓扑辨识\\[4pt]
 \large 共享线路参数、共同源重拟合与历史约束模型判别}
 \author{Topo 研究记录：数学模型、实现与证据边界}
-\date{2026 年 10 月 12 日；MLE 研究主线}
+\date{2026 年 10 月 13 日；三方向推导与两轮验证}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -632,6 +632,368 @@ SOC 修复后现有物理、似然、设计和流程测试共 23 项通过（约
 
 下一阶段优先补充会改变结论的证据：源/偏差锚点移除后的混淆；更弱支路与不可达地点；forecast 和偏差失配；更大的独立评价种子及求解初值；候选覆盖改进。只有小型研究通过必要验证后再扩大网络。
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% BEGIN THREE DIRECTION EXTENSION
+\section{三种设计方向：先推导，再用同一小算例核验}
+\label{sec:three}
+本轮按对称模型距离、直接排错功效、拓扑信息增益的顺序推进。
+三个目标分别回答：两组可接受解释最接近时还差多少；在给定误拒绝水平下能排除多少错误解释；预计能减少多少拓扑不确定性。
+共同物理模型仍为第\ref{sec:model}节的完整AC，历史和未来共享线路，源始终从同一个物理接口1作用，EV包含在末端总P/Q中。
+新增内容是本项目推导和小算例，文献提供设计框架：Dette--Titoff的竞争者重拟合\cite{dette}、Harman--M\"uller的对称均值空间距离\cite{harman}、Hainy等的Bayesian模型判别效用\cite{hainy}。
+
+\subsection{先声明可穷尽的验证模型}
+第一轮使用两个局部候选，分别含末端集合$\{0,1\}$和$\{0,2\}$的共享支路。
+这里沿用代码地点编号。每个候选有$K_h=24$个预先声明的物理原子
+\[
+ \omega_{hk}=(\beta_{hk},p^0_{hk,H\cup N},q^0_{hk,H\cup N},s_{hk,H\cup N}),
+ \qquad k=1,\ldots,K_h .
+\]
+一个原子绑定线路和整条历史/未来基线、源轨迹；源逐时改变而位置固定。未来总功率为$p^0_{hk,t}+u_t^P$和$q^0_{hk,t}+u_t^Q$，EV只加一次。
+R、X全网比例独立取$.85,1.15$，内部支路取弱、中、强三种强度，联合基线/源路径取两条；$2\times2\times3\times2=24$。
+默认拓扑先验各$1/2$，各拓扑内原子等质量；所有路径、参数、质量在观测历史前冻结。
+该比例结构和两条路径构成比逐边自由R/X、任意逐时状态更小的模型。原子穷尽是有限模型核验，不能称为连续参数积分已收敛。
+
+记$f^D_{hk}=W_D\mu^D_{hk}$为白化计量均值，$W_D^\top W_D=\Sigma_D^{-1}$，$\widetilde y_D=W_Dy_D$。
+历史维数$D_H=12(3n+2)=132$，未来维数$D_N=8(3n+2)=88$。
+所有均值包含末端P/Q/V、总表P/Q和已校准固定偏差。协方差仍使用原已知Gaussian计量模型。
+动作库、6kWh取电、6kW功率、SOC和移动约束与第\ref{sec:actions}节相同，充电无独立无功控制。
+选择器只收到历史及这些公开模型；真原子和实际未来噪声由评价程序保管。
+
+\subsection{方向一：两边均可调整的对称距离}
+定义原子历史损失、有限最佳历史损失和历史支持集合
+\begin{align}
+ a_{hk}&=\norm{\widetilde y_H-f^H_{hk}}^2,\qquad
+ a_h^{\min}=\min_k a_{hk},\\
+ A_h^H(c)&=\{k:a_{hk}\le a_h^{\min}+c\},\qquad c\ge0 .
+\end{align}
+本轮$c=12$，另检查$0,4,36$。这些数是支持规则的调节量，没有给它们赋予置信水平。
+两候选在动作$u$下的对称平方距离为
+\begin{equation}
+ d_{gh}^2(u)=\min_{k\in A_g^H(c),\ l\in A_h^H(c)}
+       \norm{f^N_{gk}(u)-f^N_{hl}(u)}^2 .
+ \label{eq:symmetric}
+\end{equation}
+两边都重新选择线路、基线和同点源解释，且各自原子跨历史/未来一致。
+多候选取$S_{\rm sym}(u)=\min_{g<h}d_{gh}^2(u)$，再在可行动作中最大化。
+相对于基准$b$的新增收益是$S_{\rm sym}(u)-S_{\rm sym}(b)$；分别使用无EV、固定恒充和按同一准则选择的最佳恒充。
+
+\begin{proposition}[对称性、域扩大与零距离]
+式\eqref{eq:symmetric}交换$g,h$不变。在保持相同均值定义和绝对历史阈值时，扩大任一解释集合不能增加距离。有限集合中距离为零，当且仅当有一对允许的原子产生相同未来计量均值。
+\end{proposition}
+\begin{proof}
+交换最小化变量不改变平方范数。原可行原子对包含在扩大后的集合中，故后者最小值不超过前者。有限非空集合的最小值取到，平方范数为零等价于两个向量相同。
+\end{proof}
+若改用连续域并重新计算$\min L+c$，历史绝对阈值也发生变化，不能只凭域扩大断言单调。
+非线性内层的正局部值是最小距离的上估计；找到近重合可行解释有诊断价值，正局部值不证明全域分离。
+
+\begin{proposition}[自由未来总功率会使对称设计退化]
+若两个候选的未来总P/Q和源都可在包含零的物理范围内独立选择，而不受基线预测或动作关系约束，则任意动作标签下对称距离为零。
+\end{proposition}
+\begin{proof}
+两边同时取$p_t=q_t=s_t=0$、$I_{et}=0$、$V_{jt}=V_{0t}$，满足完整AC且末端、总表计量均值相同。若写$p_t=p_t^0+u_t$但$p_t^0$仍完全自由，可选$p_t^0=-u_t$作同样抵消。
+\end{proof}
+因此必须说明未来基线和源允许怎样变化。计量噪声、预测不确定性和工程范围是不同对象。本反例指出设计集合的问题，不由此否定观测后的MLE模型。
+
+\subsection{连续局部推导：硬历史QCQP和软历史QP}
+已知Gaussian误差给出一种不依赖Wilks近似的绝对历史支持阈值。
+令$\tau_H=\chi^2_{D_H,1-\alpha_H}$，右侧表示自由度$D_H$的卡方分布的$1-\alpha_H$分位数；定义
+\[
+ C_h=\{(\beta,x_H):\text{AC及物理界},\ L_{h,H}(\beta,x_H)\le\tau_H\}.
+\]
+若$h$是真候选且真实参数/状态在物理域内，真值处损失为$\norm{W_H\epsilon_H}^2\sim\chi^2_{D_H}$，所以真值属于$C_h$的概率至少$1-\alpha_H$。
+自由参数无需从$D_H$中扣除，因为这里计算真值处噪声损失，没有声称拟合后损失服从该分布。
+这是一种可能较宽的全通道似然支持域，当前$c=12$原子规则未采用它。
+求解器找到$L\le\tau_H$给出兼容解释；局部求解未找到不能证明$C_h$为空。
+若要据此拒绝，需要全域最小损失的有效下界超过$\tau_H$，或另行校准具体求解流程。
+自适应候选库漏真还须单列；上述原假设覆盖不能自动变成条件于“候选已入库”的覆盖率。
+
+在稳定AC分支附近，历史残差为$r_h+J_h\delta\eta_h$，未来白化均值差为$d_0+B\delta u+A_g\delta\eta_g-A_h\delta\eta_h$。
+硬历史约束$\norm{r_h+J_h\delta\eta_h}^2\le\tau_h$是二次约束；固定动作、配上线性化物理与信赖域约束，得到凸QCQP（带二次约束的二次规划），可用SOCP（二阶锥规划）表达。
+
+若把两边历史代价放入软目标，在正规内点历史拟合附近，消去逐时状态的Gauss--Newton精度为
+\[
+ H_h=J_{\beta,h}^\top(I-J_{w,h}J_{w,h}^+)J_{\beta,h}\succeq0 .
+\]
+$J_w$包含同点源和末端功率的物理影响。非零残差时它不是完整非线性Hessian；贴边需要限制允许方向。
+令$z=(\delta\beta_g,\delta\beta_h)$、$A=(A_g,-A_h)$、$H=\operatorname{diag}(H_g,H_h)$，$c=d_0+B\delta u$，软内层为
+\begin{equation}
+ q(\delta u)=\min_z\{\norm{c+Az}^2+z^\top Hz\}.
+ \label{eq:softqp}
+\end{equation}
+线性界存在时它是QP。这里同时计算两种解释的历史代价是对称设计规则，没有把一份历史当成两份独立样本建立概率模型。
+无约束时，写成增广最小二乘可得
+\[
+ q=c^\top\Pi_Hc,\qquad
+ \Pi_H=I-A(A^\top A+H)^+A^\top\succeq0 .
+\]
+证明是对$\norm{(c,0)+(A,H^{1/2})z}^2$取最小；共同零空间不影响目标。$H=0$时恢复正交投影，通常$\Pi_H$不是投影矩阵。
+在固定局部矩阵时，动作梯度为$2B^\top\Pi_Hd_0$，曲率为$2B^\top\Pi_HB$。它们衡量竞争解释调整后剩余的响应差异。
+
+独立标量例子取两未来均值$a+u$与$b-u$；历史观测均为零，两模型的历史均值分别为$a,b$。则
+\begin{align}
+ \min_{a,b}\left\{\frac{a^2+b^2}{\sigma_H^2}
+ +\frac{(a-b+2u)^2}{\sigma_N^2}\right\}
+ &=\frac{4u^2}{\sigma_N^2+2\sigma_H^2},\\
+ \min_{|a|,|b|\le\sigma_H\sqrt c}
+ \frac{(a-b+2u)^2}{\sigma_N^2}
+ &=\frac{4(|u|-\sigma_H\sqrt c)_+^2}{\sigma_N^2}.
+\end{align}
+第一式先固定$a-b$，利用$a^2+b^2\ge(a-b)^2/2$再解标量二次问题；第二式利用$a-b$可取区间$[-2\sigma_H\sqrt c,2\sigma_H\sqrt c]$。
+软问题在$u=0$梯度为零但有二次收益；硬问题存在真正零分离区间。两种准则不能互换数值。
+
+\subsection{方向二：在固定误拒绝水平下直接设计排错功效}
+未来白化读数$Y$到来后，有限联合拟合损失及检验统计量为
+\begin{align}
+ L_h^{A}(u,Y)&=\min_k\{a_{hk}+\norm{Y-f^N_{hk}(u)}^2\},\\
+ Z_h(u,Y)&=L_h^{A}(u,Y)-\min_j L_j^{A}(u,Y)\ge0 .
+\end{align}
+同一原子解释两段。分别最小化历史和未来会允许换线路，改变检验。
+对拓扑$h$的每个原子$k$，独立生成$\epsilon_b\sim N(0,I)$，并取
+\[
+ U_{hk,b}=\max_{u\in\mathcal A}
+ Z_h(u,f^N_{hk}(u)+\epsilon_b),\qquad b=1,\ldots,B .
+\]
+同一模拟噪声用于所有动作；这只是证明和校准的耦合，设备实际只执行一个动作。
+对实际统计量$Z_h^{\rm obs}$定义
+\begin{equation}
+ p_{hk}=\frac{1+\sum_b\mathbf1\{U_{hk,b}\ge Z_h^{\rm obs}\}}{B+1},
+ \qquad p_h=\max_{k\in A_h}p_{hk},\qquad
+ \mathcal K=\{h:p_h>\alpha\}.
+ \label{eq:ranktest}
+\end{equation}
+零假设包括\emph{完整}原子族，不能用未经校准的历史cutoff删除难拒绝原子。$B=99$、$\alpha=.1$；$p_h$是检验p值，非拓扑概率。
+
+\begin{proposition}[声明有限族中的误拒绝控制]
+若真实原子属于拓扑$h$的完整族，未来Gaussian噪声模型正确且实际动作属于校准库，则条件于已经观测的历史，
+\[
+ P\{p_h\le\alpha\mid y_H\}
+ \le\frac{\lfloor\alpha(B+1)\rfloor}{B+1}\le\alpha .
+\]
+\end{proposition}
+\begin{proof}
+用真实未来噪声$\epsilon_0$定义未观测反事实最大值$U_0$。
+实际选中动作的统计量不超过$U_0$，所以其p值不小于$U_0$的上尾秩p值。
+真实原子下$U_0,U_1,\ldots,U_B$可交换，含$+1$的秩检验具有上述离散水平；$\ge$使并列更保守。
+复合p值至少等于真实原子的p值，故拒绝事件包含在有效秩检验的拒绝事件中。
+\end{proof}
+历史、原子顺序、白化模型和动作均值通过哈希绑定；换历史或增加未校准动作需重新校准。
+该证明覆盖有限族中的动作选择，未覆盖任意逐边R/X或任意源路径。
+
+训练功效取
+\[
+ P_h(u)=\frac1{|A_h^H|}\sum_{k\in A_h^H}
+ P_{hk}\{\mathcal K(u,Y)=\{h\}\mid y_H\},
+ \qquad \max_{u\in\mathcal A_{\rm charge}}\min_hP_h(u).
+\]
+均匀情景平均是设计规则，未赋予其后验含义。训练每拓扑64次，最终校准与512次未来噪声评价独立。
+第一轮该最坏平均功效在所有动作上均为零，选择恒充0来自预设并列规则，没有提供动作偏好。
+
+修订方案先用完整有限零假设对历史$Z_{h,H}$作相同秩检验。
+若只保留一个历史候选，有限模型内已完成辨识；多个候选才继续主动设计。
+取$\alpha_H=\alpha_N=.05$，由联合界
+\[
+ P\{\text{最终误拒绝真候选}\}
+ \le P\{\text{历史误拒绝}\}
+ +P\{\text{未来误拒绝且历史保留}\}
+ \le\alpha_H+\alpha_N=.1 .
+\]
+第二项使用条件于历史的证明。门控不得偷偷裁去真实零假设参数；它也只覆盖声明有限族。
+
+\subsection{方向三：完整预测分布的拓扑信息增益}
+先验拓扑质量$\pi_h^0>0$和原子条件质量$w_{hk}^0>0$均归一。
+完整Gaussian历史似然$f_H(y_H\mid\omega_{hk})$给出原子后验质量
+\[
+ \lambda_{hk}=
+ \frac{\pi_h^0w_{hk}^0 f_H(y_H\mid\omega_{hk})}
+ {\sum_{j,l}\pi_j^0w_{jl}^0f_H(y_H\mid\omega_{jl})},
+ \quad \pi_h=\sum_k\lambda_{hk} .
+\]
+计算使用log-sum-exp，保留极小对数质量；不施加方向一的硬cutoff。
+以下$Y$表示原单位的未来计量向量；代码在白化单位中作等价计算。
+拓扑条件未来预测和整体预测是完整多通道联合混合
+\[
+ q_h(Y\mid H,u)=\sum_k\frac{\lambda_{hk}}{\pi_h}
+   \varphi_{\Sigma_N}(Y-\mu^N_{hk}(u)),\qquad
+ q(Y\mid H,u)=\sum_h\pi_hq_h(Y\mid H,u).
+\]
+共享线路被边缘化，未对未来另抽一组独立线路。源过程先验也必须明确；两条路径只覆盖本小例。
+即使条件计量噪声独立，混合后的不同通道和时段通常相关：
+\[
+ \operatorname{Cov}(Y\mid h,H,u)=\Sigma_N+
+ \operatorname{Cov}_{k\mid h,H}\{\mu^N_{hk}(u)\}.
+\]
+MLE点代入未包含第二项，也未执行边缘化。
+
+记$\pi_h(Y,u)=\pi_hq_h(Y\mid H,u)/q(Y\mid H,u)$，$\mathsf H(\pi)=-\sum_h\pi_h\log\pi_h$。
+拓扑信息增益为
+\begin{align}
+ U(u)&=\sum_h\pi_h\int q_h(Y)\log\frac{q_h(Y)}{q(Y)}\,\mathrm dY\\
+ &=\mathsf H(\pi)-E_{Y\sim q}\mathsf H\{\pi(Y,u)\}
+ =E_{Y\sim q}\KL\{\pi(Y,u)\Vert\pi\}.
+ \label{eq:eig}
+\end{align}
+证明：代入Bayes公式，$q_h/q=\pi_h(Y,u)/\pi_h$，并交换有限求和和积分；利用$E_Y\pi_h(Y,u)=\pi_h$即可得到两种表达。
+故$0\le U\le\mathsf H(\pi)\le\log|\HH|$。
+目标是拓扑信息，未知线路的信息增益不能直接替代它。
+
+分层模拟在每个拓扑内抽原子和未来Gaussian噪声，原子密度全部精确求和：
+\[
+ \widehat U=\sum_h\pi_h\overline v_h,
+ \qquad \widehat{\operatorname{Var}}(\widehat U)
+ =\sum_h\pi_h^2s_h^2/M_h.
+\]
+第一轮$M_h=128,512,2048$，每预算3个独立积分seed，动作间共用随机数。
+第一seed选动作，后两个seed独立确认选中动作与恒充的差；不把同样本最大值的标准误当作最优选址证明。
+式\eqref{eq:eig}的后验KL是原log-ratio对$Y$的条件期望，普通Monte Carlo的方差由全方差公式不增加。
+第二轮用该估计减少积分波动；分层样本配置的方差比较另作数值检查，不声称普遍严格下降。
+
+独立解析例取模型标签$h=\pm1$、等先验、未来预测$N(hca,s^2)$。令$\gamma=ca/s$，则
+\[
+ U(a)=E_{Z\sim N(0,1)}
+ \log\frac{2}{1+\exp\{-2\gamma(\gamma+Z)\}} .
+\]
+$a=0$或$c=0$时为零；信噪比增大时趋近$\log2$。若$c$有方差$\tau_c^2$，边缘预测方差含$a^2\tau_c^2$，功率增大可使收益饱和。实现与独立一维积分核验。
+
+\subsection{第一轮AC结果：分数增长和实际排错分开报告}
+强、弱各3个历史，加1个线路/源域外和1个固定电压偏差stress，共8个历史。
+每历史512次独立未来噪声是条件评价，不能视作4096个独立网络历史。
+三方向积分、训练、校准和评价各自保存seed；旧80试验及阈值保持原样。
+新增68项测试通过，84次宽模型连续拟合全部完成，耗时约76.2秒。
+全部成功拟合仍是取得的局部值，未产生全域MLE证明。
+
+三个强案例的有限距离为$10426.9$--$40902.6$；但$c=0,4,12,36$下每拓扑始终只剩一个原子，距离实际比较两组固定预测。
+表\ref{tab:wide}列出同一实际观测下的连续局部差
+$G=\widehat L_{\text{错}}-\widehat L_{\text{真}}$，正值表示这次局部拟合更支持生成结构。
+\begin{table}[htbp]\centering
+\caption{有限对称设计的排序未稳定迁移到宽连续模型}\label{tab:wide}
+\begin{tabular}{lrrr}\toprule
+历史seed & 对称动作 & $G_{\text{对称}}$ & $G_{\text{恒充0}}$\\\midrule
+66001 & late\_site\_1 & 1895.946 & 752.166\\
+66002 & late\_site\_1 & 3.170 & 578.081\\
+66003 & early\_site\_2 & 5.316 & 417.610\\\bottomrule
+\end{tabular}\end{table}
+两个历史中对称动作差异明显缩小，另一个更大。线路域和未来状态域改变是模型范围变化，现有记录没有隔离R/X、源和末端状态各自的贡献，不把它归为单一原因或计算失败。
+
+有限族检验中，强案例恒充和三方向选中动作均各512/512次正确唯一保留；无EV为512、316、512次。
+弱案例所有这些方法均0/512次正确唯一保留，全部未决，观察到的误拒绝为0/512。
+单个固定历史0/512误拒绝的95\%两侧二项区间上界约$.00718$，属于该条件率；没有给现场零风险保证。
+
+强历史的较小拓扑对数质量分别为$-10505.4,-2631.4,-3096.8$，数学上仍为正；double指数下溢到零。信息熵上界已经极小，计算显示$U=0$；恒充0是并列选择。
+这反映窄有限模型已经从历史确定解释，不能推广为宽模型已辨识。
+弱案例第一seed的EIG约$.0209$--$.0226$ nat，选址随积分seed和预算变化。
+独立两积分seed确认的相对恒充增益及标准误为
+\[
+ .002248\pm.000695,\qquad
+ .000407\pm.000706,\qquad
+ .003276\pm.000709\quad\text{nat}.
+\]
+这些是积分差的标准误，未作多重选址显著性结论。
+小信息增益与弱支路仍未决可以同时出现。四组拓扑赔率/弱支路质量敏感性未改变本批主选址；该结果没有检验支持域外的先验变化。
+
+域外线路/源和固定偏差stress中，有限后验仍可集中到一个候选，不能由归一化后验排除模型问题。
+原始记录及\path{three_direction_summary.json}、\path{three_direction_fits.csv}、\path{three_direction_scores.csv}保留模型范围、局部loglik、参数、源误差与时间。
+
+
+\subsection{第二轮：先修正代理、门控和积分，再检查实际响应}
+第二轮保留第一轮记录，另用新随机流。全部研究测试增至94项。
+6个原历史仅用于设计，144个有界局部QP均完成；随后46次新的宽模型连续联合拟合均完成。
+原AC回代、QP数值最优性、实际历史损失变化、源码和样本哈希保留在\path{refinement_summary.json}及两张CSV中。
+
+局部QP允许每条线路R/X分别调整，线路偏移受原物理界及30\%信赖域限制。
+未来公共baseline由已校准历史末端读数均值给出，源预测由各候选的历史拟合给出；分别固定源预测和允许逐时同点源偏移$.02$ pu。
+这两个范围用于局部求解代理，不是仪表误差盒，也未赋予未来覆盖率。
+原AC实际联合拟合仍放开逐时末端总P/Q与同点源，保持共享线路。
+
+三个强案例选中移动动作，固定源和局部开放源选择相同；在新的同一噪声观测下，取得的局部差见表\ref{tab:refined}。
+\begin{table}[htbp]\centering
+\caption{第二轮强案例：局部QP动作与恒充0的实际局部损失差}\label{tab:refined}
+\begin{tabular}{lrr}\toprule
+历史seed & $G_{\text{局部设计}}$ & $G_{\text{恒充0}}$\\\midrule
+66001 & 1823.689 & 816.830 \\
+66002 & 816.106 & 496.119 \\
+66003 & 1168.250 & 415.735 \\
+\bottomrule\end{tabular}\end{table}
+本批三个设计差较大，样本仍只有3个历史、每历史1次新的宽模型观测，未据此作统计优势结论。
+弱案例仍未解决。特别是67003，局部开放源代理值约21.351，实际宽模型差为$-.313$。
+小QP数值gap不消除代理域和预测模型与实际解释域的差异；下一步要沿历史高似然区域扩展线路解释，并纳入未来baseline/source预测误差。
+不得把单一历史MLE附近的30\%范围当成全部历史支持参数域。
+
+历史门控在有限族中保留强案例唯一候选，错误候选$p_H=.005$；弱案例保留两个候选，另一候选的$p_H$为$.195,.305,.435$。
+该结果解释了第一轮对历史已排除的有限模型继续作双向最坏化为何没有意义。
+门控的有限族控制没有迁移到宽连续模型；完整连续全流程校准仍须独立完成。
+
+后验KL积分在2048/8192样本、3个独立seed下检查。
+弱案例8192样本的三个seed均选择late\_site\_0；动作由第一seed冻结，后两个seed确认相对恒充的信息增益为
+\[
+ .002443\pm.0000654,\quad
+ .002335\pm.0000665,\quad
+ .002421\pm.0000669\quad\text{nat}.
+\]
+这解决了本有限模型中早/晚排序的主要积分波动；仍是小信息增益，没有推出弱支路实际排错。
+两轮累计130次宽模型联合拟合没有已记录的失败，程序累计计时约126秒。
+局部候选动作还交给原\path{design.select_action}复核：竞争者同时重拟合原历史与参考预测未来均值，线路共享、逐时源和总P/Q重新估计。
+六例的条件非线性评分选择均与局部开放源候选一致；这项复核只读历史，不读取实际未来或真值。
+弱案例仍未实际区分，说明单一历史MLE产生的参考预测本身也要检查参数不确定性。
+局部QP用于生成动作，完整AC重拟合用于复核，独立实际观测及全流程校准用于评价；三个环节不能互相替代。
+MILP与连续概率积分的下一步方案已明确，弱案例的解释域与预测模型检查先于扩大网络。
+
+
+\subsection{随后推进的计算方案与扩网门槛}
+先保持三末端，明确公共未来baseline和同点源预测域，再允许逐边R/X在历史约束下调整。
+对称硬历史距离先用QCQP/SOCP，软历史代理用QP；均回代完整AC。
+功效设计先检查历史是否仍有多个可接受拓扑，然后对完整未来检验流程独立校准。
+Bayesian设计先提高信息积分精度、独立确认并列动作，再扩展为明确的连续线路及负荷/源过程先验。
+没有给任意逐时源设置概率过程时，边缘预测分布还没有定义。
+
+合理MILP应建立在上述局部模型上。固定局部矩阵时，消去竞争参数后的代理值$q_j(u)$为凸二次或凸分段二次函数；这里$j$索引竞争结构对。外层最大化最坏$q_j$仍不是凸最小化。
+构建该代理须在共同动作基点冻结联合线性化矩阵；当前逐动作重新计算的Jacobian评分不能直接拼接成全域凸函数。
+在采样点$u_l$的有效次梯度$g_{jl}$给出支持平面
+\[
+ t_{jl}(u)=q_j(u_l)+g_{jl}^\top(u-u_l)\le q_j(u),
+ \qquad q_j^L(u)=\max_l t_{jl}(u).
+\]
+以二进制变量选择支持平面、地点和移动路线，连续变量控制功率、能量和SOC，可构建$\max t$、$t\le q_j^L(u)$的MILP近似；big-M须由有界动作域计算。
+具体地，令$\zeta_{jl}\in\{0,1\}$、$\sum_l\zeta_{jl}=1$，加入
+\[
+ t\le t_{jl}(u)+M_{jl}(1-\zeta_{jl})\quad\text{对每个 }j,l .
+\]
+这等价于$t\le\max_l t_{jl}(u)$。加入零平面后可取$t\ge0$。
+若$\bar t$是代理目标的有效上界，
+$M_{jl}\ge\max\{0,\bar t-\inf_{u\in\mathcal U}t_{jl}(u)\}$有效；用更大的有界功率盒计算该仿射函数下界也安全。
+对固定充电硬件，连接变量$x_{jt}\in\{0,1\}$和接入标志$A_{jt}$给出
+\[
+ 0\le u_{jt}\le P_{\max}A_{jt}x_{jt},\quad
+ \sum_jx_{jt}\le1,\quad
+ \Delta t\sum_{j,t}u_{jt}=E_{\rm grid} .
+\]
+移动使用地点/时刻图上的单条路径：停留弧推进一时段，移动弧跳过所需不充电时段；弧上的驾驶电量在到达充电前从电池扣除。
+电池递推为$C_{\rm bat}(\mathrm{SOC}_{t+1}-\mathrm{SOC}_t)=\eta\Delta t\sum_j u_{jt}-E_t^{\rm drive}$，充电前和后均检查SOC范围。
+凸函数在单元内的顶点插值给上近似；上下近似差可用于代理离散误差检查。
+这些界属于局部代理，AC线性化误差另核验。平滑非线性或冻结两个MLE不会自动产生MILP，也不会保留竞争者充分重拟合。
+当前枚举仍是小规模审计基准；MILP、连续先验积分和更大网络尚未实施。
+
+扩网要求计量、预测域、历史支持、参数变化、统计校准和求解状态一致；不要求EV必然优于恒充。
+当前保留弱支路未决、平坦功效、积分并列和有限模型迁移失败；先解决这些已观察到的问题，再扩大计算规模。
+% END THREE DIRECTION EXTENSION
+
 \appendix
 \section{AC 数值计算和导数的来源}
 \label{sec:jacobian}
@@ -673,5 +1035,18 @@ Optimal discrimination designs.
 \emph{The Annals of Statistics}, 2009, 37(4):2056--2082.
 \url{https://doi.org/10.1214/08-AOS635}.
 本次采用开放电子重印 \url{https://arxiv.org/pdf/0908.1912}；正文第 2 节和第 4.2 节，PDF 页 2--9、17--19。
+
+\bibitem{harman}
+Harman, R.; M\"uller, W. G.
+A design criterion for symmetric model discrimination based on flexible nominal sets.
+\emph{Biometrical Journal}, 2020, 62(4):1090--1104.
+\url{https://doi.org/10.1002/bimj.201900074}.
+公开全文\url{https://pmc.ncbi.nlm.nih.gov/articles/PMC9328432/}，第2.1--2.2节。
+\bibitem{hainy}
+Hainy, M. et al.
+Optimal Bayesian design for model discrimination via classification.
+\emph{Statistics and Computing}, 2022, 32:25.
+\url{https://doi.org/10.1007/s11222-022-10078-2}，第2节。
+
 \end{thebibliography}
 \end{document}
