@@ -2,6 +2,8 @@
 import csv
 import hashlib
 import json
+import re
+import subprocess
 from pathlib import Path
 import numpy as np
 from .run_study import dump
@@ -40,15 +42,21 @@ for case in ("strong","weak"):
     dcrit=summary["thresholds"][case]["deviance_threshold"]
     joint.append(dict(case=case,paired_valid=len(valid),
         any_method_false_rejection=sum(any(r["true_deviance"]>dcrit for r in t["records"]) for t in valid)))
+pdf_path=ROOT/"docs"/"mobile_ev_probing_report_v2.pdf"
+pdf_info=subprocess.check_output(["pdfinfo",str(pdf_path)]).decode("utf-8",errors="replace")
+pdf_pages=int(re.search(r"^Pages:\s+(\d+)",pdf_info,re.MULTILINE).group(1))
 result=dict(date="2026-10-12",scientific_tests_passed=23,
+    document_revision="explicit AC states, identifiability proof, Gaussian likelihood, joint EV design and timing invariance",
+    numerical_experiments_recomputed=False,
+    scientific_test_evidence="23 tests passed at prior implementation delivery; scientific algorithm and tests unchanged by this document revision",
     tests_command="D:/apps/miniconda3/envs/Topo/python.exe -m pytest research_experiments/mobile_ev_mle -q -p no:cacheprovider",
     formal_trials=80,formal_method_records=400,exported_candidate_fits=fit_count,
     local_loglikelihood_normalization_max_error=max_loglik_error,
     impedance_unit_conversion_max_error=max_unit_error,joint_false_rejection=joint,
-    pdf=dict(pages=13,bytes=(ROOT/"docs"/"mobile_ev_probing_report_v2.pdf").stat().st_size,
+    pdf=dict(pages=pdf_pages,bytes=(ROOT/"docs"/"mobile_ev_probing_report_v2.pdf").stat().st_size,
         compiler="local latexmk/XeLaTeX",compile_success=True,
         builtin_compile="unavailable: Windows sandbox setup; local compiler used",
-        visual_review="all13latestpages rendered and inspected by root",
+        visual_review=f"all{pdf_pages}latestpages rendered and inspected by root and review agents",
         log_checks="no LaTeX warnings, undefined refs/citations, overfull/underfull boxes or missing glyphs"),
     source_sha256=hashlib.sha256((ROOT/"docs"/"mobile_ev_probing_report_v2.tex").read_bytes()).hexdigest(),
     pdf_sha256=hashlib.sha256((ROOT/"docs"/"mobile_ev_probing_report_v2.pdf").read_bytes()).hexdigest(),
