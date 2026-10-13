@@ -102,13 +102,15 @@ def _observations(record):
     return Observations(**{k: None if v is None else np.asarray(v, float) for k, v in record.items()})
 
 
-def _compare(actual, saved, label, errors, comparisons, *, scalar=False):
+def _compare(actual, saved, label, errors, comparisons, *, scalar=False, rtol=None, atol=None):
     try:
         a, b = np.asarray(actual, float), np.asarray(saved, float)
         valid = a.shape == b.shape and np.isfinite(a).all() and np.isfinite(b).all()
         difference = float(np.linalg.norm((a-b).ravel())) if valid else None
         scale = max(float(np.linalg.norm(a.ravel())), float(np.linalg.norm(b.ravel()))) if valid else None
-        rtol, atol = (SCORE_RTOL, SCORE_ATOL) if scalar else (MATRIX_RTOL, MATRIX_ATOL)
+        default_rtol, default_atol = (SCORE_RTOL, SCORE_ATOL) if scalar else (MATRIX_RTOL, MATRIX_ATOL)
+        rtol = default_rtol if rtol is None else rtol
+        atol = default_atol if atol is None else atol
         passed = bool(valid and difference <= atol+rtol*scale)
     except (TypeError, ValueError):
         difference, scale, passed = None, None, False
@@ -221,8 +223,9 @@ def _evaluation_audit(geometry, tag, label, evaluation, plan, expected, errors, 
             ih=actual['history']['information']; ij=actual['joint']['information']; iz=actual['zero']['information']
             delta=ij-iz; gain=ij-ih; score=.5*float(np.trace(geometry.omega@delta))
             for key,value in (('information_history',ih),('information_joint',ij),('information_zero_EV',iz),
-                ('information_EV_delta',delta),('information_future_gain',gain),('weight',geometry.omega)):
+                ('information_EV_delta',delta),('information_future_gain',gain)):
                 _compare(value,target.get(key),prefix+':'+key,errors,comparisons)
+            _compare(geometry.omega,target.get('weight'),prefix+':weight',errors,comparisons,rtol=1e-12,atol=1e-15)
             for key,value in (('score',score),('future_gain_min_eigenvalue',float(np.linalg.eigvalsh(gain).min()))):
                 _compare(value,target.get(key),prefix+':'+key,errors,comparisons,scalar=True)
             _compare(.5*np.diag(geometry.omega)*np.diag(ij),target['axes_weighted_half_distance'],prefix+':axes_joint',errors,comparisons)
@@ -242,13 +245,14 @@ def _evaluation_audit(geometry, tag, label, evaluation, plan, expected, errors, 
                 if not bound['physical_domain_passed']: errors.append(prefix+':physical_domain')
             if any(not actual[k]['rank_record']['rank_guard_passed'] for k in ('history','joint','zero')):
                 errors.append(prefix+':full_nuisance_rank_guard')
-            if target['target_columns'] != list(actual['target_columns']) or target['target_support'] != c['target_support'] or target['anchor_id'] != c['anchor_id']:
+            if target['target_columns'] != list(actual['target_columns']) or target['target_support'] != c['target_support'] or target['anchor_id'] != c['anchor_id'] or target.get('candidate') != c['name']:
                 errors.append(prefix+':target_interface')
+            if target.get('metadata',{}) != c.get('metadata',{}): errors.append(prefix+':target_metadata')
             weight=float(target.get('target_task_weight',1/3))
             if not np.isfinite(weight) or weight <= 0: errors.append(prefix+':positive_task_weight')
             expected_weight=1/3 if tag=='uniform' or 'target_weight_record' not in geometry.trial['selection'] else next(
                 r['weight'] for r in geometry.trial['selection']['target_weight_record']['target_records'] if r['target_support']==c['target_support'])
-            _compare(weight,expected_weight,prefix+':target_task_weight',errors,comparisons,scalar=True)
+            _compare(weight,expected_weight,prefix+':target_task_weight',errors,comparisons,scalar=True,rtol=1e-12,atol=1e-15)
             scores[cid]=score; task[cid]=weight
             rows.append(dict(id=cid,anchor_id=c['anchor_id'],support=c['target_support'],score=score,target_task_weight=weight,
                 anchor_kind=c.get('metadata',{}).get('historical_anchor_kind','v1_saved_H_fit'),
@@ -265,7 +269,7 @@ def _evaluation_audit(geometry, tag, label, evaluation, plan, expected, errors, 
         for aid in dict.fromkeys(geometry.centers[cid]['anchor_id'] for cid in expected):
             ids=[cid for cid in expected if geometry.centers[cid]['anchor_id']==aid]
             if len(ids)!=3: errors.append(label+':all_three_supports')
-            _compare(sum(task[cid] for cid in ids),1.,label+':task_weight_sum:'+aid,errors,comparisons,scalar=True)
+            _compare(sum(task[cid] for cid in ids),1.,label+':task_weight_sum:'+aid,errors,comparisons,scalar=True,rtol=1e-12,atol=1e-15)
             score=float(sum(task[cid]*scores[cid] for cid in ids))
             saved=next((r for r in evaluation.get('pairs',[]) if r['anchor_id']==aid),None)
             if saved is None:errors.append(label+':missing_anchor:'+aid)
@@ -316,9 +320,17 @@ def audit_trial_geometry(trial):
                 if any(group[0][name] != c[name] for c in group[1:]):errors.append('same_anchor_shared_state:'+aid+':'+name)
         for tag in ('seeds','robust','nominal','uniform'):
             search=selection.get('searches',{}).get(tag)
-            if search is None:continue
+            if search is None:
+                required=tag!='uniform' or 'target_weight_record' in selection
+                if centers and required and not selection.get('information_not_started_reason'):
+                    errors.append(tag+':missing_required_search')
+                continue
             expected=[cid for cid,c in centers.items() if tag!='nominal' or c['anchor_id']==first]
             if not search.get('site_evaluations'):
+                if search.get('success') is True:
+                    errors.append(tag+':successful_search_missing_saved_evaluations')
+                elif not (search.get('error') or search.get('failures') or search.get('failed_initialization_record')):
+                    errors.append(tag+':unexplained_search_missing_saved_evaluations')
                 failed_searches.append(dict(tag=tag,status=search.get('success'),error=search.get('error'),
                     failures=search.get('failures'),failed_initialization_record=search.get('failed_initialization_record')))
                 continue
@@ -335,7 +347,9 @@ def audit_trial_geometry(trial):
                 _compare(search['plan']['p'],search['site_plans'][str(search['selected_site'])]['p'],tag+':selected_site_plan',errors,comparisons)
         return _serial(dict(success=not errors,run_id=trial.get('run_id'),history_id=trial.get('history_id'),seed=trial.get('seed'),quality=trial.get('quality'),
             errors=errors,activated=bool(selection.get('activated')),center_count=len(centers),evaluations=evaluations,
-            geometry_coverage_status='inactive' if not centers else 'partially_unavailable' if failed_searches or any(not e['saved_success'] for e in evaluations) else 'complete_saved_evaluations',
+            information_not_started_reason=selection.get('information_not_started_reason'),
+            target_weight_record=selection.get('target_weight_record'),
+            geometry_coverage_status='inactive' if not centers else 'partially_unavailable' if not evaluations or selection.get('information_not_started_reason') or failed_searches or any(not e['saved_success'] for e in evaluations) else 'complete_saved_evaluations',
             saved_evaluation_success_count=sum(e['saved_success'] for e in evaluations),
             saved_evaluation_failure_count=sum(not e['saved_success'] for e in evaluations),
             search_failure_and_bound_records={tag:_search_diagnostics(search) for tag,search in selection.get('searches',{}).items() if tag in ('seeds','robust','nominal','uniform')},
@@ -361,7 +375,7 @@ def audit_paths(paths):
         failed_trial_count=sum(not r['success'] for r in rows),saved_failed_search_count=sum(len(r.get('failed_searches',[])) for r in rows),
         rebuilt_target_count=sum(len(ev['targets']) for r in rows for ev in r.get('evaluations',[])),
         source_inputs=files,auditor_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        tolerances=dict(matrix_rtol=MATRIX_RTOL,matrix_atol=MATRIX_ATOL,score_rtol=SCORE_RTOL,score_atol=SCORE_ATOL,
+        tolerances=dict(matrix_rtol=MATRIX_RTOL,matrix_atol=MATRIX_ATOL,score_rtol=SCORE_RTOL,score_atol=SCORE_ATOL,task_weight_rtol=1e-12,task_weight_atol=1e-15,
             rationale='independent_time_major_AC_assembly_and_one_shot_vs_two_stage_SVD_operations; measured_errors_and_rank_cutoff_separation_retained'),
         rows=rows)
 

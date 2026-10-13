@@ -72,7 +72,7 @@ def trial():
             ('p','q','v','root_v','master_p','master_q','source_p','source_q')},
         measurement_models=dict(history=meter_to_record(meter),future=meter_to_record(meter)),
         config=dict(information=dict(rcond=1e-10,scales_pu=[.003,.003])),device_constraints=dict(q_over_p=.2),
-        selection=dict(activated=True,centres=saved,searches=dict(robust=dict(success=True,selected_site=0,score=evaluation['score'],
+        selection=dict(activated=True,centres=saved,searches=dict(seeds=dict(success=False,error='fixture_not_generated'),nominal=dict(success=False,error='fixture_not_generated'),robust=dict(success=True,selected_site=0,score=evaluation['score'],
             plan=plan,evaluation=deepcopy(evaluation),site_plans={'0':plan},site_evaluations={'0':evaluation}))))
 
 
@@ -120,9 +120,12 @@ def test_v2_saved_task_weights_and_non_mle_anchor_meaning(trial):
         center['metadata']['historical_anchor_kind']='feasible_perturbed_H_point'
         rows.append(dict(target_support=center['target_support'],weight=weight))
     trial['selection']['target_weight_record']=dict(target_records=rows)
+    trial['selection']['searches']['uniform']=dict(success=False,error='fixture_not_generated')
     search=trial['selection']['searches']['robust']
     for ev in (search['evaluation'],search['site_evaluations']['0']):
-        for target,weight in zip(ev['targets'],weights):target['target_task_weight']=weight
+        for target,weight in zip(ev['targets'],weights):
+            target['target_task_weight']=weight
+            target['metadata']['historical_anchor_kind']='feasible_perturbed_H_point'
         ev['pairs'][0]['score']=sum(t['score']*w for t,w in zip(ev['targets'],weights))
         ev['pairs'][0]['target_task_weights']=weights
         ev['score']=ev['pairs'][0]['score']
@@ -131,3 +134,30 @@ def test_v2_saved_task_weights_and_non_mle_anchor_meaning(trial):
     assert result['success'],result['errors']
     assert all(t['anchor_kind']=='feasible_perturbed_H_point' for e in result['evaluations'] for t in e['targets'])
     assert all(t['target_task_weight'] in weights for e in result['evaluations'] for t in e['targets'])
+
+
+def test_archive_cannot_claim_success_without_evaluations(trial):
+    search=trial['selection']['searches']['robust']
+    search['site_evaluations']={}
+    result=audit.audit_trial_geometry(trial)
+    assert not result['success']
+    assert 'robust:successful_search_missing_saved_evaluations' in result['errors']
+
+
+def test_tiny_engineering_weight_uses_strict_tolerance(trial):
+    trial['selection']['searches']['robust']['site_evaluations']['0']['targets'][0]['weight'][0][0] *= 1.00001
+    result=audit.audit_trial_geometry(trial)
+    assert not result['success']
+    assert any(error.endswith(':weight') for error in result['errors'])
+
+
+def test_required_weight_failure_is_retained_as_unavailable(trial):
+    trial['selection']['searches']={}
+    trial['selection']['information_not_started_reason']='required_target_weight_failure'
+    trial['selection']['target_weight_record']=dict(success=False,failures=[dict(candidate='clade_01',reason='H_fit_failure')])
+    result=audit.audit_trial_geometry(trial)
+    assert result['success'],result['errors']
+    assert result['geometry_coverage_status']=='partially_unavailable'
+    assert result['independent_AC_rebuild_calls']==0
+    assert result['target_weight_record']['failures'][0]['reason']=='H_fit_failure'
+    assert result['information_not_started_reason']=='required_target_weight_failure'
