@@ -26,6 +26,7 @@
 前期采用固定参考的历史兼容损失与条件 Gaussian 响应距离；新增主选择器采用对称软历史惩罚，用完整 AC 白化导数构建冻结局部代理，由 MILP 联合配置地点、移动与连续功率，内层 QP 允许两边线路和同接口源调整。实际计量仍逐候选完整 AC 联合拟合。多初值局部求解只能报告最佳已发现局部似然，不能称为全局 MLE；代理优化界另行报告。
 小型局部网络比较同长度无 EV、同电量恒充、固定地点调制、随机动作及设计动作；通过独立校准与评价种子保留误拒绝、弱支路未决、候选漏真、选址和优化失败。目标是确定方法的有效条件及失败边界，不预设 EV 必须改善。
 旧外 LP 路线及结果作为历史记录保留在原实验目录与 Git 历史中，不再作为当前主判据，也不由其未决推断 MLE 无效。
+本轮进一步实施局部单节点短时梯度价格方案：对固定历史下新增完整计量的联合拟合裕量求功率导数，用可行优化和完整AC接受构成功率搜索，并独立核查其随机收益解释。
 \end{abstract}
 \tableofcontents
 
@@ -2062,6 +2063,188 @@ R/X分量误差按历史、轮次、根干/叶边/内部边分别归档，报告
 % END ADAPTIVE RESULTS
 % END ADAPTIVE MILP EXTENSION
 
+% BEGIN SINGLE SITE GRADIENT PRICE
+\section{单节点 EV 梯度价格与随机改进}
+\label{sec:gp}
+本轮把动作范围收缩为：一次只在一个候选节点短时接入，少数节点逐个比较，每个节点的连续功率曲线由优化求解。研究问题是完整计量价格能否正确预测重新拟合后的变化，以及这种方向信息能否改善同任务辨识。旧 C/D 策略及记录保留为先前阶段。
+
+\subsection{先定义新增收益，再对可实施功率求导}
+$H$ 为固定历史，$Y$ 为新增计量，$a,b$ 为两种候选拓扑，$u\in\R^T$ 为单节点功率曲线，单位 kW，正值表示充电。$F_h$ 取标准化误差的半平方和；实际代码的 \path{FitResult.loss} 是完整平方和，故 $F_h=\mathrm{loss}/2$。令
+\begin{align}
+F_h(H,Y)&=\min_{\theta_h\in\Theta_h}\left\{\frac12\norm{W_H[f_{h,H}(\theta_h)-H]}^2
+ +\frac12\norm{W_N[f_{h,N}(\theta_h)-Y]}^2\right\},\label{eq:gp-fit}\\
+Z_{a\to b}(u,\xi)&=F_b(H,Y_a(u,\xi))-F_a(H,Y_a(u,\xi))
+ -(F_b(H)-F_a(H)).\label{eq:gp-gain}
+\end{align}
+$W_H,W_N$ 按已校准计量标准差白化。$\theta_h$ 包括跨历史与新增共享的逐边 R/X，以及各时段真实总 P/Q 和同接口源；EV 已含于总功率中。根电压及固定偏差先校准。$Z$ 表示新增计量使支持参考 $a$ 的拟合裕量改变多少。外层分数为 $\Phi(u)=\min_{a\ne b}I_{a\to b}(u)$，参考范围由历史规则声明。与同任务恒充 $u_c$ 比较时，再计算 $\Phi(u)-\Phi(u_c)$，从而区分新增观测的作用与调功的作用。
+
+参考预测 $Y_a=\mu_a(u)+\Sigma_N^{1/2}\xi$ 只使用历史解释和声明的未来假设。首版 $\mu_a$ 来自历史背景均值及完整 AC；随机样本只加入计量噪声。背景负荷、源及追踪的随机物理情景仍是后续预测模型工作。
+定义 $I_{a\to b}^{\rm exp}(u)=\mathbb E_\xi Z_{a\to b}(u,\xi)$。下文未标上标的 $I$ 为本次冻结采用的均值或样本平均分数；首版主选择器取均值分数。
+在稳定可微的拟合分支、固定参数域和固定协方差下，包络求导消去参数重新优化项。代码残差为 $\rho=(\hbox{预测}-\hbox{读数})/\sigma$，故
+\begin{equation}
+\boxed{\pi_{a\to b}(u)=\nabla_u I_{a\to b}^{\rm exp}(u)
+=\mathbb E_\xi\left[(J_a^w)^\top(\rho_{a,N}-\rho_{b,N})\right],}
+\quad J_a^w=W_N\frac{\partial\mu_a}{\partial u}.
+\label{eq:gp-price}
+\end{equation}
+每个随机样本都联合重拟合 $H+Y$。历史行的控制导数为零。$J_a^w$ 包含 P/Q、全部观测电压和根总表 P/Q 的 AC 响应；总表导数保留线路损耗变化。P/Q-only 消融仅屏蔽非 P/Q 的控制导数，拟合和接受仍用同一个完整目标。单个均值预测给 $\pi^{\rm mean}$；固定样本平均给 $\pi^M$，两者分别保存。
+
+式\eqref{eq:gp-price}来自 $\nabla_YF_h=-W_N^\top\rho_{h,N}$ 与链式求导。内点最优性使参数导数项为零；固定活动面的 KKT 条件也使该项为零。约束依赖动作、最优解释切换或求导与期望不能交换时，需增加对应项或采用方向导数。实际数值结果对应最佳已取得局部拟合分支。
+
+\subsection{随机单位改进与同电量价格}
+固定同一随机样本，令 $e_t$ 选择时段 $t$，定义
+\begin{equation}
+R_\delta=\frac{Z(u+\delta e_t,\xi)-Z(u,\xi)}{\delta},\qquad
+\mathbb E R_\delta=\frac{I^{\rm exp}(u+\delta e_t)-I^{\rm exp}(u)}{\delta},\qquad
+\pi_t^{\rm exp}=\lim_{\delta\to0}\mathbb E R_\delta.
+\label{eq:gp-unit}
+\end{equation}
+因此预期价格是无限小功率变化的单位预期改进；有限步长则是单位有限改进。若价格在该区间的变化率不超过 $L$，有限增量均值与导数的差不超过 $L|\delta|/2$。用共同随机数比较两动作能控制差值估计的波动；固定基础随机样本后求导的做法可参照 Titsias--L\'azaro-Gredilla 的式 (4)--(8)\cite{gp-titsias}，本项目的联合拟合目标为自行构造。
+
+$\pi_t$ 的单位是分数/kW。时段长度为 $\Delta t_t$ 时，从 $s$ 向 $t$ 转移小电量 $\delta E$，一阶收益为
+\begin{equation}
+\delta E\left(\frac{\pi_t}{\Delta t_t}-\frac{\pi_s}{\Delta t_s}\right).
+\label{eq:gp-energy-price}
+\end{equation}
+相对价格决定同电量曲线怎样重排。高低档有限收益等于该区间价格的积分。SOC、充放效率和移动条件共同限定允许的电量转移。
+
+\subsection{均值价格何时具有预期解释}
+以下为自行推导。对于固定白化线性模型 $f_h(z)=c_h+X_hz$，允许的参数调整为固定自由空间或活动面，且面内其余边界在所取随机样本上均不生效，记
+$\Pi_h=I-X_hX_h^+$。重新拟合后的损失为
+$F_h(y)=\tfrac12\norm{\Pi_h(y-c_h)}^2$。
+若 $y=m(u)+\varepsilon$，$\mathbb E\varepsilon=0$，$\operatorname{Cov}(\varepsilon)=K$，展开平方得到
+\begin{equation}
+\mathbb EF_h(y)=F_h(m(u))+\tfrac12\operatorname{tr}(\Pi_hK).
+\label{eq:gp-trace}
+\end{equation}
+历史固定、只有未来白化噪声时，$K=\operatorname{diag}(0_H,I_N)$。投影与协方差固定，则每个有向比较的均值价格与预期价格相同。不同对象的 trace 修正常数仍可能不同，进而改变最难竞争对象和外层最优动作。
+令 $r_\Delta=\Pi_b(m-c_b)-\Pi_a(m-c_a)$、$C=\Pi_b-\Pi_a$，高斯噪声下另有
+\begin{equation}
+\operatorname{Var}(F_b-F_a)=r_\Delta^\top Kr_\Delta+\tfrac12\operatorname{tr}(CKCK).
+\label{eq:gp-variance}
+\end{equation}
+这是判断随机收益波动的解析算例基础。
+
+活动边界给出清楚反例：$a$ 可以拟合任意标量读数，$b$ 只允许均值 $\theta\le0$。
+于是 $F_a=0$、$F_b(y)=\tfrac12\max(y,0)^2$。令 $Y=u+\xi$、$\xi\sim N(0,1)$，则
+\begin{equation}
+\mathbb EF_b(Y)=\tfrac12[(u^2+1)\Phi_{\rm N}(u)+u\phi_{\rm N}(u)],\qquad
+\left.\frac{d\mathbb EF_b}{du}\right|_{u=0}=\frac1{\sqrt{2\pi}}.
+\label{eq:gp-boundary}
+\end{equation}
+均值预测在 $u=0$ 的价格为零，而预期价格约 $0.39894$。这里 $\phi_{\rm N},\Phi_{\rm N}$ 是标准正态密度和分布函数；随机读数改变了活动边界。AC 曲率与多个解释切换也须通过随机审计检查。
+
+\subsection{似然判别与信息增益背景}
+对两个参数固定、协方差同为 $\Sigma$ 且均值不同的高斯模型，定义
+$d=\mu_a-\mu_b$、$\gamma=d^\top\Sigma^{-1}d$。$a$ 生成数据时，对数似然比为
+$Z=\gamma/2+d^\top\Sigma^{-1}\varepsilon$，从而
+\begin{equation}
+\mathbb E_aZ=\KL(a\Vert b)=\gamma/2,\qquad
+\operatorname{Var}_aZ=\gamma,\qquad
+\Pr_a(Z<0)=\Phi_{\rm N}(-\sqrt\gamma/2).
+\label{eq:gp-gaussian}
+\end{equation}
+最后一个式子采用等先验、零阈值及 $\gamma>0$。均值相同则似然比恒为零，若随机处理并列，判错率为 $1/2$。Dette--Titoff 第 2 节式 (2.4) 和第 4.2 节式 (4.1)支持竞争参数重新优化的距离/KL 设计\cite{dette}。本项目随机读数取得后重新拟合的期望，与原文最坏期望距离的优化次序分别处理。
+
+若给二类标签 $T_0\in\{0,1\}$ 声明一个固定先验 $\Pr(T_0=1)=w$、$0<w<1$，两个固定高斯预测可化为
+$W_0=\sqrt\gamma T_0+N_0$，$N_0\sim N(0,1)$。Guo--Shamai--Verd\'u 的定理\cite{gp-guo}给出
+\begin{equation}
+\frac{d I(T_0;W_0)}{d\gamma}=\tfrac12\operatorname{mmse}(T_0\mid W_0),
+\qquad
+\pi_{\rm EIG}=\operatorname{mmse}(T_0\mid W_0)\,\pi_{\rm KL}.
+\label{eq:gp-immse}
+\end{equation}
+其中 mmse 是标签的最小均方估计误差，$\pi_{\rm KL}=\nabla_u(\gamma/2)$、$\pi_{\rm EIG}=\nabla_u I(T_0;W_0)$。该简单场景下信息增益与高斯距离的方向、排序一致；对距离 $\gamma$ 的边际信息收益随 $\gamma$ 增加而下降；功率价格还取决于 $\partial\gamma/\partial u$。线路和源不确定性形成预测混合时，此结论成为需要另行研究的拓展，现有 profile 分数不据此转为拓扑后验。
+
+
+\subsection{同质预测下，饱和功率的理论解释}
+以下为自行推导，限于仿射均值模型。设等长时段背景、计量误差尺度、可调状态域相同，充电上限为 $P_{\max}$，总功率和为 $S=E/\Delta t$。固定共享线路 $\beta$ 时，逐时竞争损失写为
+\begin{equation}
+f_\beta(u)=\inf_{z\in\mathcal Z_\beta}\tfrac12\norm{c_\beta+d_\beta u+A_\beta z}^2,
+\qquad Q_b(u)=\inf_\beta\left\{h_\beta+\sum_t f_\beta(u_t)\right\}.
+\label{eq:gp-stationary}
+\end{equation}
+$z$ 是逐时可调功率和源，$\mathcal Z_\beta$ 是同一凸域；$h_\beta$ 是坚持该组线路所需的历史半损失。平方误差对 $(u,z)$ 联合凸，对 $z$ 取最小仍为凸函数。
+将总量 $S$ 尽量放在满功率时段，至多保留一个未满时段，其余为零，得到 $u^*$。把较小正功率转移到较大且未满的时段，由凸性可知每个 $\sum_t f_\beta$ 均不下降。对所有 $\beta$ 分别成立的大小关系，取最小后仍成立，故 $Q_b(u^*)\ge Q_b(u)$。若参考的同域历史最小值能够以原线路零误差解释未来均值，其联合半损失不随 $u$ 增加，得到
+\begin{equation}
+u^*\in\arg\max_{0\le u_t\le P_{\max},\ \sum_tu_t=S}
+\min_{a\ne b}I_{a\to b}^{\rm mean}(u).
+\label{eq:gp-saturated}
+\end{equation}
+这是同质仿射问题的最优形状证明，允许竞争线路和状态补偿，无须枚举全部曲线。同分时段可互换；它解释为何满档初值可能已取得全部曲线收益。完整 AC、逐时不同背景、随机读数重新拟合及中途 SOC 任务须重新检查上述条件。
+
+\subsection{继续研究的两条数学路径}
+其一，固定历史与解释域，令 $g(Y)$ 为式\eqref{eq:gp-gain}的联合损失差，$Y\sim N(\mu(u),\Sigma_N)$，$J=\partial\mu/\partial u$。在损失至多二次增长、$\mu$ 可微且协方差固定时，微分 Gaussian 密度并分部积分得到
+\begin{equation}
+\nabla_u\mathbb E g(Y)=J^\top\mathbb E[\nabla_Yg(Y)]
+=J^\top\Sigma_N^{-1}\mathbb E[(Y-\mu)g(Y)].
+\label{eq:gp-score}
+\end{equation}
+这把价格写成随机改进与计量偏移的加权均值。Gaussian 平均可平滑解释切换处的损失；两种估计的抽样方差和代价尚待比较。
+
+其二，针对一条疑似内部边，把其 R/X 记为小向量 $\zeta$，其余线路、真实功率和同接口源为 $\nu$。完整历史与未来白化响应的导数为 $J_\zeta,J_\nu$。自由局部补偿下，
+\begin{equation}
+\min_{\delta\nu}\norm{J_\zeta\zeta+J_\nu\delta\nu}^2
+=\zeta^\top J_\zeta^\top(I-J_\nu J_\nu^+)J_\zeta\zeta.
+\label{eq:gp-weak-information}
+\end{equation}
+这是去掉其余参数可抵消响应之后，疑似边留下的信号。可进一步据此研究最小可辨支路尺度，避免极弱参考压平最坏分数。式中保留独立 R/X；活动边界、多解释和零边收缩需另行审查。本轮尚未用此矩阵配置动作。
+
+\subsection{可实施优化、验收与本轮结果}
+在每个节点，以当前价格解仿射 max-min 子问题：
+\begin{equation}
+\max_{u,\eta}\ \eta,\qquad
+\eta\le I_k(u^0)+\pi_k(u^0)^\top(u-u^0)\quad\forall k,
+\qquad u\in\mathcal U_j,\quad\norm{u-u^0}_\infty\le\Delta.
+\label{eq:gp-master}
+\end{equation}
+$k$ 表示全部声明的有向参考--竞争对象。$\mathcal U_j$ 包含单节点接入、移动前缀、同电量、功率、SOC及效率。充放功率分开并用二进制避免同槽充放；普通充电器默认放电上限为零。该 MILP 的 incumbent 和 best-bound 限定当前仿射子问题。
+对提出的功率重新执行完整 AC 联合拟合，以实际最坏分数决定接受或缩小信赖域。保留可行恒充，另用两个优化生成的异时段初值检查零梯度；初值收益与后续梯度收益单独记录。恒充不可行时仍检查其他可行曲线。
+
+% BEGIN GRADIENT PRICE NUMERICAL RESULTS
+\paragraph{冻结范围与独立分母。}
+新版先完成 6 条 pilot，再冻结 12 条校准历史和 24 条独立评价历史。网络为三个末端、四种 star/cherry 候选，历史 12 槽、新增 4 槽，每槽 15 分钟；充电上限 6 kW、任务 3 kWh，计入接入、移动耗时与能耗。真值混合包括 5 条 star、10 条强内部边 cherry、9 条弱内部边 cherry，逐边 R/X 另有独立变化。
+第一版只取历史前两名参考，pilot 中真结构有 3/6 未进入设计参考集；据此在正式校准前改为保留全部历史半损失距最佳值不超过 6 的候选。这个 6 是计算门槛。本批 24/24 历史均启动，候选池及设计参考均含真值；没有必要拟合、物理或选址失败。
+正式科学源码为提交 \texttt{8478af6}；冻结策略标识前缀 \texttt{9644ff6a}。校准与评价历史、策略随机数和未来评价噪声相互隔离。
+
+\paragraph{辨识结果。}
+对六种策略的真实拓扑完整 SSE 相对最佳候选的差取最大，12 条校准所得门限为 6.75485。声明混合与冻结策略下，独立新历史的交换秩尾界为 $1/13$；它针对整套六方法的最大统计量。评价结果见表\ref{tab:gp-result}。未决表示多种候选仍保留；误拒表示真候选被剔除。
+
+\begin{table}[htbp]\centering\small
+\caption{24 条独立历史的单节点策略评价；所有历史计入分母。}
+\label{tab:gp-result}
+\begin{tabular}{lrrr}\toprule
+策略 & 仅保留真拓扑 & 未决 & 误拒真拓扑\\\midrule
+同长度无 EV & 0 & 24 & 0\\
+固定节点恒充 & 7 & 16 & 1\\
+固定节点优化曲线 & 7 & 17 & 0\\
+随机节点优化曲线 & 8 & 16 & 0\\
+设计节点完整价格 & 6 & 18 & 0\\
+设计节点 P/Q-only 价格 & 6 & 18 & 0\\\bottomrule
+\end{tabular}
+\end{table}
+
+设计方法的 6 次唯一正确全部来自 10 条强 cherry；5 条 star 与 9 条弱 cherry 均未决。设计与恒充这批的成功数没有显示优势，24 条历史也不足以支持小差异排序。整六方法至少一次误拒为 1/24，其二项 CP95 区间为 $[0.105\%,21.120\%]$，适用范围为本批声明模拟分布。
+
+完整价格与 P/Q-only 的功率、无功、地点和 SOC 数组 24/24 完全相同；搜索接受了 43 个改善步骤，但相对最佳优化初值的最终改善均不超过 $1.04\times10^{-12}$。因此本批曲线收益来自优化生成的满档初值，尚无额外迭代收益证据。同质均值假设使时段置换等价；式\eqref{eq:gp-saturated}为相应仿射模型提供解释。
+设计相对恒充的预测增益与实际有符号拟合裕量增益的 Pearson 相关为 $-0.115$（24 个独立配对）；实际完整 SSE 裕量差均值 26.326、中位数 $-0.106$，范围 $[-538.270,538.450]$。少数强结构的大幅变化左右均值，故同时保留有符号差值和未决计数。
+
+\paragraph{阻抗与计算成本。}
+在真拓扑拟合中，设计策略强内部边的 R 的绝对 RMSE 为 $0.003020$ pu，X 为 $0.006493$ pu（10 条历史、10 条内部边）；弱内部边 R 为 $0.003749$ pu，X 为 $0.002620$ pu（9 条、9 条边）。弱边真实值很小，相对 RMSE 分别约 121.5 和 126.2。取得良好拟合裕量仍可能伴随参数误差；所有逐边结果另存。
+完整价格搜索平均 13.419 秒、约 2292 次 AC 调用；两种价格的选择总平均 28.684 秒。整评价耗时 804.500 秒，共 136810 次 AC 调用。当前反复联合拟合的成本需降低。
+
+\paragraph{独立验证。}
+两条非对称 AC 小步算例核对完整响应导数及重新拟合价格。随机价格审计每个有向比较用 8 个固定计量噪声样本，4/4 非对称方向通过，200/200 联合拟合成功，导数与中央差分最大绝对差 $3.81\times10^{-6}$。强 cherry 指向 star 的均值价格为 $-1.0286$、样本平均 $-1.0013$，四对反向噪声的标准误约 $0.0707$；八个样本仅作积分诊断。100000 次解析随机试验的 19 项检查通过；同质仿射证明的 16 个极小格点审计通过。
+独立小库对照只在两条 pilot 上进行，每条 12 个可行计划，主优化动作均取得该库最高分；同节点满档槽置换分数差不超过 $5.59\times10^{-12}$。库只作审计，主选择器未调用。
+保存的 6 pilot、12 校准、24 评价共 1176 份实际历史/新增联合 AC 拟合逐一重放，损失、物理状态、参数界、设备任务及种子核验通过。压缩证据仅省略两组奇异值诊断数组，保留状态、损失、参数和失败字段。
+
+\paragraph{本轮结论和下一步。}
+完整路径价格和随机单位改进解释已推导、实现并核验；本批没有显示设计选址或后续梯度步骤提高排错。下一步先保持三个末端，在只依赖历史的逐时背景/源预测下检验异质时段，并比较均值与独立随机价格；保留全部历史支持结构及多个线路解释点。疑似边的补偿后信息和 Gaussian 平均价格作为独立扩展，先做小算例和校准，再决定是否纳入选择器。扩网、滚动检验和现场验证尚未开展。
+% END GRADIENT PRICE NUMERICAL RESULTS
+
+方法实现位于 \path{gradient_price.py}、\path{single_site_milp.py} 和 \path{gradient_price_search.py}；独立实验驱动为 \path{gradient_price_study.py}。完整数学与文献正文定位分别保存于 \path{gradient_price_math.md}、\path{gradient_price_literature.json}。所有新增材料位于原研究目录；先前 C/D 结果与门限保持原记录。
+% END SINGLE SITE GRADIENT PRICE
+
 \appendix
 \section{AC 数值计算和导数的来源}
 \label{sec:jacobian}
@@ -2116,5 +2299,15 @@ Optimal Bayesian design for model discrimination via classification.
 \emph{Statistics and Computing}, 2022, 32:25.
 \url{https://doi.org/10.1007/s11222-022-10078-2}，第2节。
 
+\bibitem{gp-titsias}
+Titsias, M.; L\'azaro-Gredilla, M.
+Doubly Stochastic Variational Bayes for non-Conjugate Inference.
+\emph{PMLR}, 2014, 32(2):1971--1979.
+\url{https://proceedings.mlr.press/v32/titsias14.pdf}，第2节式(4)--(8)。
+\bibitem{gp-guo}
+Guo, D.; Shamai, S.; Verd\'u, S.
+Mutual Information and Minimum Mean-square Error in Gaussian Channels.
+\emph{IEEE Transactions on Information Theory}, 2005, 51(4):1261--1282.
+\url{https://arxiv.org/pdf/cs/0412108}，第II-A节定理1、式(15)。
 \end{thebibliography}
 \end{document}
