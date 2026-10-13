@@ -2,7 +2,7 @@
   "started_at_utc": "2026-10-12T17:00:00Z",
   "deadline_utc": "2026-10-13T01:00:00Z",
   "budget_hours": 8,
-  "phase": "C_evaluation_running_D_frozen",
+  "phase": "stage_delivery_verified_research_partial",
   "base_commit": "6c37cf8b9d5b16f97a8b619897b14794b9d10eb7",
   "branch": "research/ev-history-t-design",
   "base_source_sha256": {
@@ -210,7 +210,7 @@
   ],
   "checkpoint_semantics": "budget is an upper work limit; no claim of completed research at deadline",
   "foundation_tests_passed": 169,
-  "last_stage_commit": "38db570",
+  "last_stage_commit": "513b4cea2e9f749efbd48665f21249e87ef73ace",
   "tests_passed": 399,
   "pilot_completed": [
     {
@@ -297,9 +297,10 @@
   "report_methods": {
     "original_source_updated": true,
     "pdf_compiled": true,
-    "pages": 36,
+    "pages": 49,
     "visual_review_all_pages": true,
-    "final_results_pending": true
+    "final_results_pending": false,
+    "built_in_unavailable_fallback_used": true
   },
   "baseline_snapshot_note": "baseline status was captured after writing this task adaptive_milp_protocol.md; that one entry belongs to this task",
   "current_audits": {
@@ -309,7 +310,7 @@
     "wzzt_initials": "weights not used as AC initial in current frozen policy"
   },
   "continuous_predictive_attempt": {
-    "stage": "proper_inverse_proved_H_IS_v1_v2_failed_v3_running",
+    "stage": "all_five_H_integrators_failed_original_gate_no_predictive_EIG",
     "input": "outputs/continuous_eig_Honly/H_710009.json and .npz",
     "HMC_plan": {
       "theta_per_component": 2048,
@@ -317,7 +318,11 @@
       "independent_repeats": 3
     },
     "proper_changeofvariables_proof_required": true,
-    "formal_policy_changes": false
+    "formal_policy_changes": false,
+    "posterior_accepted": false,
+    "final_samples_per_component": 4096,
+    "final_latent_per_time": 128,
+    "independent_repeats": 3
   },
   "C_evaluation_completed": {
     "histories": 256,
@@ -326,5 +331,89 @@
     "refit_unique_correct": 71,
     "constant_unique_correct": 62,
     "legacy_unique_correct": 81
-  }
+  },
+  "original_budget_end_utc": "2026-10-13T01:00:00Z",
+  "user_resumed_at_utc": "2026-10-13T01:54:00Z",
+  "updated_at_utc": "2026-10-13T02:43:00.990946+00:00",
+  "last_stage_pushed": true,
+  "all_original_queues_complete": true,
+  "remaining_delivery": [],
+  "unfinished_research": [
+    "paired rolling versus open-loop independent calibration/evaluation not yet accepted",
+    "proper predictive EIG not accepted",
+    "forecast weights not calibrated",
+    "uniform nonlinear AC error certificate absent",
+    "weak branches unresolved; do not expand network"
+  ],
+  "D_completed": {
+    "calibration": 64,
+    "evaluation": 96,
+    "joint_fit_replays": 768,
+    "unique_correct": 37,
+    "any_round_false_rejection": 10,
+    "unresolved": 53,
+    "wrong_unique": 2,
+    "empty": 4,
+    "whole_selector_mean_seconds": 25.04336
+  },
+  "stress_completed": {
+    "bias": 16,
+    "source_drift": 16,
+    "load_trend": 16,
+    "missing_truth": 32,
+    "missing_truth_omissions": 10,
+    "all_requested_histories_preserved": true,
+    "nominal_risk_guarantee_transferred": false
+  },
+  "shared_square_upper": {
+    "two_H_only_diagnostics_complete": true,
+    "QP_replays": 696,
+    "MILP_snapshots": 16,
+    "AC_saved_witness_replays": 96,
+    "both_gain_intervals_contain_zero": true,
+    "formal_C_D_policy_changed": false
+  },
+  "paired_continuation": {
+    "state": "pilot_runtime_gate_failed",
+    "at_utc": "2026-10-13T02:08:35.911021+00:00",
+    "source_contract_matches": true,
+    "new_pilot_mean_seconds": 74.58162645000266,
+    "runtime_threshold_seconds": 45.0,
+    "formal_calibration_attempted_count": 0,
+    "formal_calibration_requested_count": 32,
+    "formal_evaluation_attempted_count": 0,
+    "formal_evaluation_requested_count": 48,
+    "original_eight_hour_budget_expired": true,
+    "continuation_authorized_at_utc": "2026-10-13T01:54:00+00:00",
+    "not_completed_by_original_budget": true,
+    "gate_not_overridden": true
+  },
+  "resumption_commands": [
+    "python -m research_experiments.mobile_ev_mle.shared_power_square_audit",
+    "python -m research_experiments.mobile_ev_mle.continuous_eig_recheck_compact",
+    "python research_experiments/mobile_ev_mle/verify_adaptive_compact.py research_experiments/mobile_ev_mle/evidence/adaptive_d_compact",
+    "python research_experiments/mobile_ev_mle/verify_adaptive_compact.py research_experiments/mobile_ev_mle/evidence/adaptive_stress_compact"
+  ],
+  "last_stage_commit_note": "last verified evidence commit before this final checkpoint/documentation commit; current final delivery commit is git HEAD",
+  "tests": {
+    "active_passed": 522,
+    "seconds": 126.65,
+    "archived_tests_excluded": true,
+    "prior_run_including_10_historical_snapshots_passed": 532,
+    "actual_log": "evidence/adaptive_final_test_validation.json"
+  },
+  "git_archive_check": {
+    "committed_files_checked": 640,
+    "all_four_verifiers_passed": true,
+    "first_missing_ignored_outputs_failure_retained": true,
+    "final_validation": "evidence/adaptive_final_git_roundtrip_validation.json"
+  },
+  "phase_acceptance": {
+    "A": "model/derivatives/multiple explanations implemented; learned forecasts and coverage incomplete",
+    "B": "frozen local proxy bounds implemented and audited; full nonlinear AC global bounds absent",
+    "C": "full 128/256 plus stresses complete; proper predictive EIG failed H integration",
+    "D": "64/96 rolling complete; paired expansion failed timing gate; network expansion withheld"
+  },
+  "running_processes_for_this_task": [],
+  "research_complete": false
 }

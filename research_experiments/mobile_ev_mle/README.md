@@ -1,8 +1,8 @@
 # AC 最大似然拟合与 EV 模型判别设计
 
-## 本轮优化式自适应研究（2026-10-13，进行中）
+## 本轮优化式自适应研究（2026-10-13，阶段交付；研究仍有未完成项）
 
-先读 adaptive_milp_protocol.md、adaptive_milp_checkpoint.json。完整方案和验收条件已经保存；下面旧章节记录前期动作库研究，不代表本轮主选择器。本轮通过时间展开移动网络和连续功率变量配置 EV，未枚举完整路线。主框架允许竞争线路、历史状态及同点逐时源在冻结局部域内调整；完整 AC 回代和实际 H+新增联合拟合分别核查代理与统计效果。
+先读 adaptive_milp_protocol.md、adaptive_milp_checkpoint.json、adaptive_resume_plan.md。完整方案和验收条件已经保存；下面旧章节记录前期动作库研究，不代表本轮主选择器。本轮通过时间展开移动网络和连续功率变量配置 EV，未枚举完整路线。主框架允许竞争线路、历史状态及同点逐时源在冻结局部域内调整；完整 AC 回代和实际 H+新增联合拟合分别核查代理与统计效果。
 
 - adaptive_history.py / symmetric_ac_local_math.md：完整 AC 白化导数、历史 profile 信息、补偿、活动面和多个展开点。
 - ev_operations_milp.py / ev_information_milp_math.md：接入、移动、SOC、效率、行驶能耗、互斥与充电任务。
@@ -24,7 +24,26 @@ C 冻结 128 个校准历史、256 个独立评价历史；D 使用自身的 64+
 
 C 已完成：128 校准（1 条拟合失败仍以∞保留）、256 独立评价及7168候选 AC 重放。唯一正确保留为重拟合 MILP 71/256、恒充62/256、原库81/256；全七方法联合误剔除14/256。收益主要在强 cherry，弱结构仍未决；代理增益与实测裕量相关较弱。详见 formal_C_independent_review.md 和 evidence/formal_C_independent_numbers.json。
 
-当前进度以检查点为准。原报告加入C结果后原位编译为40页并逐页检查，证据为 adaptive_C_delivery.json；D与压力试验最终结果待完整批次核验。outputs/ 保存详细 JSON/NPZ；evidence/ 提交紧凑审计证据和必要的压缩逐候选表。未扩网。
+D 已完成64校准、96评价及768份保存拟合的AC重放：最终唯一正确37/96，整轨迹任一轮误拒10/96（CP95 [5.11%,18.32%]），两轮选址平均25.04336秒。C/D不同历史与门限，不能据两表成功率差判断反馈收益。四压力批次16/16/16/32条全分母核验；最后一批漏真10/32。压力结果不继承名义人口风险保证。
+
+共享功率平方新上界利用精确时间块及单EV互斥：两历史旧主问题变量23194/57754和17434，共享为322/466和322；696QP、16MILP、96AC保存见证重放通过。两共享动作相对恒充的代理增益区间均跨零。它尚未替换冻结C/D，不据速度改善推辨识改善。
+
+proper连续AC密度与逆变换已证明并验证，但五版历史积分全部未过原七成分验收条件。最终总体ESS虽达437.317/259.058/193.939，另六成分ESS约1；未接受后验近似，未计算可信预测EIG或排名。API中的posterior_available仅指有限对数证据的数值样本库非空，不能代替原验收条件。详见continuous_eig_sampling_math.md、evidence/continuous_eig_compact/。
+
+预算后配对续接重复同2pilot，科学源码、数据、动作、目标和调用数与旧pilot一致，但墙钟均值74.58163秒超过冻结45秒扩批门槛；保留失败，正式校准/评价为0/32和0/48，未取得反馈vs固定首轮计划效果。具体变慢原因没有同期负载证据。原八小时协议和预算后01:54UTC续接分别保留，不能说新续接在八小时内完成。
+
+原报告在原路径更新、编译为49页并全部视觉核验，证据为evidence/adaptive_final_delivery.json。内置编译器因Windows沙箱设置不可用；原位XeLaTeX三遍成功，无越界或未定义引用。此前40页交付快照仍保留。outputs/和staging保存详细JSON/NPZ；evidence/提交无损压缩逐候选证据、版本/哈希与独立核验器。研究没有整体完成，未扩网。真实Git归档的640份文件逐字节匹配，四个核验器全部通过；第一次受全局outputs忽略规则影响的失败及修复另存，未修改旧科学记录。
+
+可续接/只读核验入口（工作树根目录）：
+
+    python -m pytest research_experiments/mobile_ev_mle -q -p no:cacheprovider
+    python -m research_experiments.mobile_ev_mle.shared_power_square_audit
+    python -m research_experiments.mobile_ev_mle.continuous_eig_recheck_compact
+    python research_experiments/mobile_ev_mle/verify_adaptive_compact.py research_experiments/mobile_ev_mle/evidence/adaptive_d_compact
+    python research_experiments/mobile_ev_mle/verify_adaptive_compact.py research_experiments/mobile_ev_mle/evidence/adaptive_stress_compact
+
+本目录conftest.py排除evidence/outputs中的冻结源码镜像；原第一次532项通过的记录含10项历史toy镜像，另保留其日志。活动研究测试522项通过（126.65秒），实际日志见evidence/adaptive_final_test_validation.json。不要把历史快照重复当新增测试覆盖。
+配对续接命令位于paired_d/run_continuation.py及paired_d/continuation_v2.md；按现有freeze继续会停在失败耗时门槛，不能直接跳过它启动正式批次。下一轮须先固定新预算/实验协议及分母，保留旧记录。
 
 本目录已实现新研究原型。旧路线见 ../mobile_ev_probing/README.md。
 旧外 LP 的未决不用于判断 MLE 路线。
