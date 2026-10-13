@@ -1,5 +1,14 @@
 # AC 最大似然拟合与 EV 模型判别设计
 
+## 本轮指标修订与恒充保护（2026-10-13）
+
+先读 ev_metric_revision_math.md、ev_metric_revision_protocol.md、ev_metric_revision_checkpoint.json。
+主选择器继续用时间展开 MILP 联合配置路线与连续功率；原动作库只作对照。
+新增 ev_baseline_guard.py 将指定恒充用操作 MILP 实现为完整可行计划，并以同代理 QP 增益区间决定采用或回退；失败和原搜索输出保留，尚未改旧搜索内部 incumbent。
+审查发现旧代理固定未来末端 P/Q，而实际 AC 拟合会调整它们。新的方向性全计量指标及历史 offset MILP 已完成推导，尚待接入完整 AC。
+future_power_metric_check.py 的两时段 MILP 验证固定/开放未来功率的最优时段可相反；固定指标所选动作按开放指标评价低于恒充。该结论限于线性解析算例。
+本阶段 72 项针对性集成测试通过，其中 33 项新增；此前 522 项全套记录保留。证据在 evidence/ev_metric_revision/，新策略未进入 C/D，原报告待 AC 接入阶段更新。
+
 ## 本轮优化式自适应研究（2026-10-13，阶段交付；研究仍有未完成项）
 
 先读 adaptive_milp_protocol.md、adaptive_milp_checkpoint.json、adaptive_resume_plan.md。完整方案和验收条件已经保存；下面旧章节记录前期动作库研究，不代表本轮主选择器。本轮通过时间展开移动网络和连续功率变量配置 EV，未枚举完整路线。主框架允许竞争线路、历史状态及同点逐时源在冻结局部域内调整；完整 AC 回代和实际 H+新增联合拟合分别核查代理与统计效果。
@@ -42,7 +51,7 @@ proper连续AC密度与逆变换已证明并验证，但五版历史积分全部
     python research_experiments/mobile_ev_mle/verify_adaptive_compact.py research_experiments/mobile_ev_mle/evidence/adaptive_d_compact
     python research_experiments/mobile_ev_mle/verify_adaptive_compact.py research_experiments/mobile_ev_mle/evidence/adaptive_stress_compact
 
-本目录conftest.py排除evidence/outputs中的冻结源码镜像；原第一次532项通过的记录含10项历史toy镜像，另保留其日志。活动研究测试522项通过（126.65秒），实际日志见evidence/adaptive_final_test_validation.json。不要把历史快照重复当新增测试覆盖。
+本目录conftest.py排除evidence/outputs中的冻结源码镜像；原第一次532项通过的记录含10项历史toy镜像，另保留其日志。上一阶段活动研究测试522项通过（126.65秒），实际日志见evidence/adaptive_final_test_validation.json。不要把历史快照重复当新增测试覆盖。
 配对续接命令位于paired_d/run_continuation.py及paired_d/continuation_v2.md；按现有freeze继续会停在失败耗时门槛，不能直接跳过它启动正式批次。下一轮须先固定新预算/实验协议及分母，保留旧记录。
 
 本目录已实现新研究原型。旧路线见 ../mobile_ev_probing/README.md。
