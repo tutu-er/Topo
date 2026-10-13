@@ -1,0 +1,2480 @@
+{
+  "config": {
+    "audit": "full_AC_random_directional_profile_price",
+    "cases": [
+      {
+        "case": "strong",
+        "history_seed": 830001
+      },
+      {
+        "case": "weak",
+        "history_seed": 830002
+      }
+    ],
+    "n_terminals": 3,
+    "history_count": 8,
+    "future_count": 4,
+    "history_generation_future_count": 0,
+    "generation_truth_family": [
+      [
+        0,
+        1
+      ]
+    ],
+    "candidates": [
+      "star",
+      "cherry01"
+    ],
+    "site": 0,
+    "power_kw": [
+      0.0,
+      6.0,
+      3.0,
+      3.0
+    ],
+    "direction": [
+      0.0,
+      0.0,
+      1.0,
+      -1.0
+    ],
+    "step_kw": 0.01,
+    "base_kva": 20.0,
+    "q_over_p": 0.0,
+    "design_rng_seed": 832001,
+    "independent_base_noise_draws": 4,
+    "antithetic_total_noise_draws": 8,
+    "noise_scope": "additive_meter_noise_only; physical_background_and_source_fixed",
+    "noise_pair_indices": [
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        3,
+        7
+      ]
+    ],
+    "noise_bank_shared_across_two_histories": true,
+    "fit_options": {
+      "multistart": 2,
+      "max_nfev": 250,
+      "linear_solver": "exact",
+      "tol": 1e-10
+    },
+    "historical_fit_seed_offset": 833000,
+    "joint_fit_seed": 834001,
+    "absolute_directional_error_tolerance": 0.02,
+    "relative_directional_error_tolerance": 0.002,
+    "statistical_unit": "independent antithetic pair conditional on one H",
+    "interpretation": "integration diagnostic; not EIG, topology probability or a population calibration",
+    "selector_changed": false,
+    "formal_thresholds_changed": false
+  },
+  "status": "passed",
+  "case_denominator": 2,
+  "pair_denominator": 4,
+  "passed_pairs": 4,
+  "source_hashes_start": {
+    "gradient_price_random_audit.py": "f7d34f114f397e77950ef108929e853b28264f783f37aca3a6f5227ad63d7e13",
+    "gradient_price.py": "088cb6841c72c4ba9c2a83cdbdc0017c839b027bd3150df581ea1aa4b89ccbde",
+    "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+    "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+    "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa"
+  },
+  "source_hashes_end": {
+    "gradient_price_random_audit.py": "f7d34f114f397e77950ef108929e853b28264f783f37aca3a6f5227ad63d7e13",
+    "gradient_price.py": "088cb6841c72c4ba9c2a83cdbdc0017c839b027bd3150df581ea1aa4b89ccbde",
+    "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+    "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+    "design.py": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa"
+  },
+  "source_unchanged_during_run": true,
+  "seconds": 27.108642400009558,
+  "cases": [
+    {
+      "case": "strong",
+      "history_seed": 830001,
+      "status": "passed",
+      "error": null,
+      "history_fit_successes": 2,
+      "history_fit_denominator": 2,
+      "evaluation_successes": 4,
+      "evaluation_denominator": 4,
+      "pair_passes": 2,
+      "pair_denominator": 2,
+      "pair_diagnostics": [
+        {
+          "pair_id": "star->cherry01",
+          "success": true,
+          "passed": true,
+          "mean_score": 0.07246146288663802,
+          "saa_score": -0.07909223247093677,
+          "mean_directional_price_per_kw": -1.0410441497570033e-14,
+          "saa_directional_price_per_kw": 0.04464255752398873,
+          "saa_central_difference_per_kw": 0.044642485652129915,
+          "absolute_error": 7.187185881163405e-08,
+          "accepted_error_limit": 0.020089285115047976,
+          "saa_minus_mean_score": -0.1515536953575748,
+          "saa_minus_mean_directional_price_per_kw": 0.044642557523999135,
+          "random_unit_increment_forward": {
+            "sample_mean": 0.04457853944818124,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -0.004935939888550678,
+              -0.029432811550655913,
+              0.1178430553310239,
+              0.09483985390090766
+            ],
+            "standard_error": 0.03631259280966209,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "random_unit_increment_central": {
+            "sample_mean": 0.044642485652129915,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -0.004898210886850052,
+              -0.029172915461206372,
+              0.1177388705936755,
+              0.09490219836290059
+            ],
+            "standard_error": 0.03625386676891842,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "sample_directional_price": {
+            "sample_mean": 0.04464255752398872,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -0.004898233024801915,
+              -0.029173482461721446,
+              0.11773948961185389,
+              0.09490245597062436
+            ],
+            "standard_error": 0.03625409926235377,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "score_integration": {
+            "sample_mean": -0.07909223247093677,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.0512341031727912,
+              0.05269838879610944,
+              -0.3128038364911281,
+              -0.10749758536151965
+            ],
+            "standard_error": 0.08649744675557622,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          }
+        },
+        {
+          "pair_id": "cherry01->star",
+          "success": true,
+          "passed": true,
+          "mean_score": 21.3538816462154,
+          "saa_score": 21.259853400942035,
+          "mean_directional_price_per_kw": 1.0436096431476471e-14,
+          "saa_directional_price_per_kw": -0.1607190424712106,
+          "saa_central_difference_per_kw": -0.16071753968418534,
+          "absolute_error": 1.5027870252648512e-06,
+          "accepted_error_limit": 0.020321438084942422,
+          "saa_minus_mean_score": -0.09402824527336406,
+          "saa_minus_mean_directional_price_per_kw": -0.16071904247122104,
+          "random_unit_increment_forward": {
+            "sample_mean": -0.15065373254916636,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.0820668268906033,
+              -0.27656383935443785,
+              -0.22152666411550115,
+              -0.18659125361732976
+            ],
+            "standard_error": 0.07975310424000503,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "random_unit_increment_central": {
+            "sample_mean": -0.1607175396840077,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.07216441581787691,
+              -0.28701376146722524,
+              -0.231375662051736,
+              -0.1966451510349465
+            ],
+            "standard_error": 0.07982695051850933,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "sample_directional_price": {
+            "sample_mean": -0.16071904247121077,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.0721590715982714,
+              -0.28701309556851995,
+              -0.23137688805473433,
+              -0.1966452578598602
+            ],
+            "standard_error": 0.07982565792346123,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "score_integration": {
+            "sample_mean": 21.259853400942035,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              21.3081856872994,
+              20.479790134152335,
+              21.86028195163481,
+              21.391155830681598
+            ],
+            "standard_error": 0.28702344309621713,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          }
+        }
+      ],
+      "fit_calls": 100,
+      "joint_ac_calls": 2995,
+      "historical_ac_calls": 60,
+      "seconds": 12.83276769996155,
+      "failure_denominators": {
+        "mean_center": {
+          "failed_fits": 0,
+          "attempted_fits": 4,
+          "planned_fits": 4,
+          "failures": []
+        },
+        "saa_center": {
+          "failed_fits": 0,
+          "attempted_fits": 32,
+          "planned_fits": 32,
+          "failures": []
+        },
+        "saa_plus": {
+          "failed_fits": 0,
+          "attempted_fits": 32,
+          "planned_fits": 32,
+          "failures": []
+        },
+        "saa_minus": {
+          "failed_fits": 0,
+          "attempted_fits": 32,
+          "planned_fits": 32,
+          "failures": []
+        }
+      },
+      "active_bound_counts": {
+        "mean_center": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006050124294433418,
+            "ac_equation_residual": 1.4248578185882933e-16,
+            "power_balance_residual": 1.2853645444223707e-16
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.000733738825069381,
+            "ac_equation_residual": 2.360662448265203e-16,
+            "power_balance_residual": 2.568108561753084e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.020097574326155426,
+            "ac_equation_residual": 4.931385820426114e-15,
+            "power_balance_residual": 2.584345017003112e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.000947148550855026,
+            "ac_equation_residual": 5.066915147015787e-15,
+            "power_balance_residual": 2.4732888018329667e-15
+          }
+        ],
+        "saa_center": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.008974605815213213,
+            "ac_equation_residual": 2.394861977453362e-16,
+            "power_balance_residual": 1.3114383274349932e-16
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.006116383080852981,
+            "ac_equation_residual": 2.42945515507513e-16,
+            "power_balance_residual": 1.30226356852548e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.006219708154821682,
+            "ac_equation_residual": 2.0143390966303477e-16,
+            "power_balance_residual": 8.12063808351228e-17
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006187146192646904,
+            "ac_equation_residual": 1.390623589761861e-16,
+            "power_balance_residual": 9.332304445027657e-17
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0028729601641653566,
+            "ac_equation_residual": 1.9452315335845626e-16,
+            "power_balance_residual": 2.1517564817907345e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.002430115670983658,
+            "ac_equation_residual": 1.8410608481943892e-16,
+            "power_balance_residual": 9.870527989163135e-17
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0020216188450016387,
+            "ac_equation_residual": 1.3205106222267753e-16,
+            "power_balance_residual": 6.434427047643141e-17
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0012403598868164318,
+            "ac_equation_residual": 1.8401986881875074e-16,
+            "power_balance_residual": 1.1319652230192997e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.005027945693950752,
+            "ac_equation_residual": 1.9796807271529246e-16,
+            "power_balance_residual": 2.2276173083218843e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0005906371454399773,
+            "ac_equation_residual": 1.9794859578099041e-16,
+            "power_balance_residual": 1.1465262398579202e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.005566897346217166,
+            "ac_equation_residual": 2.464254160616037e-16,
+            "power_balance_residual": 1.1805761906302235e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 4,
+            "optimality": 0.0036700932108354707,
+            "ac_equation_residual": 2.152434054370268e-16,
+            "power_balance_residual": 1.2894259225729268e-16
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.005259562295241453,
+            "ac_equation_residual": 2.0133657696885515e-16,
+            "power_balance_residual": 1.513645640612722e-16
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.002724366329415168,
+            "ac_equation_residual": 2.25604757379643e-16,
+            "power_balance_residual": 1.5447807519895208e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0007419918959075663,
+            "ac_equation_residual": 2.603833805946367e-16,
+            "power_balance_residual": 7.796612332912425e-17
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.00661088966895521,
+            "ac_equation_residual": 2.4301612330319097e-16,
+            "power_balance_residual": 1.9082746730124908e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.01718781589636579,
+            "ac_equation_residual": 1.388382187045611e-16,
+            "power_balance_residual": 8.33073745070314e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0018339512522621043,
+            "ac_equation_residual": 1.7700037960070457e-16,
+            "power_balance_residual": 1.3637246461285863e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 3.1380500820424013e-06,
+            "ac_equation_residual": 4.8341074320237205e-15,
+            "power_balance_residual": 2.4654379025255024e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0023006561832086244,
+            "ac_equation_residual": 5.0853962368283674e-15,
+            "power_balance_residual": 2.403605705546932e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.023177680763092214,
+            "ac_equation_residual": 5.132234928197597e-15,
+            "power_balance_residual": 2.56904347428149e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0033345353599856602,
+            "ac_equation_residual": 1.5623484974204997e-16,
+            "power_balance_residual": 1.9433742516459094e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.032821900368562376,
+            "ac_equation_residual": 4.7679092602320315e-15,
+            "power_balance_residual": 2.5694453645142633e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0063740645695310625,
+            "ac_equation_residual": 4.767671870995084e-15,
+            "power_balance_residual": 2.4093268602926854e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.019171078570786516,
+            "ac_equation_residual": 4.532214077518947e-15,
+            "power_balance_residual": 2.382347135119233e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.004890576341012746,
+            "ac_equation_residual": 4.812819532415203e-15,
+            "power_balance_residual": 2.4681928537392475e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.00024177166967083178,
+            "ac_equation_residual": 5.017535758530946e-15,
+            "power_balance_residual": 2.6410405791286474e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.003375972401808452,
+            "ac_equation_residual": 5.0850643717763024e-15,
+            "power_balance_residual": 2.6038963577653478e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.027545192136061235,
+            "ac_equation_residual": 4.7149947057290065e-15,
+            "power_balance_residual": 2.3922195642044244e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.005407532341538293,
+            "ac_equation_residual": 4.8104279142710546e-15,
+            "power_balance_residual": 2.3145203436236144e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.022154096038462866,
+            "ac_equation_residual": 1.5619470461317715e-16,
+            "power_balance_residual": 1.4664570860302477e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003338981602357332,
+            "ac_equation_residual": 9.036836489505952e-17,
+            "power_balance_residual": 1.8571468614142117e-16
+          }
+        ],
+        "saa_plus": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.008995865035508775,
+            "ac_equation_residual": 2.568187518562561e-16,
+            "power_balance_residual": 9.230884816874597e-17
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.005946872591147848,
+            "ac_equation_residual": 1.6322093869543237e-16,
+            "power_balance_residual": 1.5092156551339276e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.006291548394606367,
+            "ac_equation_residual": 2.1181392755814777e-16,
+            "power_balance_residual": 1.353223304401524e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006112952646579258,
+            "ac_equation_residual": 1.4945088878950934e-16,
+            "power_balance_residual": 1.3916764352120123e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0028728781069278504,
+            "ac_equation_residual": 2.2921018611043694e-16,
+            "power_balance_residual": 8.456220925994152e-17
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.002432876446629172,
+            "ac_equation_residual": 2.083659440266255e-16,
+            "power_balance_residual": 6.729324184165683e-17
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.002019611493047194,
+            "ac_equation_residual": 1.4242178946544885e-16,
+            "power_balance_residual": 8.681420125868873e-17
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0011296452989766465,
+            "ac_equation_residual": 1.7014445179485178e-16,
+            "power_balance_residual": 1.4252273664684264e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.005036538355528708,
+            "ac_equation_residual": 1.8749514152435895e-16,
+            "power_balance_residual": 9.440406755110848e-17
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0016493228400553416,
+            "ac_equation_residual": 2.0491960285707777e-16,
+            "power_balance_residual": 1.156229309135161e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.005614858262587197,
+            "ac_equation_residual": 1.8405094316548267e-16,
+            "power_balance_residual": 1.2491213638023616e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 4,
+            "optimality": 0.0035987924517546202,
+            "ac_equation_residual": 2.2564911969941756e-16,
+            "power_balance_residual": 9.887947589402647e-17
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0052581494590069845,
+            "ac_equation_residual": 2.0825853058199325e-16,
+            "power_balance_residual": 6.400283363840626e-17
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0033620798725216955,
+            "ac_equation_residual": 2.221669674706284e-16,
+            "power_balance_residual": 1.4272845245184407e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0007768523340264135,
+            "ac_equation_residual": 2.3961800113314623e-16,
+            "power_balance_residual": 1.4674571268244871e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.006603854642783172,
+            "ac_equation_residual": 1.7024667136057307e-16,
+            "power_balance_residual": 1.303382379771476e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.017093207144403266,
+            "ac_equation_residual": 1.0068964036569036e-16,
+            "power_balance_residual": 1.5967938785066825e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0018331160008881351,
+            "ac_equation_residual": 1.7352126532352293e-16,
+            "power_balance_residual": 5.398760739976239e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 8.245239991481815e-06,
+            "ac_equation_residual": 4.83063405919903e-15,
+            "power_balance_residual": 2.362917050044037e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0018942661588447582,
+            "ac_equation_residual": 5.092282208778597e-15,
+            "power_balance_residual": 2.5282158937074804e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.023221291134395822,
+            "ac_equation_residual": 5.1252930040454384e-15,
+            "power_balance_residual": 2.561622756215326e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0032207475318770723,
+            "ac_equation_residual": 1.1117656704246757e-16,
+            "power_balance_residual": 8.15423833692593e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.032740374148531405,
+            "ac_equation_residual": 4.774855769811003e-15,
+            "power_balance_residual": 2.4682597574287627e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006368560839707411,
+            "ac_equation_residual": 4.812709314350473e-15,
+            "power_balance_residual": 2.4596092630427875e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.01901262541361097,
+            "ac_equation_residual": 4.521826072015795e-15,
+            "power_balance_residual": 2.356626790253184e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.004908877328050305,
+            "ac_equation_residual": 4.816244799232304e-15,
+            "power_balance_residual": 2.3728303320575637e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.00022138452139109678,
+            "ac_equation_residual": 4.996733130850956e-15,
+            "power_balance_residual": 2.5603873558604282e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.003344569153230751,
+            "ac_equation_residual": 5.081599793257928e-15,
+            "power_balance_residual": 2.5386474937302298e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.027463017473203667,
+            "ac_equation_residual": 4.7115261469959926e-15,
+            "power_balance_residual": 2.3913035701599717e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.005384327140969591,
+            "ac_equation_residual": 4.838185040529404e-15,
+            "power_balance_residual": 2.4249542195317106e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.016956263715571202,
+            "ac_equation_residual": 1.6657668205656447e-16,
+            "power_balance_residual": 1.1561723746638644e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0033453062341381136,
+            "ac_equation_residual": 1.00784158901364e-16,
+            "power_balance_residual": 8.022158333225413e-17
+          }
+        ],
+        "saa_minus": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.00895353074296514,
+            "ac_equation_residual": 2.4987931852818095e-16,
+            "power_balance_residual": 7.120823289274224e-17
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.006292777666179225,
+            "ac_equation_residual": 1.735823930947744e-16,
+            "power_balance_residual": 8.065181671673745e-17
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0061505216598894425,
+            "ac_equation_residual": 1.3904866443919908e-16,
+            "power_balance_residual": 7.201192150289796e-17
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006263498734531735,
+            "ac_equation_residual": 1.9101660830808351e-16,
+            "power_balance_residual": 1.694466134670294e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0028729222245340046,
+            "ac_equation_residual": 2.465154368247109e-16,
+            "power_balance_residual": 2.2113472136733112e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.002427372814533322,
+            "ac_equation_residual": 2.2569787432620953e-16,
+            "power_balance_residual": 2.0318677671947008e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0020232973257744507,
+            "ac_equation_residual": 1.3895669857978997e-16,
+            "power_balance_residual": 1.2691965342481976e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0013503705668851777,
+            "ac_equation_residual": 1.5977491272947543e-16,
+            "power_balance_residual": 1.1297032861377161e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.005019406791144268,
+            "ac_equation_residual": 1.979300671624117e-16,
+            "power_balance_residual": 1.0106532319600569e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0005270275901693384,
+            "ac_equation_residual": 1.944825404719983e-16,
+            "power_balance_residual": 7.918328629034044e-17
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.00551944577982804,
+            "ac_equation_residual": 1.5281824813616927e-16,
+            "power_balance_residual": 1.3286498396081935e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 4,
+            "optimality": 0.004354823435129299,
+            "ac_equation_residual": 1.7015802704947355e-16,
+            "power_balance_residual": 8.89384199657565e-17
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.005260861057187558,
+            "ac_equation_residual": 1.9437722172430543e-16,
+            "power_balance_residual": 5.179219138830126e-17
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0026916853486157392,
+            "ac_equation_residual": 1.9094967307485348e-16,
+            "power_balance_residual": 2.173948372798671e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0007292272784797304,
+            "ac_equation_residual": 1.9802091206246872e-16,
+            "power_balance_residual": 1.9429096537506409e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.006617889472948228,
+            "ac_equation_residual": 2.4298671192887425e-16,
+            "power_balance_residual": 1.2491213638023616e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.017284003812156567,
+            "ac_equation_residual": 1.492128488490068e-16,
+            "power_balance_residual": 1.8066335085642566e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0018347932607781306,
+            "ac_equation_residual": 1.1109672377431636e-16,
+            "power_balance_residual": 9.717935776160589e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 3.4899019684989255e-06,
+            "ac_equation_residual": 4.837597571720872e-15,
+            "power_balance_residual": 2.449054194941375e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.002286206356389878,
+            "ac_equation_residual": 4.998785965139353e-15,
+            "power_balance_residual": 2.4689326558852033e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.023135592467036104,
+            "ac_equation_residual": 5.0871439557326516e-15,
+            "power_balance_residual": 2.6522266874549623e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003451774707468254,
+            "ac_equation_residual": 1.9088474656591758e-16,
+            "power_balance_residual": 1.302458527350592e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.032905875941445895,
+            "ac_equation_residual": 4.74709963476444e-15,
+            "power_balance_residual": 2.4175344672903756e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0063795794605482825,
+            "ac_equation_residual": 4.788416963837715e-15,
+            "power_balance_residual": 2.359882169437877e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.019330889759121922,
+            "ac_equation_residual": 4.566883392101147e-15,
+            "power_balance_residual": 2.2183398346332815e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.004872330484099127,
+            "ac_equation_residual": 4.816278480587791e-15,
+            "power_balance_residual": 2.4719938875748186e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.00013625021539544844,
+            "ac_equation_residual": 5.027951553123349e-15,
+            "power_balance_residual": 2.4062059129081464e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.0034074303772837536,
+            "ac_equation_residual": 5.0538570109331824e-15,
+            "power_balance_residual": 2.637859812654558e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.027628582317329446,
+            "ac_equation_residual": 4.725402851081031e-15,
+            "power_balance_residual": 2.301523083945776e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 3,
+            "optimality": 0.005430566574976747,
+            "ac_equation_residual": 4.834731595996237e-15,
+            "power_balance_residual": 2.522516993069252e-15
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.022007178105237033,
+            "ac_equation_residual": 1.5271421543576603e-16,
+            "power_balance_residual": 1.8207625292615861e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0033326213264261054,
+            "ac_equation_residual": 1.2501767838312777e-16,
+            "power_balance_residual": 1.333397656946689e-16
+          }
+        ]
+      }
+    },
+    {
+      "case": "weak",
+      "history_seed": 830002,
+      "status": "passed",
+      "error": null,
+      "history_fit_successes": 2,
+      "history_fit_denominator": 2,
+      "evaluation_successes": 4,
+      "evaluation_denominator": 4,
+      "pair_passes": 2,
+      "pair_denominator": 2,
+      "pair_diagnostics": [
+        {
+          "pair_id": "star->cherry01",
+          "success": true,
+          "passed": true,
+          "mean_score": 1.9054099364979038e-06,
+          "saa_score": -0.09634058542957447,
+          "mean_directional_price_per_kw": -1.3971048411708201e-14,
+          "saa_directional_price_per_kw": 0.04116984453349006,
+          "saa_central_difference_per_kw": 0.04116922807080314,
+          "absolute_error": 6.164626869184509e-07,
+          "accepted_error_limit": 0.02008233968906698,
+          "saa_minus_mean_score": -0.09634249083951096,
+          "saa_minus_mean_directional_price_per_kw": 0.04116984453350403,
+          "random_unit_increment_forward": {
+            "sample_mean": 0.0411613596463134,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -0.00026564185775512783,
+              9.154227420538064e-06,
+              0.09370127043535348,
+              0.07120065578023471
+            ],
+            "standard_error": 0.024277050209334468,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "random_unit_increment_central": {
+            "sample_mean": 0.04116922807080314,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -0.0002291857989611401,
+              9.120520916283681e-06,
+              0.09369893878750091,
+              0.07119803877375652
+            ],
+            "standard_error": 0.02427118165071543,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "sample_directional_price": {
+            "sample_mean": 0.041169844533490055,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -0.00022893428449830575,
+              1.0214253263618011e-05,
+              0.09369954821025568,
+              0.07119854995493922
+            ],
+            "standard_error": 0.02427115395224447,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "score_integration": {
+            "sample_mean": -0.09634058542957447,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              -5.2044121900962637e-08,
+              8.949078095454865e-06,
+              -0.21739900367005127,
+              -0.16797223508222014
+            ],
+            "standard_error": 0.05653241329220178,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          }
+        },
+        {
+          "pair_id": "cherry01->star",
+          "success": true,
+          "passed": true,
+          "mean_score": 1.9055813460511217e-06,
+          "saa_score": 0.09677061794615804,
+          "mean_directional_price_per_kw": -1.3970301434527841e-14,
+          "saa_directional_price_per_kw": -0.04123074040841302,
+          "saa_central_difference_per_kw": -0.04123013075644222,
+          "absolute_error": 6.096519708023718e-07,
+          "accepted_error_limit": 0.020082461480816827,
+          "saa_minus_mean_score": 0.09676871236481199,
+          "saa_minus_mean_directional_price_per_kw": -0.04123074040839905,
+          "random_unit_increment_forward": {
+            "sample_mean": -0.04122226479152946,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.00038303343679046975,
+              -9.20896487954792e-06,
+              -0.09389383676285945,
+              -0.07136904687516932
+            ],
+            "standard_error": 0.02434584114923852,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "random_unit_increment_central": {
+            "sample_mean": -0.04123013075644222,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.0003465932426394147,
+              -9.17715432535715e-06,
+              -0.09389150672669544,
+              -0.07136643238738749
+            ],
+            "standard_error": 0.02433996745655754,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "sample_directional_price": {
+            "sample_mean": -0.041230740408413014,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              0.00034660568363872456,
+              -1.0515904842791734e-05,
+              -0.09389210748565946,
+              -0.07136694392678852
+            ],
+            "standard_error": 0.0243399413877828,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          },
+          "score_integration": {
+            "sample_mean": 0.09677061794615804,
+            "n_samples": 8,
+            "n_independent_antithetic_pairs": 4,
+            "antithetic_pair_means": [
+              8.501852128084408e-06,
+              -5.257632713195903e-06,
+              0.2183041270732735,
+              0.16877510049194377
+            ],
+            "standard_error": 0.056776988114676005,
+            "statistical_unit": "antithetic_pair_conditional_on_H"
+          }
+        }
+      ],
+      "fit_calls": 100,
+      "joint_ac_calls": 2323,
+      "historical_ac_calls": 57,
+      "seconds": 12.830243699951097,
+      "failure_denominators": {
+        "mean_center": {
+          "failed_fits": 0,
+          "attempted_fits": 4,
+          "planned_fits": 4,
+          "failures": []
+        },
+        "saa_center": {
+          "failed_fits": 0,
+          "attempted_fits": 32,
+          "planned_fits": 32,
+          "failures": []
+        },
+        "saa_plus": {
+          "failed_fits": 0,
+          "attempted_fits": 32,
+          "planned_fits": 32,
+          "failures": []
+        },
+        "saa_minus": {
+          "failed_fits": 0,
+          "attempted_fits": 32,
+          "planned_fits": 32,
+          "failures": []
+        }
+      },
+      "active_bound_counts": {
+        "mean_center": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0006568879507978179,
+            "ac_equation_residual": 1.1085955284783107e-16,
+            "power_balance_residual": 6.021022834793079e-17
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0008949791057412558,
+            "ac_equation_residual": 1.306006013385063e-16,
+            "power_balance_residual": 1.3442987715796435e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003347031389212049,
+            "ac_equation_residual": 1.9834346064251124e-16,
+            "power_balance_residual": 9.597583973135934e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.001542658580273774,
+            "ac_equation_residual": 1.5085363209261804e-16,
+            "power_balance_residual": 1.3531972442753237e-16
+          }
+        ],
+        "saa_center": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.008310656736607807,
+            "ac_equation_residual": 1.5401045110783938e-16,
+            "power_balance_residual": 2.34657821375361e-16
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004611344137713626,
+            "ac_equation_residual": 1.5756468122159498e-16,
+            "power_balance_residual": 1.0349469331548702e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004229890930031364,
+            "ac_equation_residual": 1.2757001226805674e-16,
+            "power_balance_residual": 3.170144858313906e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.004245099803471941,
+            "ac_equation_residual": 1.8639198115107546e-16,
+            "power_balance_residual": 1.5326615696083788e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.005008068034499576,
+            "ac_equation_residual": 1.9421350769447858e-16,
+            "power_balance_residual": 1.8815953086624655e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0018656598919408714,
+            "ac_equation_residual": 1.8111044797400595e-16,
+            "power_balance_residual": 1.104910003107673e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0030475770199169653,
+            "ac_equation_residual": 1.0700586606578977e-16,
+            "power_balance_residual": 1.5641637107789784e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0036400499600773542,
+            "ac_equation_residual": 8.845388854693244e-17,
+            "power_balance_residual": 8.855695382858371e-17
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004062102505079405,
+            "ac_equation_residual": 1.54441545483737e-16,
+            "power_balance_residual": 1.086108692045682e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0003113739338915111,
+            "ac_equation_residual": 1.5473111070875122e-16,
+            "power_balance_residual": 1.721161301955476e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.002080283294845375,
+            "ac_equation_residual": 9.76119204299615e-17,
+            "power_balance_residual": 8.09093816545975e-17
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0025368866400194666,
+            "ac_equation_residual": 1.804800335240263e-16,
+            "power_balance_residual": 1.0197334988464413e-16
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0025190386391156752,
+            "ac_equation_residual": 1.6526598664040345e-16,
+            "power_balance_residual": 3.6470472547561464e-17
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004410897233880826,
+            "ac_equation_residual": 8.537677347894433e-17,
+            "power_balance_residual": 1.1713318054121818e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003971431652682131,
+            "ac_equation_residual": 1.958797792709191e-16,
+            "power_balance_residual": 1.0613779987200747e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003977974101637408,
+            "ac_equation_residual": 1.891266308648817e-16,
+            "power_balance_residual": 1.1675926174826746e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.008872882983215414,
+            "ac_equation_residual": 9.63513579824078e-17,
+            "power_balance_residual": 1.35586146682778e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004118224311938912,
+            "ac_equation_residual": 1.644994469140404e-16,
+            "power_balance_residual": 1.7770758248667663e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0042142572534348095,
+            "ac_equation_residual": 1.2757001226805674e-16,
+            "power_balance_residual": 1.0177742528941341e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006109268416443529,
+            "ac_equation_residual": 1.9648375909563053e-16,
+            "power_balance_residual": 1.4319876987262277e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.010499294277295896,
+            "ac_equation_residual": 2.24485886009548e-16,
+            "power_balance_residual": 6.642682947682112e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0032348124471822137,
+            "ac_equation_residual": 2.1814966774207537e-16,
+            "power_balance_residual": 1.1339324233407611e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003057774766688737,
+            "ac_equation_residual": 1.198874660937259e-16,
+            "power_balance_residual": 9.058118219994463e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0036276539526157122,
+            "ac_equation_residual": 1.5714574547875808e-16,
+            "power_balance_residual": 1.3186466014651364e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004073644367437377,
+            "ac_equation_residual": 1.3497720505356648e-16,
+            "power_balance_residual": 1.4732899350213377e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.002723780606543096,
+            "ac_equation_residual": 1.8395431763345852e-16,
+            "power_balance_residual": 2.581607177492292e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.002935305701547633,
+            "ac_equation_residual": 1.6727493323772495e-16,
+            "power_balance_residual": 1.3004642372687692e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0014093335494118986,
+            "ac_equation_residual": 1.7065879465812846e-16,
+            "power_balance_residual": 9.148507953680036e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003968681306076982,
+            "ac_equation_residual": 9.055522398700298e-17,
+            "power_balance_residual": 8.63558692945453e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004464661288059484,
+            "ac_equation_residual": 1.7924193482886225e-16,
+            "power_balance_residual": 1.7030797365075299e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003948032310896576,
+            "ac_equation_residual": 1.3339335488252475e-16,
+            "power_balance_residual": 8.533959093047337e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0039545767828488435,
+            "ac_equation_residual": 1.4318563514232058e-16,
+            "power_balance_residual": 1.4183685148302195e-16
+          }
+        ],
+        "saa_plus": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.008296137541630388,
+            "ac_equation_residual": 1.1993765709120174e-16,
+            "power_balance_residual": 1.2492719238419372e-16
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004341006025707412,
+            "ac_equation_residual": 1.5762375645498324e-16,
+            "power_balance_residual": 1.308194944760814e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004200691632387869,
+            "ac_equation_residual": 1.311094087777098e-16,
+            "power_balance_residual": 9.200578220247641e-17
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.004292689985543421,
+            "ac_equation_residual": 1.8996806218241097e-16,
+            "power_balance_residual": 1.292019669209926e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.005007487697953335,
+            "ac_equation_residual": 1.3211260394454924e-16,
+            "power_balance_residual": 8.078230250789429e-17
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0018618428762132322,
+            "ac_equation_residual": 2.0136433690406066e-16,
+            "power_balance_residual": 1.1629441794268824e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0030671562218106546,
+            "ac_equation_residual": 1.6727493323772495e-16,
+            "power_balance_residual": 1.6589979690014344e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0034461695427827656,
+            "ac_equation_residual": 1.201476041637533e-16,
+            "power_balance_residual": 1.1312422278136492e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004072320040599288,
+            "ac_equation_residual": 1.8061962157693974e-16,
+            "power_balance_residual": 1.4765798705100804e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0027257891329150862,
+            "ac_equation_residual": 1.5473111070875122e-16,
+            "power_balance_residual": 1.6361727997396456e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0020825691007177404,
+            "ac_equation_residual": 1.702880942449144e-16,
+            "power_balance_residual": 1.9293681532138843e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0017295391516751499,
+            "ac_equation_residual": 1.7725614653194653e-16,
+            "power_balance_residual": 8.420559318810146e-17
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0025124935216865214,
+            "ac_equation_residual": 1.279468816630226e-16,
+            "power_balance_residual": 1.0844450065777682e-16
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004412067405208493,
+            "ac_equation_residual": 1.2538103194287726e-16,
+            "power_balance_residual": 8.752298844499399e-17
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003949049368863989,
+            "ac_equation_residual": 1.2923689896027213e-16,
+            "power_balance_residual": 1.170946377384007e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003956064910931647,
+            "ac_equation_residual": 2.0660694968470982e-16,
+            "power_balance_residual": 1.5695173683310416e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.008897337912680698,
+            "ac_equation_residual": 1.1320399892723098e-16,
+            "power_balance_residual": 1.390222859745007e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0032020957662235983,
+            "ac_equation_residual": 1.6106092404692737e-16,
+            "power_balance_residual": 1.2728662795894008e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0041850423431940564,
+            "ac_equation_residual": 1.8996806218241097e-16,
+            "power_balance_residual": 1.6823464180204555e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.006203309587734169,
+            "ac_equation_residual": 1.3370037252277406e-16,
+            "power_balance_residual": 7.979845836685337e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004386633418309124,
+            "ac_equation_residual": 1.6813623280347225e-16,
+            "power_balance_residual": 1.201796905855201e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0032291018810236397,
+            "ac_equation_residual": 1.585825718732798e-16,
+            "power_balance_residual": 6.736447455048117e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003077357010669106,
+            "ac_equation_residual": 1.910264542712512e-16,
+            "power_balance_residual": 2.1814966774207537e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0034334853783599306,
+            "ac_equation_residual": 9.728381220604179e-17,
+            "power_balance_residual": 1.0651964941467425e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004083840534386007,
+            "ac_equation_residual": 1.7143290104737336e-16,
+            "power_balance_residual": 1.1327956819684866e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0027309982501339926,
+            "ac_equation_residual": 1.1910680107790554e-16,
+            "power_balance_residual": 1.1395496089818926e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0029155525933753585,
+            "ac_equation_residual": 1.4370223533007907e-16,
+            "power_balance_residual": 9.327491543082745e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0016101228269798052,
+            "ac_equation_residual": 1.0700586606578977e-16,
+            "power_balance_residual": 1.1364755910069911e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003960262827616621,
+            "ac_equation_residual": 1.2758180628761394e-16,
+            "power_balance_residual": 1.5114260490060375e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.006808605768833652,
+            "ac_equation_residual": 8.182674270850423e-17,
+            "power_balance_residual": 1.3492982066813692e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0039256539782561006,
+            "ac_equation_residual": 1.801441632774288e-16,
+            "power_balance_residual": 8.068824580733133e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003932671387376282,
+            "ac_equation_residual": 1.931160993126569e-16,
+            "power_balance_residual": 1.3417219818326363e-16
+          }
+        ],
+        "saa_minus": [
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.008325253241534172,
+            "ac_equation_residual": 9.287759549037796e-17,
+            "power_balance_residual": 1.108951747356871e-16
+          },
+          {
+            "reference": "star",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004807285128627752,
+            "ac_equation_residual": 1.713802321397946e-16,
+            "power_balance_residual": 1.5787472849842452e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004258882708320586,
+            "ac_equation_residual": 1.8303593427445769e-16,
+            "power_balance_residual": 1.5599254295479003e-16
+          },
+          {
+            "reference": "star",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.00419877448457816,
+            "ac_equation_residual": 1.0710424936134174e-16,
+            "power_balance_residual": 2.0822463320418562e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.005008671945697486,
+            "ac_equation_residual": 1.74475586210423e-16,
+            "power_balance_residual": 1.0240747238505656e-16
+          },
+          {
+            "reference": "star",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0018694376967254766,
+            "ac_equation_residual": 1.8443626986777725e-16,
+            "power_balance_residual": 1.4435776339143496e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0030282698014497335,
+            "ac_equation_residual": 1.0671369693049744e-16,
+            "power_balance_residual": 1.8763903324156505e-16
+          },
+          {
+            "reference": "star",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0038344896143058097,
+            "ac_equation_residual": 9.728381220604179e-17,
+            "power_balance_residual": 2.2080277013485255e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.002358142278677572,
+            "ac_equation_residual": 1.651270875440184e-16,
+            "power_balance_residual": 1.1420885024776481e-16
+          },
+          {
+            "reference": "star",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0003288693128954684,
+            "ac_equation_residual": 2.0136433690406066e-16,
+            "power_balance_residual": 1.4509849765234477e-16
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0020779949650828254,
+            "ac_equation_residual": 1.168462140866474e-16,
+            "power_balance_residual": 9.371521473570662e-17
+          },
+          {
+            "reference": "star",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0025355669641901188,
+            "ac_equation_residual": 2.0077878659971858e-16,
+            "power_balance_residual": 1.6321157600889083e-16
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.002525562030108017,
+            "ac_equation_residual": 8.393265529401495e-17,
+            "power_balance_residual": 1.4492210496269959e-16
+          },
+          {
+            "reference": "star",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.004409693922556179,
+            "ac_equation_residual": 1.7581788283277577e-16,
+            "power_balance_residual": 1.7938248632170688e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0039938206146655246,
+            "ac_equation_residual": 2.1943394877552335e-16,
+            "power_balance_residual": 1.6358221627430866e-16
+          },
+          {
+            "reference": "star",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003999884354034907,
+            "ac_equation_residual": 1.46468611043974e-16,
+            "power_balance_residual": 1.2480537489706952e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.00884858402720955,
+            "ac_equation_residual": 1.4039543209693202e-16,
+            "power_balance_residual": 6.353091690652203e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 0,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.0034201287798910126,
+            "ac_equation_residual": 1.2009750090712767e-16,
+            "power_balance_residual": 1.917340348761166e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.004243262967204647,
+            "ac_equation_residual": 1.500335247250105e-16,
+            "power_balance_residual": 1.5733712414060683e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 1,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.00601917218237549,
+            "ac_equation_residual": 1.5332688837924424e-16,
+            "power_balance_residual": 1.868938132126634e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.010504552686747127,
+            "ac_equation_residual": 2.074209955580389e-16,
+            "power_balance_residual": 1.2098685835134127e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 2,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0032405545241387264,
+            "ac_equation_residual": 1.292834603304692e-16,
+            "power_balance_residual": 1.344977157613844e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003038464653433869,
+            "ac_equation_residual": 9.476100656760399e-17,
+            "power_balance_residual": 6.444831866498564e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 3,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.003822377674224066,
+            "ac_equation_residual": 1.4705554893715319e-16,
+            "power_balance_residual": 1.1904046126816172e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0040635606561749355,
+            "ac_equation_residual": 1.97788907665131e-16,
+            "power_balance_residual": 1.0434419387757146e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 4,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.002716600564223523,
+            "ac_equation_residual": 1.84193409200712e-16,
+            "power_balance_residual": 1.594625153350709e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0029548550984509537,
+            "ac_equation_residual": 1.8745451098453923e-16,
+            "power_balance_residual": 2.0170589995134092e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 5,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.0037675112219666958,
+            "ac_equation_residual": 1.8065294008332476e-16,
+            "power_balance_residual": 1.30335351929563e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.003977047500543789,
+            "ac_equation_residual": 1.719827635957586e-16,
+            "power_balance_residual": 7.483979878913382e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 6,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 1,
+            "optimality": 0.00446194563640585,
+            "ac_equation_residual": 1.6199010924212654e-16,
+            "power_balance_residual": 5.585735516229307e-17
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "star",
+            "success": true,
+            "active_bound_count": 0,
+            "optimality": 0.0039704180403499455,
+            "ac_equation_residual": 1.7253305394310741e-16,
+            "power_balance_residual": 1.3899725562405533e-16
+          },
+          {
+            "reference": "cherry01",
+            "sample": 7,
+            "topology": "cherry01",
+            "success": true,
+            "active_bound_count": 2,
+            "optimality": 0.003976481353206475,
+            "ac_equation_residual": 1.6299940317660535e-16,
+            "power_balance_residual": 1.2491213638023613e-16
+          }
+        ]
+      }
+    }
+  ],
+  "interpretation": "integration diagnostic; not EIG, topology probability or a population calibration",
+  "mean_equals_expected_assumed": false
+}

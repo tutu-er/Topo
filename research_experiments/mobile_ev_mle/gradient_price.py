@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from hashlib import sha256
+from inspect import signature
 from time import perf_counter
 
 import numpy as np
@@ -75,6 +76,28 @@ def _observation_hash(observations):
             array = np.asarray(value, dtype="<f8")
             digest.update(str(array.shape).encode()); digest.update(array.tobytes())
     return digest.hexdigest()
+
+
+def _parameter_domain(value, shape, name):
+    try:
+        low, high = value
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"{name} requires a lower/upper pair") from error
+    low, high = _array(low, shape, name+".lower"), _array(high, shape, name+".upper")
+    if np.any(low >= high):
+        raise ValueError(f"{name} requires lower < upper")
+    if name in ("r_bounds", "x_bounds") and np.any(low < 0):
+        raise ValueError(f"{name} requires nonnegative lower bounds")
+    return low, high
+
+
+def _check_parameter_point(value, domain, name):
+    low, high = domain
+    point = _array(value, low.shape, name)
+    tolerance = 1e-10*np.maximum(1., np.maximum(abs(low), abs(high)))
+    if np.any(point < low-tolerance) or np.any(point > high+tolerance):
+        raise ValueError(f"{name} violates declared joint-fit parameter bounds")
+    return point
 
 
 def _models_for_future(history, model, horizon, future_model):
@@ -146,6 +169,25 @@ class GradientPriceEvaluator:
         if "initial" in self.fit_options or "seed" in self.fit_options:
             raise ValueError("initial and seed are managed by the evaluator")
         self.seed = int(seed)
+        defaults = signature(fit_candidate).parameters
+        self.estimate_source = self.fit_options.get("estimate_source", defaults["estimate_source"].default)
+        if not isinstance(self.estimate_source, (bool, np.bool_)):
+            raise ValueError("estimate_source must be boolean")
+        self.estimate_source = bool(self.estimate_source)
+        self.parameter_domains, self.history_domain_checks = {}, {}
+        self.current_parameter_bounds = {}
+        joint_t = self.history.t+self.horizon
+        for candidate in self.candidates:
+            domains = {}
+            for name, shape in (("r", (candidate.m,)), ("x", (candidate.m,)),
+                                ("p", (joint_t, history.n)), ("q", (joint_t, history.n)),
+                                ("source", (joint_t, 2))):
+                field = name+"_bounds"
+                domains[name] = _parameter_domain(
+                    self.fit_options.get(field, defaults[field].default), shape, field)
+            self.parameter_domains[candidate.name] = domains
+            self.current_parameter_bounds[candidate.name] = {
+                name:dict(lower=lo.tolist(), upper=hi.tolist()) for name, (lo, hi) in domains.items()}
         self.voltage_limits = tuple(voltage_limits)
         if len(self.voltage_limits) != 2 or not 0 < self.voltage_limits[0] < self.voltage_limits[1]:
             raise ValueError("positive ordered prediction voltage limits required")
@@ -157,6 +199,29 @@ class GradientPriceEvaluator:
             fitted = self.historical_fits.get(candidate.name)
             if fitted is None or not fitted.success or fitted.p.shape != history.p.shape:
                 raise ValueError(f"successful H-only fit required for {candidate.name}")
+            domain = self.parameter_domains[candidate.name]
+            _check_parameter_point(fitted.r, domain["r"], "historical.r")
+            _check_parameter_point(fitted.x, domain["x"], "historical.x")
+            for field in ("p", "q"):
+                _check_parameter_point(getattr(fitted, field),
+                    tuple(b[:history.t] for b in domain[field]), "historical."+field)
+            historic_source = np.c_[fitted.source_p, fitted.source_q]
+            _check_parameter_point(historic_source,
+                tuple(b[:history.t] for b in domain["source"]), "historical.source")
+            count = fitted.diagnostics.get("joint_parameter_count")
+            count_fixed = 2*candidate.m+history.t*(2*history.n)
+            count_free = count_fixed+2*history.t
+            if count not in (count_fixed, count_free):
+                raise ValueError("historical estimate_source mode cannot be inferred from parameter count")
+            historic_mode = count == count_free
+            if historic_mode != self.estimate_source:
+                raise ValueError("historical estimate_source mode differs from declared joint fit")
+            if not self.estimate_source and np.any(abs(historic_source) > 1e-12):
+                raise ValueError("fixed-zero source mode requires zero historical source states")
+            self.history_domain_checks[candidate.name] = dict(point_feasible=True,
+                estimate_source=historic_mode, source_mode_inference="joint_parameter_count",
+                historical_original_bounds_known=False,
+                historical_minimum_over_current_domain_certified=False)
             residual = whitened_residual(fitted, self.history, model)
             recomputed = float(residual@residual)
             if not np.isfinite(fitted.loss) or abs(recomputed-fitted.loss) > 1e-6*max(1., abs(fitted.loss)):
@@ -206,6 +271,16 @@ class GradientPriceEvaluator:
         p, q = forecast.p.copy(), forecast.q.copy()
         p[:, site] += u/self.base_kva
         q[:, site] += self.q_over_p*u/self.base_kva
+        domain = self.parameter_domains[reference]
+        _check_parameter_point(fitted.r, domain["r"], "reference.r")
+        _check_parameter_point(fitted.x, domain["x"], "reference.x")
+        for name, point in (("p", p), ("q", q)):
+            _check_parameter_point(point, tuple(b[self.history.t:] for b in domain[name]), "future."+name)
+        source = np.c_[forecast.source_p, forecast.source_q]
+        _check_parameter_point(source,
+            tuple(b[self.history.t:] for b in domain["source"]), "future.source")
+        if not self.estimate_source and np.any(abs(source) > 1e-12):
+            raise ValueError("fixed-zero source mode requires zero forecast source states")
         self.response_ac_calls += 1
         physical = ac_predict(candidate, fitted.r, fitted.x, p, q,
                               forecast.source_p, forecast.source_q, forecast.root_v)
@@ -379,6 +454,10 @@ class GradientPriceEvaluator:
                     fit_records=records, fit_results=fit_results, site=int(site), power_kw=u.copy(),
                     prediction_mode=self.prediction_mode, n_design_samples=len(self.design_noise_samples),
                     design_sample_hash=self.sample_hash, history_hash=self.history_hash,
+                    current_parameter_bounds=self.current_parameter_bounds,
+                    historical_domain_checks=self.history_domain_checks,
+                    estimate_source=self.estimate_source,
+                    prediction_uncertainty_scope="fixed physical forecast + meter noise",
                     gradient_target="retained_local_half_SSE_likelihood_margin",
                     global_optimality_certified=False,
                     fit_calls=self.fit_calls-start_counts[0], ac_evaluations=self.ac_evaluations-start_counts[1],
