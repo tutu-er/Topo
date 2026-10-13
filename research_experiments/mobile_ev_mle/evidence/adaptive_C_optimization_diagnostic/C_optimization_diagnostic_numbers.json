@@ -1,0 +1,341 @@
+{
+  "scope": "read-only frozen C saved optimization diagnosis; no optimization, policy change or recalibration",
+  "statistical_unit": "one independent history; paired refit and library measurements",
+  "history_denominator": 256,
+  "complete_library_comparison_denominator": 255,
+  "library_failure_ids": [
+    "730085"
+  ],
+  "same_criterion_scope": "refit and all eleven library actions share frozen soft-history local-refit proxy; fixed-MLE criterion excluded",
+  "interval_comparison_counts": {
+    "overlap": 140,
+    "library_LB_gt_refit_UB": 99,
+    "refit_LB_gt_library_UB": 16,
+    "library_selection_failure": 1
+  },
+  "stratum_interval_comparison_counts": {
+    "weak_cherry": {
+      "overlap": 54,
+      "library_LB_gt_refit_UB": 40,
+      "refit_LB_gt_library_UB": 8
+    },
+    "star": {
+      "overlap": 41,
+      "library_LB_gt_refit_UB": 21,
+      "refit_LB_gt_library_UB": 3
+    },
+    "strong_cherry": {
+      "overlap": 45,
+      "library_LB_gt_refit_UB": 38,
+      "refit_LB_gt_library_UB": 5,
+      "library_selection_failure": 1
+    }
+  },
+  "stop_reason_counts": {
+    "proxy_gap_met": 128,
+    "budget_or_iteration_limit": 128
+  },
+  "iteration_counts": [
+    {
+      "stop_reason": "proxy_gap_met",
+      "iterations": 1,
+      "count": 125
+    },
+    {
+      "stop_reason": "budget_or_iteration_limit",
+      "iterations": 3,
+      "count": 128
+    },
+    {
+      "stop_reason": "proxy_gap_met",
+      "iterations": 2,
+      "count": 3
+    }
+  ],
+  "solver_records": [
+    {
+      "kind": "direction_lower",
+      "status": 0,
+      "success": true,
+      "incumbent_missing": false,
+      "bound_missing": false,
+      "count": 515
+    },
+    {
+      "kind": "secant_upper",
+      "status": 1,
+      "success": false,
+      "incumbent_missing": true,
+      "bound_missing": true,
+      "count": 515
+    }
+  ],
+  "secant_bound_update_count": 0,
+  "selected_record_match_counts": {
+    "2": 136,
+    "1": 120
+  },
+  "method_unique_correct_counts": {
+    "refit": 71,
+    "library": 81
+  },
+  "paired_unique_correct_counts": {
+    "neither_unique_correct": 171,
+    "both_unique_correct": 67,
+    "refit_only_unique_correct": 4,
+    "library_only_unique_correct": 14
+  },
+  "proxy_interval_vs_actual_outcome": [
+    {
+      "interval_class": "overlap",
+      "outcome": "neither_unique_correct",
+      "count": 98
+    },
+    {
+      "interval_class": "library_LB_gt_refit_UB",
+      "outcome": "neither_unique_correct",
+      "count": 61
+    },
+    {
+      "interval_class": "overlap",
+      "outcome": "both_unique_correct",
+      "count": 31
+    },
+    {
+      "interval_class": "overlap",
+      "outcome": "refit_only_unique_correct",
+      "count": 3
+    },
+    {
+      "interval_class": "library_LB_gt_refit_UB",
+      "outcome": "both_unique_correct",
+      "count": 31
+    },
+    {
+      "interval_class": "refit_LB_gt_library_UB",
+      "outcome": "both_unique_correct",
+      "count": 5
+    },
+    {
+      "interval_class": "overlap",
+      "outcome": "library_only_unique_correct",
+      "count": 8
+    },
+    {
+      "interval_class": "library_LB_gt_refit_UB",
+      "outcome": "library_only_unique_correct",
+      "count": 6
+    },
+    {
+      "interval_class": "refit_LB_gt_library_UB",
+      "outcome": "neither_unique_correct",
+      "count": 11
+    },
+    {
+      "interval_class": "library_LB_gt_refit_UB",
+      "outcome": "refit_only_unique_correct",
+      "count": 1
+    },
+    {
+      "interval_class": "library_selection_failure",
+      "outcome": "neither_unique_correct",
+      "count": 1
+    }
+  ],
+  "scale_and_sensitivity_counts": {
+    "library_action_score_rows": 2806,
+    "gain_interval_contains_zero": 52,
+    "gap_met_gain_interval_contains_zero": 43,
+    "gap_met_tolerance_exceeds_positive_gain_upper": 28,
+    "gap_met_only_relative_part_not_absolute": 126,
+    "library_advantage_gt_0.0001": 76,
+    "library_advantage_gt_0.001": 75,
+    "library_advantage_gt_0.01": 75,
+    "library_advantage_gt_1.0": 69,
+    "library_advantage_gt_relative_1e-6": 76
+  },
+  "library_lower_exceeds_global_upper_count": 0,
+  "metric_summaries": {
+    "refit_global_proxy_lower": {
+      "n": 256,
+      "minimum": 21.93874387169373,
+      "median": 63.26443157684557,
+      "mean": 162.7074990104965,
+      "maximum": 6176.8677367882565
+    },
+    "global_absolute_gap": {
+      "n": 256,
+      "minimum": 7.865139728124859e-05,
+      "median": 0.05636804173497367,
+      "mean": 782.9652263086064,
+      "maximum": 16474.876267921994
+    },
+    "global_relative_gap": {
+      "n": 256,
+      "minimum": 1.1944032455550312e-06,
+      "median": 0.001008935437724659,
+      "mean": 5.402816155492259,
+      "maximum": 112.95391674776779
+    },
+    "selected_action_q_gap": {
+      "n": 256,
+      "minimum": 5.5436544244003017e-11,
+      "median": 0.00828597893030647,
+      "mean": 0.02028189948173005,
+      "maximum": 0.11241435609260009
+    },
+    "library_action_q_gap": {
+      "n": 255,
+      "minimum": 5.0611959068191936e-11,
+      "median": 1.9814279994534445e-08,
+      "mean": 0.008546014239298941,
+      "maximum": 0.06446867801676603
+    },
+    "gain_vs_constant_lower": {
+      "n": 256,
+      "minimum": -0.09072958491979932,
+      "median": 1.4919875674961922,
+      "mean": 105.07242029818738,
+      "maximum": 6074.837053904046
+    },
+    "gain_vs_constant_upper": {
+      "n": 256,
+      "minimum": 1.5454760671218537e-07,
+      "median": 1.5014474665498305,
+      "mean": 105.10432528426831,
+      "maximum": 6074.837053904589
+    },
+    "actual_active_witness_history_share": {
+      "n": 254,
+      "minimum": 0.011179102874622978,
+      "median": 0.9999996729105076,
+      "mean": 0.8934143887006732,
+      "maximum": 0.9999999999875935
+    },
+    "actual_active_witness_future_share": {
+      "n": 254,
+      "minimum": 1.2406738469685729e-11,
+      "median": 3.27089492192489e-07,
+      "mean": 0.10658561129932675,
+      "maximum": 0.9888208971253769
+    }
+  },
+  "selected_cases": {
+    "730007": {
+      "history_id": "730007",
+      "stratum": "weak_cherry",
+      "refit_selection_status": "complete",
+      "proxy_stop_reason": "proxy_gap_met",
+      "selected_record_matches": 2,
+      "refit_global_proxy_lower": 59.755100281628295,
+      "refit_global_proxy_upper": 59.75759426243229,
+      "raw_global_gap": 0.002493980803997431,
+      "global_absolute_gap": 0.002493980803997431,
+      "global_relative_gap": 4.173670184207197e-05,
+      "stopping_tolerance": 0.0598551002816283,
+      "selected_action_q_lower": 59.755100281628295,
+      "selected_action_q_upper": 59.75748873036126,
+      "selected_action_q_gap": 0.002388448732965287,
+      "library_status": "complete",
+      "library_selected": "late_site_2",
+      "library_action_q_lower": 59.75750750114864,
+      "library_action_q_upper": 59.757507767760536,
+      "library_action_q_gap": 2.6661189878041114e-07,
+      "interval_comparison": "library_LB_gt_refit_UB",
+      "library_certified_action_advantage": 1.8770787377775378e-05,
+      "constant_q_lower": 59.757488016287255,
+      "constant_q_upper": 59.75748801752386,
+      "gain_vs_constant_lower": -0.002387735895567289,
+      "gain_vs_constant_upper": 7.140740052591354e-07,
+      "gap_exceeds_gain_upper": true,
+      "tolerance_exceeds_gain_upper": true,
+      "actual_active_witness_history_share": 0.999999999768333,
+      "actual_active_witness_future_share": 2.3166704625804416e-10,
+      "unique_correct_pair_category": "neither_unique_correct",
+      "refit_unique_correct": false,
+      "library_unique_correct": false,
+      "refit_false_rejection": false,
+      "library_false_rejection": false
+    },
+    "730030": {
+      "history_id": "730030",
+      "stratum": "strong_cherry",
+      "refit_selection_status": "complete",
+      "proxy_stop_reason": "budget_or_iteration_limit",
+      "selected_record_matches": 1,
+      "refit_global_proxy_lower": 91.80547397104819,
+      "refit_global_proxy_upper": 3764.441428338117,
+      "raw_global_gap": 3672.6359543670687,
+      "global_absolute_gap": 3672.6359543670687,
+      "global_relative_gap": 40.00454216406826,
+      "stopping_tolerance": 0.09190547397104819,
+      "selected_action_q_lower": 91.80547397104819,
+      "selected_action_q_upper": 91.80547397113625,
+      "selected_action_q_gap": 8.806466667010682e-11,
+      "library_status": "complete",
+      "library_selected": "mobile_0_1",
+      "library_action_q_lower": 1408.865992363917,
+      "library_action_q_upper": 1408.8659923640987,
+      "library_action_q_gap": 1.8167156667914242e-10,
+      "interval_comparison": "library_LB_gt_refit_UB",
+      "library_certified_action_advantage": 1317.0605183927808,
+      "constant_q_lower": 51.08585766618154,
+      "constant_q_upper": 51.08585766632106,
+      "gain_vs_constant_lower": 40.719616304727126,
+      "gain_vs_constant_upper": 40.71961630495471,
+      "gap_exceeds_gain_upper": true,
+      "tolerance_exceeds_gain_upper": false,
+      "actual_active_witness_history_share": 0.9269768665315675,
+      "actual_active_witness_future_share": 0.07302313346843248,
+      "unique_correct_pair_category": "library_only_unique_correct",
+      "refit_unique_correct": false,
+      "library_unique_correct": true,
+      "refit_false_rejection": false,
+      "library_false_rejection": false
+    },
+    "730084": {
+      "history_id": "730084",
+      "stratum": "strong_cherry",
+      "refit_selection_status": "complete",
+      "proxy_stop_reason": "budget_or_iteration_limit",
+      "selected_record_matches": 2,
+      "refit_global_proxy_lower": 94.05543980987824,
+      "refit_global_proxy_upper": 103.48920479280231,
+      "raw_global_gap": 9.433764982924075,
+      "global_absolute_gap": 9.433764982924075,
+      "global_relative_gap": 0.10030004646188775,
+      "stopping_tolerance": 0.09415543980987824,
+      "selected_action_q_lower": 94.05543980987824,
+      "selected_action_q_upper": 94.05543980997079,
+      "selected_action_q_gap": 9.255529676011065e-11,
+      "library_status": "complete",
+      "library_selected": "mobile_0_2",
+      "library_action_q_lower": 95.1794841982627,
+      "library_action_q_upper": 95.17948419862935,
+      "library_action_q_gap": 3.666542625069269e-10,
+      "interval_comparison": "library_LB_gt_refit_UB",
+      "library_certified_action_advantage": 1.1240443882919067,
+      "constant_q_lower": 92.1302886144501,
+      "constant_q_upper": 92.13028861465766,
+      "gain_vs_constant_lower": 1.9251511952205789,
+      "gain_vs_constant_upper": 1.925151195520698,
+      "gap_exceeds_gain_upper": true,
+      "tolerance_exceeds_gain_upper": false,
+      "actual_active_witness_history_share": 0.9999125797120959,
+      "actual_active_witness_future_share": 8.742028790402881e-05,
+      "unique_correct_pair_category": "refit_only_unique_correct",
+      "refit_unique_correct": true,
+      "library_unique_correct": false,
+      "refit_false_rejection": false,
+      "library_false_rejection": true
+    }
+  },
+  "interpretation_limits": [
+    "Numerical convex-QP/affine-proxy intervals are not interval-arithmetic or global nonlinear-AC certificates.",
+    "Action q_upper bounds one fixed action inner minimization; global proxy_upper bounds maximization over the design domain.",
+    "Strict separated intervals can have tiny absolute advantages; sensitivity counts do not redefine the frozen stopping rule.",
+    "Saved active nonlinear rollback witness history/future shares are not a decomposition of the optimal affine q value.",
+    "Actual unique-correct endpoint is not monotone in this proxy on the saved sample; no causal attribution of the whole ten-count difference.",
+    "Descriptive stratification and examples never feed back into the frozen policy."
+  ]
+}

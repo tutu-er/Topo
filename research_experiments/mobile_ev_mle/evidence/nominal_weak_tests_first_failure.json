@@ -1,0 +1,14 @@
+{
+  "utc": "2026-10-12T22:26:58.748042+00:00",
+  "test_source_sha256": "ced867a71efcc95f84be51e9d7186cb10c68ec9528ffc07c3303080b13a7d747",
+  "result": {
+    "passed": 14,
+    "failed": 1
+  },
+  "failed_test": "test_all_independent_scale_leaf_differences_and_shared_terms",
+  "failure_excerpt": "abs(ri-rj)+abs(xi-xj)=.0276 was compared to complex modulus cap .022",
+  "cause": "test retained the l1 norm check from unpublished conservative draft; implemented foundation uses complex Euclidean modulus",
+  "repair": "compare exact squared differences to squared complex modulus cap",
+  "theorem_failure": false,
+  "full_AC_failure": false
+}
