@@ -1,0 +1,57 @@
+{
+  "status": "PASS",
+  "scope": "integration of already completed shared-square evidence; no new H selector or large experiment",
+  "python": "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+  "tests": [
+    {
+      "command": "python -B -m pytest research_experiments/mobile_ev_mle/test_shared_power_square_upper.py research_experiments/mobile_ev_mle/test_shared_power_square_integration.py -q -p no:cacheprovider",
+      "passed": 17,
+      "failed": 0,
+      "seconds": 11.45
+    },
+    {
+      "command": "python -B -m pytest research_experiments/mobile_ev_mle/test_shared_power_square_integration.py::test_archived_honly_evidence_replays_without_optimizer -q -p no:cacheprovider",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 2.45,
+      "guards": [
+        "adaptive_search", "solve_pair", "lsq_linear", "build_history_context",
+        "build_frozen_pairs", "fit_candidate", "LinearMILP.solve"
+      ]
+    }
+  ],
+  "audit_command": "python -B -m research_experiments.mobile_ev_mle.shared_power_square_audit",
+  "archive_files_verified": 112,
+  "archive_bytes_verified": 6236838,
+  "original_archive_bytes": 8047448,
+  "frozen_source_hashes_verified": 15,
+  "QP_records_replayed": 696,
+  "MILP_snapshots_verified": 16,
+  "full_AC_saved_witness_records_replayed": 96,
+  "original_upper_missing_incumbent_and_bound": 3,
+  "shared_upper_with_incumbent_and_bound": 3,
+  "optimal_status_with_nonzero_mip_gap_preserved": 1,
+  "max_primal_difference": 0.0,
+  "max_tangent_difference": 0.0,
+  "max_model_row_violation": 1.184477849136556e-9,
+  "max_model_integrality_violation": 0.0,
+  "max_actual_or_affine_AC_cost_difference": 9.094947017729282e-13,
+  "max_taylor_error_norm_difference": 7.105427357601002e-15,
+  "single_upper_comparison": {
+    "QP_records_replayed": 72,
+    "MILP_snapshots_verified": 2,
+    "max_model_row_violation": 7.514585698142895e-8,
+    "max_model_integrality_violation": 0.0,
+    "old_missing_incumbent_and_bound_preserved": true
+  },
+  "method_changes": "opt-in isolated adapter changes only upper backend policy; original C/D policy and statistics frozen",
+  "limitations": [
+    "two fixed H-only diagnostics, no formal statistical evaluation of new selector",
+    "both shared selected-action gain intervals versus constant charging cross zero",
+    "QP tangent-primal gaps and history-dominated relative stopping retained",
+    "AC rollback proves feasible witnesses for fixed-action/pair nuisance minima only",
+    "full pair Taylor errors do not provide a global nonlinear error bound",
+    "numerical floating bounds, no interval arithmetic or actual topology elimination certificate"
+  ],
+  "latex_delivery": "source fragment only; root integrates and compiles original report"
+}
