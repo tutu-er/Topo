@@ -1,0 +1,37 @@
+\paragraph{连续积分权重及 ESS 的定义。}
+以 $k\in\{1,\ldots,7\}$ 表示七个拓扑--强度成分，
+$\alpha_k$ 表示成分先验质量，$\sum_k\alpha_k=1$；
+$\pi_k(\beta)$ 表示该成分中归一化的条件先验密度，
+$q_k(\beta\mid H)$ 表示仅由历史数据构造、在最终积分前冻结的归一化采样密度。
+第 $k$ 个成分使用 $N_{\beta,k}$ 个新独立参数样本
+$\beta_{kb}\sim q_k(\cdot\mid H)$；各时刻使用 $L$ 个辅助状态样本。
+若 $r_{kt\ell}(\beta)$ 表示包含完整测度密度比值的非负积分核，则
+\begin{equation}
+ \widehat L_H(\beta)=\prod_{t=1}^{T}
+ \left\{\frac1L\sum_{\ell=1}^{L}r_{kt\ell}(\beta)\right\},
+ \qquad
+ \widetilde w_{kb}=
+ \frac{\alpha_k}{N_{\beta,k}}
+ \frac{\pi_k(\beta_{kb})}{q_k(\beta_{kb}\mid H)}
+ \widehat L_H(\beta_{kb}).
+\end{equation}
+这里 $\widehat Z_H=\sum_{k,b}\widetilde w_{kb}$；
+代码显式保留 $1/N_{\beta,k}$，以使每个成分对其样本取均值。
+当前各成分样本数相同，省去共同的 $1/N_{\beta}$ 不改变归一化权重或 ESS，
+但会改变证据估计的尺度，因此保存的 log-weight 与 log-evidence 仍包含该因子。
+各时刻辅助样本云独立，使固定 $\beta$ 下
+$\mathbb E[\widehat L_H(\beta)]=L_H(\beta)$。
+跨 $\beta$ 与成分共享随机数可以用于方差缩减，但单个共享随机数样本批次
+不能唯一分解无条件参数层与辅助状态层方差。
+\begin{equation}
+ \mathrm{ESS}_{\mathrm{all}}=
+ \frac{(\sum_{k,b}\widetilde w_{kb})^2}{\sum_{k,b}\widetilde w_{kb}^{\,2}},
+ \qquad
+ \mathrm{ESS}_{k}=
+ \frac{(\sum_b\widetilde w_{kb})^2}{\sum_b\widetilde w_{kb}^{\,2}}.
+\end{equation}
+总权重为零时，该数值诊断定义为零，并保留该成分为积分失败项。
+最大归一化粒子权重为
+$\max_{k,b}\widetilde w_{kb}/\sum_{k,b}\widetilde w_{kb}$。
+这些量描述有限 Monte Carlo 权重集中程度，不能解释为拓扑正确概率、
+后验近似误差界或全域积分精度保证。

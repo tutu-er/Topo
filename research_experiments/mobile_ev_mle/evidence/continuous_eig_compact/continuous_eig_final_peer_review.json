@@ -1,0 +1,73 @@
+{
+  "review_status": "implementation_consistent_numerical_result_failed",
+  "blocking_implementation_findings": [],
+  "scope": {
+    "original_trial_read": false,
+    "actual_future_truth_noise_data_read": false,
+    "actual_H_or_predictive_MC_run": false,
+    "primary_modified": false,
+    "runtime_source_modified": false,
+    "git_executed": false,
+    "inverse_full_domain_theorem_reproved": false,
+    "accepted_inverse_theorem_call_boundary_audited": true
+  },
+  "checks": {
+    "original_prior_target_preserved": true,
+    "H_used_exactly_once_each_level": true,
+    "pilot_weights_not_reused": true,
+    "all_six_raw_banks_finite_logweight_max_error": 0.0,
+    "all_six_raw_banks_nonfinite_patterns_match": true,
+    "all_six_raw_banks_log_evidence_reassembly_max_error": 0.0,
+    "all_six_raw_banks_full_frozen_q_logdensity_max_error": 0.0,
+    "all_three_paired_theta_and_logq_exactly_equal": true,
+    "prefix32_is_same_nonlinear128_kernel": true,
+    "independent_time_clouds_and_fresh_repeat_streams": true,
+    "all_seven_modes_retained_and_required": true,
+    "rare_mode_exemption": false,
+    "source_snapshot_hashes_all_nine_match": true,
+    "final_plan_snapshot_hash_matches": true,
+    "frozen_q_snapshot_hash_matches": true,
+    "supported_inverse_failures_raise_not_probability_zero": true,
+    "invalid_inverse_counter_only_outside_background_master_support": true,
+    "theta_SE_conditioned_on_latent_cloud": true,
+    "latent_sample_moment_SE_not_error_bound": true,
+    "unconditional_variance_decomposition_not_claimed": true,
+    "posterior_accepted": false,
+    "predictive_MC_executed": false
+  },
+  "test_validation": {
+    "independently_rerun_existing_tests": 56,
+    "passed": 56,
+    "seconds": 2.78,
+    "numerical_threads": 1,
+    "tests_establish_actual_H_integration_adequacy": false
+  },
+  "v5_observed": {
+    "completed_repeats": 3,
+    "seconds": 502.7380202000495,
+    "status": "failed",
+    "global_ESS_L32": [427.86750049572106, 232.34798211185793, 200.33987875282884],
+    "global_ESS_L128": [437.3165423799853, 259.0579444083805, 193.93948978229443],
+    "maximum_weight_L32": [0.021486618045259465, 0.05449478778227993, 0.050629883839859675],
+    "maximum_weight_L128": [0.020579252257926565, 0.04962075409559192, 0.05211443318998774],
+    "six_other_mode_conditional_ESS_approximately_one": true,
+    "log_evidence_repeat_range_L32": 2.3465391181550785,
+    "log_evidence_repeat_range_L128": 0.504243704028795,
+    "paired_logZ_delta_128_minus_32": [-0.1831435296633117, 1.6591518844629718, 0.07655357966564225],
+    "supported_inverse_failure_count": 0,
+    "master_rectangle_outside_count": 0,
+    "outside_background_inverse_unusable_total_L32_by_repeat": [2136, 3407, 1349],
+    "outside_background_inverse_unusable_total_L128_by_repeat": [11575, 11957, 9780],
+    "these_outside_counts_are_numerical_failures": false,
+    "failure_is_not_exact_model_rejection": true
+  },
+  "nonblocking_schema_note": {
+    "file": "continuous_eig_sampling.py",
+    "line": 578,
+    "field": "posterior_available",
+    "meaning_in_current_code": "finite numerical particle bank exists",
+    "accepted_posterior_inference": false,
+    "suggested_future_name": "numerical_particle_bank_available",
+    "runtime_source_changed_by_review": false
+  }
+}

@@ -1,0 +1,85 @@
+\paragraph{当前没有可信的 EIG 排序。}
+
+该分支建立了连续阻抗、共享背景负荷和源注入的 proper 模型，以及
+保留完整测度密度的历史积分实现。五版 H-only 诊断均未通过预先设定的
+数值 gate。因此本文不接受该粒子近似作为可用 posterior，不报告
+predictive EIG 或动作排名。已接受的逆 AC 定理、参数域及其证明保持不变。
+
+guided latent proposal 使用完整的 meter-density/proposal-density 比值，
+两者在同一 $dP\,dQ\,dS_0$ 测度下计算，白化 proposal 的
+Jacobian 也纳入密度。分量 proposal 的 uniform 混合质量、
+顺序条件截断 normalizer 和 $\beta$ 坐标 Jacobian 均保留。
+这些采样变化不改变前述逆 AC 目标积分。
+
+\paragraph{工程 pilot 与最终冻结。}
+pilot 使用 $\kappa=0.001,0.003,0.01,0.03,0.1,0.3,1$
+的随机 $\widehat L_H^{\kappa}$ 权重拟合 proposal。
+一般有 $\mathbb E[\widehat L_H^{\kappa}]\ne L_H^{\kappa}$，
+故这些权重不构成精确 tempered posterior。
+最终冻结只继承归一化 proposal 参数，并以 fresh
+$\beta$、fresh independent-time latent 云重新构造原始
+$\pi_k(\beta)L_H(\beta)$ 的重要性权重；pilot 权重不进入最终 estimator。
+最终三重复种子为 $28301301$--$28301303$，每分量 $B=4096$、
+每时刻 $L=128$；配对 $L=32$ 使用相同 fresh $\beta$/log-density
+和每时刻前 32 个核值。两级分别替换历史 likelihood，不能相乘。
+固定 chunk size 256 只控制内存。
+
+\paragraph{完整失败分母与数值结果。}
+原 gate 保持 global ESS $\ge100$、全部七个 mode conditional ESS
+$\ge20$、最大归一化粒子权重 $\le0.05$，并要求独立重复及积分稳定。
+显示质量下溢不豁免任何 mode；有限 MC 的零分量证据不构成数学模型拒绝。
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\hline
+版本 & $B/L$ & 三重复 global ESS & 最大权重范围 & log-evidence 跨度\\
+\hline
+V1 & $2048/32$ & $1.000,1.000,1.000$ & $1.0000$ & $25.561187$\\
+V2 & $2048/32$ & $2.234,3.709,5.356$ & $0.3692$--$0.6565$ & $0.887723$\\
+V3 & $2048/32$ & $33.821,36.086,12.314$ & $0.1054$--$0.2736$ & $0.647419$\\
+V4 & $2048/32$ & $21.027,9.350,10.506$ & $0.1502$--$0.3103$ & $0.962367$\\
+V5 & $4096/32$ & $427.868,232.348,200.340$ & $0.0215$--$0.0545$ & $2.346539$\\
+V5 & $4096/128$ & $437.317,259.058,193.939$ & $0.0206$--$0.0521$ & $0.504244$\\
+\hline
+\end{tabular}
+\end{center}
+V5 的主导分量为 \texttt{clade\_02\_strong}，另六个 mode 的
+conditional ESS 均约为 1；第三重复 $L=128$ 的最大权重为
+$0.052114>0.05$。三组配对
+$\log\widehat Z_{128}-\log\widehat Z_{32}$ 为
+$-0.183144,1.659152,0.076554$。
+每 mode 的配对 log-evidence 差约覆盖 $-0.320$ 至 $25.210$。
+global ESS 提高没有解决全部分量的积分退化，五版结果均保留为 failed。
+
+\paragraph{诊断解释与停止规则。}
+最终 prior-supported $\beta$、finite background density 和 master rectangle
+内的 inverse、branch、certificate、正物理电压或正 Jacobian 数值失败
+会强制终止，不能赋予零目标概率。
+参数、background、source-prior 或已声明 master 支持外 proposal
+则保留为合法零目标事件；支持外的 inverse-unusable 计数不称为支持内数值失败。
+V5 支持内失败计数为零。Gaussian 测量电压允许任意有限读数。
+latent ESS/relative SE 是样本矩诊断，且由随机历史权重选择，不能当作积分误差界。
+$\theta$ 层 sample SE 条件于固定共同 latent 云。
+跨 $\beta$ 的 CRN 使单个 bank 无法唯一分解无条件
+$\beta$/latent 方差；不能将两层诊断直接平方和成总误差。
+独立 repeats 与配对 doubling 作为额外诊断分别保留。
+
+\paragraph{验证、信息流及可续接证据。}
+当前集成源码的六套 inverse/sampler/proposal/guidance/moment/prefix 测试
+实际运行得到 76 passed；这验证代数与实现边界，不验证实际 $H$ 的积分充分性。
+既有 H-only 五版累计计算时间为 $659.224$ s；工程 pilot 为
+$196.357$ s。旧总工作预算已结束，本次收尾没有启动新 MC。
+初始 trial schema 检查意外暴露 case、truth-topology 和 true-index；
+该事实保留在 ledger，不能声称研究代理从未见过 truth。
+正式输入仅使用已清洗 H-only 六个数组；实际 future/latent/noise NPZ 字段未索引，
+暴露字段未用于 proposal、动作、预算或结果筛选。
+
+提交证据包含冻结配置、按字节 hash 去重的历史源码快照、
+18 个 bank 的完整七-mode 聚合诊断、种子、配对原计量与权重 hash，
+以及本地逐粒子重算的实际记录。
+详细 JSON、逐粒子诊断和 raw NPZ 保留本地 staging，并记录路径及 SHA-256。
+提交包验证器检查 artifact 完整性及聚合 sufficient statistics 的一致性；
+它不声称从提交摘要独立重算逐粒子 ESS。
+历史冻结 hash 指向原执行快照，包导入修正后的当前源码 hash 单独记录。
+下一步首先定位六个退化 mode 的 $\beta$ proposal 与 latent integration 失配；
+任何新 MC 仍需另行冻结配置，不能删除这些 mode、降低原 gate 或复用 pilot 权重。
