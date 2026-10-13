@@ -1,4 +1,16 @@
 # AC 最大似然拟合与 EV 模型判别设计
+## 疑似支路信息价格（2026-10-14，本轮继续）
+
+先读 `structured_information_protocol.md`、`structured_information_protocol_v2.md`、`structured_information_math.md` 和 `targeting_math.md`。本轮以完整AC白化导数构造疑似内部R/X的局部信息，投影掉其他共享线路及H/N各自真实P/Q与同点源；功率仍由MILP价格步优化，少数接入节点逐个比较。所有4拓扑保留最终完整AC联合拟合。
+
+S1解析/秩亏/活动界/梯度检查通过；24条小支路尺度AC审计完成，最小尺度二次SSE比值1.00014--1.00039。R相关激励信号改善，纯X方向近乎无改善。只支持声明展开点及局部范围。
+
+v1等权3支撑pilot为6独立H、18质量条件，全部完成并独立重放。发现等权指标会增强其他支撑而忽略H指出的模糊支撑，负例保留。v2采用H-only熵正则任务权重，混合15%均匀份额；权重是规划规则。实际AC历史支持点可作为第二展开点，标签不是MLE。v2同一6H配对开发pilot18/18完成，864保存拟合重放及1890目标全B投影核验通过。
+
+v2信息搜索(初始化与4搜索合计)最大3.061秒，全部选择最大26.482秒，通过15/75秒扩批门槛。正式阶段将另存 `evidence/structured_information/v3_frozen/`：39独立校准、80独立评价，冻结11方法及混合分布。v3仅补实际失败调用计数；同一930002历史的11动作、全部loss及AC调用数与v2完全一致。当前正式结果尚未写为完成。
+
+逐阶段config、summary、compact表和独立replay保存在 `evidence/structured_information/v1/` 与 `v2_targeted/`。完整raw trial只在本地保留；tables/raw_manifest.json保存哈希、种子及源版本，可按冻结记录重建。精确科学源字节快照保留Git换行恢复支持；旧13科学源未改。`information_replay.py`使用实际H/N/joint计量模型，`information_geometry_audit.py`独立组装一次完整投影。前期C/D与梯度研究记录保留。
+
 ## 单节点完整梯度价格（2026-10-13，本轮实施）
 
 先读 `gradient_price_protocol.md`、`gradient_price_math.md` 和 `gradient_price_checkpoint.json`。

@@ -235,3 +235,35 @@ def test_late_initialization_failure_preserves_actual_ac_attempt_denominator(mon
     record=error.record()
     assert record["initialization_ac_calls"]==6
     assert record["ac_call_count_available"]
+
+
+@pytest.mark.parametrize("step",[.02,.005])
+def test_positive_history_target_weights_and_prices_match_reprojection_fd(step):
+    history,hm,fm,centers=inputs()
+    weights={(0,1):.65,(0,2):.20,(1,2):.15}
+    weighted=StructuredInformationEvaluator(history,centers,hm,future_model=fm,target_weights=weights)
+    power=np.array([1.,4.,5.,2.]);direction=np.array([-.3,.6,-.1,-.2])
+    result=weighted.evaluate(0,power)
+    plus=weighted.evaluate(0,power+step*direction,with_gradient=False)
+    minus=weighted.evaluate(0,power-step*direction,with_gradient=False)
+    assert result["success"] and plus["success"] and minus["success"]
+    expected=sum(weights[tuple(t["target_support"])]*t["score"] for t in result["targets"])
+    assert result["score"]==pytest.approx(expected)
+    analytic=np.dot(result["pairs"][0]["gradient_kw"],direction)
+    finite=(plus["score"]-minus["score"])/(2*step)
+    assert analytic==pytest.approx(finite,rel=5e-5,abs=2e-7)
+    assert len(result["targets"])==3
+    assert result["minimum_target_task_weight"]==.15
+    assert not result["target_weights_are_topology_probabilities"]
+
+
+@pytest.mark.parametrize("weights",[
+    {(0,1):.5,(0,2):.5},
+    {(0,1):.5,(0,2):.5,(1,2):0.},
+    {(0,1):.5,(0,2):.5,(1,2):-.1},
+    {(0,1):.5,(0,2):.3,(1,2):.3},
+    {(0,1):np.inf,(0,2):.3,(1,2):.2}])
+def test_invalid_target_weight_floor_family_and_sum_are_rejected(weights):
+    history,hm,fm,centers=inputs()
+    with pytest.raises(ValueError,match="target weights"):
+        StructuredInformationEvaluator(history,centers,hm,future_model=fm,target_weights=weights)

@@ -24,19 +24,21 @@ from .candidates import propose, normalize_family
 from .single_site_milp import SingleSitePlan, constant_site_plan, check_single_site_plan
 from .gradient_price import GradientPriceEvaluator
 from .gradient_price_search import SearchSettings, optimize_price_curves
-from .information_context import (build_centres, quality_models, cheap_quality_plan,
+from .information_context import (quality_models, cheap_quality_plan,
                                  meter_to_record)
 from .structured_information import StructuredInformationEvaluator
+from .information_targeting import history_target_weights
+from .information_context_counter import build_centres
 from .adaptive_statistics import binomial_exact_interval, paired_continuous_effects
 
 HERE=Path(__file__).resolve().parent
 METHODS=('none','constant_fixed','quality_global','quality_local','information_seed',
          'information_fixed','information_random','information_designed',
-         'nominal_information','profile_designed')
+         'nominal_information','uniform_information','profile_designed')
 QUALITY=('uniform','temporal','spatial')
 PILOT_CASES=(('star',()),('moderate',((0,1),)),('strong',((0,2),)),
              ('moderate',((1,2),)),('weak',((0,1),)),('weak',((1,2),)))
-DEFAULT_CONFIG=dict(version='structural_information_v1',history_points=12,future_points=4,
+DEFAULT_CONFIG=dict(version='structural_information_v2_targeted',history_points=12,future_points=4,
     energy=.15,p_charge_max=.3,p_discharge_max=0.,dt_hours=.25,gate_half_sse=6.,
     wzzt_seconds=.3,line_lognormal_sigma=.10,alpha=.1,
     information_settings=dict(max_iterations=4,max_starts=3,initial_trust_pu=.15,
@@ -44,7 +46,7 @@ DEFAULT_CONFIG=dict(version='structural_information_v1',history_points=12,future
     profile_settings=dict(max_iterations=2,max_starts=3,initial_trust_pu=.15,
         minimum_trust_pu=.003,gain_tolerance=1e-6,milp_time_limit=5.,gradient_mode='full'),
     information=dict(scales_pu=[.003,.003],max_anchors=2,perturb_scale_pu=.003,
-        fd_step_kw=.01,rcond=1e-10,target_weights='equal_three_structural_supports',
+        fd_step_kw=.01,rcond=1e-10,target_weights='H_only_entropy_regularized_tasks',target_epsilon=.15,target_tau_half_sse=1.,retain_perturbed_points=True,
         anchor_aggregation='minimum',EV_increment='subtract_same_quality_no_EV'),
     design_fit_options=dict(multistart=1,max_nfev=150,tol=1e-10,linear_solver='exact'),
     evaluation_fit_options=dict(multistart=2,max_nfev=200,tol=1e-10,linear_solver='exact'),
@@ -69,7 +71,7 @@ def configuration(config=None):
 def source_hashes():
     result=old.source_hashes()
     for name in ('information_study.py','information_context.py','structured_information.py',
-                 'symmetric_ac_local.py'):
+                 'symmetric_ac_local.py','information_targeting.py','information_context_counter.py'):
         result[name]=hashlib.sha256((HERE/name).read_bytes()).hexdigest()
     return result
 
@@ -153,7 +155,7 @@ def select_controls(history,candidates,historical_fits,history_model,future_mode
     record=dict(activated=activated,history_gap=gap,methods=method_records,searches={},
         selector_uses_truth=False,selector_uses_future_noise=False,public_quality=quality_record,
         WZZT_role='candidate_structure_only',source_is_estimated_by='anchored_AC_H_fit',
-        global_design_optimality_certified=False,selector_fit_calls=0,selector_ac_calls=0)
+        global_design_optimality_certified=False,selector_fit_calls=0,selector_ac_calls=0,selector_ac_call_count_available=True)
     cheap={}
     for kind in ('global','local','random'):
         try:cheap[kind]=cheap_quality_plan(kind,quality_record,constraints,n_sites=history.n,
@@ -175,25 +177,37 @@ def select_controls(history,candidates,historical_fits,history_model,future_mode
     try:
         centres,context=build_centres(history,candidates,historical_fits,history_model,horizon=t,
             fit_options=config['evaluation_fit_options'],gate_half_sse=config['gate_half_sse'],
-            max_anchors=info['max_anchors'],perturb_scale_pu=info['perturb_scale_pu'],seed=seed+400)
+            max_anchors=info['max_anchors'],perturb_scale_pu=info['perturb_scale_pu'],seed=seed+400,
+            retain_perturbed_points=info.get('retain_perturbed_points',False))
     except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError) as error:
         centres=[];context=dict(activated=False,reason='context_failure',error=str(error),
-            fit_calls=0,ac_calls=0,call_count_unavailable=True)
-        for m in METHODS[4:9]:method_records[m]=dict(status='selection_failure_fallback',reason=str(error))
+            fit_calls=int(getattr(error,'fit_calls',0)),ac_calls=int(getattr(error,'ac_calls',0)),
+            seconds=float(getattr(error,'seconds',0.)),call_count_unavailable=not bool(getattr(error,'call_count_available',False)),
+            failed_context_record=error.record() if hasattr(error,'record') else None)
+        for m in METHODS[4:10]:method_records[m]=dict(status='selection_failure_fallback',reason=str(error))
     record['context']=context;record['centres']=centres_record(centres)
+    record['selector_ac_call_count_available']=not context.get('call_count_unavailable',False)
     record['selector_fit_calls']+=int(context.get('fit_calls',0));record['selector_ac_calls']+=int(context.get('ac_calls',0))
     settings=SearchSettings(**config['information_settings'])
-    if centres:
+    target_record=history_target_weights(candidates,historical_fits,epsilon=info['target_epsilon'],tau=info['target_tau_half_sse'])
+    record['target_weight_record']=serial({k:v for k,v in target_record.items() if k!='weights'})
+    target_weights=target_record.get('weights')
+    if centres and target_record['success']:
         first_anchor=centres[0].anchor_id
         runs=(('seeds',centres,SearchSettings(**{**asdict(settings),'max_iterations':0})),
-              ('robust',centres,settings),('nominal',[c for c in centres if c.anchor_id==first_anchor],settings))
+              ('robust',centres,settings),('nominal',[c for c in centres if c.anchor_id==first_anchor],settings),
+              ('uniform',centres,settings))
         for tag,selected_centres,st in runs:
+            evaluator=None
+            initialization_counted=False
             try:
                 evaluator=StructuredInformationEvaluator(history,selected_centres,history_model,future_model=future_model,
                     base_kva=BASE_KW,q_over_p=constraints.q_over_p,
                     weight=.5*np.diag(np.asarray(info['scales_pu'],float)**2),
-                    fd_step_kw=info['fd_step_kw'],rcond=info['rcond'])
+                    fd_step_kw=info['fd_step_kw'],rcond=info['rcond'],
+                    target_weights=None if tag=='uniform' else target_weights)
                 record['selector_ac_calls']+=evaluator.initialization_ac_calls
+                initialization_counted=True
                 result=optimize_price_curves(evaluator,constraints,sites=range(history.n),settings=st)
                 result['initialization_ac_calls']=evaluator.initialization_ac_calls
                 result['initialization_seconds']=evaluator.initialization_seconds
@@ -204,7 +218,7 @@ def select_controls(history,candidates,historical_fits,history_model,future_mode
                 plans=result.get('site_plans',{})
                 if tag=='robust':targets={'information_fixed':0,'information_random':record['random_site'],
                                         'information_designed':result.get('selected_site')}
-                else:targets={'information_seed' if tag=='seeds' else 'nominal_information':result.get('selected_site')}
+                else:targets={('information_seed' if tag=='seeds' else 'nominal_information' if tag=='nominal' else 'uniform_information'):result.get('selected_site')}
                 for method,site in targets.items():
                     plan=plans.get(site)
                     if plan is not None:
@@ -212,21 +226,26 @@ def select_controls(history,candidates,historical_fits,history_model,future_mode
                             predicted_score=result['site_evaluations'][site]['score'])
                     else:method_records[method]=dict(status='selection_failure_fallback',reason='no_valid_information_plan')
             except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError) as error:
-                spent=int(getattr(error,'initialization_ac_calls',0))
+                spent=(max(0,int(evaluator._ac_calls)-(int(evaluator.initialization_ac_calls) if initialization_counted else 0))
+                    if evaluator is not None else int(getattr(error,'initialization_ac_calls',0)))
                 record['selector_ac_calls']+=spent
                 record['searches'][tag]=dict(success=False,error=type(error).__name__+':'+str(error),
-                    failed_initialization_record=error.record() if hasattr(error,'record') else None)
+                    failed_initialization_record=error.record() if hasattr(error,'record') else None,
+                    partial_ac_calls_retained=spent)
                 methods=('information_fixed','information_random','information_designed') if tag=='robust' else (
-                    'information_seed' if tag=='seeds' else 'nominal_information',)
+                    'information_seed' if tag=='seeds' else 'nominal_information' if tag=='nominal' else 'uniform_information',)
                 for method in methods:method_records[method]=dict(status='selection_failure_fallback',reason=str(error))
     else:
-        record['information_not_started_reason']=context.get('reason','no_history_supported_star_anchor')
+        record['information_not_started_reason']=context.get('reason','no_history_supported_star_anchor') if not centres else 'required_target_weight_failure'
+        if centres and not target_record['success']:
+            for method in METHODS[4:10]:method_records[method]=dict(status='selection_failure_fallback',reason='required_target_weight_failure')
+    profile_evaluator=None
     try:
         supported=[c for c in ranking if .5*(historical_fits[c.name].loss-historical_fits[ranking[0].name].loss)<=config['gate_half_sse']]
         if len(supported)>=2:
-            evaluator=GradientPriceEvaluator(history,supported,historical_fits,history_model,horizon=t,
+            profile_evaluator=GradientPriceEvaluator(history,supported,historical_fits,history_model,horizon=t,
                 future_model=future_model,fit_options=config['design_fit_options'],seed=seed+700)
-            result=optimize_price_curves(evaluator,constraints,settings=SearchSettings(**config['profile_settings']))
+            result=optimize_price_curves(profile_evaluator,constraints,settings=SearchSettings(**config['profile_settings']))
             record['searches']['profile']=serial(result)
             record['searches']['profile']['comparison_scope']='old complete method; reference forecasts and iteration budget differ from information policy'
             record['selector_fit_calls']+=result.get('fit_calls',0)
@@ -236,7 +255,10 @@ def select_controls(history,candidates,historical_fits,history_model,future_mode
                     selected_site=result['selected_site'],predicted_score=result['score'])
             else:method_records['profile_designed']=dict(status='selection_failure_fallback',reason='profile_search_failed')
     except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError) as error:
-        record['searches']['profile']=dict(success=False,error=str(error))
+        partial_ac=0 if profile_evaluator is None else int(profile_evaluator.ac_evaluations+profile_evaluator.response_ac_calls)
+        partial_fit=0 if profile_evaluator is None else int(profile_evaluator.fit_calls)
+        record['selector_ac_calls']+=partial_ac;record['selector_fit_calls']+=partial_fit
+        record['searches']['profile']=dict(success=False,error=str(error),partial_ac_calls_retained=partial_ac,partial_fit_calls_retained=partial_fit)
         method_records['profile_designed']=dict(status='selection_failure_fallback',reason=str(error))
     record['seconds']=perf_counter()-began
     return choices,record
@@ -316,8 +338,9 @@ def run_trial(seed,*,case=None,truth_family=None,quality=None,config=None):
         calibration_score_is_infinite=not complete,independent_history_unit=True,selection_uses_truth=False,
         selection_uses_future_noise=False,white_evaluation_noise=white,seconds=perf_counter()-began,
         total_ac_calls=hcost['ac_calls']+selection['selector_ac_calls']+executed_ac_calls,
+        total_ac_call_count_available=selection.get('selector_ac_call_count_available',True),
         joint_unique_action_count=len(joint_cache),actual_joint_fit_calls=executed_fit_calls,
-        ac_call_definition='actual algorithm calls; equal actions reuse identical joint fits, record cache hits',
+        ac_call_definition='attempted algorithm calls including failed context entries; unavailable flag denotes a lower bound; equal actions cache exact joint fits',
         runtime=dict(python=platform.python_version(),numpy=np.__version__,scipy=scipy.__version__))
     return serial(result)
 
@@ -341,7 +364,8 @@ def summarize(trials,calibration=None):
     effects=[]
     for method,baseline in (('information_designed','constant_fixed'),('information_designed','information_seed'),
         ('information_designed','quality_global'),('information_designed','quality_local'),
-        ('information_designed','profile_designed'),('information_designed','nominal_information')):
+        ('information_designed','profile_designed'),('information_designed','nominal_information'),
+        ('information_designed','uniform_information')):
         valid=[];units_for_pairs={};wins=losses=ties=0
         for t in trials:
             rows={r['method']:r for r in t['records']}
@@ -365,6 +389,7 @@ def summarize(trials,calibration=None):
         statistical_note='pilot quality repeats are paired conditions of the same H; formal one quality per independent H',
         method_summary=by_method,paired_effects=effects,calibration=calibration,
         total_seconds=sum(t['seconds'] for t in trials),total_ac_calls=sum(t['total_ac_calls'] for t in trials),
+        histories_with_unavailable_AC_counts=sum(not t.get('total_ac_call_count_available',True) for t in trials),
         max_selection_seconds=max((t['selection']['seconds'] for t in trials),default=0.),
         case_counts={c:sum(t['case']==c for t in trials) for c in DEFAULT_CONFIG['population']['case_names']},
         quality_counts={q:sum(t['quality']==q for t in trials) for q in QUALITY})
@@ -416,7 +441,7 @@ def run_batch(phase,output,*,count=None,start_seed=None,config=None):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--phase',choices=('pilot','calibration','evaluation'),default='pilot')
-    p.add_argument('--output',type=Path,default=HERE/'evidence/structured_information/v1');p.add_argument('--count',type=int)
+    p.add_argument('--output',type=Path,default=HERE/'evidence/structured_information/v2_targeted');p.add_argument('--count',type=int)
     p.add_argument('--start-seed',type=int);p.add_argument('--config',type=Path);a=p.parse_args()
     run_batch(a.phase,a.output,count=a.count,start_seed=a.start_seed,config=None if a.config is None else read_json(a.config))
 

@@ -227,3 +227,31 @@ def test_attempted_ac_call_count_matches_independent_alias_and_module_instrument
     if fail_second_verification:
         assert record["attempts"][1]["success"] is False
         assert record["attempts"][1]["reason"] == "refit_exception"
+
+
+def test_nonstationary_flat_point_is_retained_by_actual_H_loss_not_refit(monkeypatch):
+    history, meter, candidates, fits = fixture()
+    monkeypatch.setattr(context.likelihood, 'fit_candidate', lambda *a, **k: fits['star'])
+    centers, record = context.build_centres(history, candidates, fits, meter, retain_perturbed_points=True)
+    assert record['anchor_count'] == 2 and len(centers) == 6
+    point = record['attempts'][0]['perturbed_point']
+    assert point['retained'] and 0 < point['history_gap_half_sse'] <= 6
+    assert record['anchor_records'][1]['kind'] == 'feasible_perturbed_H_point'
+    assert record['attempts'][0]['reason'] == 'duplicate_explanation'
+    center = centers[3]
+    actual = ac_predict(center.candidate, center.r, center.x, center.history_p, center.history_q,
+        center.history_source_p, center.history_source_q, history.root_v)
+    residual = np.concatenate([((actual[name]+(getattr(meter,'bias_'+name) if name in ('p','q','v') else 0)
+        -getattr(history,name))/getattr(meter,name+'_sigma')).ravel() for name in context.measurement_channels(history)])
+    assert float(residual@residual) == pytest.approx(point['loss_full_SSE'], rel=1e-9, abs=1e-12)
+    assert record['ac_calls'] == 5  # H Jacobian + 2 checked points + 2 duplicate-fit verification calls.
+
+
+def test_flat_point_outside_H_support_is_kept_as_rejection(monkeypatch):
+    history, meter, candidates, fits = fixture()
+    monkeypatch.setattr(context.likelihood, 'fit_candidate', lambda *a, **k: fits['star'])
+    centers, record = context.build_centres(history, candidates, fits, meter,
+        retain_perturbed_points=True, gate_half_sse=.0001)
+    assert len(centers) == 3 and record['anchor_count'] == 1
+    assert all(a['perturbed_point']['reason'] == 'outside_history_gate' for a in record['attempts'])
+    assert all(not a['perturbed_point']['retained'] for a in record['attempts'])

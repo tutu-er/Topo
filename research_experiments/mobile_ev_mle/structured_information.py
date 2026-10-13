@@ -104,6 +104,27 @@ def _weight(value):
     return result.copy()
 
 
+def _target_weights(value, expected):
+    if value is None:
+        return {support: 1/len(expected) for support in sorted(expected)}
+    if not isinstance(value, Mapping):
+        raise ValueError("target_weights must map every target support to a positive weight")
+    result = {}
+    for raw_support, raw_weight in value.items():
+        try:
+            support = tuple(sorted(int(j) for j in raw_support))
+            valid_indices = all(int(j) == j for j in raw_support)
+            number = float(raw_weight)
+        except (ValueError, TypeError, OverflowError):
+            raise ValueError("target weights require integer supports and finite positive values")
+        if not valid_indices or support in result or not np.isfinite(number) or number <= 0:
+            raise ValueError("target weights require distinct supports and a strictly positive floor")
+        result[support] = number
+    if set(result) != expected or not np.isclose(sum(result.values()), 1., atol=1e-12, rtol=1e-12):
+        raise ValueError("all three target weights must be present and sum to one")
+    return result
+
+
 def project_columns(signal, nuisance, *, rcond=1e-10, rank_guard_factor=3.):
     """Return signal left after free nuisance compensation, in original rows.
 
@@ -176,13 +197,14 @@ def information_from_blocks(history_line, history_state, future_line, future_sta
 class StructuredInformationEvaluator:
     """History-only average target information; worst retained anchor.
 
-    Targets are equally weighted within an anchor.  The model-weight matrix
+    Targets have fixed positive task weights within an anchor (uniform by
+    default).  The model-weight matrix
     is a declared engineering direction scale, not topology confidence.
     Each evaluation counts only newly attempted AC predictions.  Setup calls
     (historical and no-EV profiles) are separately recorded in metadata.
     """
     def __init__(self, history, centers, history_model, *, future_model=None,
-                 base_kva=20., q_over_p=0., weight=None, fd_step_kw=.01,
+                 base_kva=20., q_over_p=0., weight=None, target_weights=None, fd_step_kw=.01,
                  rcond=1e-10, rank_guard_factor=3., voltage_limits=(.9, 1.1),
                  r_bounds=(1e-6, .1), x_bounds=(1e-6, .1),
                  p_bounds=(-1., 1.), q_bounds=(-1., 1.), source_bounds=(-.5, .5)):
@@ -213,6 +235,8 @@ class StructuredInformationEvaluator:
         if self.horizon < 1:
             raise ValueError("positive future horizon required")
         expected = {tuple(s) for s in combinations(range(history.n), 2)}
+        self.target_weights = _target_weights(target_weights, expected)
+        self.uniform_target_rule = target_weights is None
         anchors = {}
         for center in self.centers:
             anchors.setdefault(center.anchor_id, []).append(center)
@@ -368,6 +392,7 @@ class StructuredInformationEvaluator:
                     raise FloatingPointError("nonfinite required information price")
                 targets.append(dict(id=center.id, anchor_id=center.anchor_id,
                     target_support=list(center.target_support), candidate=center.candidate.name,
+                    target_task_weight=self.target_weights[center.target_support],
                     target_columns=list(ctx["target"]), score=.5*float(np.trace(self.weight@delta)),
                     gradient_kw=gradient.tolist(), weight=self.weight.tolist(),
                     information_history=hmatrix.tolist(), information_joint=matrix.tolist(),
@@ -396,10 +421,18 @@ class StructuredInformationEvaluator:
         if complete:
             for anchor in self.anchors:
                 group = [t for t in targets if t["anchor_id"] == anchor]
-                g = np.mean([t["gradient_kw"] for t in group], axis=0).tolist()
-                pairs.append(dict(anchor_id=anchor, score=float(np.mean([t["score"] for t in group])),
+                if self.uniform_target_rule:
+                    # Preserve the original v1 arithmetic when no weight rule is supplied.
+                    score = float(np.mean([t["score"] for t in group]))
+                    g = np.mean([t["gradient_kw"] for t in group], axis=0).tolist()
+                else:
+                    score = float(sum(t["target_task_weight"]*t["score"] for t in group))
+                    g = sum((t["target_task_weight"]*np.asarray(t["gradient_kw"]) for t in group),
+                            np.zeros(self.horizon)).tolist()
+                pairs.append(dict(anchor_id=anchor, score=score,
                     gradient_kw=g, pq_only_gradient_kw=g, gradient_mode="same_full_information_no_PQ_ablation",
-                    target_ids=[t["id"] for t in group]))
+                    target_ids=[t["id"] for t in group],
+                    target_task_weights=[t["target_task_weight"] for t in group]))
         return dict(success=complete, score=min(p["score"] for p in pairs) if pairs else None,
             pairs=pairs, targets=targets, failures=failures, fit_calls=0,
             total_ac_calls=self._ac_calls-before, seconds=perf_counter()-started,
@@ -408,6 +441,8 @@ class StructuredInformationEvaluator:
             nonlinear_competitor_refit_during_selection=False,
             full_joint_AC_refit_required_for_final_evaluation=True,
             information_is_confidence_region=False, target_weights_are_topology_probabilities=False,
+            target_aggregation="uniform" if self.uniform_target_rule else "fixed_H_only_positive_task_weights",
+            minimum_target_task_weight=min(self.target_weights.values()),
             global_design_optimality_certified=False,
             initialization_ac_calls=self.initialization_ac_calls,
             rank_policy="column_scaled_SVD_with_fixed_rcond_and_explicit_rank_change_failure",

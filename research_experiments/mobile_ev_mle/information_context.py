@@ -257,7 +257,7 @@ def embed_star(star_candidate, star_fit, cherry_candidate):
     return r, x, inserted[0]
 
 
-def _verify_fit_loss(candidate, fit, history, model):
+def _point_loss(candidate, fit, history, model):
     physical = likelihood.ac_predict(candidate, fit.r, fit.x, fit.p, fit.q,
         fit.source_p, fit.source_q, history.root_v)
     blocks = []
@@ -269,14 +269,21 @@ def _verify_fit_loss(candidate, fit, history, model):
         blocks.append(((predicted-getattr(history, name))/sigma).ravel())
     residual = np.concatenate(blocks)
     actual = float(residual@residual)
-    if not np.isfinite(actual) or abs(actual-fit.loss) > 1e-6*max(1., abs(fit.loss)):
+    if not np.isfinite(actual):
+        raise ValueError("nonfinite independently evaluated historical loss")
+    return actual, physical
+
+
+def _verify_fit_loss(candidate, fit, history, model):
+    actual, _ = _point_loss(candidate, fit, history, model)
+    if abs(actual-fit.loss) > 1e-6*max(1., abs(fit.loss)):
         raise ValueError("refitted historical loss disagrees with independent AC recomputation")
     return actual
 
 
 def build_centres(history, candidates, historical_fits, history_model, *,
                   horizon=4, fit_options=None, gate_half_sse=6., max_anchors=2,
-                  perturb_scale_pu=.003, seed=0, refit=True):
+                  perturb_scale_pu=.003, seed=0, refit=True, retain_perturbed_points=False):
     """H-only star anchors, two flat-direction refits and three zero-edge centers.
 
     Returns (InformationCenter list, diagnostic record). The first successful
@@ -299,7 +306,8 @@ def build_centres(history, candidates, historical_fits, history_model, *,
         source_uses_H_only=True, uses_truth=False, uses_future_noise=False,
         zero_edge_scope="contraction centers for local planning only; final fits retain original R/X bounds",
         support_is_confidence_set=False, original_parameter_box_shrunk=False,
-        ac_calls=0, fit_calls=0, anchor_count=0)
+        ac_calls=0, fit_calls=0, anchor_count=0,
+        retain_perturbed_points=bool(retain_perturbed_points))
     good = [(candidate, historical_fits.get(candidate.name)) for candidate in candidates]
     good = [(candidate, fit) for candidate, fit in good if fit is not None and fit.success and np.isfinite(fit.loss)]
     if star is None or star.name not in historical_fits or not historical_fits[star.name].success or not good:
@@ -326,6 +334,7 @@ def build_centres(history, candidates, historical_fits, history_model, *,
     if count is not None and count != expected:
         raise ValueError("historical source estimation mode differs from declared refits")
     anchors = [fitted]
+    anchor_kinds = ["attained_local_H_fit"]
     record["ac_calls"] += 1  # Count the attempted alias call before any AC exception.
     jac, physical = history_white_jacobian(star, fitted, history, history_model, estimate_source=estimate_source)
     shared, local = jac[:, :2*star.m], jac[:, 2*star.m:]
@@ -368,6 +377,38 @@ def build_centres(history, candidates, historical_fits, history_model, *,
                 return original(*args, **kwargs)
             try:
                 likelihood.ac_predict = counted
+                if retain_perturbed_points:
+                    point_record = dict(retained=False, interpretation="feasible_H_support_point_not_MLE")
+                    attempt["perturbed_point"] = point_record
+                    try:
+                        point = replace(fitted, r=initial["r"], x=initial["x"], p=initial["p"], q=initial["q"],
+                            source_p=initial["source_p"], source_q=initial["source_q"], nfev=0,
+                            optimality=float("nan"), message="independently checked feasible historical support point")
+                        point_bounds = _active(_point(point), boxes)
+                        point_loss, point_physical = _point_loss(star, point, history, history_model)
+                        vlo, vhi = options.get("voltage_bounds", FIT_DEFAULTS["voltage_bounds"].default)
+                        voltage = abs(point_physical["voltage"])
+                        voltage_ok = bool(np.all(voltage >= vlo) and np.all(voltage <= vhi))
+                        difference = min(float(np.max(abs(np.r_[point.r-anchor.r, point.x-anchor.x]))) for anchor in anchors)
+                        point_gap = .5*point_loss-best_half
+                        point_record.update(loss_full_SSE=point_loss, history_gap_half_sse=point_gap,
+                            active_bounds=point_bounds, voltage_domain_passed=voltage_ok,
+                            voltage_min=float(voltage.min()), voltage_max=float(voltage.max()),
+                            shared_difference_inf_pu=difference,
+                            ac_equation_residual=point_physical["ac_equation_residual"],
+                            power_balance_residual=point_physical["power_balance_residual"])
+                        if voltage_ok and point_gap <= gate_half_sse and difference > 1e-5 and len(anchors) < max_anchors:
+                            point.loss=point_loss
+                            point.loglik=fitted.loglik-.5*(point_loss-fitted.loss)
+                            point.predicted=point_physical
+                            point.diagnostics={"historical_support_point": True, "global_optimality_certified": False}
+                            anchors.append(point);anchor_kinds.append("feasible_perturbed_H_point")
+                            point_record.update(retained=True, reason="distinct_feasible_history_supported_point")
+                        else:
+                            point_record["reason"]=("voltage_domain_failure" if not voltage_ok else "outside_history_gate"
+                                if point_gap > gate_half_sse else "duplicate_explanation" if difference <= 1e-5 else "anchor_budget")
+                    except (ValueError, RuntimeError, FloatingPointError, np.linalg.LinAlgError) as error:
+                        point_record.update(reason="perturbed_point_failure", error=type(error).__name__+":"+str(error))
                 record["fit_calls"] += 1
                 trial_options = {**options, "multistart": 1}
                 alternative = likelihood.fit_candidate(star, history, history_model,
@@ -386,6 +427,7 @@ def build_centres(history, candidates, historical_fits, history_model, *,
                         numerical_support_passed=bool(supported))
                     if different and supported and len(anchors) < max_anchors:
                         anchors.append(alternative)
+                        anchor_kinds.append("attained_local_H_refit")
                         attempt.update(retained=True, reason="distinct_supported_refit")
                     else:
                         attempt["reason"] = "duplicate_explanation" if not different else "outside_history_gate" if not supported else "anchor_budget"
@@ -400,7 +442,7 @@ def build_centres(history, candidates, historical_fits, history_model, *,
     centers = []
     for index, anchor in enumerate(anchors):
         anchor_id = "history_star_"+str(index)
-        record["anchor_records"].append(dict(id=anchor_id, half_loss=.5*anchor.loss,
+        record["anchor_records"].append(dict(id=anchor_id, kind=anchor_kinds[index], half_loss=.5*anchor.loss,
             history_gap_half_sse=.5*anchor.loss-best_half, r=anchor.r.tolist(), x=anchor.x.tolist(),
             active_bounds=_active(_point(anchor), boxes)))
         future = FutureForecast(p=np.tile(np.mean(anchor.p, axis=0), (horizon, 1)),
@@ -415,7 +457,8 @@ def build_centres(history, candidates, historical_fits, history_model, *,
             centers.append(InformationCenter(id=anchor_id+"_"+"".join(map(str, inserted)),
                 anchor_id=anchor_id, target_support=support, candidate=candidate, r=r.copy(), x=x.copy(),
                 history_p=anchor.p.copy(), history_q=anchor.q.copy(), history_source_p=anchor.source_p.copy(),
-                history_source_q=anchor.source_q.copy(), history_root_v=history.root_v.copy(), future=future))
+                history_source_q=anchor.source_q.copy(), history_root_v=history.root_v.copy(), future=future,
+                metadata={"historical_anchor_kind": anchor_kinds[index]}))
     record.update(activated=True, reason="history_supported_star_contractions", anchor_count=len(anchors),
         center_count=len(centers), seconds=perf_counter()-began,
         distinct_explanation_threshold_inf_pu=1e-5, refit_attempt_count=len(record["attempts"]))

@@ -98,7 +98,28 @@ def test_actual_voltage_violation_is_physical_failure_and_infinite_calibration_s
     assert all(r['status']=='physical_failure' and not r['operational_voltage_ok'] for r in result['records'])
 
 
-def test_old_reference_forecast_budget_is_labeled_whole_method_comparison():
-    from pathlib import Path
-    source=Path(study.__file__).read_text(encoding='utf-8')
-    assert 'old complete method; reference forecasts and iteration budget differ' in source
+
+
+def test_search_exception_preserves_spent_AC_calls_without_double_setup(monkeypatch):
+    from .test_information_context import fixture
+    h,m,cs,fs=fixture()
+    from .information_context import build_centres,quality_models
+    centres,_=build_centres(h,cs,fs,m,refit=False)
+    future,_,quality=quality_models(h,m)
+    monkeypatch.setattr(study,'build_centres',lambda *a,**k:(centres,dict(ac_calls=0,fit_calls=0,reason='fixture')))
+    class Counter:
+        def __init__(self,*a,**k):
+            self._ac_calls=2;self.initialization_ac_calls=2
+    def failed_search(evaluator,*a,**k):
+        evaluator._ac_calls+=5
+        raise RuntimeError('after five real AC attempts')
+    monkeypatch.setattr(study,'StructuredInformationEvaluator',Counter)
+    monkeypatch.setattr(study,'optimize_price_curves',failed_search)
+    def no_profile(*a,**k):raise ValueError('no profile calls')
+    monkeypatch.setattr(study,'GradientPriceEvaluator',no_profile)
+    cfg=study.configuration()
+    plans,record=study.select_controls(h,cs,fs,m,future,quality,
+        constraints=study.old.device_constraints(cfg),config=cfg)
+    assert record['selector_ac_calls']==28  # four searches * (two setup + five attempted evaluations)
+    assert all(record['searches'][tag]['partial_ac_calls_retained']==5 for tag in ('seeds','robust','nominal','uniform'))
+    assert all(plans[method] is not None for method in study.METHODS)
