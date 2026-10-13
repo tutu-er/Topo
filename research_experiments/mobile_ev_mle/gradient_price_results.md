@@ -37,7 +37,7 @@
 - 100000次解析随机试验19/19检查通过。同质仿射饱和功率定理的16个极小格点审计通过。
 - 只在两条pilot作枚举对照，每条12个可行计划；主优化分数均等于该有限库最高分。400次联合拟合、4625AC、28.28秒、0失败。同节点满档时段置换差至多5.583e-12。
 - 6pilot+12cal+24eval共1176份实际H/joint拟合已独立AC重放通过；compact仅删除两个SVD诊断数组，保留全部实际参数、状态、损失、失败和求解界。原完整raw本地保留，raw哈希随compact保存。
-- 活动研究全目录685项测试通过（26.71秒）。测试数不当作统计样本数。
+- 加入源码字节恢复工具后，活动研究全目录696项测试通过（27.65秒）；此前方法与分析685项记录另保留。测试数不当作统计样本数。
 
 ## 为何当前收益有限
 
@@ -56,6 +56,12 @@
 详见gradient_price_math.md、gradient_price_protocol.md，以及evidence/gradient_price/v2_supported/evaluation/analysis.md。原报告在原路径更新，本轮源码、证据及检查点按阶段commit/push；生成PDF保留于原路径，不夹带其先前已有的Git修改。
 
 ## 直接重放已提交证据
+
+新Git checkout可能转换源码换行。先运行默认只读核对：
+
+    python -m research_experiments.mobile_ev_mle.gradient_price_source_restore
+
+若只报告CRLF/LF差异，再运行同模块加 --restore-line-endings。工具逐文件核对snapshot与freeze摘要，遇到实际代码变化、缺失或越界路径则阻止恢复。当前工作树13/13原始字节一致、无需恢复；独立Git源码目录7份原样+6份换行差恢复后13/13一致。首次归档失败及完整修复检查保存于evidence/gradient_price。
 
 在工作树根目录、科学Python下，设置OPENBLAS/OMP/MKL线程为1后运行：
 

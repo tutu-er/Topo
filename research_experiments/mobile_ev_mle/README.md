@@ -10,11 +10,12 @@
 文献正文定位见 `gradient_price_literature.json`；理论与实际实验分别报告。当前实施仍是局部多初值搜索，其MILP界针对仿射子问题。
 本轮独立比较由 `gradient_price_study.py` 生成新证据，不修改下文冻结C/D策略或旧结果。
 
-完整结果见 `gradient_price_results.md`；正式科学源码8478af6。6pilot+12独立校准+24独立评价已完成，685测试及1176份实际保存拟合的独立AC重放通过。
+完整结果见 `gradient_price_results.md`；正式科学源码8478af6。6pilot+12独立校准+24独立评价已完成，696测试及1176份实际保存拟合的独立AC重放通过。
 仅保留真拓扑：无EV0/24、固定恒充7/24、固定节点优化7/24、随机节点优化8/24、设计节点6/24；设计中star5/5与weak9/9均未决。候选漏真、必要拟合/物理失败均0/24；全六方法任一误拒1/24。
 完整/PQ-only动作24/24相同；后续梯度对最佳操作优化初值的新增收益约为0。本批未显示设计优于恒充。同质仿射饱和功率定理解释初值有效性的条件，完整AC的全局最优仍待研究。
 新证据在 `evidence/gradient_price/v2_supported/compact/`，逐场景/RX/有符号裕量分析在 `v2_supported/evaluation/analysis.md`。本地raw保持原样；compact只删两个SVD数组并保存raw哈希。原库仅在两条pilot作12计划独立对照，主selector未调用。
 原报告本轮原位更新为54页；完整研究未终结，下一步的预测、随机价格和弱边验收条件见结果稿。
+Git换行转换的首次归档失败已保留；13份冻结科学源码原始字节另存science_source_snapshot.json.gz。新checkout先用gradient_price_source_restore默认只读核对，需要时用--restore-line-endings；仅换行差可恢复，代码变化则停止。独立Git源码目录恢复后13/13哈希相符。
 
 
 
