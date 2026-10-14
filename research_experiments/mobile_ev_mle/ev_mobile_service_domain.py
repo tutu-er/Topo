@@ -68,6 +68,7 @@ class MobileServiceConfig:
     driver_budget: float | None = None
     max_moves: int | None = None
     max_throughput_kwh: float | None = None
+    min_arrival_throughput_kwh: float = 0.  # probing service after each selected trip
     terminal_site: int | None = None
     terminal_connected: bool = False
     device_kind: str = "ev"
@@ -103,6 +104,8 @@ class MobileServiceConfig:
             value = getattr(self, label)
             if value is not None and (not np.isfinite(value) or value < 0):
                 raise ValueError(f"Invalid {label}")
+        if not np.isfinite(self.min_arrival_throughput_kwh) or self.min_arrival_throughput_kwh < 0:
+            raise ValueError("Invalid min_arrival_throughput_kwh")
         if self.max_moves is not None and (isinstance(self.max_moves, bool)
                 or int(self.max_moves) != self.max_moves or self.max_moves < 0):
             raise ValueError("max_moves must be a nonnegative integer")
@@ -322,6 +325,18 @@ def build_mobile_service_domain(config=MobileServiceConfig()):
     if config.max_throughput_kwh is not None:
         model.add_row({int(i): config.dt_hours for i in np.r_[pp.ravel(), pm.ravel()]},
                       upper=config.max_throughput_kwh)
+    if config.min_arrival_throughput_kwh > 0:
+        # Every chosen trip must serve a real destination probing task. This
+        # excludes a last-slot drive whose only electrical effect is extra
+        # recharging of its driving loss. Powers before arrival do not count.
+        for i, a in zip(arc, arcs):
+            if a.kind != "travel":
+                continue
+            values = {int(i): -config.min_arrival_throughput_kwh}
+            for t in range(a.arrival, T):
+                values[int(pp[t, a.destination])] = config.dt_hours
+                values[int(pm[t, a.destination])] = config.dt_hours
+            model.add_row(values, lower=0.)
     indices = MobileServiceIndices(u, pp, pm, energy, mode, arc, connected_arc, tuple(arcs))
     return MobileServiceDomain(config, model, indices, cost)
 
@@ -410,6 +425,10 @@ def check_mobile_service_plan(domain, result, *, tolerance=1e-7):
         check("driver_budget", cost - cfg.driver_budget)
     if cfg.max_moves is not None:
         check("max_moves", moves - cfg.max_moves)
+    for a in ordered:
+        if a.kind == "travel":
+            after = cfg.dt_hours * float(np.sum(pp[a.arrival:, a.destination] + pm[a.arrival:, a.destination]))
+            check("arrival_probe_service", cfg.min_arrival_throughput_kwh - after)
     return dict(feasible=not issues, issues=sorted(set(issues)),
                 max_violation=max(errors, default=0.),
                 u_kw=u.tolist(), energy_kwh=expected.tolist(),
