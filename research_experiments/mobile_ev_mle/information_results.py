@@ -35,6 +35,8 @@ def _stats(ts,methods):
         out[m]=dict(conditions=n,independent_histories=len({t['history_id'] for t in ts}),complete=len(good),
             unique_correct=sum(r.get('only_truth_retained',False) for r in rows),
             unresolved=sum(r.get('unresolved',False) for r in rows),
+            safe_unresolved=sum(r['status']=='complete' and not r.get('false_rejection',False) and r.get('unresolved',False) for r in rows),
+            compute_or_physical_failures=len(rows)-len(good),
             false_rejections=sum(r.get('false_rejection',False) for r in rows),
             mean_signed_margin=float(np.mean([r['signed_margin_full_SSE'] for r in good])) if good else None,
             median_signed_margin=float(np.median([r['signed_margin_full_SSE'] for r in good])) if good else None,
@@ -84,15 +86,17 @@ def export_phase(output,phase):
         deltas=defaultdict(list);wins=losses=ties=0;condition_count=0
         for t in ts:
             r={r['method']:r for r in t['records']};a,b=r['information_designed'],r[baseline]
+            if phase=='evaluation':
+                x,y=a['only_truth_retained'],b['only_truth_retained'];wins+=bool(x and not y);losses+=bool(y and not x);ties+=x==y
             if a['status']=='complete' and b['status']=='complete':
                 deltas[t['history_id']].append(a['signed_margin_full_SSE']-b['signed_margin_full_SSE']);condition_count+=1
-                if phase=='evaluation':
-                    x,y=a['only_truth_retained'],b['only_truth_retained'];wins+=bool(x and not y);losses+=bool(y and not x);ties+=x==y
         v=np.asarray([np.mean(x) for x in deltas.values()]);n=len(v);discord=wins+losses
         pairs.append(dict(baseline=baseline,paired_histories=n,paired_conditions=condition_count,
             mean_margin_difference=float(v.mean()) if n else None,median_margin_difference=float(np.median(v)) if n else None,
             paired_standard_error=float(v.std(ddof=1)/np.sqrt(n)) if n>1 else None,
             positive_history_differences=int((v>1e-6).sum()),negative_history_differences=int((v< -1e-6).sum()),
+            binary_paired_histories=len(ts) if phase=='evaluation' else None,
+            binary_failure_rule='required fit failure retains all and counts as not uniquely correct',
             unique_correct_discordant_wins=wins,unique_correct_discordant_losses=losses,unique_correct_ties=ties,
             paired_binary_two_sided_p=float(binomtest(wins,discord,.5).pvalue) if phase=='evaluation' and discord else None,
             p_scope='descriptive predeclared paired comparison; no multiplicity adjustment'))

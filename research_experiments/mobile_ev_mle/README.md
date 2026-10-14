@@ -1,15 +1,21 @@
 # AC 最大似然拟合与 EV 模型判别设计
-## 疑似支路信息价格（2026-10-14，本轮继续）
+## 疑似支路信息价格（2026-10-14，正式阶段完成）
 
-先读 `structured_information_protocol.md`、`structured_information_protocol_v2.md`、`structured_information_math.md` 和 `targeting_math.md`。本轮以完整AC白化导数构造疑似内部R/X的局部信息，投影掉其他共享线路及H/N各自真实P/Q与同点源；功率仍由MILP价格步优化，少数接入节点逐个比较。所有4拓扑保留最终完整AC联合拟合。
+先读 `structured_information_results_review.md`、`structured_information_checkpoint.json` 和 `structured_information_next_protocol.md`。完整推导在 `structured_information_math.md`、`targeting_math.md`、`information_power_link_math.md`；预声明阶段与规则在 `structured_information_protocol.md`、`structured_information_protocol_v2.md`。
 
-S1解析/秩亏/活动界/梯度检查通过；24条小支路尺度AC审计完成，最小尺度二次SSE比值1.00014--1.00039。R相关激励信号改善，纯X方向近乎无改善。只支持声明展开点及局部范围。
+完整 AC 白化导数构造疑似内部 R/X 的信息，投影其他共享线路和 H/N 各自真实 P/Q、同点逐时源的补偿。连续功率由 MILP 价格步优化，再检查完整 AC 信息；少数接入节点逐个比较。全部四个 star/cherry 候选参加完整 AC 联合拟合。MILP 界属于仿射子问题，原目标仍是局部多初值非凸搜索。
 
-v1等权3支撑pilot为6独立H、18质量条件，全部完成并独立重放。发现等权指标会增强其他支撑而忽略H指出的模糊支撑，负例保留。v2采用H-only熵正则任务权重，混合15%均匀份额；权重是规划规则。实际AC历史支持点可作为第二展开点，标签不是MLE。v2同一6H配对开发pilot18/18完成，864保存拟合重放及1890目标全B投影核验通过。
+解析、秩亏、活动边界、梯度和24条小支路尺度 AC 审计已通过；最小尺度 SSE/二次预测比为1.00014--1.00039。工程方向的随机单位改进均值及固定线性 Gaussian 小信号功效联系已推导，21项功效数值检查通过。纯 X 弱方向、角点停留和远处非线性补偿反例保留。
 
-v2信息搜索(初始化与4搜索合计)最大3.061秒，全部选择最大26.482秒，通过15/75秒扩批门槛。正式阶段将另存 `evidence/structured_information/v3_frozen/`：39独立校准、80独立评价，冻结11方法及混合分布。v3仅补实际失败调用计数；同一930002历史的11动作、全部loss及AC调用数与v2完全一致。当前正式结果尚未写为完成。
+v1/v2各为同一6独立H、18质量条件的开发 pilot。v1等权增强错误任务的负例推动 v2 的 H-only 任务权重和第二个可行历史解释点；新规则在正式数据前冻结。权重是任务优先级，可行扰动点不称 MLE 或统计置信集。v3仅补调用计数，动作/损失/调用计数等价证据保留，旧13份科学源未改。
 
-逐阶段config、summary、compact表和独立replay保存在 `evidence/structured_information/v1/` 与 `v2_targeted/`。完整raw trial只在本地保留；tables/raw_manifest.json保存哈希、种子及源版本，可按冻结记录重建。精确科学源字节快照保留Git换行恢复支持；旧13科学源未改。`information_replay.py`使用实际H/N/joint计量模型，`information_geometry_audit.py`独立组装一次完整投影。前期C/D与梯度研究记录保留。
+正式39独立校准、80独立评价完成，所有119历史的19份冻结科学源码相同。阈值2.9617106149485366。唯一正确：无EV28/80、固定恒充49/80、简单全局质量选点53/80、信息设计57/80；互斥安全未决分别48、27、22、16，误拒分别4、3、5、7；恒充另有1次拟合失败。信息设计相对恒充配对裕量提高627.891（SE127.681，n79）；相对简单全局质量提高−29.757（SE147.447，n80）。二元完整80分母为9胜/1负，双侧精确p=.021484；该项为补充终点。相对质量选点、多中心、任务权重和后续迭代的稳定额外排错收益尚未建立。
+
+任一11方法误拒11/80，95%区间[7.07%,23.27%]。有限秩结论属于冻结模拟混合和随机校准样本的边际风险；当前固定门槛的条件风险另需验证。star误拒4/10、weak仅2/12唯一正确，均保留。两处star展开支持失败属于展开模型范围，8条历史已分开而未启用。下一阶段优先处理合法正边竞争与弱信号风险，不直接扩网。
+
+独立 AC 重放：39cal的1872保存拟合和80eval的3840保存拟合通过，实际唯一拟合分别1060和2224；首8eval完整投影735目标/2205矩阵检查通过。原恒充三个错误候选的max200失败在独立扩大预算诊断中3/3恢复（24/24初值ftol结束），原冻结记录不改。固定前16H相关平均误差诊断复用保存动作，任一方法误拒2/16变3/16，未增加独立历史样本；其348实际拟合及独立计量/AC重放通过。
+
+结果表、每边R/X、已取得loglik、源状态、求解界、失败、源码字节、配置/种子和独立重放在 `evidence/structured_information/v3_frozen/`。原summary保留首次导出：其中旧二元配对仅计连续成功对；以独立review及evaluation/tables/analysis的全80二元分母为准。完整raw trial保留本地，manifest保存精确SHA；紧凑证据与冻结19份科学源码字节快照随提交交付。新checkout可用 `gradient_price_source_restore` 核查并仅恢复换行差，再按config/seeds重跑。原报告第13节原位交付理论与本轮结果，PDF交付核验另存delivery_verification.json。
 
 ## 单节点完整梯度价格（2026-10-13，本轮实施）
 
