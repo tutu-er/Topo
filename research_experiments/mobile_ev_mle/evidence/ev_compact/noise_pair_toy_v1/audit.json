@@ -1,0 +1,56 @@
+{
+  "schema": "ev_noise_pair_independent_math_audit_v1",
+  "success": true,
+  "scope": "independent algebra and saved toy evidence review; no new samples, grid data, fit, optimization or strategy",
+  "inputs_sha256": {
+    "ev_noise_pair_math.md": "cfd975b87341a202c019539c59b4214bbca487a4f13910ff6f50f14da85ce48c",
+    "ev_noise_pair_check.py": "24f0562f1803a1b2fd6e8a4090673d8185f71a09a953ba8b1e1a4318dd026dbf",
+    "summary.json": "34062fd618280b64e5bb5ee69614c393b63f9874b130b7379122b40cbdf9b7e1",
+    "shared_noise_identity.json": "61bd8737857b6821eeb8e5a9822ad6ece8030bbe50eb80c1f858668f260e695c"
+  },
+  "checks": {
+    "projection_valid_for_rank_deficient_A_with_Moore_Penrose_inverse": true,
+    "dimensions_m_by_m_projection_m_by_d_E_d_vector_h_d_by_d_symmetric_G": true,
+    "difference_expansion_signs": true,
+    "conditional_mean_d0_plus_trace_G": true,
+    "conditional_variance_4_norm_h_squared_plus_2_trace_G_squared": true,
+    "shared_future_noise_for_both_models": true,
+    "fixed_H_rows_of_E_zero": true,
+    "expectation_of_profile_cost_not_profile_of_expected_cost": true,
+    "G_zero_nonzero_h_normal_tail": true,
+    "G_zero_and_h_zero_is_deterministic": true,
+    "one_sided_second_moment_lower_bound_for_mu_greater_than_tau": true,
+    "boundary_example_mean_minus_half_variance_five_quarters": true,
+    "noise_selected_faces_have_truncated_noise": true,
+    "nine_saved_toy_cases_match_code_and_analytic_cases": true,
+    "same_model_common_noise_delta_identically_zero": true,
+    "SSE_to_loglik_margin_mean_divide_two_variance_divide_four": true,
+    "cap_expectation_Jensen_direction": true
+  },
+  "applicability": [
+    "Given H, action and one prediction context, c_k, A_k and E are deterministic and the common future noise is standard Gaussian.",
+    "The exact projection result concerns the unconstrained frozen affine residual model.",
+    "For a box-constrained QP whose active face changes with noise, each region needs its own probability and truncated moments.",
+    "G=0 with h nonzero gives an exact normal tail; G=h=0 gives the deterministic indicator d0>tau.",
+    "For general G the moment inequality is a lower bound under the declared model, not a topology correctness probability."
+  ],
+  "additional_boundary_check": {
+    "setup": "a fixed at gamma>0; b has mean beta>=0; epsilon standard normal",
+    "active_face_event": "epsilon<=0, beta_hat=0",
+    "delta_on_that_face": "2*gamma*epsilon-gamma^2",
+    "conditional_mean": "-gamma^2-2*gamma*sqrt(2/pi)",
+    "incorrect_standard_normal_substitution": "-gamma^2"
+  },
+  "wording_clarifications_verified": [
+    "Describe q=J(0) as future-at-mean profile cost with the original fixed historical measurements retained.",
+    "State trace G as remaining future-noise cost of b minus a, equivalently noise absorption of a minus b.",
+    "For the derivative statement explicitly keep A and E fixed throughout the action region."
+  ],
+  "numerical_check_scope": "The 8 estimated-standard-error tolerance is a Monte Carlo sanity criterion, not a finite-sample probability certificate. Cases reuse the saved Gaussian draws and are not independent grid histories.",
+  "strategy_modified": false,
+  "new_grid_records_read": 0,
+  "new_samples_generated": 0,
+  "new_fits": 0,
+  "new_optimizations": 0,
+  "calibration_or_evaluation_values_read": false
+}

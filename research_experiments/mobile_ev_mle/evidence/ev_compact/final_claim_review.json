@@ -1,0 +1,172 @@
+{
+  "schema": "ev_compact_final_claim_review_v1",
+  "success": true,
+  "unresolved_substantive_findings": [],
+  "checks": {
+    "final_hashes_match": true,
+    "risk_22_1_sentence_removed": true,
+    "each_true_candidate_three_evaluations_explicit": true,
+    "finite_rank_scope_explicit": true,
+    "risk_audit_passed": true,
+    "primary_MILP_lineages_correct": true,
+    "proxy_completed_40_of_72": true,
+    "location_electrical_only": true,
+    "all_132_actual_conditions_complete": true
+  },
+  "input_sha256": {
+    "ev_compact_final_results.tex.fragment": "2d85ef944b625b1bd882ccb5e969df0b2a272baac1d9b26a5cf15d45954c763a",
+    "research_experiments\\mobile_ev_mle\\ev_compact_results.md": "cdff65231750d8b2cfdd1f92422be614f432f5aa64454de955f26a85b8d85c83"
+  },
+  "resolved_findings": [
+    {
+      "topic": "scope of zero-error risk statement",
+      "old_claim": "0/12 binomial one-sided 95 percent upper bound 22.1 percent without balanced-stratum qualification",
+      "resolution": "Removed from both final drafts; final text states 3 independent evaluations per true candidate and need for additional calibration/evaluation",
+      "verified_final_hashes": {
+        "ev_compact_final_results.tex.fragment": "2d85ef944b625b1bd882ccb5e969df0b2a272baac1d9b26a5cf15d45954c763a",
+        "research_experiments\\mobile_ev_mle\\ev_compact_results.md": "cdff65231750d8b2cfdd1f92422be614f432f5aa64454de955f26a85b8d85c83"
+      }
+    }
+  ],
+  "verified_means": {
+    "capped_v2g_mobile": {
+      "M": 158.27560811672308,
+      "noiseless_M": 155.15189458935927
+    },
+    "charge_fixed": {
+      "M": 67.17047422003772,
+      "noiseless_M": 65.11151667598226
+    },
+    "charge_mobile": {
+      "M": 112.99024713628275,
+      "noiseless_M": 118.77007351549547
+    },
+    "constant": {
+      "M": 7.3784139640847135,
+      "noiseless_M": 7.238688871355009
+    },
+    "none": {
+      "M": -0.0632421015373487,
+      "noiseless_M": 0.0882297806673608
+    },
+    "quality_fixed": {
+      "M": 62.12375376639816,
+      "noiseless_M": 61.242158050538904
+    },
+    "quality_mobile": {
+      "M": 79.9244066076677,
+      "noiseless_M": 78.3945706752274
+    },
+    "random_mobile": {
+      "M": 112.75827244726729,
+      "noiseless_M": 116.92420351335244
+    },
+    "refined_v2g_mobile": {
+      "M": 106.29008788681477,
+      "noiseless_M": 110.4450418282396
+    },
+    "v2g_fixed": {
+      "M": 105.51269249467089,
+      "noiseless_M": 111.81753539855544
+    },
+    "v2g_mobile": {
+      "M": 106.10414006137181,
+      "noiseless_M": 110.44278218671593
+    }
+  },
+  "verified_primary_contrasts": {
+    "refined_v2g_mobile_vs_constant": {
+      "n": 12,
+      "mean": 98.91167392273007,
+      "median": 104.95249388290252,
+      "minimum": 0.060014685613154484,
+      "maximum": 286.31366251484985,
+      "positive": 12,
+      "negative": 0,
+      "tied": 0,
+      "sign_tolerance": 1e-09
+    },
+    "refined_v2g_mobile_vs_random_mobile": {
+      "n": 12,
+      "mean": -6.46818456045251,
+      "median": -0.22204290446664032,
+      "minimum": -284.03067353817727,
+      "maximum": 190.24701344958297,
+      "positive": 5,
+      "negative": 6,
+      "tied": 1,
+      "sign_tolerance": 1e-09
+    },
+    "capped_v2g_mobile_vs_constant": {
+      "n": 12,
+      "mean": 150.89719415263838,
+      "median": 176.93451370184755,
+      "minimum": 9.240862978895137,
+      "maximum": 291.54428333491364,
+      "positive": 12,
+      "negative": 0,
+      "tied": 0,
+      "sign_tolerance": 1e-09
+    },
+    "capped_v2g_mobile_vs_random_mobile": {
+      "n": 12,
+      "mean": 45.51733566945579,
+      "median": 14.965622335982516,
+      "minimum": -72.49681069108152,
+      "maximum": 190.24701344958297,
+      "positive": 9,
+      "negative": 2,
+      "tied": 1,
+      "sign_tolerance": 1e-09
+    }
+  },
+  "verified_MILP_lineage": {
+    "refined_v2g_mobile": {
+      "from_MILP": 12,
+      "direct_new": 1,
+      "ancestral": 11,
+      "random_chain": 0
+    },
+    "capped_v2g_mobile": {
+      "from_MILP": 12,
+      "direct_new": 6,
+      "ancestral": 6,
+      "random_chain": 0
+    }
+  },
+  "verified_location_contrasts": {
+    "refined_v2g_mobile": {
+      "n": 12,
+      "mean": 9.280661521434654,
+      "positive": 6,
+      "zero": 2,
+      "negative": 4
+    },
+    "capped_v2g_mobile": {
+      "n": 12,
+      "mean": 60.80583878352164,
+      "positive": 9,
+      "zero": 2,
+      "negative": 1
+    }
+  },
+  "mathematical_checks": {
+    "SSE_loglik_margin": "Same observations and fixed Gaussian sigmas give ell=C-J/2, hence M=2(ell_true-max_wrong ell)",
+    "inner_QP": "A feasible competitor explanation bounds the minimum q from above; a convex tangent minimized on the original box bounds q from below",
+    "outer_MILP": "Valid witness costs and square chords give an actionwise upper model; the maximization solver best-bound bounds its global maximum from above. A master incumbent is not an attained q lower bound",
+    "cap": "Monotone per-task min(score,20) preserves both bound directions before nonnegative weighted averaging",
+    "shared_square": "Requires co-moving affine witnesses and operation-proved same-slot zero products plus time-independent AC residual support; general nonzero cross products require the safe generic formulation",
+    "location": "Same total grid P(t) and Q/background/source/noise isolate electrical location, while removing driving increases terminal energy for moving plans, so this is not equal terminal service",
+    "noise_moments": "For fixed unconstrained linear projection P, h and G signs yield EDelta=d0+trG and VarDelta=4hTh+2tr(GG); active-box changes excluded"
+  },
+  "evidence_sha256": {
+    "research_experiments\\mobile_ev_mle\\evidence\\ev_compact\\analysis_evaluation_v2\\evaluation\\summary.json": "5d67b54a9e0b08cf91e5d5e2cf40db5921f460ef2189853b8e9a4acfe941cff2",
+    "research_experiments\\mobile_ev_mle\\evidence\\ev_compact\\effect_evaluation_v2\\summary.json": "e53c5039d40750fd67447843d48fff1e556a4075e17308d3fe9a830065e5b9f5",
+    "research_experiments\\mobile_ev_mle\\evidence\\ev_compact\\risk_final_independent_audit.json": "bc7c116979f459a82937f5d87b80e11193acb47d71ff8c3eb228230f26d4bd3b",
+    "research_experiments\\mobile_ev_mle\\evidence\\ev_compact\\location_evaluation_v1\\summary.json": "b86dbeef5e48d0f3c50e849af20be3ab03114d33cea3ddb54ddba47c67972dd6"
+  },
+  "scope": "read-only claim and saved evidence review; not a rerun of integration tests or global AC optimality proof",
+  "new_fit_calls": 0,
+  "new_selector_calls": 0,
+  "scientific_source_modified": false
+}

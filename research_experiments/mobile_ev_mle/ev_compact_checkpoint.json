@@ -48,13 +48,6 @@
     "seeds": "989301..989336",
     "alpha": 0.1,
     "status": "complete_independently_reviewed",
-    "worker_sessions": [
-      53074,
-      63998,
-      72824,
-      19050
-    ],
-    "controller_cell": 457,
     "AC_saved_states": 36288,
     "actual_future_states": 396,
     "QP_saved_states": 154584,
@@ -65,24 +58,76 @@
   },
   "independent_evaluation": {
     "planned_histories": 12,
-    "completed_histories": 2,
+    "completed_histories": 12,
     "seeds": "989201..989212",
-    "status": "running_frozen",
-    "worker_sessions": [],
-    "completion_count": "see local checkpoint_worker_*.json; active run not summarised as finished"
+    "status": "complete_independently_reviewed",
+    "AC_saved_states": 12384,
+    "actual_future_states": 132,
+    "QP_replayed": 48816,
+    "actual_fit_calls": 12181,
+    "counted_AC_calls": 426713,
+    "parent_policy_unchanged": true
   },
   "remaining": [
-    "Finish frozen 12-history evaluation and independent AC/QP reviews",
-    "Compare actual/calibrated results with constants, deterministic quality and random baseline; keep failed conditions",
-    "Run frozen same-curve spatial ablation; export slim evidence; update/compile/inspect original report",
-    "Commit/push final evidence; preserve future research items as incomplete"
+    "New-history forecast-misspecification validation of capped task design",
+    "Larger independent calibration/evaluation, weak-branch and X information checks",
+    "Proper predictive EIG with numerical integration error and prior sensitivity",
+    "Rolling first-segment execution and conditional multi-round risk validation",
+    "Tracking-aware terminal battery service, staff coordination and network enlargement"
   ],
-  "checkpoint_utc": "2026-10-14T19:08:05.615621+00:00",
+  "checkpoint_utc": "2026-10-14T20:02:12.222411+00:00",
   "policy_commit": "a3dedf0",
   "policy_push_complete": true,
   "policy_id": "033d4f3bd0077ed68216268adbd3259110f6c1b1bdb67993ad7ea44fa19ad42f",
   "source_audit": "evidence/ev_compact/source_audit_stage.json",
-  "integrated_tests": 357,
+  "integrated_tests": 371,
   "tooling_commit": "37ed438",
-  "tooling_push_complete": true
+  "tooling_push_complete": true,
+  "requested_three_stage_status": "implemented_verified_independently_evaluated",
+  "independent_statistical_replay": {
+    "success": true,
+    "checks": 80,
+    "report": "evidence/ev_compact/risk_final_independent_audit.json"
+  },
+  "location_ablation": {
+    "histories": 12,
+    "primary_methods": 2,
+    "conditions": 24,
+    "independently_reviewed": true,
+    "new_candidate_fits": 152
+  },
+  "false_rejection_optimizer_diagnostic": {
+    "conditions": 4,
+    "candidate_models": 16,
+    "restart_attempts": 128,
+    "saved_states_reviewed": 288,
+    "max_SSE_improvement": 7.398455181828467e-10,
+    "changed_policy_or_calibration": false
+  },
+  "results": {
+    "cap_mean_actual_M": 158.3,
+    "mean_mean_actual_M": 106.3,
+    "constant_mean_actual_M": 7.378,
+    "random_mean_actual_M": 112.8,
+    "cap_unique_correct": 12,
+    "mean_unique_correct": 11,
+    "constant_unique_correct": 5,
+    "random_unique_correct": 10,
+    "denominator_histories": 12,
+    "primary_family_false_rejection": 0,
+    "cap_new_MILP": 6,
+    "cap_inherited_MILP": 6,
+    "mean_new_MILP": 1,
+    "mean_inherited_MILP": 11,
+    "random_in_primary": 0
+  },
+  "delivery_commit_status": "ready_for_final_commit_after_review; prior stages pushed through dc31056; resolve final commit in git log",
+  "portable_record_tests": 2,
+  "report_delivery": {
+    "status": "original_source_and_PDF_updated_compiled_visually_reviewed",
+    "pages": 102,
+    "source_sha256": "81d4b72248ac7a75045c7dd8c3d9e236c08f90df5de420b029b4e74c1df53df3",
+    "pdf_sha256": "98b55c4891ccb3fe14aee2b0335444b66863d06a92cd4bb59e7e3e761e95fe84",
+    "proof": "evidence/ev_compact/report_final_delivery/verification.json"
+  }
 }
