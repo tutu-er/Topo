@@ -45,8 +45,9 @@ def read_json(path):
 
 
 def serial(value):
-    if isinstance(value,np.ndarray):return value.tolist()
-    if isinstance(value,np.generic):return value.item()
+    if isinstance(value,np.ndarray):return serial(value.tolist())
+    if isinstance(value,np.generic):return serial(value.item())
+    if isinstance(value,float) and not math.isfinite(value):return None
     if isinstance(value,dict):return {str(k):serial(v) for k,v in value.items()}
     if isinstance(value,(list,tuple)):return [serial(v) for v in value]
     return value
@@ -127,6 +128,8 @@ def channel_costs(records,names,future_observations,future_meter,H,historical_fi
     for name in names:
         fit=byname.get(name);entry=dict(candidate=name,success=bool(fit and fit.get('success')),
             joint_SSE=None,historical_SSE=None,historical_penalty=None,future_channel_SSE=None)
+        if fit is not None and (fit.get('loss') is None or not math.isfinite(float(fit['loss']))):
+            entry.update(success=False,reason='nonfinite_joint_cost');out.append(entry);continue
         if fit is not None and future_observations is not None:
             costs={}
             for key in CHANNELS:

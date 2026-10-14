@@ -127,3 +127,16 @@ def test_missing_original_action_stays_in_two_condition_denominator(monkeypatch)
     result=a.process_history(trial)
     assert len(result['conditions'])==2 and result['conditions'][0]['status']=='missing_original_action'
     rows,costs=a.tabulate([result]);assert len(rows)==2 and rows[0]['delta_M'] is None
+
+
+def test_nonfinite_failed_fit_is_saved_as_missing_cost_without_losing_candidate():
+    trial=fixture();fit=deepcopy(trial['historical_fits'][0]);fit.update(loss=None,success=False)
+    future=a.observations_from_record(trial['rows'][0]['observations'])
+    result=a.channel_costs([fit],['star','c01'],future,None,1,{})
+    assert len(result)==2 and result[0]['reason']=='nonfinite_joint_cost'
+    assert result[0]['joint_SSE'] is None and not result[0]['success']
+
+
+def test_nested_nonfinite_arrays_are_preserved_as_null_in_failure_evidence():
+    value=a.serial(dict(values=np.array([np.inf,np.nan,1.]),scalar=np.float64(-np.inf)))
+    assert value==dict(values=[None,None,1.],scalar=None)

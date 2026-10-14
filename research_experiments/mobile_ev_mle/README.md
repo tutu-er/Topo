@@ -1,5 +1,24 @@
 # AC 最大似然拟合与 EV 模型判别设计
 
+## 最新：原参数域平均任务MILP与移动充放电（2026-10-14）
+
+先读 `ev_original_results.md`、`ev_original_checkpoint.json`；完整方案在 `ev_original_protocol.md`。数学见 `ev_original_domain_milp_math.md`、`ev_original_interpretation_math.md`、`ev_mobile_service_math.md`。旧阶段下文保留原版本和原分母。
+
+已实现全部4候选、12有向任务的平均价值及原物理参数域。共享R/X与H/未来状态始终可重拟合，同点源逐时变化，EV计入总P一次。时间展开MILP联合配置位置、连续充放电、接线、移动和SOC，没有预列完整路线/曲线库。QP下界、MILP上界及完整AC点检查分开记录。主例合法共移动见证严格消去其第一层控制乘积，残差平方分段实际运行；通用非零乘积分段已独立测试。
+
+4开发历史验收后冻结68科学源，12独立历史评价完成。真候选取得最小联合AC损失：恒充9/12、固定充电10/12、移动充电12/12、固定V2G10/12、移动V2G11/12。随机方法有1个操作失败保留；移动V2G相对随机的11有效配对5正6负。48优化建议中11达到代理间隙，移动间隙仍宽；这些排名与分数不是风险或正确概率。
+
+全12H×2方法的24同波形位置消融完成：移动充电11正1负，平均ΔM=39.846，主要来自未来电压通道；移动V2G6正5零1负。搬回初始点保持逐时总P/电量/吞吐/噪声，取消驾驶会改变终端电池电量，故该电气隔离与主研究同服务比较分别报告。两条明显负例及5个未移动缓存保留。
+
+另完成同4开发H的宽域对照、2条2m短边的asset/numeric压力。结构覆盖与真实R/X入域分开：2m在资产域外，过高下界可放大错误偏好。公开电缆参数和25–150m模拟长度族的物理依据在结果稿；没有实测长度资料。三个新增目录均完整独立重放。
+
+当前219项针对性测试通过，2项真实Windows链接创建因权限跳过。主评价3384保存拟合、3516QP、107真实响应，位置消融432拟合/48响应及所有域压力均通过独立算术回放。7个紧凑包61/61文件在新目录恢复后原字节一致（46.48MB）；raw完整保留。恢复入口为 `evidence/ev_original_domain/compact/README.md`，68/70源仅换行恢复见 `ev_original_source_restore_README.md`。
+
+原报告第16节原位更新并编译检查。下一步共享18个功率平方压缩主问题的推导和948见证/4620动作核对已完成，尚未接主策略；见 `ev_original_shared_square_math.md`。随后保留较小操作域及随机初值、完善历史解释和未来预测，再重新冻结评价。新风险校准、proper预测EIG、滚动及扩网仍待后续。
+
+以下为先前阶段记录。
+
+
 ## 竞争响应、全候选曲线与物理位置（2026-10-14，本轮阶段交付）
 
 最新入口：`ev_cross_stage_results.md`、`ev_cross_stage_checkpoint.json` 与 `ev_cross_next_protocol.md`。数学分别在 `ev_ac_moving_cross_math.md`、`ev_cross_price_math.md`、`ev_discrimination_aggregation_math.md`、`ev_correlated_load_excitation_math.md`；5篇原文算例核查见 `ev_related_case_review.md`。
