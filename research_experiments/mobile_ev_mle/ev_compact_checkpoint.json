@@ -10,31 +10,68 @@
   "random_role": "independent comparator only; never initializes or supplies incumbent to the primary policy",
   "development_v1": {
     "complete_histories": 4,
-    "seeds": [989101, 989102, 989103, 989104],
+    "seeds": [
+      989101,
+      989102,
+      989103,
+      989104
+    ],
     "raw_directory": "evidence/ev_compact/development_ensemble_v1",
     "retained": true,
     "AC_state_replay_passed": true,
     "used_for_independent_evaluation": false,
-    "findings": ["initialization could exhaust the 12 second exchange budget", "6 kW commands with 1.05 tracking gain exceeded rated predicted power"]
+    "findings": [
+      "initialization could exhaust the 12 second exchange budget",
+      "6 kW commands with 1.05 tracking gain exceeded rated predicted power"
+    ]
   },
   "development_v2": {
-    "status": "running_four_workers",
+    "status": "complete_independently_reviewed",
     "raw_directory": "evidence/ev_compact/development_ensemble_v2",
     "command_power_kw": 5.714285714285714,
     "rated_power_kw": 6.0,
     "exchange_total_seconds": 35.0,
     "exchange_max_iterations": 6,
     "methods": 11,
-    "mean_and_capped_refinement_same_initials_and_budget": true
+    "mean_and_capped_refinement_same_initials_and_budget": true,
+    "complete_histories": 4,
+    "AC_states": 4063,
+    "future_AC": 44,
+    "history_explanations": 47,
+    "full_QP_replayed": 15696,
+    "pilot_gate_passed": true,
+    "pilot_gate": "evidence/ev_compact/development_ensemble_v2/pilot_gate.json"
   },
-  "independent_calibration": {"planned_histories": 36, "completed_histories": 0, "seeds": "989301..989336", "alpha": 0.1},
-  "independent_evaluation": {"planned_histories": 12, "completed_histories": 0, "seeds": "989201..989212"},
+  "independent_calibration": {
+    "planned_histories": 36,
+    "completed_histories": 7,
+    "seeds": "989301..989336",
+    "alpha": 0.1,
+    "status": "running",
+    "worker_sessions": [
+      53074,
+      63998,
+      72824,
+      19050
+    ],
+    "controller_cell": 457
+  },
+  "independent_evaluation": {
+    "planned_histories": 12,
+    "completed_histories": 0,
+    "seeds": "989201..989212",
+    "status": "queued_after_saved_calibration_thresholds",
+    "worker_sessions": []
+  },
   "remaining": [
-    "Finish development_v2 and independent AC/operation/QP replay; create byte-bound pilot gate",
-    "Commit deterministic inherited policy, prediction ensemble, calibration rule and tests; ordinary push",
     "Run frozen independent calibration and evaluation in four workers; source bytes must remain unchanged",
     "Analyze actual and noiseless AC separation, selected origins, failures, paired gains and calibrated candidate sets",
     "Export slim evidence with raw hashes while retaining full raw locally; update original report, compile and inspect PDF",
     "Commit/push completed evidence and leave exact continuation status"
-  ]
+  ],
+  "checkpoint_utc": "2026-10-14T17:40:34.150989+00:00",
+  "policy_commit": "a3dedf0",
+  "policy_push_complete": true,
+  "policy_id": "033d4f3bd0077ed68216268adbd3259110f6c1b1bdb67993ad7ea44fa19ad42f",
+  "source_audit": "evidence/ev_compact/source_audit_stage.json"
 }

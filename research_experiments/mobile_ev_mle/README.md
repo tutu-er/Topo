@@ -1,5 +1,17 @@
 # AC 最大似然拟合与 EV 模型判别设计
 
+## 最新：紧凑 MILP、确定性继承与预测解释（2026-10-15）
+
+先读 `ev_compact_protocol.md`、`ev_compact_checkpoint.json`；数学见 `ev_compact_math.md`、`ev_original_shared_square_math.md`、`ev_prediction_ensemble_math.md`、`ev_policy_calibration_math.md`。本阶段主方法是 MILP（混合整数线性规划）：二进制变量配置接入、移动、充放电模式及平方分段，连续变量配置功率和电量。完整 AC 竞争解释仍可重新拟合。随机价格曲线只作独立对照，不向主方法提供初值、继承计划或选择候选；这一要求替代下文旧阶段“随机初值”的待办。
+
+共享控制平方已接入，主例四段时 18 个控制最多 72 个平方分段二进制，操作变量另计。相同真实历史见证下，移动双向主问题的总二进制由 1860 减至 204，2 秒主问题预算的代理上界由 1424.19 收紧到 1071.12。阶段提交 `6ca0f85` 与 `a3dedf0` 已普通推送原研究分支。
+
+已实现较小操作域的确定性计划继承、历史平坦方向的合法参数解释及负荷/同点源/功率追踪预测情景。修订版 v2 的 4 条开发历史全部完成；4063 个保存拟合状态、44 个真实未来响应、47 个历史解释通过独立 AC/操作复算，15696 个竞争 QP 通过完整矩阵与上下界复算。开发中移动纯充电、精化平均目标、上限20目标的平均实际 AC 裕量分别为 128.37、107.45、123.37；这些数值用于开发诊断。平均任务分数会牺牲当前最难竞争者，源预测及参数解释仍有偏差，负例完整保留。
+
+v2 已按 72 份源码字节、配置和种子冻结，36 条独立历史校准正在执行，随后用另外 12 条历史评价。校准阈值在评价前保存；当前不报告这批尚未完成的误拒或排错结果。完整 raw 在 `D:/0-github_workspace/Topo/outputs/ev_compact_stage_20261015/research_experiments/mobile_ev_mle/evidence/ev_compact/` 保留，提交证据用带原始哈希的紧凑包，独立复核范围见 `ev_compact_review_math.md`。
+
+下面各节保留旧版本、旧分母和当时结论。
+
 ## 最新：原参数域平均任务MILP与移动充放电（2026-10-14）
 
 先读 `ev_original_results.md`、`ev_original_checkpoint.json`；完整方案在 `ev_original_protocol.md`。数学见 `ev_original_domain_milp_math.md`、`ev_original_interpretation_math.md`、`ev_mobile_service_math.md`。旧阶段下文保留原版本和原分母。

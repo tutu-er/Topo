@@ -254,3 +254,46 @@ def test_refined_cap_same_initial_set_and_budget_are_audited_not_assumed():
     t['selection']['methods']['refined_v2g_mobile']['initial_candidates'][0]['operation']['u_kw']=[[0.,2.,0.],[0.,2.,0.]]
     result=a.analyze_trial(t);pair=next(r for r in result['paired_rows'] if r['contrast']=='refined_vs_cap')
     assert not pair['same_initial_action_set']
+
+
+def test_source_lineage_recovers_parent_milp_without_claiming_local_new_curve():
+    t=trial();t['selection']['methods']['v2g_fixed']['selected_origin']='MILP'
+    t['selection']['methods']['v2g_mobile']['selected_origin']='v2g_fixed'
+    result=a.analyze_trial(t);row=find(result,'v2g_mobile')
+    assert row['source_lineage']==['v2g_mobile','v2g_fixed','MILP']
+    assert row['source_lineage_from_MILP'] and row['source_lineage_ancestral_MILP']
+    assert row['source_lineage_terminal_method']=='v2g_fixed'
+    assert not row['selected_is_new_MILP_proposal']
+    assert row['source_lineage_terminal_MILP_new_curve'] is False
+    summary=a.aggregate_method([row])
+    assert summary['from_MILP_count']==summary['ancestral_MILP_count']==1
+    assert summary['new_MILP_selected_count']==0
+
+
+def test_source_lineage_distinguishes_quality_constant_cycle_missing_and_random():
+    bank={'child':{'method':'child','selected_origin':'quality_parent'}}
+    assert a.trace_source_lineage('child',bank)['source_lineage_terminal']=='quality'
+    bank['child']['selected_origin']='constant'
+    assert a.trace_source_lineage('child',bank)['source_lineage_terminal']=='constant'
+    bank['child']['selected_origin']='missing_domain'
+    result=a.trace_source_lineage('child',bank)
+    assert result['source_lineage_terminal']=='unknown' and result['source_lineage_error']=='missing_parent'
+    bank={'child':{'selected_origin':'parent'},'parent':{'selected_origin':'child'}}
+    result=a.trace_source_lineage('child',bank)
+    assert result['source_lineage_terminal']=='unknown' and result['source_lineage_error']=='cycle'
+    result=a.trace_source_lineage('v2g_mobile',{'v2g_mobile':{'selected_origin':'random_mobile'}})
+    assert result['source_lineage_terminal']=='random' and result['source_lineage_error']=='random_in_primary_chain'
+
+
+def test_lineage_from_milp_and_direct_new_curve_are_independent_fields():
+    rows=[dict(method='charge_fixed',selected_origin='MILP',selected_is_new_MILP_proposal=True),
+          dict(method='v2g_fixed',selected_origin='charge_fixed',selected_is_new_MILP_proposal=False),
+          dict(method='v2g_mobile',selected_origin='v2g_fixed',selected_is_new_MILP_proposal=False)]
+    result=a.trace_source_lineage('v2g_mobile',rows)
+    assert result['source_lineage']==['v2g_mobile','v2g_fixed','charge_fixed','MILP']
+    assert result['source_lineage_ancestral_new_MILP']
+    assert a.trace_source_lineage('charge_fixed',rows)['source_lineage_ancestral_MILP'] is False
+    rows[0]['selected_is_new_MILP_proposal']='False' # CSV input must not treat a nonempty string as true.
+    result=a.trace_source_lineage('v2g_mobile',rows)
+    assert result['source_lineage_terminal_MILP_new_curve'] is False
+    assert result['source_lineage_ancestral_new_MILP'] is False

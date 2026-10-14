@@ -151,6 +151,51 @@ def _unique_curves(curves):
     return answer
 
 
+def trace_source_lineage(method,method_rows):
+    """Trace saved parent-domain origins, separately from new-curve discovery.
+
+    MILP is the declared optimization origin; terminal_MILP_new_curve records
+    whether that terminal domain actually dispatched a newly proposed curve.
+    Quality-price MILPs have a separate quality terminal.
+    """
+    bank=method_rows if isinstance(method_rows,dict) else {r['method']:r for r in method_rows}
+    path=[method];visited=set();current=method;terminal='unknown';error=None
+    terminal_origin=None;terminal_method=None;new_curve=None
+    while True:
+        if current in visited:error='cycle';break
+        visited.add(current)
+        row=bank.get(current)
+        if row is None:error='missing_parent';break
+        if current=='none':terminal='none';terminal_origin=current;terminal_method=current;break
+        if current=='constant':terminal='constant';terminal_origin=current;terminal_method=current;break
+        if current.startswith('quality'):
+            terminal='quality';terminal_origin=current;terminal_method=current;break
+        if current.startswith('random'):
+            terminal='random';terminal_origin=current;terminal_method=current;break
+        origin=row.get('selected_origin')
+        if not isinstance(origin,str) or not origin:error='missing_origin';break
+        path.append(origin)
+        if origin=='MILP':
+            terminal='MILP';terminal_origin=origin;terminal_method=current
+            new_curve=row.get('selected_is_new_MILP_proposal')
+            if isinstance(new_curve,str):new_curve={'True':True,'False':False}.get(new_curve)
+            if not isinstance(new_curve,bool):new_curve=None
+            break
+        if origin=='constant' or origin.startswith('quality') or origin.startswith('random'):
+            terminal='constant' if origin=='constant' else 'quality' if origin.startswith('quality') else 'random'
+            terminal_origin=origin;terminal_method=current;break
+        if origin not in bank:error='missing_parent';break
+        current=origin
+    if terminal=='random' and method in ALL_DESIGNS:error='random_in_primary_chain'
+    from_milp=terminal=='MILP';ancestral=from_milp and terminal_method!=method
+    return dict(source_lineage=path,source_lineage_terminal=terminal,
+        source_lineage_terminal_origin=terminal_origin,source_lineage_terminal_method=terminal_method,
+        source_lineage_from_MILP=from_milp,source_lineage_ancestral_MILP=ancestral,
+        source_lineage_terminal_MILP_new_curve=new_curve if from_milp else None,
+        source_lineage_ancestral_new_MILP=(bool(new_curve) if new_curve is not None else None) if ancestral else False,
+        source_lineage_error=error)
+
+
 def analyze_trial(trial,*,resolution=.01,label=None):
     methods=declared_methods(trial)
     names=[r['name'] for r in trial['proposal']['bank']]
@@ -322,7 +367,9 @@ def analyze_trial(trial,*,resolution=.01,label=None):
                     future_master_P_SSE=number(channels.get('master_p')) if stage=='noiseless' else None,
                     future_master_Q_SSE=number(channels.get('master_q')) if stage=='noiseless' else None,
                     missing_reason=None if fit else 'required_candidate_fit_missing:'+row.get('status','missing_method')))
-    byname={r['method']:r for r in output};paired=[]
+    byname={r['method']:r for r in output}
+    for row in output:row.update(trace_source_lineage(row['method'],byname))
+    paired=[]
     for contrast,left,right in CONTRASTS:
         if left not in byname or right not in byname:continue
         a,b=byname[left],byname[right];item=dict(**common,contrast=contrast,left=left,right=right)
@@ -354,6 +401,10 @@ def aggregate_method(rows,*,planned_histories=None):
         inheritance_checked=sum(r['inheritance_check'] is not None for r in rows),
         inheritance_failed=sum(r['inheritance_check'] is False for r in rows),
         new_MILP_selected_count=sum(r['selected_is_new_MILP_proposal'] is True for r in rows),
+        from_MILP_count=sum(r.get('source_lineage_from_MILP') is True for r in rows),
+        ancestral_MILP_count=sum(r.get('source_lineage_ancestral_MILP') is True for r in rows),
+        ancestral_new_MILP_count=sum(r.get('source_lineage_ancestral_new_MILP') is True for r in rows),
+        source_lineage_error_counts=dict(Counter(r['source_lineage_error'] for r in rows if r.get('source_lineage_error'))),
         proxy_status_counts=dict(Counter(str(r['proxy_status']) for r in rows)),
         proxy_completed=sum(r['proxy_completed'] is True for r in rows),
         proxy_unfinished=sum(r['proxy_unfinished'] is True for r in rows),
@@ -397,6 +448,8 @@ def summarize_directory(directory,*,label=None,resolution=.01):
         formal_risk_calibration=False,numerical_unresolved_resolution=resolution,
         methods={name:aggregate_method(grouped[name],planned_histories=len(freeze['seeds'])) for name in declared},
         contrasts={name:dict(history_denominator=len(rows),complete_actual_pairs=sum(r['complete_actual_pair'] for r in rows),
+            same_initial_action_set_count=sum(r['same_initial_action_set'] for r in rows),
+            same_configured_exchange_budget_count=sum(r['same_configured_exchange_budget'] for r in rows),
             metrics={field:stats(r.get('delta_'+field) for r in rows) for field in PAIRED_FIELDS})
             for name,rows in contrast_groups.items()},trial_hashes=files,
         analysis_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -456,15 +509,19 @@ def markdown(analysis):
     summary=analysis['summary'];lines=[f"# {summary['label']} 逐历史汇总",'',
         f"阶段：{summary['phase']}；已保存 {summary['available_histories']}/{summary['planned_histories']} 个独立历史。缺失历史：{summary['missing_seeds']}。",'',
         'M 为最小错误候选 SSE 减真实候选 SSE；正值表示真实候选取得较小误差。完整 AC 拟合为局部取得值。任务方向和预测情景不增加独立历史数。','',
-        '| 方法 | 完整/历史分母 | M均值 | 无噪M均值 | 预测均值 | 最终来源 | 新MILP动作执行数 | 代理完成 |',
-        '|---|---:|---:|---:|---:|---|---:|---:|']
+        '| 方法 | 完整/历史分母 | M均值 | 无噪M均值 | 预测均值 | 最终来源 | 本层新MILP | 来自MILP（含继承） | 继承MILP | 代理完成 |',
+        '|---|---:|---:|---:|---:|---|---:|---:|---:|---:|']
     fmt=lambda x:'—' if x is None else f'{x:.4g}'
     for name,record in summary['methods'].items():
         metrics=record['metrics'];origins=', '.join(f'{k}:{v}' for k,v in record['selected_origin_counts'].items())
-        lines.append(f"| {name} | {record['actual_complete']}/{record['history_denominator']} | {fmt(metrics['actual_M']['mean'])} | {fmt(metrics['noiseless_M']['mean'])} | {fmt(metrics['predicted_mean']['mean'])} | {origins} | {record['new_MILP_selected_count']} | {record['proxy_completed']} |")
+        lines.append(f"| {name} | {record['actual_complete']}/{record['history_denominator']} | {fmt(metrics['actual_M']['mean'])} | {fmt(metrics['noiseless_M']['mean'])} | {fmt(metrics['predicted_mean']['mean'])} | {origins} | {record['new_MILP_selected_count']} | {record['from_MILP_count']} | {record['ancestral_MILP_count']} | {record['proxy_completed']} |")
     lines+=['','未完成、优化失败、候选缺失和未返回未来拟合均保留方法分母；对应数值留空。预测分数 ≤ 数值阈值只标为数值未决。',
         'MILP提案数、最终来源与原域QP间隙分开报告；来源写作MILP仍需检查最终曲线是否确为新增提案。随机价格仅作对照。',
+        '来源链沿父域方案追溯；继承父域MILP与本层新发现的MILP曲线分开计数。质量价格优化单独标为quality来源。',
         '跨目录仅对相同阶段、真实参数、历史、未来背景/噪声、计量和设备哈希一致的历史做配对，开发与评价各自汇总。','']
+    if 'refined_vs_cap' in summary['contrasts']:
+        audit=summary['contrasts']['refined_vs_cap'];n=audit['history_denominator']
+        lines+= [f"refined 与 cap 公平性核对：相同初始曲线集合 {audit['same_initial_action_set_count']}/{n}；相同配置预算 {audit['same_configured_exchange_budget_count']}/{n}。",'']
     return '\n'.join(lines)
 
 

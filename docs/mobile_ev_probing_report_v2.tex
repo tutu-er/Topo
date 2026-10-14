@@ -17,17 +17,17 @@
 \title{AC 计量似然与 EV 主动拓扑辨识\\[4pt]
 \large 共享线路参数、共同源重拟合与历史约束模型判别}
 \author{Topo 研究记录：数学模型、实现与证据边界}
-\date{2026 年 10 月 14 日；原参数域平均任务MILP与EV移动验证}
+\date{2026 年 10 月 15 日；紧凑MILP与确定性EV配置}
 \begin{document}
 \maketitle
 \begin{abstract}
 被动WZZT/RNJ提供可修正候选；固定拓扑，以P/Q/V及根总表计量联合拟合AC状态和线路R/X。线路跨历史与新增共享，共同源逐时变化但经同一个物理接口，偏差与根电压先独立校准。实际优化保存局部取得似然。
 
-最新第\ref{sec:original-mean-milp}节实现全部四候选、12有向任务的平均设计价值与原物理参数域MILP。竞争线路及源继续重拟合，时间展开网络联合选择位置、连续充放电、接线和SOC。合法竞争解释给上界，动作处凸QP给下界，完整AC分别检查代理误差及执行动作。原问题的非凸性由分段与分支定界处理，计算界限于冻结代理。
+最新第\ref{sec:compact-policy}节实现共享控制平方的紧凑MILP、确定性方案继承和多条历史解释。整数变量选择接入、移动、模式和分段，连续变量选择功率与电池能量；合法竞争解释给主问题上界，动作处原域QP给下界。竞争者继续重拟合线路与同接口源。随机价格独立作为对照。
 
-四条开发历史验收后冻结源码，再用12独立历史评价：移动充电12/12取得最小候选AC损失，恒充9/12；移动V2G对随机的11有效配对为5正6负。全部24同波形位置消融显示空间收益及反例，成本与失败均保留。移动MILP间隙尚宽，真候选模型下X误差仍大。宽参数域及2 m短边压力分开核查资产先验作用，过高下界可放大错误偏好。
+四条开发历史通过完整AC、操作与15696个QP矩阵复算。平均及有上限目标均有成功和失败：预测分数与最近竞争者的真实差异存在取舍，较大动作域不会自动改善真实排错。36条校准和12条独立评价按冻结协议推进，实际分母和阶段状态见第\ref{sec:compact-policy}节。
 
-正文保留历次方法和负例。最新结果属于声明物理参数族与计量条件下的描述评价；新策略风险校准、proper预测EIG、滚动及扩网继续推进。
+第\ref{sec:original-mean-milp}节保留前一阶段12历史及24同波形位置消融：移动纯充电提供空间辨识证据，也保留选址反例和短边未决。正文区分冻结代理的计算界、完整AC局部拟合、声明模拟分布下的统计评价及后续方案。
 \end{abstract}
 \tableofcontents
 
@@ -3417,6 +3417,255 @@ $M>0$表示本次真候选取得较小联合误差，$M/2$为相应对数似然�
 
 
 \clearpage
+% EV_COMPACT_SECTION_BEGIN
+\section{紧凑MILP、确定性继承与历史预测解释}
+\label{sec:compact-policy}
+本节记录2026年10月15日的新方法阶段。沿用模型判别中允许竞争者重新拟合的思路\cite{dette}，进一步压缩主MILP、保护已取得的可行方案，并将多条历史解释与未来预测条件放入同一动作规划。以下公式是本研究对冻结代理的构造与推导，完整AC与独立排错另行核查。
+
+\subsection{目标：历史解释负担与有上限的任务价值}
+继续保留四个候选及全部12个有向竞争对。$u_{tj}$为时段$t$、地点$j$的EV网侧有功命令，单位kW，充电为正、放电为负；将其排成$u\in\R^K$，$K=Tn$，本例$T=6,n=3$。$\mathcal U$表示包含路径、功率与电池服务约束的完整操作域。$H$是历史数据；$s$指一组历史解释和预测情景，全部由$H$及公开假设产生。任务$k=(a,b,s)$表示用参考候选$a$产生预测响应、让竞争候选$b$解释该响应。
+
+竞争者的绝对参数$\xi_b$包含逐边R/X、历史与未来末端总P/Q和同接口源P/Q；原物理盒记为$\Xi_b=[\xi_b^-,\xi_b^+]$。历史与该未来共享同一组线路参数。冻结AC导数后，白化残差写为
+\begin{align}
+ r_k(u,\xi_b)&=c_k+B_ku+A_k(u)(\xi_b-\xi_{0k}-S_ku),
+ &A_k(u)&=A_{0k}+\sum_{v=1}^K u_vA_{vk},\label{eq:compact-proxy}\\
+ q_k(u)&=\min_{\xi_b\in\Xi_b}\norm{r_k(u,\xi_b)}^2,
+ &D_k(u)&=\tfrac12\{q_k(u)-\widehat J_{b,H}\}.
+ \label{eq:compact-task}
+\end{align}
+设$r_k\in\R^{m_k}$、$\xi_b\in\R^{p_k}$，则$c_k\in\R^{m_k}$、$B_k\in\R^{m_k\times K}$、$A_{0k},A_{vk}\in\R^{m_k\times p_k}$、$S_k\in\R^{p_k\times K}$。本例$m_k=198$，星形和分叉竞争者的$p_k$分别为152和154。这些系数在一次主问题中冻结，$\xi_{0k}$是展开中心，$S_k$把EV命令映射到未来总P坐标，$\widehat J_{b,H}$是原历史完整AC拟合取得的SSE。$\Xi_b$保持原绝对参数范围，$S_ku$仅改变坐标。逐时源可以调整，物理接口始终为节点1。末端总P已含EV，计量拟合中只计入一次。
+
+比较两个规划目标：
+\begin{equation}
+ \begin{aligned}
+ \Psi(u)&=\sum_{k\in\mathcal K}w_kD_k(u),\\
+ \Psi_{20}(u)&=\sum_{k\in\mathcal K}w_k\min\{D_k(u),20\},
+ \qquad w_k\ge0,\quad\sum_kw_k=1.
+ \end{aligned}
+ \label{eq:compact-objectives}
+\end{equation}
+平均目标利用各方向的总差异；上限20使已经容易分开的任务停止增加价值，负分数仍保留。权重是规划任务价值，20是任务价值上限。原始逐对分数、最坏任务与实际排错结果分别保存。历史基准始终用原取得值，即使另一历史解释的成本稍高或稍低，也保留这项历史差异。
+
+\subsection{MILP中的动作变量与线性设备约束}
+在时间展开网络中，节点记录时刻、地点及接线状态；弧表示停留接入、未接入等待、接线或驾驶。弧集合只包含满足公开到达、接入及人员窗口的转移。所有允许的终态连接到一个零时间、零能耗的虚拟汇点，因此车辆可以在任一合法终态结束。令$x_\ell\in\{0,1\}$表示是否经过弧$\ell$，$b_v$在起点为1、虚拟汇点为$-1$、其他节点为0。路径满足
+\begin{equation}
+ \sum_{\ell\in\delta^+(v)}x_\ell-
+ \sum_{\ell\in\delta^-(v)}x_\ell=b_v.
+ \label{eq:compact-flow}
+\end{equation}
+接入变量$y_{tj}\in\{0,1\}$等于该时段地点$j$的接入弧流量，$\sum_jy_{tj}\le1$。令$p^+_{tj},p^-_{tj}\ge0$分别为充、放电功率，$z_t\in\{0,1\}$选择充放电模式：
+\begin{align}
+ u_{tj}&=p^+_{tj}-p^-_{tj},&
+ p^+_{tj}&\le\bar P_cy_{tj},&p^-_{tj}&\le\bar P_dy_{tj},\notag\\
+ p^+_{tj}&\le\bar P_cz_t,&
+ p^-_{tj}&\le\bar P_d(1-z_t).
+ \label{eq:compact-power}
+\end{align}
+功率连续，二进制变量决定路径、接入、充放电模式及后文的平方区间。这里构建路径网络，完整路线和功率组合由MILP产生。
+
+以$E_t$表示电池能量，$\Delta t$单位为小时，$\eta_c,\eta_d$为充放电效率，$e_\ell$为驾驶弧耗电，则
+\begin{equation}
+ E_{t+1}=E_t+\Delta t\sum_j
+       (\eta_cp^+_{tj}-p^-_{tj}/\eta_d)
+       -\sum_{\ell:\,\mathrm{departure}(\ell)=t}e_\ell x_\ell.
+ \label{eq:compact-energy}
+\end{equation}
+同时加入中间能量上下界、固定初末能量、总吞吐、移动次数和人员成本预算；驾驶与接线均占用时间。本例$\Delta t=.25$小时，所有有EV方法要求相同终端电池服务。上述约束对所列变量均为线性。
+
+\subsection{共享功率平方：压缩上界而保留竞争重拟合}
+取一条对整个$\mathcal U$合法的竞争解释
+$\xi_{ki}(u)=\bar\xi_{ki}+T_{ki}u$，即$\xi_{ki}(u)\in\Xi_b$对全部可执行动作成立。其成本$f_{ki}(u)$满足$q_k(u)\le f_{ki}(u)$。当前优先采用$T_{ki}=S_k$，于是$z_{ki}=\bar\xi_{ki}-\xi_{0k}$为常数，
+\begin{equation}
+ r_{ki}(u)=a_{ki}+C_{ki}u,\qquad
+ a_{ki}=c_k+A_{0k}z_{ki},\quad
+ (C_{ki})_{:,v}=(B_k)_{:,v}+A_{vk}z_{ki}.
+ \label{eq:compact-affine-witness}
+\end{equation}
+解释的全域合法性由完整控制盒或操作域的LP外松弛检查；动作处合法本身只支持该动作。
+
+\begin{proposition}[共享平方]
+若AC逐时独立、计量白化不混合不同时段，并且式\eqref{eq:compact-power}的单车接入约束成立，则对每条共移动解释，
+\begin{equation}
+ f_{ki}(u)=\norm{a_{ki}+C_{ki}u}^2
+ =\kappa_{ki}+\ell_{ki}^{\top}u+\sum_{v=1}^K d_{ki,v}u_v^2,
+ \quad d_{ki,v}=\norm{(C_{ki})_{:,v}}^2\ge0,
+ \label{eq:compact-shared-square}
+\end{equation}
+其中$\kappa_{ki}=a_{ki}^{\top}a_{ki}$、$\ell_{ki}=2C_{ki}^{\top}a_{ki}$。
+\end{proposition}
+\begin{proof}
+展开平方，非对角项为$2(C_{ki})_{:,v}^{\top}(C_{ki})_{:,w}u_vu_w$。不同时段的控制列只作用于各自时段的未来量测行，因此列内积为0。同一时段不同地点至多一个$y_{tj}=1$，式\eqref{eq:compact-power}使其余地点的有符号功率为0，故$u_{tj}u_{tj'}=0$。两种情况覆盖全部非对角项，得到式\eqref{eq:compact-shared-square}。
+\end{proof}
+同槽不同地点的列内积可以很大，归零依据是实际操作约束。实现核对功率连接及二进制互斥的LP界；跨时非零内积或非共移动解释转用保留相关乘积的通用主问题。由舍入造成的微小跨项计入向上保护量。
+
+对控制$v$的一段$[\underline u_{vr},\overline u_{vr}]$，以$\delta_{vr}\in\{0,1\}$和$0\le\lambda_{vr}\le\delta_{vr}$表示所选区间及其内位置：
+\begin{align}
+ \sum_r\delta_{vr}&=1,\notag\\
+ u_v&=\sum_r\{\underline u_{vr}\delta_{vr}
+       +(\overline u_{vr}-\underline u_{vr})\lambda_{vr}\},\notag\\
+ s_v&=\sum_r\{\underline u_{vr}^{\,2}\delta_{vr}
+       +(\overline u_{vr}^{\,2}-\underline u_{vr}^{\,2})\lambda_{vr}\}.
+ \label{eq:compact-square-grid}
+\end{align}
+选中段内$s_v=(\underline u_{vr}+\overline u_{vr})u_v-\underline u_{vr}\overline u_{vr}$，且
+\begin{equation}
+ 0\le s_v-u_v^2
+   =(u_v-\underline u_{vr})(\overline u_{vr}-u_v)
+   \le(\overline u_{vr}-\underline u_{vr})^2/4.
+ \label{eq:compact-chord-error}
+\end{equation}
+全部任务与解释共用$s_v$。18个控制各4段至多增加72个平方分段二进制；路径与模式变量另计。
+
+令$\gamma_k\in\R$为任务分数变量，$\varepsilon_{ki}\ge0$覆盖所声明的系数形成、舍入和微小跨项误差。共享平方主问题为
+\begin{equation}
+ \begin{aligned}
+ \max\quad&\sum_kw_k\gamma_k,\\
+ \text{s.t.}\quad& (x,y,z,p^+,p^-,u,E)\text{满足式}
+     \eqref{eq:compact-flow}\text{--}\eqref{eq:compact-energy},\\
+ &\text{式}\eqref{eq:compact-square-grid},\\
+ &\gamma_k\le\tfrac12\left\{
+   \kappa_{ki}+\ell_{ki}^{\top}u+\sum_vd_{ki,v}s_v
+     +\varepsilon_{ki}-\widehat J_{b,H}\right\},\quad\forall k,i,\\
+ &\gamma_k\le20\quad\text{仅在有上限目标中加入}.
+ \end{aligned}
+ \label{eq:compact-master}
+\end{equation}
+全部系数冻结后，这是MILP。合法解释给$q_k\le f_{ki}$，非负$d_{ki,v}$及式\eqref{eq:compact-chord-error}又给$f_{ki}\le f^+_{ki}$。对每个可执行动作，取$\gamma_k=\min\{(q_k-\widehat J_{b,H})/2,c\}$，其中有上限目标取$c=20$，平均目标取$c=+\infty$，即可嵌入式\eqref{eq:compact-master}。所以主问题最优值及最大化best-bound给相应冻结代理的上界。平方分段造成的单解释成本差至多$\sum_vd_{ki,v}h_v^2/4$，$h_v$为最大段宽；有限解释与内层最优之间的差距通过新增竞争解释继续缩小。
+
+\subsection{动作处的原域QP下界及停止条件}
+固定$u$后，式\eqref{eq:compact-proxy}关于$\xi_b$仿射，$F(\xi_b)=\norm{r_k(u,\xi_b)}^2$为凸二次函数。取得任意盒内解释$\hat\xi$，令$F_l'=\partial F(\hat\xi)/\partial\xi_l$。凸性给
+\begin{equation}
+ \begin{split}
+ \underline q_k(u)&=\max\left\{0,\ F(\hat\xi)+
+    \sum_l\min\{F_l'(\xi_{b,l}^--\hat\xi_l),
+                    F_l'(\xi_{b,l}^+-\hat\xi_l)\}-\varepsilon_q\right\},\\
+ \overline q_k(u)&=F(\hat\xi),\qquad
+ \underline q_k(u)\le q_k(u)\le\overline q_k(u).
+ \end{split}
+ \label{eq:compact-qp-bounds}
+\end{equation}
+式中的求和正是凸切平面在原绝对参数盒上的最小值，$\varepsilon_q$为保存的数值保护量。可行残差提供内层上界，切平面提供下界；竞争R/X与历史、未来源状态均继续参与QP。
+
+以$\Psi_c(u)=\sum_kw_k\min\{D_k(u),c\}$统一表示两种目标，对已检查可行动作取
+\begin{equation}
+ \begin{aligned}
+ L&=\max_{u\in\mathcal U_{\rm checked}}
+       \sum_kw_k\min\{\tfrac12(\underline q_k(u)-\widehat J_{b,H}),c\},
+ \\L&\le\max_{u\in\mathcal U}\Psi_c(u)\le U.
+ \end{aligned}
+ \label{eq:compact-LU}
+\end{equation}
+其中$c=20$为上限目标，$c=+\infty$为平均目标，$U$为主MILP保留的全局上界。截断函数单调，因此作用于QP上下界后方向保持。负目标使用正数归一化；若后端求$-\Psi_c/\nu$的最小化下界$d_{\rm LB}$，则返回最大化上界$-\nu d_{\rm LB}$并加数值保护。
+
+新动作处解全部原域QP，添加全域合法解释；必要时细分平方区间。当
+$U-L\le\epsilon_{\rm abs}+\epsilon_{\rm rel}\max\{|L|,|U|,10^{-12}\}$时停止，否则保存预算结束时的界与失败。重展开建立新代理，在原参数域内重新回算初值和上下界。完整AC分别检查同见证误差与最终方案的预测分数。
+
+\subsection{确定性继承及平均、上限目标的公平比较}
+固定点纯充电域包含于固定点双向和移动纯充电域，两者均包含于移动双向域。限时求解时，较大域保留可执行恒充、确定性计量质量方案及已接受子域方案，并加入本次MILP建议。所有方案按同一目标下的完整AC预测分数$g_c(u)$检查，输出
+\begin{equation}
+ u_{\rm out}\in\arg\max_{u\in\mathcal P_{\rm checked}}g_c(u),\qquad
+ g_c(u_{\rm out})\ge\max_{u\in\mathcal P_{\rm parent}}g_c(u).
+ \label{eq:compact-inheritance}
+\end{equation}
+因此已检查的父方案受到保护。未来真实SSE裕量仍在独立数据上比较。随机价格方案在全部主方法完成后生成，仅作独立对照；原始MILP建议、最终采用方案及其来源分别记录。
+
+最终平均目标与上限20目标采用同一个四域方案初始集合、同一操作域和同一求解预算，二者互不继承。在上限目标下，父方案也重新按$g_{20}$计分；跨目标比较使用各自保存的逐对原始分数及实际AC结果。
+
+\subsection{历史平坦方向、未来情景与功率余量}
+历史白化响应对线路和逐时状态的导数分别记为$J_{\theta}$和$J_w$。消去局部状态补偿后的线路响应为
+\begin{equation}
+ J_{\rm prof}=(I-J_wJ_w^+)J_{\theta}.
+ \label{eq:compact-history-profile}
+\end{equation}
+按物理参数范围缩放后，小奇异方向用于提出新的R/X；活动边界处先转为盒内可行方向。随后固定该组线路，用完整AC重新拟合历史P/Q及同接口源，仅保留原域合法且历史半SSE增量不超过2的解释。这是规划解释筛选门；每个候选的解释数量、重复或失败均保存。
+
+未来情景使用历史负荷/源的主要变化方向，并加预声明的分量下限。本版采用中心及正负变化三情景，规划权重为$.5,.25,.25$；所选历史解释再分配其规划权重。每个解释--情景单独构造$H+$该未来问题，同一命令$u$作用于全部情景。参考侧的总P为
+\begin{equation}
+ p^{(a,s)}_{tj}(u)=\bar p^{(a,s)}_{tj}
+                   +g_su_{tj}/P_B,\qquad
+ g_s\in\{1,.95,1.05\},\quad P_B=20\ \mathrm{kW}.
+ \label{eq:compact-tracking}
+\end{equation}
+源始终经节点1；$g_s$同时进入参考响应和控制导数。互斥未来分别允许竞争者重拟合，不堆成同时观测。情景幅度与权重是冻结的规划假设，实际未来与噪声只用于离线评价。
+
+额定充放电功率为6 kW，命令上限取$6/1.05$ kW，故所有声明追踪情景满足$|g_su_{tj}|\le6$ kW。操作计划的SOC对应命令精确执行，追踪情景用于规划电气响应；若实际执行也加入追踪误差，终端能量需按实际功率逐情景核查或加入追补。
+
+\subsection{完整策略的独立历史校准}
+先冻结选择、拟合、预算、完整AC接受、继承、回退及失败保留规则。一个历史及其后续动作和计量构成一个独立单位；同历史的多方法与未来噪声重复保留在该单位内。开发、校准和评价使用不重合的历史种子。
+
+对实际联合拟合SSE定义候选拒绝统计量
+\begin{equation}
+ T_{m,a}=J_m(a)-\min_{b\in\HH}J_m(b),\qquad
+ K_m=\{a:T_{m,a}\le\tau_{m,a}\}.
+ \label{eq:compact-rejection-score}
+\end{equation}
+$m$为预声明方法，$a$为正在检验的候选，阈值按$a$确定。必要操作或拟合失败时输出全部候选，并将该分支的拒绝决策分数记为0；有效回退按其实际联合SSE计分。候选漏真单列并保留全局未决。
+
+在声明模拟分布及真候选$a$下，设同层校准分数$S_1,\ldots,S_n$与下一独立分数可交换。排序$S_{(1)}\le\cdots\le S_{(n)}$后取
+\begin{equation}
+ r=\lceil(n+1)(1-\alpha)\rceil,\qquad
+ \tau_{m,a}=\begin{cases}S_{(r)},&r\le n,\\+\infty,&r=n+1.\end{cases}
+ \label{eq:compact-calibration}
+\end{equation}
+在$\alpha=.1$、每候选$n=9$时，阈值是9个分数的最大值；0--8个已完成历史给无穷阈值。对并列值按等号保留。给并列附加随机名次后，新分数名次在$n+1$个位置上均匀，因此
+\begin{equation}
+ \Pr\{T_{m,a}^{\rm new}>\tau_{m,a}\}
+ \le\frac{n+1-r}{n+1}\le\alpha,
+ \label{eq:compact-marginal-control}
+\end{equation}
+其中无穷阈值的拒绝事件为空。该保证平均随机校准数据和下一条历史，适用于冻结算法及声明模拟分布。每候选九条历史不提供对每一个连续R/X取值或真实馈线的一致保证。固定一次阈值的高置信风险上界是另一统计目标。
+
+对预声明的两种主策略，先在每个校准历史取
+$S_i=\max_{m\in\{\text{精化平均},\text{上限20}\}}T_{m,a}^{(i)}$，再使用式\eqref{eq:compact-calibration}，便控制两者中至少一次误拒的相应边际事件。逐方法结果与这个方法族结果分别保存。若需要覆盖多个未知条件层，对每个待检候选取各层阈值的最大值；缺少必要层仍保留无穷阈值。似然分数、设计价值和保留集均以其定义报告。
+
+\subsection{开发修订与待补证据}
+v1四条开发历史中，新移动MILP提案的最终采用数为0，故下一修订分别处理初始化预算、预测功率余量及平均/上限目标的相同初值比较，避免把继承效果计为新MILP收益。现有210项集成检查支持相应公式、接口和实现条件；效果由后续冻结运行、完整AC和独立审计给出。
+
+% TODO(root): 填入v1开发来源、实际新提案/接收分母及修订前后计时；保留0执行与失败。
+% TODO(root): 插入v2完整开发、独立12H评价及36H校准结果，分别给实际完成分母。
+% TODO(root): 独立AC/操作review与QP重建报告并列；标明MILP全域界独立核查的覆盖范围。
+% TODO(root): 对照mean/refined与cap20的相同初值、预算、实际origin、真实M与无噪声M。
+% TODO(root): 校准逐候选n/r/threshold(含infinity)、primary-family结果及完整失败分母。
+% TODO(root): 更新代码hash、统计范围、commit/push、图表与本次原报告编译核验。
+
+
+
+\subsection{开发验收与独立评价安排}
+紧凑表达与继承、多历史解释完成后，四条开发历史989101--989104用于修订和验收。独立程序重放4063个保存拟合状态、44个真实未来AC和47个历史解释；另从冻结导数代码重建完整矩阵，15696个竞争QP的残差、切线下界和聚合分数全部吻合。该复算不重新优化；它核对保存状态与数学表达，完整AC拟合仍为局部取得值。
+
+表\ref{tab:compact-development}是开发结果。$M$仍为最小错误候选SSE减真候选SSE；无噪声列仅去除未来噪声，历史计量继续固定。全部方法均完成4/4条件。
+\begin{table}[htbp]
+\centering\small
+\caption{修订版开发四历史；用于方法修订，不计入独立评价。}
+\label{tab:compact-development}
+\begin{tabular}{lrrr}\toprule
+方法 & 平均$M$ & 无噪平均$M$ & 本层新MILP曲线\\\midrule
+同长度无EV & -0.11 & -0.09 & ---\\
+恒充 & 8.35 & 6.84 & ---\\
+固定点质量价格 & 56.15 & 62.50 & ---\\
+移动域质量价格 & 74.12 & 75.44 & ---\\
+随机价格对照 & 86.09 & 92.80 & ---\\
+固定点纯充电MILP & 52.23 & 67.50 & 4/4\\
+固定点双向MILP & 107.89 & 128.47 & 3/4\\
+移动纯充电MILP & 128.37 & 123.02 & 4/4\\
+移动双向MILP & 107.28 & 126.98 & 1/4\\
+平均目标同预算再优化 & 107.45 & 127.03 & 1/4\\
+上限目标同预算再优化 & 123.37 & 121.05 & 3/4\\
+\bottomrule\end{tabular}
+\end{table}
+沿父方法逐层核对来源后，两种主策略的四条最终曲线均来自MILP。精化平均目标本层新曲线1条、继承较小域MILP曲线3条；上限目标分别为3条和1条。这些计数区分本层优化贡献与已有较简单优化的贡献，随机方案始终独立。
+
+较大动作域保护的是历史预测分数，实际裕量仍可能降低。例如989104移动纯充电的$M=182.19$，移动双向计划为18.49；完整AC预测已经偏好后一动作，因而该负例需要检查指标与参考预测。989101平均任务分数也会牺牲最难竞争者；有上限目标在该历史改善了实际裕量，但在989104仍选择同一固定点继承计划。相应逐参考、逐竞争者和逐情景分解完整保留。
+
+% EV_COMPACT_INDEPENDENT_RESULTS_BEGIN
+36条独立校准历史989301--989336和12条独立评价历史989201--989212已预声明，与上述开发历史分离。当前正在执行，尚未写入独立效果或风险结论。式\eqref{eq:compact-objectives}的两个同预算策略在全过程冻结后评价；随机方案保持独立对照，不进入主方法初值或继承库。
+% EV_COMPACT_INDEPENDENT_RESULTS_END
+% EV_COMPACT_SECTION_END
+
+
+
+
+
 \appendix
 \section{AC 数值计算和导数的来源}
 \label{sec:jacobian}
