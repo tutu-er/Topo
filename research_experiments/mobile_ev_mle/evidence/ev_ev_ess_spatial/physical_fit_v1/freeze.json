@@ -1,0 +1,80 @@
+{
+  "config": {
+    "version": "standard_case33_spatial_fit_diagnostic_v1",
+    "seeds": [
+      987201,
+      987202
+    ],
+    "history_count": 12,
+    "future_count": 4,
+    "base_kw": 1000.0,
+    "base_mva": 1.0,
+    "base_kv": 12.66,
+    "p_q_common_relative_halfwidth": 0.01,
+    "p_q_independent_relative_halfwidth": 0.001,
+    "source_p_kw_center": 10.0,
+    "source_p_kw_halfwidth": 2.0,
+    "source_q_kvar_center": 3.0,
+    "source_q_kvar_halfwidth": 1.0,
+    "curve_kw": [
+      6.0,
+      0.0,
+      6.0,
+      0.0
+    ],
+    "grid_energy_kwh": 3.0,
+    "dt_hours": 0.25,
+    "p_sigma_pu": 0.0006,
+    "q_sigma_pu": 0.0004,
+    "v_sigma_pu": 0.00012,
+    "master_p_sigma_pu": 0.001,
+    "master_q_sigma_pu": 0.001,
+    "fit": {
+      "multistart": 2,
+      "max_nfev": 200,
+      "tol": 1e-10,
+      "linear_solver": "exact"
+    },
+    "scenarios": [
+      "none",
+      "site0",
+      "site1",
+      "site2"
+    ],
+    "candidate_bank": [
+      "star",
+      "clade_01",
+      "clade_02",
+      "clade_12"
+    ],
+    "truth_family": [
+      [
+        0,
+        2
+      ]
+    ],
+    "source_interface": "same physical node1 for generation and every fit",
+    "field_PQV_data": false,
+    "formal_calibration": 0,
+    "formal_evaluation": 0,
+    "selector_calls": 0,
+    "operation_scope": "electrical response only; equal 3kWh grid energy, no claim of mobile terminal-SOC feasibility"
+  },
+  "source_sha256": {
+    "ev_physical_spatial_fit_audit.py": "426978b22056a916ef400ec04184819f3bc453a2a163ef69cca75eee6562e275",
+    "ev_physical_spatial_fit_protocol.md": "bad0c6d64ff7c1175515889ce8ca78b975bbe8928b5a20de52c33192bbe8a7bf",
+    "ev_physical_cases.py": "e01a51000e855c662b90e755836811950f3ecdf4c3e8219b525e800b48f870e8",
+    "likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+    "candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+    "gradient_price_study.py": "42ab09f87c8471878a203f30a7ae736e73522e98bf57b0a54382b66e7d9a26be",
+    "information_context.py": "b9604f9010b75f337ee22075208ba32d1eb1cbc8ea93e49d508f2eae53f72941",
+    "../../terminal_case33/data/case33bw_raw.py": "18103aa324e894af25eb2db2c7fca3bf18df9eb92f9b9106ec20451ff8641506",
+    "../mobile_ev_probing/ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+  },
+  "seed_plan": [
+    987201,
+    987202
+  ],
+  "scope": "two-history electrical mechanism diagnostic"
+}
