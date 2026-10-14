@@ -134,12 +134,16 @@ def original_model_qp(model,u):
 
 
 def build_multisite_context(history,candidates,fits,hm,fm,reference_kw,lower,upper,
-                            base_kw=20.,*,line_bounds=None,state_bounds=None,step_kw=.001):
+                            base_kw=20.,*,line_bounds=None,state_bounds=None,step_kw=.001,
+                            forecast_overrides=None):
     """H-only model bank with controls flatten[t*n+site], shared H/N R/X.
 
     line_bounds: r_bounds/x_bounds, scalar endpoints or per-candidate arrays.
     state_bounds: p_bounds/q_bounds/source_bounds; original absolute box.
     Every required candidate remains present or the whole context fails.
+    Optional H-only forecast_overrides contain total P at reference_kw, Q,
+    same-interface source P/Q, root_v, and a shared optional control_gain.
+    With no overrides, the original forecast/control code path is unchanged.
     """
     began=perf_counter();candidates=tuple(candidates);u0=np.asarray(reference_kw,float)
     if u0.ndim!=2 or u0.shape[1]!=history.n or not len(u0) or not np.isfinite(u0).all():raise ValueError('reference_kw must be finite (time,terminal)')
@@ -163,11 +167,33 @@ def build_multisite_context(history,candidates,fits,hm,fm,reference_kw,lower,upp
         state_lo=np.r_[ps[0],qs[0],ss[0]];state_hi=np.r_[ps[1],qs[1],ss[1]]
         channels=_channels(history);obs=whiten_observations(history,hm,channels);hrows=len(obs)
         baseline=baseline_from_history(history,hm,T);U=multisite_control_map(T,n,base_kw)
+        override_gain=None;override_root=None
+        if forecast_overrides is not None:
+            if set(forecast_overrides)!={c.name for c in candidates}:raise ValueError('forecast override must preserve every candidate')
+            for c in candidates:
+                supplied=forecast_overrides[c.name]
+                required={'p','q','source_p','source_q','root_v'}
+                if not required<=set(supplied) or set(supplied)-required-{'control_gain'}:
+                    raise ValueError('forecast override fields differ from physical forecast schema')
+                gain=np.broadcast_to(np.asarray(supplied.get('control_gain',1.),float),u0.shape).copy()
+                root=np.asarray(supplied['root_v'],float)
+                if root.shape!=(T,) or not np.isfinite(root).all() or np.any(root<=0):raise ValueError('known shared forecast root required')
+                if not np.isfinite(gain).all() or np.any(gain<=0):raise ValueError('positive finite forecast tracking gain required')
+                if override_gain is not None and (not np.array_equal(gain,override_gain) or not np.array_equal(root,override_root)):
+                    raise ValueError('one forecast scenario must share the same physical tracking gain and root across candidates')
+                override_gain=gain;override_root=root
+            U=U*override_gain.ravel()[None,:]
         contexts={};width=2*n+2
         for c in candidates:
             fit=fits[c.name];theta=np.r_[fit.r,fit.x]
             forecast=dict(p=baseline['p']+u0/base_kw,q=baseline['q'].copy(),root_v=baseline['root_v'].copy(),
                 source_p=np.full(T,np.mean(fit.source_p)),source_q=np.full(T,np.mean(fit.source_q)))
+            if forecast_overrides is not None:
+                supplied=forecast_overrides[c.name]
+                forecast={key:np.asarray(supplied[key],float).copy() for key in ('p','q','source_p','source_q','root_v')}
+                for key,value in forecast.items():
+                    expected=(T,n) if key in ('p','q') else (T,)
+                    if value.shape!=expected or not np.isfinite(value).all():raise ValueError('forecast override shape/finiteness: '+key)
             diagnostics['ac_calls']+=1
             hg=mean_and_jacobian(c,fit.r,fit.x,fit.p,fit.q,fit.source_p,fit.source_q,history.root_v,hm,channels=channels)
             diagnostics['ac_calls']+=1;ng=_future(c,theta,forecast,forecast['root_v'],fm,channels)
@@ -197,7 +223,8 @@ def build_multisite_context(history,candidates,fits,hm,fm,reference_kw,lower,upp
                     reference_kw=ref,reference_power_kw=u0.copy(),reference_residual=reference,C_at_reference=C,domain=domain,
                     channels=list(channels),history_rows=hrows,history_state_columns=nh,future_state_columns=nn,line_columns=nl,
                     base_kw=base_kw,control_shape=[T,n],control_time_site=[(k//n,k%n) for k in range(K)],
-                    future_background=vector_state(state_vector(cb['forecast'])-U@ref,n),future_root_v=baseline['root_v'],
+                    future_background=vector_state(state_vector(cb['forecast'])-U@ref,n),
+                    future_root_v=baseline['root_v'] if forecast_overrides is None else cb['forecast']['root_v'],
                     source_interface=1,original_domain_preserved_at_fixed_u=True,
                     reference_r=np.asarray(fits[a.name].r),reference_x=np.asarray(fits[a.name].x),
                     reference_background=vector_state(state_vector(ca['forecast'])-U@ref,n),
@@ -207,6 +234,8 @@ def build_multisite_context(history,candidates,fits,hm,fm,reference_kw,lower,upp
                 answer['models'].append(model)
         diagnostics.update(seconds=perf_counter()-began,pairs=len(answer['models']),line_bounds=line_bounds,
             state_bounds=sb,source_prediction='candidate-specific historical mean at same physical node1')
+        if forecast_overrides is not None:
+            diagnostics.update(forecast_override=True,control_gain=override_gain,shared_forecast_root=override_root)
         answer['success']=True
     except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError) as error:
         answer['models']=[];diagnostics.update(failure=type(error).__name__+':'+str(error),seconds=perf_counter()-began)
