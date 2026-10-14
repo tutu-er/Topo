@@ -60,7 +60,14 @@ def fit_channels(saved,obs,fm,H,hfits):
     return computed
 
 
-def replay_history(saved,parent,expected_hash):
+def replay_history(saved,parent,expected_hash,*,methods=None,service_config_builder=None):
+    """Replay saved states; optional adapters only change method/config labels.
+
+    Defaults preserve the original stage-16 review. Compact callers retain
+    their two method names and pass the corresponding signed mobile domain.
+    """
+    methods=METHODS if methods is None else tuple(methods)
+    service_config_builder=service_config if service_config_builder is None else service_config_builder
     seed=parent['seed'];H=parent['config']['history'];cfg=parent['config'];truth=parent['truth']
     require(saved['seed']==seed and saved['parent_trial_sha256']==expected_hash,'parent identity')
     require(saved['new_selector_runs']==0,'unexpected selector call')
@@ -73,9 +80,9 @@ def replay_history(saved,parent,expected_hash):
     shared={k:arr(truth[k])[H:].tolist() for k in ('p','q','source_p','source_q','root_v')}
     shared.update(r=truth['r'],x=truth['x'],family=truth['family'],future_white={k:arr(v)[H:].tolist() for k,v in truth['white'].items()})
     require(saved['shared_future_inputs']==shared and identity(shared)==saved['shared_future_input_sha256'],'shared future input digest')
-    require([r['method'] for r in saved['conditions']]==list(METHODS),'method denominator/order')
+    require([r['method'] for r in saved['conditions']]==list(methods),'method denominator/order')
     parentrows={r['method']:r for r in parent['rows']}
-    cache={curve_hash(parentrows[m]['power_kw']):parentrows[m] for m in METHODS}
+    cache={curve_hash(parentrows[m]['power_kw']):parentrows[m] for m in methods}
     counts=Counter();conditions=[];candidate_rows=[];saved_fit_states=hist['replayed_states'];maxnoise=0.
     for condition in saved['conditions']:
         method=condition['method'];original=condition['original'];remap=condition['remap'];row=parentrows[method]
@@ -88,7 +95,7 @@ def replay_history(saved,parent,expected_hash):
         close(condition['grid_throughput_difference_kwh'],dt*(abs(u).sum()-abs(v).sum()),'grid throughput diagnostic')
         close(dt*u.sum(),dt*v.sum(),'same net grid energy');close(dt*abs(u).sum(),dt*abs(v).sum(),'same grid throughput')
         resource=condition['resource_scope'];op=resource['original_executed_operation']
-        op_audit=replay_operation_record(op,service_config(cfg,method));close(op['u_kw'],u,'executed operation versus evaluation')
+        op_audit=replay_operation_record(op,service_config_builder(cfg,method));close(op['u_kw'],u,'executed operation versus evaluation')
         terminal=cfg['device']['initial_energy_kwh']+dt*np.sum(cfg['device']['eta_charge']*np.maximum(net,0)-np.maximum(-net,0)/cfg['device']['eta_discharge'])
         close(resource['grid_net_kwh'],dt*u.sum(),'resource grid energy');close(resource['grid_throughput_kwh'],dt*abs(u).sum(),'resource throughput')
         close(resource['remap_hypothetical_terminal_without_driving_kwh'],terminal,'remap battery accounting')

@@ -63,6 +63,17 @@ def test_failed_or_missing_method_kept_with_four_candidates_each_stage():
     assert summary['actual_failed_or_missing']==1 and summary['metrics']['actual_M']['n']==0
 
 
+def test_candidate_export_preserves_attained_fit_values_without_recalculation():
+    t=trial()
+    t['rows'][0]['fits'][0].update(loglik=17.25,optimality=.003,message='local ftol')
+    rows=a.analyze_trial(t)['candidate_rows']
+    row=next(r for r in rows if r['method']=='none' and r['candidate']=='star' and r['stage']=='noisy')
+    assert row['attained_loglik']==17.25 and row['solver_optimality']==.003
+    assert row['solver_message']=='local ftol' and row['r']==[1.,2.]
+    missing=next(r for r in rows if r['method']=='none' and r['candidate']=='c01' and r['stage']=='noisy')
+    assert missing['attained_loglik'] is None
+
+
 def test_inherited_plan_ledger_is_actual_selected_plan_not_constant_fallback():
     t=trial();record=t['selection']['methods']['v2g_mobile'];record['selected_origin']='charge_mobile'
     record['operation'].update(travel_energy_kwh=.2,driver_cost=30.,moves=1)
