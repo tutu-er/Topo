@@ -129,3 +129,36 @@ def test_v2_initial_QP_witness_bound_and_planning_gap_are_audited():
     assert out['valid_global_proxy_interval']
     broken=deepcopy(saved);broken['target_gap']=.01
     with pytest.raises(ValueError):review.exchange_audit([m],broken,{'b':0.})
+
+
+def test_call_counts_charge_cached_curve_once_and_separate_history():
+    none=dict(method='none',u_kw=[0]*4,site=0,validation=dict(feasible=True),cache_hit=False,
+              fits=[dict(name='a')],cost=dict(fit_calls=4,ac_calls=10))
+    constant=dict(method='constant',u_kw=[3]*4,site=0,validation=dict(feasible=True),cache_hit=False,
+                  fits=[dict(name='b')],cost=dict(fit_calls=4,ac_calls=12))
+    duplicate=deepcopy(constant);duplicate.update(method='cross_raw_milp',cache_hit=True)
+    trial=dict(config=dict(base_kw=20.),historical_cost=dict(fit_calls=4,ac_calls=99),evaluation_ac_calls=22,
+        selection_ac_calls=148,selection_forecast_calls=4,rows=[none,constant,duplicate],
+        selection=dict(context_ac_calls=48,ac_guard=dict(totals=dict(fit_calls=16,fit_ac_calls=96,forecast_calls=4,ac_calls=100)),
+            fixed_solver=dict(n_binary=8),cross_solver=dict(iterations=[],qp_calls=12),curves_audit=dict(curve=[None]*12)))
+    out=review.cost_audit(trial)
+    assert out['evaluation_executed_fit_calls']==8 and out['evaluation_executed_AC_calls']==22
+    assert out['evaluation_action_cache_hits']==1 and out['historical_cost_record']['fit_calls']==4
+    assert out['fixed_chord_solver_calls']==1 and out['cross_chord_solver_calls']==0
+    assert out['guard_unique_forecast_AC_calls']==4 and out['evaluator_future_truth_forward_attempts']==3
+    broken=deepcopy(trial);broken['rows'][2]['cache_hit']=False
+    with pytest.raises(ValueError):review.cost_audit(broken)
+
+
+def test_tight_master_affine_extrema_and_secant_error_are_audited_without_LP():
+    m=dict(name='four',a='a',b='b',c=[1.],B=[[1.,-1.,2.,-2.]],A0=[[1.]],
+        At=np.zeros((4,1,1)).tolist(),domain=dict(outer_lower=[-1.],outer_upper=[1.]))
+    exchange=dict(score_scale=.5,witnesses=[[[0.]]])
+    master=dict(interval_audits=[dict(name='four__w0',residual_lower=[-17*np.sqrt(.5)],residual_upper=[19*np.sqrt(.5)])],
+        segments=4,coarse_upper=180.5+1e-12,numeric_guard=1e-12,
+        secant_error_by_quadratic=[10.125],u=[3.]*4,objective_lower=.5)
+    item=dict(master=master,compressions=[dict(pair='four',witness=0,box_numerical_upward_guard=0.)])
+    out=review.tight_master_audit([m],exchange,item,{'b':0.})
+    assert out['analytic_feasible_affine_extrema_checked'] and out['quadratics']==1
+    broken=deepcopy(item);broken['master']['interval_audits'][0]['residual_lower'][0]+=.1
+    with pytest.raises(ValueError):review.tight_master_audit([m],exchange,broken,{'b':0.})

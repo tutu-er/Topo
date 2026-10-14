@@ -119,6 +119,50 @@ def replay_qp(model,u,saved,*,domain,kind='fixed'):
     return dict(lower=lower,upper=primal,gap=primal-lower,solver_success=bool(saved['success']),domain=domain)
 
 
+def tight_master_audit(models,exchange,item,history_losses):
+    """Audit v2 residual enclosures analytically on 0<=u<=6, sum(u)=12.
+
+    For an affine row, its extrema are obtained by filling the two smallest
+    or largest coefficients. This independent audit performs no LP/MILP.
+    """
+    master=item['master'];intervals=master.get('interval_audits')
+    if not intervals or not isinstance(intervals[0],dict):
+        return dict(available=False,reason='master stopped before a structured residual enclosure was saved')
+    byname={m['name']:m for m in models};score_scale=float(exchange['score_scale']);quadratics=[]
+    for comp in item['compressions']:
+        m=byname[comp['pair']];pairindex=models.index(m);wi=int(comp['witness'])
+        z=arr(exchange['witnesses'][pairindex][wi]);D=m['domain']
+        require(np.all(z>=arr(D['outer_lower'])-1e-9) and np.all(z<=arr(D['outer_upper'])+1e-9),'master fixed witness feasibility')
+        c=arr(m['c'])+arr(m['A0'])@z;B=arr(m['B'])+np.einsum('tmn,n->mt',arr(m['At']),z)
+        _,R=np.linalg.qr(np.column_stack((B,c)),mode='reduced')
+        d,T=np.sqrt(score_scale)*R[:,-1],np.sqrt(score_scale)*R[:,:-1]
+        offset=score_scale*history_losses[m['b']]-comp['box_numerical_upward_guard']
+        quadratics.append(dict(name=m['name']+'__w'+str(wi),d=d,T=T,offset=offset))
+    require(len(quadratics)==len(intervals),'tight master quadratic/enclosure coverage')
+    scores=[];secant_errors=[];at_return=[]
+    for q,interval in zip(quadratics,intervals):
+        require(q['name']==interval['name'],'tight enclosure order')
+        d,T=q['d'],q['T'];require(T.shape[1]==4,'declared four-slot audit domain')
+        lo,hi=arr(interval['residual_lower']),arr(interval['residual_upper'])
+        exact_lo=d+6*np.sort(T,axis=1)[:,:2].sum(axis=1)
+        exact_hi=d+6*np.sort(T,axis=1)[:,-2:].sum(axis=1)
+        tol=2e-9*(1+np.maximum(abs(exact_lo),abs(exact_hi)))
+        require(lo.shape==d.shape and hi.shape==d.shape and np.all(lo<=exact_lo+tol) and np.all(hi>=exact_hi-tol),
+                'saved LP-tightened range cuts a feasible affine response')
+        value=float(np.sum(np.maximum(lo*lo,hi*hi).astype(np.longdouble))-np.longdouble(q['offset']))
+        scores.append(value)
+        variable=np.any(T!=0,axis=1)
+        secant_errors.append(float(np.sum(((hi-lo)[variable]/master['segments'])**2/4)))
+        if master['u'] is not None:
+            residual=d+T@arr(master['u']);at_return.append(float(residual@residual)-q['offset'])
+    close(master['coarse_upper'],min(scores)+master['numeric_guard'],'tight master enclosure upper',atol=2e-7,rtol=2e-8)
+    close(master['secant_error_by_quadratic'],secant_errors,'tight master secant error',atol=2e-7,rtol=2e-8)
+    if at_return:close(master['objective_lower'],min(at_return),'tight witness-master attained objective',atol=2e-7,rtol=2e-8)
+    return dict(available=True,quadratics=len(quadratics),analytic_feasible_affine_extrema_checked=True,
+                attained_witness_master_score=None if not at_return else min(at_return),
+                scope='independent enclosure/objective arithmetic; saved solver best bound remains floating solver evidence')
+
+
 def exchange_audit(models, saved, history_losses):
     require(saved['required_pairs']==[m['name'] for m in models],'exchange keeps all ordered pairs')
     require(saved['full_curve_enumeration'] is False and saved['original_global_optimum_certified'] is False,
@@ -171,15 +215,18 @@ def exchange_audit(models, saved, history_losses):
         global_initial.append(witness_box_score(z));midpoint.append(witness_box_score(middle))
     close(saved['initial_fixed_witness_upper'],min(global_initial),'initial feasible fixed-witness global proxy bound',atol=2e-7,rtol=2e-8)
     if v2: close(saved['midpoint_fixed_witness_upper'],min(midpoint),'old midpoint crude global bound',atol=2e-7,rtol=2e-8)
+    master_audits=[]
     for item in saved['iterations']:
         upper_i=float(item['global_upper'])
         require(upper_i<=previous+2e-7*max(1.,abs(previous)),'global proxy upper increases')
         require(item['master'].get('original_global_optimum_certified',False) is False,'master AC certificate label')
+        if v2:master_audits.append(tight_master_audit(models,saved,item,history_losses))
         previous=upper_i
     return dict(success=True,evaluations=len(entries),qp_states=len(entries)*len(models),entries=entries,
         objective_lower=lower,objective_upper=upper,gap=saved['gap'],status=saved['status'],completed=saved['completed'],
         valid_global_proxy_interval=valid_interval,raw_gap=saved['raw_gap'],
         initial_witness_upper_replayed=min(global_initial),midpoint_witness_upper_replayed=min(midpoint),
+        tight_master_audits=master_audits,
         computational_failure=None if valid_interval else 'saved numerical upper below attained lower; invalid interval preserved',
         scope='saved floating solver bounds for common-outer bilinear proxy; not nonlinear AC distance')
 
@@ -348,6 +395,43 @@ def guard_audit(trial,guard,history,hm,fm,jm,candidates):
         scope='attained H-only predicted AC score check; no global separation or future rejection guarantee')
 
 
+def cost_audit(trial):
+    """Separate executed calls from duplicated saved states and paired H rows."""
+    selection=trial['selection'];guard=selection.get('ac_guard',{}).get('totals',{})
+    evaluated={};eval_fit_calls=eval_ac_calls=cache_hits=truth_forward_attempts=0
+    for row in trial['rows']:
+        if row.get('u_kw') is not None and row.get('validation',{}).get('feasible',False):
+            truth_forward_attempts+=1
+        if 'cost' not in row:continue
+        p=np.zeros((4,3));p[:,int(row['site'])]=arr(row['u_kw'])/trial['config']['base_kw'];q=0.*p
+        key=p.astype('<f8').tobytes()+q.astype('<f8').tobytes()
+        hit=key in evaluated;require(row['cache_hit']==hit,'actual joint-fit action cache classification')
+        if hit:
+            require(json_identity(row['fits'])==json_identity(evaluated[key]['fits']), 'cached fit state differs')
+            require(row['cost']==evaluated[key]['cost'],'cached fit cost differs');cache_hits+=1
+        else:
+            evaluated[key]=row;eval_fit_calls+=int(row['cost']['fit_calls']);eval_ac_calls+=int(row['cost']['ac_calls'])
+    require(eval_ac_calls==trial['evaluation_ac_calls'],'executed evaluation AC call count')
+    selected_ac=int(selection['context_ac_calls'])+int(guard.get('ac_calls',0))
+    require(selected_ac==trial['selection_ac_calls'],'selection context plus unique guard AC calls')
+    if 'selection_forecast_calls' in trial:
+        require(trial['selection_forecast_calls']==guard.get('forecast_calls',0),'guard forecast call count')
+    fixed=selection.get('fixed_solver');exchange=selection.get('cross_solver',{})
+    masters=[x['master'] for x in exchange.get('iterations',[])]
+    fixed_calls=int(fixed is not None);fixed_discrete=int(fixed is not None and fixed.get('n_binary',0)>0)
+    pair_QP_audits=2*sum(len(rows) for rows in selection.get('curves_audit',{}).values())
+    return dict(historical_cost_record=trial['historical_cost'],
+        evaluation_unique_curves=len(evaluated),evaluation_action_cache_hits=cache_hits,
+        evaluation_executed_fit_calls=eval_fit_calls,evaluation_executed_AC_calls=eval_ac_calls,
+        guard_unique_fit_calls=int(guard.get('fit_calls',0)),guard_unique_fit_AC_calls=int(guard.get('fit_ac_calls',0)),
+        guard_unique_forecast_AC_calls=int(guard.get('forecast_calls',0)),selection_context_AC_calls=int(selection['context_ac_calls']),
+        selection_total_AC_calls=selected_ac,evaluator_future_truth_forward_attempts=truth_forward_attempts,
+        fixed_chord_solver_calls=fixed_calls,fixed_chord_calls_with_binary_variables=fixed_discrete,
+        cross_chord_solver_calls=len(masters),cross_chord_calls_with_binary_variables=sum(m.get('n_binary',0)>0 for m in masters),
+        cross_QP_solver_calls=int(exchange.get('qp_calls',0)),fixed_action_audit_QP_calls=pair_QP_audits,
+        scope='executed fit/model call counters; history cost charged once per base H; evaluator truth forwards separated')
+
+
 def audit_trial(trial):
     config=trial['config'];selection=trial['selection'];models=quality_audit(trial)
     require(trial['development_only'] and config['formal_calibration']==0 and config['formal_evaluation']==0
@@ -425,7 +509,16 @@ def audit_trial(trial):
                 if len(true_names)==1:
                     true=true_names[0];margin=min(v for k,v in js.items() if k!=true)-js[true]
                     close(row['margin'],margin,'actual margin');close(row['loglik_margin'],.5*margin,'actual loglik margin')
-                    out.update(margin=margin,truth_is_best=js[true]<=min(js.values())+1e-9)
+                    f=next(r for r in row['fits'] if r['name']==true);truth=trial['truth']
+                    er,ex=arr(f['r'])-arr(truth['r_pu']),arr(f['x'])-arr(truth['x_pu'])
+                    rmse=float(np.sqrt(np.mean(np.r_[er,ex]**2)))
+                    close(row['impedance_rmse'],rmse,'saved R/X RMSE')
+                    sr=float(np.sqrt(np.mean(np.r_[arr(f['source_p'])-arr(truth['source_p']),
+                        arr(f['source_q'])-arr(truth['source_q'])]**2)))
+                    if 'source_state_rmse' in row:close(row['source_state_rmse'],sr,'saved same-interface source state RMSE')
+                    out.update(margin=margin,truth_is_best=js[true]<=min(js.values())+1e-9,
+                        impedance_rmse_pu=rmse,r_rmse_pu=float(np.sqrt(np.mean(er*er))),
+                        x_rmse_pu=float(np.sqrt(np.mean(ex*ex))),source_state_rmse_pu=sr)
         rows.append(out)
     guard=selection.get('ac_guard');guard_count=0;guard_result=None
     if guard:
@@ -434,7 +527,7 @@ def audit_trial(trial):
     return dict(seed=trial['base_seed'],quality=trial['quality']['kind'],success=True,
         history_fit_states=H['states_replayed'],saved_fit_states_replayed=state_count,physical_states_replayed=physical_count,
         proxy_QP_states_replayed=qp_count,guard_fit_states_replayed=guard_count,exchange=exchange,QP_rows=audit_rows,methods=rows,
-        guard=guard_result,fixed=fixed,fallback=selection.get('fallback'),correlation=trial['correlation'],seconds=trial['seconds'])
+        guard=guard_result,fixed=fixed,cost=cost_audit(trial),fallback=selection.get('fallback'),correlation=trial['correlation'],seconds=trial['seconds'])
 
 
 def paired_identity_audit(trials):
@@ -455,10 +548,12 @@ def summary(audits,planned):
     for method in methods:
         rows=[r for a in audits for r in a['methods'] if r['method']==method]
         margins=[r['margin'] for r in rows if 'margin' in r]
+        impedance=[r['impedance_rmse_pu'] for r in rows if 'impedance_rmse_pu' in r]
         numbers[method]=dict(planned_conditions=planned,available_conditions=len(rows),
             statuses=dict(Counter(r['status'] for r in rows)),candidate_miss=sum(r['candidate_miss'] for r in rows),
             margin_available=len(margins),truth_best=sum(r.get('truth_is_best',False) for r in rows),
-            mean_margin=None if not margins else float(np.mean(margins)))
+            mean_margin=None if not margins else float(np.mean(margins)),
+            impedance_rmse_available=len(impedance),mean_impedance_rmse_pu=None if not impedance else float(np.mean(impedance)))
     contrasts={}
     for method,baseline in [('cross_raw_milp','constant'),('cross_raw_milp','quality_lp'),
                             ('cross_guarded_milp','constant'),('cross_guarded_milp','cross_raw_milp'),
@@ -479,7 +574,19 @@ def summary(audits,planned):
             available_complete_paired_histories=len(H),unavailable_histories=planned//2-len(H),
             per_history_mean_quality_delta=H,positive=sum(r['delta']>1e-8 for r in H),
             mean_delta=None if not H else float(np.mean([r['delta'] for r in H])))
-    return dict(methods=numbers,paired_history_contrasts=contrasts,
+    unique_H={a['seed']:a['cost']['historical_cost_record'] for a in audits}
+    cost_keys=('evaluation_executed_fit_calls','evaluation_executed_AC_calls','guard_unique_fit_calls',
+        'guard_unique_fit_AC_calls','guard_unique_forecast_AC_calls','selection_context_AC_calls',
+        'selection_total_AC_calls','evaluator_future_truth_forward_attempts','fixed_chord_solver_calls',
+        'fixed_chord_calls_with_binary_variables','cross_chord_solver_calls','cross_chord_calls_with_binary_variables',
+        'cross_QP_solver_calls','fixed_action_audit_QP_calls','evaluation_action_cache_hits','evaluation_unique_curves')
+    calls={k:sum(a['cost'][k] for a in audits) for k in cost_keys}
+    calls.update(historical_executed_fit_calls=sum(r['fit_calls'] for r in unique_H.values()),
+                 historical_executed_AC_calls=sum(r['ac_calls'] for r in unique_H.values()),
+                 evaluator_history_truth_forwards=len(unique_H))
+    calls['total_executed_fit_calls']=calls['historical_executed_fit_calls']+calls['guard_unique_fit_calls']+calls['evaluation_executed_fit_calls']
+    calls['total_counted_model_AC_calls']=calls['historical_executed_AC_calls']+calls['selection_total_AC_calls']+calls['evaluation_executed_AC_calls']
+    return dict(methods=numbers,paired_history_contrasts=contrasts,executed_calls=calls,
         scope='development conditions; pair qualities within each history; no calibrated topology rejection',
         saved_fit_states=sum(a['saved_fit_states_replayed'] for a in audits),
         physical_states=sum(a['physical_states_replayed'] for a in audits),proxy_QP_states=sum(a['proxy_QP_states_replayed'] for a in audits),
@@ -508,6 +615,7 @@ def main():
         planned_conditions=planned,available_conditions=len(trials),complete_trial_family=len(trials)==planned,
         numbers=summary(audits,planned),trials=audits,
         reviewer_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        reviewer_source_bytes_base64=base64.b64encode(Path(__file__).read_bytes()).decode('ascii'),
         reviewed_trial_hashes={f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in files})
     require(not args.output.exists(),'review output exists; choose a new file')
     write_json(args.output,output)

@@ -1,5 +1,22 @@
 # AC 最大似然拟合与 EV 模型判别设计
 
+## 竞争响应、全候选曲线与物理位置（2026-10-14，本轮阶段交付）
+
+最新入口：`ev_cross_stage_results.md`、`ev_cross_stage_checkpoint.json` 与 `ev_cross_next_protocol.md`。数学分别在 `ev_ac_moving_cross_math.md`、`ev_cross_price_math.md`、`ev_discrimination_aggregation_math.md`、`ev_correlated_load_excitation_math.md`；5篇原文算例核查见 `ev_related_case_review.md`。
+
+控制同时移动参考/竞争总P/Q中心，保留功率×线路/状态交叉项。54份旧合法见证逐通道白化RMS≤.25由18/54提高到48/54；其余6个远解释失效保留，新批为开发而非正式风险评价。原数值R/X正下界1e−6pu保持；未以结果调高。现场资料仍缺，标准馈线等效功率例单列。
+
+全4候选/12方向v2完成8独立H、16质量条件、112方法条件，全部联合拟合有效，漏真0。实际604拟合调用，22,450批量时序AC接口调用；1024保存状态、112物理响应、1728QP独立重放通过。首2H用于v1数值修复、后6H冻结后运行；formal0/0。v1两数值界冲突和两方法拟合失败保持。
+
+最坏全对代理16/16在恒充处已达声明.01间隙，开放竞争主MILP调用0；固定MLE分段MILP16次。raw/guarded=恒充，简单质量/随机价格曲线在部分块内cherry条件得到更大真实AC裕量，块外和star仍弱。新的平均任务MILP已推导，尚未接AC主策略。各方法排名不是排错概率。
+
+三末端相关负荷线性例开放公共干线与末端斜率重拟合，同电量恒充成本2.7、高低曲线7.2，MILP曲线及补偿失效反例均验证。标准case33两历史40候选拟合完成；同曲线三个位置会改变小信号，R/X仍不稳。同位置同输入EV/ESS AC差0；10驾驶/接线/SOC情景5不可行保留，净移动收益尚未验证。
+
+139个唯一针对性测试通过。源码字节和求解界在 `evidence/ev_cross_all/`、物理位置在 `evidence/ev_ev_ess_spatial/`。新checkout先 `python -m research_experiments.mobile_ev_mle.ev_cross_source_restore` 只读核对33科学源；仅换行差时显式 `--restore-line-endings` 恢复，再按 `ev_cross_study_review --directory research_experiments/mobile_ev_mle/evidence/ev_cross_all/v2 --output <新review文件>` 重放。实际Git对象导出后33/33恢复一致。
+
+原报告第15节原位更新，编译与视觉核验见 `evidence/ev_cross_all/delivery/delivery_verification.json`。严格模型门、平均目标AC部署、正式风险、扣成本的位置收益、滚动和扩网仍待验收；旧章节是历史阶段证据。
+
+
 ## 连续曲线MILP、阻抗尺度与交叉项（2026-10-14）
 
 最新入口：`ev_profile_milp_results.md`、`ev_profile_milp_checkpoint.json`、`ev_profile_next_protocol.md`。完整推导见 `ev_profile_milp_math.md`、`ev_bilinear_support_math.md` 和 `ev_bilinear_exchange_math.md`；文献正文核查在 `ev_milp_profile_literature.md`。
