@@ -1,4 +1,12 @@
 # AC 最大似然拟合与 EV 模型判别设计
+## EV电池服务与接入灵活性（2026-10-14，持续研究）
+
+先读 `ev_flexibility_protocol.md`、`ev_flexibility_math.md` 和 `ev_flexibility_checkpoint.json`。新操作LP/MILP固定终端电池电量，明确充/放电、损耗、驾驶、接线和离站条件；旧21科学源码和既有结果保留。15解析+35操作+5AC接口通过；完整研究回归967通过，之后新统计外围29和重放23另行验证。
+
+新开发6独立H/18质量条件、162方法条件完成；648保存联合拟合、72历史副本及162真实响应独立重放通过。连续曲线由优化产生，少量节点外层比较；固定点后续价格步8/18有正增益。移动/人员/V2G的成功和负例均保留，尚无统一优越性结论。同一H三个质量条件只算一条历史。紧凑证据和重放在 `evidence/ev_flexibility/v1_development/compact_full_diagnostics/`。
+
+新39独立校准按预先max39规则出现1条v2g_mobile拟合失败，阈值为∞，评价0/48；原失败记录保持原样。下一阶段先核查“失败保留全部候选”的实际拒绝分数，再使用另一批39/48独立历史，旧39仅用于诊断。本轮还未完成滚动、扩网和联合人员路线。
+
 ## 疑似支路信息价格（2026-10-14，正式阶段完成）
 
 先读 `structured_information_results_review.md`、`structured_information_checkpoint.json` 和 `structured_information_next_protocol.md`。完整推导在 `structured_information_math.md`、`targeting_math.md`、`information_power_link_math.md`；预声明阶段与规则在 `structured_information_protocol.md`、`structured_information_protocol_v2.md`。
