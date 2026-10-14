@@ -274,6 +274,19 @@ def _aggregate(values,w,aggregation):
     return float(w@np.asarray(values)) if aggregation=='mean' else float(np.min(values))
 
 
+def _caps(score_caps,pairs):
+    """Per-task caps; None means no cap. Caps are task values, not probabilities."""
+    if score_caps is None:return np.full(len(pairs),np.inf)
+    if isinstance(score_caps,Mapping):
+        if set(score_caps)!={p.name for p in pairs}:raise ValueError('every required pair needs one score cap')
+        raw=[score_caps[p.name] for p in pairs]
+    else:raw=score_caps
+    caps=np.asarray([np.inf if value is None else float(value) for value in raw],float)
+    if caps.shape!=(len(pairs),) or np.isnan(caps).any() or np.any(caps<0):
+        raise ValueError('score caps must be nonnegative, matching every task, or None')
+    return caps
+
+
 def _product_range(t,s,low,high):
     if t==s:
         return (0. if low[t]<=0<=high[t] else min(low[t]**2,high[t]**2),max(low[t]**2,high[t]**2))
@@ -390,7 +403,7 @@ def _lift(op,low,high,keys,zeros,segments):
         product_binary=int(sum(integer)-sum(op['integrality'])))
 
 
-def _coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale):
+def _coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale,score_caps=None):
     ups=[]
     for p,polys,o in zip(pairs,groups,off):
         candidates=[]
@@ -403,15 +416,37 @@ def _coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale):
             guard=256*np.finfo(float).eps*(1+abs(cost)+abs(o))
             candidates.append(score_scale*(cost-o+guard))
         ups.append(min(candidates))
+    if score_caps is not None:ups=np.minimum(ups,score_caps)
     return _aggregate(ups,w,aggregation),np.asarray(ups)
 
 
 def solve_original_master(pairs,witnesses,control_lower,control_upper,constraints=None,*,
         offsets=None,weights=None,aggregation='mean',score_scale=.5,operation=None,
         zero_product_pairs=None,control_segments=4,residual_segments=4,time_limit=3.,mip_rel_gap=1e-8,
-        attained_lower=None,feasibility_tolerance=1e-7,backend='scipy',warm_start_operation=None):
+        attained_lower=None,feasibility_tolerance=1e-7,backend='scipy',warm_start_operation=None,
+        master_form='residual_chord',score_caps=None):
     """MILP proposal and global upper. No returned incumbent is a true-score lower."""
+    if master_form not in ('residual_chord','shared_control_square'):
+        raise ValueError('master_form must be residual_chord or shared_control_square')
+    if master_form=='shared_control_square':
+        from .ev_shared_square_milp import solve_shared_square_master,SharedSquareUnsupported
+        options=dict(offsets=offsets,weights=weights,aggregation=aggregation,score_scale=score_scale,
+            operation=operation,zero_product_pairs=zero_product_pairs,control_segments=control_segments,
+            residual_segments=residual_segments,time_limit=time_limit,mip_rel_gap=mip_rel_gap,
+            attained_lower=attained_lower,feasibility_tolerance=feasibility_tolerance,backend=backend,
+            warm_start_operation=warm_start_operation,score_caps=score_caps)
+        try:return solve_shared_square_master(pairs,witnesses,control_lower,control_upper,constraints,**options)
+        except SharedSquareUnsupported as error:
+            # No term or witness is deleted. Use the original full product/residual master.
+            # In fallback retain ALL products, including any unproved input declarations.
+            options['zero_product_pairs']=[]
+            answer=solve_original_master(pairs,witnesses,control_lower,control_upper,constraints,
+                master_form='residual_chord',**options)
+            answer.update(master_form='residual_chord',requested_master_form=master_form,
+                shared_square_fallback=str(error),fallback_keeps_all_products=True)
+            return answer
     began=perf_counter();pairs,low,high,off,w=_validate(pairs,control_lower,control_upper,offsets,weights,aggregation,score_scale)
+    caps=_caps(score_caps,pairs)
     for name,value in [('control_segments',control_segments),('residual_segments',residual_segments)]:
         if isinstance(value,bool) or int(value)!=value or value<1:raise ValueError(name+' must be positive integer')
     if not np.isfinite(time_limit) or time_limit<=0 or not np.isfinite(mip_rel_gap) or mip_rel_gap<0:raise ValueError('positive budget/nonnegative gap required')
@@ -437,6 +472,7 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
                 pwl_score_error_upper=score_scale*(product_error+residual_error+2*comp['qr_upward_cost_guard'])))
         pair_upper.append(min(r['score_box_upper'] for r in records));compiled.extend(records)
         errors.append(max(r['pwl_score_error_upper'] for r in records))
+    if score_caps is not None:pair_upper=np.minimum(pair_upper,caps)
     upper=_aggregate(pair_upper,w,aggregation)
     if attained_lower is not None and (not np.isfinite(attained_lower) or upper<attained_lower):
         return dict(u=None,operation_x=None,objective_upper=upper,objective_lower=None,
@@ -452,12 +488,13 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
         lbs.extend(lo.tolist());ubs.extend(hi.tolist());integer.extend([kind]*len(lo));return np.arange(start,start+len(lo))
     def row(values,lo=-np.inf,hi=np.inf):
         rows.append({int(k):float(v) for k,v in values.items() if v!=0});los.append(float(lo));his.append(float(hi))
-    gid=variables((-score_scale*off-guard)/numerical_scale,(np.asarray(pair_upper)+guard)/numerical_scale)
+    gamma_lower=-score_scale*off if score_caps is None else np.minimum(-score_scale*off,caps)
+    gid=variables((gamma_lower-guard)/numerical_scale,(np.asarray(pair_upper)+guard)/numerical_scale)
     target=None
     if aggregation=='worst':
-        target=int(variables([min(-score_scale*off)-guard],[upper+guard])[0])
+        target=int(variables([min(gamma_lower)-guard],[upper+guard])[0])
         # target variable is normalized like every pair gamma.
-        lbs[target]=(min(-score_scale*off)-guard)/numerical_scale;ubs[target]=(upper+guard)/numerical_scale
+        lbs[target]=(min(gamma_lower)-guard)/numerical_scale;ubs[target]=(upper+guard)/numerical_scale
         for g in gid:row({target:1.,int(g):-1.},hi=0.)
     if attained_lower is not None:
         row({int(g):float(v) for g,v in zip(gid,w)} if aggregation=='mean' else {target:1.},
@@ -543,6 +580,8 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
         product_big_m_max=lift['product_big_m_max'],compressions=compression_audits,
         pwl_error_upper_against_finite_witness_objective=float(w@np.asarray(errors)) if aggregation=='mean' else float(max(errors)),
         control_segments=int(control_segments),residual_segments=int(residual_segments),seconds=perf_counter()-began,
+        master_form='residual_chord',
+        score_caps=None if score_caps is None else dict(zip([p.name for p in pairs],caps.tolist())),
         full_curve_enumeration=False,incumbent_is_true_score_lower=False,
         scope='shared product outer lift and square chords for original-box bilinear proxy witnesses; not full AC')
 
@@ -552,9 +591,13 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         initial_u=None,initial_controls=None,initial_operation_points=None,max_iterations=4,
         control_segments=4,residual_segments=4,max_segments=16,solver_seconds=3.,total_seconds=30.,
         absolute_gap=.01,relative_gap=.01,mip_rel_gap=1e-8,feasibility_tolerance=1e-7,
-        witness_atol=1e-10,witness_rtol=1e-9,add_comoving_witness=True,witness_policy='both',backend='scipy'):
+        witness_atol=1e-10,witness_rtol=1e-9,add_comoving_witness=True,witness_policy='both',backend='scipy',
+        master_form='residual_chord',score_caps=None):
     """Mean-task original-domain exchange with actual-QP lower bounds."""
     began=perf_counter();pairs,low,high,off,w=_validate(pairs,control_lower,control_upper,offsets,weights,aggregation,score_scale)
+    caps=_caps(score_caps,pairs)
+    if master_form not in ('residual_chord','shared_control_square'):
+        raise ValueError('master_form must be residual_chord or shared_control_square')
     if any(not np.isfinite(v) or v<0 for v in (absolute_gap,relative_gap,mip_rel_gap,feasibility_tolerance,witness_atol,witness_rtol)):
         raise ValueError('nonnegative finite tolerances required')
     if any(not np.isfinite(v) or v<=0 for v in (solver_seconds,total_seconds)):raise ValueError('positive finite budgets required')
@@ -566,6 +609,13 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
     if backend not in ('scipy','gurobi'):raise ValueError('backend must be scipy or gurobi')
     effective_policy=witness_policy if add_comoving_witness else 'fixed_only'
     op=_operation(len(low),low,high,constraints,operation);zeros=_zero_products(len(low),op,zero_product_pairs)
+    initial_structure=None
+    if master_form=='shared_control_square':
+        from .ev_shared_square_milp import certify_operation_zero_products,SharedSquareUnsupported
+        try:initial_structure=certify_operation_zero_products(op,zeros)
+        except SharedSquareUnsupported as error:
+            initial_structure=dict(valid=False,message=str(error),unproved_products_not_removed=True)
+            zeros=set()
     witnesses=[[] for p in pairs];evaluations=[];iterations=[];failures=[];qp_calls=0;completion_calls=0
     lower=None;upper=None;best=None
     def add_witness(k,intercept,slope,origin):
@@ -611,10 +661,16 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         pair_upper=score_scale*(np.array([s['primal_upper'] for s in solutions])-off)
         mean_interval=[float(w@pair_lower),float(w@pair_upper)]
         worst_interval=[float(min(pair_lower)),float(min(pair_upper))]
-        selected=mean_interval if aggregation=='mean' else worst_interval
+        capped_lower=np.minimum(pair_lower,caps);capped_upper=np.minimum(pair_upper,caps)
+        capped_mean=[float(w@capped_lower),float(w@capped_upper)]
+        capped_worst=[float(min(capped_lower)),float(min(capped_upper))]
+        selected=(mean_interval if aggregation=='mean' else worst_interval) if score_caps is None else (
+            capped_mean if aggregation=='mean' else capped_worst)
         entry=dict(origin=origin,u=u,operation_x=x,score_lower=selected[0],score_upper=selected[1],
             mean_score_interval=mean_interval,worst_score_interval=worst_interval,
             pair_score_lower=pair_lower,pair_score_upper=pair_upper,qp_results=solutions,
+            capped_pair_score_lower=capped_lower,capped_pair_score_upper=capped_upper,
+            capped_mean_score_interval=capped_mean,capped_worst_score_interval=capped_worst,
             added_witness=added,added_fixed_witness=added_fixed,added_comoving_witness=added_comoving,
             operation_validation=audit,all_qp_converged=all(s['success'] for s in solutions))
         evaluations.append(entry)
@@ -649,7 +705,8 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
             evaluations=[],iterations=[],qp_calls=qp_calls,operation_completion_calls=completion_calls,backend=backend,
             seconds=perf_counter()-began)
     groups=_witness_group(pairs,witnesses,low,high,op)
-    upper,pair_coarse=_coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale)
+    upper,pair_coarse=_coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale,
+        score_caps=None if score_caps is None else caps)
     initialization_seconds=perf_counter()-began
     initial_upper=float(upper);cs=int(control_segments);rs=int(residual_segments)
     def target():return float(absolute_gap+relative_gap*max(1e-12,abs(upper),abs(lower)))
@@ -666,7 +723,7 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
                 aggregation=aggregation,score_scale=score_scale,operation=operation,zero_product_pairs=zeros,
                 control_segments=cs,residual_segments=rs,time_limit=min(solver_seconds,remaining),
                 mip_rel_gap=mip_rel_gap,attained_lower=lower,feasibility_tolerance=feasibility_tolerance,
-                backend=backend,warm_start_operation=best['operation_x'])
+                backend=backend,warm_start_operation=best['operation_x'],master_form=master_form,score_caps=score_caps)
             record=dict(iteration=it,master=master,previous_upper=previous,global_upper=upper,
                 global_lower=lower,witnesses_before=[len(z) for z in witnesses],upper_update_accepted=False,
                 control_segments=cs,residual_segments=rs)
@@ -703,6 +760,11 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         inner_qp_failures=sum(not e['all_qp_converged'] for e in evaluations),failures=failures,
         operation_completion_calls=completion_calls,best_evaluation_index=next(i for i,e in enumerate(evaluations) if e is best),
         mean_score_interval=best['mean_score_interval'],worst_score_interval=best['worst_score_interval'],
+        capped_mean_score_interval=best['capped_mean_score_interval'],
+        capped_worst_score_interval=best['capped_worst_score_interval'],
+        score_caps=None if score_caps is None else dict(zip([p.name for p in pairs],caps.tolist())),
+        master_form=master_form,
+        shared_square_initial_structure=initial_structure,
         zero_product_pairs=sorted(zeros),zero_product_proof=op['zero_product_proof'],
         comoving_witnesses_enabled=bool(add_comoving_witness),
         witness_policy=effective_policy,backend=backend,
