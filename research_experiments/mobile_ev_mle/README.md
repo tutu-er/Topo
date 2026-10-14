@@ -1,4 +1,17 @@
 # AC 最大似然拟合与 EV 模型判别设计
+
+## 连续曲线MILP、阻抗尺度与交叉项（2026-10-14）
+
+最新入口：`ev_profile_milp_results.md`、`ev_profile_milp_checkpoint.json`、`ev_profile_next_protocol.md`。完整推导见 `ev_profile_milp_math.md`、`ev_bilinear_support_math.md` 和 `ev_bilinear_exchange_math.md`；文献正文核查在 `ev_milp_profile_literature.md`。
+
+连续平方分段MILP已实现，保存冻结二次目标的上下界。3独立基础历史产生21尺度/拟合域条件，84方法条件的完整AC联合拟合均完成。覆盖内15条件中恒充、竞争投影MILP的正确最小损失候选分别12/15、14/15；这是重复开发条件，未使用拒绝阈值。提高真实内部阻抗增强本批信号，提高拟合下界排除真实弱边时则放大错误偏好。固定参数曲线21/21达到简单计量质量LP的最优分数，该对照继续保留。
+
+独立重放528份保存拟合及84份未来响应通过。54行事后四角AC诊断定位到参数与功率交叉项遗漏：有界线性QP最小成本376.641，而合法完整AC解释成本25.443。新的双线性方向下界及竞争解释交换MILP已完成解析原型，尚未接AC选择器；根代理72项针对性测试通过。先按新协议验证混合导数与同一参数见证，再用新历史评价，暂不扩网。证据、25份冻结源码字节、配置、种子、失败分母、求解界在 `evidence/ev_profile_milp/`。
+
+原报告第14节已原位编译并检查为76页。原PDF在开始时已有修改，保持本地更新而不加入阶段提交；交付校验保存于 `evidence/ev_profile_milp/delivery_verification.json`。
+
+新checkout可运行 `python -m research_experiments.mobile_ev_mle.ev_profile_source_restore` 默认只读核对25份冻结源码；若仅换行不同，显式加 `--restore-line-endings` 恢复原字节。工具经7项安全测试，真实内容变化或缺失会拒绝整批恢复。随后运行 `ev_profile_milp_review --output <新的复核目录>` 重放保存证据。
+
 ## EV电池服务与接入灵活性（2026-10-14，持续研究）
 
 先读 `ev_flexibility_protocol.md`、`ev_flexibility_math.md` 和 `ev_flexibility_checkpoint.json`。新操作LP/MILP固定终端电池电量，明确充/放电、损耗、驾驶、接线和离站条件；旧21科学源码和既有结果保留。15解析+35操作+5AC接口通过；完整研究回归967通过，之后新统计外围29和重放23另行验证。
