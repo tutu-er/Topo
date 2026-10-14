@@ -3,7 +3,7 @@
 
 先读 `structured_information_results_review.md`、`structured_information_checkpoint.json` 和 `structured_information_next_protocol.md`。完整推导在 `structured_information_math.md`、`targeting_math.md`、`information_power_link_math.md`；预声明阶段与规则在 `structured_information_protocol.md`、`structured_information_protocol_v2.md`。
 
-完整 AC 白化导数构造疑似内部 R/X 的信息，投影其他共享线路和 H/N 各自真实 P/Q、同点逐时源的补偿。连续功率由 MILP 价格步优化，再检查完整 AC 信息；少数接入节点逐个比较。全部四个 star/cherry 候选参加完整 AC 联合拟合。MILP 界属于仿射子问题，原目标仍是局部多初值非凸搜索。
+完整 AC 白化导数构造疑似内部 R/X 的信息，投影其他共享线路和 H/N 各自真实 P/Q、同点逐时源的补偿。连续功率由 LP/MILP 价格步优化，再检查完整 AC 信息；少数接入节点逐个比较。全部四个 star/cherry 候选参加完整 AC 联合拟合。LP/MILP 界属于仿射子问题，原目标仍是局部多初值非凸搜索。
 
 解析、秩亏、活动边界、梯度和24条小支路尺度 AC 审计已通过；最小尺度 SSE/二次预测比为1.00014--1.00039。工程方向的随机单位改进均值及固定线性 Gaussian 小信号功效联系已推导，21项功效数值检查通过。纯 X 弱方向、角点停留和远处非线性补偿反例保留。
 
@@ -16,6 +16,12 @@ v1/v2各为同一6独立H、18质量条件的开发 pilot。v1等权增强错误
 独立 AC 重放：39cal的1872保存拟合和80eval的3840保存拟合通过，实际唯一拟合分别1060和2224；首8eval完整投影735目标/2205矩阵检查通过。原恒充三个错误候选的max200失败在独立扩大预算诊断中3/3恢复（24/24初值ftol结束），原冻结记录不改。固定前16H相关平均误差诊断复用保存动作，任一方法误拒2/16变3/16，未增加独立历史样本；其348实际拟合及独立计量/AC重放通过。
 
 结果表、每边R/X、已取得loglik、源状态、求解界、失败、源码字节、配置/种子和独立重放在 `evidence/structured_information/v3_frozen/`。原summary保留首次导出：其中旧二元配对仅计连续成功对；以独立review及evaluation/tables/analysis的全80二元分母为准。完整raw trial保留本地，manifest保存精确SHA；紧凑证据与冻结19份科学源码字节快照随提交交付。新checkout可用 `gradient_price_source_restore` 核查并仅恢复换行差，再按config/seeds重跑。原报告第13节原位交付理论与本轮结果，PDF交付核验另存delivery_verification.json。
+
+正边竞争的两H固定尺度验收已完成：216任务、432次局部AC拟合、3639次AC调用和1728状态独立重放，全部任务保留。一个正边竞争可将部分模型距离减少约10.5%，但历史任务权重下总分修正不足0.2%，两条固定曲线的排序未变；据此保留推导与模块，尚未部署新选择器。见 `pairwise_cone_checks.py`、`pairwise_cone_ac_scale.py` 与 `evidence/structured_information/pairwise_cone_ac_scale/two_H_analysis.md`。新模块显式读取紧凑 `inputs.json.gz`，针对性测试无需旧未跟踪pilot原始记录。
+
+固定门槛的随机校准集容差界与独立CSV核验已补全。预声明n39、alpha=.1、delta=.05给出rank39；对原80保存损失的事后诊断，任一方法误拒11/80降为6/80，信息设计唯一正确57/80变55/80。原rank36正式策略及全部记录保留；本诊断未提供新前瞻评价，star/weak条件风险仍待解决。见 `calibration_tolerance_math.md`、`calibration_tolerance_audit.py`。
+
+上一阶段全套890项通过记录属于当时源码；随后紧凑输入与CSV核验修改的当前42项针对性测试通过。原报告已原位编译并检查为67页；整个研究仍有proper预测EIG、弱支路风险、滚动与扩网等未完成项。
 
 ## 单节点完整梯度价格（2026-10-13，本轮实施）
 
