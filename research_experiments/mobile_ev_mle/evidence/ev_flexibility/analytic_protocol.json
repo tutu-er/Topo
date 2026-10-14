@@ -1,0 +1,31 @@
+{
+  "version": "ev_flexibility_analytic_v1",
+  "scope": "two_slot_linear_analytic_checks_only",
+  "date": "2026-10-14",
+  "test_cases": 15,
+  "math_document_saved_before_execution": true,
+  "final_tests_after_solver_retry_fix": true,
+  "primary_object": "same_terminal_battery_service_and_same_measurement_budget",
+  "declared_task": {
+    "slots": 2,
+    "dt_hours": 1,
+    "charge_cap_kw": 1,
+    "discharge_cap_kw": 1,
+    "eta_charge": 0.9,
+    "eta_discharge": 0.9,
+    "initial_energy_kwh": 2,
+    "terminal_energy_kwh": 2.45
+  },
+  "expected": {
+    "one_way_distance_squared": 0.125,
+    "v2g_distance_squared": 0.9870125,
+    "staff_original_distance_squared": 0.125,
+    "staff_added_distance_squared": 1.125,
+    "mobile_blind_spot_distance_squared": 0.18
+  },
+  "small_enumeration_role": "51_point_one_dimensional_independent_audit_not_selector",
+  "history_precision_scope": "rank_one_MILP_h_0_only_formula_checks_h_0_1_4",
+  "actual_ac_advantage_tested_by_this_module": false,
+  "json_exported_after_initial_execution": true,
+  "mathematical_protocol_in_markdown_saved_before_first_execution": true
+}
