@@ -5,7 +5,11 @@
 
 新开发6独立H/18质量条件、162方法条件完成；648保存联合拟合、72历史副本及162真实响应独立重放通过。连续曲线由优化产生，少量节点外层比较；固定点后续价格步8/18有正增益。移动/人员/V2G的成功和负例均保留，尚无统一优越性结论。同一H三个质量条件只算一条历史。紧凑证据和重放在 `evidence/ev_flexibility/v1_development/compact_full_diagnostics/`。
 
-新39独立校准按预先max39规则出现1条v2g_mobile拟合失败，阈值为∞，评价0/48；原失败记录保持原样。下一阶段先核查“失败保留全部候选”的实际拒绝分数，再使用另一批39/48独立历史，旧39仅用于诊断。本轮还未完成滚动、扩网和联合人员路线。
+第一批39校准出现1条v2g_mobile拟合失败，原阈值∞、评价0/48完整保留。失败保留全部候选的拒绝分数经独立证明和37测试后，重新冻结safe-v2规则；新39校准984001--984039全部拟合有效，阈值6.034651101192644，9/39超过成本门。新48评价985001--985048及独立重放完成：恒充唯一正确28/48、固定曲线27/48、移动30/48、随机29/48、人员扩窗28/48、两种V2G各27/48。固定/移动V2G误拒2/1，任一9方法误拒2/48；最终AC拟合432/432方法条件有效，4未启用、2共同设计回退另列。评价选择>15秒11/48。实际拟合损失与失败记录保持原样；分数0仅编码未实施拒绝。本轮还未完成滚动、扩网和联合人员路线。
+
+完整数学、结果与下一阶段门见 `ev_flexibility_results.md`、`ev_flexibility_next_math.md`。当前指标确能改善局部分数(固定22/42后续价格有增益)，但与实际裕量增量的描述相关仅.086；固定曲线未通过提高实际排错的主要验收。优先补正cherry竞争方向和合法历史展开点，保持弱边未决，暂不扩网。完整可续接紧凑证据位于 `evidence/ev_flexibility/v2_safe_formal/compact_full_diagnostics/`。
+
+新检出仓库可先运行 `python -m research_experiments.mobile_ev_mle.ev_flexibility_source_restore` 只读核对；仅有换行差时显式加 `--restore-line-endings` 恢复23冻结文件的原字节。随后用 `ev_flexibility_safe_review --directory research_experiments/mobile_ev_mle/evidence/ev_flexibility/v2_safe_formal/compact_full_diagnostics --phase evaluation` 独立复核，无需本地raw记录。该流程已在只含提交文件的专用目录验证；恢复工具6测试通过。原报告原位编译为71页并检查更新页。
 
 ## 疑似支路信息价格（2026-10-14，正式阶段完成）
 
