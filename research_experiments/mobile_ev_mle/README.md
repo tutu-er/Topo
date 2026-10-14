@@ -8,7 +8,7 @@
 
 已实现较小操作域的确定性计划继承、历史平坦方向的合法参数解释及负荷/同点源/功率追踪预测情景。修订版 v2 的 4 条开发历史全部完成；4063 个保存拟合状态、44 个真实未来响应、47 个历史解释通过独立 AC/操作复算，15696 个竞争 QP 通过完整矩阵与上下界复算。开发中移动纯充电、精化平均目标、上限20目标的平均实际 AC 裕量分别为 128.37、107.45、123.37；这些数值用于开发诊断。平均任务分数会牺牲当前最难竞争者，源预测及参数解释仍有偏差，负例完整保留。
 
-v2 已按 72 份源码字节、配置和种子冻结，36 条独立历史校准正在执行，随后用另外 12 条历史评价。校准阈值在评价前保存；当前不报告这批尚未完成的误拒或排错结果。完整 raw 在 `D:/0-github_workspace/Topo/outputs/ev_compact_stage_20261015/research_experiments/mobile_ev_mle/evidence/ev_compact/` 保留，提交证据用带原始哈希的紧凑包，独立复核范围见 `ev_compact_review_math.md`。
+v2 按 72 份源码字节、配置和种子冻结。36 条校准历史已完成：36288 个保存AC拟合状态、396 个真实未来及154584个QP复算通过；357项集成测试通过。阈值先于四个正式评价进程启动保存，另12条历史正在冻结评价；当前不报告尚未完成的评价效果。校准交付及无损恢复见 `evidence/ev_compact/delivery_calibration_v2/README.md`。完整 raw 在 `D:/0-github_workspace/Topo/outputs/ev_compact_stage_20261015/research_experiments/mobile_ev_mle/evidence/ev_compact/` 保留，提交证据用带原始哈希的紧凑包，独立复核范围见 `ev_compact_review_math.md`。
 
 下面各节保留旧版本、旧分母和当时结论。
 
