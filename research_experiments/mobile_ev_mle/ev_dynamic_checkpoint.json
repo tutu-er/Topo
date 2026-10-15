@@ -1,10 +1,14 @@
 {
   "branch": "codex/ev-train-validation-design",
   "math_commit": "7e93ad1",
-  "stage": "36 calibration histories replayed and byte-restored; thresholds frozen; independent evaluation running",
+  "stage": "requested stage implemented, frozen, calibrated and independently evaluated; raw evidence restored and results documented",
   "research_complete": false,
   "model": "one trained R/X vector per topology, P/Q direct inputs, source-only profiles",
-  "training_validation_future": [96, 4, 6],
+  "training_validation_future": [
+    96,
+    4,
+    6
+  ],
   "forecast": "training-only P/PF and candidate source AR1, gap4, first forecast step5",
   "meter_schedule": "uniform5 main; alternating1/9 additional",
   "acceptance": "same full-AC objective and feasibility for old/new plans",
@@ -21,7 +25,37 @@
   "calibration_archive_exact_files": 39,
   "restored_thresholds_byte_identical": true,
   "threshold_sha256": "bf01b55c2f2b05681ecbfb1f43a6af186aebbef9d423da5c12b0b522f42c3af2",
-  "independent_evaluation_completed": 0,
+  "independent_evaluation_completed": 12,
   "report_updated": false,
-  "next": ["complete 36 independent calibration histories and replay", "save thresholds before evaluation", "run 12 independent evaluation histories", "archive exact raw evidence and report signed effects"]
+  "next": [
+    "check EV response direction reliability from training-only splits under nearly fixed PF",
+    "diagnose fixed-parameter and prediction error before increasing MILP segmentation",
+    "compare difficult-competitor targets on new development histories and recalibrate each frozen policy",
+    "test resource-matched movement and worker/access windows before rolling or larger networks"
+  ],
+  "requested_stage_complete": true,
+  "evaluation_replay_passed": 12,
+  "evaluation_replay_checks_passed": 5340,
+  "evaluation_archive_exact_files": 15,
+  "restored_evaluation_byte_identical": true,
+  "independent_histories_total": 52,
+  "development_archive_exact_files": 21,
+  "actual_methods_completed": 168,
+  "actual_methods_failed": 0,
+  "candidate_omissions_evaluation": 0,
+  "original_report_update_requested": false,
+  "source_count": 84,
+  "key_result": "fixed V2G design mean M395.855 vs quality404.644, both unique true9/12 false reject0/12; mobile design M433.956 unique true8/12 false reject0/12; movement paired1+/10=/1-",
+  "completion_scope": "this time-varying ordinary-load, one-trained-line-vector comparison; field data, rolling risk, EIG and expansion remain open",
+  "evidence": {
+    "thresholds.json": "bf01b55c2f2b05681ecbfb1f43a6af186aebbef9d423da5c12b0b522f42c3af2",
+    "evaluation.json": "cfa57273b0aa0c2daf852d9bd154d8533680ad19f797789a6770f783524c4e5d",
+    "evaluation_start.json": "5fea6a2efc9f68a81d3ff0538704cb05846cb937f379a422c2c88e835686f3aa",
+    "evaluation_replay.json.gz": "1d32ef335b9ad46a4cd2ca637e4635a859abe2686f7071ff0f0770f03a4eb9cd",
+    "development_raw.tar.xz": "3b76ce0b1f5d83132d9870870a9171049c1567a9af4e32da92c0ea5dedc33991",
+    "calibration_raw.tar.xz": "0d542a713a98bf0d5cd5ceb3e34949e8b6841cb545c6bd46abfb32624ca2ec50",
+    "evaluation_raw.tar.xz": "5304ee4d7709ff972a07483fce683e3c5d34285a7911f777c605fef6aace833e"
+  },
+  "independent_statistics_checks_passed": 6262,
+  "independent_statistics_differences": 0
 }
