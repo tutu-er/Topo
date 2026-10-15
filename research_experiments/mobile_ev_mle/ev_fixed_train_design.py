@@ -7,7 +7,10 @@ linear source-QP are recorded separately; proxy bounds concern the latter.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
+from copy import deepcopy
 from hashlib import sha256
+import json
 from time import perf_counter
 from types import SimpleNamespace
 
@@ -29,6 +32,14 @@ INHERITS = dict(charge_fixed=(), v2g_fixed=('charge_fixed',),
     v2g_mobile=('charge_fixed', 'v2g_fixed', 'charge_mobile'))
 METHODS = ('none', 'constant', 'quality_fixed', 'quality_mobile', 'random_mobile',
     *DOMAIN_FLAGS, 'refined_v2g_mobile', 'capped_v2g_mobile')
+# The frozen eleven-method default is unchanged. Domain-matched quality
+# baselines are opt-in, including explicit aliases for the two old names.
+QUALITY_DOMAINS = dict(quality_fixed='charge_fixed', quality_mobile='v2g_mobile',
+    quality_charge_fixed='charge_fixed', quality_v2g_fixed='v2g_fixed',
+    quality_charge_mobile='charge_mobile', quality_v2g_mobile='v2g_mobile')
+KNOWN_METHODS = (*METHODS, *(k for k in QUALITY_DOMAINS if k not in METHODS))
+DETERMINISTIC_BASELINE_ORIGINS = frozenset(('highlow', 'lowhigh',
+    *(f'{shape}_{domain}' for shape in ('highlow', 'lowhigh') for domain in DOMAIN_FLAGS)))
 CONFIG = dict(version='fixed_training_lines_source_profile_v1', base_kw=20.,
     horizon=6, command_power_kw=6./1.05, task_cap=20.,
     initial_energy_kwh=24., terminal_energy_kwh=26.85, capacity_kwh=60.,
@@ -71,6 +82,87 @@ def _source_parts(value):
     return value[:, 0].copy(), value[:, 1].copy()
 
 
+def _exact_array(value, shape, label):
+    out = np.asarray(value, float).copy()
+    if out.shape != shape or not np.isfinite(out).all():
+        raise ValueError(label+' must be finite with exact shape '+str(shape))
+    return out
+
+
+def _training_provenance(metadata, *, deterministic=False):
+    """Validate declared provenance; the producer/reviewer must audit its truth."""
+    if not isinstance(metadata, Mapping):
+        raise ValueError('forecast/initial metadata mapping required')
+    flags = dict(uses_validation=False, uses_truth=False, uses_future_noise=False)
+    flags['deterministic' if deterministic else 'training_only'] = True
+    for name, value in flags.items():
+        if metadata.get(name) is not value:
+            raise ValueError('metadata must explicitly declare '+name+'='+repr(value))
+    if not deterministic and (type(metadata.get('source_interface')) is not int
+            or metadata['source_interface'] != 1):
+        raise ValueError('forecast source_interface must be physical node 1')
+    try:
+        json.dumps(dict(metadata), sort_keys=True, allow_nan=False)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('metadata must be finite JSON-serializable evidence') from exc
+    return deepcopy(dict(metadata))
+
+
+def _explicit_forecast(forecast, T, n, names):
+    if not isinstance(forecast, Mapping):
+        raise ValueError('forecast mapping required')
+    allowed = {'p', 'q', 'root', 'root_v', 'source_by_candidate', 'metadata'}
+    if set(forecast)-allowed or not {'p', 'q', 'source_by_candidate', 'metadata'} <= set(forecast):
+        raise ValueError('forecast requires p, q, root/root_v, source_by_candidate and metadata only')
+    if 'root' not in forecast and 'root_v' not in forecast:
+        raise ValueError('forecast root/root_v is required')
+    root = _exact_array(forecast.get('root', forecast.get('root_v')), (T,), 'forecast root')
+    if 'root' in forecast and 'root_v' in forecast:
+        other = _exact_array(forecast['root_v'], (T,), 'forecast root_v')
+        if not np.array_equal(root, other):
+            raise ValueError('forecast root and root_v disagree')
+    if np.any(root <= 0):
+        raise ValueError('forecast root voltage must be positive')
+    by_name = forecast['source_by_candidate']
+    if not isinstance(by_name, Mapping) or set(by_name) != set(names):
+        raise ValueError('forecast source_by_candidate must cover exactly every candidate')
+    result = dict(p=_exact_array(forecast['p'], (T,n), 'forecast p'),
+        q=_exact_array(forecast['q'], (T,n), 'forecast q'), root=root,
+        source_by_candidate={}, metadata=_training_provenance(forecast['metadata']))
+    for name in names:
+        source = by_name[name]
+        if not isinstance(source, Mapping) or set(source) != {'source_p', 'source_q'}:
+            raise ValueError('forecast candidate source requires only source_p and source_q')
+        result['source_by_candidate'][name] = {
+            key:_exact_array(source[key], (T,), 'forecast '+name+' '+key)
+            for key in ('source_p', 'source_q')}
+    digest = sha256()
+    digest.update(json.dumps(sorted(names)).encode())
+    for value in (result['p'], result['q'], result['root'],
+                  *(result['source_by_candidate'][name][key]
+                    for name in sorted(names) for key in ('source_p','source_q'))):
+        a = np.ascontiguousarray(value, dtype='<f8')
+        digest.update(repr(a.shape).encode()); digest.update(a.tobytes())
+    digest.update(json.dumps(result['metadata'],sort_keys=True,allow_nan=False).encode())
+    result['sha256'] = digest.hexdigest()
+    return result
+
+
+def _deterministic_initials(initials, T, n):
+    if initials is None:return []
+    if not isinstance(initials, Mapping):
+        raise ValueError('baseline_initials must map whitelisted names to power/metadata')
+    answer=[]
+    for name, record in initials.items():
+        if name not in DETERMINISTIC_BASELINE_ORIGINS:
+            raise ValueError('non-whitelisted deterministic initial '+repr(name))
+        if not isinstance(record, Mapping) or set(record) != {'power_kw', 'metadata'}:
+            raise ValueError('baseline initial requires power_kw and metadata only')
+        metadata=_training_provenance(record['metadata'],deterministic=True)
+        answer.append((name,_exact_array(record['power_kw'],(T,n),'initial '+name),metadata))
+    return answer
+
+
 def _geometry(candidate, line, background, root, meter, source):
     sp, sq = _source_parts(source)
     return mean_and_jacobian(candidate, line['r'], line['x'], background['p'],
@@ -89,13 +181,16 @@ def _channel_values(residual, T, n):
 
 def build_fixed_contexts(training, bank, train_fits, train_meter, future_meter,
                          lower_kw, upper_kw, reference_kw, *, base_kw=20.,
-                         source_p_bounds=(-.5,.5), source_q_bounds=(-.5,.5)):
+                         source_p_bounds=(-.5,.5), source_q_bounds=(-.5,.5),
+                         forecast=None):
     """Freeze all lines; build every directed source-profiled affine pair.
 
     Controls flatten in time-major order. Source coordinates interleave
     (source_P[t], source_Q[t]). The pair residual is competitor minus reference,
     whitened in channel order V, root-P, root-Q. Only training enters forecasts.
     At=0 and shift=0 are declared first-order approximations, not AC identities.
+    An explicit forecast is in per-unit, excludes EV, and declares training-only
+    provenance. It is one forecast path, not a per-topology parameter ensemble.
     """
     began=perf_counter(); bank=tuple(bank); reference=np.asarray(reference_kw,float)
     if (reference.ndim!=2 or reference.shape[1]!=training.n or not len(reference)
@@ -128,11 +223,19 @@ def build_fixed_contexts(training, bank, train_fits, train_meter, future_meter,
         source_high=np.tile([float(source_p_bounds[1]),float(source_q_bounds[1])],T)
         if not np.isfinite([source_low,source_high]).all() or np.any(source_low>=source_high):
             raise ValueError('finite ordered source boxes required')
-        pmean=np.mean(training.p-_broadcast(train_meter.bias_p,training.p.shape,'training P bias'),axis=0)
-        qmean=np.mean(training.q-_broadcast(train_meter.bias_q,training.q.shape,'training Q bias'),axis=0)
-        background=dict(p=np.tile(pmean,(T,1)),q=np.tile(qmean,(T,1)))
+        explicit=None if forecast is None else _explicit_forecast(forecast,T,n,[c.name for c in bank])
+        if explicit is None:
+            pmean=np.mean(training.p-_broadcast(train_meter.bias_p,training.p.shape,'training P bias'),axis=0)
+            qmean=np.mean(training.q-_broadcast(train_meter.bias_q,training.q.shape,'training Q bias'),axis=0)
+            background=dict(p=np.tile(pmean,(T,1)),q=np.tile(qmean,(T,1)))
+            root=np.full(T,float(np.mean(training.root_v)))
+        else:
+            background=dict(p=explicit['p'].copy(),q=explicit['q'].copy())
+            root=explicit['root'].copy()
+            diagnostic.update(forecast_kind='explicit_training_only',
+                forecast_metadata=explicit['metadata'],forecast_sha256=explicit['sha256'],
+                source_baseline='explicit training-only per-candidate forecast')
         total=dict(p=background['p']+reference/base_kw,q=background['q'].copy())
-        root=np.full(T,float(np.mean(training.root_v)))
         geometries={};lines={};sources={}
         control_columns=np.array([t*width+j for t in range(T) for j in range(n)])
         source_columns=np.array([t*width+2*n+j for t in range(T) for j in range(2)])
@@ -143,9 +246,13 @@ def build_fixed_contexts(training, bank, train_fits, train_meter, future_meter,
                 raise ValueError('training line dimensions invalid: '+candidate.name)
             r.setflags(write=False);x.setflags(write=False)
             lines[candidate.name]=dict(r=r,x=x,sha256=_line_id(r,x))
-            source=_source_vector(np.full(T,np.mean(fit.source_p)),np.full(T,np.mean(fit.source_q)))
+            if explicit is None:
+                source=_source_vector(np.full(T,np.mean(fit.source_p)),np.full(T,np.mean(fit.source_q)))
+            else:
+                forecast_source=explicit['source_by_candidate'][candidate.name]
+                source=_source_vector(forecast_source['source_p'],forecast_source['source_q'])
             if np.any(source<source_low) or np.any(source>source_high):
-                raise ValueError('training mean source outside declared physical box: '+candidate.name)
+                raise ValueError('training source forecast outside declared physical box: '+candidate.name)
             sources[candidate.name]=source
             diagnostic['ac_calls']+=1
             geometry=_geometry(candidate,lines[candidate.name],total,root,future_meter,source)
@@ -178,6 +285,10 @@ def build_fixed_contexts(training, bank, train_fits, train_meter, future_meter,
             source_p_bounds=tuple(map(float,source_p_bounds)),source_q_bounds=tuple(map(float,source_q_bounds)),
             source_lower=source_low,source_upper=source_high,control_lower=low,control_upper=high,
             reference_kw=reference.copy(),base_kw=float(base_kw),control_shape=(T,n))
+        answer['_rebuild_inputs']=dict(training=training,bank=bank,train_fits=train_fits,
+            train_meter=train_meter,future_meter=future_meter,lower_kw=low.copy(),upper_kw=high.copy(),
+            base_kw=float(base_kw),source_p_bounds=tuple(map(float,source_p_bounds)),
+            source_q_bounds=tuple(map(float,source_q_bounds)),forecast=deepcopy(forecast))
         diagnostic.update(pairs=len(pairs),residual_rows=T*(n+2),source_coordinates=2*T,
             R_X_coordinates_in_competitor_QP=0,At_exactly_zero=True,shift_exactly_zero=True,
             training_line_sha256={k:v['sha256'] for k,v in lines.items()},
@@ -187,6 +298,57 @@ def build_fixed_contexts(training, bank, train_fits, train_meter, future_meter,
         diagnostic['failure']=type(exc).__name__+':'+str(exc)
     diagnostic['seconds']=perf_counter()-began
     return answer
+
+
+def rebuild_fixed_context(context, reference_kw):
+    """Start a new first-order surrogate at a checked action; no old bound transfers."""
+    if not context.get('success') or '_rebuild_inputs' not in context:
+        raise ValueError('successful rebuildable context required')
+    for name,line in context['lines'].items():
+        fit=context['train_fits'][name]
+        if _line_id(fit.r,fit.x)!=line['sha256']:
+            raise ValueError('training line changed before context rebuild: '+name)
+    args=dict(context['_rebuild_inputs'])
+    result=build_fixed_contexts(**args,reference_kw=reference_kw)
+    result['diagnostics'].update(rebuilt=True,old_proxy_bounds_carried=False,
+        expansion_scope='new frozen first-order proxy; R/X and forecast unchanged')
+    return result
+
+
+def fixed_profile_gradient(context, power_kw, qp_results=None):
+    """Mean half-SSE gradient per kW of the frozen source-profiled QPs.
+
+    For r=c+B*u+G*(s-s0), d(0.5*min||r||^2)/du=B.T*r at the
+    source optimum (also for active source bounds). Numerical QP gaps remain
+    reported. This is a model-distance derivative, not an inverse-variance price
+    or a derivative of the fully nonlinear AC score.
+    """
+    if not context.get('success'):raise ValueError('successful fixed context required')
+    u=_exact_array(power_kw,context['control_shape'],'gradient power').ravel()
+    if qp_results is not None and (not isinstance(qp_results,Mapping)
+            or set(qp_results)!={p.name for p in context['pairs']}):
+        raise ValueError('qp_results must map exactly all directed pair names')
+    gradient=np.zeros_like(u);value=0.;rows=[]
+    for model,pair in zip(context['models'],context['pairs']):
+        if np.any(pair.At) or np.any(pair.shift):
+            raise ValueError('gradient helper requires frozen source-only affine pairs')
+        qp=evaluate_original_pair(pair,u) if qp_results is None else qp_results[pair.name]
+        if not qp.get('success'):raise ValueError('source QP failed: '+pair.name)
+        xi=_exact_array(qp['physical_parameter'],pair.lower.shape,'QP source')
+        if np.any(xi<pair.lower-1e-9) or np.any(xi>pair.upper+1e-9):
+            raise ValueError('QP source outside declared box: '+pair.name)
+        residual=pair.residual(u,xi)
+        if not np.allclose(residual,qp['residual'],rtol=1e-9,atol=1e-9):
+            raise ValueError('QP result does not belong to this action: '+pair.name)
+        g=pair.B.T@residual;d=.5*float(residual@residual);w=float(model['task_weight'])
+        gradient+=w*g;value+=w*d
+        rows.append(dict(name=pair.name,half_SSE=d,weight=w,
+            gradient_per_kw=g.reshape(context['control_shape']),
+            source=xi.copy(),QP_numerical_gap=float(qp['numerical_gap'])))
+    return dict(mean_half_SSE=value,gradient_per_kw=gradient.reshape(context['control_shape']),
+        pairs=rows,max_QP_numerical_gap=max(r['QP_numerical_gap'] for r in rows),
+        source_interface=1,line_parameters_fixed=True,
+        scope='numerical frozen source-QP mean half-SSE derivative per kW')
 
 
 def check_fixed_witness(context, power_kw, source_by_pair=None, *, gate=.25,
@@ -344,6 +506,52 @@ def _realize(domain,power):
         solver_status=int(solved.status),solver_message=str(solved.message))
 
 
+def _quality_plan(domain, prices, tie_break):
+    """Optional declared tie rule on a private domain; no model/noise is used."""
+    began=perf_counter()
+    primary=domain.solve_prices(prices,time_limit=3.)
+    primary_seconds=perf_counter()-began
+    if tie_break is None:return primary,None
+    def stage_record(result,d):
+        value=getattr(result,'objective_value',None)
+        bound=getattr(result,'objective_bound',None)
+        gap=getattr(result,'mip_gap',None)
+        feasible=result.x is not None and d.check(result)['feasible']
+        certified=bool(int(result.status)==0 and feasible and value is not None
+            and bound is not None and gap is not None and np.isfinite([value,bound,gap]).all()
+            and gap<=1e-8 and abs(bound-value)<=1e-7+1e-8*abs(value))
+        return dict(status=int(result.status),feasible=bool(feasible),objective=value,
+            best_bound=bound,mip_gap=gap,ready_for_tie=certified)
+    record=dict(rule=tie_break,completed=False,private_domain=True,
+        uses_model_score=False,uses_future_noise=False,score_floor_tolerance=1e-8,
+        preference='preserve precision score; minimize worker minutes; prefer earlier/lower-index net power',
+        stages=[dict(stage='precision',seconds=primary_seconds,**stage_record(primary,domain))])
+    if not record['stages'][-1]['ready_for_tie']:
+        record['reason']='primary certificate/feasibility unavailable';return primary,record
+    tied=deepcopy(domain)
+    vector=np.zeros(tied.model.n_variables);vector[tied.indices.u.ravel()]=np.asarray(prices).ravel()
+    primary_value=float(vector@primary.x)
+    tied.model.add_row({int(i):float(v) for i,v in enumerate(vector) if v},
+        lower=primary_value-1e-8)
+    began=perf_counter();second=tied.model.solve(-tied.cost_vector,time_limit=3.)
+    record['stages'].append(dict(stage='minimum_worker_minutes',seconds=perf_counter()-began,
+        **stage_record(second,tied)))
+    if not record['stages'][-1]['ready_for_tie']:
+        record['reason']='worker-cost tie certificate unavailable';return primary,record
+    worker=float(tied.cost_vector@second.x)
+    tied.model.add_row({int(i):float(v) for i,v in enumerate(tied.cost_vector) if v},upper=worker+1e-8)
+    earlier=np.zeros(tied.model.n_variables)
+    earlier[tied.indices.u.ravel()]=np.arange(tied.indices.u.size,0,-1)/tied.indices.u.size
+    began=perf_counter();third=tied.model.solve(earlier,time_limit=3.)
+    record['stages'].append(dict(stage='early_lower_index_power',seconds=perf_counter()-began,
+        **stage_record(third,tied)))
+    if not record['stages'][-1]['ready_for_tie']:
+        record['reason']='early-power tie certificate unavailable';return second,record
+    record.update(completed=True,reason='all declared tie stages certified',
+        primary_score_before=primary_value,primary_score_after=float(vector@third.x),worker_minutes=worker)
+    return third,record
+
+
 def _control_key(power):
     value=np.round(np.asarray(power,float),10);value[value==0.]=0.
     return value.astype('<f8').tobytes()
@@ -361,17 +569,27 @@ def _horizon(meter,n):
 
 
 def select_fixed_controls(training, bank, train_fits, train_meter, future_meter, *,
-                           seed, fit_options=None, exchange_options=None, modes=None):
+                           seed, fit_options=None, exchange_options=None, modes=None,
+                           forecast=None, acceptance='legacy_proxy_gate',
+                           baseline_initials=None, reference_kw=None,
+                           quality_tie_break=None):
     """Joint route/continuous-power MILP; random prices only post-hoc baseline.
 
     `modes` is a requested method-name sequence. Needed deterministic parent
     domains are computed automatically. Both primary siblings share the exact
     same deterministic initial plans and exchange configuration. No validation
-    argument is accepted. A failed proxy AC gate retains legal checked parents.
+    argument is accepted. The default retains the frozen legacy proxy gate.
+    With acceptance='full_ac_score', every plan uses operation feasibility and
+    all-pair full AC success, then the same maximum attained AC score; the proxy
+    witness gate is diagnostic. Explicit forecasts exclude EV and use per-unit.
     """
     began=perf_counter();requested=METHODS if modes is None else tuple(modes)
-    if not requested or len(set(requested))!=len(requested) or not set(requested)<=set(METHODS):
+    if not requested or len(set(requested))!=len(requested) or not set(requested)<=set(KNOWN_METHODS):
         raise ValueError('modes must be unique known method names')
+    if acceptance not in ('legacy_proxy_gate','full_ac_score'):
+        raise ValueError('acceptance must be legacy_proxy_gate or full_ac_score')
+    if quality_tie_break not in (None,'early_stay'):
+        raise ValueError('quality_tie_break must be None or early_stay')
     options=dict(DEFAULT_EXCHANGE);options.update(exchange_options or {})
     forbidden={'operation','offsets','weights','score_caps','initial_controls','initial_operation_points',
         'score_scale','aggregation'} & set(exchange_options or {})
@@ -381,12 +599,20 @@ def select_fixed_controls(training, bank, train_fits, train_meter, future_meter,
     T,n=_horizon(future_meter,training.n),training.n
     baseline=np.zeros((T,n));baseline[:,0]=(CONFIG['terminal_energy_kwh']-CONFIG['initial_energy_kwh'])/(
         CONFIG['eta_charge']*T*CONFIG['dt_hours'])
+    external=_deterministic_initials(baseline_initials,T,n)
+    expansion=baseline if reference_kw is None else _exact_array(reference_kw,(T,n),'reference power')
     source_options={k:(fit_options or {}).get(k,(-.5,.5)) for k in ('source_p_bounds','source_q_bounds')}
     context=build_fixed_contexts(training,bank,train_fits,train_meter,future_meter,
-        -CONFIG['command_power_kw'],CONFIG['command_power_kw'],baseline,base_kw=CONFIG['base_kw'],**source_options)
+        -CONFIG['command_power_kw'],CONFIG['command_power_kw'],expansion,base_kw=CONFIG['base_kw'],
+        forecast=forecast,**source_options)
     out=dict(methods={},failures={},uses_validation=False,uses_truth=False,uses_future_noise=False,
         random_used_by_primary=False,context=context['diagnostics'],predicted_AC={},
         model_task_count=len(context['pairs']),configuration=dict(CONFIG),exchange_configuration=options)
+    out['acceptance_policy']=acceptance
+    if quality_tie_break is not None:
+        out['quality_tie_break']=quality_tie_break;out['quality_tie_break_records']={}
+    if external:
+        out['deterministic_initial_metadata']={name:metadata for name,_,metadata in external}
     choices=dict(none=np.zeros_like(baseline),constant=baseline.copy())
     if not context['success']:
         out['failures']['context']=context['diagnostics']['failure']
@@ -404,9 +630,14 @@ def select_fixed_controls(training, bank, train_fits, train_meter, future_meter,
         key=_control_key(power)
         if key not in cache:cache[key]=evaluate_fixed_action(context,power,fit_options=fit_options,seed=seed+500)
         return cache[key]
+    def score_prediction(prediction,cap):
+        if acceptance=='full_ac_score' and (len(prediction.get('pairs',()))!=len(context['pairs'])
+                or not all(r.get('success',False) for r in prediction.get('pairs',()))):
+            return None
+        return _task_value(prediction,cap)
     def choose(checked,cap):
-        valid=[r for r in checked if r['operation']['feasible'] and _task_value(r['prediction'],cap) is not None]
-        return max(valid,key=lambda r:_task_value(r['prediction'],cap)) if valid else None
+        valid=[r for r in checked if r['operation']['feasible'] and score_prediction(r['prediction'],cap) is not None]
+        return max(valid,key=lambda r:score_prediction(r['prediction'],cap)) if valid else None
     def optimize(name,d,initial,cap=None):
         record=dict(initial_candidates=[],cap=cap,random_used=False,failures=[],recentered=False)
         checked=[];points=[];seen=set()
@@ -415,7 +646,7 @@ def select_fixed_controls(training, bank, train_fits, train_meter, future_meter,
             seen.add(_control_key(power));realized=_realize(d,power)
             pred=predicted(power) if realized['success'] else dict(success=False,pairs=[])
             record['initial_candidates'].append(dict(origin=origin,power_kw=power,
-                operation=realized['audit'],AC_score=_task_value(pred,cap)))
+                operation=realized['audit'],AC_score=score_prediction(pred,cap)))
             if realized['success']:
                 checked.append(dict(origin=origin,power_kw=power,operation=realized['audit'],prediction=pred))
                 points.append(realized['x'])
@@ -424,7 +655,7 @@ def select_fixed_controls(training, bank, train_fits, train_meter, future_meter,
         for entry in record['initial_candidates']:
             initial_digest.update(entry['origin'].encode());initial_digest.update(_control_key(entry['power_kw']))
         record.update(initial_best_origin=None if best is None else best['origin'],
-            initial_best_score=None if best is None else _task_value(best['prediction'],cap),
+            initial_best_score=None if best is None else score_prediction(best['prediction'],cap),
             initial_actions_sha256=initial_digest.hexdigest(),configured_exchange_budget=dict(options))
         op=d.as_dict()
         try:
@@ -435,12 +666,17 @@ def select_fixed_controls(training, bank, train_fits, train_meter, future_meter,
             record['raw']=result
             if result.get('u') is None:raise ValueError('MILP exchange returned no feasible action')
             power=np.asarray(result['u']).reshape(T,n);realized=_realize(d,power)
-            witness=check_fixed_witness(context,power,gate=CONFIG['proxy_channel_RMS_gate'],
-                voltage_bounds=(fit_options or {}).get('voltage_bounds',(.85,1.15)))
+            try:
+                witness=check_fixed_witness(context,power,gate=CONFIG['proxy_channel_RMS_gate'],
+                    voltage_bounds=(fit_options or {}).get('voltage_bounds',(.85,1.15)))
+            except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError,TypeError) as exc:
+                if acceptance=='legacy_proxy_gate':raise
+                witness=dict(success=False,gate_passed=False,pairs=[],
+                    failure=type(exc).__name__+':'+str(exc),diagnostic_only=True)
             record.update(proxy_AC_check=witness,raw_proxy_gate=witness['gate_passed'],raw_operation=realized['audit'])
             rawpred=predicted(power) if realized['success'] else dict(success=False,pairs=[])
             record['raw_prediction']=rawpred
-            if realized['success'] and witness['gate_passed']:
+            if realized['success'] and (acceptance=='full_ac_score' or witness['gate_passed']):
                 checked.append(dict(origin='MILP',power_kw=power,operation=realized['audit'],prediction=rawpred))
         except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError,TypeError) as exc:
             record['failures'].append(type(exc).__name__+':'+str(exc))
@@ -448,34 +684,43 @@ def select_fixed_controls(training, bank, train_fits, train_meter, future_meter,
         if winner is None:
             record['guard']=dict(accepted=False,reason='no complete checked deterministic plan')
             return None,record
-        score=_task_value(winner['prediction'],cap)
+        score=score_prediction(winner['prediction'],cap)
         is_new=bool(winner['origin']=='MILP' and not any(_control_key(winner['power_kw'])==
             _control_key(r['power_kw']) for r in record['initial_candidates']))
         record.update(selected_origin=winner['origin'],selected_score=score,operation=winner['operation'],
             selected_is_new_MILP_proposal=is_new,inherited_or_initial_retained=not is_new,
-            inheritance_protected=best is None or score>=_task_value(best['prediction'],cap)-1e-10,
+            inheritance_protected=best is None or score>=score_prediction(best['prediction'],cap)-1e-10,
             guard=dict(accepted=winner['origin']=='MILP',reason='maximum checked training-only AC predictive score',
                 score=score,scope='attained AC score, not a design lower certificate'))
+        if acceptance!='legacy_proxy_gate':
+            record['guard'].update(acceptance_policy=acceptance,proxy_gate_is_diagnostic=True,
+                all_AC_tasks_required=True)
         return np.asarray(winner['power_kw']).copy(),record
     if choices['constant'] is not None:out['predicted_AC']['constant']=predicted(baseline)
     quality_prices=1./_broadcast(future_meter.v_sigma,(T,n),'future voltage sigma')**2
     quality_prices/=max(1.,float(np.max(quality_prices)))
     selected={};need_design=bool(set(requested)&set((*DOMAIN_FLAGS,'refined_v2g_mobile','capped_v2g_mobile')))
-    if need_design or set(requested)&{'quality_fixed','quality_mobile'}:
+    if need_design or set(requested)&set(QUALITY_DOMAINS):
         for name,d in domains.items():
-            quality=d.solve_prices(quality_prices,time_limit=3.)
+            quality,tie_record=_quality_plan(d,quality_prices,quality_tie_break)
+            if tie_record is not None:out['quality_tie_break_records'][name]=tie_record
             qaudit=d.check(quality);qpower=d.decode(quality)['u_kw'] if qaudit['feasible'] else None
             if name in ('charge_fixed','v2g_mobile'):
                 qname='quality_fixed' if name=='charge_fixed' else 'quality_mobile'
                 choices[qname]=qpower;out['methods'][qname]=dict(operation=qaudit)
+            for qname,domain_name in QUALITY_DOMAINS.items():
+                if domain_name==name and qname in requested and qname not in ('quality_fixed','quality_mobile'):
+                    choices[qname]=qpower;out['methods'][qname]=dict(operation=qaudit,domain=name)
             if not need_design:continue
             initial=[('constant',choices['constant']),*[(p,selected[p]) for p in INHERITS[name] if selected.get(p) is not None]]
             if qpower is not None:initial.append(('quality_'+name,qpower))
+            initial.extend((origin,power) for origin,power,_ in external)
             power,record=optimize(name,d,initial)
             selected[name]=power;choices[name]=power;out['methods'][name]=record
             if power is not None:out['predicted_AC'][name]=predicted(power)
         initial=[('constant',choices['constant']),*[(k,v) for k,v in selected.items() if v is not None]]
         if choices.get('quality_mobile') is not None:initial.append(('quality_mobile',choices['quality_mobile']))
+        initial.extend((origin,power) for origin,power,_ in external)
         for name,cap in (('refined_v2g_mobile',None),('capped_v2g_mobile',CONFIG['task_cap'])):
             if name not in requested:continue
             power,record=optimize(name,domains['v2g_mobile'],initial,cap)
