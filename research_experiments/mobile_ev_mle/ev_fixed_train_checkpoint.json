@@ -1,21 +1,36 @@
 {
-  "updated_utc": "2026-10-15T03:47:26.325000+00:00",
+  "updated_utc": "2026-10-15T04:56:51.701974+00:00",
   "branch": "codex/ev-train-validation-design",
   "base_commit": "1c71cb253be86c5207262cd51c49261427a41c78",
   "research_complete": false,
   "user_confirmed_PQ_as_input": true,
-  "training_points": 8,
+  "user_confirmed_one_fixed_parameter_set_per_topology": true,
+  "training_points": [
+    8,
+    32,
+    96
+  ],
   "validation_points": 4,
   "future_points": 6,
-  "source": "per-time P/Q through physical interface1; jointly estimated from V and root meters",
-  "forecast": "training mean; validation not used",
-  "component_tests": 29,
-  "current_stage": "components and math verified; development pilot running",
+  "source": "per-time P/Q at physical interface1; V and root meters jointly estimate source",
+  "forecast": "training mean only; validation excluded",
+  "completed_development_conditions": 16,
+  "independent_paired_units": 4,
+  "integration_tests_passed": 56,
+  "source_restore_tests_passed": 4,
+  "actual_saved_fit_states_reviewed": 1504,
+  "QP_states_reviewed": 4872,
+  "same_source_AC_pairs_reviewed": 1152,
+  "linked_planning_fit_states_reviewed": 1020,
+  "additional_extrapolation_fits_reviewed": 138,
   "independent_calibration_completed": 0,
   "independent_evaluation_completed": 0,
+  "current_stage": "single fixed-parameter development and mechanism checks complete; independent performance not frozen",
+  "actual_failure": "random990103 numerical feasibility precision retained in all four training conditions",
   "next": [
-    "Complete four-family development and independently replay actual data",
-    "Check proxy error/operation feasibility and trained-parameter extrapolation",
-    "Freeze complete strategy before new calibration/evaluation"
+    "Retain single trained parameter per topology; verify executable-direction prediction support",
+    "AC scalar-profile approximation, cap tie handling and training-only time prediction",
+    "Unified continuous feasibility repair for every strategy",
+    "New development assets, then freeze and independently calibrate/evaluate entire pipeline"
   ]
 }

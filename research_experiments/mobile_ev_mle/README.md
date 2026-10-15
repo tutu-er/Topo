@@ -2,7 +2,7 @@
 
 分支 `codex/ev-train-validation-design`，从 `1c71cb2` 建立。先读 `ev_fixed_train_protocol.md`、`ev_fixed_train_math.md`。用户已确认P/Q直接作输入；训练段估R/X，验证及EV新数据固定这组线路，仅估每时段共同源P/Q。首版训练8点、验证4点、未来6点；验证不进入规划，未来预测先用训练均值。旧72源和既有结果保持原样。
 
-已完成固定输入拟合、源QP/MILP接口及独立AC重放，29项组件测试通过；整策略开发正在进行，尚无新正式效果结论。原12H改善分解与MILP物理自由度见 `evidence/ev_fixed_train/previous_gain/milp_gain_analysis.md`。上限目标相对平均目标的M增量51.99中，未来电压项49.41；空间与曲线的逐历史机制不同，求解精度影响仍需消融。
+已完成固定输入拟合、源QP/MILP及整策略开发，56项集成测试与4项源码恢复测试通过。weak8、rich8、rich32、rich96共16个条件对应4个配对独立资产：32/96点训练两主实际裕量均4/4正，原弱训练仅1/4；训练支持不足是重要失败原因。两主相对质量价格MILP尚无稳定新增优势，平坦预测的时间置换不变性、cap20封顶及完整AC门分别定位。用户已确认保持每拓扑一组参数，验证不连续调线路。正式校准/评价0/0。入口为`ev_fixed_train_results.md`、`ev_fixed_train_interpretation.md`和`ev_fixed_train_next_protocol.md`。原12H改善分解与MILP物理自由度见 `evidence/ev_fixed_train/previous_gain/milp_gain_analysis.md`。上限目标相对平均目标的M增量51.99中，未来电压项49.41；空间与曲线的逐历史机制不同，求解精度影响仍需消融。
 
 以下保留原研究分支的已完成结果。
 
