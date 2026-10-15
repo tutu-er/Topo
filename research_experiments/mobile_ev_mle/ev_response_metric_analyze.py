@@ -55,6 +55,26 @@ def _timing_audit(trial):
     return result
 
 
+def rank_actions(values):
+    ranking=dict(unique_executed_curves=len(values),
+        scope='within-history unique executed actions; each history supplies at most one correlation')
+    for metric in ('full_AC_distance','joint_contrast','box_contrast','load_contrast'):
+        for target in ('M','clean_future_M'):
+            valid=[r for r in values if collector._finite(r.get(metric)) and collector._finite(r.get(target))]
+            consistent=opposite=ties=0
+            for i,a in enumerate(valid):
+                for b in valid[:i]:
+                    x,y=a[metric]-b[metric],a[target]-b[target]
+                    if abs(x)<=1e-6 or abs(y)<=1e-6:ties+=1
+                    elif x*y>0:consistent+=1
+                    else:opposite+=1
+            ranking[metric+'_vs_'+target]=dict(actions=len(valid),
+                spearman=spearman([r[metric] for r in valid],[r[target] for r in valid]),
+                concordant=consistent,discordant=opposite,ties=ties,
+                pair_counts_are_descriptive_not_independent_samples=True)
+    return ranking
+
+
 def _detail(trial,parsed):
     actual={row['name']:row for row in trial.get('methods',[])}
     logs=trial.get('selection',{}).get('methods',{})
@@ -96,23 +116,14 @@ def _detail(trial,parsed):
         compact=out['methods'][name]
         key=compact['curve_id']
         if key is not None and row['status']=='complete':unique.setdefault(key,compact)
-    values=list(unique.values())
-    out['ranking']=dict(unique_executed_curves=len(values),
-        scope='within-history unique executed actions; each history supplies at most one correlation')
-    for metric in ('full_AC_distance','joint_contrast','box_contrast','load_contrast'):
-        for target in ('M','clean_future_M'):
-            valid=[r for r in values if collector._finite(r.get(metric)) and collector._finite(r.get(target))]
-            consistent=opposite=ties=0
-            for i,a in enumerate(valid):
-                for b in valid[:i]:
-                    x,y=a[metric]-b[metric],a[target]-b[target]
-                    if abs(x)<=1e-6 or abs(y)<=1e-6:ties+=1
-                    elif x*y>0:consistent+=1
-                    else:opposite+=1
-            out['ranking'][metric+'_vs_'+target]=dict(actions=len(valid),
-                spearman=spearman([r[metric] for r in valid],[r[target] for r in valid]),
-                concordant=consistent,discordant=opposite,ties=ties,
-                pair_counts_are_descriptive_not_independent_samples=True)
+    out['ranking']=rank_actions(list(unique.values()))
+    strong={}
+    for name in ('square','nearest','gradac','contrast_joint','contrast_box','contrast_load'):
+        row=out['methods'][name]
+        if row['curve_id'] is not None and row['status']=='complete':
+            strong.setdefault(row['curve_id'],row)
+    out['ranking_strong']=rank_actions(list(strong.values()))
+    out['ranking_strong']['scope']='unique fixed-site V2G baseline/design curves; excludes none/constant/highlow'
     return out
 
 
@@ -178,6 +189,9 @@ def read_phase(directory,phase):
                 delta_M=stats([r['delta_M'] for r in pairs],n),
                 delta_clean_M=stats([r['delta_clean_M'] for r in pairs],n))
     result['ranking']={metric+'_vs_'+target:stats([r['ranking'][metric+'_vs_'+target]['spearman']
+        for r in details.values()],n) for metric in ('full_AC_distance','joint_contrast','box_contrast','load_contrast')
+        for target in ('M','clean_future_M')}
+    result['ranking_strong']={metric+'_vs_'+target:stats([r['ranking_strong'][metric+'_vs_'+target]['spearman']
         for r in details.values()],n) for metric in ('full_AC_distance','joint_contrast','box_contrast','load_contrast')
         for target in ('M','clean_future_M')}
     result['planned_method_slots']=n*len(METHODS)

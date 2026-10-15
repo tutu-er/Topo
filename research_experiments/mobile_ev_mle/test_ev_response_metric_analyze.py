@@ -116,3 +116,10 @@ def test_threshold_tampering_and_unrelated_candidate_bank_rejected(tmp_path):
     path=ev/'trial_994201.json.gz';record=collector.read_json(path)
     record['candidates'].append(dict(name='clade_02',supports=[]));collector.write_json(path,record)
     with pytest.raises(ValueError,match='two-candidate'):analyze.read_phase(ev,'evaluation')
+def test_action_ranking_can_expose_reverse_order_among_strong_curves():
+    rows=[dict(full_AC_distance=x,joint_contrast=x,box_contrast=x,load_contrast=x,
+        M=y,clean_future_M=y) for x,y in [(0.,0.),(1.,1.),(10.,12.),(11.,11.),(12.,10.)]]
+    all_actions=analyze.rank_actions(rows)
+    strong=analyze.rank_actions(rows[2:])
+    assert all_actions['full_AC_distance_vs_M']['spearman']>0
+    assert strong['full_AC_distance_vs_M']['spearman']==pytest.approx(-1.)

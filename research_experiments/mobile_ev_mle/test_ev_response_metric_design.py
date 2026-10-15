@@ -147,6 +147,19 @@ def test_expired_contrast_budget_never_uses_partial_scenario_score(context):
     assert r.get('initialization_budget_exhausted')
 
 
+def test_contrast_MILP_retains_existing_mobile_network_and_energy_constraints():
+    domain=fixed._service(6,3,mobile=True,discharge=True)
+    # Independent operations audit: a scalar signal at site2 rewards moving;
+    # no complete route is supplied to the optimizer.
+    beta=np.zeros((1,18));beta[0,2::3]=1.
+    r=design.solve_interval_gap_milp(domain,[0.],beta,[0.],[0.],backend='scipy',solver_seconds=3.)
+    assert r['success'] and r['operation']['feasible']
+    decoded=domain.decode(r['x'])
+    assert sum(a.kind=='travel' for a in decoded['selected_arcs'])==1
+    assert np.sum(abs(r['power_kw'][:,2]))>0
+    assert decoded['energy_kwh'][-1]==pytest.approx(26.85,abs=1e-7)
+
+
 def test_invalid_source_interval_rejected():
     with pytest.raises(ValueError,match='ordered'):
         design.interval_gap([0.],[1.],[-1.])
