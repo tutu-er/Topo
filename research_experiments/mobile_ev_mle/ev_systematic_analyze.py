@@ -24,6 +24,11 @@ INFERENCE=('fixed_total','fixed_holdout','joint_total')
 TIE_ABS=1e-8
 TIE_REL=1e-10
 PHASE_ALIASES={'dev':'development','cal':'calibration','eval':'evaluation'}
+_ANALYSIS_FIELDS=frozenset(('schema','phase','index','case_id','seed','family_index',
+    'true_name','candidate_miss','candidate_names','candidates','config','source_id','config_id',
+    'policy_id','source_sha256','source_unchanged','checks','status','failure','seconds',
+    'common_cost','actual_physics_calls','unique_actual_curves','line_parameters_unchanged_during_planning',
+    'methods','provenance'))
 
 
 def _read(path):
@@ -99,6 +104,17 @@ def _validate_record(record,expected_phase):
             if mode.get('M') is not None and not _finite(mode['M']):raise ValueError('M must be finite or None')
 
 
+def project_analysis_record(record):
+    """Retain only small record fields after validating the original payload.
+
+    Method rows contain only curves, operation summaries, scalar inference
+    losses/times and errors in the declared driver schema.  The large AC fit,
+    Jacobian, source-state, training and selection records remain in the raw
+    evidence file, whose original compressed SHA is retained by read_phase.
+    """
+    return {key:value for key,value in record.items() if key in _ANALYSIS_FIELDS}
+
+
 def read_phase(directory,*,expected_phase=None):
     """Read explicit case/trial records; preserve failed cases and input hashes."""
     directory=Path(directory);expected_phase=_phase(expected_phase)
@@ -118,10 +134,12 @@ def read_phase(directory,*,expected_phase=None):
         record=_read(path)
         if not isinstance(record,dict) or 'methods' not in record:continue
         _validate_record(record,expected_phase)
+        raw_sha256=sha256(path.read_bytes()).hexdigest()
+        record=project_analysis_record(record)
         key=(record['case_id'],record['seed'])
         if key in seen:raise ValueError('duplicate case/history record: '+str(key))
         seen.add(key);records.append(record)
-        files.append(dict(path=str(path.resolve()),sha256=sha256(path.read_bytes()).hexdigest()))
+        files.append(dict(path=str(path.resolve()),sha256=raw_sha256))
     if not records:raise ValueError('no case/trial records found')
     phases={_phase(row['phase']) for row in records}
     if len(phases)!=1:raise ValueError('mixed phases in one directory')
@@ -226,6 +244,66 @@ def _comparison(record):
     return result
 
 
+def _top_category(value,true):
+    if len(value['minimum_candidates'])!=1:return 'tie'
+    return 'correct' if value['minimum_candidates']==[true] else 'wrong'
+
+
+def fixed_joint_attribution(record,name):
+    """Who benefits from refitting, using the SAME joint-nearest competitor.
+
+    Delta_k=S_F,k-S_J,k.  For every fixed competitor b,
+    (S_J,b-S_J,a)=(S_F,b-S_F,a)+Delta_a-Delta_b.  The fixed
+    and joint nearest competitors may differ, so M_J-M_F does not generally
+    equal the final two terms for either independently chosen competitor.
+    """
+    fixed=_mode(record,name,'fixed_total');joint=_mode(record,name,'joint_total')
+    if fixed['candidate_miss'] or joint['candidate_miss']:return dict(valid=False,reason='candidate_miss')
+    if not fixed['complete'] or not joint['complete']:return dict(valid=False,reason='incomplete')
+    if set(fixed['losses'])!=set(joint['losses']):return dict(valid=False,reason='different_candidate_banks')
+    true=record['true_name'];others=sorted(k for k in joint['losses'] if k!=true)
+    if not others:return dict(valid=False,reason='no_competitor')
+    sf,sj=fixed['losses'],joint['losses'];delta={k:sf[k]-sj[k] for k in sf}
+    nearest=min(others,key=lambda k:(sj[k],k));fixed_nearest=min(others,key=lambda k:(sf[k],k))
+    gf=sf[nearest]-sf[true];gj=sj[nearest]-sj[true]
+    errors={k:abs((sj[k]-sj[true])-(sf[k]-sf[true])-delta[true]+delta[k]) for k in others}
+    tolerance=1e-8*(1+max(abs(v) for v in (*sf.values(),*sj.values())))
+    negative={k:v for k,v in delta.items() if v< -tolerance}
+    return dict(valid=True,true_name=true,joint_nearest_wrong=nearest,fixed_nearest_wrong=fixed_nearest,
+        joint_nearest_tie=sum(sj[k]==sj[nearest] for k in others)>1,
+        delta_by_candidate=delta,delta_true=delta[true],delta_joint_nearest_wrong=delta[nearest],
+        fixed_same_competitor_gap=gf,joint_same_competitor_gap=gj,
+        identity_abs_error=errors[nearest],identity_all_competitors_max_abs_error=max(errors.values()),
+        fixed_M=fixed['M'],joint_M=joint['M'],nearest_changed=nearest!=fixed_nearest,
+        fixed_top=_top_category(fixed,true),joint_top=_top_category(joint,true),
+        negative_delta_count=len(negative),negative_deltas=negative,nesting_tolerance=tolerance)
+
+
+def _attribution_summary(records,name):
+    rows=[fixed_joint_attribution(r,name) for r in records];valid=[r for r in rows if r['valid']]
+    transitions=Counter(r['fixed_top']+'_to_'+r['joint_top'] for r in valid)
+    result=dict(denominator=len(records),valid_pairs=len(valid),
+        candidate_miss=sum(r.get('reason')=='candidate_miss' for r in rows),
+        incomplete=sum(not r['valid'] and r.get('reason')!='candidate_miss' for r in rows),
+        correct_to_wrong=transitions['correct_to_wrong'],wrong_to_correct=transitions['wrong_to_correct'],
+        unchanged=transitions['correct_to_correct']+transitions['wrong_to_wrong'],
+        involving_tie=sum(r['fixed_top']=='tie' or r['joint_top']=='tie' for r in valid),
+        top_transition_counts={a+'_to_'+b:transitions[a+'_to_'+b] for a in ('correct','wrong','tie') for b in ('correct','wrong','tie')},
+        delta_true=_stats(r['delta_true'] for r in valid),
+        delta_joint_nearest_wrong=_stats(r['delta_joint_nearest_wrong'] for r in valid),
+        identity_max_abs_error=max((r['identity_all_competitors_max_abs_error'] for r in valid),default=None),
+        nearest_changed=sum(r['nearest_changed'] for r in valid),
+        negative_delta_histories=sum(r['negative_delta_count']>0 for r in valid),
+        negative_delta_candidates=sum(r['negative_delta_count'] for r in valid),
+        competitor_rule='joint-nearest wrong candidate; lexicographic tie break; same competitor in both gaps')
+    parameter_rows=[_methods(r)[name].get('parameter_error',{}) for r,v in zip(records,rows) if v['valid']]
+    result['parameter_error']={k:_stats(row.get(k) for row in parameter_rows)
+        for k in ('training_R','training_X','joint_R','joint_X')}
+    result['parameter_error_change']={key:_stats(row['joint_'+key]-row['training_'+key] for row in parameter_rows
+        if _finite(row.get('joint_'+key)) and _finite(row.get('training_'+key))) for key in ('R','X')}
+    return result
+
+
 def summarize(records):
     """Uncalibrated descriptive results, with every case in each denominator."""
     result=dict(histories=len(records),case_counts=dict(Counter(r['case_id'] for r in records)),
@@ -242,6 +320,7 @@ def summarize(records):
             total_seconds=_stats(m.get('total_seconds') for m in methods),
             parameter_error={key:_stats(m.get('parameter_error',{}).get(key) for m in methods)
                              for key in ('training_R','training_X','joint_R','joint_X')},inference={})
+        row['fixed_joint_attribution']=_attribution_summary(records,name)
         for inference in INFERENCE:
             values=[_mode(r,name,inference) for r in records]
             row['inference'][inference]=dict(denominator=len(records),complete=sum(v['complete'] for v in values),
@@ -265,7 +344,8 @@ def descriptive_analysis(phase):
         overall=summarize(records),by_case={key:summarize(value) for key,value in sorted(groups.items())},
         by_history=[dict(case_id=r['case_id'],seed=r['seed'],true_name=r['true_name'],
             candidate_miss=r['candidate_miss'],methods={name:{inference:_mode(r,name,inference)
-            for inference in INFERENCE} for name in METHODS},comparison=_comparison(r)) for r in records],
+            for inference in INFERENCE} for name in METHODS},comparison=_comparison(r),
+            fixed_joint_attribution={name:fixed_joint_attribution(r,name) for name in METHODS}) for r in records],
         scope='Descriptive only; paired development regimes sharing a seed are not independent histories.')
 
 
@@ -384,6 +464,16 @@ def _markdown(summary,decisions=None):
                 fmt(v['M']['mean']),fmt(v['M']['median']),'/'.join(str(w[k]) for k in ('win','tie','loss','incomplete')),
                 fmt(row['planning_seconds']['mean']),fmt(v['total_seconds']['mean'] if v['total_seconds']['n']
                     else row['total_seconds']['mean'])))+'|')
+    lines.extend(['','固定/联合补偿归因：δ_k=S_F,k−S_J,k；竞争者b固定为联合拟合后最近的错误候选。',
+        '同一b的差距满足 g_J=g_F+δ_true−δ_b；固定与联合的最近竞争者不同时，直接比较两边M不满足这个同b表达。','',
+        '|方法|完整配对/总数|正确→错误|错误→正确|状态未变|涉及并列|平均δ_true|平均δ_b|恒等式最大误差|',
+        '|---|---:|---:|---:|---:|---:|---:|---:|---:|'])
+    for name in METHODS:
+        row=overall['methods'][name]['fixed_joint_attribution']
+        lines.append('|'+ '|'.join((name,str(row['valid_pairs'])+'/'+str(row['denominator']),
+            *(str(row[k]) for k in ('correct_to_wrong','wrong_to_correct','unchanged','involving_tie')),
+            fmt(row['delta_true']['mean']),fmt(row['delta_joint_nearest_wrong']['mean']),
+            fmt(row['identity_max_abs_error'])))+'|')
     if decisions is not None:
         lines.extend(['','|方法|推断|误拒/总数|唯一正确|唯一错误|未决|失败保留全部|漏真|',
             '|---|---|---:|---:|---:|---:|---:|---:|'])

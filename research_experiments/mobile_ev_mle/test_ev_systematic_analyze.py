@@ -1,6 +1,7 @@
 """Pure JSON fixtures: tie ranks, separate thresholds, failures and blind order."""
 from copy import deepcopy
 import gzip
+from hashlib import sha256
 import json
 from pathlib import Path
 
@@ -73,6 +74,24 @@ def test_read_phase_preserves_full_schema_and_denominators(tmp_path):
     output_dir=tmp_path/'output'
     analysis.analyze_development(directory,output_dir)
     assert (output_dir/'development_summary.json').exists() and (output_dir/'development_summary.md').exists()
+
+
+def test_phase_projects_heavy_payload_after_validation_but_keeps_original_file_sha(tmp_path):
+    row=record(3)
+    for name in ('selection','future_records','training','validation','history_prefits',
+                 'training_result','forecast','large_unrecognized_debug'):
+        row[name]={'sentinel':['HEAVY']*400}
+    row.update(config={'small':'config'},common_cost={'training_seconds':2.},source_unchanged=True)
+    directory=tmp_path/'raw';write_phase(directory,[row])
+    path=next(directory.glob('case_*.json.gz'));original_sha=sha256(path.read_bytes()).hexdigest()
+    loaded=analysis.read_phase(directory,expected_phase='development')
+    compact=loaded['records'][0]
+    assert not any(k in compact for k in ('selection','future_records','training','validation',
+        'history_prefits','training_result','forecast','large_unrecognized_debug'))
+    assert compact['methods']==row['methods'] and compact['config']==row['config']
+    assert compact['common_cost']==row['common_cost'] and compact['checks']==row['checks']
+    assert loaded['files'][0]['sha256']==original_sha
+    assert analysis.summarize([compact])==analysis.summarize([row])
 
 
 def test_calibration_failure_score_zero_and_separate_method_inference_thresholds(tmp_path):
@@ -163,6 +182,34 @@ def test_route_total_time_is_kept_separate_from_combined_adapter_time():
     assert value['total_seconds']['mean']==99.
     assert value['inference']['fixed_total']['total_seconds']['mean']==2.
     assert value['inference']['joint_total']['total_seconds']['mean']==8.
+
+
+def test_refit_attribution_uses_one_competitor_and_explains_rank_flips():
+    first=record(1);second=record(2);third=record(3);fourth=record(4);failed=record(5)
+    values=((first,{'a':10.,'b':12.,'c':20.},{'a':8.,'b':3.,'c':20.}),
+            (second,{'a':15.,'b':10.,'c':20.},{'a':5.,'b':9.,'c':20.}),
+            (third,{'a':10.,'b':12.,'c':20.},{'a':8.,'b':11.,'c':18.}),
+            # Fixed-nearest b differs from joint-nearest c; same-b identity remains valid.
+            (fourth,{'a':10.,'b':12.,'c':20.},{'a':8.,'b':11.,'c':8.}))
+    for row,fixed,joint in values:
+        for method in row['methods']:
+            for mode,losses in (('fixed_total',fixed),('joint_total',joint)):
+                margin=min(v for k,v in losses.items() if k!='a')-losses['a']
+                method['inference'][mode].update(losses=losses,M=margin)
+    for method in failed['methods']:method['inference']['joint_total'].update(complete=False,M=None)
+    attribution=analysis.fixed_joint_attribution(first,'scalar_fixed')
+    assert attribution['delta_true']==2. and attribution['delta_joint_nearest_wrong']==9.
+    assert attribution['fixed_same_competitor_gap']==2. and attribution['joint_same_competitor_gap']==-5.
+    assert attribution['identity_abs_error']==0.
+    different=analysis.fixed_joint_attribution(fourth,'scalar_fixed')
+    assert different['nearest_changed'] and different['joint_nearest_wrong']=='c'
+    assert different['identity_all_competitors_max_abs_error']==0.
+    result=analysis.summarize([first,second,third,fourth,failed])['methods']['scalar_fixed']['fixed_joint_attribution']
+    assert result['denominator']==5 and result['valid_pairs']==4 and result['incomplete']==1
+    assert result['correct_to_wrong']==1 and result['wrong_to_correct']==1
+    assert result['unchanged']==1 and result['involving_tie']==1
+    assert result['identity_max_abs_error']==0. and result['negative_delta_candidates']==0
+    assert result['parameter_error_change']['R']['mean']==pytest.approx(-.05)
 
 
 def test_cli_saves_thresholds_before_first_evaluation_record_read(monkeypatch,tmp_path):
