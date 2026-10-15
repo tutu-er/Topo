@@ -192,11 +192,12 @@ def solve_shared_square_master(pairs,witnesses,control_lower,control_upper,const
         offsets=None,weights=None,aggregation='mean',score_scale=.5,operation=None,
         zero_product_pairs=None,control_segments=4,residual_segments=4,time_limit=3.,mip_rel_gap=1e-8,
         attained_lower=None,feasibility_tolerance=1e-7,backend='scipy',warm_start_operation=None,
-        score_caps=None):
+        score_caps=None,task_groups=None):
     """Compact master. Unsupported structure raises for explicit safe fallback."""
     from . import ev_original_domain_milp as od
     began=perf_counter()
     pairs,low,high,off,w=od._validate(pairs,control_lower,control_upper,offsets,weights,aggregation,score_scale)
+    task_spec=od._task_group_spec(pairs,task_groups,aggregation)
     caps=od._caps(score_caps,pairs)
     if isinstance(control_segments,bool) or int(control_segments)!=control_segments or control_segments<1:
         raise ValueError('control_segments must be positive integer')
@@ -224,7 +225,7 @@ def solve_shared_square_master(pairs,witnesses,control_lower,control_upper,const
         pair_upper.append(min(rec['score_box_upper'] for rec in records))
         errors.append(max(rec['pwl_score_error_upper'] for rec in records))
     pair_upper=np.minimum(pair_upper,caps)
-    upper=od._aggregate(pair_upper,w,aggregation)
+    upper=od._aggregate(pair_upper,w,aggregation,task_spec)
     if attained_lower is not None and (not np.isfinite(attained_lower) or upper<attained_lower):
         return dict(u=None,operation_x=None,objective_upper=upper,objective_lower=None,
             surrogate_incumbent=None,bound_consistent=False,status=4,backend=backend,
@@ -267,13 +268,8 @@ def solve_shared_square_master(pairs,witnesses,control_lower,control_upper,const
         row(eu,0.,0.);row(es,0.,0.);selectors[k]=(delta,fraction,nodes)
     gamma_lower=np.minimum(-score_scale*off,caps)
     gid=variables((gamma_lower-guard)/scale,(pair_upper+guard)/scale)
-    target=None
-    if aggregation=='worst':
-        target=int(variables([(min(gamma_lower)-guard)/scale],[(upper+guard)/scale])[0])
-        for g in gid:row({target:1.,int(g):-1.},hi=0.)
-    if attained_lower is not None:
-        row({int(g):float(v) for g,v in zip(gid,w)} if aggregation=='mean' else {target:1.},
-            lo=(attained_lower-guard)/scale)
+    target_expression,group_ids=od._master_aggregation(gid,gamma_lower,pair_upper,w,aggregation,
+        task_spec,guard,scale,variables,row,attained_lower)
     for rec in compiled:
         cut={int(gid[rec['pair']]):1.}
         for j,v in zip(uid,rec['ell']):
@@ -286,8 +282,7 @@ def solve_shared_square_master(pairs,witnesses,control_lower,control_upper,const
         for j,value in r.items():rr.append(i);cc.append(j);vv.append(value)
     matrix=coo_matrix((vv,(rr,cc)),shape=(len(rows),len(lbs))).tocsc()
     objective=np.zeros(len(lbs))
-    if aggregation=='mean':objective[gid]=-w
-    else:objective[target]=-1.
+    for index,value in target_expression.items():objective[index]=-value
     start=None;start_audit=dict(requested=warm_start_operation is not None,provided_to_solver=False,
         filled_variables=0,backend_supports_start=backend=='gurobi')
     if warm_start_operation is not None:
@@ -340,7 +335,10 @@ def solve_shared_square_master(pairs,witnesses,control_lower,control_upper,const
         product_keys=[],zero_product_pairs=sorted(zeros),zero_product_proof=op['zero_product_proof'],
         shared_square_structure=proof,shared_square_witnesses=summaries,compressions=[],
         score_caps=None if score_caps is None else dict(zip([p.name for p in pairs],caps.tolist())),
-        pwl_error_upper_against_finite_witness_objective=float(w@np.asarray(errors)) if aggregation=='mean' else float(max(errors)),
+        pwl_error_upper_against_finite_witness_objective=od._aggregation_error(errors,w,aggregation,task_spec),
+        task_groups=od._group_names(pairs,task_spec),
+        n_group_targets=0 if group_ids is None else len(group_ids),
+        group_weights=None if task_spec is None else {name:1./len(task_spec) for name in task_spec},
         control_segments=int(control_segments),residual_segments=0,seconds=perf_counter()-began,
         full_curve_enumeration=False,incumbent_is_true_score_lower=False,
         scope='shared control-square witness upper for original-box bilinear proxy; not full AC')

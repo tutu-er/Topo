@@ -196,9 +196,68 @@ def _validate(pairs,low,high,offsets,weights,aggregation,score_scale):
     else:w=np.asarray(weights,float)
     if (off.shape!=(len(pairs),) or w.shape!=off.shape or not np.isfinite([off,w]).all()
             or np.any(w<0) or abs(float(w.sum())-1.)>1e-10 or not np.isfinite(score_scale) or score_scale<=0
-            or aggregation not in ('mean','worst')):
-        raise ValueError('finite offsets, normalized nonnegative task weights, positive scale and mean/worst required')
+            or aggregation not in ('mean','worst','nearest')):
+        raise ValueError('finite offsets, normalized nonnegative task weights, positive scale and mean/worst/nearest required')
+    if aggregation=='nearest' and not np.allclose(w,1./len(pairs),rtol=0.,atol=1e-12):
+        raise ValueError('nearest uses equal group weights and requires uniform pair weights')
     return pairs,low,high,off,w
+
+
+def _task_group_spec(pairs,task_groups,aggregation):
+    """Normalize a named complete partition; labels never infer membership."""
+    if aggregation!='nearest':
+        if task_groups is not None:raise ValueError('task_groups requires nearest aggregation')
+        return None
+    if not isinstance(task_groups,Mapping) or not task_groups:
+        raise ValueError('nearest requires a nonempty task_groups partition')
+    names=[p.name for p in pairs];index={name:i for i,name in enumerate(names)}
+    if all(isinstance(value,str) for value in task_groups.values()):
+        if set(task_groups)!=set(names):raise ValueError('task_groups pair mapping must cover every required pair')
+        named={}
+        for name in names:named.setdefault(task_groups[name],[]).append(name)
+    else:
+        named=dict(task_groups)
+    result={};seen=set()
+    for label,members in named.items():
+        if not isinstance(label,str) or not label or not isinstance(members,(tuple,list)) or not members:
+            raise ValueError('task_groups needs nonempty named groups of pair names')
+        if any(not isinstance(name,str) or name not in index or name in seen for name in members):
+            raise ValueError('task_groups must be a complete disjoint partition of required pair names')
+        if len(set(members))!=len(members):
+            raise ValueError('task_groups contains a duplicate pair')
+        seen.update(members);result[label]=tuple(index[name] for name in members)
+    if seen!=set(names):raise ValueError('task_groups must cover every required pair')
+    return result
+
+
+def _group_names(pairs,spec):
+    return None if spec is None else {label:[pairs[i].name for i in ids] for label,ids in spec.items()}
+
+
+def _group_intervals(lower,upper,spec):
+    return {label:[float(np.min(np.asarray(lower)[list(ids)])),
+                   float(np.min(np.asarray(upper)[list(ids)]))] for label,ids in spec.items()}
+
+
+def _master_aggregation(gid,gamma_lower,pair_upper,w,aggregation,spec,guard,scale,variables,row,attained_lower):
+    """Positive linear expression of normalized pair/group target variables."""
+    group_ids=None
+    if aggregation=='mean':
+        expression={int(g):float(value) for g,value in zip(gid,w)}
+    elif aggregation=='worst':
+        target=int(variables([(float(np.min(gamma_lower))-guard)/scale],
+                             [(float(np.min(pair_upper))+guard)/scale])[0])
+        for g in gid:row({target:1.,int(g):-1.},hi=0.)
+        expression={target:1.}
+    else:
+        lower=np.array([np.min(np.asarray(gamma_lower)[list(ids)]) for ids in spec.values()])
+        upper=np.array([np.min(np.asarray(pair_upper)[list(ids)]) for ids in spec.values()])
+        group_ids=variables((lower-guard)/scale,(upper+guard)/scale)
+        for target,ids in zip(group_ids,spec.values()):
+            for i in ids:row({int(target):1.,int(gid[i]):-1.},hi=0.)
+        expression={int(target):1./len(spec) for target in group_ids}
+    if attained_lower is not None:row(expression,lo=(attained_lower-guard)/scale)
+    return expression,group_ids
 
 
 def _operation(n,low,high,constraints,operation):
@@ -270,8 +329,19 @@ def _zero_products(n,op,raw):
     return answer
 
 
-def _aggregate(values,w,aggregation):
-    return float(w@np.asarray(values)) if aggregation=='mean' else float(np.min(values))
+def _aggregate(values,w,aggregation,task_groups=None):
+    values=np.asarray(values)
+    if aggregation=='mean':return float(w@values)
+    if aggregation=='worst':return float(np.min(values))
+    if aggregation!='nearest' or not task_groups:raise ValueError('nearest aggregation needs normalized task groups')
+    return float(np.mean([np.min(values[list(ids)]) for ids in task_groups.values()]))
+
+
+def _aggregation_error(errors,w,aggregation,task_groups=None):
+    errors=np.asarray(errors)
+    if aggregation=='mean':return float(w@errors)
+    if aggregation=='worst':return float(np.max(errors))
+    return float(np.mean([np.max(errors[list(ids)]) for ids in task_groups.values()]))
 
 
 def _caps(score_caps,pairs):
@@ -403,7 +473,7 @@ def _lift(op,low,high,keys,zeros,segments):
         product_binary=int(sum(integer)-sum(op['integrality'])))
 
 
-def _coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale,score_caps=None):
+def _coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale,score_caps=None,task_groups=None):
     ups=[]
     for p,polys,o in zip(pairs,groups,off):
         candidates=[]
@@ -417,14 +487,14 @@ def _coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale,score_caps
             candidates.append(score_scale*(cost-o+guard))
         ups.append(min(candidates))
     if score_caps is not None:ups=np.minimum(ups,score_caps)
-    return _aggregate(ups,w,aggregation),np.asarray(ups)
+    return _aggregate(ups,w,aggregation,task_groups),np.asarray(ups)
 
 
 def solve_original_master(pairs,witnesses,control_lower,control_upper,constraints=None,*,
         offsets=None,weights=None,aggregation='mean',score_scale=.5,operation=None,
         zero_product_pairs=None,control_segments=4,residual_segments=4,time_limit=3.,mip_rel_gap=1e-8,
         attained_lower=None,feasibility_tolerance=1e-7,backend='scipy',warm_start_operation=None,
-        master_form='residual_chord',score_caps=None):
+        master_form='residual_chord',score_caps=None,task_groups=None):
     """MILP proposal and global upper. No returned incumbent is a true-score lower."""
     if master_form not in ('residual_chord','shared_control_square'):
         raise ValueError('master_form must be residual_chord or shared_control_square')
@@ -434,7 +504,7 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
             operation=operation,zero_product_pairs=zero_product_pairs,control_segments=control_segments,
             residual_segments=residual_segments,time_limit=time_limit,mip_rel_gap=mip_rel_gap,
             attained_lower=attained_lower,feasibility_tolerance=feasibility_tolerance,backend=backend,
-            warm_start_operation=warm_start_operation,score_caps=score_caps)
+            warm_start_operation=warm_start_operation,score_caps=score_caps,task_groups=task_groups)
         try:return solve_shared_square_master(pairs,witnesses,control_lower,control_upper,constraints,**options)
         except SharedSquareUnsupported as error:
             # No term or witness is deleted. Use the original full product/residual master.
@@ -446,6 +516,7 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
                 shared_square_fallback=str(error),fallback_keeps_all_products=True)
             return answer
     began=perf_counter();pairs,low,high,off,w=_validate(pairs,control_lower,control_upper,offsets,weights,aggregation,score_scale)
+    task_spec=_task_group_spec(pairs,task_groups,aggregation)
     caps=_caps(score_caps,pairs)
     for name,value in [('control_segments',control_segments),('residual_segments',residual_segments)]:
         if isinstance(value,bool) or int(value)!=value or value<1:raise ValueError(name+' must be positive integer')
@@ -473,7 +544,7 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
         pair_upper.append(min(r['score_box_upper'] for r in records));compiled.extend(records)
         errors.append(max(r['pwl_score_error_upper'] for r in records))
     if score_caps is not None:pair_upper=np.minimum(pair_upper,caps)
-    upper=_aggregate(pair_upper,w,aggregation)
+    upper=_aggregate(pair_upper,w,aggregation,task_spec)
     if attained_lower is not None and (not np.isfinite(attained_lower) or upper<attained_lower):
         return dict(u=None,operation_x=None,objective_upper=upper,objective_lower=None,
             surrogate_incumbent=None,bound_consistent=False,status=4,
@@ -490,15 +561,8 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
         rows.append({int(k):float(v) for k,v in values.items() if v!=0});los.append(float(lo));his.append(float(hi))
     gamma_lower=-score_scale*off if score_caps is None else np.minimum(-score_scale*off,caps)
     gid=variables((gamma_lower-guard)/numerical_scale,(np.asarray(pair_upper)+guard)/numerical_scale)
-    target=None
-    if aggregation=='worst':
-        target=int(variables([min(gamma_lower)-guard],[upper+guard])[0])
-        # target variable is normalized like every pair gamma.
-        lbs[target]=(min(gamma_lower)-guard)/numerical_scale;ubs[target]=(upper+guard)/numerical_scale
-        for g in gid:row({target:1.,int(g):-1.},hi=0.)
-    if attained_lower is not None:
-        row({int(g):float(v) for g,v in zip(gid,w)} if aggregation=='mean' else {target:1.},
-            lo=(attained_lower-guard)/numerical_scale)
+    target_expression,group_ids=_master_aggregation(gid,gamma_lower,pair_upper,w,aggregation,
+        task_spec,guard,numerical_scale,variables,row,attained_lower)
     feature_ids=np.r_[lift['uid'],lift['vid']]
     residual_binary=0;compression_audits=[]
     for rec in compiled:
@@ -527,8 +591,7 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
         for j,value in r.items():rr.append(i);cc.append(j);vv.append(value)
     matrix=coo_matrix((vv,(rr,cc)),shape=(len(rows),len(lbs))).tocsc()
     objective=np.zeros(len(lbs))
-    if aggregation=='mean':objective[gid]=-w
-    else:objective[target]=-1.
+    for index,value in target_expression.items():objective[index]=-value
     start=None;start_audit=dict(requested=warm_start_operation is not None,provided_to_solver=False,
         filled_variables=0,backend_supports_start=backend=='gurobi')
     if warm_start_operation is not None:
@@ -578,9 +641,11 @@ def solve_original_master(pairs,witnesses,control_lower,control_upper,constraint
         product_keys=keys,zero_product_pairs=sorted(zeros),zero_product_proof=op['zero_product_proof'],
         zero_products_are_operation_assumptions=bool(zeros),product_abs_error=lift['product_abs_error'],
         product_big_m_max=lift['product_big_m_max'],compressions=compression_audits,
-        pwl_error_upper_against_finite_witness_objective=float(w@np.asarray(errors)) if aggregation=='mean' else float(max(errors)),
+        pwl_error_upper_against_finite_witness_objective=_aggregation_error(errors,w,aggregation,task_spec),
         control_segments=int(control_segments),residual_segments=int(residual_segments),seconds=perf_counter()-began,
         master_form='residual_chord',
+        task_groups=_group_names(pairs,task_spec),n_group_targets=0 if group_ids is None else len(group_ids),
+        group_weights=None if task_spec is None else {name:1./len(task_spec) for name in task_spec},
         score_caps=None if score_caps is None else dict(zip([p.name for p in pairs],caps.tolist())),
         full_curve_enumeration=False,incumbent_is_true_score_lower=False,
         scope='shared product outer lift and square chords for original-box bilinear proxy witnesses; not full AC')
@@ -592,9 +657,10 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         control_segments=4,residual_segments=4,max_segments=16,solver_seconds=3.,total_seconds=30.,
         absolute_gap=.01,relative_gap=.01,mip_rel_gap=1e-8,feasibility_tolerance=1e-7,
         witness_atol=1e-10,witness_rtol=1e-9,add_comoving_witness=True,witness_policy='both',backend='scipy',
-        master_form='residual_chord',score_caps=None):
+        master_form='residual_chord',score_caps=None,task_groups=None):
     """Mean-task original-domain exchange with actual-QP lower bounds."""
     began=perf_counter();pairs,low,high,off,w=_validate(pairs,control_lower,control_upper,offsets,weights,aggregation,score_scale)
+    task_spec=_task_group_spec(pairs,task_groups,aggregation)
     caps=_caps(score_caps,pairs)
     if master_form not in ('residual_chord','shared_control_square'):
         raise ValueError('master_form must be residual_chord or shared_control_square')
@@ -664,8 +730,8 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         capped_lower=np.minimum(pair_lower,caps);capped_upper=np.minimum(pair_upper,caps)
         capped_mean=[float(w@capped_lower),float(w@capped_upper)]
         capped_worst=[float(min(capped_lower)),float(min(capped_upper))]
-        selected=(mean_interval if aggregation=='mean' else worst_interval) if score_caps is None else (
-            capped_mean if aggregation=='mean' else capped_worst)
+        selected=[_aggregate(pair_lower if score_caps is None else capped_lower,w,aggregation,task_spec),
+                  _aggregate(pair_upper if score_caps is None else capped_upper,w,aggregation,task_spec)]
         entry=dict(origin=origin,u=u,operation_x=x,score_lower=selected[0],score_upper=selected[1],
             mean_score_interval=mean_interval,worst_score_interval=worst_interval,
             pair_score_lower=pair_lower,pair_score_upper=pair_upper,qp_results=solutions,
@@ -673,6 +739,13 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
             capped_mean_score_interval=capped_mean,capped_worst_score_interval=capped_worst,
             added_witness=added,added_fixed_witness=added_fixed,added_comoving_witness=added_comoving,
             operation_validation=audit,all_qp_converged=all(s['success'] for s in solutions))
+        if task_spec is not None:
+            entry.update(nearest_score_interval=[_aggregate(pair_lower,w,'nearest',task_spec),
+                _aggregate(pair_upper,w,'nearest',task_spec)],
+                capped_nearest_score_interval=[_aggregate(capped_lower,w,'nearest',task_spec),
+                _aggregate(capped_upper,w,'nearest',task_spec)],
+                group_score_intervals=_group_intervals(pair_lower,pair_upper,task_spec),
+                capped_group_score_intervals=_group_intervals(capped_lower,capped_upper,task_spec))
         evaluations.append(entry)
         if lower is None or entry['score_lower']>lower:lower=entry['score_lower'];best=entry
         if not entry['all_qp_converged']:failures.append(dict(kind='inner_qp_not_converged',origin=origin,
@@ -706,7 +779,7 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
             seconds=perf_counter()-began)
     groups=_witness_group(pairs,witnesses,low,high,op)
     upper,pair_coarse=_coarse(pairs,groups,low,high,zeros,off,w,aggregation,score_scale,
-        score_caps=None if score_caps is None else caps)
+        score_caps=None if score_caps is None else caps,task_groups=task_spec)
     initialization_seconds=perf_counter()-began
     initial_upper=float(upper);cs=int(control_segments);rs=int(residual_segments)
     def target():return float(absolute_gap+relative_gap*max(1e-12,abs(upper),abs(lower)))
@@ -723,7 +796,8 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
                 aggregation=aggregation,score_scale=score_scale,operation=operation,zero_product_pairs=zeros,
                 control_segments=cs,residual_segments=rs,time_limit=min(solver_seconds,remaining),
                 mip_rel_gap=mip_rel_gap,attained_lower=lower,feasibility_tolerance=feasibility_tolerance,
-                backend=backend,warm_start_operation=best['operation_x'],master_form=master_form,score_caps=score_caps)
+                backend=backend,warm_start_operation=best['operation_x'],master_form=master_form,score_caps=score_caps,
+                task_groups=_group_names(pairs,task_spec))
             record=dict(iteration=it,master=master,previous_upper=previous,global_upper=upper,
                 global_lower=lower,witnesses_before=[len(z) for z in witnesses],upper_update_accepted=False,
                 control_segments=cs,residual_segments=rs)
@@ -753,7 +827,8 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         raw_gap=float(upper-lower),gap=float(upper-lower),target_gap=target(),status=status,
         completed=completed,unfinished=not completed,initial_fixed_witness_upper=initial_upper,
         initial_pair_coarse_upper=pair_coarse,aggregation=aggregation,weights=dict(zip([p.name for p in pairs],w.tolist())),
-        weight_meaning='predeclared task values, not topology truth probabilities',
+        weight_meaning=('predeclared task values, not topology truth probabilities' if task_spec is None else
+            'equal group means of minima; uniform pair weights checked, not group masses or truth probabilities'),
         score_scale=float(score_scale),offsets=dict(zip([p.name for p in pairs],off.tolist())),
         required_pairs=[p.name for p in pairs],witnesses=witnesses,witness_counts=[len(z) for z in witnesses],
         evaluations=evaluations,iterations=iterations,qp_calls=qp_calls,
@@ -763,6 +838,11 @@ def exchange_original_domain(pairs,control_lower,control_upper,constraints=None,
         capped_mean_score_interval=best['capped_mean_score_interval'],
         capped_worst_score_interval=best['capped_worst_score_interval'],
         score_caps=None if score_caps is None else dict(zip([p.name for p in pairs],caps.tolist())),
+        task_groups=_group_names(pairs,task_spec),
+        group_weights=None if task_spec is None else {name:1./len(task_spec) for name in task_spec},
+        nearest_score_interval=None if task_spec is None else best['nearest_score_interval'],
+        capped_nearest_score_interval=None if task_spec is None else best['capped_nearest_score_interval'],
+        group_score_intervals=None if task_spec is None else best['group_score_intervals'],
         master_form=master_form,
         shared_square_initial_structure=initial_structure,
         zero_product_pairs=sorted(zeros),zero_product_proof=op['zero_product_proof'],
