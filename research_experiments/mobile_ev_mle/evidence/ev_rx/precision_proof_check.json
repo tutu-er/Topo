@@ -1,0 +1,2197 @@
+{
+  "analytical_bounds": {
+    "any_moving_Q_upper": 130.6122448979592,
+    "charge_fixed_Q": 65.63265306122449,
+    "charge_mobile_Q": 67.30420035050031,
+    "strict_moving_gap": 26.62607120030501,
+    "v2g_fixed_and_mobile_Q": 157.2383160982642,
+    "v2g_fixed_and_mobile_Q_exact": "637420076/4053847"
+  },
+  "capacity_fill": {
+    "charge_fixed": {
+      "Q": 65.63265306122449,
+      "Q_exact": "3216/49",
+      "energy_exact": "3",
+      "energy_kwh": 3.0,
+      "full_slots": 2,
+      "remaining_energy_kwh": 0.14285714285714285,
+      "slots_required": 3
+    },
+    "charge_mobile_one_move": {
+      "Q": 67.30420035050031,
+      "Q_exact": "1190544/17689",
+      "energy_exact": "61/19",
+      "energy_kwh": 3.210526315789474,
+      "full_slots": 2,
+      "remaining_energy_kwh": 0.3533834586466165,
+      "slots_required": 3
+    },
+    "v2g_C": {
+      "Q": 116.60757286315231,
+      "Q_exact": "3308964816/28376929",
+      "energy_exact": "4083/761",
+      "energy_kwh": 5.365308804204993,
+      "full_slots": 3,
+      "remaining_energy_kwh": 1.0795945184907076,
+      "slots_required": 4
+    },
+    "v2g_D": {
+      "Q": 40.63074323511187,
+      "Q_exact": "1152975716/28376929",
+      "energy_exact": "3249/1522",
+      "energy_kwh": 2.1346911957950065,
+      "full_slots": 1,
+      "remaining_energy_kwh": 0.706119767223578,
+      "slots_required": 2
+    }
+  },
+  "input_files_sha256": {
+    "outputs/rx_development_box/trial_992101.json.gz": "8ef166a617afaeb711f17b35ea05d466d490c2b7ac71c8c8a08529f378bfb989",
+    "outputs/rx_development_box/trial_992102.json.gz": "44afa602e85cc15af9ee35bbd94bd5d70f2374feea3278ccb4f6d67a0cf02605",
+    "outputs/rx_development_box/trial_992103.json.gz": "ecdd1d9f5ecc119bcca6fab53951269ab008332c67f98f0ea706452cc3c7c058",
+    "outputs/rx_development_box/trial_992104.json.gz": "5313dce13ec1a79a0604d7887b3d3b73c01d1ee5445aa5c88465458dae7a81c2",
+    "outputs/rx_development_cone/trial_992101.json.gz": "9f561d6e0a74cb7719e82b8fe9f33ac96b494262225a2fed20e47bae3e97f2ea",
+    "outputs/rx_development_cone/trial_992102.json.gz": "4554b9a8eafcc2ca011829810e9b2a59bdfa3430570fa69bd758f568bc2071a1",
+    "outputs/rx_development_cone/trial_992103.json.gz": "768382f15887707e112ba6a480daeb925549cdf535845a4adadf4417022f7441",
+    "outputs/rx_development_cone/trial_992104.json.gz": "767f52ae2e7ae197fd64e3074b5d912b10b56298eea41b996171d27ea851acc4"
+  },
+  "parameters": {
+    "L_kwh": 1.4285714285714286,
+    "T": 6,
+    "delta_battery_kwh": 2.85,
+    "drive_per_move_kwh": 0.2,
+    "dt_hours": 0.25,
+    "eta_charge": 0.95,
+    "eta_discharge": 0.95,
+    "move_lost_slots": 2,
+    "pmax_kw": 5.714285714285714,
+    "throughput_cap_kwh": 7.5,
+    "uniform_normalized_weight": 1.0
+  },
+  "records": [
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992101,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992101,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "box",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992101,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992101,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992102,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992102,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "box",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992102,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992102,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992103,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992103,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "box",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992103,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992103,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992104,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992104,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "box",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992104,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "box",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992104,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992101,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992101,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "cone",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992101,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992101,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992102,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992102,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "cone",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992102,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992102,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992103,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992103,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "cone",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992103,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992103,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.0,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 65.63265306122449,
+      "Q_saved": 65.63265306122449,
+      "analytical_Q_upper": 65.63265306122449,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        25.357142857142858,
+        26.714285714285715,
+        26.714285714285715,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": 0.0,
+      "method": "square_charge_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.0,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          0.5714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 0.4897959184667968,
+      "saved_objective_lower": 65.6326530612207,
+      "saved_objective_upper": 66.12244897968749,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992104,
+      "selected_origin": "initial:initial_1",
+      "success": true,
+      "throughput_kwh": 3.0,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_fixed",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          5.714285714285714,
+          -0.0,
+          -0.0
+        ],
+        [
+          4.318378073962834,
+          -0.0,
+          -0.0
+        ],
+        [
+          -2.824479068894308,
+          -0.0,
+          -0.0
+        ],
+        [
+          -5.714285714285714,
+          -0.0,
+          -0.0
+        ]
+      ],
+      "saved_gap": 2.1320075897913284,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 159.37032368804654,
+      "saved_solver_completed": false,
+      "saved_solver_status": "master_without_valid_operation",
+      "seed": 992104,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    },
+    {
+      "C_kwh": 3.2105263157894752,
+      "D_kwh": 0.0,
+      "Q_absolute_difference": 0.0,
+      "Q_recomputed": 67.30420035050032,
+      "Q_saved": 67.30420035050032,
+      "analytical_Q_upper": 67.30420035050031,
+      "condition": "cone",
+      "drive_kwh": 0.2,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        26.514285714285716,
+        26.514285714285716,
+        26.85,
+        26.85
+      ],
+      "gap_to_analytic": -1.4210854715202004e-14,
+      "method": "square_charge_mobile",
+      "moves": 1,
+      "net_grid_energy_kwh": 3.2105263157894752,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.4135338345864725,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.021705107515856525,
+      "saved_objective_lower": 67.30420035049644,
+      "saved_objective_upper": 67.3259054580123,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992104,
+      "selected_origin": "initial:initial_2",
+      "success": true,
+      "throughput_kwh": 3.2105263157894752,
+      "violations": []
+    },
+    {
+      "C_kwh": 5.365308804204994,
+      "D_kwh": 2.1346911957950057,
+      "Q_absolute_difference": 2.842170943040401e-14,
+      "Q_recomputed": 157.23831609826422,
+      "Q_saved": 157.2383160982642,
+      "analytical_Q_upper": 157.2383160982642,
+      "condition": "cone",
+      "drive_kwh": 0.0,
+      "energy_trace_kwh": [
+        24.0,
+        25.357142857142858,
+        26.714285714285715,
+        28.071428571428573,
+        29.097043363994747,
+        28.353759398496244,
+        26.850000000000005
+      ],
+      "gap_to_analytic": -2.842170943040401e-14,
+      "method": "square_v2g_mobile",
+      "moves": 0,
+      "net_grid_energy_kwh": 3.2306176084099882,
+      "power_kw": [
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          5.714285714285714,
+          0.0,
+          0.0
+        ],
+        [
+          4.318378073962834,
+          0.0,
+          0.0
+        ],
+        [
+          -2.824479068894308,
+          0.0,
+          0.0
+        ],
+        [
+          -5.714285714285714,
+          0.0,
+          0.0
+        ]
+      ],
+      "saved_gap": 0.0913505295357595,
+      "saved_objective_lower": 157.2383160982552,
+      "saved_objective_upper": 157.32966662779097,
+      "saved_solver_completed": true,
+      "saved_solver_status": "gap_reached",
+      "seed": 992104,
+      "selected_origin": "initial:initial_4",
+      "success": true,
+      "throughput_kwh": 7.5,
+      "violations": []
+    }
+  ],
+  "schema": "rx_squared_baseline_pure_arithmetic_audit_v1",
+  "scope": "development records only; no AC/project import/optimizer; original solver status retained; analytical certificate is separate",
+  "summary": {
+    "all_at_global_analytical_bound": true,
+    "audited_method_records": 32,
+    "audited_trial_records": 8,
+    "errors": [],
+    "independent_base_histories": 4,
+    "maximum_abs_Q_disagreement": 2.842170943040401e-14,
+    "maximum_abs_gap_to_analytic": 2.842170943040401e-14,
+    "paired_training_conditions": [
+      "box",
+      "cone"
+    ],
+    "planned_method_records": 32,
+    "planned_trial_records": 8,
+    "saved_completed_false": 8,
+    "trial_records_are_not_independent_histories": true
+  },
+  "v2g_attaining_construct": {
+    "Q": 157.2383160982642,
+    "battery_bounds_kwh": [
+      6.0,
+      54.0
+    ],
+    "energy_trace_kwh": [
+      24.0,
+      25.357142857142858,
+      26.714285714285715,
+      28.071428571428573,
+      29.097043363994743,
+      28.35375939849624,
+      26.85
+    ],
+    "power_kw_site0": [
+      5.714285714285714,
+      5.714285714285714,
+      5.714285714285714,
+      4.318378073962831,
+      -2.824479068894312,
+      -5.714285714285714
+    ],
+    "throughput_kwh": 7.5
+  }
+}
