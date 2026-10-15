@@ -48,11 +48,14 @@ def select_controls(training,bank,train_fits,train_meter,future_meter,*,forecast
     prices/=max(1.,float(np.max(prices)))
     # These baselines deliberately run before any topology-dependent context.
     for name,domain in domains.items():
-        solved,tie=old._quality_plan(domain,prices,'early_stay');audit=domain.check(solved)
         key='linear_'+name
-        choices[key]=domain.decode(solved)['u_kw'] if audit['feasible'] else None
-        record['methods'][key]=dict(operation=audit,tie_break=tie,
-            uses_topology=False,uses_load_forecast=False)
+        try:
+            solved,tie=old._quality_plan(domain,prices,'early_stay');audit=domain.check(solved)
+            choices[key]=domain.decode(solved)['u_kw'] if audit['feasible'] else None
+            record['methods'][key]=dict(operation=audit,tie_break=tie,
+                uses_topology=False,uses_load_forecast=False)
+        except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError) as exc:
+            choices[key]=None;record['failures'][key]=type(exc).__name__+':'+str(exc)
         initial=[v for v in (baseline,highlow,choices[key]) if v is not None]
         initial.extend(choices['square_'+p] for p in old.INHERITS[name]
             if choices.get('square_'+p) is not None)
