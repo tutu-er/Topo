@@ -1,3 +1,15 @@
+## 最新：多场景统一比较与固定/联合线路（2026-10-16）
+
+先读 `ev_systematic_results.md`。简洁数学口径见 `ev_systematic_math.md`，方法库存与旧证据可比性见 `ev_systematic_method_inventory.md`、`ev_systematic_evidence_map.md`；复算见 `ev_systematic_reproduce.md`。
+
+本轮完成16场景×4开发槽（52基础seed），108独立校准、72独立评价；10策略×3推断口径同动作配对。规划保持每拓扑一组训练参数；最终新增共享线路共同拟合H/V/E的公平对照。平方同一动作由固定线路35/72唯一正确、10误拒，变为共享线路69/72、3误拒；R误差均值21.53%→5.49%，X仍36.92%。
+
+共享线路下平方、原最近竞争者、固定点标量及历史偏移均69/72、3误拒。平方/标量总成本4.36/5.31秒，标量M191.96对189.13、逐历史25胜25平22负；暂未增加固定点排错。按事前训练长度分层校准，固定点方法62正确/1误拒/9未决，移动标量64/1/7；移动新增计数包含不同校准阈值的影响，详见结果。附加绝对门误拒较多，保留为独立诊断。
+
+130项测试通过；244槽物理/成本与代理算术独立核查完成，最终策略/推断/操作失败0，49/1464原始scalar提案未通过操作检查、均无动作下界且保留回退。全部统计可从analysis-lite复算；16个预选代表保留完整计量和拟合状态。5包31.11MB及压缩报告在 `evidence/ev_systematic/`，原818.93MB raw留在D-stage。没有扩展成完整33节点或WZZT自动候选召回实验；原LaTeX/PDF未改。
+
+下文按历史顺序保留旧阶段及原分母。
+
 ## 最新：动作排序、条件平均与标量距离MILP（2026-10-16）
 
 先读 `ev_response_metric_results.md`；数学与解释见 `ev_response_metric_math.md`、`ev_response_metric_interpretation.md`，一元结构见 `ev_scalar_distance_math.md`，复算见 `ev_response_metric_reproduce.md`。每拓扑一组训练R/X、P/Q直接输入、同接口逐时源保持不变，原报告未修改。

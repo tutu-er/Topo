@@ -1,5 +1,7 @@
 # EV研究证据地图：怎样比较才回答同一个问题
 
+本轮统一比较已完成：新结论和相同口径的72份评价见 `ev_systematic_results.md`；下文保留盘点时的旧批证据、假设及可比性边界。
+
 2026-10-16。简表依据既有results及当前开发记录；不修改原报告。详细入口见 `ev_systematic_case_inventory.md`，目标与公式见 `ev_systematic_method_inventory.md`。
 
 | 方向/批次 | 实际模型与进展 | 可以直接比较 | 与本轮不能直接排序的原因 |

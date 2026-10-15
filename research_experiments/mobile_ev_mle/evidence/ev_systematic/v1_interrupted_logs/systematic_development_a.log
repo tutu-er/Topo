@@ -1,0 +1,26 @@
+{"index": 0, "case": "ordinary96", "seed": 100610001, "status": "complete", "seconds": 23.703045100002782, "failure": null, "methods": [{"name": "none", "fixed": 0.9425563955011285, "joint": 0.39295424541069224}, {"name": "constant", "fixed": -6.737643252721625, "joint": -1.2728408211396527}, {"name": "highlow", "fixed": -30.49123351787523, "joint": -1.9194949270400343}, {"name": "square_fixed", "fixed": -74.03080367470966, "joint": -2.0911066190493557}, {"name": "square_mobile", "fixed": -74.03080367470966, "joint": -2.0911066190493557}, {"name": "nearest_fixed", "fixed": -74.03080367470966, "joint": -2.0911066190493557}, {"name": "gradac_fixed", "fixed": -74.03080367470966, "joint": -2.0911066190493557}, {"name": "scalar_fixed", "fixed": -74.03080367470966, "joint": -2.0911066190493557}, {"name": "scalar_hist_fixed", "fixed": -74.03080367470966, "joint": -2.0911066190493557}, {"name": "scalar_mobile", "fixed": -104.00791648967498, "joint": 0.5911881657170852}]}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_study.py", line 306, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_study.py", line 295, in main
+    record=run_trial(spec)
+           ^^^^^^^^^^^^^^^
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_study.py", line 274, in run_trial
+    try:record=_run(spec)
+               ^^^^^^^^^^
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_study.py", line 199, in _run
+    plans,selection,domains=select_plans(tr,bank,fits,tm,case['fm'],forecast,case_id=spec['case_id'],
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_study.py", line 155, in select_plans
+    u,row=scalar_policy(context,domain,initial,history_losses=history,grids=tuple(CONFIG['scalar_grids']),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_design.py", line 356, in scalar_policy
+    record['action_QP_calls']=sum(len(row.get('raw',{}).get('action_QP',{}).get('pairs',[]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0-github_workspace\Topo\outputs\ev_rx_stage_20261015\research_experiments\mobile_ev_mle\ev_systematic_design.py", line 356, in <genexpr>
+    record['action_QP_calls']=sum(len(row.get('raw',{}).get('action_QP',{}).get('pairs',[]))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'

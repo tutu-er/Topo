@@ -63,6 +63,6 @@ python -m research_experiments.mobile_ev_mle.ev_systematic_review --directory ou
 
 ## 测试与失败保留
 
-`test_ev_systematic_*.py`覆盖场景/计量配对、训练与未来隔离、共享线路见证、代理上下界、校准、回放及交付。运行时关闭缓存并给pytest一个新的可写`--basetemp`；最终XML及实际测试项数随证据保存。
+`test_ev_systematic_*.py`覆盖场景/计量配对、训练与未来隔离、共享线路见证、代理上下界、校准、回放及交付。运行时关闭缓存并给pytest一个新的可写`--basetemp`；最终130项测试通过，XML随证据保存。大于250KB的汇总JSON按原字节gzip压缩，evidence_index.json同时保存原JSON与交付文件SHA；分析器和独立审计器支持.json.gz。需要原JSON时解压即可逐字节恢复。
 
 v1开发遇到显式None证书的记账异常，11条完成记录及日志单列保留。修复后按新策略重跑全部64开发槽，正式比较只用v2。数值容差导致的原始MILP提案失败、最终合法回退、局部拟合失败与候选漏真均按原分母单列。
