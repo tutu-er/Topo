@@ -176,3 +176,47 @@ def test_invalid_runtime_is_exposed(tmp_path):
     _write(path, record)
     with pytest.raises(ValueError, match="invalid runtime"):
         analysis.analyze(tmp_path/"report", development=dirs["development"])
+
+
+def test_iteration_profiles_and_payment_events_not_copied():
+    log = dict(iterations=[dict(before_score=1., candidate_score=2., after_score=2., accepted=True,
+        gradient_profile={"large_array":[1]*100}, candidate_profile={"large_array":[2]*100},
+        MILP=dict(seconds=.1, linear_mip_gap=0., power_kw=[[2.]*100], predicted_directional_gain=1.))],
+        counters=dict(cache_payment_log=[dict(cache_hit=False, paid_pair_fits=12, actual_seconds=.2)],
+            source_kkt_by_method=dict(ac=dict(successful_fits=12, scaled_max=1e-7, scaled_count_gt_1e_minus_5=0))))
+    iterations, summary = analysis._iterations(log)
+    assert summary["count"] == summary["accepted"] == 1
+    assert "gradient_profile" not in iterations[0] and "power_kw" not in iterations[0]["MILP"]
+    counter = analysis._counters(log)
+    assert "cache_payment_log" not in counter and counter["cache_payment_summary"]["paid_pair_fits"] == 12
+    assert counter["source_kkt_by_method"]["ac"]["scaled_max"] == 1e-7
+
+
+def test_timing_audit_deduplicates_diamond_dependencies_and_exposes_error():
+    timing = {
+        "square_v2g_fixed":dict(planning_actual_seconds=1., dependency_seconds=.1,
+            planning_standalone_seconds=1.1, dependencies=[], actual_calls=dict(AC_batches=1)),
+        "square_v2g_mobile":dict(planning_actual_seconds=2., dependency_seconds=1.1,
+            planning_standalone_seconds=3.1, dependencies=["square_v2g_fixed"], actual_calls=dict(AC_batches=2)),
+        "gradac_v2g_fixed":dict(planning_actual_seconds=3., dependency_seconds=1.3,
+            planning_standalone_seconds=4.3, dependencies=["square_v2g_fixed"], context_seconds=.2,
+            actual_calls=dict(AC_batches=3), context_calls=dict(AC_batches=5),
+            charged_ancestors=["square_v2g_fixed"], standalone_calls=dict(AC_batches=9)),
+        "gradac_v2g_mobile":dict(planning_actual_seconds=4., dependency_seconds=6.3,
+            planning_standalone_seconds=10.3, dependencies=["square_v2g_mobile", "gradac_v2g_fixed"],
+            context_seconds=.2, actual_calls=dict(AC_batches=4), context_calls=dict(AC_batches=5),
+            charged_ancestors=["square_v2g_fixed", "square_v2g_mobile", "gradac_v2g_fixed"],
+            standalone_calls=dict(AC_batches=15))}
+    trial = dict(selection=dict(timing=timing, public_setup_seconds=.1),
+        common_runtime=dict(training_and_candidates_seconds=2., validation_seconds=1., forecast_seconds=.5,
+            training_calls=dict(AC_batches=10), validation_calls=dict(AC_batches=20)),
+        methods=[dict(name="gradac_v2g_mobile", noisy=dict(seconds=.5, cost=dict(ac_calls=30)),
+            runtime=dict(common_history_pipeline_seconds=3.5, operational_future_fit_seconds=.5,
+                planning_standalone_seconds=10.3, final_operation_audit_seconds=.1,
+                end_to_end_standalone_seconds=14.4, standalone_calls=dict(AC_batches=15), standalone_AC_batches=75))])
+    report = analysis.timing_audit(trial)
+    assert report["success"] and report["checks"] >= 16
+    timing["gradac_v2g_mobile"]["dependency_seconds"] += 1.
+    report = analysis.timing_audit(trial)
+    assert not report["success"]
+    assert any(r["label"] == "gradac_v2g_mobile/dependency" for r in report["failures"])

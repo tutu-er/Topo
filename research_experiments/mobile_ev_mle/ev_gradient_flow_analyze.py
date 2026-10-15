@@ -10,6 +10,7 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import math
 from pathlib import Path
 import statistics
 
@@ -48,13 +49,108 @@ def contrasts():
     return result
 
 
+def _iterations(log):
+    """Keep scalar iteration evidence; raw source-profile arrays stay in trials."""
+    compact = []
+    for row in log.get("iterations", []) or []:
+        if not isinstance(row, dict):
+            compact.append(dict(iteration=row))
+            continue
+        item = {k:row[k] for k in ("start_index", "start_origin", "iteration", "before_score",
+            "candidate_score", "after_score", "accepted", "gradient_method", "trust_kw", "failure",
+            "rejection_reason", "stop_reason") if k in row}
+        step = row.get("MILP", {})
+        if step:
+            item["MILP"] = {k:step[k] for k in ("success", "predicted_directional_gain",
+                "attained_directional_gain", "linear_best_bound", "linear_mip_gap", "seconds", "status") if k in step}
+        compact.append(item)
+    return compact, dict(count=len(compact), accepted=sum(r.get("accepted") is True for r in compact),
+        gradient_failures=sum("gradient source fit" in str(r.get("failure", "")) for r in compact),
+        rejection_reasons=dict(Counter(r["rejection_reason"] for r in compact if r.get("rejection_reason"))),
+        stop_reasons=dict(Counter(r["stop_reason"] for r in compact if r.get("stop_reason"))))
+
+
+def _counters(log):
+    counters = dict(log.get("counters", {}))
+    events = counters.pop("cache_payment_log", [])
+    if events:
+        counters["cache_payment_summary"] = dict(events=len(events),
+            cache_hits=sum(e.get("cache_hit") is True for e in events),
+            paid_pair_fits=sum(e.get("paid_pair_fits", 0) for e in events),
+            actual_seconds=sum(e.get("actual_seconds", 0.) for e in events))
+    return counters
+
+
+def timing_audit(trial):
+    """Rebuild standalone costs from saved own costs and ancestor sets."""
+    selection = trial.get("selection", {})
+    timing = selection.get("timing", {})
+    common = trial.get("common_runtime", {})
+    if not timing or not common:
+        return dict(available=False, checks=0, failures=[], reason="saved timing components unavailable")
+    failures, checks = [], 0
+    def equal(actual, expected, label):
+        nonlocal checks
+        checks += 1
+        if not (collector._finite(actual) and collector._finite(expected)
+                and math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-10)):
+            failures.append(dict(label=label, actual=actual, expected=expected))
+    def ancestry(name, stack=()):
+        if name in stack:
+            raise ValueError("cycle in planning dependencies")
+        answer = set()
+        for parent in timing[name].get("dependencies", []):
+            if parent not in timing:
+                raise ValueError("missing planning ancestor: "+parent)
+            answer.add(parent)
+            answer.update(ancestry(parent, stack+(name,)))
+        return answer
+    setup = selection.get("public_setup_seconds", 0.)
+    for name, row in timing.items():
+        if name in ("none", "constant", "highlow"):
+            continue
+        ancestors = ancestry(name)
+        expected_dep = setup+sum(timing[a]["planning_actual_seconds"] for a in ancestors)+row.get("context_seconds", 0.)
+        equal(row.get("dependency_seconds"), expected_dep, name+"/dependency")
+        equal(row.get("planning_standalone_seconds"), row["planning_actual_seconds"]+expected_dep, name+"/standalone")
+        if "charged_ancestors" in row:
+            checks += 1
+            if set(row["charged_ancestors"]) != ancestors:
+                failures.append(dict(label=name+"/ancestor_names", actual=row["charged_ancestors"], expected=sorted(ancestors)))
+            expected_calls = dict(row.get("actual_calls", {}))
+            for ancestor in ancestors:
+                for key, value in timing[ancestor].get("actual_calls", {}).items():
+                    expected_calls[key] = expected_calls.get(key, 0)+value
+            for key, value in row.get("context_calls", {}).items():
+                expected_calls[key] = expected_calls.get(key, 0)+value
+            for key, value in expected_calls.items():
+                equal(row.get("standalone_calls", {}).get(key, 0), value, name+"/calls/"+key)
+    for method in trial.get("methods", []):
+        runtime = method.get("runtime")
+        if not runtime:
+            continue
+        name = method["name"]
+        common_seconds = sum(common[k] for k in ("training_and_candidates_seconds", "validation_seconds", "forecast_seconds"))
+        equal(runtime.get("common_history_pipeline_seconds"), common_seconds, name+"/common")
+        equal(runtime.get("operational_future_fit_seconds"), method.get("noisy", {}).get("seconds", 0.), name+"/future")
+        expected_total = (common_seconds+runtime["planning_standalone_seconds"]
+            +runtime["operational_future_fit_seconds"]+runtime["final_operation_audit_seconds"])
+        equal(runtime.get("end_to_end_standalone_seconds"), expected_total, name+"/end_to_end")
+        expected_ac = (common["training_calls"].get("AC_batches", 0)+common["validation_calls"].get("AC_batches", 0)
+            +runtime.get("standalone_calls", runtime.get("actual_calls", {})).get("AC_batches", 0)
+            +method.get("noisy", {}).get("cost", {}).get("ac_calls", 0))
+        equal(runtime.get("standalone_AC_batches"), expected_ac, name+"/AC_batches")
+    return dict(available=True, checks=checks, failures=failures, success=not failures,
+        scope="saved own costs, dependencies and arithmetic; source fitting is not rerun")
+
+
 def _detail(trial, parsed, methods):
     raw = {r["name"]: r for r in trial.get("methods", [])}
     design = trial.get("selection", {}).get("methods", {})
     result = dict(seed=parsed["seed"], family=parsed["family"], status=parsed["status"],
         candidate_miss=parsed["candidate_miss"], training_top2=trial.get("training_top2", {}),
         candidates=parsed["candidate_names"], seconds=trial.get("seconds"),
-        actual_solver_calls=trial.get("actual_solver_calls", {}), methods={})
+        actual_solver_calls=trial.get("actual_solver_calls", {}), timing_audit=timing_audit(trial), methods={})
     for name in methods:
         row, saved = parsed["methods"][name], raw.get(name, {})
         log = design.get(name, {})
@@ -66,13 +162,14 @@ def _detail(trial, parsed, methods):
         failures = list(log.get("failures", []))
         if log.get("failure"):
             failures.append(log["failure"])
+        iterations, iteration_summary = _iterations(log)
         result["methods"][name] = dict(status=row["status"], raw_status=row["raw_status"],
             M=row["M"], clean_future_M=saved.get("clean_future_M")
                 if saved.get("clean_future_complete") is True else None,
             failure_reasons=row["failure_reasons"], runtime=runtime, energy=row["energy"],
-            selected_origin=log.get("selected_origin"), iterations=log.get("iterations"),
+            selected_origin=log.get("selected_origin"), iterations=iterations, iteration_summary=iteration_summary,
             planning_success=saved.get("planning_success"), planning_failures=failures,
-            planning_counters=log.get("counters", {}), selected_score=log.get("selected_score"),
+            planning_counters=_counters(log), selected_score=log.get("selected_score"),
             operational_fit_cost=row["logical_future_fit_cost"],
             source_failures=row["source_failures"],
             pair_scope="training top two for planning; complete bank for evaluation"
@@ -96,10 +193,16 @@ def summarize_phase(directory, phase, *, collected=None):
     records = {} if collected is None else {r["seed"]: r for r in collected["records"]}
     if not set(records) <= set(planned):
         raise ValueError("observed history seed not in frozen phase plan")
-    raw = {str(t["seed"]): t for t in (collector.read_json(p) for p in paths)}
-    if set(raw) != set(records):
+    details = {}
+    for path in paths:
+        trial = collector.read_json(path)
+        seed = str(trial["seed"])
+        if seed not in records:
+            raise ValueError("raw history is absent from parsed records")
+        details[seed] = _detail(trial, records[seed], methods)
+        del trial
+    if set(details) != set(records):
         raise ValueError("raw and parsed independent-history coverage differs")
-    details = {s: _detail(raw[s], records[s], methods) for s in records}
     n = len(planned)
     pending = [s for s in planned if s not in records]
     summary = dict(directory=str(directory.resolve()), phase=phase, **identity,
@@ -115,6 +218,9 @@ def summarize_phase(directory, phase, *, collected=None):
         freeze_sha256=hashlib.sha256((directory/"freeze.json").read_bytes()).hexdigest(),
         input_files=[] if collected is None else collected["trial_files"])
     summary["actual_history_runtime_seconds"] = stats([r["seconds"] for r in details.values()], n)
+    summary["timing_audit"] = dict(available_histories=sum(r["timing_audit"]["available"] for r in details.values()),
+        planned_histories=n, checks=sum(r["timing_audit"]["checks"] for r in details.values()),
+        failures=[dict(seed=seed, **failure) for seed, row in details.items() for failure in row["timing_audit"]["failures"]])
     call_keys = sorted({k for r in details.values() for k in r["actual_solver_calls"]})
     summary["actual_solver_calls"] = {k:stats([r["actual_solver_calls"].get(k) for r in details.values()], n)
         for k in call_keys}
@@ -138,6 +244,15 @@ def summarize_phase(directory, phase, *, collected=None):
                 for k in ("profile_evaluations", "pair_fit_calls", "source_solver_calls", "source_total_nfev")},
             response_calls={k:stats([r["planning_counters"].get("response_calls", {}).get(k) for r in rows], n)
                 for k in ("ac_value_calls", "ac_jacobian_calls", "approximate_value_calls", "approximate_jacobian_calls")},
+            iterations=dict(total=sum(r["iteration_summary"]["count"] for r in rows),
+                accepted=sum(r["iteration_summary"]["accepted"] for r in rows),
+                gradient_failures=sum(r["iteration_summary"]["gradient_failures"] for r in rows)),
+            source_kkt_by_method={backend:dict(
+                successful_fits=sum(r["planning_counters"].get("source_kkt_by_method", {}).get(backend, {}).get("successful_fits", 0) for r in rows),
+                scaled_max=max((r["planning_counters"].get("source_kkt_by_method", {}).get(backend, {}).get("scaled_max") for r in rows
+                    if collector._finite(r["planning_counters"].get("source_kkt_by_method", {}).get(backend, {}).get("scaled_max"))), default=None),
+                scaled_count_gt_1e_minus_5=sum(r["planning_counters"].get("source_kkt_by_method", {}).get(backend, {}).get("scaled_count_gt_1e_minus_5", 0) for r in rows))
+                for backend in ("ac", "i2")},
             energy={k:stats([r["energy"].get(k) for r in rows], n)
                 for k in ("grid_energy_kwh", "charging_kwh", "discharging_kwh", "throughput_kwh",
                           "driving_kwh", "worker_minutes", "moves")})
