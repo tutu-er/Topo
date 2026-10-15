@@ -17,6 +17,8 @@ python -m research_experiments.mobile_ev_mle.ev_dynamic_review --directory outpu
 
 开发归档也用同一restore命令。源码快照只用来校验/恢复声明源码，不自动执行归档中的任意代码。Git版本与当前环境不一致时先按哈希核查。
 
+本次Windows工作树90份科学源码与冻结字节全等；其中49份与Git对象字节全等，另41份只有LF/CRLF换行差异，规范化后90份代码全等。精确恢复应以快照为准，避免为凑SHA改写生产代码。现有安全核查API支持本批：在独立研究检出中调用`ev_fixed_train_source_restore.audit_source_bytes('outputs/rx_restored_calibration', expected_count=90)`；默认只读。确需恢复时再显式设置`restore_line_endings=True`，它只在整批内容/路径核对通过后恢复换行字节。
+
 ## 独立统计
 
 ```powershell
