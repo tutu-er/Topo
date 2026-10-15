@@ -1,0 +1,829 @@
+{
+  "schema": "stored_residual_interpolation_and_gate_posthoc_v1",
+  "created_beijing": "2026-10-15T13:10:54.264587+08:00",
+  "posthoc": true,
+  "proposed_after_observing_direct_distance_interpolation_result": true,
+  "new_AC_calls": 0,
+  "new_fit_calls": 0,
+  "new_QP_calls": 0,
+  "new_MILP_calls": 0,
+  "new_EV_plans": 0,
+  "original_evidence_unchanged": true,
+  "profile_summary": {
+    "planned_midpoint_tasks": 288,
+    "complete_midpoint_tasks": 288,
+    "residual_reconstructed_nodes": 648,
+    "reconstruction_max_D_error": 0.0,
+    "direct_distance_error": {
+      "n": 288,
+      "mean": 1.349069307824054,
+      "median": 0.5003972650019637,
+      "max": 9.576590681422829
+    },
+    "residual_squared_error": {
+      "n": 288,
+      "mean": 0.0055929014155564,
+      "median": 0.0017293866484415776,
+      "max": 0.06367557295550341
+    },
+    "old_QP_error": {
+      "n": 288,
+      "mean": 0.03940579640673811,
+      "median": 0.0045153917557927414,
+      "max": 0.5364433776119739
+    },
+    "residual_better_than_direct": 288,
+    "residual_better_than_old_QP": 204,
+    "residual_worse_than_old_QP": 84,
+    "residual_signed_error_counts": {
+      "positive": 144,
+      "zero": 0,
+      "negative": 144
+    },
+    "per_task_rankings": {
+      "direct_D_interp": {
+        "comparisons": 432,
+        "target_ties": 0,
+        "strict_targets": 432,
+        "opposite_order": 4,
+        "predicted_ties": 0,
+        "order_recovered": 428
+      },
+      "residual_interp_squared": {
+        "comparisons": 432,
+        "target_ties": 0,
+        "strict_targets": 432,
+        "opposite_order": 0,
+        "predicted_ties": 0,
+        "order_recovered": 432
+      },
+      "old_QP": {
+        "comparisons": 432,
+        "target_ties": 0,
+        "strict_targets": 432,
+        "opposite_order": 8,
+        "predicted_ties": 0,
+        "order_recovered": 424
+      }
+    },
+    "mean_task_rankings": {
+      "direct_D_interp": {
+        "comparisons": 132,
+        "target_ties": 0,
+        "strict_targets": 132,
+        "opposite_order": 0,
+        "predicted_ties": 0,
+        "order_recovered": 132
+      },
+      "residual_interp_squared": {
+        "comparisons": 132,
+        "target_ties": 0,
+        "strict_targets": 132,
+        "opposite_order": 0,
+        "predicted_ties": 0,
+        "order_recovered": 132
+      },
+      "old_QP": {
+        "comparisons": 132,
+        "target_ties": 0,
+        "strict_targets": 132,
+        "opposite_order": 0,
+        "predicted_ties": 0,
+        "order_recovered": 132
+      }
+    }
+  },
+  "gate_summary": {
+    "paired_asset_histories": 4,
+    "training_conditions": 4,
+    "total_paired_conditions": 16,
+    "proposals": 96,
+    "overall": {
+      "planned_proposals": 96,
+      "gate_pass": 73,
+      "gate_fail": 23,
+      "failed_but_comparable_AC": 23,
+      "gate_failed_AC_improvement_count": 10,
+      "failed_same_power_as_selected": 4,
+      "failed_distinct_power": 19,
+      "failed_raw_minus_initial": {
+        "n": 23,
+        "mean": 9.781011499237014,
+        "median": 0.0,
+        "max": 64.72270148300053
+      },
+      "unique_improvement_curves": 8,
+      "improvement_condition_histories": 6,
+      "improvement_asset_seeds": [
+        990102,
+        990103,
+        990104
+      ],
+      "improvement_method_counts": {
+        "charge_mobile": 5,
+        "v2g_mobile": 2,
+        "refined_v2g_mobile": 2,
+        "v2g_fixed": 1
+      },
+      "failed_positive_deltas": [
+        {
+          "condition": "rich8",
+          "seed": 990103,
+          "method": "charge_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "charge_fixed",
+          "selected_origin": "charge_fixed",
+          "raw_AC_score": 300.2482170288878,
+          "initial_best_AC_score": 268.7178075170404,
+          "selected_AC_score": 268.7178075170404,
+          "raw_minus_initial": 31.53040951184738,
+          "comparison_tolerance": 3.002482170288878e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "15dd7fb6f626d01079554cf470b5aaaf427364646fac6bdd170623a409bb9709",
+          "proxy_gap": 0.09619569742045542,
+          "max_witness_RMS": 0.4513757308634972,
+          "witness_failures": 6,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed"
+          ]
+        },
+        {
+          "condition": "rich32",
+          "seed": 990102,
+          "method": "charge_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "charge_fixed",
+          "selected_origin": "charge_fixed",
+          "raw_AC_score": 129.41051942348145,
+          "initial_best_AC_score": 64.68781794048091,
+          "selected_AC_score": 64.68781794048091,
+          "raw_minus_initial": 64.72270148300053,
+          "comparison_tolerance": 1.2941051942348145e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "b7fa373565f4a235f2b2f65fa57c20bcbffd24195840ba17a0c7a5eb1b3a9dc2",
+          "proxy_gap": 0.12155437747549058,
+          "max_witness_RMS": 0.31248814517642287,
+          "witness_failures": 2,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "quality_charge_mobile"
+          ]
+        },
+        {
+          "condition": "rich32",
+          "seed": 990102,
+          "method": "v2g_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "v2g_fixed",
+          "selected_origin": "v2g_fixed",
+          "raw_AC_score": 139.52917411149025,
+          "initial_best_AC_score": 102.93576761835926,
+          "selected_AC_score": 102.93576761835926,
+          "raw_minus_initial": 36.593406493130985,
+          "comparison_tolerance": 1.3952917411149026e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "f9697e2d829e2a7cb070fe90918b52c1306f0ead01bb0a90d7684e22f34717d0",
+          "proxy_gap": 0.5448145096147812,
+          "max_witness_RMS": 0.38299619146407515,
+          "witness_failures": 6,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "v2g_fixed",
+            "quality_v2g_mobile"
+          ]
+        },
+        {
+          "condition": "rich32",
+          "seed": 990102,
+          "method": "refined_v2g_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "v2g_fixed",
+          "selected_origin": "v2g_fixed",
+          "raw_AC_score": 139.52917411149025,
+          "initial_best_AC_score": 102.93576761835926,
+          "selected_AC_score": 102.93576761835926,
+          "raw_minus_initial": 36.593406493130985,
+          "comparison_tolerance": 1.3952917411149026e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "f9697e2d829e2a7cb070fe90918b52c1306f0ead01bb0a90d7684e22f34717d0",
+          "proxy_gap": 0.5448145096147812,
+          "max_witness_RMS": 0.38299619146407515,
+          "witness_failures": 6,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "v2g_fixed",
+            "quality_mobile"
+          ]
+        },
+        {
+          "condition": "rich32",
+          "seed": 990103,
+          "method": "charge_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "charge_fixed",
+          "selected_origin": "charge_fixed",
+          "raw_AC_score": 159.64533329748818,
+          "initial_best_AC_score": 123.69348110375348,
+          "selected_AC_score": 123.69348110375348,
+          "raw_minus_initial": 35.951852193734695,
+          "comparison_tolerance": 1.5964533329748818e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "1d95f90115967fb05c2200d0b7c681e7ff1d3134b2dd9cee58d9bb152a64680c",
+          "proxy_gap": 0.03552368139847317,
+          "max_witness_RMS": 0.31657933886046097,
+          "witness_failures": 4,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "quality_charge_mobile"
+          ]
+        },
+        {
+          "condition": "rich96",
+          "seed": 990102,
+          "method": "charge_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "charge_fixed",
+          "selected_origin": "charge_fixed",
+          "raw_AC_score": 103.60000227964504,
+          "initial_best_AC_score": 81.3943826769003,
+          "selected_AC_score": 81.3943826769003,
+          "raw_minus_initial": 22.205619602744733,
+          "comparison_tolerance": 1.0360000227964505e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "b7fa373565f4a235f2b2f65fa57c20bcbffd24195840ba17a0c7a5eb1b3a9dc2",
+          "proxy_gap": 0.0383343639213507,
+          "max_witness_RMS": 0.26631449684179453,
+          "witness_failures": 2,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "quality_charge_mobile"
+          ]
+        },
+        {
+          "condition": "rich96",
+          "seed": 990103,
+          "method": "charge_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "charge_fixed",
+          "selected_origin": "charge_fixed",
+          "raw_AC_score": 106.4841789310968,
+          "initial_best_AC_score": 98.32794323830784,
+          "selected_AC_score": 98.32794323830784,
+          "raw_minus_initial": 8.156235692788968,
+          "comparison_tolerance": 1.064841789310968e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "1d95f90115967fb05c2200d0b7c681e7ff1d3134b2dd9cee58d9bb152a64680c",
+          "proxy_gap": 0.019532154118053313,
+          "max_witness_RMS": 0.25269983070632906,
+          "witness_failures": 2,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed"
+          ]
+        },
+        {
+          "condition": "rich96",
+          "seed": 990104,
+          "method": "v2g_fixed",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "quality_v2g_fixed",
+          "selected_origin": "quality_v2g_fixed",
+          "raw_AC_score": 171.23616623436064,
+          "initial_best_AC_score": 170.7744795379675,
+          "selected_AC_score": 170.7744795379675,
+          "raw_minus_initial": 0.4616866963931443,
+          "comparison_tolerance": 1.7123616623436065e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "3fb958e194e4bfdd94e277d7b6a407815cc1a0c65ef5101aadb718a06db2ebda",
+          "proxy_gap": 0.47878175766126674,
+          "max_witness_RMS": 0.3022029934609756,
+          "witness_failures": 2,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "quality_v2g_fixed"
+          ]
+        },
+        {
+          "condition": "rich96",
+          "seed": 990104,
+          "method": "v2g_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "v2g_fixed",
+          "selected_origin": "v2g_fixed",
+          "raw_AC_score": 171.23616623436408,
+          "initial_best_AC_score": 170.7744795379675,
+          "selected_AC_score": 170.7744795379675,
+          "raw_minus_initial": 0.46168669639658333,
+          "comparison_tolerance": 1.7123616623436408e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "d1feb289245da2546112cf29e15184c0d4f1a99b9db411d3b4db22cdcc76476c",
+          "proxy_gap": 0.4787817577735325,
+          "max_witness_RMS": 0.3022029934609766,
+          "witness_failures": 2,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "v2g_fixed",
+            "quality_v2g_mobile"
+          ]
+        },
+        {
+          "condition": "rich96",
+          "seed": 990104,
+          "method": "refined_v2g_mobile",
+          "raw_gate_passed": false,
+          "raw_profile_success": true,
+          "raw_operation_feasible": true,
+          "initial_best_origin": "v2g_fixed",
+          "selected_origin": "v2g_fixed",
+          "raw_AC_score": 171.23616623436408,
+          "initial_best_AC_score": 170.7744795379675,
+          "selected_AC_score": 170.7744795379675,
+          "raw_minus_initial": 0.46168669639658333,
+          "comparison_tolerance": 1.7123616623436408e-06,
+          "raw_higher_than_best_initial": true,
+          "raw_equal_to_selected_power": false,
+          "proxy_completed": true,
+          "raw_control_sha256_rounded_8": "d1feb289245da2546112cf29e15184c0d4f1a99b9db411d3b4db22cdcc76476c",
+          "proxy_gap": 0.4787817577735325,
+          "max_witness_RMS": 0.3022029934609766,
+          "witness_failures": 2,
+          "original_method_failures": [],
+          "initial_origins": [
+            "constant",
+            "charge_fixed",
+            "v2g_fixed",
+            "quality_mobile"
+          ]
+        }
+      ],
+      "failed_selected_origin_counts": {
+        "quality_v2g_fixed": 4,
+        "quality_v2g_mobile": 1,
+        "v2g_mobile": 1,
+        "v2g_fixed": 12,
+        "charge_fixed": 5
+      }
+    },
+    "by_condition": {
+      "weak8": {
+        "planned_proposals": 24,
+        "gate_pass": 12,
+        "gate_fail": 12,
+        "failed_but_comparable_AC": 12,
+        "gate_failed_AC_improvement_count": 0,
+        "failed_same_power_as_selected": 3,
+        "failed_distinct_power": 9,
+        "failed_raw_minus_initial": {
+          "n": 12,
+          "mean": -1.0146189230927736,
+          "median": -0.6344138101223109,
+          "max": 0.0
+        },
+        "unique_improvement_curves": 0,
+        "improvement_condition_histories": 0,
+        "improvement_asset_seeds": [],
+        "improvement_method_counts": {},
+        "failed_positive_deltas": [],
+        "failed_selected_origin_counts": {
+          "quality_v2g_fixed": 3,
+          "quality_v2g_mobile": 1,
+          "v2g_mobile": 1,
+          "v2g_fixed": 7
+        }
+      },
+      "rich8": {
+        "planned_proposals": 24,
+        "gate_pass": 23,
+        "gate_fail": 1,
+        "failed_but_comparable_AC": 1,
+        "gate_failed_AC_improvement_count": 1,
+        "failed_same_power_as_selected": 0,
+        "failed_distinct_power": 1,
+        "failed_raw_minus_initial": {
+          "n": 1,
+          "mean": 31.53040951184738,
+          "median": 31.53040951184738,
+          "max": 31.53040951184738
+        },
+        "unique_improvement_curves": 1,
+        "improvement_condition_histories": 1,
+        "improvement_asset_seeds": [
+          990103
+        ],
+        "improvement_method_counts": {
+          "charge_mobile": 1
+        },
+        "failed_positive_deltas": [
+          {
+            "condition": "rich8",
+            "seed": 990103,
+            "method": "charge_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "charge_fixed",
+            "selected_origin": "charge_fixed",
+            "raw_AC_score": 300.2482170288878,
+            "initial_best_AC_score": 268.7178075170404,
+            "selected_AC_score": 268.7178075170404,
+            "raw_minus_initial": 31.53040951184738,
+            "comparison_tolerance": 3.002482170288878e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "15dd7fb6f626d01079554cf470b5aaaf427364646fac6bdd170623a409bb9709",
+            "proxy_gap": 0.09619569742045542,
+            "max_witness_RMS": 0.4513757308634972,
+            "witness_failures": 6,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed"
+            ]
+          }
+        ],
+        "failed_selected_origin_counts": {
+          "charge_fixed": 1
+        }
+      },
+      "rich32": {
+        "planned_proposals": 24,
+        "gate_pass": 20,
+        "gate_fail": 4,
+        "failed_but_comparable_AC": 4,
+        "gate_failed_AC_improvement_count": 4,
+        "failed_same_power_as_selected": 0,
+        "failed_distinct_power": 4,
+        "failed_raw_minus_initial": {
+          "n": 4,
+          "mean": 43.4653416657493,
+          "median": 36.593406493130985,
+          "max": 64.72270148300053
+        },
+        "unique_improvement_curves": 3,
+        "improvement_condition_histories": 2,
+        "improvement_asset_seeds": [
+          990102,
+          990103
+        ],
+        "improvement_method_counts": {
+          "charge_mobile": 2,
+          "v2g_mobile": 1,
+          "refined_v2g_mobile": 1
+        },
+        "failed_positive_deltas": [
+          {
+            "condition": "rich32",
+            "seed": 990102,
+            "method": "charge_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "charge_fixed",
+            "selected_origin": "charge_fixed",
+            "raw_AC_score": 129.41051942348145,
+            "initial_best_AC_score": 64.68781794048091,
+            "selected_AC_score": 64.68781794048091,
+            "raw_minus_initial": 64.72270148300053,
+            "comparison_tolerance": 1.2941051942348145e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "b7fa373565f4a235f2b2f65fa57c20bcbffd24195840ba17a0c7a5eb1b3a9dc2",
+            "proxy_gap": 0.12155437747549058,
+            "max_witness_RMS": 0.31248814517642287,
+            "witness_failures": 2,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "quality_charge_mobile"
+            ]
+          },
+          {
+            "condition": "rich32",
+            "seed": 990102,
+            "method": "v2g_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "v2g_fixed",
+            "selected_origin": "v2g_fixed",
+            "raw_AC_score": 139.52917411149025,
+            "initial_best_AC_score": 102.93576761835926,
+            "selected_AC_score": 102.93576761835926,
+            "raw_minus_initial": 36.593406493130985,
+            "comparison_tolerance": 1.3952917411149026e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "f9697e2d829e2a7cb070fe90918b52c1306f0ead01bb0a90d7684e22f34717d0",
+            "proxy_gap": 0.5448145096147812,
+            "max_witness_RMS": 0.38299619146407515,
+            "witness_failures": 6,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "v2g_fixed",
+              "quality_v2g_mobile"
+            ]
+          },
+          {
+            "condition": "rich32",
+            "seed": 990102,
+            "method": "refined_v2g_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "v2g_fixed",
+            "selected_origin": "v2g_fixed",
+            "raw_AC_score": 139.52917411149025,
+            "initial_best_AC_score": 102.93576761835926,
+            "selected_AC_score": 102.93576761835926,
+            "raw_minus_initial": 36.593406493130985,
+            "comparison_tolerance": 1.3952917411149026e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "f9697e2d829e2a7cb070fe90918b52c1306f0ead01bb0a90d7684e22f34717d0",
+            "proxy_gap": 0.5448145096147812,
+            "max_witness_RMS": 0.38299619146407515,
+            "witness_failures": 6,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "v2g_fixed",
+              "quality_mobile"
+            ]
+          },
+          {
+            "condition": "rich32",
+            "seed": 990103,
+            "method": "charge_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "charge_fixed",
+            "selected_origin": "charge_fixed",
+            "raw_AC_score": 159.64533329748818,
+            "initial_best_AC_score": 123.69348110375348,
+            "selected_AC_score": 123.69348110375348,
+            "raw_minus_initial": 35.951852193734695,
+            "comparison_tolerance": 1.5964533329748818e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "1d95f90115967fb05c2200d0b7c681e7ff1d3134b2dd9cee58d9bb152a64680c",
+            "proxy_gap": 0.03552368139847317,
+            "max_witness_RMS": 0.31657933886046097,
+            "witness_failures": 4,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "quality_charge_mobile"
+            ]
+          }
+        ],
+        "failed_selected_origin_counts": {
+          "charge_fixed": 2,
+          "v2g_fixed": 2
+        }
+      },
+      "rich96": {
+        "planned_proposals": 24,
+        "gate_pass": 18,
+        "gate_fail": 6,
+        "failed_but_comparable_AC": 6,
+        "gate_failed_AC_improvement_count": 5,
+        "failed_same_power_as_selected": 1,
+        "failed_distinct_power": 5,
+        "failed_raw_minus_initial": {
+          "n": 6,
+          "mean": 5.291152564120002,
+          "median": 0.46168669639658333,
+          "max": 22.205619602744733
+        },
+        "unique_improvement_curves": 4,
+        "improvement_condition_histories": 3,
+        "improvement_asset_seeds": [
+          990102,
+          990103,
+          990104
+        ],
+        "improvement_method_counts": {
+          "charge_mobile": 2,
+          "v2g_fixed": 1,
+          "v2g_mobile": 1,
+          "refined_v2g_mobile": 1
+        },
+        "failed_positive_deltas": [
+          {
+            "condition": "rich96",
+            "seed": 990102,
+            "method": "charge_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "charge_fixed",
+            "selected_origin": "charge_fixed",
+            "raw_AC_score": 103.60000227964504,
+            "initial_best_AC_score": 81.3943826769003,
+            "selected_AC_score": 81.3943826769003,
+            "raw_minus_initial": 22.205619602744733,
+            "comparison_tolerance": 1.0360000227964505e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "b7fa373565f4a235f2b2f65fa57c20bcbffd24195840ba17a0c7a5eb1b3a9dc2",
+            "proxy_gap": 0.0383343639213507,
+            "max_witness_RMS": 0.26631449684179453,
+            "witness_failures": 2,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "quality_charge_mobile"
+            ]
+          },
+          {
+            "condition": "rich96",
+            "seed": 990103,
+            "method": "charge_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "charge_fixed",
+            "selected_origin": "charge_fixed",
+            "raw_AC_score": 106.4841789310968,
+            "initial_best_AC_score": 98.32794323830784,
+            "selected_AC_score": 98.32794323830784,
+            "raw_minus_initial": 8.156235692788968,
+            "comparison_tolerance": 1.064841789310968e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "1d95f90115967fb05c2200d0b7c681e7ff1d3134b2dd9cee58d9bb152a64680c",
+            "proxy_gap": 0.019532154118053313,
+            "max_witness_RMS": 0.25269983070632906,
+            "witness_failures": 2,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed"
+            ]
+          },
+          {
+            "condition": "rich96",
+            "seed": 990104,
+            "method": "v2g_fixed",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "quality_v2g_fixed",
+            "selected_origin": "quality_v2g_fixed",
+            "raw_AC_score": 171.23616623436064,
+            "initial_best_AC_score": 170.7744795379675,
+            "selected_AC_score": 170.7744795379675,
+            "raw_minus_initial": 0.4616866963931443,
+            "comparison_tolerance": 1.7123616623436065e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "3fb958e194e4bfdd94e277d7b6a407815cc1a0c65ef5101aadb718a06db2ebda",
+            "proxy_gap": 0.47878175766126674,
+            "max_witness_RMS": 0.3022029934609756,
+            "witness_failures": 2,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "quality_v2g_fixed"
+            ]
+          },
+          {
+            "condition": "rich96",
+            "seed": 990104,
+            "method": "v2g_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "v2g_fixed",
+            "selected_origin": "v2g_fixed",
+            "raw_AC_score": 171.23616623436408,
+            "initial_best_AC_score": 170.7744795379675,
+            "selected_AC_score": 170.7744795379675,
+            "raw_minus_initial": 0.46168669639658333,
+            "comparison_tolerance": 1.7123616623436408e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "d1feb289245da2546112cf29e15184c0d4f1a99b9db411d3b4db22cdcc76476c",
+            "proxy_gap": 0.4787817577735325,
+            "max_witness_RMS": 0.3022029934609766,
+            "witness_failures": 2,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "v2g_fixed",
+              "quality_v2g_mobile"
+            ]
+          },
+          {
+            "condition": "rich96",
+            "seed": 990104,
+            "method": "refined_v2g_mobile",
+            "raw_gate_passed": false,
+            "raw_profile_success": true,
+            "raw_operation_feasible": true,
+            "initial_best_origin": "v2g_fixed",
+            "selected_origin": "v2g_fixed",
+            "raw_AC_score": 171.23616623436408,
+            "initial_best_AC_score": 170.7744795379675,
+            "selected_AC_score": 170.7744795379675,
+            "raw_minus_initial": 0.46168669639658333,
+            "comparison_tolerance": 1.7123616623436408e-06,
+            "raw_higher_than_best_initial": true,
+            "raw_equal_to_selected_power": false,
+            "proxy_completed": true,
+            "raw_control_sha256_rounded_8": "d1feb289245da2546112cf29e15184c0d4f1a99b9db411d3b4db22cdcc76476c",
+            "proxy_gap": 0.4787817577735325,
+            "max_witness_RMS": 0.3022029934609766,
+            "witness_failures": 2,
+            "original_method_failures": [],
+            "initial_origins": [
+              "constant",
+              "charge_fixed",
+              "v2g_fixed",
+              "quality_mobile"
+            ]
+          }
+        ],
+        "failed_selected_origin_counts": {
+          "charge_fixed": 2,
+          "quality_v2g_fixed": 1,
+          "v2g_fixed": 3
+        }
+      }
+    },
+    "comparison": "raw attained training-only full-AC profile objective minus best initial objective; relative tolerance 1e-8",
+    "no_actual_future_or_validation_scores_used": true
+  },
+  "seconds": 2.2397709999931976
+}

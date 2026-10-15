@@ -1,5 +1,5 @@
 {
-  "updated_utc": "2026-10-15T04:56:51.701974+00:00",
+  "updated_utc": "2026-10-15T05:53:58.636097+00:00",
   "branch": "codex/ev-train-validation-design",
   "base_commit": "1c71cb253be86c5207262cd51c49261427a41c78",
   "research_complete": false,
@@ -28,9 +28,28 @@
   "current_stage": "single fixed-parameter development and mechanism checks complete; independent performance not frozen",
   "actual_failure": "random990103 numerical feasibility precision retained in all four training conditions",
   "next": [
-    "Retain single trained parameter per topology; verify executable-direction prediction support",
-    "AC scalar-profile approximation, cap tie handling and training-only time prediction",
-    "Unified continuous feasibility repair for every strategy",
-    "New development assets, then freeze and independently calibrate/evaluate entire pipeline"
-  ]
+    "Keep one trained R/X per topology and fixed measured P/Q inputs",
+    "New development of full-AC objective acceptance while retaining feasibility and all candidates",
+    "Residual-curve MILP proxy with squared curvature, source-branch/error checks",
+    "Cap tie handling, honest training-only time prediction and unified feasibility repair",
+    "Freeze complete revised policy before independent calibration/evaluation"
+  ],
+  "total_targeted_tests_passed": 66,
+  "scalar_profile_theory_tests": 4,
+  "scalar_probe_contract_tests": 2,
+  "scalar_probe_queries": 54,
+  "scalar_probe_tasks": 648,
+  "scalar_probe_fit_replays": 672,
+  "actual_AC_scalar_MILP_implemented": false,
+  "posthoc_residual_proxy_not_deployed": true,
+  "gate_failures": 23,
+  "gate_improved_AC_proposals": 10,
+  "gate_improved_unique_curves": 8,
+  "git_object_portable_replay_commit": "2bc1b64",
+  "portable_all_16_conditions_reviewed": true,
+  "report_pdf_pages": 109,
+  "report_source_sha256": "22fdc85a68e81ff5be96bc3e8b402cc154c275d0c4ef7b5be698eec6e99940c3",
+  "report_pdf_sha256": "fe89b241285fd81f570a921fe99a49bfdb1d6bca6e0ced0d498a45ef81d5dbfa",
+  "report_compiled_and_changed_pages_visually_checked": true,
+  "report_delivery_proof": "evidence/ev_fixed_train/delivery/delivery_verification.json"
 }
