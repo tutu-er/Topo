@@ -464,6 +464,7 @@ def evaluate_fixed_action(context, power_kw, *, fit_options=None, seed=0):
     unchanged=all(before[k]==v['sha256']==_line_id(v['r'],v['x']) for k,v in context['lines'].items())
     success=bool(len(pairs)==len(context['pairs']) and all(x['success'] for x in pairs) and not failures and unchanged)
     result=dict(success=success,pairs=pairs,failures=failures,cost=counter,fit_results=fit_results,
+        power_kw=u.copy(),
         line_parameters_unchanged=unchanged,uses_validation=False,uses_truth=False,uses_future_noise=False,
         seconds=perf_counter()-began,global_AC_certificate=False,
         scope='attained fixed-training-line AC predictive source profiles')

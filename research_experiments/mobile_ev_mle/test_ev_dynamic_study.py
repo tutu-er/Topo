@@ -83,3 +83,47 @@ def test_trial_failure_is_preserved_and_hash_checked(monkeypatch):
     assert result['status']=='driver_failure' and result['source_unchanged']
     assert result['failure']=='ValueError:declared failure'
     assert result['actual_solver_calls']['total_AC_batches']==0
+
+
+def test_driver_never_passes_validation_or_future_to_planner(monkeypatch):
+    from types import SimpleNamespace
+    cfg=deepcopy(study.CONFIG);cfg.update(training_points=8,mean_policy_ablation=False,
+        diagnostics=False,select_modes=['none','constant'])
+    original=study.make_case(991710,1,cfg);changed=deepcopy(original)
+    changed['p'][12:]+=.03;changed['q'][12:]+=.01
+    changed['white']['v'][12:]*=-3
+    changed['validation']=lk.Observations(**{**study.io.observations_record(changed['validation']),
+        'p':changed['validation'].p+.02,'v':changed['validation'].v+.001})
+    bank=[study.base.RadialCandidate.from_supports('star' if not family else
+        'clade_'+''.join(map(str,family[0])),3,family) for family in study.base.FAMILIES]
+    fits={b.name:SimpleNamespace(r=np.full(b.m,.004),x=np.full(b.m,.002),
+        source_p=np.full(8,.1),source_q=np.full(8,.03),success=True,loss=1.) for b in bank}
+    def fitting(candidates,obs,meter,*,trained=None,**kwargs):
+        if trained is not None:
+            assert trained is fits
+            for name,f in trained.items():
+                assert np.array_equal(f.r,fits[name].r) and np.array_equal(f.x,fits[name].x)
+        return fits,dict(all_complete=True,fits=[dict(candidate=b.name,loss=1.) for b in bank],cost={})
+    seen=[]
+    def selector(training,candidates,trained,train_meter,future_meter,**kwargs):
+        assert training is current[0]['train'] and trained is fits
+        assert 'validation' not in kwargs and 'truth' not in kwargs
+        seen.append((training.p.copy(),deepcopy(kwargs['forecast'])))
+        const=np.zeros((6,3));const[:,0]=2.
+        return dict(none=np.zeros_like(const),constant=const),dict(methods={})
+    def actual(case,candidates,trained,validated,power,config,**kwargs):
+        assert trained is fits
+        return dict(status='complete',M=0.)
+    monkeypatch.setattr(study,'source_hashes',lambda:{'example':'unchanged'})
+    monkeypatch.setattr(study,'propose',lambda *a,**k:(bank,{}))
+    monkeypatch.setattr(study.old,'fit_bank',fitting)
+    monkeypatch.setattr(study.design,'select_fixed_controls',selector)
+    monkeypatch.setattr(study,'actual_curve',actual)
+    current=[original]
+    monkeypatch.setattr(study,'make_case',lambda *a:current[0])
+    first=study.run_trial(991710,1,cfg);current[0]=changed
+    second=study.run_trial(991710,1,cfg)
+    assert first['status']==second['status']=='complete'
+    assert np.array_equal(seen[0][0],seen[1][0])
+    assert study.io.serial(seen[0][1])==study.io.serial(seen[1][1])
+    assert [m['power_kw'] for m in first['methods']]==[m['power_kw'] for m in second['methods']]

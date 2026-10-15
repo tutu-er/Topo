@@ -57,7 +57,7 @@ CONFIG = dict(version='ordinary_dynamic_fixed_lines_v1', training_points=96,
 def source_hashes():
     values=old.source_hashes()
     for name in ('ev_dynamic_loads.py','ev_dynamic_study.py','ev_dynamic_math.md',
-                 'ev_dynamic_protocol.md'):
+                 'ev_dynamic_protocol.md','ev_dynamic_review.py','ev_dynamic_collect.py'):
         values[name]=hashlib.sha256((HERE/name).read_bytes()).hexdigest()
     return values
 
@@ -67,7 +67,7 @@ def freeze(directory, config):
     hashes=source_hashes(); policy_id=io.identity(config,hashes)
     record=dict(config=config,source_sha256=hashes,policy_id=policy_id,
         environment=dict(python=platform.python_version(),numpy=np.__version__,scipy=scipy.__version__),
-        base_commit='8f43326f30c07172cdf98aa40bc87822383649b8')
+        base_commit='e6225d1')
     path=directory/'freeze.json'
     if path.exists():
         saved=io.read_json(path)
@@ -171,9 +171,11 @@ def complete_ac_prices(context, power, *, seed=0, fit_options=None):
         reference=references[a];r=competitor['mean']-reference['mean']
         B=(competitor['state_jacobian'][:,columns]-reference['state_jacobian'][:,columns])/context['base_kw']
         price=B.T@r;gradient+=model['task_weight']*price
-        tasks.append(dict(name=model['name'],gradient_per_kw=price.reshape(T,n),half_SSE=float(r@r)/2))
+        tasks.append(dict(name=model['name'],a=a,b=b,weight=model['task_weight'],
+            gradient_per_kw=price.reshape(T,n),half_SSE=float(r@r)/2,
+            source_p=fit.source_p,source_q=fit.source_q,source_solver=fit.summary()))
     values=gradient.reshape(T,n)
-    return dict(success=True,gradient_per_kw=values,mean_half_SSE=evaluated['mean'],pairs=tasks,
+    return dict(success=True,power_kw=u.copy(),gradient_per_kw=values,mean_half_SSE=evaluated['mean'],pairs=tasks,
         temporal_spread_by_site=np.ptp(values,axis=0),
         scope='envelope derivative of stable attained local source branches; no global AC certificate')
 
