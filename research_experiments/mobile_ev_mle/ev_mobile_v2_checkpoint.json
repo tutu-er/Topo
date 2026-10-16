@@ -1,0 +1,53 @@
+{
+  "schema": "ev_mobile_reliability_v2_checkpoint",
+  "status": "formal_calibration_running",
+  "branch": "codex/ev-train-validation-design",
+  "canonical_workspace": "C:/Users/23761/.codex/worktrees/36a1/Topo",
+  "execution_workspace": "D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015",
+  "source_commit": "0706e99a",
+  "source_commit_pushed": true,
+  "policy_id": "35e7a11ba65a5366930888272f516c3165355f5dbe20de69919734dfd45e23e3",
+  "completed": [
+    "old 72-history tie and common-error audit",
+    "original 4-pilot and 28-slot development, 16 independent base seeds",
+    "guard30 28-slot development, failures retained",
+    "guard60 cost acceptance on 4 reused development slots",
+    "144 implementation and independent-audit tests",
+    "mathematical model, derivation, prospective acceptance and independent calibration rules"
+  ],
+  "formal_plan": {
+    "banks": ["n3", "n4"],
+    "calibration_per_bank": 96,
+    "evaluation_per_bank": 48,
+    "methods": 11,
+    "inference_modes": 3,
+    "rules": ["global_R", "H_R", "label_R", "global_AIC", "label_AIC"],
+    "primary_rule_comparison": ["label_AIC", "H_R"],
+    "planning_soft_seconds": 60,
+    "single_MILP_seconds": 2,
+    "compute_workers": 2,
+    "thresholds_saved_before_evaluation_read": true
+  },
+  "calibration_chunk_directories": [
+    "outputs/mobile_v2_formal_cal_n3_part0",
+    "outputs/mobile_v2_formal_cal_n3_part1",
+    "outputs/mobile_v2_formal_cal_n4_part0",
+    "outputs/mobile_v2_formal_cal_n4_part1"
+  ],
+  "calibration_worker_logs": ["outputs/mobile_v2_formal_cal_worker0.log", "outputs/mobile_v2_formal_cal_worker1.log"],
+  "remaining": [
+    "finish and independently merge each bank's 96 calibration histories",
+    "save all five rules' immutable thresholds per bank",
+    "execute each bank's 48 frozen-policy independent evaluation histories",
+    "independent physical, optimization, statistical and cost replay",
+    "deliver complete statistical evidence, prespecified full representatives, source snapshots and raw hashes",
+    "write final results, scoped commit and ordinary push"
+  ],
+  "constraints": [
+    "do not change the 115 scientific source files during this frozen policy",
+    "do not tune policy or thresholds with formal evaluation",
+    "do not run physical audits concurrently with action planning",
+    "retain raw, numerical failures, legal fallback, unresolved and candidate-miss denominators",
+    "preserve unrelated PDF and pyproject modifications"
+  ]
+}

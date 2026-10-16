@@ -149,3 +149,39 @@ def test_guard_projection_and_summary_preserve_floor_values_and_actual_selected_
     assert value['guard_counts']['initial_guard_rejected_complete']==1
     selected=output['by_history'][0]['methods']['jointgrad_mobile']['selection']['gradient']
     assert selected['reference_floor_parent']=='jointgrad_fixed' and selected['reference_floor_cap']==5.411
+
+
+def test_small_gradient_projection_keeps_each_selected_reference_nearest_gap():
+    raw=dict(success=True,selected_score=3.,selected_profile=dict(aggregation=dict(nearest=[
+        dict(a='star',half_gap=-2.),dict(a='cherry',half_gap=8.)])))
+    old=deepcopy(raw);value=results._gradient_metadata(raw)
+    assert value['selected_reference_nearest_gaps']=={'star':-2.,'cherry':8.}
+    assert raw==old
+    assert results._gradient_metadata({})['selected_reference_nearest_gaps']=={}
+
+
+@pytest.mark.parametrize('true_mobile,tradeoff,true_reversal',[(3.,True,False),(7.,False,True)])
+def test_posthoc_mean_tradeoff_and_true_reference_prediction_reversal_are_separate(true_mobile,tradeoff,true_reversal):
+    record,phase=fixture(1,'evaluation');truth=record['true_name'];other=next(c['name'] for c in record['candidates'] if c['name']!=truth)
+    methods={r['name']:r for r in record['methods']}
+    methods['jointgrad_fixed']['inference']['joint_total'].update(losses={truth:10.,other:20.},M=10.)
+    methods['jointgrad_mobile']['inference']['joint_total'].update(losses={truth:10.,other:9.},M=-1.)
+    metadata=dict(rows={results.history_key(record):{
+        'jointgrad_fixed':dict(gradient=dict(selected_score=5.,selected_reference_nearest_gaps={truth:5.,other:5.})),
+        'jointgrad_mobile':dict(gradient=dict(selected_score=6.,selected_reference_nearest_gaps={truth:true_mobile,other:12.-true_mobile}))}})
+    old=deepcopy(metadata);output=results.prediction_rank_diagnostic(phase,metadata)
+    row=output['by_history'][0]
+    assert row['delta_mean_predictive']==1. and row['delta_actual_M']==-11.
+    assert row['mean_prediction_reversal'] and row['mean_sacrifices_true_reference']==tradeoff
+    assert row['true_reference_prediction_reversal']==true_reversal
+    assert output['overall']['all_three_comparable']==1
+    assert metadata==old and not output['changes_selection']
+
+
+def test_posthoc_prediction_diagnostic_keeps_missing_metadata_and_failed_inference_denominators():
+    record,phase=fixture(1,'evaluation')
+    methods={r['name']:r for r in record['methods']};methods['jointgrad_mobile']['inference']['joint_total']['complete']=False
+    output=results.prediction_rank_diagnostic(phase,dict(rows={}))
+    assert output['overall']['denominator']==1 and output['overall']['metadata_missing']==1
+    assert output['overall']['inference_incomplete']==1 and output['overall']['mean_M_comparable']==0
+    assert output['by_history'][0]['delta_actual_M'] is None

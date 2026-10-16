@@ -83,8 +83,10 @@ def _gradient_metadata(raw):
     counters=raw.get('counters',{})
     initial_guards=[r['reference_guard'] for r in raw.get('initial_candidates',[]) if isinstance(r.get('reference_guard'),dict)]
     proposal_guards=[r['reference_guard'] for r in attempts if isinstance(r.get('reference_guard'),dict)]
+    nearest=raw.get('selected_profile',{}).get('aggregation',{}).get('nearest',[])
     return dict(success=bool(raw.get('success')),selected_origin=raw.get('selected_origin'),
         selected_score=raw.get('selected_score'),initial_best_score=raw.get('initial_best_score'),
+        selected_reference_nearest_gaps={row['a']:row['half_gap'] for row in nearest},
         selected_predictive_gain=_delta(raw.get('selected_score'),raw.get('initial_best_score')),
         direct_gradient_selected=raw.get('selected_origin')=='joint_gradient_MILP',
         gradient_MILP_calls=raw.get('gradient_MILP_calls',len(attempts)),
@@ -111,6 +113,53 @@ def _gradient_metadata(raw):
         failure=raw.get('failure'),gradient_step_failure_reasons=dict(failure_reasons),
         counters={key:counters.get(key) for key in ('profile_evaluations','cache_hits','joint_fit_calls',
             'fixed_source_witness_fit_calls','actual_profile_seconds')})
+
+
+def prediction_rank_diagnostic(phase,selection_metadata,*,tolerance=1e-7):
+    """Pure post-hoc projection: mean task tradeoff versus prediction reversal.
+
+    Takes already projected records/metadata, reads no files and calls no fit,
+    optimizer or selector. True labels identify the realized reference only
+    after the action has been selected. g/Phi use half-SSE; M uses full SSE.
+    """
+    if not base._finite(tolerance) or tolerance<0:raise ValueError('finite nonnegative diagnostic tolerance required')
+    rows=[]
+    for record in phase['records']:
+        metadata=selection_metadata.get('rows',{}).get(history_key(record),{})
+        f=metadata.get('jointgrad_fixed',{}).get('gradient') or {}
+        m=metadata.get('jointgrad_mobile',{}).get('gradient') or {}
+        truth=record.get('true_name');fg=f.get('selected_reference_nearest_gaps') or {}
+        mg=m.get('selected_reference_nearest_gaps') or {}
+        fixed=base._mode(record,'jointgrad_fixed','joint_total');mobile=base._mode(record,'jointgrad_mobile','joint_total')
+        mean=_delta(m.get('selected_score'),f.get('selected_score'))
+        true=_delta(mg.get(truth),fg.get(truth));actual=_delta(mobile.get('M'),fixed.get('M'))
+        complete=bool(fixed['complete'] and mobile['complete'])
+        if not complete:actual=None
+        mean_reversal=mean is not None and actual is not None and mean>tolerance and actual<-tolerance
+        tradeoff=mean is not None and true is not None and mean>tolerance and true<-tolerance
+        true_reversal=true is not None and actual is not None and true>tolerance and actual<-tolerance
+        rows.append(dict(key=history_key(record),case_id=record['case_id'],seed=record['seed'],true_name=truth,
+            delta_mean_predictive=mean,delta_true_reference_predictive=true,delta_actual_M=actual,
+            inference_complete=complete,metadata_available=bool(f and m),true_reference_available=true is not None,
+            mean_sacrifices_true_reference=bool(tradeoff),mean_prediction_reversal=bool(mean_reversal),
+            true_reference_prediction_reversal=bool(true_reversal),
+            mean_reversal_with_tradeoff=bool(mean_reversal and true is not None and true<-tolerance),
+            mean_reversal_with_true_prediction_increase=bool(mean_reversal and true_reversal)))
+    def counts(items):
+        return dict(denominator=len(items),metadata_missing=sum(not r['metadata_available'] for r in items),
+            true_reference_missing=sum(not r['true_reference_available'] for r in items),
+            inference_incomplete=sum(not r['inference_complete'] for r in items),
+            mean_M_comparable=sum(r['delta_mean_predictive'] is not None and r['delta_actual_M'] is not None for r in items),
+            all_three_comparable=sum(all(r[k] is not None for k in
+                ('delta_mean_predictive','delta_true_reference_predictive','delta_actual_M')) for r in items),
+            **{name:sum(r[name] for r in items) for name in ('mean_sacrifices_true_reference',
+                'mean_prediction_reversal','true_reference_prediction_reversal','mean_reversal_with_tradeoff',
+                'mean_reversal_with_true_prediction_increase')})
+    return dict(schema='EV_predictive_rank_posthoc_v1',tolerance=tolerance,by_history=rows,overall=counts(rows),
+        by_case={name:counts([r for r in rows if r['case_id']==name]) for name in sorted({r['case_id'] for r in rows})},
+        scope='Post-hoc signs only; prediction tradeoffs, noisy outcomes and different refitted parameters remain separate.',
+        units=dict(delta_mean_predictive='half-SSE',delta_true_reference_predictive='half-SSE',delta_actual_M='SSE'),
+        uses_future_labels_only_after_action=True,changes_selection=False)
 
 
 def extract_selection_metadata(phase, raw_directory):
