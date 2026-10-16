@@ -138,7 +138,8 @@ def test_finalization_is_resumable_after_manifest_written(tmp_path,monkeypatch):
     root=frozen(tmp_path);out=tmp_path/'finish';out.mkdir();state=dict(options={},steps={})
     by_phase={p:dict(complete_histories=0,records=0,solver_failed=0,proposal_slots=0,accepted=0,full_AC_failed=0) for p in f.PHASES}
     values=dict(inventory=dict(source='inventory.json',value=dict(by_phase=by_phase,
-        phase_audits={p:dict(success=True) for p in f.PHASES},runtime_scope='shared workflow')),
+        phase_audits={p:dict(success=True) for p in f.PHASES},runtime_scope='shared workflow',
+        runtime_recovery=dict(costs=dict(recovery_present=True,original_worker_incidents=[dict(pid=32188,whole_worker_wall_seconds=603.004669)]),copied_evidence=[]))),
         regression=dict(source='tests_summary.json',value=dict(passed=4,tests=4,errors=0,failures=0,skipped=0)),
         history_support_evaluation=dict(source='history_support.json',value=dict(coverage=dict(exact=True),records=[],source_fit_slots_expected=0)))
     for p in ('calibration','evaluation'):
@@ -153,3 +154,139 @@ def test_finalization_is_resumable_after_manifest_written(tmp_path,monkeypatch):
     assert a==b and (out/'evidence_manifest.json').read_bytes()==old
     manifest=f.read(out/'evidence_manifest.json')
     assert manifest['requires_human_result_review'] and not manifest['method_superiority_claim_generated']
+    assert manifest['runtime_recovery']['costs']['original_worker_incidents'][0]['whole_worker_wall_seconds']==603.004669
+    assert '包含已保存历史' in (out/'review_summary.md').read_text(encoding='utf-8')
+
+
+def test_runtime_evidence_selection_includes_partial_but_excludes_test_scratch(tmp_path):
+    runtime=tmp_path/'runtime_recovery_v1';runtime.mkdir()
+    (runtime/'attempts.jsonl').write_text('{}\n')
+    (runtime/'partial_history.tmp').write_bytes(b'preserve')
+    tests=runtime/'test_tmp_001';tests.mkdir();(tests/'not_evidence.json').write_text('{}')
+    pytest=runtime/'pytest_tmp';pytest.mkdir();(pytest/'not_evidence.json').write_text('{}')
+    assert {p.name for p in f.runtime_evidence_files(tmp_path)}=={'attempts.jsonl','partial_history.tmp'}
+
+
+def test_input_seal_contains_operational_sources_without_changing_science(tmp_path,monkeypatch):
+    root=frozen(tmp_path);runtime=root/'runtime_recovery_v1';runtime.mkdir()
+    incident=runtime/'native_failure_32188.json';incident.write_text('{}')
+    here=tmp_path/'tools';here.mkdir()
+    for suffix in ('finish','analysis','diagnostics','history_support','audit','controller','runtime_entry','recovery_controller'):
+        (here/('ev_bayes_response_'+suffix+'.py')).write_text('# operational fixture')
+    (here/'test_ev_bayes_response_runtime_entry.py').write_text('# tests')
+    (here/'test_ev_bayes_response_recovery_controller.py').write_text('# tests')
+    monkeypatch.setattr(f,'HERE',here);monkeypatch.setattr(f,'regression_files',lambda:[])
+    before=(root/'freeze.json').read_bytes();seal=f.input_seal(root)
+    assert f.file_hash(incident) in seal['input_files']
+    assert seal['scientific_sources_current']==[]
+    assert len(seal['non_scientific_runtime']['sources'])==5
+    assert seal['non_scientific_runtime']['evidence_files']==[f.file_hash(incident)]
+    assert (root/'freeze.json').read_bytes()==before
+    old=f._identity(seal);incident.write_text('{"updated":true}')
+    assert f._identity(f.input_seal(root))!=old
+
+
+def test_runtime_evidence_is_copied_losslessly_and_partial_is_hash_verified(tmp_path):
+    root=tmp_path/'root';runtime=root/'runtime_recovery_v1';runtime.mkdir(parents=True)
+    partial=runtime/'partial.tmp';partial.write_bytes(b'partial data')
+    source=tmp_path/'runtime_entry.py';source.write_bytes(b'# runtime source')
+    out=tmp_path/'out';out.mkdir()
+    seal=dict(non_scientific_runtime=dict(evidence_files=[f.file_hash(partial)],sources=[f.file_hash(source)]))
+    copied=f.copy_runtime_evidence(root,out,seal)
+    assert len(copied)==2
+    target=out/'runtime_evidence'/'partial.tmp.preserved'
+    assert target.read_bytes()==partial.read_bytes()
+    assert f.file_hash(target) in f._artifacts(out)
+    f._verify_artifacts(f._artifacts(out))
+    assert copied[1]['kind']=='runtime_sources'
+
+
+def test_tampered_runtime_evidence_blocks_copy(tmp_path):
+    root=tmp_path/'root';runtime=root/'runtime_recovery_v1';runtime.mkdir(parents=True)
+    path=runtime/'attempts.jsonl';path.write_text('{}\n')
+    seal=dict(non_scientific_runtime=dict(evidence_files=[f.file_hash(path)]))
+    path.write_text('{"changed":true}\n')
+    with pytest.raises(ValueError,match='sealed runtime evidence changed'):
+        f.copy_runtime_evidence(root,tmp_path/'out',seal)
+    assert not (tmp_path/'out').exists()
+
+
+def runtime_cost_fixture(tmp_path):
+    root=frozen(tmp_path);runtime=root/'runtime_recovery_v1';runtime.mkdir()
+    f.atomic_json(root/'controller.json',dict(started='2026-10-16T19:12:36+00:00',updated='2026-10-16T21:12:36+00:00'),replace=True)
+    f.atomic_json(runtime/'native_failure_32188.json',dict(worker_pid=32188,exit_code_decimal=3221225477,
+        first_unsaved_history=6,original_worker_timing=dict(wall_seconds_approx=603.004669,started_utc='2026-10-16T19:44:06.995331+00:00',fault_event_utc='2026-10-16T19:54:10+00:00')))
+    events=[dict(event='original_native_failure',pid=32188,phase='calibration',index=6,exit_code=3221225477),
+        dict(event='recovery_started',time='2026-10-16T20:09:33+00:00'),
+        dict(event='attempt_started',attempt_id='A',attempt=2),
+        dict(event='attempt_finished',attempt_id='A',phase='calibration',index=6,pid=40,exit_code=0,
+             elapsed_seconds=200.,elapsed_scope='full worker wall time',final_records={'6':dict(status='complete')}),
+        dict(event='worker_adopted',pid=22536),
+        dict(event='adopted_worker_finished',pid=22536,phase='calibration',elapsed_seconds=1200.,exit_code=0),
+        dict(event='statistical_complete',time='2026-10-16T21:12:36+00:00')]
+    (runtime/'attempts.jsonl').write_text('\n'.join(json.dumps(r) for r in events)+'\n',encoding='utf-8')
+    return root,runtime,events
+
+
+def test_runtime_costs_keep_original_worker_and_recovery_scopes_separate(tmp_path):
+    root,runtime,events=runtime_cost_fixture(tmp_path)
+    costs=f.runtime_cost_summary(root)
+    assert costs['original_worker_incidents'][0]['whole_worker_wall_seconds']==603.004669
+    assert costs['original_worker_incidents'][0]['additional_lost_seconds'] is None
+    assert not costs['original_worker_incidents'][0]['additive_to_record_seconds']
+    assert costs['full_new_worker_wall_seconds_measured']==200.
+    assert costs['adopted_since_adoption_wall_seconds_measured']==1200.
+    assert costs['original_controller_calendar_span_seconds']==7200.
+    assert costs['recovery_calendar_span_seconds']==3783.
+    assert costs['native_failure_events']==1
+    assert costs['grand_total_seconds'] is None and costs['additional_lost_work_seconds'] is None
+    assert costs['elapsed_categories_are_overlapping']
+    assert costs['attempts_without_finish_event']==[]
+
+
+def test_runtime_costs_preserve_unknown_elapsed_and_unmatched_attempts(tmp_path):
+    root,runtime,events=runtime_cost_fixture(tmp_path)
+    events += [dict(event='attempt_started',attempt_id='B'),dict(event='attempt_finished',attempt_id='B',elapsed_seconds_unknown=True,exit_code=3221225477),
+        dict(event='attempt_started',attempt_id='C')]
+    (runtime/'attempts.jsonl').write_text('\n'.join(json.dumps(r) for r in events)+'\n',encoding='utf-8')
+    costs=f.runtime_cost_summary(root)
+    assert costs['new_attempt_elapsed_unknown']==2
+    assert costs['attempts_without_finish_event']==['C']
+    assert costs['native_failure_events']==2
+    assert costs['full_new_worker_wall_seconds_measured']==200.
+
+
+def test_adopted_single_history_completion_reports_only_adopted_segment(tmp_path):
+    root,runtime,events=runtime_cost_fixture(tmp_path)
+    events += [dict(event='attempt_started',attempt_id='B'),dict(event='attempt_finished',attempt_id='B',elapsed_seconds=30.,elapsed_scope='since adoption',exit_code=0)]
+    (runtime/'attempts.jsonl').write_text('\n'.join(json.dumps(r) for r in events)+'\n',encoding='utf-8')
+    costs=f.runtime_cost_summary(root)
+    assert costs['full_new_worker_wall_seconds_measured']==200.
+    assert costs['adopted_since_adoption_wall_seconds_measured']==1230.
+
+
+def test_no_runtime_incident_does_not_invent_603_seconds(tmp_path):
+    root=frozen(tmp_path);costs=f.runtime_cost_summary(root)
+    assert not costs['recovery_present']
+    assert costs['original_worker_incidents']==[]
+    assert f.runtime_review_lines(costs)==[]
+
+
+def test_inventory_packages_runtime_evidence_and_keeps_raw_immutable(tmp_path):
+    import gzip
+    root=frozen(tmp_path);runtime=root/'runtime_recovery_v1';runtime.mkdir()
+    (root/'source_snapshot.json.gz').write_bytes(gzip.compress(json.dumps(dict(source_base64={})).encode()))
+    incident=runtime/'native_failure_32188.json'
+    f.atomic_json(incident,dict(worker_pid=32188,original_worker_timing=dict(wall_seconds_approx=603.004669)))
+    before={p.name:p.read_bytes() for p in root.iterdir() if p.is_file()}
+    source=tmp_path/'runtime_controller.py';source.write_text('# runtime only')
+    seal=dict(input_files=[],non_scientific_runtime=dict(evidence_files=[f.file_hash(incident)],sources=[f.file_hash(source)]))
+    out=tmp_path/'inventory';work=tmp_path/'work';out.mkdir();work.mkdir()
+    f.inventory(root,out,work,seal)
+    value=f.read(out/'inventory.json')
+    assert value['runtime_recovery']['costs']['original_worker_incidents'][0]['whole_worker_wall_seconds']==603.004669
+    assert len(value['runtime_recovery']['copied_evidence'])==2
+    assert (out/'runtime_evidence'/'native_failure_32188.json').read_bytes()==incident.read_bytes()
+    assert (out/'runtime_sources'/'runtime_controller.py').read_bytes()==source.read_bytes()
+    assert f.read(out/'runtime_costs.json')['grand_total_seconds'] is None
+    assert {p.name:p.read_bytes() for p in root.iterdir() if p.is_file()}==before

@@ -17,6 +17,7 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 from time import perf_counter
@@ -133,16 +134,137 @@ def step_plan():
             dict(name='regression',kind='tests')]
 
 
+def runtime_evidence_files(directory):
+    """Operational evidence is sealed separately from the 140 science files."""
+    runtime=Path(directory)/'runtime_recovery_v1'
+    if not runtime.exists():return []
+    result=[]
+    for path in sorted(runtime.rglob('*')):
+        relative=path.relative_to(runtime)
+        if any(part.startswith(('test_tmp','pytest_tmp')) or part=='__pycache__' for part in relative.parts):continue
+        if not path.is_file():continue
+        if not path.resolve().is_relative_to(runtime.resolve()):raise ValueError('runtime evidence escapes its directory')
+        result.append(path)
+    return result
+
+
+def runtime_source_files():
+    names=('ev_bayes_response_controller.py','ev_bayes_response_runtime_entry.py',
+        'ev_bayes_response_recovery_controller.py','test_ev_bayes_response_runtime_entry.py',
+        'test_ev_bayes_response_recovery_controller.py')
+    return [HERE/name for name in names if (HERE/name).exists()]
+
+
 def input_seal(directory):
     root=Path(directory);frozen=read(root/'freeze.json')
     paths=[root/name for name in ('freeze.json','source_snapshot.json.gz','controller.json')]
     paths.extend(root/('audit_'+p+'.json') for p in PHASES)
     paths.extend(root/p/('history_%03d.json.gz'%s['index']) for p in PHASES for s in frozen['specifications'][p])
+    runtime_files=runtime_evidence_files(root)
+    paths.extend(runtime_files)
     dependencies=[HERE/('ev_bayes_response_'+name+'.py') for name in ('finish','analysis','diagnostics','history_support','audit')]
     science=[HERE.parents[1]/name if name.startswith('rnj_wzzt_core/') else HERE/name for name in frozen.get('source_sha256',{})]
     return dict(input_files=[file_hash(p) for p in paths],postprocess_sources=[file_hash(p) for p in dependencies],
                 scientific_sources_current=[file_hash(p) for p in science],
+                non_scientific_runtime=dict(evidence_files=[file_hash(p) for p in runtime_files],
+                    sources=[file_hash(p) for p in runtime_source_files()],test_temporary_directories_excluded=True),
                 regression_tests=[file_hash(p) for p in regression_files()])
+
+
+def _utc_time(value):
+    return datetime.fromisoformat(value.replace('Z','+00:00')) if value else None
+
+
+def runtime_cost_summary(directory):
+    """Report overlapping wall-time scopes; never add them to record.seconds."""
+    root=Path(directory);runtime=root/'runtime_recovery_v1';controller=read(root/'controller.json')
+    events_path=runtime/'attempts.jsonl'
+    events=[json.loads(line) for line in events_path.read_text(encoding='utf-8-sig').splitlines() if line.strip()] if events_path.exists() else []
+    incidents=[]
+    for path in sorted(runtime.glob('native_failure_*.json')):
+        row=read(path);timing=row.get('original_worker_timing',{})
+        incidents.append(dict(file=str(path.resolve()),pid=row.get('worker_pid'),
+            exit_code=row.get('exit_code_decimal'),first_unsaved_history=row.get('first_unsaved_history'),
+            whole_worker_wall_seconds=timing.get('wall_seconds_approx'),
+            started_utc=timing.get('started_utc'),fault_utc=timing.get('fault_event_utc'),
+            scope='whole original worker, including already saved histories and unfinished work',
+            additional_lost_seconds=None,additional_loss_unknown=True,additive_to_record_seconds=False))
+    starts={r['attempt_id']:r for r in events if r.get('event')=='attempt_started'}
+    finished=[r for r in events if r.get('event')=='attempt_finished']
+    completed_ids={r.get('attempt_id') for r in finished}
+    attempts=[]
+    for row in finished:
+        start=starts.get(row.get('attempt_id'),{})
+        elapsed=row.get('elapsed_seconds')
+        scope=row.get('elapsed_scope','unknown')
+        attempts.append(dict(attempt_id=row.get('attempt_id'),phase=row.get('phase'),index=row.get('index'),pid=row.get('pid'),
+            attempt=start.get('attempt'),exit_code=row.get('exit_code'),elapsed_seconds=elapsed,
+            elapsed_scope=scope,elapsed_unknown=elapsed is None,
+            includes_record_seconds=True,additive_to_record_seconds=False,
+            final_record_saved=any(v is not None for v in row.get('final_records',{}).values())))
+    adopted=[dict(pid=r.get('pid'),phase=r.get('phase'),elapsed_seconds=r.get('elapsed_seconds'),
+        elapsed_unknown=r.get('elapsed_seconds') is None,elapsed_scope='since adoption only',
+        includes_record_seconds=True,additive_to_record_seconds=False,
+        original_pre_adoption_elapsed_seconds=None) for r in events if r.get('event')=='adopted_worker_finished']
+    controller_start=_utc_time(controller.get('started'));controller_end=_utc_time(controller.get('updated'))
+    controller_span=(controller_end-controller_start).total_seconds() if controller_start and controller_end else None
+    recovery_starts=[r for r in events if r.get('event')=='recovery_started']
+    recovery_ends=[r for r in events if r.get('event')=='statistical_complete']
+    recovery_span=(_utc_time(recovery_ends[-1]['time'])-_utc_time(recovery_starts[0]['time'])).total_seconds() if recovery_starts and recovery_ends else None
+    full_attempts=[r for r in attempts if r['elapsed_scope']=='full worker wall time']
+    adopted_attempts=[r for r in attempts if r['elapsed_scope']=='since adoption']
+    measured=lambda rows:sum(r['elapsed_seconds'] for r in rows if r['elapsed_seconds'] is not None)
+    known_native=lambda code:code is not None and (int(code)&0xFFFFFFFF)>=0x80000000
+    native_events=[r for r in events if r.get('event') in ('original_native_failure','attempt_finished') and known_native(r.get('exit_code'))]
+    return dict(schema=SCHEMA+'_runtime_costs',recovery_present=runtime.exists(),
+        original_controller_calendar_span_seconds=controller_span,
+        original_controller_span_scope='original started to final updated, including development, waits, audits, interruptions and recovery gaps',
+        recovery_calendar_span_seconds=recovery_span,
+        original_worker_incidents=incidents,new_attempts=attempts,adopted_worker_segments=adopted,
+        new_attempts_started=len(starts),new_attempts_finished=len(finished),
+        attempts_without_finish_event=sorted(set(starts)-completed_ids),
+        full_new_worker_wall_seconds_measured=measured(full_attempts),
+        full_new_worker_wall_attempts_measured=sum(r['elapsed_seconds'] is not None for r in full_attempts),
+        new_attempt_elapsed_unknown=sum(r['elapsed_unknown'] for r in attempts)+len(set(starts)-completed_ids),
+        adopted_since_adoption_wall_seconds_measured=measured(adopted)+measured(adopted_attempts),
+        adopted_elapsed_unknown=sum(r['elapsed_unknown'] for r in adopted)+sum(r['elapsed_unknown'] for r in adopted_attempts),
+        native_failure_events=len(native_events),native_failures=[dict(pid=r.get('pid'),phase=r.get('phase'),index=r.get('index'),exit_code=r.get('exit_code')) for r in native_events],
+        elapsed_categories_are_overlapping=True,grand_total_seconds=None,
+        additional_lost_work_seconds=None,additional_lost_work_not_identifiable=True,
+        aggregation_rule='report record.seconds, worker wall, adopted segments and calendar spans separately; no sum across scopes',
+        scientific_failures_remain_in_raw_records=True)
+
+
+def copy_runtime_evidence(directory,output,seal):
+    root,output=Path(directory),Path(output);runtime=root/'runtime_recovery_v1'
+    evidence=seal.get('non_scientific_runtime',{});copied=[]
+    for kind,key in (('runtime_evidence','evidence_files'),('runtime_sources','sources')):
+        for meta in evidence.get(key,[]):
+            source=Path(meta['path'])
+            if file_hash(source)!=meta:raise ValueError('sealed runtime evidence changed '+str(source))
+            relative=source.relative_to(runtime.resolve()) if kind=='runtime_evidence' else Path(source.name)
+            target=output/kind/relative
+            if target.name.endswith('.tmp'):target=target.with_name(target.name+'.preserved')
+            target.parent.mkdir(parents=True,exist_ok=True)
+            if target.exists():raise FileExistsError(target)
+            shutil.copyfile(source,target)
+            copied.append(dict(kind=kind,input=meta,copied=file_hash(target)))
+    return copied
+
+
+def runtime_review_lines(costs):
+    if not costs.get('recovery_present'):return []
+    lines=['恢复费用分列单历史新进程、接管后片段和控制器日历跨度；这些时间有重叠，不与record.seconds相加。']
+    for row in costs.get('original_worker_incidents',[]):
+        elapsed=row.get('whole_worker_wall_seconds')
+        value='未知' if elapsed is None else '约%.3f秒'%elapsed
+        lines.append('原故障worker %s的整段运行时间%s，包含已保存历史；额外损失耗时未知。'%(row.get('pid'),value))
+    lines.append('新单历史进程已记录完整运行时间合计%.3f秒；接管后片段合计%.3f秒。缺失新attempt耗时%d项、缺失接管片段耗时%d项。'%(
+        costs.get('full_new_worker_wall_seconds_measured',0.),costs.get('adopted_since_adoption_wall_seconds_measured',0.),
+        costs.get('new_attempt_elapsed_unknown',0),costs.get('adopted_elapsed_unknown',0)))
+    span=costs.get('original_controller_calendar_span_seconds')
+    lines.append('原控制器起点至最终完成的日历跨度%s，包含等待、审计、中断及恢复间隔。'%('未知' if span is None else '为%.3f秒'%span))
+    return lines
 
 
 def _inventory_record(record,phase,path_meta,policy_id):
@@ -230,9 +352,14 @@ def inventory(directory,output,work,seal):
             solver_stop_reasons=dict(Counter(str(p['stop_reason']) for p in proposal)),
             family_observed_seconds={f:sum(float(r['planning_seconds'].get(f,0.)) for r in subset)
                 for f in sorted({f for r in subset for f in r['planning_seconds']})})
+    runtime_copies=copy_runtime_evidence(root,output,seal)
+    runtime_costs=runtime_cost_summary(root)
+    atomic_json(output/'runtime_costs.json',runtime_costs)
     result=dict(schema=SCHEMA+'_inventory',policy_id=frozen['policy_id'],source_count=len(source),frozen_sources=source,
         phase_audits=audits,by_phase=by_phase,records=rows,
-        runtime_scope='observed shared-cache workflow; objective time is contained in family time; no cold-standalone claim',
+        runtime_recovery=dict(costs=runtime_costs,copied_evidence=runtime_copies,
+            scientific_source_freeze_unchanged=True,operational_sources_are_not_scientific_policy=True),
+        runtime_scope='observed shared-cache workflow; objective time is contained in family time; worker wall and calendar spans overlap record.seconds and are reported separately; no cold-standalone claim',
         failures_retained=True,no_new_scientific_histories=True)
     atomic_json(output/'inventory.json',result)
 
@@ -344,6 +471,7 @@ def finalize(directory,output,state,seal):
         input_seal=seal,postprocess_options=state['options'],gates=gates,
         artifacts=[meta for step in state['steps'].values() for attempt in step['attempts'] for meta in attempt.get('artifacts',[])],
         phase_counts=inventory_result['by_phase'],tests=tests,
+        runtime_recovery=inventory_result.get('runtime_recovery',{}),
         history_support=dict(histories=len(support['records']),source_fit_slots_expected=support['source_fit_slots_expected'],
             successful_histories=sum(bool(r.get('success')) for r in support['records']),
             fit_slots_failed=sum(r['denominators']['fit_slots_failed'] for r in support['records'])),
@@ -366,6 +494,7 @@ def finalize(directory,output,state,seal):
     lines+=['',f"回归测试：{tests['passed']}通过，{tests['skipped']}跳过，{tests['failures']}失败，{tests['errors']}错误。",'',
         f"历史支持：{len(support['records'])}份预定历史，{support['source_fit_slots_expected']}个拟合槽；失败{manifest['history_support']['fit_slots_failed']}槽。",'',
         '费用按保存的共享缓存流程汇总；目标缓存时间已包含在各family时间中，二者不相加，也未测量冷启动独立费用。',
+        *runtime_review_lines(inventory_result.get('runtime_recovery',{}).get('costs',{})),
         '计量噪声重复保留在所属历史内。所有推断、规划、物理或支持拟合失败均留在相应分母。','',
         '请核对校准/评价分离、同域平方对照、父计划排序与MILP新增收益、概率校准及移动贡献；本脚本不自动判定方法优越性。','',
         f"证据清单SHA256：`{file_hash(manifest_path)['sha256']}`。"]

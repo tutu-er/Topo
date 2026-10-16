@@ -7,7 +7,7 @@
 - 当前唯一冻结运行：执行副本/outputs/ev_bayes_response_frozen_v1。
 - policy_id：6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9。
 - 实现已提交推送：c4418db3；数学文件换行校正65ed88e0。更早方案提交f172dd41。
-- 当前controller初始PID14788；实际存活状态、worker PID与阶段以controller.json及进程核对为准。两worker、所有数值库单线程。
+- 初始controller PID14788已在原生诊断故障后被恢复controller2848接替；健康worker22536保留。当前PID与阶段以controller.json、controller.lock及runtime_recovery_v1/attempts.jsonl和完整用户令牌进程核对为准。两worker、所有数值库单线程。
 
 ## 当前边界
 
@@ -39,3 +39,15 @@ Bayes已替换规划风险、完整AC接受和最终概率评价；AC均值及�
 先读取controller.stderr.log、worker日志和失败JSON。进程仍存活时不重启。controller停止但worker仍活时等待其保存，禁止重叠执行。统计/审计工具的错误可修复后换新输出目录重算；冻结科学模型若确有错误，保存失败、暂停该批推进并说明后续修订方案，不能把修改混进已有policy。普通权限或网络问题保留本地提交，不重复请求已批准的远端授权。
 
 worker每5分钟由faulthandler输出一次当前栈，日志中的“Timeout (0:05:00)”表示诊断栈打印，不会终止计算；退出状态及失败JSON才决定是否失败。record.seconds不含记录序列化/压缩，费用报告还须给controller实际起止与并发数。开发004已保留一次joint积分精度失败：524288点、ESS约5.71、质量相对SE25.1%，不删除该竞争者或用较低精度分数继续规划。
+
+## 最近用户明确的主问题
+
+最终报告以贝叶斯方法能否改善EV的MILP规划目标及实际计划质量为主结论。分别量化同动作推断变化、计划池重新排序、MILP新提案及真实排错收益。后验校准和模型内风险只是支撑证据；不把评分改善当计划改善，不把同域基线收益算作MILP增量。保持当前冻结评价，不新增或改动策略。
+
+进程核对须注意：受限令牌对已提权启动的controller调用OpenProcess可能返回False。应使用已授权完整用户令牌的Get-Process核对PID，避免误判退出并重复启动。
+
+## 2026-10-16 20:09 UTC运行恢复
+
+校准worker32188在定时打印Python栈时原生崩溃，最终记录0、2、4保留，6无最终记录。已保留Windows事件、匹配符号解析和日志；仅更换运行入口及编排，140份科学源码、policy和所有种子不变。恢复controller2848接管仍存活的22536，先补校准6，再完成缺失校准/评价。新进程每次一份历史，仅无最终记录的原生失败允许一次重试；已保存科学失败不重试。运行入口5项及编排28项测试通过，开发16份既有独立审计通过。详见ev_bayes_response_runtime_recovery.md。
+
+新worker关闭原五分钟诊断定时器；健康旧worker22536沿原入口继续。续接先查上述锁和attempt日志，不要因为旧controller.json尚在读取大记录时更新延迟而重复启动。全部完成后，finish须纳入运行恢复证据及费用；603秒是原worker完整历时，包含已保存历史，不是可额外相加的丢失时间。

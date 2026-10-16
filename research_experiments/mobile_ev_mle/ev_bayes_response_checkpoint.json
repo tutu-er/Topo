@@ -1,1 +1,108 @@
-{"automation_id": "topo-ev", "controller_pid": 14788, "core_regression_tests": 167, "finish_io_tests": 11, "implementation_commit": "65ed88e0", "linear_generative_histories": 2048, "next": "Wait for frozen phases and audits, then run ev_bayes_response_finish; do not duplicate workers.", "phases": {"development": {"expected": 16, "saved": 15, "status_counts": {"complete": 11, "inference_failure": 4}, "unreadable": []}}, "policy_id": "6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9", "preflight_delivery_commit": "b9d21228", "preflight_restore_verified": true, "restore_io_tests": 32, "runtime_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_frozen_v1", "status": "running", "study_complete": false, "updated": "2026-10-16T19:35:21.343231+00:00"}
+{
+  "automation_id": "topo-ev",
+  "controller_pid": 2848,
+  "controller_process_verified_alive": true,
+  "core_regression_tests": 167,
+  "finish_io_tests": 20,
+  "implementation_commit": "65ed88e0",
+  "linear_generative_histories": 2048,
+  "next": "Read live controller/lock/attempts and full-token process state; do not restart healthy workers. Finish only after statistical_complete and all phase audits.",
+  "observed_at": "2026-10-16T20:13:56.416523+00:00",
+  "phases": {
+    "calibration": {
+      "expected": 64,
+      "saved": 17,
+      "status_counts": {
+        "complete": 13,
+        "inference_failure": 4
+      },
+      "unreadable": []
+    },
+    "development": {
+      "expected": 16,
+      "independent_audit_success": true,
+      "saved": 16,
+      "status_counts": {
+        "complete": 12,
+        "inference_failure": 4
+      },
+      "unreadable": []
+    }
+  },
+  "policy_id": "6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9",
+  "preflight_delivery_commit": "b9d21228",
+  "preflight_restore_verified": true,
+  "primary_question": "Does Bayesian planning improve EV MILP objectives and actual plan quality? Separate same-action inference, action ranking, new MILP proposal gains, and physical discrimination under equal operation domains.",
+  "process_check_scope": "Get-Process with authorized full-user token; restricted-token OpenProcess cannot verify this PID",
+  "restore_io_tests": 32,
+  "runtime_io_tests": 33,
+  "runtime_recovery": {
+    "adopted_worker_pid": 22536,
+    "attempts_log": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_frozen_v1\\runtime_recovery_v1\\attempts.jsonl",
+    "entry_periodic_timer_disabled": true,
+    "original_controller_pid": 14788,
+    "original_native_failure_pid": 32188,
+    "scientific_hashes_unchanged": 140,
+    "unit_tests": 33
+  },
+  "runtime_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_frozen_v1",
+  "stage": "recovery_execution",
+  "status": "running",
+  "study_complete": false,
+  "updated": "2026-10-16T19:39:08.024023+00:00",
+  "workers": [
+    {
+      "adopted": true,
+      "attempt_id": null,
+      "created_filetime": 134366534470287779,
+      "exit_code": null,
+      "indices": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23,
+        25,
+        27,
+        29,
+        31,
+        33,
+        35,
+        37,
+        39,
+        41,
+        43,
+        45,
+        47,
+        49,
+        51,
+        53,
+        55,
+        57,
+        59,
+        61,
+        63
+      ],
+      "phase": "calibration",
+      "pid": 22536
+    },
+    {
+      "adopted": false,
+      "attempt_id": "f2cf2854c69942d4bc3e6401ee0cab10",
+      "created_filetime": 134366551846629280,
+      "exit_code": null,
+      "indices": [
+        10
+      ],
+      "phase": "calibration",
+      "pid": 2952
+    }
+  ]
+}
