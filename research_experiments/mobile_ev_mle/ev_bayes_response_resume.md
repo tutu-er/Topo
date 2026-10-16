@@ -1,0 +1,41 @@
+# 线路响应不确定性研究续接
+
+本轮仍在执行，尚未完成64条校准与128条独立评价。先读本文件，再读取运行目录的controller.json；禁止重复启动正在运行的controller或worker。
+
+- 研究源：C:/Users/23761/.codex/worktrees/36a1/Topo，分支codex/ev-train-validation-design。
+- 执行副本：D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015。
+- 当前唯一冻结运行：执行副本/outputs/ev_bayes_response_frozen_v1。
+- policy_id：6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9。
+- 实现已提交推送：c4418db3；数学文件换行校正65ed88e0。更早方案提交f172dd41。
+- 当前controller初始PID14788；实际存活状态、worker PID与阶段以controller.json及进程核对为准。两worker、所有数值库单线程。
+
+## 当前边界
+
+旧133份科学源码保持不变；新增5份科学Python文件及数学/协议共7项在freeze中。原PDF与pyproject的已有修改不提交。不要修改当前冻结源码、参数、种子、先验或评价规则；校准与评价不用于调参。
+
+主程序依次完成16开发、64校准、128评价历史，每阶段结束进行完整独立审计；审计失败停止下一阶段。矩阵为三/四末端、4真结构、训练32/96、普通/相关负荷、原/三倍创新。每历史regular/shift和32噪声为配对重复，不增加独立历史。27计划、5同动作推断模型均按协议保留；16评价历史有原共享线路AC局部重拟合审计。
+
+Bayes已替换规划风险、完整AC接受和最终概率评价；AC均值及导数底座与EV运行域沿用。MILP冻结协方差，用AC均值Jacobian构造Bhattacharyya二次距离和分段上界代理；完整风险梯度包含动作引起的协方差变化，目前仅独立诊断。父计划在四组嵌套运行域中继承，新旧BC和固定线路BC统一提交父操作MIP-start。
+
+## 已通过的开发验收
+
+- 新模型/统计/工具及旧small Bayes回归167项通过，证据执行副本/outputs/ev_bayes_response_tests_v1.xml。
+- 独立线性有界生成式2048历史，失败0；90%线路覆盖90.19%、未来精确/矩Gaussian区间91.41%、预测/实际错误20.38%/20.65%。脚本ev_bayes_response_linear_calibration.py，原JSON在outputs/ev_bayes_response_linear_calibration_v1.json。仅验证已知超参数线性生成式。
+- 旧开发v2的0/1只作开发：完整AC/协方差/后验独立审计通过；首候选GHK复核通过。两例响应排序仍有严重失配，八角分解主要指向线路响应。开发0后验R误差变大；开发1变小但响应误差仍大；二者响应区间过窄。完整历史固定线源profile检查也发现部分后验线路中心的条件SSE明显升高。不要把加入线路方差写成已经校准。
+- 两开发共5个预定非零提案方向核查，3个无提案保留。协方差项抵消约8%–61%均值BC梯度，完整方向有限差分误差不超过1.97e-7。原risk score估计方差大，路径导数较稳定；均未改变冻结规划策略。
+
+## 计算完成后的工作
+
+1. 检查controller.status和3阶段audit、所有种子/源码hash/失败分母。statistical_complete表示计算及阶段审计结束，尚需交付。
+2. 运行新增ev_bayes_response_finish CLI（先看--help），它只允许statistical_complete后进行统计、物理响应拆分、预定16历史支持审计、最终测试及费用/hash汇总；逐步骤保存checkpoint和日志，失败产物保留。
+3. 审查cal/eval报告、配对区间、置信分箱、90%排真与预测区间、强对照及初始化/新提案贡献。报告三/四末端大样本批次，不称大型网络验证。
+4. 核对完整AC收益与规划风险排序，分别归因线路/源/负荷模型、线性化、积分与求解预算。当前负例提示下一步检查非线性历史支持与单中心近似；不以任意扩大噪声或提高阻抗下界修饰结果。
+5. 整理简明数学及结果报告、全部raw hash、source snapshot、配置/种子、代表性完整raw的可复现包装。大体积原始记录保留D盘，远端只放必要且经过恢复核查的证据。不改长LaTeX/PDF。
+6. 源码/报告/证据只放研究目录，按阶段精确暂存、commit、正常push已批准远端分支。保护PDF SHA FE89B241285FD81F570A921FE99A49BFDB1D6BCA6E0CED0D498A45EF81D5DBFA 与pyproject SHA 67D21B6A3DA4629C5CBA5C445404FC5ECDE154BF6B472EE4FA06F75CEB760E1C。
+7. 最终回答当前用户：不确定性与预测校准的证据、Bayes改变了哪些指标、MILP梯度来源及与完整梯度的区别、同域基线/放电/移动比较、适用与失败条件。区分推导/实现/验证，不把未完成写完成。完成核对与推送后删除本轮续接自动化，不启动新科学批次。
+
+## 遇到问题
+
+先读取controller.stderr.log、worker日志和失败JSON。进程仍存活时不重启。controller停止但worker仍活时等待其保存，禁止重叠执行。统计/审计工具的错误可修复后换新输出目录重算；冻结科学模型若确有错误，保存失败、暂停该批推进并说明后续修订方案，不能把修改混进已有policy。普通权限或网络问题保留本地提交，不重复请求已批准的远端授权。
+
+worker每5分钟由faulthandler输出一次当前栈，日志中的“Timeout (0:05:00)”表示诊断栈打印，不会终止计算；退出状态及失败JSON才决定是否失败。record.seconds不含记录序列化/压缩，费用报告还须给controller实际起止与并发数。开发004已保留一次joint积分精度失败：524288点、ESS约5.71、质量相对SE25.1%，不删除该竞争者或用较低精度分数继续规划。
