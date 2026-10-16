@@ -104,3 +104,13 @@ io._write(out / "results.json", report)
 正式结果待完成后填写：每库/每规则/每方法的唯一正确、误拒、未决、计算失败；R/X误差与实际M；移动配对收益；直接梯度入选和继承计划比例；保护拒绝、回退及软预算超时。当前不填入任何预期改善。
 
 已有负面证据保留：旧69相同主要是决策边界饱和；结构条件R单独未修正旧三次star失败；guard30因计算预算退化为固定点；guard60成本验收仍有超时和无新梯度步骤；预测保护只约束工作评分，真实误拒和移动收益由本次独立评价检验。
+
+## 6. 共享缓存费用的独立核对
+
+`ev_mobile_v2_cache_owner_audit.py`按原始调用日志核查源拟合缓存的首次计算者，以及其费用是否已在当前方法的祖先中支付。静态检查发现一个条件缺口：`cap_fixed`可能命中仅由`scalar_mobile`预先计算的曲线，而前者不包含后者费用。正式记录中的实际发生率由计算结束后的完整审计确定；冻结策略保持原样。
+
+工具按每方法的唯一缓存键补计已知首次生产费用，同时保留重复查询次数、缺失日志和方法分母。补计值描述保存路径的费用重记，独立重跑时的路线、缓存及截止行为可能改变。小统计投影不足以核实缓存费用，须读取完整raw。
+
+```powershell
+python -m research_experiments.mobile_ev_mle.ev_mobile_v2_cache_owner_audit --directory outputs/mobile_v2_formal_cal_n3 outputs/mobile_v2_formal_cal_n4 outputs/mobile_v2_formal_eval_n3 outputs/mobile_v2_formal_eval_n4 --expected-count 288 --progress --output outputs/mobile_v2_formal_source_cache_owners_v1.json.gz
+```
