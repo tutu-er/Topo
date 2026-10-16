@@ -1,6 +1,6 @@
 # 冻结EV研究交付续接
 
-本轮所有计算、统计和审计均已完成，无活跃controller、worker或后处理任务。**不要重新启动旧批次，不追加样本，不据评价调整策略。** 最终发布与续接关闭状态见`ev_mobile_v2_checkpoint.json`和Git。
+本轮所有计算、统计和审计均已完成，无活跃controller、worker或后处理任务。**不要重新启动旧批次，不追加样本，不据评价调整策略。** 最终报告及证据已正常推送；本轮`topo-ev`自动续接已删除。发布及结束记录见`ev_mobile_v2_checkpoint.json`、证据中的`publication_receipt.json`和Git。
 
 先读`ev_mobile_v2_results.md`及`ev_mobile_v2_costs.md`。数学在`ev_mobile_v2_math.md`、`ev_reliability_v2_math.md`；复算与证据层次在`ev_mobile_v2_reproduce.md`。
 
@@ -11,7 +11,7 @@
 - 源码工作树`C:/Users/23761/.codex/worktrees/36a1/Topo`，执行及完整raw保留`D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015`。
 - 分支`codex/ev-train-validation-design`，用户已批准向`https://github.com/tutu-er/Topo.git`普通push；仅提交研究相关改动。
 
-最后只需确认本轮最终commit/push与结束自动续接已经完成。如果发布遇到明确阻塞，保留本地提交及证据，记录具体原因；不要将其变成新实验。
+本轮交付已完成，未留下计算或发布阻塞。完整raw及过程日志继续保留，不清理旧记录。后续请求先从简明结果与明确失败条件出发，不重复启动旧批次。
 
 下一研究尚未启动。建议先核对动作收益预测排序，拆分线路、负荷、源误差，再减少联合梯度法的重复拟合成本；新策略须重新冻结并独立校准评价。
 
