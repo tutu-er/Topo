@@ -12,7 +12,7 @@
 \eta_{2e}=\log R_e,\qquad \eta_{2e+1}=\log(X_e/R_e).
 \]
 
-原 \(R/X\) 区间和比例范围在此坐标中构成凸多面体 \(P_k\)：限制 
+原 \(R/X\) 区间和比例范围在此坐标中构成凸多面体 \(P_k\)：限制
 
 \[
 \log R_{\min}\le\eta_{2e}\le\log R_{\max},\quad
@@ -112,7 +112,7 @@ B_{ij}=\tfrac18\delta^\top\bar\Sigma^{-1}\delta+
 \delta=\mu_i-\mu_j,\quad\bar\Sigma=(\Sigma_i+\Sigma_j)/2.
 \]
 
-对应风险上界 \(C(u)=\sum_{i<j}\sqrt{\pi_i\pi_j}e^{-B_{ij}(u)}\)。证明：逐观测令 \(w_i=\pi_i p_i(y)\)，将最大者记为 \(w_1\)，则 
+对应风险上界 \(C(u)=\sum_{i<j}\sqrt{\pi_i\pi_j}e^{-B_{ij}(u)}\)。证明：逐观测令 \(w_i=\pi_i p_i(y)\)，将最大者记为 \(w_1\)，则
 
 \[
 \sum_iw_i-\max_iw_i=\sum_{j>1}w_j
