@@ -93,6 +93,25 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(a['operation']['charging_energy_kwh'],4.)
         self.assertEqual(a['operation']['discharging_energy_kwh'],1.)
 
+    def test_true_candidate_training_and_joint_line_errors(self):
+        r=record();r['truth']=dict(r=[1.,2.],x=[2.,4.])
+        r['training_result']['fits'][0].update(r=[1.1,2.2],x=[1.8,3.6],success=True)
+        r['methods']['constant']['evaluation']['comparisons']=dict(a=dict(joint=dict(post=dict(success=True,state=dict(r=[1.2,2.4],x=[2.1,4.2])))))
+        errors=summary.project_method(r,'constant',candidate_count=2)['parameter_errors']['errors']
+        for key,value in dict(training_R=.1,training_X=.1,joint_R=.2,joint_X=.05).items():
+            self.assertTrue(errors[key]['valid']);self.assertAlmostEqual(errors[key]['value'],value)
+        grouped=summary.summarize_records([spec()],{0:r},candidate_count=2)['by_bank_H']['n3/H8']['methods']['constant']['parameter_errors']
+        self.assertEqual(grouped['joint_R']['valid'],1);self.assertAlmostEqual(grouped['joint_R']['mean'],.2)
+
+    def test_missing_truth_or_final_state_retains_error_denominator(self):
+        r=record();r['truth']=dict(r=[1.],x=[2.])
+        x=summary.summarize_records([spec(),spec(1)],{0:r},candidate_count=2)['overall']['methods']['constant']['parameter_errors']
+        self.assertEqual(x['training_R']['denominator'],2);self.assertEqual(x['training_R']['valid'],1)
+        self.assertEqual(x['joint_R']['denominator'],2);self.assertEqual(x['joint_R']['valid'],0)
+        self.assertEqual(x['joint_R']['missing'],2);self.assertIsNone(x['joint_R']['mean'])
+        r.pop('truth');e=summary.project_method(r,'constant',candidate_count=2)['parameter_errors']['errors']['training_R']
+        self.assertFalse(e['valid']);self.assertIsNone(e['value'])
+
     def test_duplicate_seed_rejected(self):
         with self.assertRaises(ValueError):summary.summarize_records([spec(),spec(1,seed=100)],{},candidate_count=2)
 

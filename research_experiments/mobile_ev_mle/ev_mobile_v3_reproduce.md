@@ -34,3 +34,22 @@ python -m research_experiments.mobile_ev_mle.ev_mobile_v3_physics_audit --direct
 最终证据保留每条历史及失败分母、源码/配置/种子、全部动作/路线、最终拟合、规划界和时间。重复动作按action_key去重可降低存储，完整raw仍留D-stage；compact恢复后的内容要通过相同汇总和物理回放，剔除字段及原raw哈希另列。新策略及其证据仅存研究目录，原PDF/pyproject修改保持原样。
 
 下一轮数学修订见ev_mobile_v3_next_model.md，尚未接入本轮策略。它恢复竞争QP物理参数域，以合法解释及支持LP分别构造MILP上、下界，不把本轮自由投影结果写成已解决模型偏差。
+
+## 完成后的证据索引
+
+简明结果为ev_mobile_v3_results.md，续接点为ev_mobile_v3_checkpoint.json和ev_mobile_v3_resume.md。最终研究证据存于evidence/ev_mobile_v3/final_20261016/：
+
+- pilot2_compact/保留4开发+16评价精简记录、freeze、122文件原字节snapshot、完整最终拟合、规划界/PWL范围、失败、物理审计和工作进程日志。manifest.json逐文件记录原/精简哈希；精简恢复不是被删除缓存的完整raw恢复。
+- audits/保留最终127项测试XML、全部精简恢复摘要核查、旧开发回放补充、费用/配对统计，以及三事件完整评分归因的独立验证。
+- score_attribution/保留3事件H/验证输入、48未来输入和384套固定/联合解释的556KB小证据包。真实因素替换只在离线诊断，不进入选择器。
+- tools/保留本轮只读汇总与发布脚本。最终manifest列源文件、证据文件及保护文件SHA256；Git本身记录对应提交和推送。
+
+新16评价完整汇总为pilot2_compact/summary_final_v2.json。costs_and_pairs_v1.json在audits中，逐历史费用和参数误差按原分母保存。恢复示例见pilot2_compact/attachments/mobile_v3_evidence_usage_v1.md；ev_mobile_v3_evidence.restore把去重的最终evaluation恢复给既有汇总/物理审计器。原raw仍保留执行副本，不能用新版本覆盖旧试验记录。
+
+最终测试命令：
+
+```powershell
+python -c "from pathlib import Path;import pytest;files=sorted(str(p) for p in Path('research_experiments/mobile_ev_mle').glob('test_ev_mobile_v3_*.py'));raise SystemExit(pytest.main(files+['-q']))"
+```
+
+它验证本轮v3实现与解析性质；旧v2科学源码不因本轮结果改写。本轮未修改或重编译原LaTeX/PDF报告。

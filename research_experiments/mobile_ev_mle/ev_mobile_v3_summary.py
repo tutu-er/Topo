@@ -45,6 +45,34 @@ def candidate_dimensions(record):
     return result
 
 
+def relative_line_error(truth,estimate):
+    """Finite saved vectors only; a missing estimate never becomes zero error."""
+    if not isinstance(truth,(list,tuple)) or not truth:
+        return dict(valid=False,value=None,reason='missing truth vector')
+    if not isinstance(estimate,(list,tuple)) or not estimate:
+        return dict(valid=False,value=None,reason='missing fitted vector')
+    if len(truth)!=len(estimate) or any(number(v) is None for v in list(truth)+list(estimate)):
+        return dict(valid=False,value=None,reason='nonfinite or mismatched line vectors')
+    denominator=sum(v*v for v in truth)
+    if denominator<=0:return dict(valid=False,value=None,reason='zero truth norm')
+    return dict(valid=True,value=math.sqrt(sum((v-w)**2 for v,w in zip(estimate,truth))/denominator),reason=None)
+
+
+def parameter_errors(record,method):
+    truth=record.get('truth') or {};label=record.get('true_name')
+    matches=[r for r in record.get('training_result',{}).get('fits',[]) if r.get('candidate',r.get('name'))==label]
+    training=matches[0] if len(matches)==1 else {}
+    method=method if isinstance(method,dict) else {}
+    comparison=(method.get('evaluation') or {}).get('comparisons',{}).get(label,{})
+    post=(comparison.get('joint') or {}).get('post') or {};state=post.get('state') or {}
+    errors={}
+    for stage,estimate in (('training',training),('joint',state)):
+        for channel in ('r','x'):
+            errors[stage+'_'+channel.upper()]=relative_line_error(truth.get(channel),estimate.get(channel))
+    return dict(errors=errors,training_fit_success=training.get('success'),joint_fit_success=post.get('success'),
+        validity_rule='matching finite saved vectors and positive truth norm; fit/operation success remains separately reported')
+
+
 def _bounds(raw):
     """Keep separate bound scopes; values from different proxies are not pooled."""
     keep=('success','objective','Q','exact_score','objective_lower','objective_upper','best_bound','gap','mip_gap','completed','unfinished','selected_origin','bound_scope','scope','seconds')
@@ -62,7 +90,7 @@ def project_method(record,name,*,candidate_count=4):
     methods=record.get('methods',{});method=methods.get(name) if isinstance(methods,dict) else None
     result=dict(name=name,present=isinstance(method,dict),usable=False,M=None,M_AIC=None,issues=[],planning_status='missing',execution_status='missing',fit_status='missing',
         raw_argmin=None,AIC_argmin=None,raw_unique_correct=None,AIC_unique_correct=None,raw_contains_truth=None,AIC_contains_truth=None,
-        operation={},planning={})
+        operation={},planning={},parameter_errors=parameter_errors(record,method))
     if not isinstance(method,dict):return result
     metadata=record.get('planning',{}).get(name,{}) or {};raw=metadata.get('raw') or {}
     planning_success=method.get('planning_success',raw.get('success'))
@@ -155,6 +183,9 @@ def aggregate(rows):
         methods[name]=dict(denominator=len(rows),present=sum(v['present'] for v in values),usable=len(good),missing_or_failed=len(rows)-len(good),
             M=stats(v['M'] for v in good),M_negative=sum(v['M']<0 for v in good),M_zero_with_tolerance=sum(abs(v['M'])<=TOL for v in good),
             M_AIC=stats(v['M_AIC'] for v in values),M_AIC_negative=sum(v['M_AIC'] is not None and v['M_AIC']<0 for v in values),
+            parameter_errors={key:dict(denominator=len(rows),valid=sum(v['parameter_errors']['errors'][key]['valid'] for v in values),
+                missing=sum(not v['parameter_errors']['errors'][key]['valid'] for v in values),
+                **stats(v['parameter_errors']['errors'][key]['value'] for v in values)) for key in ('training_R','training_X','joint_R','joint_X')},
             planning_status=dict(Counter(v['planning_status'] for v in values)),execution_status=dict(Counter(v['execution_status'] for v in values)),fit_status=dict(Counter(v['fit_status'] for v in values)),
             decisions={tag:dict(known=sum(v[tag+'_unique_correct'] is not None for v in values),unique_correct=sum(v[tag+'_unique_correct'] is True for v in values),
                 contains_truth=sum(v[tag+'_contains_truth'] is True for v in values),ties=sum(v[tag+'_argmin'] is not None and len(v[tag+'_argmin'])>1 for v in values)) for tag in ('raw','AIC')},
@@ -216,6 +247,7 @@ def run(root,output,*,phases=PHASES,require_complete=False):
         missing_rule='Each missing/fatal record retains all eight method slots and every associated paired denominator.',
         AIC_rule='Working score L+2d, d=2*actual training R/X vector length. No calibration or asymptotic claim.',
         M_AIC_rule='Secondary diagnostic min_wrong(L_b+2d_b)-(L_true+2d_true); primary M and its paired comparisons are unchanged.',
+        parameter_error_rule='Offline true-candidate ||estimated R/X-true R/X||_2 / ||true R/X||_2, separately for training and saved final joint state. Missing vectors retain denominators; numeric validity and fit success are distinct.',
         comparison_tolerance=TOL,M_negative_rule='M<0 exactly; paired ties use comparison_tolerance.',
         operation_energy_rule='Charging/discharging grid-side energies=(throughput +/- net-grid energy)/2.',
         bound_rule='Saved solver bounds belong to each stated proxy; they are never compared across objective families or called AC bounds.',
@@ -255,7 +287,8 @@ def render(data,path):
                 mean=pair['delta_M']['mean'];mean='—' if mean is None else f'{mean:.3f}'
                 text.append(f"|{group}|{family}|{pair['a_wins']}/{pair['ties']}/{pair['a_losses']}/{pair['missing_pairs']}|{mean}|{pair['prediction_actual']['predicted_gain_actual_loss_count']}|{pair['prediction_actual']['complete_pairs']}|")
         text.append('')
-    text.extend(['完整 JSON 还保存全部方法对的配对比较、逐种子 M/损失与最小候选集合、驾驶分钟/能量/充放电、规划时间、projection 接受与继承来源、各步求解界及其适用范围。失败回退动作的执行结果与规划失败分列。',''])
+    text.extend(['完整 JSON 还保存全部方法对的配对比较、逐种子 M/损失与最小候选集合、驾驶分钟/能量/充放电、规划时间、projection 接受与继承来源、各步求解界及其适用范围。失败回退动作的执行结果与规划失败分列。',
+        '真候选训练与最终共享拟合的 R/X 相对 L2 误差另作事后诊断，按银行/H/方法保留有效数、缺失数、均值与中位数。缺真值或状态时不造零；数值有效与拟合成功分别记录，真实参数不进入选择器。',''])
     Path(path).write_text('\n'.join(text),encoding='utf8')
 
 
