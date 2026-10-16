@@ -429,10 +429,9 @@ H中不含本次受控EV；若历史已含它，baseline预测应先扣已知历
 
 ## EV移动 v4：统一规划与完整AC评价
 
-先读 ev_mobile_v4_math.md、ev_mobile_v4_protocol.md 与 ev_mobile_v4_implementation_plan.md。
-本轮使用全部已观测D=H+V训练每拓扑一组参考参数；竞争解释仍对D和未来共同拟合。
-四组可行域保留完整父计划；有物理域的QP经父点完整AC值/梯度校正后进入共享平方MILP。
-新动作按相同完整AC目标接受，主方法另保护每个参考的父分数。
-实现及127项测试已验证，development2四条历史正在执行；独立评价尚未开始，不将计划写成结果。
-开发1的实际评价接口失败保留在evidence/ev_mobile_v4/development1；开发2已修复并加回归测试。
-当前检查点：ev_mobile_v4_checkpoint.json。原报告PDF及无关pyproject修改保持原状。
+先读 ev_mobile_v4_development_results.md、ev_mobile_v4_math.md、ev_mobile_v4_protocol.md。
+4条开发历史、48计划、192候选槽均完成，224保存态独立物理审计通过，155项测试通过。
+统一D和完整AC评分，QP在父点校正值/梯度；四域继承完整父计划，主方法逐步保护每个参考。
+48项完整AC方向导数检查与同目标规划/评价接口检查通过；有限预算的32次master均未闭合代理间隙。
+开发结果包含移动收益、退步与保护代价，不据此声称普遍优势。八条独立历史的冻结评价正在运行。
+参见ev_mobile_v4_checkpoint.json及evidence/ev_mobile_v4/development2_delivery；原PDF及pyproject未改。
