@@ -13,7 +13,9 @@
 |全AC c组104槽|14224|`outputs/mobile_v2_fullreview_c.log`及同名`.json`|
 |成本4槽|34648|已完成，`outputs/mobile_v2_fullreview_cost.json` success=true|
 |缓存所有权→证据打包监督|1004|`outputs/mobile_v2_evidence_run_v1.json`|
-|缓存所有权288槽子进程|664|`outputs/mobile_v2_evidence_owners_v1.log`|
+|缓存所有权288槽|664|已完成，288/288 exact、unknown0、未付费命中0|
+|证据打包子进程|10896|`outputs/mobile_v2_evidence_pack_v1.log`|
+|打包恢复核验等待进程|10900|完成后写`outputs/mobile_v2_evidence_validation_v1.json`|
 
 AC启动配置、分母和工具SHA在`outputs/mobile_v2_physical_review_launch_v1.json`；每组完成后须读JSON的`success`，进程退出或CLI状态本身不足。a/b/c加cost共320槽，与旧pilot4、原开发28共同覆盖352槽；开发重复seed不另算独立历史。监督脚本`outputs/mobile_v2_evidence_run_v1.ps1`按顺序owner→pack --plan→pack；退出后仍须核对证据清单与恢复验证。不要同时启动第二份打包。
 
@@ -28,10 +30,10 @@ AC启动配置、分母和工具SHA在`outputs/mobile_v2_physical_review_launch_
 ## 下一步只完成交付
 
 1. 等a/b/c全部完成，核对3报告success与分母，汇总352槽AC检查/失败。工具源码不在运行中修改。
-2. 读取`outputs/mobile_v2_formal_source_cache_owners_v1.json.gz`：区分已知未付费缓存、重复查询、唯一键/费用及缺失日志。只更正已保存路径费用解释，不改冻结选择器或伪称独立重跑耗时。
+2. 缓存审计已完成：`outputs/mobile_v2_formal_source_cache_owners_v1.json.gz`和`mobile_v2_formal_source_cache_owner_summary_v1.json`核对288/288，unknown0；cap_fixed查询1651、hits1107，未付费外部祖先命中0、补计费用0。源码条件缺口本批未触发，无须修订本批路径费用。分组短结论见`outputs/mobile_v2_formal_source_cache_owner_summary_v1.json`；额外聚合核对在完成后纳入最终交付。
 3. 等`outputs/mobile_v2_evidence_v1`完成。14逻辑目录352槽，预选完整代表和n3/n4评价0完整raw。核对包SHA、≤20MiB及恢复代表的原文件SHA；随后复制C研究目录`evidence/ev_mobile_v2/delivery`。
 4. 最终审计、空间、测试、成本和新工具字节快照纳入新证据清单。已有stage0/operations/formal_thresholds/poststats保持不改。
-5. 合并`outputs/mobile_v2_final_report_draft.md`与空间/费用报告，写简明`ev_mobile_v2_results.md`，更新README、复算入口与检查点。分别说明物理裕量、校准决策和预算/预测问题；不预设移动改善。
+5. 从已复核的`outputs/mobile_v2_final_report_draft_v2.md`继续，合并最终AC/打包和缓存核对，写简明`ev_mobile_v2_results.md`，更新README、复算入口与检查点。分别说明物理裕量、校准决策和预算/预测问题；不预设移动改善。
 6. scoped commit、普通push `https://github.com/tutu-er/Topo.git` 的`codex/ev-train-validation-design`。用户已明确授权，无需再问。核对无关PDF及pyproject的原SHA，不用`git add .`。
 7. 全部核对、提交推送完成后，给出三个问题的完整回答，将`topo-ev`设为PAUSED。未完成时继续保留检查点，不写成完成。
 

@@ -1,6 +1,6 @@
 # EV移动与误拒研究：复算入口
 
-本轮从`dde0f241`继续，guard60策略已冻结。两库共192校准、96独立评价及858组阈值核查完成；237项最终汇总测试通过。完整AC逐记录复核、源缓存费用与证据打包仍在运行，活跃PID和后续交付见`ev_mobile_v2_resume.md`。115份科学源码保持原字节。本文件后文保留原始计算方案；已完成统计、空间与测试证据入口为`evidence/ev_mobile_v2/poststats_20261016/manifest.json`。
+本轮从`dde0f241`继续，guard60策略已冻结。两库共192校准、96独立评价及858组阈值核查完成；237项最终汇总测试通过。源拟合缓存所有权288/288核对完成，未付费命中和未知分母均0；完整AC逐记录复核与证据打包仍在运行，活跃PID和后续交付见`ev_mobile_v2_resume.md`。115份科学源码保持原字节。本文件后文保留原始计算方案；已完成统计、空间与测试证据入口为`evidence/ev_mobile_v2/poststats_20261016/manifest.json`。
 
 源码工作树`C:/Users/23761/.codex/worktrees/36a1/Topo`，执行副本`D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015`，Python `D:/apps/miniconda3/envs/Topo/python.exe`。
 

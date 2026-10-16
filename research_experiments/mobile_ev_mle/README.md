@@ -1,7 +1,7 @@
 <!-- EV_MOBILE_V2_STATUS -->
 2026-10-16：69计数、误拒和移动价值研究的数值与统计完成；192校准、96独立评价，策略和阈值未据评价调整。
 数学与MILP见 [ev_mobile_v2_math.md](ev_mobile_v2_math.md)，复算见 [ev_mobile_v2_reproduce.md](ev_mobile_v2_reproduce.md)，检查点见 [ev_mobile_v2_checkpoint.json](ev_mobile_v2_checkpoint.json)。
-预声明空间32槽和237项汇总测试通过；全部逐记录AC复核、缓存费用核对和证据打包仍在运行。已归档统计/空间/测试原字节证据，尚未作完整交付声明。
+预声明空间32槽、237项汇总测试和288份源拟合缓存所有权核对通过；本批未触发未付费缓存。逐记录AC复核和证据打包仍在运行，尚未作完整交付声明。
 续接步骤与活跃PID见 [ev_mobile_v2_resume.md](ev_mobile_v2_resume.md)。
 <!-- END_EV_MOBILE_V2_STATUS -->
 
