@@ -1,6 +1,6 @@
 {
   "schema": "ev_mobile_reliability_v2_checkpoint",
-  "status": "formal_evaluation_running",
+  "status": "formal_statistics_complete_postprocessing_running",
   "branch": "codex/ev-train-validation-design",
   "canonical_workspace": "C:/Users/23761/.codex/worktrees/36a1/Topo",
   "execution_workspace": "D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015",
@@ -18,7 +18,13 @@
     "uncertainty and paired analysis: 10 tests and independent static review",
     "operational checkpoint retry recovery: 14 controller tests",
     "192 independent calibration histories merged",
-    "858 threshold groups independently checked; both banks saved before original evaluation launch"
+    "858 threshold groups independently checked; both banks saved before original evaluation launch",
+    "96 independent formal evaluation histories completed (48 per bank)",
+    "both-bank independent statistical and accounting checks passed",
+    "both-bank uncertainty and prespecified paired comparisons completed",
+    "8 predeclared spatial histories /32 method slots completed without failure",
+    "237 final aggregate implementation/audit tests passed; initial setup failure retained",
+    "115 frozen science files byte-checked unchanged in both workspaces"
   ],
   "formal_plan": {
     "banks": [
@@ -56,10 +62,10 @@
     "outputs/mobile_v2_formal_cal_worker1.log"
   ],
   "remaining": [
-    "execute each bank's 48 frozen-policy independent evaluation histories",
-    "independent physical, optimization, statistical and cost replay",
-    "deliver complete statistical evidence, prespecified full representatives, source snapshots and raw hashes",
-    "write final results, scoped commit and ordinary push"
+    "finish full saved-state AC replay groups a106/b106/c104 (cost4 passed; older pilot4/development28 passed)",
+    "finish source-cache owner audit288 and evidence package352",
+    "final interpretation/report and complete evidence archive",
+    "final scoped commit/push; pause topo-ev only after complete delivery"
   ],
   "constraints": [
     "do not change the 115 scientific source files during this frozen policy",
@@ -68,7 +74,7 @@
     "retain raw, numerical failures, legal fallback, unresolved and candidate-miss denominators",
     "preserve unrelated PDF and pyproject modifications"
   ],
-  "latest_pushed_commit": "77c7b7bd",
+  "latest_pushed_commit": "47592173",
   "continuation": {
     "kind": "thread heartbeat",
     "id": "topo-ev",
@@ -91,17 +97,10 @@
   },
   "resume_file": "ev_mobile_v2_resume.md",
   "last_verified_progress": {
-    "updated_utc": "2026-10-16T06:23:34.962994+00:00",
-    "controller_pid": 25832,
-    "progress": {
-      "counts": {
-        "n3_0": 2,
-        "n3_1": 2,
-        "n4_0": 0,
-        "n4_1": 0
-      },
-      "stage": "evaluation"
-    }
+    "updated_utc": "2026-10-16T09:25:37.776796+00:00",
+    "controller_status": "statistical_complete",
+    "calibration_histories": 192,
+    "evaluation_histories": 96
   },
   "operational_evidence": "evidence/ev_mobile_v2/operations_20261016/manifest.json",
   "calibration_evidence": "evidence/ev_mobile_v2/formal_thresholds/manifest.json",
@@ -125,15 +124,30 @@
     "scientific_policy_changed": false,
     "timing_scope": "reported method times describe saved completed executions; lost partial work and process downtime are separate operational overhead"
   },
-  "active_controller": {
-    "pid": 25832,
-    "log": "outputs/mobile_v2_orchestrator_v4.log",
-    "stderr": "outputs/mobile_v2_orchestrator_v4.stderr.log",
-    "launch_kind": "host-permission hidden process",
-    "worker_pids": {
-      "0": 29056,
-      "1": 30616
+  "active_controller": null,
+  "updated_utc": "2026-10-16T09:25:37.776796+00:00",
+  "postprocessing": {
+    "physical_launch_manifest": "outputs/mobile_v2_physical_review_launch_v1.json",
+    "physical_review_pids": {
+      "a": 45900,
+      "b": 47152,
+      "c": 14224,
+      "cost": 34648
     },
-    "confirmed_utc": "2026-10-16T06:22:04+00:00"
+    "physical_review_expected_total": 320,
+    "physical_cost4_passed": true,
+    "owner_and_pack_supervisor_pid": 1004,
+    "owner_child_pid": 664,
+    "owner_pack_state": "outputs/mobile_v2_evidence_run_v1.json",
+    "spatial_complete": "outputs/mobile_v2_spatial_v1/summary.json",
+    "spatial_scope": {
+      "history_denominator": 8,
+      "method_slots": 32,
+      "actual_moved_slots": 7,
+      "distinct_moving_plans": 4,
+      "failed": 0
+    },
+    "test_report": "outputs/ev_mobile_v2_final_tests_v2.xml",
+    "poststats_evidence": "evidence/ev_mobile_v2/poststats_20261016/manifest.json"
   }
 }
