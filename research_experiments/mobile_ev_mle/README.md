@@ -1,8 +1,8 @@
 <!-- EV_MOBILE_V2_STATUS -->
-2026-10-16：69计数、误拒和移动价值研究的数值与统计完成；192校准、96独立评价，策略和阈值未据评价调整。
-数学与MILP见 [ev_mobile_v2_math.md](ev_mobile_v2_math.md)，复算见 [ev_mobile_v2_reproduce.md](ev_mobile_v2_reproduce.md)，检查点见 [ev_mobile_v2_checkpoint.json](ev_mobile_v2_checkpoint.json)。
-预声明空间32槽、237项汇总测试和288份源拟合缓存所有权核对通过；本批未触发未付费缓存。逐记录AC复核和证据打包仍在运行，尚未作完整交付声明。
-续接步骤与活跃PID见 [ev_mobile_v2_resume.md](ev_mobile_v2_resume.md)。
+2026-10-16：69计数、误拒与移动价值的冻结实验和审计完成。先读 [简明结果](ev_mobile_v2_results.md)，成本见 [完整成本与移动表](ev_mobile_v2_costs.md)。
+192校准、96独立评价；352来源槽物理回放、288份源拟合缓存归属、32空间槽及237项测试完成。评分减少多种方法误拒；移动收益依场景变化，较复杂梯度法暂未取得综合优势。
+数学见 [ev_mobile_v2_math.md](ev_mobile_v2_math.md)，复算及证据层次见 [ev_mobile_v2_reproduce.md](ev_mobile_v2_reproduce.md)，交付状态见 [ev_mobile_v2_checkpoint.json](ev_mobile_v2_checkpoint.json)。
+115份科学源码与评价前阈值保持原字节，原失败/未决均保留。本轮结束，不新增实验批次；原LaTeX/PDF未改。
 <!-- END_EV_MOBILE_V2_STATUS -->
 
 ## 最新：多场景统一比较与固定/联合线路（2026-10-16）
