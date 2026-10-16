@@ -114,3 +114,11 @@ io._write(out / "results.json", report)
 ```powershell
 python -m research_experiments.mobile_ev_mle.ev_mobile_v2_cache_owner_audit --directory outputs/mobile_v2_formal_cal_n3 outputs/mobile_v2_formal_cal_n4 outputs/mobile_v2_formal_eval_n3 outputs/mobile_v2_formal_eval_n4 --expected-count 288 --progress --output outputs/mobile_v2_formal_source_cache_owners_v1.json.gz
 ```
+
+正式结果另用`ev_mobile_v2_uncertainty.py`输出逐项Wilson区间和配对计数。每库48条历史时，1条改变对应2.08个百分点；例如0/48误拒的95% Wilson区间仍为0–7.41%。主比较固定为`label_AIC`相对`H_R`；同规则下另比较移动与固定点，不按评价挑选规则。失败时保留全部候选的历史仍在分母，失败数另列。
+
+```powershell
+python -m research_experiments.mobile_ev_mle.ev_mobile_v2_uncertainty --evaluation-report outputs/mobile_v2_formal_n3_analysis/evaluation_reliability_v2.json --records outputs/mobile_v2_formal_eval_n3 --bank n3 --output outputs/mobile_v2_formal_n3_analysis/uncertainty
+```
+
+两库分别执行。区间描述声明模拟分布中的重复历史事件率，各项分别报告，不提供同时覆盖，也不解释为某个拓扑的正确概率。
