@@ -1,6 +1,6 @@
 {
   "schema": "ev_mobile_reliability_v2_checkpoint",
-  "status": "formal_calibration_running",
+  "status": "formal_evaluation_running",
   "branch": "codex/ev-train-validation-design",
   "canonical_workspace": "C:/Users/23761/.codex/worktrees/36a1/Topo",
   "execution_workspace": "D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015",
@@ -16,7 +16,9 @@
     "mathematical model, derivation, prospective acceptance and independent calibration rules",
     "source-cache owner audit: 16 tests and independent static review",
     "uncertainty and paired analysis: 10 tests and independent static review",
-    "operational checkpoint retry recovery: 14 controller tests"
+    "operational checkpoint retry recovery: 14 controller tests",
+    "192 independent calibration histories merged",
+    "858 threshold groups independently checked; both banks saved before original evaluation launch"
   ],
   "formal_plan": {
     "banks": [
@@ -54,8 +56,6 @@
     "outputs/mobile_v2_formal_cal_worker1.log"
   ],
   "remaining": [
-    "finish and independently merge each bank's 96 calibration histories",
-    "save all five rules' immutable thresholds per bank",
     "execute each bank's 48 frozen-policy independent evaluation histories",
     "independent physical, optimization, statistical and cost replay",
     "deliver complete statistical evidence, prespecified full representatives, source snapshots and raw hashes",
@@ -68,7 +68,7 @@
     "retain raw, numerical failures, legal fallback, unresolved and candidate-miss denominators",
     "preserve unrelated PDF and pyproject modifications"
   ],
-  "latest_pushed_commit": "213eba7e",
+  "latest_pushed_commit": "77c7b7bd",
   "continuation": {
     "kind": "thread heartbeat",
     "id": "topo-ev",
@@ -81,27 +81,59 @@
     "failure": "PermissionError WinError 5 replacing operational checkpoint; calibration workers continued",
     "failure_log": "outputs/mobile_v2_orchestrator.log",
     "failed_hidden_launch_pid": 30092,
-    "current_pid": 15048,
-    "current_session": 82693,
-    "current_log": "outputs/mobile_v2_orchestrator_v3.log",
     "recovered_utc": "2026-10-16T05:03:28+00:00",
     "source_sha256": "2b4cee05388b6ae49ea51173fc523fe5cc1be4cd9fb53090b6bc1ced75876835",
     "tests": 14,
-    "scientific_policy_changed": false
+    "scientific_policy_changed": false,
+    "recovery_controller_pid": 15048,
+    "recovery_session": 82693,
+    "recovery_log": "outputs/mobile_v2_orchestrator_v3.log"
   },
   "resume_file": "ev_mobile_v2_resume.md",
   "last_verified_progress": {
-    "updated_utc": "2026-10-16T05:12:58.747410+00:00",
-    "controller_pid": 15048,
+    "updated_utc": "2026-10-16T06:23:34.962994+00:00",
+    "controller_pid": 25832,
     "progress": {
       "counts": {
-        "n3_0": 48,
-        "n3_1": 48,
-        "n4_0": 24,
-        "n4_1": 31
+        "n3_0": 2,
+        "n3_1": 2,
+        "n4_0": 0,
+        "n4_1": 0
       },
-      "stage": "calibration"
+      "stage": "evaluation"
     }
   },
-  "operational_evidence": "evidence/ev_mobile_v2/operations_20261016/manifest.json"
+  "operational_evidence": "evidence/ev_mobile_v2/operations_20261016/manifest.json",
+  "calibration_evidence": "evidence/ev_mobile_v2/formal_thresholds/manifest.json",
+  "evaluation_recovery": {
+    "schema": "EV_evaluation_operational_resume_v1",
+    "observed_dead_utc": "2026-10-16T06:14:19+00:00",
+    "previous_controller_pid": 15048,
+    "previous_worker_pids": [
+      45736,
+      43128
+    ],
+    "last_previous_progress_utc": "2026-10-16T06:11:02.333331+00:00",
+    "cause": "not established; no running matching Python process found by host query",
+    "new_controller_pid": 25832,
+    "new_controller_log": "outputs/mobile_v2_orchestrator_v4.log",
+    "new_worker_pids": {
+      "0": 29056,
+      "1": 30616
+    },
+    "recovery": "host-permission hidden Start-Process; existing thresholds and completed records retained, only missing ranges resumed",
+    "scientific_policy_changed": false,
+    "timing_scope": "reported method times describe saved completed executions; lost partial work and process downtime are separate operational overhead"
+  },
+  "active_controller": {
+    "pid": 25832,
+    "log": "outputs/mobile_v2_orchestrator_v4.log",
+    "stderr": "outputs/mobile_v2_orchestrator_v4.stderr.log",
+    "launch_kind": "host-permission hidden process",
+    "worker_pids": {
+      "0": 29056,
+      "1": 30616
+    },
+    "confirmed_utc": "2026-10-16T06:22:04+00:00"
+  }
 }

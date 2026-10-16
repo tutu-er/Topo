@@ -14,11 +14,13 @@
 
 ## 正在运行的计算
 
-先读`outputs/mobile_v2_orchestration_checkpoint.json`及新调度日志，核对PID是否活跃。校准worker原会话为36961/42087；它们分别依次运行n3、n4的前48与后48条。它们向`outputs/mobile_v2_formal_cal_worker0.log`、`worker1.log`写入。
+先读`outputs/mobile_v2_orchestration_checkpoint.json`及新调度日志，核对PID是否活跃。校准worker原会话36961/42087均已正常结束；两库各96条校准已完成，阈值独立核查通过。原日志`outputs/mobile_v2_formal_cal_worker0.log`、`worker1.log`保留。
 
 旧controller会话41992/PID44904因Windows检查点替换错误退出，失败日志`outputs/mobile_v2_orchestrator.log`保留。恢复后的PID和日志写在研究检查点中。控制程序完成合并校准、保存两库全部阈值后，才自动启动2个评价worker，最后输出统计与元数据。
 
-恢复controller为会话82693/PID15048，日志`outputs/mobile_v2_orchestrator_v3.log`。05:03 UTC已确认恢复并保留现有记录。检查点写入增加有界重试，仅改运行管理；14项controller测试通过。第一次隐藏启动未形成持续进度（v2空日志/PID30092已退出），因此改用`exec_command`运行前台Python并取得长会话。本环境启动后处理优先采用相同长会话方式；若使用`Start-Process`，仍须用Hidden并复查存活。
+第一次恢复为会话82693/PID15048，日志`outputs/mobile_v2_orchestrator_v3.log`。该进程在06:10 UTC保存两库阈值后启动评价。06:14主机查询发现它及两个评价进程均已退出，具体退出原因未确定；已完成记录保留。随后以主机权限运行隐藏`Start-Process`恢复：**当前controller为PID25832，日志`outputs/mobile_v2_orchestrator_v4.log`、错误日志`outputs/mobile_v2_orchestrator_v4.stderr.log`，评价worker为29056/30616**。06:22 UTC已确认启动命令返回后仍存活，按既有阈值跳过完成记录续跑。
+
+普通沙箱内第一次隐藏启动未形成持续进度（v2空日志/PID30092已退出）；前台长会话曾跨heartbeat持续，但本次普通用户消息后会话标识已不可用，进程也已退出。后台后处理可采用主机权限隐藏进程，并保存PID、日志、退出信息；随后再次只读确认存活。若采用前台长会话，也须在后续续接重新检查。检查点重试修复的14项测试已通过，115份科学源码保持冻结。
 
 跨执行会话的沙箱进程查询可能看不到正在运行的PID：本轮15048在普通`Get-Process`中不可见，但长会话仍运行、日志持续更新，主机只读查询也确认存活。**不要因一次普通PID查询失败便重启。** 先检查会话返回与日志推进；有疑问时用有权限的只读进程查询核实，再决定是否恢复。
 
@@ -67,6 +69,7 @@ python -m research_experiments.mobile_ev_mle.ev_mobile_v2_uncertainty --evaluati
 
 - 旧69/72：曲线仅25/72相同，第一名及保留集72/72相同；三共同失败为短训练star被多2个参数的clade12替代。旧108/72已用于新规则开发，不再算独立验证。
 - 主预声明规则比较：同动作`label_AIC`相对`H_R`。其余3规则解释性报告；误拒减少与未决增加分别列。
+- 校准阈值与门审计已交付`evidence/ev_mobile_v2/formal_thresholds/`；858组分组/顺序统计量核对通过，原始阈值字节与SHA保留。评价尚在运行，不将校准结果当独立效果。
 - 移动：报告真实移动次数、实际AC裕量、校准决策及驾驶/接线成本；区分继承固定点、直接梯度步骤、只因阈值改变的决策差异。空间反事实仅8个事前选定历史。
 - 训练每拓扑仍一组参考参数；B竞争者与最终联合推断允许一组线路同时解释既有与新增数据。结果是局部取得拟合，不称全局MLE。
 - B保护可能挡住有效移动，且局部线性保护会锁住远处可行解；已有开发反例在`ev_mobile_v2_guard_reachability.md`。新策略是否改善，由正式独立结果判断。
