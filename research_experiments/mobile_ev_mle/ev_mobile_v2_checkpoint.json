@@ -13,16 +13,31 @@
     "guard30 28-slot development, failures retained",
     "guard60 cost acceptance on 4 reused development slots",
     "144 implementation and independent-audit tests",
-    "mathematical model, derivation, prospective acceptance and independent calibration rules"
+    "mathematical model, derivation, prospective acceptance and independent calibration rules",
+    "source-cache owner audit: 16 tests and independent static review",
+    "uncertainty and paired analysis: 10 tests and independent static review",
+    "operational checkpoint retry recovery: 14 controller tests"
   ],
   "formal_plan": {
-    "banks": ["n3", "n4"],
+    "banks": [
+      "n3",
+      "n4"
+    ],
     "calibration_per_bank": 96,
     "evaluation_per_bank": 48,
     "methods": 11,
     "inference_modes": 3,
-    "rules": ["global_R", "H_R", "label_R", "global_AIC", "label_AIC"],
-    "primary_rule_comparison": ["label_AIC", "H_R"],
+    "rules": [
+      "global_R",
+      "H_R",
+      "label_R",
+      "global_AIC",
+      "label_AIC"
+    ],
+    "primary_rule_comparison": [
+      "label_AIC",
+      "H_R"
+    ],
     "planning_soft_seconds": 60,
     "single_MILP_seconds": 2,
     "compute_workers": 2,
@@ -34,7 +49,10 @@
     "outputs/mobile_v2_formal_cal_n4_part0",
     "outputs/mobile_v2_formal_cal_n4_part1"
   ],
-  "calibration_worker_logs": ["outputs/mobile_v2_formal_cal_worker0.log", "outputs/mobile_v2_formal_cal_worker1.log"],
+  "calibration_worker_logs": [
+    "outputs/mobile_v2_formal_cal_worker0.log",
+    "outputs/mobile_v2_formal_cal_worker1.log"
+  ],
   "remaining": [
     "finish and independently merge each bank's 96 calibration histories",
     "save all five rules' immutable thresholds per bank",
@@ -49,5 +67,41 @@
     "do not run physical audits concurrently with action planning",
     "retain raw, numerical failures, legal fallback, unresolved and candidate-miss denominators",
     "preserve unrelated PDF and pyproject modifications"
-  ]
+  ],
+  "latest_pushed_commit": "213eba7e",
+  "continuation": {
+    "kind": "thread heartbeat",
+    "id": "topo-ev",
+    "interval_minutes": 20,
+    "stop_condition": "all frozen evaluation, audits, delivery, report and push complete; then pause"
+  },
+  "controller_recovery": {
+    "previous_pid": 44904,
+    "previous_session": 41992,
+    "failure": "PermissionError WinError 5 replacing operational checkpoint; calibration workers continued",
+    "failure_log": "outputs/mobile_v2_orchestrator.log",
+    "failed_hidden_launch_pid": 30092,
+    "current_pid": 15048,
+    "current_session": 82693,
+    "current_log": "outputs/mobile_v2_orchestrator_v3.log",
+    "recovered_utc": "2026-10-16T05:03:28+00:00",
+    "source_sha256": "2b4cee05388b6ae49ea51173fc523fe5cc1be4cd9fb53090b6bc1ced75876835",
+    "tests": 14,
+    "scientific_policy_changed": false
+  },
+  "resume_file": "ev_mobile_v2_resume.md",
+  "last_verified_progress": {
+    "updated_utc": "2026-10-16T05:12:58.747410+00:00",
+    "controller_pid": 15048,
+    "progress": {
+      "counts": {
+        "n3_0": 48,
+        "n3_1": 48,
+        "n4_0": 24,
+        "n4_1": 31
+      },
+      "stage": "calibration"
+    }
+  },
+  "operational_evidence": "evidence/ev_mobile_v2/operations_20261016/manifest.json"
 }

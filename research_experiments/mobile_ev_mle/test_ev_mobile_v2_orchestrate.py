@@ -136,3 +136,43 @@ def test_changed_calibration_rule_is_rejected_even_if_policy_matches(tmp_path):
     for bank in control.BANKS:thresholds(tmp_path,bank)
     path=thresholds(tmp_path,'n4');value=io._read(path);value['alpha']=.2;io._write(path,value)
     with pytest.raises(ValueError,match='identity/count/rules differ'):control.require_thresholds(tmp_path)
+
+
+def test_atomic_checkpoint_retries_one_transient_lock_and_uses_unique_temp(tmp_path,monkeypatch):
+    path=tmp_path/'checkpoint.json';path.write_bytes(b'{"old": true}\n')
+    original_replace=control.os.replace;calls=[];sleeps=[]
+    def once(source,target):
+        calls.append((Path(source),Path(target)))
+        if len(calls)==1:
+            assert path.read_bytes()==b'{"old": true}\n'
+            failure=PermissionError('transient reader lock');failure.winerror=5;raise failure
+        original_replace(source,target)
+    monkeypatch.setattr(control.os,'replace',once);monkeypatch.setattr(control.time,'sleep',sleeps.append)
+    control.atomic_checkpoint_write(path,dict(new=True),delays=(.01,.02))
+    assert io._read(path)==dict(new=True) and sleeps==[.01]
+    assert len(calls)==2 and calls[0][0]==calls[1][0]
+    assert calls[0][0]!=path.with_name(path.name+'.tmp')
+    assert not calls[0][0].exists()
+
+
+def test_atomic_checkpoint_exhaustion_raises_and_preserves_original_and_payload(tmp_path,monkeypatch):
+    path=tmp_path/'checkpoint.json';original=b'{"original": 17}\n';path.write_bytes(original)
+    calls=[];sleeps=[]
+    def blocked(source,target):
+        calls.append(Path(source));failure=PermissionError('persistent lock');failure.winerror=32;raise failure
+    monkeypatch.setattr(control.os,'replace',blocked);monkeypatch.setattr(control.time,'sleep',sleeps.append)
+    with pytest.raises(PermissionError,match='persistent lock') as error:
+        control.atomic_checkpoint_write(path,dict(new=23),delays=(.01,.02))
+    assert len(calls)==3 and len(set(calls))==1 and sleeps==[.01,.02]
+    assert path.read_bytes()==original and io._read(calls[0])==dict(new=23)
+    assert any(str(calls[0]) in note for note in error.value.__notes__)
+
+
+def test_atomic_checkpoint_does_not_retry_unrelated_filesystem_failure(tmp_path,monkeypatch):
+    path=tmp_path/'checkpoint.json';path.write_bytes(b'{"old": 1}\n');calls=[]
+    def broken(source,target):
+        calls.append(source);failure=OSError('disk full');failure.winerror=112;raise failure
+    monkeypatch.setattr(control.os,'replace',broken)
+    monkeypatch.setattr(control.time,'sleep',lambda value:pytest.fail('unrelated errors must not retry'))
+    with pytest.raises(OSError,match='disk full'):control.atomic_checkpoint_write(path,dict(new=2))
+    assert len(calls)==1 and path.read_bytes()==b'{"old": 1}\n'

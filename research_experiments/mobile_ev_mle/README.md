@@ -2,6 +2,7 @@
 2026-10-16：新增“69计数、误拒和移动价值”研究。
 数学与MILP见 [ev_mobile_v2_math.md](ev_mobile_v2_math.md)，复算见 [ev_mobile_v2_reproduce.md](ev_mobile_v2_reproduce.md)，当前阶段见 [ev_mobile_v2_checkpoint.json](ev_mobile_v2_checkpoint.json)。
 原版/保护版开发、计算失败和源码快照已保存；guard60正式校准正在运行，正式评价结论尚未给出。
+本轮自动续接与完成步骤见 [ev_mobile_v2_resume.md](ev_mobile_v2_resume.md)。
 <!-- END_EV_MOBILE_V2_STATUS -->
 
 ## 最新：多场景统一比较与固定/联合线路（2026-10-16）

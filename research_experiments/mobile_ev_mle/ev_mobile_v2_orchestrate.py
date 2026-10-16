@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from hashlib import sha256
@@ -29,6 +30,35 @@ STUDY='research_experiments.mobile_ev_mle.ev_mobile_v2_study'
 
 
 def utc():return datetime.now(timezone.utc).isoformat()
+
+
+CHECKPOINT_RETRY_DELAYS=(.05,.1,.2,.4,.8,1.)
+
+
+def atomic_checkpoint_write(path,value,*,delays=CHECKPOINT_RETRY_DELAYS):
+    """Atomically replace operational metadata, retrying transient Windows locks.
+
+    A unique sibling temp prevents competing writes from sharing a temp name.
+    A persistent error is raised with the completed temp path retained; the
+    original checkpoint is never truncated. Scientific case files are not used.
+    """
+    path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
+    descriptor,name=tempfile.mkstemp(prefix=path.name+'.',suffix='.tmp',dir=path.parent)
+    temporary=Path(name)
+    try:
+        with os.fdopen(descriptor,'wb') as stream:
+            stream.write(io._encoded(value).encode('utf-8'));stream.flush();os.fsync(stream.fileno())
+        for attempt in range(len(delays)+1):
+            try:
+                os.replace(temporary,path)
+                return
+            except OSError as exc:
+                transient=isinstance(exc,PermissionError) or getattr(exc,'winerror',None) in (5,32,33)
+                if not transient or attempt==len(delays):raise
+                time.sleep(delays[attempt])
+    except BaseException as exc:
+        exc.add_note('Operational checkpoint original retained after failed atomic write; temporary payload: '+str(temporary))
+        raise
 
 
 def progress_json(path):
@@ -130,23 +160,23 @@ def evaluation_worker(root,part,python):
     root=Path(root).resolve();status=root/'outputs'/f'mobile_v2_evaluation_worker{part}.json'
     require_thresholds(root)
     state=dict(worker=part,pid=os.getpid(),status='running',started_utc=utc(),policy_id=POLICY)
-    io._write(status,state)
+    atomic_checkpoint_write(status,state)
     try:
         for bank in BANKS:
             directory=part_directory(root,bank,'evaluation',part)
             for start,stop in missing_ranges(directory,bank,part):
-                state.update(bank=bank,start=start,stop=stop);io._write(status,state)
+                state.update(bank=bank,start=start,stop=stop);atomic_checkpoint_write(status,state)
                 args=[str(python),'-m',STUDY,'--bank',bank,'--phase','evaluation','--start',str(start),'--stop',str(stop),'--output',str(directory)]
                 value=subprocess.run(args,cwd=root,env=single_thread_env(),stdin=subprocess.DEVNULL,
                     creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
                 if value.returncode:raise RuntimeError('evaluation child exited '+str(value.returncode))
             if part_progress(directory,bank,'evaluation',part)['count']!=24:
                 raise RuntimeError('evaluation child returned without all declared records')
-            io._write(directory/'orchestration_complete.json',dict(policy_id=POLICY,phase='evaluation',bank=bank,
+            atomic_checkpoint_write(directory/'orchestration_complete.json',dict(policy_id=POLICY,phase='evaluation',bank=bank,
                 start=24*part,stop=24*(part+1),completed=24,worker=part,completed_utc=utc()))
-        state.update(status='complete',finished_utc=utc());io._write(status,state)
+        state.update(status='complete',finished_utc=utc());atomic_checkpoint_write(status,state)
     except BaseException as exc:
-        state.update(status='failed',failure=type(exc).__name__+': '+str(exc),finished_utc=utc());io._write(status,state)
+        state.update(status='failed',failure=type(exc).__name__+': '+str(exc),finished_utc=utc());atomic_checkpoint_write(status,state)
         raise
 
 
@@ -165,7 +195,7 @@ class Controller:
         self.save()
 
     def save(self):
-        self.state['updated_utc']=utc();io._write(self.path,self.state)
+        self.state['updated_utc']=utc();atomic_checkpoint_write(self.path,self.state)
 
     def done(self,name,**details):
         self.state['steps'][name]=dict(completed_utc=utc(),**details);self.save()
