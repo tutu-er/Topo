@@ -235,3 +235,94 @@ def test_physical_violation_is_rejected_at_the_original_tolerance(monkeypatch):
     assert out['exact_score'] == pytest.approx(.04)
     assert out['selected_origin'] == 'initial_operation:parent'
     assert not out['solver']['operation_incumbent_audit']['feasible']
+
+
+def _ev_throughput_provider(T, n, per_time_power, total_abs_power):
+    """Independent test certificate: one site per time, a global L1 budget."""
+    per_time_power = np.broadcast_to(np.asarray(per_time_power, float), (T,))
+    def provider(pair, factor_index, factor):
+        assert factor['control_shape'] == (T, n)
+        w = np.max(abs(factor['coefficient'].reshape(T, n)), axis=1)
+        remaining, bound = total_abs_power, 0.
+        for t in np.argsort(-w):
+            used = min(remaining, per_time_power[t])
+            bound += w[t] * used; remaining -= used
+        return dict(lower=factor['intercept'] - bound, upper=factor['intercept'] + bound,
+                    metadata=dict(proof='single EV/site per time and global absolute-power budget',
+                                  factor_index=factor_index, total_abs_power=total_abs_power))
+    return provider
+
+
+def test_factor_callback_intersection_metadata_and_invalid_bounds():
+    pair = _pair('a','b',[1.],[[1.,2.]],center=np.zeros((1,2)))
+    def provider(pair,index,factor):
+        return dict(lower=-.5,upper=.8,metadata={'reason':'test domain support'})
+    data=v3.pair_chord_data(pair,[-1.,-1.],[1.,1.],factor_bounds_provider=provider)
+    factor=data['factors'][0]
+    assert factor['lower'] >= factor['box_lower']
+    assert factor['upper'] <= factor['box_upper']
+    assert factor['supplied_bounds']['metadata']['reason']=='test domain support'
+    with pytest.raises(ValueError,match='empty intersection'):
+        v3.pair_chord_data(pair,[-1.,-1.],[1.,1.],factor_bounds_provider=lambda *a:dict(lower=20.,upper=30.))
+    with pytest.raises(ValueError,match='finite ordered'):
+        v3.pair_chord_data(pair,[-1.,-1.],[1.,1.],factor_bounds_provider=lambda *a:dict(lower=np.nan,upper=1.))
+
+
+def test_single_ev_bound_contains_tiny_signed_finite_energy_domain():
+    from itertools import product
+    T,n=2,2
+    pair=_pair('a','b',[2.,-.7],[[1.,-3.,.5,2.],[.2,.7,-1.,2.]],center=np.zeros((T,n)))
+    provider=_ev_throughput_provider(T,n,[1.,1.],1.)
+    data=v3.pair_chord_data(pair,-np.ones(4),np.ones(4),factor_bounds_provider=provider)
+    feasible=[]
+    for flat in product((-1.,0.,1.),repeat=4):
+        power=np.asarray(flat).reshape(T,n)
+        if np.any(np.count_nonzero(power,axis=1)>1) or abs(power).sum()>1:continue
+        feasible.append(power)
+        assert v3.chord_upper_value(pair,power,data)>=v3.evaluate_pair(pair,power)-1e-10
+        for factor in data['factors']:
+            value=factor['intercept']+factor['coefficient']@power.ravel()
+            assert factor['lower']-1e-12<=value<=factor['upper']+1e-12
+    assert len(feasible)==9
+    assert any(f['upper']-f['lower']<f['box_upper']-f['box_lower']-1e-8 for f in data['factors'])
+
+
+def test_ev_bounds_contain_real_public_operation_curves_without_solving():
+    from .ev_mobile_v3_cases import service_domain
+    from .ev_gradient_flow_study import public_curves
+    T,n=12,3;domain=service_domain(T,n,mobile=True);ix=domain.indices;cfg=domain.config
+    cap=np.max(cfg.arrays()['charge'],axis=1)
+    budget=cfg.max_throughput_kwh/cfg.dt_hours
+    rng=np.random.default_rng(12)
+    pair=_pair('a','b',rng.normal(size=3),rng.normal(size=(3,T*n)),center=np.zeros((T,n)))
+    provider=_ev_throughput_provider(T,n,cap,budget)
+    data=v3.pair_chord_data(pair,-np.tile(cap[:,None],(1,n)).ravel(),
+                            np.tile(cap[:,None],(1,n)).ravel(),factor_bounds_provider=provider)
+    curves=public_curves(T,n)
+    for name in ('constant','highlow','analytic_square'):
+        u=curves[name];x=np.zeros(domain.model.n_variables)
+        pp,pm=np.maximum(u,0.),np.maximum(-u,0.)
+        x[ix.u]=u;x[ix.charge]=pp;x[ix.discharge]=pm;x[ix.mode]=(u.max(axis=1)>0).astype(int)
+        x[ix.energy]=np.r_[cfg.initial_soc*cfg.battery_capacity_kwh,
+            cfg.initial_soc*cfg.battery_capacity_kwh+np.cumsum(cfg.dt_hours*(cfg.eta_charge*pp.sum(axis=1)-pm.sum(axis=1)/cfg.eta_discharge))]
+        for i,arc in zip(ix.arc,ix.arcs):
+            if arc.kind=='connected' and arc.origin==0:x[i]=1.
+        assert domain.check(x)['feasible']
+        for f in data['factors']:
+            value=f['intercept']+f['coefficient']@u.ravel()
+            assert f['lower']-1e-10<=value<=f['upper']+1e-10
+
+
+def test_extra_valid_factor_bounds_reach_master_without_changing_attained_optimum():
+    pairs=[_pair(a,b,[0.],[[1.,1.]],center=np.zeros((2,1)))
+           for a,b in [('a','b'),('b','a')]]
+    domain=_box([0.,0.],[1.,1.],constraints=[LinearConstraint([[1.,1.]],-np.inf,1.)])
+    provider=_ev_throughput_provider(2,1,[1.,1.],1.)
+    out=v3.solve_projected_milp(pairs,domain,segments=4,solver_seconds=5.,backend='scipy',
+                               factor_bounds_provider=provider)
+    assert out['success'] and out['factor_bounds_provider_used']
+    assert out['exact_score']==pytest.approx(.5)
+    assert out['best_bound']>=.5-1e-10
+    factor=out['factor_ranges'][0]['factors'][0]
+    assert factor['upper']-factor['lower'] < factor['box_upper']-factor['box_lower']
+    assert factor['supplied_bounds']['metadata']['total_abs_power']==1.

@@ -146,3 +146,50 @@ def tighten_operation_bounds(domain, *, cost_tolerance=1e-9):
     reach["tightened_variable_indices"] = tightened_variables
     operation["graph_reachability"] = reach
     return operation
+
+
+def fractional_absolute_bound(weights, caps, budget):
+    """Max sum(w*a), 0<=a<=caps, sum(a)<=budget, by fractional knapsack.
+
+    This is a bound on an affine factor, not an EV action selector. Sorting
+    scalar coefficients never enumerates routes or complete control curves.
+    """
+    weights,caps=np.asarray(weights,float),np.asarray(caps,float)
+    if (weights.ndim!=1 or caps.shape!=weights.shape or
+        not np.isfinite([weights,caps]).all() or np.any(weights<0) or np.any(caps<0)
+        or not np.isfinite(budget) or budget<0):
+        raise ValueError('nonnegative finite matching weights/caps and budget')
+    remaining=float(budget);allocation=np.zeros_like(caps)
+    for i in np.argsort(-weights,kind='stable'):
+        take=min(float(caps[i]),remaining);allocation[i]=take;remaining-=take
+        if remaining<=0:break
+    return float(weights@allocation),allocation
+
+
+def factor_bound_provider(domain, operation=None):
+    """Use single-site occupancy and throughput to tighten affine-square ranges.
+
+    For each t, |beta_t u_t|<=max_j|beta_tj|*a_t where a_t=sum_j|u_tj|.
+    Single-EV occupancy bounds a_t by the largest admissible slot power, and
+    throughput bounds sum a_t by B/dt. The fractional allocation is a relaxation
+    of the actual route/SOC domain, so its support value is an upper bound.
+    """
+    op=tighten_operation_bounds(domain) if operation is None else operation
+    shape=tuple(domain.indices.u.shape)
+    low=np.asarray(op['control_lower'],float).reshape(shape)
+    high=np.asarray(op['control_upper'],float).reshape(shape)
+    caps=np.max(np.maximum(abs(low),abs(high)),axis=1)
+    throughput=domain.config.max_throughput_kwh
+    budget=float(caps.sum()) if throughput is None else float(throughput)/domain.config.dt_hours
+    def provide(pair,index,data):
+        beta=np.asarray(data['coefficient'],float).reshape(shape)
+        bound,allocation=fractional_absolute_bound(np.max(abs(beta),axis=1),caps,budget)
+        center=float(data['intercept'])
+        # An outward numerical guard preserves factors on an exact boundary.
+        guard=1e-11*(1+abs(center)+bound)
+        return dict(lower=center-bound-guard,upper=center+bound+guard,
+            metadata=dict(source='single_EV_per_slot_and_public_throughput',
+                absolute_control_sum_bound_kw_slots=budget,slot_absolute_caps_kw=caps,
+                relaxed_support_allocation_kw=allocation,absolute_factor_bound=bound,
+                score_is_probability=False))
+    return provide

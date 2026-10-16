@@ -286,7 +286,7 @@ def _named(values, shape, prefix):
     return items
 
 
-def pair_chord_data(pair, low, high, *, segments=4):
+def pair_chord_data(pair, low, high, *, segments=4, factor_bounds_provider=None):
     """Affine-factor ranges and rigorous algebraic square-chord error terms.
 
     The rank remainder allowance bounds the absolute score change caused by
@@ -299,13 +299,34 @@ def pair_chord_data(pair, low, high, *, segments=4):
         raise ValueError('matching ordered control bounds required')
     center = pair.reference_u.ravel(order='C')
     factors = []
-    for alpha, beta in zip(pair.factor_offset, pair.factor_control):
+    if factor_bounds_provider is not None and not callable(factor_bounds_provider):
+        raise TypeError('factor_bounds_provider must be callable or None')
+    for factor_index, (alpha, beta) in enumerate(zip(pair.factor_offset, pair.factor_control)):
         intercept = float(alpha - beta @ center)
         lower = float(intercept + np.where(beta >= 0, beta * low, beta * high).sum())
         upper = float(intercept + np.where(beta >= 0, beta * high, beta * low).sum())
+        box_lower, box_upper = lower, upper
+        supplied = None
+        if factor_bounds_provider is not None:
+            primitive = dict(intercept=intercept, coefficient=beta.copy(),
+                lower=box_lower, upper=box_upper, control_shape=pair.control_shape,
+                reference_u=pair.reference_u.copy())
+            supplied = factor_bounds_provider(pair, factor_index, primitive)
+            if supplied is not None:
+                if not isinstance(supplied, Mapping) or 'lower' not in supplied or 'upper' not in supplied:
+                    raise ValueError('factor bound callback must return None or lower/upper/metadata mapping')
+                extra_low, extra_high = float(supplied['lower']), float(supplied['upper'])
+                if not np.isfinite([extra_low, extra_high]).all() or extra_low > extra_high:
+                    raise ValueError('factor bound callback must return finite ordered bounds')
+                lower, upper = max(lower, extra_low), min(upper, extra_high)
+                if lower > upper:
+                    raise ValueError('factor bound callback has empty intersection with the control box')
         grid = np.unique(np.linspace(lower, upper, int(segments) + 1)) if upper > lower else np.array([lower])
         factors.append(dict(intercept=intercept, coefficient=beta.copy(), lower=lower, upper=upper,
-                            grid=grid, chord_error=float(np.max(np.diff(grid) ** 2, initial=0.) / 8.)))
+            box_lower=box_lower, box_upper=box_upper,
+            supplied_bounds=None if supplied is None else dict(lower=float(supplied['lower']),
+                upper=float(supplied['upper']), metadata=supplied.get('metadata')),
+            grid=grid, chord_error=float(np.max(np.diff(grid) ** 2, initial=0.) / 8.)))
     radius = float(np.linalg.norm(np.maximum(abs(low - center), abs(high - center))))
     dropped = float(np.linalg.norm(pair.control_remainder, 2)) if pair.control_remainder.size else 0.
     retained_norm = float(np.linalg.norm(pair.factor_control, 2)) if pair.rank else 0.
@@ -338,7 +359,7 @@ def chord_upper_value(pair, u, chord_data):
     return float(total)
 
 
-def _master(pairs, labels, op, segments):
+def _master(pairs, labels, op, segments, factor_bounds_provider=None):
     n = len(op['lower'])
     lower, upper, integer = list(op['lower']), list(op['upper']), list(op['integrality'])
     rows, rowlow, rowhigh, row_kinds = [], [], [], []
@@ -359,7 +380,8 @@ def _master(pairs, labels, op, segments):
     eta = {a: var(-np.inf, np.inf) for a in labels}
     audits, segment_binaries, mode_variables = [], 0, []
     for pair in pairs:
-        audit = pair_chord_data(pair, op['control_lower'], op['control_upper'], segments=segments)
+        audit = pair_chord_data(pair, op['control_lower'], op['control_upper'], segments=segments,
+                                factor_bounds_provider=factor_bounds_provider)
         coefficients = {eta[pair.a_label]: 1.}
         right = audit['constant'] + audit['rank_error']
         for factor in audit['factors']:
@@ -432,7 +454,7 @@ def _reconstruct_auxiliaries(master, op, pairs, x):
 def solve_projected_milp(pairs, domain, initial_powers=(), *, initial_operations=(),
                          references=None, segments=4, solver_seconds=15., total_seconds=None,
                          mip_rel_gap=1e-4, absolute_gap=1e-6, relative_gap=1e-4,
-                         feasibility_tolerance=1e-7, backend='gurobi'):
+                         feasibility_tolerance=1e-7, backend='gurobi', factor_bounds_provider=None):
     """Maximize mean nearest gap over one complete EV operation MILP.
 
     ``initial_powers`` is a name->power mapping or a sequence of time/site
@@ -440,6 +462,12 @@ def solve_projected_milp(pairs, domain, initial_powers=(), *, initial_operations
     ``initial_operations`` supplies already known x vectors and avoids that
     cost.  Exact quadratic comparison protects every checked parent.  A solver
     limit may return a valid plan with an unfinished proxy-optimality gap.
+
+    Optional callback ``provider(pair, factor_index, primitive)`` supplies
+    additional valid factor bounds as ``dict(lower=..., upper=..., metadata=...)``
+    or None.  Primitive includes coefficient, intercept and control_shape.
+    The provider owns validity over the *whole* operation domain.  Bounds are
+    intersected with the coordinate box and their provenance is recorded.
     """
     began = perf_counter()
     pairs, labels = _pairs_and_labels(pairs, references)
@@ -501,7 +529,7 @@ def solve_projected_milp(pairs, domain, initial_powers=(), *, initial_operations
             record.update(success=True, exact_score=candidate['score'], power_difference=difference)
         except ValueError as exc: record['reason'] = str(exc)
 
-    master = _master(pairs, labels, op, segments)
+    master = _master(pairs, labels, op, segments, factor_bounds_provider=factor_bounds_provider)
     pair_audits = master['pair_audits']
     interpolation_error = float(np.mean([max(a['total_error'] for a in pair_audits if a['a'] == label) for label in labels]))
     box_upper = float(np.mean([min(a['box_upper'] for a in pair_audits if a['a'] == label) for label in labels]))
@@ -594,6 +622,8 @@ def solve_projected_milp(pairs, domain, initial_powers=(), *, initial_operations
                 n_operation_integer=int(np.count_nonzero(op['integrality'])),
                 n_segment_binary=master['segment_binaries'], all_pairs_count=len(pairs),
                 reference_labels=list(labels), seconds=perf_counter() - began,
+                factor_bounds_provider_used=factor_bounds_provider is not None,
+                factor_bound_scope='extra callback bounds require validity over the declared operation domain',
                 scope='numerical bounds for the declared frozen shared-nuisance linear projection proxy; not a global AC bound',
                 control_order='time-major C order', uses_truth=False, uses_future_noise=False,
                 full_curve_enumeration=False)

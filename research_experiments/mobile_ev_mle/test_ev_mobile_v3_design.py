@@ -33,7 +33,7 @@ def test_milp_proxy_improvement_requires_full_ac_acceptance(monkeypatch):
         dict(success=True,power_kw=new,operation_x=operation['x'],exact_score=1000.,best_bound=1000.))
     engine=Engine(lambda u:10. if np.allclose(u,parent) else 9.)
     u,record=design.projected_policy({},domain,{'parent':parent},engine=engine,
-        total_seconds=10.,max_steps=1)
+        total_seconds=10.,max_steps=1,support_seconds=0.)
     np.testing.assert_array_equal(u,parent)
     assert not record['steps'][0]['accepted']
     assert record['steps'][0]['AC_score']==9.
@@ -52,6 +52,6 @@ def test_failed_full_ac_proposal_is_recorded_and_parent_retained(monkeypatch):
         return original(u,**kwargs) if np.allclose(u,parent) else dict(success=False,score=None,failure='rival failed')
     engine.evaluate=evaluate
     u,record=design.projected_policy({},domain,{'parent':parent},engine=engine,
-        total_seconds=10.,max_steps=1)
+        total_seconds=10.,max_steps=1,support_seconds=0.)
     np.testing.assert_array_equal(u,parent)
     assert not record['steps'][0]['AC_profile']['success']

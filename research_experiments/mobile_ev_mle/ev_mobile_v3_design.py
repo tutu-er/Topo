@@ -12,18 +12,19 @@ from . import ev_mobile_v2_design as full
 from . import ev_mobile_v3_ac as ac
 from . import ev_mobile_v3_projection as proxy
 from . import ev_systematic_design as scalar
-from .ev_mobile_v3_domain import tighten_operation_bounds
+from .ev_mobile_v3_domain import tighten_operation_bounds, factor_bound_provider
+from .ev_mobile_v3_support import solve_support_start
 
 
 def projected_policy(context,domain,initials,*,seed=0,joint_options=None,
                      total_seconds=60.,solver_seconds=3.,segments=4,max_steps=1,
-                     engine=None):
+                     engine=None,support_seconds=.75):
     began=perf_counter(); deadline=began+total_seconds
     if not initials:raise ValueError('feasible parent required')
     engine=engine or full.JointPredictiveEngine(context,fit_options=joint_options,seed=seed)
     record=dict(success=False,initials=[],steps=[],failures=[],selected_origin=None,
         configuration=dict(total_seconds=total_seconds,solver_seconds=solver_seconds,
-            segments=segments,max_steps=max_steps),
+            segments=segments,max_steps=max_steps,support_seconds=support_seconds),
         reference_lines_fixed=True,one_trained_parameter_vector=True,
         competitors_shared_line_tangent=True,AC_acceptance_shared_lines=True,
         all_candidates_retained=True,uses_truth=False,uses_validation=False,
@@ -71,9 +72,20 @@ def projected_policy(context,domain,initials,*,seed=0,joint_options=None,
             if left<=0:row['failure']='budget after geometry';break
             operation=tighten_operation_bounds(domain)
             row['reachability']=operation['graph_reachability']
+            starts={'parent':best['x']}
+            support_began=perf_counter()
+            if support_seconds>0:
+                support=solve_support_start(pairs,operation,best['x'],
+                    solver_seconds=min(support_seconds,left),total_seconds=left)
+                row['support']=support
+                if support.get('operation_x') is not None:starts['support']=support['operation_x']
+            support_elapsed=perf_counter()-support_began
+            left=deadline-perf_counter()
+            if left<=0:row['failure']='budget after support warm start';break
             solved=proxy.solve_projected_milp(pairs,operation,
-                initial_operations=[best['x']],segments=segments,
-                solver_seconds=min(solver_seconds,left),total_seconds=left)
+                initial_operations=starts,segments=segments,
+                solver_seconds=min(max(.01,solver_seconds-support_elapsed),left),total_seconds=left,
+                factor_bounds_provider=factor_bound_provider(domain,operation))
             row['master']=solved
             proposed=solved.get('power_kw')
             if proposed is None:row['failure']='no MILP feasible incumbent';continue

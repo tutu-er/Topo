@@ -6,11 +6,15 @@ prediction ranking, without fitting or claiming new rejection thresholds.
 """
 from __future__ import annotations
 import argparse
+import base64
 import hashlib
+import platform
+import sys
 from pathlib import Path
 from time import perf_counter
 import traceback
 import numpy as np
+import scipy
 from . import ev_mobile_v3_cases as cases
 from . import ev_mobile_v3_design as design
 from . import ev_mobile_v2_design as v2design
@@ -28,9 +32,9 @@ from .information_context import meter_to_record
 HERE=Path(__file__).resolve().parent
 METHODS=('constant','highlow','square_fixed','square_mobile',
          'scalar_fixed','scalar_mobile','projection_fixed','projection_mobile')
-CONFIG=dict(version='mobile_v3_shared_projection_pilot1',T=12,
+CONFIG=dict(version='mobile_v3_shared_projection_pilot2',T=12,
     H=[8,96],banks=['n3','n4'],candidate_count=4,
-    domain_incremental_seconds=60.,solver_seconds=3.,segments=4,max_steps=1,
+    domain_incremental_seconds=60.,solver_seconds=3.,segments=4,max_steps=1,support_seconds=.75,
     scalar_grids=[3,9],no_new_calibration=True,
     information_scope='training only, one trained reference line per candidate',
     inference='full AC H+validation+future shared-line refit',
@@ -52,7 +56,7 @@ def specifications(phase):
 def hashes():
     result=v2study.source_hashes()
     names=('ev_mobile_v3_ac.py','ev_mobile_v3_cases.py','ev_mobile_v3_design.py',
-        'ev_mobile_v3_domain.py','ev_mobile_v3_projection.py','ev_mobile_v3_study.py')
+        'ev_mobile_v3_domain.py','ev_mobile_v3_projection.py','ev_mobile_v3_support.py','ev_mobile_v3_study.py')
     result.update({name:hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in names})
     return result
 
@@ -60,14 +64,20 @@ def hashes():
 def freeze(output):
     output=Path(output);output.mkdir(parents=True,exist_ok=True)
     record=dict(config=CONFIG,specifications={k:specifications(k) for k in ('development','evaluation')},
-        source_sha256=hashes(),methods=METHODS,old_frozen_science_unchanged=True)
+        source_sha256=hashes(),methods=METHODS,old_frozen_science_unchanged=True,
+        environment=dict(python=sys.version,numpy=np.__version__,scipy=scipy.__version__,platform=platform.platform()),
+        implementation_parent_commit='02fcc52c')
     record['policy_id']=io.identity(record['config'],record['source_sha256'])
     file=output/'freeze.json'
     if file.exists():
         old=io.read_json(file)
         if old!=io.serial(record):raise ValueError('freeze changed; use a new output directory')
         return old
-    io.write_json(file,record);return record
+    io.write_json(file,record)
+    payload={name:base64.b64encode(((HERE.parents[1]/name) if name.startswith('rnj_wzzt_core/') else HERE/name).read_bytes()).decode()
+        for name in record['source_sha256']}
+    io.write_json(output/'source_snapshot.json.gz',dict(source_sha256=record['source_sha256'],source_base64=payload),compressed=True)
+    return record
 
 
 def select(training,tm,bank,fits,fm,forecast,domains,cfg,seed):
@@ -108,7 +118,8 @@ def select(training,tm,bank,fits,fm,forecast,domains,cfg,seed):
         start=perf_counter();initials={'square_parent':plans['square_'+d]};deps=['square_'+d]
         if d=='mobile':initials={'fixed_parent':plans['projection_fixed'],**initials};deps+=['projection_fixed']
         u,row=design.projected_policy(ctx,domains[d],initials,seed=seed,joint_options=joint,
-            engine=engine,segments=CONFIG['segments'],max_steps=CONFIG['max_steps'],**common)
+            engine=engine,segments=CONFIG['segments'],max_steps=CONFIG['max_steps'],
+            support_seconds=CONFIG['support_seconds'],**common)
         name='projection_'+d
         plans[name]=np.asarray(u if u is not None else initials[next(iter(initials))]).copy()
         meta[name]=dict(raw=row,seconds=perf_counter()-start,dependencies=deps)
