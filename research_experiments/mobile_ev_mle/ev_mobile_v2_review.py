@@ -22,6 +22,7 @@ from .likelihood import RadialCandidate
 from . import ev_mobile_cases_v2 as newcases
 from . import ev_systematic_cases as oldcases
 from . import ev_systematic_scalar_audit as source_qp
+from . import ev_mobile_v2_guard_audit as floor_audit
 
 HERE = Path(__file__).resolve().parent
 METHODS = ('none', 'constant', 'highlow', 'square_fixed', 'square_mobile',
@@ -156,7 +157,7 @@ def _compare_score(saved, actual, label, metrics, *, selected=True):
     metrics['AC_block_replays'] += len(actual['blocks'])
 
 
-def review_trial(record):
+def review_trial(record,*,expected_reference_guard=None):
     """Preserve incomplete and inconsistent cases as separate outcomes."""
     began = perf_counter()
     errors, missing = [], []
@@ -295,7 +296,8 @@ def review_trial(record):
             absent('method action states/' + name, method.get('planning_failure') or reason)
     if not errors and not missing and record.get('status') == 'pipeline_failure':
         errors.append(dict(check='pipeline status', reason='failure status with complete states needs inspection'))
-    attempt('operations and planning arithmetic', lambda: audit_planning(record, methods, bank, trained, metrics))
+    attempt('operations and planning arithmetic', lambda: audit_planning(record, methods, bank, trained, metrics,
+        expected_reference_guard=expected_reference_guard))
     return _result(record, metrics, errors, missing, began)
 
 
@@ -605,7 +607,8 @@ def _gradient_policy(raw,domain,method_power,metrics):
             power=np.asarray(solved['power_kw']);close(power,x[domain.indices.u],'gradient proposal power projection')
             delta=power-np.asarray(current['power_kw']);change=float(np.max(abs(delta)))
             close(row['proposal_max_delta_kw'],change,'gradient proposal change')
-            trust=float(solved['trust_kw']);require(change<=trust+1e-7,'gradient trust region')
+            trust=float(solved.get('trust_kw',2*np.max(np.asarray(domain.config.p_charge_max_kw))))
+            require(change<=trust+1e-7,'gradient trust region')
             directional=float(np.mean([min(float(np.sum(np.asarray(p['gradient_per_kw'])*delta)) for p in group) for group in groups]))
             close(solved['attained_directional_gain'],directional,'gradient attained linear objective',atol=2e-7,rtol=2e-8)
             predicted=solved.get('predicted_directional_gain');bound=solved.get('linear_best_bound')
@@ -617,7 +620,11 @@ def _gradient_policy(raw,domain,method_power,metrics):
                 require(not row['accepted'] and 'raw_AC_joint_profile' not in row,'stopped step scored or accepted')
             elif 'raw_AC_joint_profile' in row:
                 trial=row['raw_AC_joint_profile'];close(trial['power_kw'],power,'gradient AC proposal inputs')
-                should=bool(trial.get('success') and trial['score']>current['score']+1e-9+1e-10*abs(current['score']))
+                guard_ok=True
+                if raw.get('reference_guard_enabled'):
+                    guard_ok,_=floor_audit.guard(trial,raw['reference_floor'],raw['guard_tolerance_coefficient'],
+                        list(raw['reference_floor']),row.get('reference_guard'))
+                should=bool(trial.get('success') and guard_ok and trial['score']>current['score']+1e-9+1e-10*abs(current['score']))
                 require(row['accepted']==should,'joint AC acceptance rule')
                 if should:current=trial;candidate_scores.append(current['score'])
             else:require(not row['accepted'],'accepted gradient step lacks AC predictive score')
@@ -699,7 +706,7 @@ def _proxy(record,raw,*,cap,metrics):
         require(solved.get('full_AC_global_gap') is None,'proxy bound mislabeled as AC global bound')
 
 
-def audit_planning(record,methods,bank,trained,metrics):
+def audit_planning(record,methods,bank,trained,metrics,*,expected_reference_guard=None):
     defaults=dict(source_profile_pair_checks=0,joint_profile_checks=0,joint_predictive_fit_checks=0,
         max_envelope_price_scaled_error=0.,recorded_failed_predictive_pairs=0,incremental_cache_cost_checks=0,
         gradient_MILP_checks=0,proxy_table_checks=0,proxy_endpoint_checks=0,proxy_MILP_checks=0,
@@ -709,6 +716,17 @@ def audit_planning(record,methods,bank,trained,metrics):
     selection=record['selection'];require(all(selection.get(k) is False for k in ('uses_truth','uses_validation','uses_future_noise')),
         'planning selection uses hidden inputs')
     n=len(record['training']['p'][0]);domains=_domains(record)
+    raw_evidence='delivery_provenance' not in record
+    metrics['planning_raw_evidence_available']=raw_evidence
+    metrics['reference_guard_checks']=0;metrics['reference_guard_MILP_checks']=0
+    if raw_evidence:
+        expected=bool(selection.get('capped_reference_floor',False)) if expected_reference_guard is None else expected_reference_guard
+        checked=floor_audit.audit_record(record,expected_guard=expected,domain=domains['mobile'])
+        metrics['reference_guard_checks']=checked['guard_checks']
+        metrics['reference_guard_MILP_checks']=checked['guard_MILP_checks']
+        metrics['reference_guard_rejected_initials']=checked['rejected_initials']
+        metrics['reference_guard_rejected_proposals']=checked['rejected_proposals']
+        metrics['reference_guard_legal_fixed_fallbacks']=checked['legal_fixed_fallbacks']
     require(len(bank)==len(record['candidates']),'candidate denominator')
     for row in record['candidates']:
         candidate=bank[row['name']]
@@ -722,6 +740,7 @@ def audit_planning(record,methods,bank,trained,metrics):
             close(replay['u_kw'],method['power_kw'],'operation/method power')
             close(method['operation']['driver_cost'],replay['driver_cost'],'saved driver cost')
             metrics['operation_replay_checks']+=1
+        if not raw_evidence:continue
         raw=metadata.get('raw',{})
         for profile in _profile_calls(raw,name.startswith('jointgrad'))+([raw['selected_profile']] if 'selected_profile' in raw else []):
             digest=sha256(json.dumps(profile,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -747,7 +766,7 @@ def audit_planning(record,methods,bank,trained,metrics):
                 close(raw['selected_score'],score,'source-objective selected score')
                 close(raw['selected_profile']['power_kw'],method['power_kw'],'source-objective selected curve')
         if name.startswith('jointgrad'):_gradient_policy(raw,domain,method['power_kw'],metrics)
-    _cache_costs(selection['methods'],metrics)
+    if raw_evidence:_cache_costs(selection['methods'],metrics)
 
 
 def _result(record, metrics, errors, missing, began):
@@ -767,11 +786,11 @@ def source_audit(directory):
     for name, expected in hashes.items():
         require(sha256(base64.b64decode(payloads[name], validate=True)).hexdigest() == expected,
                 'frozen source payload hash: ' + name)
-    return dict(policy_id=freeze['policy_id'], source_sha256=hashes, source_count=len(hashes),
+    return dict(policy_id=freeze['policy_id'], source_sha256=hashes, source_count=len(hashes),config=freeze.get('config',{}),
                 snapshot_sha256=sha256((directory / 'source_snapshot.json.gz').read_bytes()).hexdigest())
 
 
-def review_directories(directories, *, expected_count=None):
+def review_directories(directories, *, expected_count=None,progress=False):
     began = perf_counter()
     rows, audits, seen = [], [], set()
     for value in directories:
@@ -793,14 +812,17 @@ def review_directories(directories, *, expected_count=None):
                 if audit is not None:
                     require(record['policy_id'] == audit['policy_id'] and record['source_sha256'] == audit['source_sha256'],
                             'record/freeze identity differs')
-                row = review_trial(record)
+                row = review_trial(record,expected_reference_guard=None if audit is None else
+                    bool(audit['config'].get('capped_reference_floor',False)))
             except (OSError, EOFError, ValueError, KeyError, TypeError, IndexError, AssertionError,
                     FloatingPointError, np.linalg.LinAlgError) as exc:
                 row = dict(success=False, state_review_complete=False, available_checks_passed=False, status='failed',
                     errors=[dict(check='record/schema/replay', reason=type(exc).__name__ + ': ' + str(exc))], missing=[])
             row.update(input_path=str(path.resolve()), input_sha256=sha256(path.read_bytes()).hexdigest())
             rows.append(row)
-    tools = [Path(__file__), Path(physical.__file__), Path(source_qp.__file__),
+            if progress:print(json.dumps(dict(input=path.name,case_id=row.get('case_id'),seed=row.get('seed'),
+                status=row.get('status'),seconds=row.get('seconds'),reviewed=len(rows))),flush=True)
+    tools = [Path(__file__), Path(physical.__file__), Path(source_qp.__file__),Path(floor_audit.__file__),
         HERE/'ev_systematic_review.py',HERE/'ev_mobile_cases_v2.py',HERE/'ev_systematic_cases.py',
         HERE/'ev_mobile_service_domain.py',HERE/'likelihood.py',HERE.parent/'mobile_ev_probing/ac_general_v9.py']
     count_ok = expected_count is None or len(rows) == expected_count
@@ -823,6 +845,9 @@ def review_directories(directories, *, expected_count=None):
         proxy_endpoint_checks=sum(row.get('proxy_endpoint_checks',0) for row in rows),
         proxy_action_QP_checks=sum(row.get('proxy_action_QP_checks',0) for row in rows),
         operation_replay_checks=sum(row.get('operation_replay_checks',0) for row in rows),
+        reference_guard_checks=sum(row.get('reference_guard_checks',0) for row in rows),
+        reference_guard_MILP_checks=sum(row.get('reference_guard_MILP_checks',0) for row in rows),
+        full_planning_raw_cases=sum(row.get('planning_raw_evidence_available',False) for row in rows),
         PQ_once_checks=sum(row.get('PQ_once_checks', 0) for row in rows), source_audits=audits,
         independent_tool_sha256={str(path.resolve()): sha256(path.read_bytes()).hexdigest() for path in tools},
         cases=rows, seconds=perf_counter() - began,
@@ -834,8 +859,9 @@ def main():
     parser.add_argument('--directory', type=Path, nargs='+', required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--expected-count', type=int)
+    parser.add_argument('--progress',action='store_true')
     args = parser.parse_args()
-    result = review_directories(args.directory, expected_count=args.expected_count)
+    result = review_directories(args.directory, expected_count=args.expected_count,progress=args.progress)
     write(args.output, result)
     print(json.dumps({key: result[key] for key in ('success', 'case_denominator', 'status_counts',
         'saved_states_replayed', 'AC_block_replays', 'method_mode_checks', 'PQ_once_checks', 'seconds')}))

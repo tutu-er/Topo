@@ -63,6 +63,78 @@ def _joint_aggregate(pairs, names):
         derivative_scope='local envelope derivative; tied branches enter the MILP separately')
 
 
+def check_reference_floor(profile,reference_floor,*,tolerance=1e-7):
+    """Check each reference's nearest signed gap, with explicit numeric slack."""
+    if not np.isfinite(tolerance) or tolerance<0:raise ValueError('nonnegative finite guard tolerance required')
+    floor={name:float(value) for name,value in reference_floor.items()}
+    if not floor or not np.isfinite(list(floor.values())).all():
+        raise ValueError('finite nonempty per-reference floor required')
+    rows=profile.get('aggregation',{}).get('nearest',[])
+    gaps={row['a']:float(row['half_gap']) for row in rows}
+    complete=bool(profile.get('success') and set(gaps)==set(floor) and np.isfinite(list(gaps.values())).all())
+    numeric={name:float(tolerance*(1+abs(value))) for name,value in floor.items()}
+    slacks={name:None if name not in gaps else gaps[name]-floor[name] for name in floor}
+    violated=[name for name in floor if slacks[name] is None or slacks[name]<-numeric[name]]
+    return dict(success=bool(complete and not violated),reference_floor=floor,reference_values=gaps,
+        slacks=slacks,numerical_tolerance=numeric,tolerance_rule='relative_to_floor_1_plus_abs',
+        tolerance_coefficient=float(tolerance),violated_references=violated,complete=complete,
+        scope='attained complete AC predictive gaps; no guarantee for realized future rankings')
+
+
+def solve_reference_floor_step(domain,power_kw,active_groups,current_gaps,reference_floor,*,
+        tolerance=1e-7,trust_kw=6.,solver_seconds=2.,backend='gurobi',start=None):
+    """Linear operation MILP with one lower gain bound per reference.
+
+    Ideal eta_a >= floor_a-d_a(current).  The saved numerical RHS subtracts
+    exactly the same tolerance used by the complete-AC guard.  A guard-feasible
+    current action with eta=0 remains feasible.  Bounds certify this price
+    problem, not the nonlinear shared-line planning problem.
+    """
+    began=perf_counter();u=np.asarray(power_kw,float)
+    if u.shape!=domain.indices.u.shape or not np.isfinite(u).all() or not np.isfinite(trust_kw) or trust_kw<=0:
+        raise ValueError('matching finite powers and positive trust radius required')
+    names=[group[0]['a'] for group in active_groups if group]
+    if len(names)!=len(active_groups) or set(names)!=set(reference_floor) or set(names)!=set(current_gaps):
+        raise ValueError('one active group, current gap and floor per reference required')
+    op=domain.as_dict();U=np.asarray(op['u_map']);N=len(op['lower']);G=len(names)
+    lo=np.maximum(op['control_lower'],u.ravel()-trust_kw);hi=np.minimum(op['control_upper'],u.ravel()+trust_kw)
+    gradients=[np.asarray(p['gradient_per_kw'],float).ravel() for group in active_groups for p in group]
+    if any(g.shape!=u.ravel().shape or not np.isfinite(g).all() for g in gradients):
+        raise ValueError('finite matching gradients required')
+    bound=max(1.,max(float(abs(g)@np.maximum(abs(lo-u.ravel()),abs(hi-u.ravel()))) for g in gradients))
+    ideal=np.array([reference_floor[a]-current_gaps[a] for a in names],float)
+    numeric=np.array([tolerance*(1+abs(reference_floor[a])) for a in names],float)
+    gain_lower=np.maximum(-bound,ideal-numeric)
+    def lift(A):return hstack((csr_matrix(A),csr_matrix((A.shape[0],G))),format='csr')
+    constraints=[LinearConstraint(lift(c.A),c.lb,c.ub) for c in op['constraints']]
+    constraints.append(LinearConstraint(lift(U),lo,hi))
+    for index,group in enumerate(active_groups):
+        for pair in group:
+            g=np.asarray(pair['gradient_per_kw'],float).ravel();row=np.zeros(N+G)
+            row[:N]=-g@U;row[N+index]=1.
+            constraints.append(LinearConstraint(row,-np.inf,-float(g@u.ravel())))
+    objective=np.zeros(N+G);objective[N:]=-1./G
+    result=_solve_mip(objective,np.r_[op['integrality'],np.zeros(G,int)],
+        Bounds(np.r_[op['lower'],gain_lower],np.r_[op['upper'],np.full(G,bound)]),constraints,
+        time_limit=solver_seconds,backend=backend,start=None if start is None else np.r_[start,np.zeros(G)])
+    x=None if result.x is None else np.asarray(result.x[:N]);audit=domain.check(x)
+    power=None if x is None else np.asarray(U@x).reshape(u.shape)
+    trust_violation=None if power is None else max(0.,float(np.max(lo-power.ravel())),float(np.max(power.ravel()-hi)))
+    gains=None if power is None else np.array([min(float(np.asarray(p['gradient_per_kw']).ravel()@
+        (power.ravel()-u.ravel())) for p in group) for group in active_groups])
+    violation=None if gains is None else float(np.max(np.maximum(gain_lower-gains,0.)))
+    dual=getattr(result,'mip_dual_bound',None);dual=None if dual is None or not np.isfinite(dual) else -float(dual)
+    return dict(success=bool(audit['feasible'] and trust_violation<=1e-7 and violation<=1e-7),
+        x=x,power_kw=power,operation=audit,trust_violation=trust_violation,
+        linear_reference_floor_violation=violation,reference_names=names,
+        ideal_gain_lower=ideal,numerical_guard_tolerance=numeric,effective_gain_lower=gain_lower,
+        attained_reference_gains=gains,attained_directional_gain=None if gains is None else float(np.mean(gains)),
+        predicted_directional_gain=None if result.fun is None else -float(result.fun),linear_best_bound=dual,
+        linear_mip_gap=getattr(result,'mip_gap',None),status=int(result.status),message=str(result.message),
+        seconds=perf_counter()-began,full_AC_global_gap=None,
+        bound_scope='linear local price problem with per-reference gain floors only')
+
+
 class JointPredictiveEngine:
     """Complete-AC K-by-K local fits using training observations only.
 
@@ -326,13 +398,18 @@ def cap_policy(context,domain,initials,*,cap=TASK_CAP,grids=(3,9),total_seconds=
 
 
 def joint_gradient_policy(context,domain,initials,*,joint_options=None,total_seconds=15.,
-        seed=0,solver_seconds=2.,backend='gurobi',max_starts=2,max_iterations=2,trust_kw=None,engine=None):
+        seed=0,solver_seconds=2.,backend='gurobi',max_starts=2,max_iterations=2,trust_kw=None,engine=None,
+        reference_floor=None,guard_tolerance=1e-7):
     """Full AC envelope prices choose power and path in an operation MILP."""
     began=perf_counter();deadline=began+total_seconds
     if engine is None:engine=JointPredictiveEngine(context,fit_options=joint_options,seed=seed)
     elif engine.context is not context or engine.options!=refit._options(joint_options) or engine.seed!=int(seed):
         raise ValueError('shared predictive engine differs from context/options/seed')
     counters_before=engine.counters()
+    if reference_floor is not None:
+        reference_floor={name:float(value) for name,value in reference_floor.items()}
+        if set(reference_floor)!=set(engine.names) or not np.isfinite(list(reference_floor.values())).all():
+            raise ValueError('one finite floor per retained reference required')
     def counter_delta():
         after=engine.counters()
         return {k:(after[k][len(counters_before[k]):] if isinstance(after[k],list)
@@ -340,10 +417,15 @@ def joint_gradient_policy(context,domain,initials,*,joint_options=None,total_sec
     record=dict(success=False,initial_candidates=[],starts=[],failures=[],
         uses_truth=False,uses_validation=False,uses_future_noise=False,
         line_parameters_fixed_for_reference=True,rival_lines_refitted=True,
+        reference_guard_enabled=reference_floor is not None,reference_floor=reference_floor,
+        guard_tolerance_coefficient=float(guard_tolerance),
         objective='mean reference nearest signed shared-line predictive total half-SSE gap',
         global_optimality_certified=False,full_AC_global_gap=None)
     checked=[];seen=set()
-    for origin,power in initials.items():
+    initial_items=list(initials.items())
+    if reference_floor is not None and 'fixed_parent' in initials:
+        initial_items.sort(key=lambda item:item[0]!='fixed_parent')
+    for origin,power in initial_items:
         u=np.asarray(power,float);key=u.astype('<f8').tobytes()
         if key in seen:continue
         canonical=next((row for row in checked if np.max(abs(row['power']-u))<=1e-10),None)
@@ -360,8 +442,11 @@ def joint_gradient_policy(context,domain,initials,*,joint_options=None,total_sec
         if op['success']:
             profile=engine.evaluate(u,deadline=deadline);row['profile']=profile
             if profile['success']:
-                row.update(success=True,score=profile['score'])
-                checked.append(dict(origin=origin,power=u.copy(),x=op['x'],profile=profile,score=profile['score']))
+                guard=None if reference_floor is None else check_reference_floor(profile,reference_floor,tolerance=guard_tolerance)
+                row.update(success=guard is None or guard['success'],score=profile['score'],reference_guard=guard)
+                if guard is not None and not guard['success']:
+                    row['failure']='initial shared-line reference floor violated'
+                else:checked.append(dict(origin=origin,power=u.copy(),x=op['x'],profile=profile,score=profile['score']))
         record['initial_candidates'].append(row)
     if not checked:
         record.update(failure='no complete shared-line predictive initial score',seconds=perf_counter()-began,
@@ -375,9 +460,14 @@ def joint_gradient_policy(context,domain,initials,*,joint_options=None,total_sec
             aggregation=current['profile']['aggregation'];groups=aggregation['active_groups']
             norm=max(float(np.max(abs(p['gradient_per_kw']))) for group in groups for p in group)
             if norm<1e-12:start_log['failure']='zero local price; inherited action retained';break
-            solved=gradient.solve_gradient_step(domain,current['power'],groups,
-                trust_kw=2*fixed.CONFIG['command_power_kw'] if trust_kw is None else trust_kw,
+            step_options=dict(trust_kw=2*fixed.CONFIG['command_power_kw'] if trust_kw is None else trust_kw,
                 solver_seconds=min(solver_seconds,max(.001,deadline-perf_counter())),backend=backend,start=current['x'])
+            if reference_floor is None:
+                solved=gradient.solve_gradient_step(domain,current['power'],groups,**step_options)
+            else:
+                current_gaps={row['a']:row['half_gap'] for row in aggregation['nearest']}
+                solved=solve_reference_floor_step(domain,current['power'],groups,current_gaps,reference_floor,
+                    tolerance=guard_tolerance,**step_options)
             row=dict(iteration=iteration,raw=solved,before_score=current['score'],accepted=False,
                 gradient_max_abs=norm,linear_bound_scope='one local operation-price step only')
             if not solved['success']:
@@ -392,10 +482,13 @@ def joint_gradient_policy(context,domain,initials,*,joint_options=None,total_sec
                     repeated_AC_score_avoided=True,selected_score=current['score'])
                 start_log['iterations'].append(row);break
             profile=engine.evaluate(solved['power_kw'],deadline=deadline);row['raw_AC_joint_profile']=profile
-            if profile['success'] and profile['score']>current['score']+1e-9+1e-10*abs(current['score']):
+            guard=None if reference_floor is None else check_reference_floor(profile,reference_floor,tolerance=guard_tolerance)
+            row['reference_guard']=guard
+            if profile['success'] and (guard is None or guard['success']) and profile['score']>current['score']+1e-9+1e-10*abs(current['score']):
                 current=dict(origin='joint_gradient_MILP',power=solved['power_kw'].copy(),x=solved['x'],
                     profile=profile,score=profile['score']);row['accepted']=True
                 if current['score']>best['score']+1e-10:best=current
+            elif guard is not None and not guard['success']:row['failure']='complete AC reference floor violated'
             else:row['failure']='joint predictive score failed or did not improve'
             row['selected_score']=current['score'];start_log['iterations'].append(row)
             if not row['accepted']:break
@@ -404,6 +497,8 @@ def joint_gradient_policy(context,domain,initials,*,joint_options=None,total_sec
         selected_profile=best['profile'],selected_operation=domain.check(best['x']),selected_operation_x=best['x'],
         initial_best_score=initial_score,inheritance_protected=best['score']>=initial_score-1e-10,
         counters=counter_delta(),seconds=perf_counter()-began,
+        selected_reference_guard=None if reference_floor is None else
+            check_reference_floor(best['profile'],reference_floor,tolerance=guard_tolerance),
         time_budget_exceeded=perf_counter()>deadline,max_starts=max_starts,max_iterations=max_iterations)
     attempts=[item for start in record['starts'] for item in start['iterations']]
     record.update(gradient_MILP_calls=len(attempts),gradient_MILP_accepted=sum(item['accepted'] for item in attempts),
@@ -437,7 +532,7 @@ def audit_envelope_gradient(engine,power_kw,direction,*,step=1e-3):
 
 def select_plans(training,bank,fits,tm,fm,forecast,*,domains,base_kw,seed,
         training_options=None,source_options=None,profile_options=None,total_seconds=15.,
-        solver_seconds=2.,grids=(3,9),cap=TASK_CAP,backend='gurobi'):
+        solver_seconds=2.,grids=(3,9),cap=TASK_CAP,backend='gurobi',capped_reference_floor=False):
     """Eleven matched methods; callers supply only the public operation domains.
 
     ``domains`` maps fixed/mobile to MobileServiceDomain.  Every standalone
@@ -522,18 +617,32 @@ def select_plans(training,bank,fits,tm,fm,forecast,*,domains,base_kw,seed,
                     profile_cache=source_cache,prebuilt_tables=parent_tables)
             else:
                 if joint_engine is None:joint_engine=JointPredictiveEngine(context,fit_options=joint,seed=seed)
+                reference_floor=None
+                if mobile and capped_reference_floor:
+                    parent=metadata['jointgrad_fixed']['raw'].get('selected_profile',{})
+                    if not parent.get('success'):raise RuntimeError('complete Bfixed reference floor unavailable')
+                    reference_floor={row['a']:min(float(row['half_gap']),float(cap))
+                        for row in parent.get('aggregation',{}).get('nearest',[])}
                 u,row=joint_gradient_policy(context,domain,initial,joint_options=joint,total_seconds=seconds,
                     seed=seed,solver_seconds=solver_seconds,backend=backend,max_starts=2,max_iterations=2,
-                    engine=joint_engine)
+                    engine=joint_engine,reference_floor=reference_floor)
+                if reference_floor is not None:
+                    row.update(reference_floor_parent='jointgrad_fixed',reference_floor_cap=float(cap),
+                        reference_floor_scope='minimum of each fixed parent signed nearest gap and declared working cap')
             failure=None if u is not None and row.get('success') else 'no complete checked optimized plan'
-            plans[name]=np.asarray(u).copy() if u is not None else plans['square_mobile' if mobile else 'square_fixed'].copy()
+            plans[name]=np.asarray(u).copy() if u is not None else plans[
+                'jointgrad_fixed' if name=='jointgrad_mobile' and capped_reference_floor
+                else 'square_mobile' if mobile else 'square_fixed'].copy()
         except (ValueError,RuntimeError,FloatingPointError,np.linalg.LinAlgError) as exc:
-            failure=type(exc).__name__+': '+str(exc);row=dict(failure=failure)
-            plans[name]=plans['square_mobile' if mobile else 'square_fixed'].copy()
+            failure=type(exc).__name__+': '+str(exc);row=dict(failure=failure,
+                reference_guard_requested=bool(name=='jointgrad_mobile' and capped_reference_floor))
+            plans[name]=plans['jointgrad_fixed' if name=='jointgrad_mobile' and capped_reference_floor
+                else 'square_mobile' if mobile else 'square_fixed'].copy()
         own=perf_counter()-started;metadata[name]=dict(success=failure is None,failure=failure,raw=row,
             dependencies=deps,standalone_ancestors=sorted(ancestors),planning_actual_seconds=own,
             planning_seconds=own+dependency,soft_budget_overrun_seconds=max(0.,own+dependency-total_seconds))
     return plans,dict(methods=metadata,context=context,context_seconds=context_seconds,
         seconds=perf_counter()-began,uses_truth=False,uses_validation=False,uses_future_noise=False,
         source_profile_options={**profile,**sources},joint_predictive_options=joint,
-        joint_predictive_multistart=1,total_seconds=total_seconds,solver_seconds=solver_seconds,task_cap=cap),domains
+        joint_predictive_multistart=1,capped_reference_floor=bool(capped_reference_floor),
+        total_seconds=total_seconds,solver_seconds=solver_seconds,task_cap=cap),domains

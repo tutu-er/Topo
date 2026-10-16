@@ -64,10 +64,25 @@ def _decision_counts(rows):
         retained_count=base._stats(len(r['retained']) for r in rows))
 
 
+def _guard_metadata(value):
+    if not isinstance(value,dict):return None
+    result={key:deepcopy(value.get(key)) for key in ('success','complete','reference_floor',
+        'reference_values','slacks','numerical_tolerance','tolerance_coefficient',
+        'tolerance_rule','violated_references','scope')}
+    slacks=value.get('slacks') or {};numeric=value.get('numerical_tolerance') or {}
+    actual=[v for v in slacks.values() if base._finite(v)]
+    effective=[v+numeric[k] for k,v in slacks.items() if base._finite(v) and base._finite(numeric.get(k))]
+    result.update(min_raw_slack=min(actual) if actual else None,
+                  min_effective_slack=min(effective) if effective else None)
+    return result
+
+
 def _gradient_metadata(raw):
     starts=raw.get('starts',[]);attempts=[r for start in starts for r in start.get('iterations',[])]
     failure_reasons=Counter(str(r.get('failure')) for r in attempts if r.get('failure'))
     counters=raw.get('counters',{})
+    initial_guards=[r['reference_guard'] for r in raw.get('initial_candidates',[]) if isinstance(r.get('reference_guard'),dict)]
+    proposal_guards=[r['reference_guard'] for r in attempts if isinstance(r.get('reference_guard'),dict)]
     return dict(success=bool(raw.get('success')),selected_origin=raw.get('selected_origin'),
         selected_score=raw.get('selected_score'),initial_best_score=raw.get('initial_best_score'),
         selected_predictive_gain=_delta(raw.get('selected_score'),raw.get('initial_best_score')),
@@ -78,6 +93,19 @@ def _gradient_metadata(raw):
         accepted_not_final=bool(any(r.get('accepted') for r in attempts) and raw.get('selected_origin')!='joint_gradient_MILP'),
         initial_plan_count=len(raw.get('initial_candidates',[])),
         initial_complete_count=sum(bool(r.get('success')) for r in raw.get('initial_candidates',[])),
+        reference_guard_enabled=raw.get('reference_guard_enabled'),
+        reference_guard_requested=raw.get('reference_guard_requested',raw.get('reference_guard_enabled')),
+        reference_floor=deepcopy(raw.get('reference_floor')),
+        reference_floor_parent=raw.get('reference_floor_parent'),reference_floor_cap=raw.get('reference_floor_cap'),
+        guard_tolerance_coefficient=raw.get('guard_tolerance_coefficient'),
+        initial_guard_checked=len(initial_guards),
+        initial_guard_rejected_complete=sum(g.get('complete') is True and g.get('success') is False for g in initial_guards),
+        initial_guard_incomplete=sum(g.get('complete') is not True for g in initial_guards),
+        gradient_attempts_not_accepted=sum(not bool(r.get('accepted')) for r in attempts),
+        proposal_guard_checked=len(proposal_guards),
+        proposal_guard_rejected_complete=sum(g.get('complete') is True and g.get('success') is False for g in proposal_guards),
+        proposal_guard_incomplete=sum(g.get('complete') is not True for g in proposal_guards),
+        selected_reference_guard=_guard_metadata(raw.get('selected_reference_guard')),
         completed_requested_gradient_iterations=raw.get('completed_requested_gradient_iterations'),
         time_budget_exceeded=raw.get('time_budget_exceeded'),
         failure=raw.get('failure'),gradient_step_failure_reasons=dict(failure_reasons),
@@ -177,12 +205,30 @@ def _gradient_summary(rows,name):
         and r['methods'][name]['selection'].get('gradient') is not None]
     if not name.startswith('jointgrad_'):return None
     origins=Counter(r.get('selected_origin') or 'unavailable_or_failed' for r in present)
+    selected_guards=[r['selected_reference_guard'] for r in present if r.get('selected_reference_guard') is not None]
+    floor_values=defaultdict(list)
+    for r in present:
+        for key,value in (r.get('reference_floor') or {}).items():
+            if base._finite(value):floor_values[key].append(value)
     return dict(denominator=len(rows),metadata_available=len(present),metadata_missing=len(rows)-len(present),
         selected_origins=dict(origins),direct_gradient_selected=sum(r['direct_gradient_selected'] for r in present),
         inherits_fixed_gradient=sum(bool(r.get('inherits_fixed_gradient')) for r in present),
         accepted_step_without_final_gradient=sum(r['accepted_not_final'] for r in present),
         gradient_MILP_calls=sum(r['gradient_MILP_calls'] for r in present),
         gradient_MILP_accepted=sum(r['gradient_MILP_accepted'] for r in present),
+        reference_guard_enabled=sum(r.get('reference_guard_enabled') is True for r in present),
+        reference_guard_requested=sum(r.get('reference_guard_requested') is True for r in present),
+        reference_floors={key:base._stats(values) for key,values in sorted(floor_values.items())},
+        guard_counts={key:sum(r.get(key,0) for r in present) for key in ('initial_guard_checked',
+            'initial_guard_rejected_complete','initial_guard_incomplete','gradient_attempts_not_accepted',
+            'proposal_guard_checked','proposal_guard_rejected_complete','proposal_guard_incomplete')},
+        selected_guard_checked=len(selected_guards),
+        selected_guard_passed=sum(g.get('success') is True for g in selected_guards),
+        selected_guard_failed=sum(g.get('success') is False for g in selected_guards),
+        selected_guard_missing_when_requested=sum(r.get('reference_guard_requested') is True
+            and r.get('selected_reference_guard') is None for r in present),
+        selected_guard_min_raw_slack=base._stats(g['min_raw_slack'] for g in selected_guards),
+        selected_guard_min_effective_slack=base._stats(g['min_effective_slack'] for g in selected_guards),
         selected_predictive_gain=base._stats(r['selected_predictive_gain'] for r in present),
         budget_overrun=sum(bool(r['time_budget_exceeded']) for r in present),
         completed_requested_iterations=sum(r['completed_requested_gradient_iterations'] is True for r in present),

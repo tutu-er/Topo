@@ -168,3 +168,99 @@ def test_near_duplicate_initial_uses_original_scored_canonical_action(physical):
     duplicate=row['initial_candidates'][1]
     assert duplicate['near_duplicate'] and duplicate['new_curve_not_scored']
     assert duplicate['canonical_origin']=='first' and row['counters']['profile_evaluations']==0
+
+
+def test_reference_floor_preserves_negative_and_weak_parent_but_caps_easy_parent():
+    profile=dict(success=True,aggregation=dict(nearest=[dict(a='a',half_gap=-2.),
+        dict(a='b',half_gap=.5),dict(a='c',half_gap=6.)]))
+    floor=dict(a=-2.,b=.5,c=design.TASK_CAP)
+    assert design.check_reference_floor(profile,floor)['success']
+    changed=deepcopy(profile);changed['aggregation']['nearest'][1]['half_gap']=.49
+    guard=design.check_reference_floor(changed,floor)
+    assert not guard['success'] and guard['violated_references']==['b']
+    assert guard['numerical_tolerance']['a']==pytest.approx(3e-7)
+    missing=deepcopy(profile);missing['aggregation']['nearest'].pop()
+    assert not design.check_reference_floor(missing,floor)['success']
+
+
+@pytest.mark.parametrize('allow_b_drop',[0.,2.])
+def test_guarded_price_milp_keeps_current_feasible_and_enforces_all_reference_gains(allow_b_drop):
+    op=domain();zero=np.zeros((2,1));groups=[
+        [dict(a='a',b='b',gradient_per_kw=np.array([[2.],[-2.]]))],
+        [dict(a='b',b='a',gradient_per_kw=np.array([[-1.],[1.]]))]]
+    result=design.solve_reference_floor_step(op,zero,groups,dict(a=0.,b=allow_b_drop),dict(a=0.,b=0.),
+        trust_kw=2.,backend='scipy',solver_seconds=5.)
+    assert result['success'] and result['operation']['feasible']
+    assert result['linear_reference_floor_violation']<1e-7
+    assert np.all(result['attained_reference_gains']>=result['effective_gain_lower']-1e-7)
+    assert np.max(abs(result['power_kw']))==pytest.approx(0. if allow_b_drop==0 else 1.,abs=1e-6)
+    assert result['full_AC_global_gap'] is None
+
+
+class _ToyJointEngine:
+    def __init__(self,ctx,options=None,seed=0):
+        self.context=ctx;self.options=design.refit._options(options);self.seed=seed
+        self.names=['a0','a1'];self.calls=0
+    def counters(self):return dict(profile_evaluations=self.calls,payment_log=[])
+    def evaluate(self,power_kw,**kwargs):
+        self.calls+=1;u=np.asarray(power_kw);x=(u[0,0]-u[1,0])/2
+        pairs=[dict(a='a0',b='a1',name='a0__a1',success=True,half_gap=1+2*x,
+            gradient_per_kw=np.array([[1.],[-1.]])),
+            dict(a='a1',b='a0',name='a1__a0',success=True,half_gap=1-x,
+                gradient_per_kw=np.array([[-.5],[.5]]))]
+        ag=design._joint_aggregate(pairs,self.names)
+        return dict(success=True,power_kw=u.copy(),score=ag['score'],pairs=pairs,aggregation=ag)
+
+
+def test_guard_filters_inherited_finite_jump_and_default_preserves_original_selection():
+    ctx=context(2);op=domain();zero=np.zeros((2,1));risky=np.array([[1.],[-1.]])
+    initial=dict(risky=risky,fixed_parent=zero)
+    plain,old=design.joint_gradient_policy(ctx,op,initial,engine=_ToyJointEngine(ctx),
+        max_iterations=0,total_seconds=5.,backend='scipy')
+    guarded,new=design.joint_gradient_policy(ctx,op,initial,engine=_ToyJointEngine(ctx),
+        max_iterations=0,total_seconds=5.,backend='scipy',reference_floor=dict(a0=1.,a1=1.))
+    np.testing.assert_array_equal(plain,risky);np.testing.assert_array_equal(guarded,zero)
+    assert not old['reference_guard_enabled'] and old['selected_reference_guard'] is None
+    assert new['selected_reference_guard']['success'] and new['initial_candidates'][0]['origin']=='fixed_parent'
+    blocked=next(p for p in new['initial_candidates'] if p['origin']=='risky')
+    assert not blocked['success'] and blocked['reference_guard']['violated_references']==['a1']
+
+
+def test_guard_rechecks_complete_AC_after_a_linear_price_proposal(monkeypatch):
+    ctx=context(2);op=domain();zero=np.zeros((2,1));risky=np.array([[1.],[-1.]])
+    realized=scalar._realize(op,risky,backend='scipy')
+    def proposal(*args,**kwargs):return dict(success=True,power_kw=risky,x=realized['x'])
+    monkeypatch.setattr(design,'solve_reference_floor_step',proposal)
+    chosen,row=design.joint_gradient_policy(ctx,op,dict(fixed_parent=zero),engine=_ToyJointEngine(ctx),
+        max_starts=1,max_iterations=1,total_seconds=5.,backend='scipy',reference_floor=dict(a0=1.,a1=1.))
+    np.testing.assert_array_equal(chosen,zero)
+    iteration=row['starts'][0]['iterations'][0]
+    assert iteration['raw_AC_joint_profile']['score']>row['selected_score']
+    assert not iteration['accepted'] and iteration['reference_guard']['violated_references']==['a1']
+    assert row['selected_reference_guard']['success']
+
+
+def test_high_level_flag_only_changes_mobile_B_and_keeps_default_false(monkeypatch):
+    from types import SimpleNamespace
+    from . import ev_rx_precision as precision
+    T,n=6,3;shape=(T,n);fake_context=dict(success=True)
+    domains={key:SimpleNamespace(indices=SimpleNamespace(u=np.zeros(shape))) for key in ('fixed','mobile')}
+    meter=SimpleNamespace(v_sigma=np.arange(1,T*n+1).reshape(shape))
+    forecast=dict(p=np.ones(shape));seen=[]
+    def square(domain,meter,initial,**kwargs):return dict(success=True,power_kw=initial['public_square'])
+    def simple(ctx,domain,initial,**kwargs):return initial['square_fixed'].copy(),dict(success=True,grids=[])
+    def policy(ctx,domain,initial,**kwargs):
+        seen.append(kwargs.get('reference_floor'))
+        nearest=[dict(a='a0',half_gap=-2.),dict(a='a1',half_gap=20.)]
+        return initial['square_fixed'].copy(),dict(success=True,selected_profile=dict(success=True,
+            aggregation=dict(nearest=nearest)))
+    monkeypatch.setattr(precision,'solve_squared_precision',square)
+    monkeypatch.setattr(fixed,'build_fixed_contexts',lambda *a,**kw:fake_context)
+    monkeypatch.setattr(scalar,'scalar_policy',simple);monkeypatch.setattr(design,'cap_policy',simple)
+    monkeypatch.setattr(design,'joint_gradient_policy',policy)
+    monkeypatch.setattr(design,'JointPredictiveEngine',lambda *a,**kw:object())
+    args=(None,None,None,None,meter,forecast)
+    design.select_plans(*args,domains=domains,base_kw=20.,seed=0)
+    assert seen==[None,None]
+    seen.clear();design.select_plans(*args,domains=domains,base_kw=20.,seed=0,capped_reference_floor=True)
+    assert seen[0] is None and seen[1]==dict(a0=-2.,a1=design.TASK_CAP)

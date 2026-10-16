@@ -91,3 +91,61 @@ def test_raw_metadata_projection_uses_case_and_seed_and_retains_only_small_field
     assert value['selected_origin']=='scalar_jump' and value['gradient']['gradient_MILP_calls']==0
     assert 'large_AC_states' not in json.dumps(metadata)
     assert metadata['source_files'][0]['key']=='ordinary96:1'
+
+
+def guard(success=True,complete=True,slack=0.):
+    return dict(success=success,complete=complete,reference_floor={'star':1.},
+        reference_values={'star':1.+slack},slacks={'star':slack},
+        numerical_tolerance={'star':2e-7},tolerance_coefficient=1e-7,
+        tolerance_rule='relative_to_floor_1_plus_abs',violated_references=[] if success else ['star'])
+
+
+def test_guard_rejections_are_distinct_from_incomplete_fits_and_nonaccepted_attempts():
+    raw=dict(success=True,reference_guard_enabled=True,reference_floor={'star':1.},
+        guard_tolerance_coefficient=1e-7,selected_origin='fixed_parent',
+        selected_reference_guard=guard(slack=-1e-7),
+        initial_candidates=[dict(reference_guard=guard(False)),dict(reference_guard=guard()),
+                            dict(failure='initial budget exhausted')],
+        starts=[dict(iterations=[dict(accepted=False,reference_guard=guard(False)),
+                                dict(accepted=False,reference_guard=guard(False,False)),
+                                dict(accepted=False,failure='no feasible MILP'),
+                                dict(accepted=True,reference_guard=guard())])])
+    value=results._gradient_metadata(raw)
+    assert value['reference_guard_enabled'] is True and value['reference_guard_requested'] is True
+    assert value['initial_guard_checked']==2 and value['initial_guard_rejected_complete']==1
+    assert value['proposal_guard_checked']==3 and value['proposal_guard_rejected_complete']==1
+    assert value['proposal_guard_incomplete']==1 and value['gradient_attempts_not_accepted']==3
+    assert value['selected_reference_guard']['min_raw_slack']==-1e-7
+    assert value['selected_reference_guard']['min_effective_slack']==1e-7
+
+
+def test_guard_summary_retains_requested_but_unavailable_fallback(tmp_path):
+    record,phase=fixture(1,'development')
+    raw=record['selection']['methods']['jointgrad_mobile']
+    raw['raw']=dict(success=False,reference_guard_requested=True,failure='Bfixed unavailable')
+    path=tmp_path/'case_000_1.json.gz'
+    with gzip.open(path,'wt',encoding='utf-8') as stream:json.dump(record,stream)
+    metadata=results.extract_selection_metadata(phase,tmp_path)
+    output=results.analyze(phase,selection_metadata=metadata)
+    value=output['overall']['methods']['jointgrad_mobile']['gradient']
+    assert value['reference_guard_requested']==1 and value['reference_guard_enabled']==0
+    assert value['selected_guard_checked']==0 and value['selected_guard_missing_when_requested']==1
+
+
+def test_guard_projection_and_summary_preserve_floor_values_and_actual_selected_check(tmp_path):
+    record,phase=fixture(1,'development')
+    raw=record['selection']['methods']['jointgrad_mobile']
+    raw['raw']=dict(success=True,reference_guard_enabled=True,reference_floor={'star':1.},
+        reference_floor_parent='jointgrad_fixed',reference_floor_cap=5.411,
+        guard_tolerance_coefficient=1e-7,selected_reference_guard=guard(),selected_origin='fixed_parent',
+        initial_candidates=[dict(reference_guard=guard(False))],starts=[])
+    path=tmp_path/'case_000_1.json.gz'
+    with gzip.open(path,'wt',encoding='utf-8') as stream:json.dump(record,stream)
+    metadata=results.extract_selection_metadata(phase,tmp_path)
+    output=results.analyze(phase,selection_metadata=metadata)
+    value=output['overall']['methods']['jointgrad_mobile']['gradient']
+    assert value['reference_floors']['star']['mean']==1.
+    assert value['selected_guard_checked']==1 and value['selected_guard_passed']==1
+    assert value['guard_counts']['initial_guard_rejected_complete']==1
+    selected=output['by_history'][0]['methods']['jointgrad_mobile']['selection']['gradient']
+    assert selected['reference_floor_parent']=='jointgrad_fixed' and selected['reference_floor_cap']==5.411

@@ -21,11 +21,12 @@ HERE=Path(__file__).resolve().parent
 METHODS=design.METHODS
 MODES=old.MODES
 N3_CASES=('ordinary96','train32','train8','remote8_H96','remote8_H8')
-CONFIG=dict(version='mobile_reliability_EV_v2',methods=list(METHODS),modes=list(MODES),
+CONFIG=dict(version='mobile_reliability_EV_v2_guarded_60',methods=list(METHODS),modes=list(MODES),
     calibration_histories_per_bank=96,evaluation_histories_per_bank=48,
     n3_formal_cases=list(N3_CASES),n4_formal_cases=['twinblock12'],
-    planning_seconds=30.,solver_seconds=2.,scalar_grids=[3,9],task_cap=float(design.TASK_CAP),
-    alpha=.1,selector_uses_validation=False,selector_uses_truth=False,base_commit='dde0f241',
+    planning_seconds=60.,solver_seconds=2.,scalar_grids=[3,9],task_cap=float(design.TASK_CAP),
+    alpha=.1,selector_uses_validation=False,selector_uses_truth=False,base_commit='c522193b',
+    capped_reference_floor=True,reference_floor_cap=float(design.TASK_CAP),
     PQ_direct_inputs=True,root_and_bias_fixed=True,source_interface=1,
     independent_unit='one independent generated history; paired development regimes counted separately',
     action_planning='fixed training lines for source-surrogates; shared-line AC predictive envelope prices for jointgrad',
@@ -125,6 +126,7 @@ def _run(spec):
     plans,selection,domains=design.select_plans(tr,bank,fits,tm,case['fm'],forecast,domains=domains_for(case),
         base_kw=case['base_kw'],seed=seed+800,training_options={**cfg['training'],'ratio_bounds':cfg['ratio_bounds']},
         source_options=cfg['source'],profile_options=cfg['profile'],total_seconds=CONFIG['planning_seconds'],
+        capped_reference_floor=CONFIG['capped_reference_floor'],
         solver_seconds=CONFIG['solver_seconds'],grids=tuple(CONFIG['scalar_grids']))
     assert before_lines=={k:fixed._line_id(f.r,f.x) for k,f in fits.items()}
     # Raw context retains trained objects; save its reproducible primitive data.
