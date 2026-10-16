@@ -426,3 +426,13 @@ outputs/three_directions与outputs/refinement。原80试验、原阈值和失败
 
 H中不含本次受控EV；若历史已含它，baseline预测应先扣已知历史控制
 轨迹，观测后的AC拟合始终直接使用末端计量总P/Q。
+
+## EV移动 v4：统一规划与完整AC评价
+
+先读 ev_mobile_v4_math.md、ev_mobile_v4_protocol.md 与 ev_mobile_v4_implementation_plan.md。
+本轮使用全部已观测D=H+V训练每拓扑一组参考参数；竞争解释仍对D和未来共同拟合。
+四组可行域保留完整父计划；有物理域的QP经父点完整AC值/梯度校正后进入共享平方MILP。
+新动作按相同完整AC目标接受，主方法另保护每个参考的父分数。
+实现及127项测试已验证，development2四条历史正在执行；独立评价尚未开始，不将计划写成结果。
+开发1的实际评价接口失败保留在evidence/ev_mobile_v4/development1；开发2已修复并加回归测试。
+当前检查点：ev_mobile_v4_checkpoint.json。原报告PDF及无关pyproject修改保持原状。
