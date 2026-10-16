@@ -102,3 +102,58 @@ def test_restore_matches_complete_independent_physical_audit(monkeypatch):
     assert check['original_physical_success'] and check['restored_physical_success']
     assert check['physical_audit_equal']
     assert len(calls)==12  # Two complete saved-state audits, no optimizer.
+
+
+def _compact_directory(tmp_path):
+    directory=tmp_path/'compact';(directory/'evaluation').mkdir(parents=True)
+    record=with_predictive_intermediates(_record());record['policy_id']='policy'
+    frozen=dict(policy_id='policy',source_sha256={},
+        specifications=dict(development=[],evaluation=[record['spec']]))
+    evidence._write(directory/'freeze.json',frozen)
+    evidence._write(directory/'source_snapshot.json.gz',dict(source_sha256={},source_base64={}))
+    evidence._write(directory/'evaluation'/'000.json.gz',evidence.compact_record(record,pool_min_bytes=128))
+    return directory,record
+
+
+def test_restore_cli_yields_existing_analysis_and_audit_reader_schema(tmp_path,monkeypatch):
+    import sys
+    from . import ev_mobile_v4_analysis as analysis
+    from . import ev_mobile_v4_audit as audit
+    directory,original=_compact_directory(tmp_path);output=tmp_path/'restored'
+    monkeypatch.setattr(sys,'argv',['ev_mobile_v4_evidence','restore',
+        '--directory',str(directory),'--output',str(output)])
+    evidence.main()
+    restored,_=analysis._read(output/'evaluation'/'000.json.gz')
+    assert audit.old.read(output/'evaluation'/'000.json.gz')==restored
+    assert restored['policy_id']=='policy'
+    assert restored['actual']==original['actual']
+    assert restored['_evidence_provenance']['complete_raw_reconstruction'] is False
+    assert len(restored['_evidence_provenance']['omissions'])==48
+    assert analysis.summarize_records([original['spec']],{0:original})==analysis.summarize_records([restored['spec']],{0:restored})
+    manifest=evidence._read(output/'restore_manifest.json')
+    assert manifest['success'] and manifest['current_scientific_sources_match']
+    assert manifest['record_count']==1 and manifest['phases']==['evaluation']
+    assert manifest['optimizer_calls']==manifest['new_AC_calls']==manifest['new_simulation_calls']==0
+    with pytest.raises(FileExistsError):
+        evidence.restore_directory(directory,output)
+
+
+def test_restore_requires_frozen_phase_coverage_and_valid_source_snapshot(tmp_path):
+    import base64
+    directory,record=_compact_directory(tmp_path)
+    frozen=evidence._read(directory/'freeze.json')
+    frozen['specifications']['evaluation'].append({**record['spec'],'index':1})
+    # This is only a temporary test input, not an existing research record.
+    (directory/'freeze.json').write_bytes(evidence._bytes(frozen))
+    with pytest.raises(ValueError,match='coverage'):
+        evidence.restore_directory(directory,tmp_path/'missing-record')
+    assert not (tmp_path/'missing-record').exists()
+    frozen['specifications']['evaluation'].pop()
+    frozen['source_sha256']={'not_a_real_scientific_file.py':'wrong_hash'}
+    (directory/'freeze.json').write_bytes(evidence._bytes(frozen))
+    snapshot=dict(source_sha256=frozen['source_sha256'],source_base64={
+        'not_a_real_scientific_file.py':base64.b64encode(b'placeholder').decode()})
+    (directory/'source_snapshot.json.gz').write_bytes(__import__('gzip').compress(evidence._bytes(snapshot)))
+    with pytest.raises(ValueError,match='snapshot hash'):
+        evidence.restore_directory(directory,tmp_path/'wrong-source')
+    assert not (tmp_path/'wrong-source').exists()

@@ -429,9 +429,8 @@ H中不含本次受控EV；若历史已含它，baseline预测应先扣已知历
 
 ## EV移动 v4：统一规划与完整AC评价
 
-先读 ev_mobile_v4_development_results.md、ev_mobile_v4_math.md、ev_mobile_v4_protocol.md。
-4条开发历史、48计划、192候选槽均完成，224保存态独立物理审计通过，155项测试通过。
-统一D和完整AC评分，QP在父点校正值/梯度；四域继承完整父计划，主方法逐步保护每个参考。
-48项完整AC方向导数检查与同目标规划/评价接口检查通过；有限预算的32次master均未闭合代理间隙。
-开发结果包含移动收益、退步与保护代价，不据此声称普遍优势。八条独立历史的冻结评价正在运行。
-参见ev_mobile_v4_checkpoint.json及evidence/ev_mobile_v4/development2_delivery；原PDF及pyproject未改。
+本轮冻结研究及交付完成，实际收益排序的gap仍有残留。先读 [简明结果](ev_mobile_v4_results.md)、[数学模型](ev_mobile_v4_math.md) 和 [复算命令](ev_mobile_v4_reproduce.md)。
+4开发+8独立评价历史完成；评价为96计划、192配对未来方法槽、768候选槽，816保存态独立核查通过，96继承边无同目标退步。
+aligned保留父计划并按同一完整AC评分接受；额外逐参考保护过于保守。三末端移动方案相对同域平方基线3胜1平，四末端2胜2负；两种未来共享历史，不重复计算独立样本。
+预定归因、单条探索反转及32次固定历史的条件噪声诊断分开保存。噪声情景MILP仅完成下一阶段推导，尚未实现或评价。
+检查点：ev_mobile_v4_checkpoint.json；证据：evidence/ev_mobile_v4/evaluation_delivery及各诊断目录。原PDF和pyproject保持原状。

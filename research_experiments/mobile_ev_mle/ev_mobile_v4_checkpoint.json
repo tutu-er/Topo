@@ -1,28 +1,46 @@
 {
-  "stage": "development_verified_frozen_evaluation_running",
+  "stage": "frozen_v4_stage_complete_remaining_actual_gain_gap",
   "version": "observed_D_aligned_bounded_guarded_v4_dev2",
   "policy_id": "b7b544bc888aeb243a3815ea6f8182d8d05367463f0aba8b9d90c1081b1d5449",
   "scientific_files": 128,
-  "unit_tests_passed": 155,
   "development": {
-    "histories": 4,
-    "plans": 48,
+    "independent_histories": 4,
+    "plan_slots": 48,
     "candidate_slots": 192,
-    "physical_audit_passed": true,
-    "derivative_comparisons": 48,
-    "derivative_max_scaled_error": 7.76413639492183e-06,
-    "proxy_master_gap_closed": "0/32"
+    "completed": true
   },
   "evaluation": {
-    "histories": 8,
+    "independent_histories": 8,
     "paired_regimes": 2,
     "plan_slots": 96,
     "method_future_slots": 192,
     "candidate_slots": 768,
-    "started": true,
-    "finished": false
+    "completed": true,
+    "physical_audit_passed": true,
+    "saved_states": 816,
+    "monotonicity_violations": 0
   },
+  "diagnostics": {
+    "predeclared_targets": 64,
+    "predeclared_candidate_slots": 256,
+    "exploratory_development_targets": 16,
+    "exploratory_candidate_slots": 64,
+    "conditional_noise_history_count": 1,
+    "conditional_future_draws": 32,
+    "conditional_noise_candidate_slots": 256
+  },
+  "limits": [
+    "actual gain reversals retained",
+    "global frozen proxy gap not closed in 64/64 evaluation masters",
+    "complete AC fits are local",
+    "new rejection rates not calibrated",
+    "noise-scenario expected-gap MILP is derived only, not implemented"
+  ],
+  "next": "pilot expected noisy gap ranking on new development data before any new MILP policy; preserve frozen evaluation and do not tune on it",
   "execution_directory": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015",
   "data_directory": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\mobile_v4_development2",
-  "next": "finish eight frozen evaluation histories, full physical audit, predeclared index0/6 attribution, final evidence and results; no evaluation tuning"
+  "all_study_workers_finished": true,
+  "unit_tests_passed": 171,
+  "publication_import_paths_checked": true,
+  "diagnostic_saved_state_audits_passed": true
 }

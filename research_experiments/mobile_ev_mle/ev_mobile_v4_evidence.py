@@ -199,6 +199,70 @@ def compact_file(path,output,*,physical_replay=True):
     return validation
 
 
+def restore_directory(directory,output,*,phases=None):
+    """Pure IO restore to a fresh analysis/audit-readable phase directory.
+
+    The original freeze and source snapshot are copied byte-for-byte. The
+    installed 128 scientific sources must match that snapshot before records
+    are restored. Predictive omissions and failed nodes remain explicit in each
+    record's _evidence_provenance; this is not complete raw reconstruction.
+    """
+    directory,output=Path(directory),Path(output)
+    if output.exists():
+        raise FileExistsError(output)
+    frozen=_read(directory/'freeze.json');snapshot=_read(directory/'source_snapshot.json.gz')
+    hashes=frozen['source_sha256']
+    if snapshot.get('source_sha256')!=hashes or set(snapshot.get('source_base64',{}))!=set(hashes):
+        raise ValueError('scientific source snapshot coverage differs from freeze')
+    here=Path(__file__).resolve().parent;source_status={}
+    for name,expected in hashes.items():
+        if sha256(base64.b64decode(snapshot['source_base64'][name],validate=True)).hexdigest()!=expected:
+            raise ValueError('scientific source snapshot hash mismatch: '+name)
+        current=((here.parents[1]/name) if name.startswith('rnj_wzzt_core/') else here/name).resolve()
+        try:current.relative_to(here.parents[1].resolve())
+        except ValueError as exc:raise ValueError('source name outside repository: '+name) from exc
+        source_status[name]=current.is_file() and sha256(current.read_bytes()).hexdigest()==expected
+    if not all(source_status.values()):
+        raise ValueError('current scientific sources differ from the saved snapshot; use its exact source revision before replay')
+    if phases is None:
+        phases=tuple(p for p in ('development','evaluation') if (directory/p).is_dir())
+    if not phases or len(set(phases))!=len(phases) or not set(phases)<={'development','evaluation'}:
+        raise ValueError('distinct present declared phases required')
+    selected=[]
+    for phase in phases:
+        expected={f"{spec['index']:03d}.json.gz":spec for spec in frozen['specifications'][phase]}
+        actual={path.name:path for path in (directory/phase).glob('*.json.gz')}
+        if set(actual)!=set(expected):
+            raise ValueError('compact phase coverage differs from freeze: '+phase)
+        selected.extend((phase,actual[name],spec) for name,spec in sorted(expected.items()))
+    output.mkdir(parents=True)
+    for name in ('freeze.json','source_snapshot.json.gz'):
+        (output/name).write_bytes((directory/name).read_bytes())
+    records=[]
+    for phase,path,spec in selected:
+        compact=_read(path);record=restore(compact)
+        if record.get('policy_id')!=frozen['policy_id'] or record.get('spec')!=spec:
+            raise ValueError('restored case identity differs from freeze: '+str(path))
+        target=output/phase/path.name;_write(target,record)
+        records.append(dict(phase=phase,index=spec['index'],input_path=str(path.resolve()),
+            input_sha256=sha256(path.read_bytes()).hexdigest(),output_path=str(target.resolve()),
+            output_sha256=sha256(target.read_bytes()).hexdigest(),
+            omitted_predictive_fields=len(record['_evidence_provenance']['omissions']),
+            complete_raw_reconstruction=False))
+        print('RESTORE',phase,path.name,flush=True)
+    result=dict(success=True,schema='mobile_v4_restored_directory_v1',policy_id=frozen['policy_id'],
+        phases=list(phases),record_count=len(records),records=records,
+        scientific_source_count=len(hashes),source_snapshot_verified=True,
+        current_scientific_sources_match=True,source_hash_checks=source_status,
+        complete_raw_reconstruction=False,
+        ready_for='ev_mobile_v4_analysis --root and ev_mobile_v4_audit --directory, for the restored phases',
+        omitted_fields='predictive explanatory-fit intermediates only, declared in per-record provenance; realized evidence retained',
+        optimizer_calls=0,new_AC_calls=0,new_simulation_calls=0,
+        tool_sha256=sha256(Path(__file__).read_bytes()).hexdigest())
+    _write(output/'restore_manifest.json',result)
+    return result
+
+
 def pack(directory,output,*,phases=('development','evaluation'),attachments=()):
     """Package complete requested phases, checking every source snapshot byte."""
     directory,output=Path(directory),Path(output)
@@ -256,12 +320,17 @@ def main():
     one.add_argument('--skip-physical-replay',action='store_true')
     many=sub.add_parser('pack');many.add_argument('--directory',required=True);many.add_argument('--output',required=True)
     many.add_argument('--phases',default='development,evaluation');many.add_argument('--attach',action='append',default=[])
+    restored=sub.add_parser('restore');restored.add_argument('--directory',required=True);restored.add_argument('--output',required=True)
+    restored.add_argument('--phases',default=None,help='default: phase directories present in the compact pack')
     args=parser.parse_args()
     if args.mode=='compact':
         result=compact_file(args.input,args.output,physical_replay=not args.skip_physical_replay)
         _write(Path(args.output).with_name(Path(args.output).stem+'.validation.json'),result)
-    else:
+    elif args.mode=='pack':
         result=pack(args.directory,args.output,phases=tuple(args.phases.split(',')),attachments=args.attach)
+    else:
+        result=restore_directory(args.directory,args.output,
+            phases=None if args.phases is None else tuple(args.phases.split(',')))
     print(json.dumps({k:result.get(k) for k in ('success','all_restoration_checks_passed',
         'raw_gzip_bytes','compact_gzip_bytes','record_count')}),flush=True)
 
