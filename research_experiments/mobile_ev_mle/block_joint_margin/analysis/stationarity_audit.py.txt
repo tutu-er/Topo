@@ -1,0 +1,289 @@
+"""One post-hoc stationarity witness; never feeds the frozen EV strategies.
+
+Only observed-history fields are deserialized from the pilot history file.
+Future data are rebuilt from the saved historical scenario, not true future.
+One LP and at most two complete-AC trial steps; no nonlinear re-fitting.
+"""
+from __future__ import annotations
+
+import gzip
+from hashlib import sha256
+import json
+import os
+from pathlib import Path
+import sys
+from time import perf_counter
+import traceback
+
+for name in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
+    os.environ[name] = '1'
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+import numpy as np
+from scipy.optimize import linprog
+from research_experiments.mobile_ev_mle import likelihood as lk
+from research_experiments.mobile_ev_mle import ev_systematic_refit as legacy
+from research_experiments.mobile_ev_mle.candidates import RadialCandidate
+from research_experiments.mobile_ev_mle.ev_fixed_train_fit import _FixedInputProblem
+from research_experiments.mobile_ev_mle.ev_rx_fit import _RxMap
+from research_experiments.mobile_ev_mle.information_context import meter_from_record
+from research_experiments.mobile_ev_mle.block_joint_margin.ac_objective import _future_observation
+
+OUT = Path(__file__).resolve().parent
+
+
+def read(path):
+    return json.loads(gzip.decompress(Path(path).read_bytes()))
+
+
+def selected_fields(path, wanted):
+    """Lexically skip unrequested top-level values, without deserializing them."""
+    with gzip.open(path, 'rt', encoding='utf-8') as stream:
+        def characters():
+            while True:
+                part = stream.read(32768)
+                if not part:
+                    break
+                yield from part
+        chars = iter(characters())
+
+        def nonspace():
+            c = next(chars)
+            while c.isspace():
+                c = next(chars)
+            return c
+
+        if nonspace() != '{':
+            raise ValueError('top-level JSON object required')
+        result, skipped = {}, []
+        while True:
+            c = nonspace()
+            if c == '}':
+                break
+            if c != '"':
+                raise ValueError('JSON object key required')
+            keychars, escaped = ['"'], False
+            for c in chars:
+                keychars.append(c)
+                if c == '"' and not escaped:
+                    break
+                escaped = c == '\\' and not escaped
+            key = json.loads(''.join(keychars))
+            if nonspace() != ':':
+                raise ValueError('missing JSON key separator')
+            collect = key in wanted
+            valuechars = [] if collect else None
+            depth, inside_string, escaped = 0, False, False
+            for c in chars:
+                if not inside_string and depth == 0 and c in ',}':
+                    delimiter = c
+                    break
+                if collect:
+                    valuechars.append(c)
+                if inside_string:
+                    if c == '"' and not escaped:
+                        inside_string = False
+                    escaped = c == '\\' and not escaped
+                elif c == '"':
+                    inside_string, escaped = True, False
+                elif c in '[{':
+                    depth += 1
+                elif c in ']}':
+                    depth -= 1
+            else:
+                raise ValueError('unterminated JSON value')
+            if collect:
+                result[key] = json.loads(''.join(valuechars))
+            else:
+                skipped.append(key)
+            if delimiter == '}':
+                break
+    if set(result) != set(wanted):
+        raise ValueError('missing requested history fields')
+    return result, skipped
+
+
+def serial(value):
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, dict):
+        return {str(k): serial(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [serial(v) for v in value]
+    return value
+
+
+def audit():
+    began = perf_counter()
+    append_analytic = '--append-analytic-step' in sys.argv
+    previous = None
+    if append_analytic:
+        existing_path = OUT / 'stationarity_audit.json'
+        previous = json.loads(existing_path.read_text(encoding='utf-8'))
+        if len(previous.get('trials', [])) != 2:
+            raise RuntimeError('append-only analytic audit requires exactly two saved trials')
+        previous['previous_audit_sha256'] = sha256(existing_path.read_bytes()).hexdigest()
+        previous['previous_script_sha256'] = previous['script_sha256']
+    steps = OUT / 'evaluation' / 'history_003.steps'
+    support_path = steps / '003_scenario_support.json.gz'
+    anchor_path = steps / '004_objective_gradient_anchor.json.gz'
+    history_path = OUT / 'evaluation' / 'history_003.json.gz'
+    fitted_path = steps / '001_history_fitted.json.gz'
+    report = dict(history_index=3, scenario_index=1, candidate='clade_12',
+        scope='single post-hoc legal descent witness, no new fit or policy change',
+        future_truth_used=False, affects_frozen_strategies=False, lp_calls=0, trials=[],
+        trust_radius_scale_fraction=.001, maximum_AC_trial_steps=2)
+    if previous is not None:
+        report = previous
+        report['maximum_AC_trial_steps'] = 3
+        report['append_only_analytic_step_authorized'] = True
+        report['append_step_rule'] = 'min(.5,-gradient_dot_delta/(2*||Jdelta||^2))'
+    try:
+        wanted = {'observed_training', 'observed_evidence', 'train_meter', 'evidence_meter',
+                  'future_meter', 'candidate_structures'}
+        saved, skipped = selected_fields(history_path, wanted)
+        report['deserialized_history_fields'] = sorted(saved)
+        report['skipped_top_level_fields'] = skipped
+        support = read(support_path)['details']
+        anchor = read(anchor_path)['details']['result']
+        options = read(fitted_path)['details']['fit_options']
+        scenario = support['scenarios'][1]
+        report['reference_candidate'] = scenario['reference']
+        report['historical_scenario_label'] = scenario['label']
+        candidates = {row['name']: RadialCandidate.from_supports(row['name'], row['n'], row['supports'])
+                      for row in saved['candidate_structures']}
+        tm, em, fm = [meter_from_record(saved[name]) for name in
+                      ('train_meter', 'evidence_meter', 'future_meter')]
+        train, evidence = [lk.Observations(**saved[name]) for name in
+                           ('observed_training', 'observed_evidence')]
+        D = lk.concat_observations(train, evidence)
+        dm = legacy.concat_models((train, evidence), (tm, em))
+        f, state = scenario['forecast'], scenario['state']
+        src = f['source_by_candidate'][scenario['reference']]
+        generated = lk.ac_predict(candidates[scenario['reference']], np.asarray(state['r']),
+            np.asarray(state['x']), np.asarray(f['p']) + np.asarray(anchor['power_kw']) / 20.,
+            np.asarray(f['q']), np.asarray(src['source_p']), np.asarray(src['source_q']),
+            np.asarray(f['root_v']))
+        E = _future_observation(generated, fm)
+        joined = lk.concat_observations(D, E)
+        meter = legacy.concat_models((D, E), (dm, fm))
+        retained = anchor['scenario_fits'][1]['refits']['comparisons']['clade_12']
+        point = retained['joint']['state']
+        candidate = candidates['clade_12']
+        counter = {}
+        problem_options = {k: options[k] for k in
+            ('r_bounds', 'x_bounds', 'source_p_bounds', 'source_q_bounds', 'voltage_bounds')}
+        problem = _FixedInputProblem(candidate, joined, meter, initial=point,
+                                     call_counter=counter, **problem_options)
+        m = candidate.m
+        vector = np.r_[point['r'], point['x'],
+            np.column_stack((point['source_p'], point['source_q'])).ravel()]
+        residual = problem.evaluate(vector)
+        base = float(residual @ residual)
+        stored = float(retained['joint']['loss'])
+        report.update(stored_anchor_SSE=stored, reconstructed_anchor_SSE=base,
+            SSE_reconstruction_error=base-stored,
+            original_optimizer={k: retained['starts'][0]['optimizer'][k] for k in
+                ('success', 'status', 'message', 'optimality', 'nfev')})
+        if abs(base-stored) > 1e-8 * (1+abs(stored)):
+            raise RuntimeError('reconstructed hypothetical problem differs from frozen anchor')
+        jacobian = problem.jacobian(vector)
+        gradient = 2 * jacobian.T @ residual
+        radius = .001 * problem.scale
+        rho_lo, rho_hi = options['ratio_bounds']
+        rows, right = [], []
+        for edge in range(m):
+            row = np.zeros(problem.width)
+            row[edge], row[m+edge] = rho_lo*radius[edge], -radius[m+edge]
+            rows.append(row)
+            right.append(vector[m+edge]-rho_lo*vector[edge])
+            row = np.zeros(problem.width)
+            row[edge], row[m+edge] = -rho_hi*radius[edge], radius[m+edge]
+            rows.append(row)
+            right.append(rho_hi*vector[edge]-vector[m+edge])
+        bounds = np.column_stack((np.maximum(-1., (problem.lower-vector)/radius),
+                                  np.minimum(1., (problem.upper-vector)/radius)))
+        if previous is None:
+            lp = linprog(gradient*radius, A_ub=np.asarray(rows), b_ub=np.asarray(right),
+                bounds=bounds, method='highs', options=dict(primal_feasibility_tolerance=1e-9,
+                                                           dual_feasibility_tolerance=1e-9))
+            report['lp_calls'] = 1
+            report['LP'] = dict(success=bool(lp.success), status=int(lp.status), message=lp.message,
+                                objective=None if lp.fun is None else float(lp.fun))
+            if not lp.success or lp.x is None:
+                raise RuntimeError('stationarity LP did not return an optimal direction')
+            delta = radius*lp.x
+        else:
+            delta = np.asarray(previous['direction'], float)
+            report['append_extra_LP_calls'] = 0
+        report.update(gradient=gradient, trust_radius=radius,
+            gradient_scaled_max=float(np.max(abs(gradient*problem.scale))),
+            gradient_line_max=float(np.max(abs(gradient[:2*m]))))
+        slope = float(gradient @ delta)
+        report.update(direction=delta, directional_derivative=slope,
+            maximum_line_step_pu=float(np.max(abs(delta[:2*m]))),
+            maximum_source_step_pu=float(np.max(abs(delta[2*m:]))))
+        mapping = _RxMap(m, options['r_bounds'], options['x_bounds'], options['ratio_bounds'])
+        if slope < -1e-10:
+            if previous is None:
+                fractions = (1., .5)
+            else:
+                curvature = float(np.linalg.norm(jacobian @ delta)**2)
+                if not curvature > 0.:
+                    raise RuntimeError('positive Gauss-Newton curvature required')
+                fractions = (min(.5, -slope/(2*curvature)),)
+                report['analytic_step_curvature'] = curvature
+                report['analytic_step_fraction'] = fractions[0]
+            for fraction in fractions:
+                trial = vector + fraction*delta
+                row = dict(step_fraction=fraction,
+                    linear_prediction=fraction*slope,
+                    line_domain=mapping.contains(trial[:m], trial[m:2*m], atol=1e-12),
+                    box_violation=float(max(np.max(problem.lower-trial),
+                                            np.max(trial-problem.upper), 0.)))
+                try:
+                    rr = problem.evaluate(trial)
+                    cost = float(rr @ rr)
+                    phy = problem.cache['physical']
+                    minimum, maximum = float(np.min(phy['v'])), float(np.max(phy['v']))
+                    row.update(SSE=cost, SSE_change=cost-base, improvement=base-cost,
+                        min_voltage=minimum, max_voltage=maximum,
+                        voltage_feasible=options['voltage_bounds'][0] <= minimum
+                                         and maximum <= options['voltage_bounds'][1],
+                        ac_equation_residual=float(phy['ac_equation_residual']),
+                        power_balance_residual=float(phy['power_balance_residual']))
+                    row['legal_descent'] = bool(row['line_domain'] and row['box_violation'] <= 1e-12
+                        and row['voltage_feasible'] and cost < base-1e-8)
+                except Exception as exc:
+                    row['failure'] = type(exc).__name__ + ': ' + str(exc)
+                report['trials'].append(row)
+        report['legal_descent_found'] = any(r.get('legal_descent') for r in report['trials'])
+        report['status'] = 'nonstationary_witness_confirmed' if report['legal_descent_found'] else 'no_verified_descent'
+        if previous is None:
+            report['AC_counter'] = counter
+        else:
+            report['append_AC_counter'] = counter
+    except Exception as exc:
+        report.update(status='audit_failed', failure=type(exc).__name__ + ': ' + str(exc),
+                      traceback=traceback.format_exc(), legal_descent_found=False)
+    if previous is None:
+        report['seconds'] = perf_counter()-began
+    else:
+        report['append_seconds'] = perf_counter()-began
+    report['script_sha256'] = sha256(Path(__file__).read_bytes()).hexdigest()
+    report['inputs_sha256'] = {str(p.relative_to(OUT)): sha256(p.read_bytes()).hexdigest()
+                              for p in (history_path, support_path, anchor_path, fitted_path)}
+    target = OUT / 'stationarity_audit.json'
+    target.write_text(json.dumps(serial(report), ensure_ascii=False, sort_keys=True,
+                                indent=2, allow_nan=False)+'\n', encoding='utf-8')
+    print(json.dumps({k: serial(report.get(k)) for k in
+        ('status', 'reconstructed_anchor_SSE', 'SSE_reconstruction_error', 'directional_derivative',
+         'trials', 'seconds', 'failure')}, ensure_ascii=False))
+
+
+if __name__ == '__main__':
+    audit()
