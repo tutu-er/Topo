@@ -1,0 +1,15 @@
+"""Predeclared pilot settings; no evaluation-dependent tuning."""
+CONFIG = dict(version='block_joint_margin_v1', horizon=8, base_kw=20.,
+    history_support_sse=4., weak_direction_fraction=.15,
+    max_alternatives_per_candidate=1, weak_directions=3, support_backtracks=3,
+    margin_cap=5., power_radius_kw=2., max_proposals=2, solver_seconds=5.,
+    gradient_step_kw=.001, gradient_relative_tolerance=.05,
+    gradient_absolute_tolerance=1e-5, fit_multistart=1, fit_max_nfev=400,
+    fit_tol=1e-10, square_iterations=1, clean_diagnostic=True,
+    development_seeds=[2031011000, 2031011001],
+    evaluation_seeds=list(range(2031012000,2031012008)),
+    evaluation_tuned=False, likelihood='conditional V/master-PQ given measured terminal PQ',
+    inference_starts='history line center only, identically for all plans',
+    support_scope='engineering SSE support, no statistical coverage claim',
+    probability_calibrated=False, source_interface=1, EV_Q_policy='unit power factor',
+    local_MILP_not_global_bound=True)
