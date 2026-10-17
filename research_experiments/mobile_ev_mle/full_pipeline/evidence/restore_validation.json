@@ -1,0 +1,152 @@
+{
+  "schema": "full_pipeline_independent_restore_validation_v1",
+  "passed": true,
+  "archive_verification": {
+    "archive_bytes": 20936845,
+    "archive_sha256": "37ae795336361179434752b9fc60f86b23d2a809b1f4b06d5aa208decd72d999",
+    "files": 158,
+    "passed": true
+  },
+  "archive_unchanged_since_package": true,
+  "restored_directory": "D:\\0-github_workspace\\Topo\\outputs\\ev_full_pipeline_stage_20261018\\outputs\\full_pipeline_restore_v1",
+  "recorded_environment_strict_replay": {
+    "passed": true,
+    "exit_code": 0,
+    "executable": "D:/apps/miniconda3/envs/Topo/python.exe",
+    "python": "3.11.15",
+    "log": "restore_replay_311.log",
+    "receipt": {
+      "bootstrap": 2000,
+      "calibration_source_blind_passed": true,
+      "fitting_calls": 0,
+      "passed": true,
+      "phases": {
+        "calibration": {
+          "n_conditions": 48,
+          "passed": true,
+          "phase_summary_sha256": "c31ef7a706034ff41e1aceedfdaaa015dffea23f2a16f01bf38e74761d424dd2"
+        },
+        "development": {
+          "n_conditions": 24,
+          "passed": true,
+          "phase_summary_sha256": "d26e8a94d731cd71828899dad602f373b19666ccb62a57e74507ac1f88b302f4"
+        },
+        "evaluation": {
+          "n_conditions": 64,
+          "passed": true,
+          "phase_summary_sha256": "bfe6da65aab3d6c747d5c9a629f886605b4a7582170b9a9d06df0aaa5ca24ebf"
+        }
+      },
+      "planning_calls": 0,
+      "raw_AC_replay_performed": false,
+      "schema": "full_pipeline_statistical_replay_v1",
+      "scope": "all main statistical objects exactly regenerated from retained loss/support/plan/forecast data; original full AC audit is a separate receipt",
+      "seed": 20409999,
+      "spatial_ablation_passed": true
+    }
+  },
+  "cross_environment_strict_replay": {
+    "passed": false,
+    "exit_code": 1,
+    "executable": "D:/apps/miniconda3/python.exe",
+    "python": "3.13.12",
+    "log": "restore_replay.log",
+    "first_difference": {
+      "path": "development.solver.G-AQ|fixed_bidir.gap.sum",
+      "original": 16.271831196860642,
+      "actual": 16.27183119686064,
+      "absolute_difference": 3.552713678800501e-15,
+      "relative_difference": 2.1833520983710384e-16,
+      "tolerance_passed": true
+    },
+    "reason": "Exact float comparison failed on aggregate sum at the final binary digits; strict failure is retained."
+  },
+  "cross_environment_tolerance_replay": {
+    "passed": true,
+    "receipt": "restore_replay_compat.json",
+    "script": "restore_replay_compat.py",
+    "compared_values": 907542,
+    "float_fields": 275888,
+    "exact_nonfloat_fields": 512220,
+    "tolerance": {
+      "absolute": 1e-10,
+      "relative": 1e-10,
+      "expression": "abs(actual-original) <= 1e-10 + 1e-10*abs(original)",
+      "exact_types": "integers, booleans, strings, null, lengths, keys, seeds, replicate count"
+    },
+    "exact_float_difference_count": 147,
+    "all_differences_are_aggregate_sum_fields": true,
+    "max_absolute_difference": 9.094947017729282e-13,
+    "max_relative_difference": 5.653922865281632e-16,
+    "outside_tolerance_count": 0,
+    "main_table_exact_difference_count": 0,
+    "interval_exact_difference_count": 0,
+    "scope": "Every regenerated calibration field, phase-summary field and spatial-ablation field compared. Floating differences are listed; this is tolerance replay, not exact replay."
+  },
+  "independent_original_raw_counters": {
+    "passed": true,
+    "independent_counter_checks": 480,
+    "independent_source_blind_checks": 80,
+    "evaluation_version_identity_checks": 64,
+    "issues": [],
+    "scope": "Independent support/loss recount, no analysis decision helper; no fitting or planning.",
+    "input": "original full evaluation raw; compared to restored frozen summary/thresholds",
+    "n_conditions": 64,
+    "n_independent_date_clusters": 16,
+    "fitting_calls": 0,
+    "planning_calls": 0,
+    "forward_AC_calls": 0,
+    "seconds": 9.762843700009398
+  },
+  "independent_restored_physical_audit": {
+    "passed": true,
+    "source_files_checked": 864,
+    "source_hash_issues": [],
+    "fixture_count": 4,
+    "fixture_registry_issues": [],
+    "forward_AC_replay_calls": 374,
+    "issues": [],
+    "receipt": "restore_physical_audit.json"
+  },
+  "fitting_calls": 0,
+  "planning_calls": 0,
+  "scope": "Independent restore and read-only replay verification. No fits/plans, no source, archive, or scientific record modifications. Full raw remain local; compact statistics do not replace full raw.",
+  "files": {
+    "restore_replay_compat.py": {
+      "bytes": 12319,
+      "sha256": "8d12f724f44a986313b7c5e6ed4d21f4d303e235a8cb20073a5de7a517a07fba"
+    },
+    "restore_replay_compat.json": {
+      "bytes": 43616,
+      "sha256": "2d954d1d196b2b89509d33795587c4adc44019e0a200dc36bdec93c3f3bcf3bf"
+    },
+    "restore_replay_compat.log": {
+      "bytes": 1904,
+      "sha256": "cdac3d94fdc3c143a10fa1be77accfc4e8cecc7a1081b91fff88a74988ac5453"
+    },
+    "restore_independent_raw_counters.py": {
+      "bytes": 2210,
+      "sha256": "c3219abcfacba368c693af118bdd253962f3c6fab8e29f346cfd510fd9b9bc7d"
+    },
+    "restore_independent_raw_counters.json": {
+      "bytes": 527,
+      "sha256": "8a864a0dd0a201d977014daeca869c47cb1bd947262a3464f85a6c79817addaa"
+    },
+    "restore_physical_audit.json": {
+      "bytes": 5435,
+      "sha256": "829e6344396741fbc62694ede76dac67cb5d0a9767b7e43997d9921cb01c53d4"
+    },
+    "restore_replay.log": {
+      "bytes": 1052,
+      "sha256": "35f7d48e2dd9cb4da98f70d83b30b7bfd31f2ce0fc95a59c71ef5be8c418a2bf"
+    },
+    "restore_replay_311.log": {
+      "bytes": 852,
+      "sha256": "d86e5b248f88258448cd3c25d062608ce24b6630f295142c91a4a7470f31ce78"
+    },
+    "restore_archive_verification.log": {
+      "bytes": 145,
+      "sha256": "6f86cf178b9a090ea46cc6d06ab932dbaf27440ff5a87c20604ed505d44bb0e0"
+    }
+  }
+}
