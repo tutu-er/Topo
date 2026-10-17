@@ -178,3 +178,32 @@ def test_failed_workers_preserve_all_calibration_histories(guarded, monkeypatch)
     assert not (guarded/'controller_lock.json').exists()
     with pytest.raises(ValueError, match='no usable history'):
         tool.run_phase(guarded, 'evaluation')
+
+
+def test_cli_calibration_then_evaluation_keep_identical_parameters(monkeypatch):
+    calls = []
+    monkeypatch.setattr(tool, 'run_phase', lambda root, phase, **settings:
+                        calls.append((root, phase, settings)))
+    monkeypatch.setattr(tool.sys, 'argv', ['control', '--output', 'test-root',
+        '--phase', 'calibration', '--workers', '1', '--draws', '64',
+        '--replicates', '2', '--noise-repeats', '2', '--skip-clean-refit',
+        '--then-evaluation'])
+    tool.main()
+    assert [call[1] for call in calls] == ['calibration', 'evaluation']
+    for root, _, settings in calls:
+        assert root == 'test-root'
+        assert {key: settings[key] for key in
+                ('workers', 'draws', 'replicates', 'noise_repeats', 'clean_refit')} == dict(
+            workers=1, draws=64, replicates=2, noise_repeats=2, clean_refit=False)
+
+
+@pytest.mark.parametrize('phase', ['development', 'evaluation'])
+def test_cli_phase_chain_forbids_other_start_phases(monkeypatch, phase):
+    calls = []
+    monkeypatch.setattr(tool, 'run_phase', lambda *_args, **_settings: calls.append(True))
+    monkeypatch.setattr(tool.sys, 'argv', ['control', '--output', 'test-root',
+        '--phase', phase, '--then-evaluation'])
+    with pytest.raises(SystemExit) as exc:
+        tool.main()
+    assert exc.value.code == 2
+    assert calls == []

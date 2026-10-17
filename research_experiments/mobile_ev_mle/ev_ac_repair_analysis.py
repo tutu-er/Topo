@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import gzip
+from hashlib import sha256
 import json
 from pathlib import Path
 from collections import defaultdict
@@ -15,6 +17,8 @@ from .ev_bayes_small_probability import gaussian_posterior
 MULTIPLIERS = (1., 2., 4., 8., 16., 32.)
 MEAN_MCSE_LIMIT = .2
 COVARIANCE_MCSE_LIMIT = .05
+BOUNDED_ERROR_METRICS = frozenset(('error', 'clean_error', 'false_rejection',
+                                 'wrong_decisive'))
 
 
 def usable_banks(action):
@@ -35,6 +39,94 @@ def load(path):
     path = Path(path)
     return json.loads(gzip.decompress(path.read_bytes()) if path.suffix == '.gz'
                       else path.read_text(encoding='utf-8'))
+
+
+def _status_ledger(value, prefix=''):
+    """Keep nested status/failure fields without retaining numerical tensors."""
+    result = {}
+    if isinstance(value, dict):
+        for key, child in value.items():
+            path = prefix+'.'+str(key) if prefix else str(key)
+            if (key in ('status', 'success', 'complete', 'error', 'usable',
+                        'available', 'precision_met', 'all_complete')
+                    or 'fail' in str(key).lower()):
+                result[path] = deepcopy(child)
+            if isinstance(child, dict):
+                result.update(_status_ledger(child, path))
+            elif isinstance(child, (list, tuple)) and child and isinstance(child[0], dict):
+                for index, item in enumerate(child):
+                    result.update(_status_ledger(item, path+'.'+str(index)))
+    return result
+
+
+def compact_record(record):
+    """Lossless for this module's statistics, not a replacement for raw audits.
+
+    Raw files stay unchanged. Large historical posterior tensors, optimizer
+    states and AC samples are unnecessary for measurements/calibrate/summarize.
+    Predictive bank numbers are retained exactly as float64, with identical
+    arrays shared read-only across the factorial ablations. All nested status
+    and failure fields are retained separately for inspection.
+    """
+    fields = ('spec', 'config', 'candidate_names', 'true_name', 'true_index',
+              'status', 'failures', 'n_independent_histories', 'costs',
+              'source_unchanged_during_run', 'code_initial_sha', 'code_end_sha')
+    compact = {key: deepcopy(record[key]) for key in fields if key in record}
+    compact['plans'] = {label: {'action_key': plan.get('action_key')}
+                       for label, plan in record.get('plans', {}).items()}
+    compact['status_audit'] = _status_ledger(record)
+    compact['compact_statistics_version'] = 'ac_repair_statistics_v1'
+    pool = {}
+    def array(value):
+        numeric = np.array(value, dtype=np.float64, copy=True)
+        key = (numeric.shape, sha256(numeric.tobytes()).digest())
+        if key in pool and np.array_equal(pool[key], numeric, equal_nan=True):
+            return pool[key]
+        numeric.flags.writeable = False
+        pool[key] = numeric
+        return numeric
+    def fit(value):
+        result = {key: deepcopy(value[key]) for key in
+                  ('complete', 'failures', 'keep_all_on_failure', 'retained_on_failure')
+                  if key in value}
+        result['losses'] = deepcopy(value.get('losses', {}))
+        result['comparisons'] = {name: {route: {'success': row.get('success')}
+            for route, row in comparison.items() if route in ('fixed', 'joint')}
+            for name, comparison in value.get('comparisons', {}).items()}
+        return result
+    actions = {}
+    for key, action in record.get('actions', {}).items():
+        propagated = action.get('propagation', {})
+        banks = {name: {field: array(bank[field]) for field in
+                       ('means', 'covariances', 'log_prior')}
+                 for name, bank in propagated.get('banks', {}).items()}
+        row_fields = ('candidate', 'status', 'mean_MCSE_whitened_max',
+                      'covariance_MCSE_relative_fro', 'violation_fractions',
+                      'discarded_draws')
+        rows = [{field: deepcopy(row[field]) for field in row_fields if field in row}
+                for row in propagated.get('rows', [])]
+        result = dict(methods=deepcopy(action.get('methods', [])),
+            failures=deepcopy(action.get('failures', {})),
+            propagation=dict(status=propagated.get('status'), banks=banks, rows=rows),
+            regimes={})
+        for regime, actual in action.get('regimes', {}).items():
+            actual_result = {field: array(actual[field]) for field in ('values', 'clean')
+                             if field in actual}
+            actual_result['refits'] = [fit(value) for value in actual.get('refits', [])]
+            if 'clean_refit' in actual:
+                actual_result['clean_refit'] = fit(actual['clean_refit'])
+            result['regimes'][regime] = actual_result
+        actions[key] = result
+    compact['actions'] = actions
+    return compact
+
+
+def load_records(paths):
+    """Release each expanded raw history before loading the next one."""
+    result = []
+    for path in paths:
+        result.append(compact_record(load(path)))
+    return result
 
 
 def write(path, record):
@@ -250,6 +342,24 @@ def interval(values, seed=173, repetitions=5000):
     return [float(t) for t in np.quantile(means, [.025, .975])]
 
 
+def zero_observed_upper(values, alpha=.05):
+    """One-sided bound for the mean expectation of independent [0,1] losses.
+
+    When every observed loss is zero, P(all zero) <= product(1-E[X_i])
+    <= (1-mean(E[X_i]))**n. No identical-distribution assumption is used.
+    Independence and a fixed policy are required; missing histories stay
+    outside this complete-case bound and retain their separate error range.
+    """
+    values = np.asarray(values, float)
+    if values.ndim != 1 or np.any(~np.isfinite(values)) or np.any((values < 0) | (values > 1)):
+        raise ValueError('independent history losses must be finite in [0,1]')
+    if not 0 < alpha < 1:
+        raise ValueError('alpha must lie strictly between zero and one')
+    if not len(values) or np.any(values != 0):
+        return None
+    return float(-np.expm1(np.log(alpha)/len(values)))
+
+
 def summarize(records, calibration=None):
     rows = [row for record in records for row in measurements(record, calibration)]
     groups = defaultdict(list)
@@ -277,7 +387,15 @@ def summarize(records, calibration=None):
                  if all(name in r for r in rr)]
             if v:
                 metrics[name] = dict(mean=float(np.mean(v)), histories=len(v),
-                                     bootstrap95=interval(v))
+                    bootstrap95=interval(v),
+                    bootstrap_degenerate=bool(np.all(np.asarray(v) == v[0])))
+                if name in BOUNDED_ERROR_METRICS:
+                    upper = zero_observed_upper(v)
+                    if upper is not None:
+                        metrics[name]['zero_observed_one_sided95_upper'] = upper
+                        metrics[name]['zero_observed_bound_scope'] = (
+                            'average expected loss of independent [0,1] history values; '
+                            'fixed policy, conditional on complete-case availability')
         available = len(good)
         error = metrics.get('error', {}).get('mean')
         count = len(records)
@@ -326,7 +444,7 @@ def main():
     parser.add_argument('--calibration')
     args = parser.parse_args()
     files = sorted(Path(args.input).glob('history_*.json.gz'))
-    records = [load(p) for p in files]
+    records = load_records(files)
     calibration = load(args.calibration) if args.calibration else None
     result = calibrate(records) if args.calibrate else summarize(records, calibration)
     write(args.output, result)

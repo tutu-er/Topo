@@ -229,7 +229,7 @@ def run_phase(root, phase, *, workers=2, limit=None, draws=256, replicates=4,
                     for i, j in active.items()}, elapsed_seconds=time.monotonic()-started))
             if pending or active:
                 time.sleep(2)
-        records = [analysis.load(path(s)) for s in specs]
+        records = analysis.load_records([path(s) for s in specs])
         if any(r.get('spec') != s for r, s in zip(records, specs)):
             raise ValueError('history file does not match frozen specification')
         calibration = analysis.load(root/'calibration.json') if (root/'calibration.json').exists() else None
@@ -272,12 +272,20 @@ def main():
     p.add_argument('--replicates', type=int, default=4)
     p.add_argument('--noise-repeats', type=int, default=1)
     p.add_argument('--skip-clean-refit', action='store_true')
+    p.add_argument('--then-evaluation', action='store_true',
+        help='after complete calibration, bind its saved hash and run independent evaluation')
     args = p.parse_args()
     if args.workers < 1 or args.workers > 2:
         p.error('one or two workers allowed')
+    if args.then_evaluation and args.phase != 'calibration':
+        p.error('--then-evaluation requires --phase calibration')
     run_phase(args.output, args.phase, workers=args.workers, limit=args.limit,
         draws=args.draws, replicates=args.replicates,
         noise_repeats=args.noise_repeats, clean_refit=not args.skip_clean_refit)
+    if args.then_evaluation:
+        run_phase(args.output, 'evaluation', workers=args.workers,
+            draws=args.draws, replicates=args.replicates,
+            noise_repeats=args.noise_repeats, clean_refit=not args.skip_clean_refit)
 
 
 if __name__ == '__main__':

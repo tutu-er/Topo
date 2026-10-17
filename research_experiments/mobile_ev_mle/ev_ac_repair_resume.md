@@ -1,26 +1,29 @@
 # 固定计划AC修正：续接
 
-2026-10-17。源码分支 codex/ev-train-validation-design；实现阶段提交 6ed82322 已推送。执行副本 D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015。原冻结实验不再运行。
+2026-10-17。源码分支 codex/ev-train-validation-design；实现6ed82322和审计6a75c211已推送。执行副本 D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015。原贝叶斯冻结批次不再运行，原PDF与pyproject不改。
 
-## 正在运行
+## 开发完成及新冻结批次
 
-开发输出 outputs/ev_ac_repair_development_v3；控制器PID 27724，policy 596c5f8d902792d5f01b9c58a694492e1d2a52b8bb7ed19239ac67ad52c87ba0。8份开发，2个worker；每份历史固定恒充、平方移动双向、原贝叶斯移动双向计划。计算期不要修改冻结Python与数学稿。
+8份开发完成，outputs/ev_ac_repair_development_v3/controller.json 为 development_complete，PID27724及worker已退出。7/8后验完整，1份积分失败；全部条件AC拟合可评价。开发结论见 ev_ac_repair_development_results.md。完整未来传播未改善本批SQ/BC分类；共享线路重拟合对激励计划有改善，恒充有退步例。保留全部失败与弱SSE间隔。
 
-先读 controller.json、controller.stderr.log、development/history_*.progress.json。沙箱可能看不到外部进程，应在完整权限下核对CIM进程命令行；不能仅因沙箱Get-Process无结果重复启动。普通沙箱后台启动PID46364已核实消失；实际运行是完整权限启动PID27724。控制器有活动锁、逐worker启动登记及失败保存。
+新冻结根 outputs/ev_ac_repair_frozen_v1；freeze.json和source_snapshot.json.gz已保存。policy及实际PID见 ev_ac_repair_checkpoint.json 和输出controller.json。主批32校准、32评价，2worker；每历史两未来情景各一个噪声实现，另有clean诊断。科学设置与开发v3相同；汇总改用逐份压缩读取，8份真实开发记录的量测统计完全等价，78项相关测试通过。
 
-## 顺序
+## 启动与续接
 
-1. 等8份开发完成，读取 development_summary.json，检查G00/G10/G01/G11数值精度及失败、fixed/joint实际排序和费用。开发初值不足、积分失败、源越界均保留。
-2. 只有开发资料用于修正程序。若改源码或数值配置，保留v3原记录并开新版本。数学稿中“两个具名初值”应在下一版改成“最多两个；Bayes中心不可用时只有history初值”，实际记录starts是准据。
-3. 冻结最终科学源码、参数及32校准/32评价种子。每历史两情景各1次噪声、另有clean诊断；不把这些重复算成独立历史。
-4. 校准只选G11的全局协方差倍率和条件AC的SSE保留阈值。完整32校准记录、失败分母、policy和输入哈希都要保存，才可启动独立评价。评价不能选倍率或修改方法。
-5. 比较同域平方与原BC固定计划在修正推断下的结果。当前尚未更换MILP梯度；预测校准通过后再决定是否接入。完整AC传播只修正既有近似历史后验的未来传播，历史后验本身仍是单中心局部模型。
-6. 独立回放AC、求解状态、源及线路域，报告均值修正、协方差修正、参数重拟合的效果与代价，保留失败、未决和配对历史数。阶段验证后提交推送授权分支，保护PDF和pyproject。
+启动前先查完整权限CIM进程命令行、controller.json、controller_lock.json、launch_claims与orphan_workers.json。不能因沙箱Get-Process无结果重复启动。使用带日志的完整权限 Start-Process -WindowStyle Hidden；普通沙箱启动进程可能立即消失。
 
-## 既有开发证据
+命令为 Topo环境Python -u -m research_experiments.mobile_ev_mle.ev_ac_repair_control --output outputs/ev_ac_repair_frozen_v1 --phase calibration --workers 2 --draws 256 --replicates 4 --noise-repeats 1 --then-evaluation。启动器保存launcher.json、stdout/stderr。冻结Python和数学稿不再编辑；新增独立审计脚本放evidence/ev_ac_repair_v1/scripts/。
 
-旧预算pilot在 outputs/ev_ac_repair_development_v1/development/history_000.json.gz 与 v2/history_001.json.gz。两者实际继承GHK max_power16，均后验积分失败，缺BC与G传播。dev0 SQ固定判错而joint判对；dev1恒充固定判对而joint判错。128个保存状态独立AC重放通过；它们用于开发定位，不能当新版独立评价。
+控制器先完成32校准记录，再选全局G11协方差倍率及条件AC的SSE阈值；保存全部校准输入哈希。评价必须绑定校准文件哈希且32份规格完整，之后自动开始32新评价。评价不调参、不补跑失败。任一worker超1200秒保留process_failure；控制器中断不杀活跃worker，续接先检查。
 
-## 实现与验证
+## 后处理与交付
 
-数学 ev_ac_repair_math.md；传播 ev_ac_repair_propagation.py；条件重拟合 ev_ac_repair_refit.py；单历史 ev_ac_repair_study.py；校准统计 ev_ac_repair_analysis.py；阶段控制 ev_ac_repair_control.py。71项相关测试通过。新控制器最多2worker，校准/评价强制完整32规格，校准文件与评价绑定。所有成本保留，源和末端电压越界不筛除后重算。
+1. evaluation_complete 后先独立核对源码/种子/校准绑定、全部失败分母、原始计量与计划。
+2. AC物理回放、四组均值协方差接线、概率评分、拟合状态/SSE与费用审计。审计调用费用单列，原记录不覆盖。
+3. 对同一固定计划比较G00/G10/G01/G11/G11_cal与条件AC fixed/joint。条件AC直接输入P/Q，是不同概率口径；fixed→joint才隔离共享R/X重拟合的作用。
+4. 同域SQMD与BCMD用共同历史配对比较，报告缺失范围、候选误拒/未决、MAP错误、区间覆盖及费用。独立历史是统计单位，零观测错误保留非零风险上界。
+5. 输出简明结果、数学和复现证据，commit并正常push授权分支。没有完成非线性历史后验、完整贝叶斯密度或新MILP梯度时明确其状态，不把未来传播替代称为整套后验已修正。
+
+## 旧pilot
+
+development_v1/history_000与v2/history_001继承旧max_power16，均后验积分失败，保留其条件AC反例；新版v3与main为max_power18，原质量门槛不变。所有旧数据及审计证据只读保留。
