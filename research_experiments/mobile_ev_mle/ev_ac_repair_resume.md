@@ -1,5 +1,15 @@
 # 固定计划AC修正：续接
 
+## 当前状态：A运行、B已冻结
+
+2026-10-17追加。下文A启动历史保留；本节及checkpoint优先。B已在读取A评价内容之前冻结：outputs/ev_ac_history_refresh_B_v1，policy 1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316；A150+B15份源码及快照保存在该根。B统一max_iter50，GHK仍max_power18，其余原精度与物理域不变。55项新测试通过。新物理R/X切平面仅完成8开发固定点诊断及数学稿，不在B算法中。
+
+B独立校准PID42844，日志controller.cal.resume1.stdout/stderr.log；2worker重评A的同32份校准历史和固定计划。首次PID38336在预检发现A原calibration_002/003的旧launch状态未更新而停止，未写B科学记录。完整权限确认旧PID均退出、raw哈希与原恢复收据一致后，仅收养两个已完成运行登记；原登记全文、raw哈希和操作收据见infrastructure_A_claim_adoption_v1.json。源码、计量和原A结果不改，不能重复生成或拟合A。
+
+先看A/B controller及完整权限进程，不重复启动。A仍为PID27340自动完成32评价；A evaluation_complete后执行原后处理。B calibration_complete后核对32记录及失败，B calibration.json按自身预测NLL选择a，不能沿用A倍率；再执行`python -m research_experiments.mobile_ev_mle.ac_history_refresh.control run --root outputs/ev_ac_history_refresh_B_v1 --phase evaluation`，它先绑定B校准哈希，再重评同32份A保存评价记录。固定计划和原future noise不变，不生成新科学批次。B源码15份此后不可修改。
+
+两批完成后运行ac_history_refresh.report配对报告，并独立核查B源码、输入与校准绑定、MAP下降/驻点、GHK与完整AC采样门槛、原计划和计量相同、失败retain-all分母及推断费用。A conditional fixed/joint引用A原记录，B没有新增该类refit。B尚未接入MILP；局部Gaussian仍漏掉曲线补偿，概率是否改善以独立评价为准。开发0的完整AC与物理R/X近似halfSSE几乎相同，但η切平面严重失真；physical_rx_next_math.md明确为后续未实现方案。
+
 2026-10-17。源码分支 codex/ev-train-validation-design；实现6ed82322和审计6a75c211已推送。执行副本 D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015。原贝叶斯冻结批次不再运行，原PDF与pyproject不改。
 
 ## 开发完成及新冻结批次
