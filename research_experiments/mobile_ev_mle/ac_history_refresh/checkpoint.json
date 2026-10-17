@@ -104,7 +104,88 @@
     }
   },
   "new_MILP_gradient": false,
-  "next": "monitor existing controllers, then B evaluation after separate B calibration",
+  "next": "wait existing controller26076; no duplicate start; audit after statistical_complete",
   "original_records_unchanged": true,
-  "source_freeze_B": "1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316"
+  "source_freeze_B": "1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316",
+  "status": "evaluation_running",
+  "latest_controller": {
+    "finished": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "pending": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "phase": "evaluation",
+    "pid": 26076,
+    "policy_id": "1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316",
+    "seconds": 251.48399999999674,
+    "status": "running",
+    "total": 32,
+    "workers": {
+      "7": {
+        "pid": 36416,
+        "seconds": 55.25
+      },
+      "8": {
+        "pid": 2348,
+        "seconds": 31.23399999999674
+      }
+    }
+  },
+  "automatic_evaluation_handoff": {
+    "calibration_binding": {
+      "G11_multiplier": 32.0,
+      "calibration_sha256": "fae09a182ec4e12981c6db0d271e080666dd6b72aa43230bb01abc326e58d338",
+      "input_A_policy_id": "fc21118dee52dd44d0b2a1a22dd2fc60de636936d5cddfdcb3caadf304931e13",
+      "policy_id": "1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316"
+    },
+    "command": [
+      "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+      "-u",
+      "-m",
+      "research_experiments.mobile_ev_mle.ac_history_refresh.control",
+      "run",
+      "--root",
+      "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_history_refresh_B_v1",
+      "--phase",
+      "evaluation"
+    ],
+    "controller_pid": 26076,
+    "no_scientific_source_or_inputs_changed": true,
+    "pid": 24164,
+    "policy_id": "1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316",
+    "status": "evaluation_started",
+    "wrapper_sha256": "25d6f9d58038b3e6a743569bdde9c61907862b126a6877a4c972229c4b87ee46"
+  },
+  "calibration_available": 16,
+  "calibration_total": 32
 }

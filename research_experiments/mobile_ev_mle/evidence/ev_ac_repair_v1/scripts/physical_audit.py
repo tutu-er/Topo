@@ -174,8 +174,11 @@ def audit_history(path,audit=None):
     out=dict(path=str(path.resolve()),raw_sha256=initial_hash,spec=r.get('spec'),status=r.get('status'),
         saved_failures=r.get('failures',{}),source_unchanged=r.get('source_unchanged_during_run'),
         actions=[],preserved_in_denominator=True)
-    if r.get('status')=='runner_failure':
-        out.update(issues=[],audit_cost=dict(AC_calls=0,AC_states=0,seconds=perf_counter()-began));return out
+    if r.get('status') in ('runner_failure','process_failure','training_failure','input_failure') and not r.get('actions'):
+        out.update(issues=[],replay_unavailable_reason='failure record has no physical state to replay',
+            raw_unchanged=digest(path)==initial_hash,
+            audit_cost=dict(AC_calls=0,AC_states=0,AC_seconds=0.,seconds=perf_counter()-began))
+        return out
     if r.get('source_unchanged_during_run') is False:audit.issue('science_source_changed_during_run','history')
     cs={x['name']:RadialCandidate.from_supports(x['name'],x['n'],[s for s in x['supports'] if 1<len(s)<x['n']]) for x in r['candidate_structures']}
     n=len(r['observed_training']['p'][0]);T=r['config']['horizon'];K=len(cs);dimension=T*(3*n+2)

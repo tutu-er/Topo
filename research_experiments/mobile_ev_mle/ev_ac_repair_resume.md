@@ -1,6 +1,10 @@
 # 固定计划AC修正：续接
 
-## 当前状态：A运行、B已冻结
+## 当前状态：A及审计完成，B自动评价中
+
+2026-10-17追加，优先于下列历史记录。A已evaluation_complete，64份raw稳定，独立统计、物理、线路响应、分数分解及费用审计完成；结果见ev_ac_repair_results.md。B独立校准32/32完成，16/32满足全任务可用，按预定NLL规则选a=32；calibration.json SHA为fae09a182ec4e12981c6db0d271e080666dd6b72aa43230bb01abc326e58d338。自动handoff已绑定该hash并启动唯一evaluation controller PID26076，仍是同32份A保存评价输入/计划/计量。先核对其controller.json、automatic_evaluation_handoff.json及完整权限进程，禁止再次手动启动评价。旧calibration PID42844已经退出。
+
+B statistical_complete后运行冻结report.py，输出outputs/ev_ac_history_refresh_B_v1/A_B_fixed_plan_comparison_v1.json.gz；再运行独立B全轨迹、概率及模型自风险审计。精简重放输入正在单实例打包到outputs/ev_ac_replay_inputs_v1。新物理R/X后验仍仅有数学方案及8开发固定点检查，本轮不启动C批，不改B冻结科学源码。
 
 2026-10-17追加。下文A启动历史保留；本节及checkpoint优先。B已在读取A评价内容之前冻结：outputs/ev_ac_history_refresh_B_v1，policy 1b9d8f5d22ae6d3ca0c07f57a26466bc1bf9b83a0bde7cb80ee8688285e7d316；A150+B15份源码及快照保存在该根。B统一max_iter50，GHK仍max_power18，其余原精度与物理域不变。55项新测试通过。新物理R/X切平面仅完成8开发固定点诊断及数学稿，不在B算法中。
 
