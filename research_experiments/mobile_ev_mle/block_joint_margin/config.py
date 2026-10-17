@@ -2,7 +2,7 @@
 CONFIG = dict(version='block_joint_margin_v1', horizon=8, base_kw=20.,
     history_support_sse=4., weak_direction_fraction=.15,
     max_alternatives_per_candidate=1, weak_directions=3, support_backtracks=3,
-    margin_cap=5., power_radius_kw=2., max_proposals=2, solver_seconds=5.,
+    margin_cap=5., power_radius_kw=12., max_proposals=2, solver_seconds=5.,
     gradient_step_kw=.001, gradient_relative_tolerance=.05,
     gradient_absolute_tolerance=1e-5, fit_multistart=1, fit_max_nfev=400,
     fit_tol=1e-10, square_iterations=1, clean_diagnostic=True,
