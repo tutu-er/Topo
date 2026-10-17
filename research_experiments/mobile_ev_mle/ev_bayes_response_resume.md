@@ -1,6 +1,6 @@
 # 线路响应不确定性研究续接
 
-本轮仍在执行，尚未完成64条校准与128条独立评价。先读本文件，再读取运行目录的controller.json；禁止重复启动正在运行的controller或worker。
+冻结计算和三阶段独立审计已完成：开发16、校准64、评价128份记录。当前正在唯一后处理；先读本文件和finish检查点，禁止重复启动。
 
 - 研究源：C:/Users/23761/.codex/worktrees/36a1/Topo，分支codex/ev-train-validation-design。
 - 执行副本：D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015。
@@ -51,3 +51,11 @@ worker每5分钟由faulthandler输出一次当前栈，日志中的“Timeout (0
 校准worker32188在定时打印Python栈时原生崩溃，最终记录0、2、4保留，6无最终记录。已保留Windows事件、匹配符号解析和日志；仅更换运行入口及编排，140份科学源码、policy和所有种子不变。恢复controller2848接管仍存活的22536，先补校准6，再完成缺失校准/评价。新进程每次一份历史，仅无最终记录的原生失败允许一次重试；已保存科学失败不重试。运行入口5项及编排28项测试通过，开发16份既有独立审计通过。详见ev_bayes_response_runtime_recovery.md。
 
 新worker关闭原五分钟诊断定时器；健康旧worker22536沿原入口继续。续接先查上述锁和attempt日志，不要因为旧controller.json尚在读取大记录时更新延迟而重复启动。全部完成后，finish须纳入运行恢复证据及费用；603秒是原worker完整历时，包含已保存历史，不是可额外相加的丢失时间。
+
+## 2026-10-17 01:42 UTC后处理
+
+统计controller2848已正常退出，controller.status=statistical_complete。三阶段审计均success、error_count=0；完整推断为12/16、45/64、88/128，失败分别4、19、40份，全部保留。审计成功验证实现重放与失败保存，最终物理收益和概率校准仍待解释。
+
+唯一finish进程PID45564；输出outputs/ev_bayes_response_finish_v1/checkpoint.json，日志在其同级ev_bayes_response_finish_v1.stdout.log及.stderr.log，PID在同级.pid文件。先核对finish及checkpoint中的child_pid，存活时不重启。finish开始时对全部原始记录/源码建立输入封存，首次checkpoint可能稍后才出现；finish.lock已记录PID。依次完成inventory、cal/eval统计、cal/eval响应诊断、预定16份历史支持和回归测试。不要在finish运行中修改其工具或测试源码，否则输入封存会变化。
+
+最终必须分开：同动作推断、ranked相对平方基线的初始化排序、新BC相对ranked的新MILP增量；条件均值同时报可用/128和缺失结果范围。旧开发v2的非零完整梯度验证与当前冻结开发的7零方向/1无提案分开。完整AC预测校准独立于已知超参数线性2048历史校准。先检查诊断失败与历史支持失败，再写最终结论。现有统计源码未变，不用评价调参。

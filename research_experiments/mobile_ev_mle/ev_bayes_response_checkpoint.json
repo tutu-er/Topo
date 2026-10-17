@@ -1,20 +1,60 @@
 {
+  "adopted_worker_finished": [
+    {
+      "elapsed_scope": "since adoption",
+      "elapsed_seconds": 3793.6719999999914,
+      "exit_code": 0,
+      "pid": 22536
+    }
+  ],
+  "audit_log_modified": "2026-10-17T01:20:58.100302+00:00",
   "automation_id": "topo-ev",
+  "calibration_audit": {
+    "coverage": {
+      "exact_coverage": true,
+      "expected_histories": 64,
+      "missing": [],
+      "present_histories": 64,
+      "unexpected": []
+    },
+    "error_count": 0,
+    "success": true
+  },
+  "controller_exit_expected": true,
   "controller_pid": 2848,
-  "controller_process_verified_alive": true,
+  "controller_process_verified_alive": false,
   "core_regression_tests": 167,
+  "evaluation_saved": 128,
   "finish_io_tests": 20,
   "implementation_commit": "65ed88e0",
   "linear_generative_histories": 2048,
-  "next": "Read live controller/lock/attempts and full-token process state; do not restart healthy workers. Finish only after statistical_complete and all phase audits.",
-  "observed_at": "2026-10-16T20:13:56.416523+00:00",
+  "next": "Inspect unique finish PID45564/checkpoint and child process; never duplicate. Preserve frozen science and postprocess sources while input seal is active. Review completed outputs, package evidence, commit/push and delete heartbeat only after final verification.",
+  "observed_at": "2026-10-17T01:43:24.256602+00:00",
+  "phase_audit_progress": {
+    "calibration": {
+      "complete": true,
+      "logged_failed_checks": 0,
+      "logged_records": 64
+    },
+    "development": {
+      "complete": true,
+      "logged_failed_checks": 0,
+      "logged_records": 16
+    },
+    "evaluation": {
+      "complete": true,
+      "logged_failed_checks": 0,
+      "logged_records": 128
+    }
+  },
   "phases": {
     "calibration": {
       "expected": 64,
-      "saved": 17,
+      "independent_audit_success": true,
+      "saved": 64,
       "status_counts": {
-        "complete": 13,
-        "inference_failure": 4
+        "complete": 45,
+        "inference_failure": 19
       },
       "unreadable": []
     },
@@ -27,15 +67,45 @@
         "inference_failure": 4
       },
       "unreadable": []
+    },
+    "evaluation": {
+      "expected": 128,
+      "independent_audit_success": true,
+      "saved": 128,
+      "status_counts": {
+        "complete": 88,
+        "inference_failure": 40
+      },
+      "unreadable": []
     }
   },
   "policy_id": "6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9",
+  "postprocess": {
+    "checkpoint": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1\\checkpoint.json",
+    "current_step": "inventory",
+    "output_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1",
+    "pid": 45564,
+    "process_verified_alive": true,
+    "status": "running",
+    "stderr": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1.stderr.log",
+    "stdout": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1.stdout.log",
+    "updated": "2026-10-17T01:42:37.588076+00:00"
+  },
   "preflight_delivery_commit": "b9d21228",
   "preflight_restore_verified": true,
   "primary_question": "Does Bayesian planning improve EV MILP objectives and actual plan quality? Separate same-action inference, action ranking, new MILP proposal gains, and physical discrimination under equal operation domains.",
   "process_check_scope": "Get-Process with authorized full-user token; restricted-token OpenProcess cannot verify this PID",
+  "process_health": [
+    {
+      "exit_code": null,
+      "pid": 45564,
+      "scope": "unique postprocessing controller, full-user verified"
+    }
+  ],
+  "process_health_note": "Statistical controller2848 exited normally; only finish45564 performs prespecified postprocessing.",
   "restore_io_tests": 32,
   "runtime_io_tests": 33,
+  "runtime_native_failure_events": 1,
   "runtime_recovery": {
     "adopted_worker_pid": 22536,
     "attempts_log": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_frozen_v1\\runtime_recovery_v1\\attempts.jsonl",
@@ -45,64 +115,17 @@
     "scientific_hashes_unchanged": 140,
     "unit_tests": 33
   },
+  "runtime_recovery_commit": "b6ede1bb",
+  "runtime_recovery_pushed": true,
   "runtime_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_frozen_v1",
-  "stage": "recovery_execution",
-  "status": "running",
+  "source_verification": {
+    "checked": "2026-10-17T01:21:18.540918+00:00",
+    "files": 140,
+    "policy_id": "6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9"
+  },
+  "stage": "postprocessing",
+  "status": "statistical_complete",
   "study_complete": false,
-  "updated": "2026-10-16T19:39:08.024023+00:00",
-  "workers": [
-    {
-      "adopted": true,
-      "attempt_id": null,
-      "created_filetime": 134366534470287779,
-      "exit_code": null,
-      "indices": [
-        1,
-        3,
-        5,
-        7,
-        9,
-        11,
-        13,
-        15,
-        17,
-        19,
-        21,
-        23,
-        25,
-        27,
-        29,
-        31,
-        33,
-        35,
-        37,
-        39,
-        41,
-        43,
-        45,
-        47,
-        49,
-        51,
-        53,
-        55,
-        57,
-        59,
-        61,
-        63
-      ],
-      "phase": "calibration",
-      "pid": 22536
-    },
-    {
-      "adopted": false,
-      "attempt_id": "f2cf2854c69942d4bc3e6401ee0cab10",
-      "created_filetime": 134366551846629280,
-      "exit_code": null,
-      "indices": [
-        10
-      ],
-      "phase": "calibration",
-      "pid": 2952
-    }
-  ]
+  "updated": "2026-10-17T01:39:23.884228+00:00",
+  "workers": []
 }
