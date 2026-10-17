@@ -11,6 +11,8 @@
 - development_score_decomposition.json按 log p(PQ,V,总表)=log p(PQ)+log p(V,总表|PQ)拆分评分；该诊断未改变规划或主批评分。
 - development_oracle_response_v2.json对7份可用开发历史做线路、背景及源单项真值替换，以及相对恒充的动作增量诊断；第8份后验失败保留，oracle_mean_selfcheck_v2.json核对旧均值逐项一致。
 - development_statistical_audit_v2.json独立计算各通道覆盖、概率评分、历史配对与失败即未决的操作统计；development_postprocess_tests.xml记录10项审计及I/O测试通过。
+- independent_statistical_audit_tests_v3.xml另核对31成功加1过程失败、32全失败两种分母，审计测试9项通过；纯schema测试未选择真实数据的校准倍率。
+- development_doubling_summary.json与development_doubling_audit.json.gz保留开发0、7的256→512传播积分加倍核查，32项分类均未变；成本单列，未调整主批。
 - development_physical_audit.json、development_oracle_mean_audit.json、development_probability_audit.json保留早期两样本的传播重建、真值替换诊断及独立概率核对。真值替换未进入选择器。
 
 ## 科学批次与统计口径

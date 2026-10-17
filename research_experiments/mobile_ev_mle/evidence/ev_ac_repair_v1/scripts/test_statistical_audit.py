@@ -146,3 +146,50 @@ def test_completed_mode_independently_rejects_empty_calibration(monkeypatch, tmp
     assert not result['passed']
     assert result['calibration_hash_binding']['input_hashes_equal']
     assert 'completed evaluation has no declared calibrated multiplier' in result['audit_issues']
+
+
+def minimal_process_failure(index):
+    return dict(spec=dict(index=index, seed=2000+index, bank='n4',
+        phase='evaluation'), status='process_failure',
+        failures=dict(worker='timeout'), worker_exit_code=9, seconds=1200.,
+        source_sha256={'frozen_science.py':'a'*64})
+
+
+def test_minimal_process_failure_retains_full32_mixed_denominator():
+    successful = [audit.audit_history(toy_record(i), SETTINGS) for i in range(31)]
+    record = minimal_process_failure(31)
+    assert 'candidate_names' not in record and 'true_name' not in record
+    failed = audit.audit_history(record, SETTINGS)
+    assert failed['metadata']['status'] == 'process_failure'
+    assert failed['metadata']['failures'] == dict(worker='timeout')
+    assert all(not row['available'] for row in failed['rows'])
+    result = audit.summary([*successful, failed])
+    row = result['summaries']['SQMD__G00']
+    assert row['availability']['histories'] == 31
+    assert row['availability']['total_histories'] == 32
+    assert row['availability']['failed_history_indices'] == [31]
+    assert row['availability']['error_all_histories_range'] == [0., 1/32]
+    operational = row['operational_all_histories']['metrics']
+    assert operational['unresolved']['mean'] == 1/32
+    assert operational['false_rejection']['mean'] == 0.
+    assert operational['correct_decisive']['mean'] == 31/32
+    assert operational['wrong_decisive']['mean'] == 0.
+
+
+def test_minimal_process_failure_all32_are_operationally_unresolved():
+    records = [audit.audit_history(minimal_process_failure(i), SETTINGS)
+               for i in range(32)]
+    result = audit.summary(records, calibrated=True)
+    for group in result['summaries'].values():
+        assert group['availability']['total_histories'] == 32
+        assert group['availability']['histories'] == 0
+        assert group['availability']['failed_history_indices'] == list(range(32))
+        assert group['availability']['error_all_histories_range'] == [0., 1.]
+        operational = group['operational_all_histories']['metrics']
+        assert operational['unresolved']['mean'] == 1.
+        for name in ('false_rejection', 'correct_decisive', 'wrong_decisive'):
+            assert operational[name]['mean'] == 0.
+    calibration = audit.calibration_from_audits(records)
+    assert calibration['histories'] == 32
+    assert calibration['available_histories'] == 0
+    assert calibration['G11_multiplier'] is None
