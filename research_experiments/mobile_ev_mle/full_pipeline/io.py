@@ -34,8 +34,8 @@ def digest(path):return sha256(Path(path).read_bytes()).hexdigest()
 def source_hashes():
     paths=[ROOT/'research_experiments/__init__.py']
     for rel in ('research_experiments/mobile_ev_mle','research_experiments/mobile_ev_probing','rnj_wzzt_core','terminal_case33'):
-        paths.extend(p for p in (ROOT/rel).rglob('*.py') if not any(v in p.parts for v in ('evidence','__pycache__','outputs'))
-            and not any(v.startswith('results') for v in p.parts)
+        paths.extend(p for p in (ROOT/rel).rglob('*.py') if not any(v in p.relative_to(ROOT).parts for v in ('evidence','__pycache__','outputs'))
+            and not any(v.startswith('results') for v in p.relative_to(ROOT).parts)
             and p!=Path(__file__).with_name('analysis.py'))
     paths.extend(Path(__file__).parent/n for n in ('protocol.md','math.md'))
     return {p.relative_to(ROOT).as_posix():digest(p) for p in sorted(paths)}
@@ -43,7 +43,7 @@ def source_hashes():
 def freeze(output,config,prepared):
     output=Path(output);output.mkdir(parents=True,exist_ok=True)
     imported={name:str(Path(module.__file__).resolve()) for name,module in sys.modules.copy().items()
-        if name.split('.')[0] in ('research_experiments','terminal_case33','rnj_wzzt_core')
+        if name.split('.')[0] in ('research_experiments','terminal_case33','rnj_wzzt_core','rnj_wzzt')
         and getattr(module,'__file__',None)}
     outside={name:path for name,path in imported.items() if not Path(path).is_relative_to(ROOT)}
     if outside:raise RuntimeError('repository dependency escaped execution snapshot: '+str(outside))

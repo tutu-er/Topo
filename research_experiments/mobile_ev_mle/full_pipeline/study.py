@@ -42,14 +42,12 @@ def prepare(output,raw=RAW):
             inventory.append(dict(phase=split.name,cluster_index=i,start_utc=window['provenance']['start_utc'],
                 end_utc=window['provenance']['end_utc'],csv_lines=window['provenance']['csv_line_numbers']))
     data.assert_windows_disjoint([v for w in windows.values() for v in w])
-    # Predictor selection receives only historical measured P, never actual future.
+    # Inner rolling CV receives raw historical imports: its prefixes must not
+    # inherit the final 96-slot simulator scaling or synthetic meter noise.
     development=[]
     for i,window in enumerate(windows['development']):
-        spec=specification('development',i,8,'none')
-        case=cases.make_case(spec,window,CONFIG)
-        obs=case['history'];mm=case['history_meter']
-        development.append(dict(phase='development',values=obs.p-np.asarray(mm.bias_p),
-            timestamps=case['timestamps']))
+        development.append(dict(phase='development',values=np.asarray(window['history']['p_kw']),
+            timestamps=window['history']['timestamps_utc']))
     # H=96 cannot provide an observed day-lag at internal rolling origins.
     candidates=tuple(c for c in forecast.DEFAULT_CANDIDATES if c.method!='seasonal_naive')
     fc,selection=forecast.select_on_development(development,candidates=candidates,horizon=CONFIG['T'],nonnegative=True)
