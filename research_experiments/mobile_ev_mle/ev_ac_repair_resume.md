@@ -12,6 +12,8 @@
 
 启动前先查完整权限CIM进程命令行、controller.json、controller_lock.json、launch_claims与orphan_workers.json。不能因沙箱Get-Process无结果重复启动。使用带日志的完整权限 Start-Process -WindowStyle Hidden；普通沙箱启动进程可能立即消失。
 
+主批首次PID13560因Windows临时占用controller.json导致replace失败；原worker独立完成，4份raw完整保留。已核对无活跃worker和150份科学源码不变，使用evidence/ev_ac_repair_v1/scripts/controller_safe_io.py续接，PID27340；该启动包装器仅对相同atomic_json写入的PermissionError重试最多10秒，3项测试通过。详情、四份原raw哈希及包装器哈希在infrastructure_recovery_01.json，后续日志为controller.resume1.stdout/stderr.log。遇到文件占用时不要改科学源码或重跑已有样本。
+
 命令为 Topo环境Python -u -m research_experiments.mobile_ev_mle.ev_ac_repair_control --output outputs/ev_ac_repair_frozen_v1 --phase calibration --workers 2 --draws 256 --replicates 4 --noise-repeats 1 --then-evaluation。启动器保存launcher.json、stdout/stderr。冻结Python和数学稿不再编辑；新增独立审计脚本放evidence/ev_ac_repair_v1/scripts/。
 
 控制器先完成32校准记录，再选全局G11协方差倍率及条件AC的SSE阈值；保存全部校准输入哈希。评价必须绑定校准文件哈希且32份规格完整，之后自动开始32新评价。评价不调参、不补跑失败。任一worker超1200秒保留process_failure；控制器中断不杀活跃worker，续接先检查。

@@ -1,0 +1,41 @@
+{
+  "scope": "in-memory corruptions of one saved record; originals untouched",
+  "tests": [
+    {
+      "name": "wiring_fault_detected",
+      "issues": [
+        {
+          "category": "numeric_mismatch",
+          "location": "fault/wiring/G10/covariances_wiring",
+          "error": 0.09999999999999964,
+          "tolerance": 1e-12
+        }
+      ]
+    },
+    {
+      "name": "domain_fault_detected",
+      "issues": [
+        {
+          "category": "propagation_success_despite_physical_violation",
+          "location": "fault/domain",
+          "candidate": "star"
+        }
+      ]
+    },
+    {
+      "name": "missing_bank_detected",
+      "issues": [
+        {
+          "category": "missing_success_banks",
+          "location": "fault/missing",
+          "banks": [
+            "G00",
+            "G01",
+            "G10"
+          ]
+        }
+      ]
+    }
+  ],
+  "passed": 3
+}

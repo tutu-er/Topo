@@ -1,0 +1,1646 @@
+{
+  "success": true,
+  "checks": 45625,
+  "counts": {
+    "optimizer_objects": 1568,
+    "local_solver_restarts": 1600,
+    "states_replayed": 1600,
+    "operations_replayed": 23,
+    "BC_MILP_proposals": 28,
+    "BC_MILP_accepted": 2,
+    "BC_MILP_reported_success": 22,
+    "actual_trajectories_replayed": 34,
+    "fixed_retained_states": 272,
+    "joint_retained_states": 272,
+    "BC_MILP_failed_proposals": 6
+  },
+  "maxima": {
+    "independent_AC_equation": 2.5588709127610926e-16,
+    "independent_power_balance": 3.803831812052752e-16,
+    "SSE_replay": 1.6857484297361225e-09,
+    "normalizer_replay": 0.0,
+    "conditional_loglik_replay": 8.431015885435045e-10,
+    "block_SSE_replay": 9.486029739491642e-10,
+    "whitened_residual_replay": 1.0749623413630616e-11,
+    "channel_SSE_replay": 9.497398423263803e-10,
+    "net_EV_control_identity": 8.881784197001252e-16,
+    "battery_energy_replay": 3.552713678800501e-15,
+    "independent_actual_AC_EV_added_once": 9.094947017729282e-12,
+    "paired_meter_noise_across_plans_regimes": 9.066081219089028e-13,
+    "fixed_history_R_identity": 0.0,
+    "fixed_history_X_identity": 0.0,
+    "future_refit_cost_sum": 0.0,
+    "propagation_cost_sum": 0.0,
+    "declared_risk_cost_sum": 0.0
+  },
+  "errors": [],
+  "input_files": [
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_000.json.gz",
+      "bytes": 11104656,
+      "sha256": "c403f8dd9f6baf0e6658a28e2a7f6793c232f239708190ccaea564c25c922ff0"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_001.json.gz",
+      "bytes": 1101336,
+      "sha256": "3276706eccf79f7ff65522e32f5646fb849c84532ff182c95c38afa5738a1596"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_002.json.gz",
+      "bytes": 13034718,
+      "sha256": "5d51c1feef3088765d4ac11254fe58bc9a22d15e4e76540a5545bd4cf919bb7b"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_003.json.gz",
+      "bytes": 19042164,
+      "sha256": "7aa08fd75ad3234e86785423ab6c83df456139ce0c58a106445e7ff0bf1ff873"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_004.json.gz",
+      "bytes": 10971407,
+      "sha256": "088c0fdc3aa9da8d565388c8fd8d8f92634fc8caeaf6b323fc7df5374cf4bacb"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_005.json.gz",
+      "bytes": 20603260,
+      "sha256": "70914e9ffe6c44915d5a1183db0896408eca0fd498d7b4a626293c27935b4c17"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_006.json.gz",
+      "bytes": 12858810,
+      "sha256": "bb83e0800c5269b2d1218dece536255ddfccc096568fd9ba1113804c4ad2ca6d"
+    },
+    {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_ac_repair_development_v3\\development\\history_007.json.gz",
+      "bytes": 19242024,
+      "sha256": "565d1b4a75b901e78f0b4d11634b975ab5ab4a88f8bc509cc4dfc736e08a1c65"
+    }
+  ],
+  "phase_ledgers": {
+    "development": {
+      "total_records": 8,
+      "status_counts": {
+        "complete": 7,
+        "partial_failure": 1
+      },
+      "expected": 8,
+      "missing_indices": []
+    }
+  },
+  "source_boundary": {
+    "scope": "AST data-boundary check, not a general noninterference proof",
+    "selector_arguments": [
+      "observed",
+      "fits",
+      "posterior_options",
+      "seed",
+      "progress"
+    ],
+    "sanitized_fields": [
+      "base_kw",
+      "candidates",
+      "evidence",
+      "evidence_meter",
+      "future_meter",
+      "horizon",
+      "train_meter",
+      "training"
+    ],
+    "source_sha256": {
+      "ev_ac_repair_study.py": "479f1ef3b1db285cb99d001ba4a89b8df7c285e5c2d5892909ec4cdd2f2a4bcb",
+      "ev_ac_repair_refit.py": "e4879b5d1bbb58b251f67f8dd647024eb201d5495a1a7af39f25ad2d57eeae9b",
+      "ev_ac_repair_analysis.py": "24bb486e202350e4634e0771799d8d6567c453c0ad172255ed741ea984ee7c18",
+      "ev_ac_repair_control.py": "002d0a21e26dbb1e9da71ef71b00165046560f52008501aeb8c4238db1d4abc4"
+    }
+  },
+  "histories": [
+    {
+      "spec": {
+        "H": 32,
+        "bank": "n3",
+        "excitation": "ordinary",
+        "family_index": 0,
+        "index": 0,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120100,
+        "stratum_id": 0
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 3.68972510000458,
+        "declared_risk_seconds": 1.842214299889747,
+        "final_center_objective": {
+          "ac_states": 224,
+          "already_in_total_elapsed": true,
+          "cache_calls": 7,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.0948725999915041,
+          "seconds": 0.2274963998934254
+        },
+        "planning": {
+          "BC": 10.551023599982727,
+          "objective": {
+            "ac_states": 192,
+            "cache_calls": 6,
+            "entries": {
+              "1b9f86e890482218026c030b494ecf050be5c8c3649fbb2a839b21c0d5a08c90": {
+                "AC_states": 32,
+                "seconds": 0.02210830000694841
+              },
+              "3cfc12d54e4af2766b02c1f0b93ae7421df074c17e833e1633a4097992a27e5c": {
+                "AC_states": 32,
+                "seconds": 0.02385349996620789
+              },
+              "8a32b1ed7d534a9fba8a663006e46b57b16cd37e7eacef19efdcb9afd26cbaf3": {
+                "AC_states": 32,
+                "seconds": 0.021560799970757216
+              },
+              "c7959f0b5c23f3b43487fbfd308ce074d5c4d7206f31711f26466cca92c5abd1": {
+                "AC_states": 32,
+                "seconds": 0.02270710002630949
+              },
+              "f1b6555251b0672337f343724173bf8c95e5c7dcb5c351b802897926bc8edf5b": {
+                "AC_states": 32,
+                "seconds": 0.021352499956265092
+              },
+              "f8cee5386e5048adfc7c3843c44f14fbe588977ce567260ec521204495b79ed7": {
+                "AC_states": 32,
+                "seconds": 0.021012699988204986
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.1326237999019213
+          },
+          "ranked": 0.13571539998520166,
+          "square": 1.9234049000078812
+        },
+        "planning_seconds": 57.636577999976,
+        "propagation_AC_states": 65536,
+        "propagation_seconds": 45.13769980001962,
+        "refit_future_seconds": 38.21764310001163,
+        "source_hash_begin_seconds": 0.8927134999539703,
+        "source_hash_end_seconds": 3.1642428999766707,
+        "total_seconds": 153.24339790001977
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "SQMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": true,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.013553480731074166,
+          "solver_best_bound": 0.013553480731074166,
+          "solver_seconds": 0.037252800015266985,
+          "build_seconds": 0.07534189999569207,
+          "proxy_certificate": [
+            0.0,
+            0.01355349368365473
+          ],
+          "proxy_uniform_error": 0.42762578275874014
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.023217280044827326,
+          "solver_best_bound": 0.02321728004482733,
+          "solver_seconds": 0.044437100004870445,
+          "build_seconds": 0.08338999998522922,
+          "proxy_certificate": [
+            0.0,
+            0.023217308104706562
+          ],
+          "proxy_uniform_error": 0.4428049799651676
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 1.0,
+          "solver_incumbent": 0.013553480731074166,
+          "solver_best_bound": 0.0,
+          "solver_seconds": 5.016231200017501,
+          "build_seconds": 0.08748069999273866,
+          "proxy_certificate": [
+            0.0,
+            0.01355349368365473
+          ],
+          "proxy_uniform_error": 0.42762578275874014
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": true,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.959773170953528,
+          "solver_incumbent": 0.020706634455812417,
+          "solver_best_bound": 0.0008329622443817556,
+          "solver_seconds": 5.0152960999985225,
+          "build_seconds": 0.08547180000459775,
+          "proxy_certificate": [
+            0.0,
+            0.020706634455812455
+          ],
+          "proxy_uniform_error": 0.4430885764740338
+        }
+      ],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 1547,
+        "fit_calls": 192,
+        "solver_calls": 192
+      },
+      "history_fit_counters": {
+        "ac_calls": 145,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 1.2120120999752544,
+        "planning": 57.636577999976,
+        "history": 3.68972510000458,
+        "future_refit": 38.21764310001163,
+        "propagation": 45.13769980001962,
+        "declared_risk": 1.842214299889747,
+        "hash_begin": 0.8927134999539703,
+        "hash_end": 3.1642428999766707,
+        "extra_center_after_planning": 0.0948725999915041
+      },
+      "unitemized_worker_seconds": 1.3556965002208017,
+      "cold_BC_design_attempt_seconds": 58.84859009995125,
+      "BC_plan_available": true,
+      "square_design_seconds": 1.9234049000078812,
+      "history_cache_charged_once": true,
+      "audit_seconds": 0.19357860001036897
+    },
+    {
+      "spec": {
+        "H": 32,
+        "bank": "n4",
+        "excitation": "correlated",
+        "family_index": 0,
+        "index": 1,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120101,
+        "stratum_id": 1
+      },
+      "status": "partial_failure",
+      "failures": {
+        "missing_plans": [
+          "BCMD"
+        ],
+        "posterior_context": "BoundedIntegrationError: bounded line integration failed: status=precision_not_met, points=2097152, relative_SE=0.006182681074599326, ESS=1571.3314519844148"
+      },
+      "planned_methods": [
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 7.497331099992152,
+        "declared_risk_seconds": 0,
+        "planning": {
+          "square": 10.487266399955843
+        },
+        "planning_seconds": 176.89330420002807,
+        "propagation_AC_states": 0,
+        "propagation_seconds": 0.0,
+        "refit_future_seconds": 27.982119300053455,
+        "source_hash_begin_seconds": 0.754754800000228,
+        "source_hash_end_seconds": 3.2841020000050776,
+        "total_seconds": 219.5215715999948
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "SQMD": {
+          "moves": 1,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.430354796320631,
+          "driver_cost": 30.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "MILP_events": [],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 964,
+        "fit_calls": 96,
+        "solver_calls": 96
+      },
+      "history_fit_counters": {
+        "ac_calls": 355,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 2.181222599989269,
+        "planning": 176.89330420002807,
+        "history": 7.497331099992152,
+        "future_refit": 27.982119300053455,
+        "propagation": 0.0,
+        "declared_risk": 0.0,
+        "hash_begin": 0.754754800000228,
+        "hash_end": 3.2841020000050776,
+        "extra_center_after_planning": 0.0
+      },
+      "unitemized_worker_seconds": 0.928737599926535,
+      "cold_BC_design_attempt_seconds": 179.07452680001734,
+      "BC_plan_available": false,
+      "square_design_seconds": 10.487266399955843,
+      "history_cache_charged_once": true,
+      "audit_seconds": 0.14468830003170297
+    },
+    {
+      "spec": {
+        "H": 96,
+        "bank": "n3",
+        "excitation": "ordinary",
+        "family_index": 1,
+        "index": 2,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120102,
+        "stratum_id": 2
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 25.62354110000888,
+        "declared_risk_seconds": 1.884244800079614,
+        "final_center_objective": {
+          "ac_states": 224,
+          "already_in_total_elapsed": true,
+          "cache_calls": 7,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.10942379996413365,
+          "seconds": 0.7251110999495722
+        },
+        "planning": {
+          "BC": 12.865914200025145,
+          "objective": {
+            "ac_states": 192,
+            "cache_calls": 6,
+            "entries": {
+              "1b9f86e890482218026c030b494ecf050be5c8c3649fbb2a839b21c0d5a08c90": {
+                "AC_states": 32,
+                "seconds": 0.09934979997342452
+              },
+              "3cfc12d54e4af2766b02c1f0b93ae7421df074c17e833e1633a4097992a27e5c": {
+                "AC_states": 32,
+                "seconds": 0.1020039000432007
+              },
+              "5707e56b614ed2e24fefacf522bf339dbf383f121c8b0742f046ea8eb5262aa5": {
+                "AC_states": 32,
+                "seconds": 0.11765190004371107
+              },
+              "8a32b1ed7d534a9fba8a663006e46b57b16cd37e7eacef19efdcb9afd26cbaf3": {
+                "AC_states": 32,
+                "seconds": 0.09857410000404343
+              },
+              "f1b6555251b0672337f343724173bf8c95e5c7dcb5c351b802897926bc8edf5b": {
+                "AC_states": 32,
+                "seconds": 0.09792059997562319
+              },
+              "f8cee5386e5048adfc7c3843c44f14fbe588977ce567260ec521204495b79ed7": {
+                "AC_states": 32,
+                "seconds": 0.10009979997994378
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.6156872999854386
+          },
+          "ranked": 0.6136137999710627,
+          "square": 7.134718300017994
+        },
+        "planning_seconds": 41.1933616999886,
+        "propagation_AC_states": 65536,
+        "propagation_seconds": 6.557540700014215,
+        "refit_future_seconds": 160.01694930007216,
+        "source_hash_begin_seconds": 1.1646112999878824,
+        "source_hash_end_seconds": 3.2701720999903046,
+        "total_seconds": 248.88509960001102
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "SQMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": true,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.00046714992165156744,
+          "solver_best_bound": 0.00046714992165156744,
+          "solver_seconds": 0.18308539997087792,
+          "build_seconds": 0.45439780002925545,
+          "proxy_certificate": [
+            0.0,
+            0.00046714992179701506
+          ],
+          "proxy_uniform_error": 0.1072001041881422
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": false,
+          "failure": "incumbent_constraint_audit_failed",
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.0006180425358108371,
+          "solver_best_bound": 0.0006180425358108371,
+          "solver_seconds": 0.39495999994687736,
+          "build_seconds": 0.4412053999840282,
+          "proxy_certificate": null,
+          "proxy_uniform_error": 0.11589784836961159
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.9943333059101946,
+          "solver_incumbent": 0.00046714992165156744,
+          "solver_best_bound": 2.647195700075986e-06,
+          "solver_seconds": 5.040232799947262,
+          "build_seconds": 0.4751639000023715,
+          "proxy_certificate": [
+            0.0,
+            0.00046714992179701506
+          ],
+          "proxy_uniform_error": 0.1072001041881422
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": true,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 1.0,
+          "solver_incumbent": 0.0005793195761169271,
+          "solver_best_bound": 0.0,
+          "solver_seconds": 5.0352072000387125,
+          "build_seconds": 0.45556329999817535,
+          "proxy_certificate": [
+            0.0,
+            0.0005793206231732991
+          ],
+          "proxy_uniform_error": 0.11562810582835177
+        }
+      ],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 1558,
+        "fit_calls": 192,
+        "solver_calls": 192
+      },
+      "history_fit_counters": {
+        "ac_calls": 198,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 6.616733700037003,
+        "planning": 41.1933616999886,
+        "history": 25.62354110000888,
+        "future_refit": 160.01694930007216,
+        "propagation": 6.557540700014215,
+        "declared_risk": 1.884244800079614,
+        "hash_begin": 1.1646112999878824,
+        "hash_end": 3.2701720999903046,
+        "extra_center_after_planning": 0.10942379996413365
+      },
+      "unitemized_worker_seconds": 2.4485210998682305,
+      "cold_BC_design_attempt_seconds": 47.8100954000256,
+      "BC_plan_available": true,
+      "square_design_seconds": 7.134718300017994,
+      "history_cache_charged_once": true,
+      "audit_seconds": 0.2185709999757819
+    },
+    {
+      "spec": {
+        "H": 96,
+        "bank": "n4",
+        "excitation": "correlated",
+        "family_index": 1,
+        "index": 3,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120103,
+        "stratum_id": 3
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 34.10466020001331,
+        "declared_risk_seconds": 2.800907599972561,
+        "final_center_objective": {
+          "ac_states": 224,
+          "already_in_total_elapsed": true,
+          "cache_calls": 7,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.15137619996676221,
+          "seconds": 1.0318937999545597
+        },
+        "planning": {
+          "BC": 9.124643600021955,
+          "objective": {
+            "ac_states": 192,
+            "cache_calls": 6,
+            "entries": {
+              "14183c1f2d22783c73e12b21ab1ff91acf7cf28ddf860c5c61733d5a86b28a5e": {
+                "AC_states": 32,
+                "seconds": 0.1479473999934271
+              },
+              "22dd739384a184a5666f0951110515f72fc15ad282479066dc309d28410e6592": {
+                "AC_states": 32,
+                "seconds": 0.14819450001232326
+              },
+              "3b91373ffca65c88759c038645f57e66d4681f0a2577b8773c86dad2ec0884d9": {
+                "AC_states": 32,
+                "seconds": 0.14670500002102926
+              },
+              "4437689324e55aa71812a6373f997c2830ccd68068dcf259f42ebcf5d2df03c1": {
+                "AC_states": 32,
+                "seconds": 0.15377509995596483
+              },
+              "7859f044769498e9f3067dac5d36eef06d5cef089bc7d197a0b91fd091dfb0da": {
+                "AC_states": 32,
+                "seconds": 0.14659379998920485
+              },
+              "8d1b194d77d204c11524d664fffb9dc7c656df8a6967e943fd56acd8f598d768": {
+                "AC_states": 32,
+                "seconds": 0.13719249999849126
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.8805175999877974
+          },
+          "ranked": 1.0265829000272788,
+          "square": 10.746302300016396
+        },
+        "planning_seconds": 41.335683200042695,
+        "propagation_AC_states": 65536,
+        "propagation_seconds": 7.479752400016878,
+        "refit_future_seconds": 187.7431801999919,
+        "source_hash_begin_seconds": 0.7421312000369653,
+        "source_hash_end_seconds": 3.235779399983585,
+        "total_seconds": 290.67023739998695
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 1,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.430354796320631,
+          "driver_cost": 30.0
+        },
+        "SQMD": {
+          "moves": 1,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.430354796320631,
+          "driver_cost": 30.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": true,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.019414901849061902,
+          "solver_best_bound": 0.019414901849061902,
+          "solver_seconds": 0.2913426000159234,
+          "build_seconds": 0.5778096999856643,
+          "proxy_certificate": [
+            0.0,
+            0.01941490184907324
+          ],
+          "proxy_uniform_error": 0.3010534684576899
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": false,
+          "failure": "incumbent_constraint_audit_failed",
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.03869694284815103,
+          "solver_best_bound": 0.03869694284815103,
+          "solver_seconds": 0.2989913999917917,
+          "build_seconds": 0.6106289000017568,
+          "proxy_certificate": null,
+          "proxy_uniform_error": 0.3297149405626247
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 3.867358184704338e-06,
+          "solver_best_bound": 3.867358184704338e-06,
+          "solver_seconds": 0.5646723000099882,
+          "build_seconds": 0.668375900015235,
+          "proxy_certificate": [
+            0.0,
+            3.8819798549633495e-06
+          ],
+          "proxy_uniform_error": 0.27696870740406077
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": false,
+          "failure": "incumbent_constraint_audit_failed",
+          "solver_relative_gap": 0.9970317535380093,
+          "solver_incumbent": 0.012246895648726787,
+          "solver_best_bound": 3.635180467970201e-05,
+          "solver_seconds": 5.068996499991044,
+          "build_seconds": 0.7295662000542507,
+          "proxy_certificate": null,
+          "proxy_uniform_error": 0.3252775521347476
+        }
+      ],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 1696,
+        "fit_calls": 192,
+        "solver_calls": 192
+      },
+      "history_fit_counters": {
+        "ac_calls": 320,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 10.320122299948707,
+        "planning": 41.335683200042695,
+        "history": 34.10466020001331,
+        "future_refit": 187.7431801999919,
+        "propagation": 7.479752400016878,
+        "declared_risk": 2.800907599972561,
+        "hash_begin": 0.7421312000369653,
+        "hash_end": 3.235779399983585,
+        "extra_center_after_planning": 0.15137619996676221
+      },
+      "unitemized_worker_seconds": 2.7566447000135668,
+      "cold_BC_design_attempt_seconds": 51.6558054999914,
+      "BC_plan_available": true,
+      "square_design_seconds": 10.746302300016396,
+      "history_cache_charged_once": true,
+      "audit_seconds": 1.7765661000157706
+    },
+    {
+      "spec": {
+        "H": 32,
+        "bank": "n3",
+        "excitation": "correlated",
+        "family_index": 2,
+        "index": 4,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120104,
+        "stratum_id": 4
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 5.443877200013958,
+        "declared_risk_seconds": 1.9575959999929182,
+        "final_center_objective": {
+          "ac_states": 192,
+          "already_in_total_elapsed": true,
+          "cache_calls": 6,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.08490590000292286,
+          "seconds": 0.5739376000128686
+        },
+        "planning": {
+          "BC": 8.176374199974816,
+          "objective": {
+            "ac_states": 160,
+            "cache_calls": 5,
+            "entries": {
+              "1b9f86e890482218026c030b494ecf050be5c8c3649fbb2a839b21c0d5a08c90": {
+                "AC_states": 32,
+                "seconds": 0.10223930003121495
+              },
+              "3cfc12d54e4af2766b02c1f0b93ae7421df074c17e833e1633a4097992a27e5c": {
+                "AC_states": 32,
+                "seconds": 0.09441239997977391
+              },
+              "8a32b1ed7d534a9fba8a663006e46b57b16cd37e7eacef19efdcb9afd26cbaf3": {
+                "AC_states": 32,
+                "seconds": 0.09434230002807453
+              },
+              "f1b6555251b0672337f343724173bf8c95e5c7dcb5c351b802897926bc8edf5b": {
+                "AC_states": 32,
+                "seconds": 0.09768499998608604
+              },
+              "f8cee5386e5048adfc7c3843c44f14fbe588977ce567260ec521204495b79ed7": {
+                "AC_states": 32,
+                "seconds": 0.10010310000507161
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.4890317000099458
+          },
+          "ranked": 0.6237654999713413,
+          "square": 6.627326000016183
+        },
+        "planning_seconds": 19.548987299960572,
+        "propagation_AC_states": 65536,
+        "propagation_seconds": 2.0908650000346825,
+        "refit_future_seconds": 43.61446409992641,
+        "source_hash_begin_seconds": 0.7224134000134654,
+        "source_hash_end_seconds": 3.196021899988409,
+        "total_seconds": 78.98698940000031
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "SQMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": true,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 3.0012954034540477e-06,
+          "solver_best_bound": 3.0012954034540477e-06,
+          "solver_seconds": 0.1705773000139743,
+          "build_seconds": 0.4802081999951042,
+          "proxy_certificate": [
+            0.0,
+            3.002576430396819e-06
+          ],
+          "proxy_uniform_error": 0.536478635354727
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 5.4584960306838584e-05,
+          "solver_best_bound": 5.4584960306838584e-05,
+          "solver_seconds": 0.5980140999890864,
+          "build_seconds": 0.4650998000288382,
+          "proxy_certificate": [
+            0.0,
+            5.458517737533666e-05
+          ],
+          "proxy_uniform_error": 0.5655413681917882
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 3.0012954034540477e-06,
+          "solver_best_bound": 3.0012954034540477e-06,
+          "solver_seconds": 0.28325719997519627,
+          "build_seconds": 0.40434529999038205,
+          "proxy_certificate": [
+            0.0,
+            3.002576430396819e-06
+          ],
+          "proxy_uniform_error": 0.536478635354727
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.958987036327197,
+          "solver_incumbent": 5.4584960306838584e-05,
+          "solver_best_bound": 2.23869099414577e-06,
+          "solver_seconds": 5.042896999977529,
+          "build_seconds": 0.4517300000297837,
+          "proxy_certificate": [
+            0.0,
+            5.458517737533666e-05
+          ],
+          "proxy_uniform_error": 0.5655413681917882
+        }
+      ],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 1688,
+        "fit_calls": 192,
+        "solver_calls": 192
+      },
+      "history_fit_counters": {
+        "ac_calls": 225,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 0.9777709000045434,
+        "planning": 19.548987299960572,
+        "history": 5.443877200013958,
+        "future_refit": 43.61446409992641,
+        "propagation": 2.0908650000346825,
+        "declared_risk": 1.9575959999929182,
+        "hash_begin": 0.7224134000134654,
+        "hash_end": 3.196021899988409,
+        "extra_center_after_planning": 0.08490590000292286
+      },
+      "unitemized_worker_seconds": 1.3500877000624314,
+      "cold_BC_design_attempt_seconds": 20.526758199965116,
+      "BC_plan_available": true,
+      "square_design_seconds": 6.627326000016183,
+      "history_cache_charged_once": true,
+      "audit_seconds": 1.6083852999727242
+    },
+    {
+      "spec": {
+        "H": 32,
+        "bank": "n4",
+        "excitation": "ordinary",
+        "family_index": 2,
+        "index": 5,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120105,
+        "stratum_id": 5
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 4.8741802999866195,
+        "declared_risk_seconds": 4.1864074000041,
+        "final_center_objective": {
+          "ac_states": 224,
+          "already_in_total_elapsed": true,
+          "cache_calls": 7,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.15667389996815473,
+          "seconds": 1.0878004999831319
+        },
+        "planning": {
+          "BC": 20.862735000031535,
+          "objective": {
+            "ac_states": 192,
+            "cache_calls": 6,
+            "entries": {
+              "14183c1f2d22783c73e12b21ab1ff91acf7cf28ddf860c5c61733d5a86b28a5e": {
+                "AC_states": 32,
+                "seconds": 0.1616548000019975
+              },
+              "22dd739384a184a5666f0951110515f72fc15ad282479066dc309d28410e6592": {
+                "AC_states": 32,
+                "seconds": 0.14239270001417026
+              },
+              "3b91373ffca65c88759c038645f57e66d4681f0a2577b8773c86dad2ec0884d9": {
+                "AC_states": 32,
+                "seconds": 0.15596120001282543
+              },
+              "4437689324e55aa71812a6373f997c2830ccd68068dcf259f42ebcf5d2df03c1": {
+                "AC_states": 32,
+                "seconds": 0.1561199999996461
+              },
+              "7859f044769498e9f3067dac5d36eef06d5cef089bc7d197a0b91fd091dfb0da": {
+                "AC_states": 32,
+                "seconds": 0.1560952999861911
+              },
+              "8d1b194d77d204c11524d664fffb9dc7c656df8a6967e943fd56acd8f598d768": {
+                "AC_states": 32,
+                "seconds": 0.1587823000154458
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.9311266000149772
+          },
+          "ranked": 1.0744235999882221,
+          "square": 10.89965239999583
+        },
+        "planning_seconds": 72.95809269999154,
+        "propagation_AC_states": 98304,
+        "propagation_seconds": 27.92208899994148,
+        "refit_future_seconds": 68.26102090004133,
+        "source_hash_begin_seconds": 1.4626428000046872,
+        "source_hash_end_seconds": 3.286350600013975,
+        "total_seconds": 186.83200180000858
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000002,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "SQMD": {
+          "moves": 1,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.430354796320631,
+          "driver_cost": 30.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": false,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.09038348235342061,
+          "solver_incumbent": 0.00013093064497488193,
+          "solver_best_bound": 0.00011909667733527271,
+          "solver_seconds": 5.041287700005341,
+          "build_seconds": 0.6506585999741219,
+          "proxy_certificate": [
+            0.0,
+            0.00013093064984629282
+          ],
+          "proxy_uniform_error": 0.05160139021922726
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 0.003041641176500329,
+          "solver_best_bound": 0.003041641176500329,
+          "solver_seconds": 2.702312699984759,
+          "build_seconds": 0.6586077000247315,
+          "proxy_certificate": [
+            0.0,
+            0.003041643279864754
+          ],
+          "proxy_uniform_error": 0.05227724694299289
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.9958701274973163,
+          "solver_incumbent": 0.00013093064497488193,
+          "solver_best_bound": 5.407268704403981e-07,
+          "solver_seconds": 5.0470940000377595,
+          "build_seconds": 0.664272100024391,
+          "proxy_certificate": [
+            0.0,
+            0.00013093064984629282
+          ],
+          "proxy_uniform_error": 0.05160139021922726
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": false,
+          "failure": "incumbent_constraint_audit_failed",
+          "solver_relative_gap": 0.9999790754565968,
+          "solver_incumbent": 0.0028223065568835763,
+          "solver_best_bound": 5.905547604660501e-08,
+          "solver_seconds": 5.045706000004429,
+          "build_seconds": 0.7077624999801628,
+          "proxy_certificate": null,
+          "proxy_uniform_error": 0.052248331189395036
+        }
+      ],
+      "refit_tasks": 12,
+      "future_fit_counters": {
+        "ac_calls": 2476,
+        "fit_calls": 288,
+        "solver_calls": 288
+      },
+      "history_fit_counters": {
+        "ac_calls": 170,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 1.4404861999792047,
+        "planning": 72.95809269999154,
+        "history": 4.8741802999866195,
+        "future_refit": 68.26102090004133,
+        "propagation": 27.92208899994148,
+        "declared_risk": 4.1864074000041,
+        "hash_begin": 1.4626428000046872,
+        "hash_end": 3.286350600013975,
+        "extra_center_after_planning": 0.15667389996815473
+      },
+      "unitemized_worker_seconds": 2.2840580000774935,
+      "cold_BC_design_attempt_seconds": 74.39857889997074,
+      "BC_plan_available": true,
+      "square_design_seconds": 10.89965239999583,
+      "history_cache_charged_once": true,
+      "audit_seconds": 2.182045499968808
+    },
+    {
+      "spec": {
+        "H": 96,
+        "bank": "n3",
+        "excitation": "correlated",
+        "family_index": 3,
+        "index": 6,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120106,
+        "stratum_id": 6
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 22.203510999970604,
+        "declared_risk_seconds": 1.923600199923385,
+        "final_center_objective": {
+          "ac_states": 192,
+          "already_in_total_elapsed": true,
+          "cache_calls": 6,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.10053509997669607,
+          "seconds": 0.6210405999445356
+        },
+        "planning": {
+          "BC": 3.044525200035423,
+          "objective": {
+            "ac_states": 160,
+            "cache_calls": 5,
+            "entries": {
+              "1b9f86e890482218026c030b494ecf050be5c8c3649fbb2a839b21c0d5a08c90": {
+                "AC_states": 32,
+                "seconds": 0.10301760002039373
+              },
+              "3cfc12d54e4af2766b02c1f0b93ae7421df074c17e833e1633a4097992a27e5c": {
+                "AC_states": 32,
+                "seconds": 0.10788259998662397
+              },
+              "8a32b1ed7d534a9fba8a663006e46b57b16cd37e7eacef19efdcb9afd26cbaf3": {
+                "AC_states": 32,
+                "seconds": 0.10303170001134276
+              },
+              "f1b6555251b0672337f343724173bf8c95e5c7dcb5c351b802897926bc8edf5b": {
+                "AC_states": 32,
+                "seconds": 0.09769450000021607
+              },
+              "f8cee5386e5048adfc7c3843c44f14fbe588977ce567260ec521204495b79ed7": {
+                "AC_states": 32,
+                "seconds": 0.10877579997759312
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.5205054999678396
+          },
+          "ranked": 0.6518019000068307,
+          "square": 7.46473700000206
+        },
+        "planning_seconds": 86.38870379998116,
+        "propagation_AC_states": 65536,
+        "propagation_seconds": 8.136543700064067,
+        "refit_future_seconds": 169.48033409996424,
+        "source_hash_begin_seconds": 1.3107335999957286,
+        "source_hash_end_seconds": 3.310443700000178,
+        "total_seconds": 302.11122010002146
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "SQMD": {
+          "moves": 0,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.2306176084099887,
+          "driver_cost": 0.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": true,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 6.371189214746179e-09,
+          "solver_best_bound": 6.371189214746179e-09,
+          "solver_seconds": 0.14677520003169775,
+          "build_seconds": 0.4743632000172511,
+          "proxy_certificate": [
+            0.0,
+            6.371189435957547e-09
+          ],
+          "proxy_uniform_error": 0.07239284815494029
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": false,
+          "failure": "incumbent_constraint_audit_failed",
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 1.7047793532408233e-06,
+          "solver_best_bound": 1.7047793532408233e-06,
+          "solver_seconds": 0.1737783999997191,
+          "build_seconds": 0.45727750001242384,
+          "proxy_certificate": null,
+          "proxy_uniform_error": 0.07441615879067254
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 6.371189214746179e-09,
+          "solver_best_bound": 6.371189214746179e-09,
+          "solver_seconds": 0.31666420004330575,
+          "build_seconds": 0.46070110000437126,
+          "proxy_certificate": [
+            0.0,
+            6.371189435957547e-09
+          ],
+          "proxy_uniform_error": 0.07239284815494029
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": false,
+          "failure": "incumbent_constraint_audit_failed",
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 1.7047793532408233e-06,
+          "solver_best_bound": 1.7047793532408233e-06,
+          "solver_seconds": 0.24523079994833097,
+          "build_seconds": 0.507233600015752,
+          "proxy_certificate": null,
+          "proxy_uniform_error": 0.07441615879067254
+        }
+      ],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 1685,
+        "fit_calls": 192,
+        "solver_calls": 192
+      },
+      "history_fit_counters": {
+        "ac_calls": 178,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 6.755912000022363,
+        "planning": 86.38870379998116,
+        "history": 22.203510999970604,
+        "future_refit": 169.48033409996424,
+        "propagation": 8.136543700064067,
+        "declared_risk": 1.923600199923385,
+        "hash_begin": 1.3107335999957286,
+        "hash_end": 3.310443700000178,
+        "extra_center_after_planning": 0.10053509997669607
+      },
+      "unitemized_worker_seconds": 2.5009029001230374,
+      "cold_BC_design_attempt_seconds": 93.14461580000352,
+      "BC_plan_available": true,
+      "square_design_seconds": 7.46473700000206,
+      "history_cache_charged_once": true,
+      "audit_seconds": 1.362045899964869
+    },
+    {
+      "spec": {
+        "H": 96,
+        "bank": "n4",
+        "excitation": "ordinary",
+        "family_index": 3,
+        "index": 7,
+        "innovation": "nominal",
+        "innovation_multiplier": 1.0,
+        "legacy_audit": false,
+        "phase": "development",
+        "replicate": 0,
+        "seed": 2026120107,
+        "stratum_id": 7
+      },
+      "status": "complete",
+      "failures": {},
+      "planned_methods": [
+        "BCMD",
+        "SQMD",
+        "constant"
+      ],
+      "costs": {
+        "conditional_history_seconds": 24.4478100000415,
+        "declared_risk_seconds": 2.9042928000562824,
+        "final_center_objective": {
+          "ac_states": 224,
+          "already_in_total_elapsed": true,
+          "cache_calls": 7,
+          "extra_AC_states_after_planning": 32,
+          "extra_seconds_after_planning": 0.15332839998882264,
+          "seconds": 0.9791646000230685
+        },
+        "planning": {
+          "BC": 9.354291600000579,
+          "objective": {
+            "ac_states": 192,
+            "cache_calls": 6,
+            "entries": {
+              "14183c1f2d22783c73e12b21ab1ff91acf7cf28ddf860c5c61733d5a86b28a5e": {
+                "AC_states": 32,
+                "seconds": 0.1546682000043802
+              },
+              "22dd739384a184a5666f0951110515f72fc15ad282479066dc309d28410e6592": {
+                "AC_states": 32,
+                "seconds": 0.12726420001126826
+              },
+              "3b91373ffca65c88759c038645f57e66d4681f0a2577b8773c86dad2ec0884d9": {
+                "AC_states": 32,
+                "seconds": 0.13903610000852495
+              },
+              "4437689324e55aa71812a6373f997c2830ccd68068dcf259f42ebcf5d2df03c1": {
+                "AC_states": 32,
+                "seconds": 0.13501260004704818
+              },
+              "7859f044769498e9f3067dac5d36eef06d5cef089bc7d197a0b91fd091dfb0da": {
+                "AC_states": 32,
+                "seconds": 0.14322810003068298
+              },
+              "8d1b194d77d204c11524d664fffb9dc7c656df8a6967e943fd56acd8f598d768": {
+                "AC_states": 32,
+                "seconds": 0.1265317999641411
+              }
+            },
+            "included_in_family_seconds": true,
+            "seconds": 0.8258362000342458
+          },
+          "ranked": 0.9649399999761954,
+          "square": 11.00240749999648
+        },
+        "planning_seconds": 311.09286919998704,
+        "propagation_AC_states": 65536,
+        "propagation_seconds": 114.37222550000297,
+        "refit_future_seconds": 166.83653290005168,
+        "source_hash_begin_seconds": 0.7360216000233777,
+        "source_hash_end_seconds": 3.2975647000130266,
+        "total_seconds": 634.0347546999692
+      },
+      "source_changes_during_run": [],
+      "history_refit_complete": true,
+      "operations": {
+        "BCMD": {
+          "moves": 1,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.430354796320631,
+          "driver_cost": 30.0
+        },
+        "SQMD": {
+          "moves": 1,
+          "discharge": true,
+          "throughput_kwh": 7.500000000000001,
+          "grid_energy_kwh": 3.430354796320631,
+          "driver_cost": 30.0
+        },
+        "constant": {
+          "moves": 0,
+          "discharge": false,
+          "throughput_kwh": 3.0,
+          "grid_energy_kwh": 3.0000000000000018,
+          "driver_cost": 0.0
+        }
+      },
+      "BC_same_action_as_square": true,
+      "MILP_events": [
+        {
+          "domain": "fixed_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 1.156867184846119e-05,
+          "solver_best_bound": 1.156867184846119e-05,
+          "solver_seconds": 0.2572262000176124,
+          "build_seconds": 0.6128750999923795,
+          "proxy_certificate": [
+            0.0,
+            1.1568671848621661e-05
+          ],
+          "proxy_uniform_error": 0.036266568490494394
+        },
+        {
+          "domain": "fixed_charge",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 4.945219575795486e-05,
+          "solver_best_bound": 4.945219575795486e-05,
+          "solver_seconds": 0.3573828000226058,
+          "build_seconds": 0.5714268999872729,
+          "proxy_certificate": [
+            0.0,
+            4.9452196931717414e-05
+          ],
+          "proxy_uniform_error": 0.0390645720109401
+        },
+        {
+          "domain": "mobile_bidir",
+          "accepted": false,
+          "status": 0,
+          "stop_reason": "Gurobi OPTIMAL",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.0,
+          "solver_incumbent": 2.5828688955891893e-07,
+          "solver_best_bound": 2.5828688955891893e-07,
+          "solver_seconds": 0.5902064999681897,
+          "build_seconds": 0.7758409999660216,
+          "proxy_certificate": [
+            0.0,
+            2.5828688967931075e-07
+          ],
+          "proxy_uniform_error": 0.033998072679091364
+        },
+        {
+          "domain": "mobile_charge",
+          "accepted": false,
+          "status": 1,
+          "stop_reason": "Gurobi TIME_LIMIT",
+          "success": true,
+          "failure": null,
+          "solver_relative_gap": 0.18815767624600427,
+          "solver_incumbent": 1.344290341160703e-05,
+          "solver_best_bound": 1.0913517943679569e-05,
+          "solver_seconds": 5.056424900016282,
+          "build_seconds": 0.7540102999773808,
+          "proxy_certificate": [
+            0.0,
+            1.3442903927279967e-05
+          ],
+          "proxy_uniform_error": 0.03843827924114202
+        }
+      ],
+      "refit_tasks": 8,
+      "future_fit_counters": {
+        "ac_calls": 1628,
+        "fit_calls": 192,
+        "solver_calls": 192
+      },
+      "history_fit_counters": {
+        "ac_calls": 166,
+        "fit_calls": 4,
+        "solver_calls": 8
+      },
+      "exclusive_cost_parts": {
+        "training": 7.564507799979765,
+        "planning": 311.09286919998704,
+        "history": 24.4478100000415,
+        "future_refit": 166.83653290005168,
+        "propagation": 114.37222550000297,
+        "declared_risk": 2.9042928000562824,
+        "hash_begin": 0.7360216000233777,
+        "hash_end": 3.2975647000130266,
+        "extra_center_after_planning": 0.15332839998882264
+      },
+      "unitemized_worker_seconds": 2.6296017998247407,
+      "cold_BC_design_attempt_seconds": 318.6573769999668,
+      "BC_plan_available": true,
+      "square_design_seconds": 11.00240749999648,
+      "history_cache_charged_once": true,
+      "audit_seconds": 1.5811419999809004
+    }
+  ],
+  "audit_script_sha256": "d402fb92abee0bb810781aa8fa8c43bc27a9f9c79eb63f13de7ee8bf7e055dcc",
+  "audit_script_unchanged": true,
+  "audit_seconds": 25.821143199980725,
+  "audit_cost_separate_from_scientific_run": true,
+  "source_and_raw_records_modified": false,
+  "new_scientific_samples_generated": 0,
+  "limitations": [
+    "conditional direct-PQ SSE differs from latent-PQ predictive density",
+    "joint attained SSE is a local upper bound on profile minimum, not a global MLE",
+    "SSE argmin does not correct unequal topology parameter dimensions",
+    "failure-marked inference is unavailable in complete-case summaries; operational rule retains all candidates",
+    "calibration and bootstrap describe the declared synthetic strata, not field reliability",
+    "cold BC planning cost includes training, inference, square and inherited plans",
+    "same feasible operation domain does not imply equal total computing time for BC and square planning",
+    "Bayes MILP solver gaps certify only its frozen surrogate; retained parent score is the improvement check",
+    "cached historical fits and posterior samples are charged once per history, not free or per future repeatedly"
+  ]
+}
