@@ -1,3 +1,11 @@
+## 最新：统一命名与含g的精度平方MILP（2026-10-18）
+
+先读[统一方法名](METHOD_NAMES.md)、[本轮简明结果](g_precision/results.md)。强对照P-SQ只按精度加权功率平方；新增G-SQ按候选AC响应导数差与精度共同加权，G-AQ进一步保留背景差和线性项。三者使用同一嵌套EV域，规划每候选一组训练R/X；封存计划后分别做固定线路FIX和历史＋EV共享线路JNT完整AC评价。
+
+2份开发、8份独立评价完成；每历史两个配对未来情景。JNT含噪误判P-SQ为2/16、G-SQ为1/16、G-AQ为2/16；G-SQ净改善只在一份历史的一个情景。8/8历史的代理及固定模型完整AC预测分数提高，但联合重拟合后的裕量仍有升有降。P-SQ最高自由度域8/8未达代理间隙，含4个主问题动作回验失败，合法父计划和失败均保留。当前比较是预算内返回计划，不是全部目标全局最优的比较。
+
+60项测试及1920次保存状态完整AC回放通过，0审计问题。源码、完整分母、求解界与费用证据见[g_precision/evidence](g_precision/evidence/README.md)。未用评价调参或clean诊断选计划；本轮没有实现滚动规划或新概率校准。原LaTeX/PDF及pyproject未改。以下保留旧阶段及分母。
+
 ## 最新：固定计划的AC历史修正与独立评价（2026-10-17）
 
 先读 [简明结果](ac_history_refresh/results.md)、[原AC传播与联合拟合对照](ev_ac_repair_results.md)；数学见 [历史拟合与局部后验](ac_history_refresh/math.md)，复现见 [reproduce.md](ac_history_refresh/reproduce.md)。A/B使用同32份独立校准和32份评价；原计划、计量和物理域不变。

@@ -2,6 +2,8 @@
 
 统一名称见[方法表](../METHOD_NAMES.md)。G-SQ为拓扑加权平方MILP，G-AQ进一步保留背景差异及线性项；强对照P-SQ是只用公开计量精度的平方MILP。
 
+本轮实现与独立评价完成，先读[简明结果](results.md)。完整分母、失败、求解间隙和复算证据见[evidence/README.md](evidence/README.md)。
+
 先读math.md、protocol.md。源参数和未来预测在规划中冻结；真实计量到达后分别运行固定R/X与共享R/X联合拟合。全部候选对保留。该版本不包含滚动重规划或概率校准。
 
 从Topo源码根目录执行：
