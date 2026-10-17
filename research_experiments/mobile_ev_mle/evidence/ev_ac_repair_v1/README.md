@@ -9,6 +9,8 @@
 - development_full_audit_v4.json核对全部8份开发的AC状态、四组预测接线、物理域、同一噪声和原始文件哈希；physical_audit_selfcheck.json保留3项故障注入。
 - development_refit_cost_audit.json独立重放全部保存的拟合状态、局部初值、操作计划与费用。审计费用独立列出。
 - development_score_decomposition.json按 log p(PQ,V,总表)=log p(PQ)+log p(V,总表|PQ)拆分评分；该诊断未改变规划或主批评分。
+- development_oracle_response_v2.json对7份可用开发历史做线路、背景及源单项真值替换，以及相对恒充的动作增量诊断；第8份后验失败保留，oracle_mean_selfcheck_v2.json核对旧均值逐项一致。
+- development_statistical_audit_v2.json独立计算各通道覆盖、概率评分、历史配对与失败即未决的操作统计；development_postprocess_tests.xml记录10项审计及I/O测试通过。
 - development_physical_audit.json、development_oracle_mean_audit.json、development_probability_audit.json保留早期两样本的传播重建、真值替换诊断及独立概率核对。真值替换未进入选择器。
 
 ## 科学批次与统计口径
@@ -30,3 +32,5 @@
 审计脚本位于 scripts/，接受 --root 与 --output，原raw仅只读。physical_audit.py可用 --expected-histories 64 审计整个主批；refit_cost_audit.py使用 --phases calibration evaluation --source research_experiments/mobile_ev_mle；statistical_audit.py的实际选项见其 --help。score_decomposition.py按 --phase 单独拆分评分。不要在统计完成前重新选择倍率或修改科学源码。
 
 完整原始记录、freeze.json、source_snapshot.json.gz和控制器日志保留于各输出根。最终证据包提供清单与哈希；原PDF及pyproject不在本轮提交范围。
+
+main_frozen_protocol.json与main_frozen_source.json.gz保留主批冻结协议和150份源码/测试/方案。source_restore_audit.json记录实际恢复并逐文件核对，所有哈希一致。相对依赖名从研究目录解析，恢复路径均在指定恢复根以内；这一核对未重新运行科学样本。
