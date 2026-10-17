@@ -1,6 +1,6 @@
 # 线路响应不确定性研究续接
 
-冻结计算和三阶段独立审计已完成：开发16、校准64、评价128份记录。当前正在唯一后处理；先读本文件和finish检查点，禁止重复启动。
+本批研究、后处理、人工交叉核对及恢复验证均完成。先读ev_bayes_response_final_report.md和完成包manifest；不再启动本批实验或后处理。
 
 - 研究源：C:/Users/23761/.codex/worktrees/36a1/Topo，分支codex/ev-train-validation-design。
 - 执行副本：D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015。
@@ -59,3 +59,11 @@ worker每5分钟由faulthandler输出一次当前栈，日志中的“Timeout (0
 唯一finish进程PID45564；输出outputs/ev_bayes_response_finish_v1/checkpoint.json，日志在其同级ev_bayes_response_finish_v1.stdout.log及.stderr.log，PID在同级.pid文件。先核对finish及checkpoint中的child_pid，存活时不重启。finish开始时对全部原始记录/源码建立输入封存，首次checkpoint可能稍后才出现；finish.lock已记录PID。依次完成inventory、cal/eval统计、cal/eval响应诊断、预定16份历史支持和回归测试。不要在finish运行中修改其工具或测试源码，否则输入封存会变化。
 
 最终必须分开：同动作推断、ranked相对平方基线的初始化排序、新BC相对ranked的新MILP增量；条件均值同时报可用/128和缺失结果范围。旧开发v2的非零完整梯度验证与当前冻结开发的7零方向/1无提案分开。完整AC预测校准独立于已知超参数线性2048历史校准。先检查诊断失败与历史支持失败，再写最终结论。现有统计源码未变，不用评价调参。
+
+## 2026-10-17 最终交付
+
+finish于03:10 UTC完成，7步各一次成功；279项测试通过。评价88/128可完整推断、40失败保留，36为积分精度、4为源中心越域。独立核验1307个文件及全部140科学源码；ZIP875成员、2份成功/失败样本实际恢复且独立二次核对通过，原8.17GB raw留D盘。
+
+最终结论：新BC较旧代理更省时、对仅排序策略有小幅新提案收益，但未超过同域平方基线；预测仍过度自信，线路响应校准是优先问题。移动与放电在共同88历史中有价值，不专属于贝叶斯。主MILP仍冻结协方差，完整贝叶斯梯度仅独立诊断。
+
+最终报告、指标/物理摘录、独立验证、完成包均在研究目录。原PDF和pyproject保持原SHA。完成阶段普通commit/push并核对远端后删除topo-ev续接；该动作之外不再生成新批次。

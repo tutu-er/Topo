@@ -7,7 +7,9 @@
       "pid": 22536
     }
   ],
+  "all_scientific_outcomes_available": false,
   "audit_log_modified": "2026-10-17T01:20:58.100302+00:00",
+  "automation_cleanup": "delete topo-ev only after final commit/push and remote verification",
   "automation_id": "topo-ev",
   "calibration_audit": {
     "coverage": {
@@ -20,16 +22,36 @@
     "error_count": 0,
     "success": true
   },
+  "complete_inference_histories": {
+    "calibration": 45,
+    "development": 12,
+    "evaluation": 88
+  },
   "controller_exit_expected": true,
   "controller_pid": 2848,
   "controller_process_verified_alive": false,
+  "core_final_regression_tests": 279,
   "core_regression_tests": 167,
   "evaluation_saved": 128,
+  "failed_inference_histories": {
+    "calibration": 19,
+    "development": 4,
+    "evaluation": 40
+  },
+  "final_evidence_manifest": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\research_experiments\\mobile_ev_mle\\evidence\\ev_bayes_response_final_v1\\delivery_manifest.json",
+  "final_report": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\research_experiments\\mobile_ev_mle\\ev_bayes_response_final_report.md",
   "finish_io_tests": 20,
+  "git_target": {
+    "branch": "codex/ev-train-validation-design",
+    "remote": "https://github.com/tutu-er/Topo.git",
+    "source_commit_before_delivery": "de734b36"
+  },
+  "human_result_review_passed": true,
   "implementation_commit": "65ed88e0",
   "linear_generative_histories": 2048,
-  "next": "Inspect unique finish PID45564/checkpoint and child process; never duplicate. Preserve frozen science and postprocess sources while input seal is active. Review completed outputs, package evidence, commit/push and delete heartbeat only after final verification.",
-  "observed_at": "2026-10-17T01:43:24.256602+00:00",
+  "next": "This frozen study is complete. Verify final report/evidence and remote delivery, then delete heartbeat. Do not start another scientific batch without a new request.",
+  "observed_at": "2026-10-17T03:54:38.076616+00:00",
+  "original_raw_bytes": 8166735249,
   "phase_audit_progress": {
     "calibration": {
       "complete": true,
@@ -81,29 +103,46 @@
   },
   "policy_id": "6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9",
   "postprocess": {
+    "cached_inventory_by_phase": {
+      "calibration": 64,
+      "development": 16,
+      "evaluation": 128
+    },
+    "cached_inventory_histories": 208,
     "checkpoint": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1\\checkpoint.json",
-    "current_step": "inventory",
+    "current_step": null,
+    "last_inventory_cache_modified": "2026-10-17T02:01:26.586034+00:00",
     "output_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1",
     "pid": 45564,
-    "process_verified_alive": true,
-    "status": "running",
+    "process_verified_alive": false,
+    "status": "complete",
     "stderr": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1.stderr.log",
     "stdout": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_finish_v1.stdout.log",
-    "updated": "2026-10-17T01:42:37.588076+00:00"
+    "step_statuses": {
+      "analysis_calibration": "complete",
+      "analysis_evaluation": "complete",
+      "diagnostics_calibration": "complete",
+      "diagnostics_evaluation": "complete",
+      "history_support_evaluation": "complete",
+      "inventory": "complete",
+      "regression": "complete"
+    },
+    "updated": "2026-10-17T03:10:07.657031+00:00"
   },
   "preflight_delivery_commit": "b9d21228",
   "preflight_restore_verified": true,
   "primary_question": "Does Bayesian planning improve EV MILP objectives and actual plan quality? Separate same-action inference, action ranking, new MILP proposal gains, and physical discrimination under equal operation domains.",
   "process_check_scope": "Get-Process with authorized full-user token; restricted-token OpenProcess cannot verify this PID",
-  "process_health": [
-    {
-      "exit_code": null,
-      "pid": 45564,
-      "scope": "unique postprocessing controller, full-user verified"
-    }
-  ],
+  "process_health": [],
   "process_health_note": "Statistical controller2848 exited normally; only finish45564 performs prespecified postprocessing.",
   "restore_io_tests": 32,
+  "restore_verification": {
+    "members": 875,
+    "passed": true,
+    "samples": 2,
+    "scientific_sources": 140,
+    "sources_executed": false
+  },
   "runtime_io_tests": 33,
   "runtime_native_failure_events": 1,
   "runtime_recovery": {
@@ -119,13 +158,15 @@
   "runtime_recovery_pushed": true,
   "runtime_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_rx_stage_20261015\\outputs\\ev_bayes_response_frozen_v1",
   "source_verification": {
-    "checked": "2026-10-17T01:21:18.540918+00:00",
+    "checked": "2026-10-17T03:01:25.097025+00:00",
     "files": 140,
     "policy_id": "6b956e4661c4ee060972f732ba3f529f95b80635304cbdb35dadac1445e435b9"
   },
-  "stage": "postprocessing",
-  "status": "statistical_complete",
-  "study_complete": false,
+  "stage": "reviewed_and_restore_verified",
+  "statistical_checkpoint_commit": "de734b36",
+  "statistical_checkpoint_pushed": true,
+  "status": "complete",
+  "study_complete": true,
   "updated": "2026-10-17T01:39:23.884228+00:00",
   "workers": []
 }
