@@ -1,6 +1,14 @@
 # 固定计划AC修正：续接
 
-## 当前状态：A及审计完成，B自动评价中
+## 当前状态：A/B固定计划阶段及全部审计完成
+
+2026-10-17最终续接。当前动作是读取ac_history_refresh/results.md及completed_B归档；旧PID/启动命令仅保留执行历史。A evaluation_complete、B statistical_complete，均无运行科学worker。B report/risk及全部独立轨迹、概率、响应差分审计完成且通过，所有原raw哈希保留。最终状态见两份checkpoint.json及ac_history_refresh/evidence/completed_B/archive_manifest.json。
+
+共同20份平方历史，校准后误判25%→5%，但相对电压增量预测误差26.32%→28.47%。B平方23/32、BC20/32可用；全32操作未决39.06%/51.56%，零观察误拒。同域两计划尚无误判增量；新物理R/X线路后验、动作收益排序与完整贝叶斯MILP梯度仍待后续独立开发/冻结。本轮不续跑A/B，不生成新科学批次；后续先实现和验证物理R/X响应后验，再决定接MILP。
+
+完整raw留D盘；64份输入约2.24MB已逐项验证并归档。主165与补充7依赖已恢复通过55项核心测试及实际开发0重放160个数值量一致。首轮只读report因47线程环境中断的费用/日志保留，正式后处理1线程完成；未改冻结科学源或原计量。原PDF与pyproject保持原SHA。
+
+### 执行历史
 
 2026-10-17追加，优先于下列历史记录。A已evaluation_complete，64份raw稳定，独立统计、物理、线路响应、分数分解及费用审计完成；结果见ev_ac_repair_results.md。B独立校准32/32完成，16/32满足全任务可用，按预定NLL规则选a=32；calibration.json SHA为fae09a182ec4e12981c6db0d271e080666dd6b72aa43230bb01abc326e58d338。自动handoff已绑定该hash并启动唯一evaluation controller PID26076，仍是同32份A保存评价输入/计划/计量。先核对其controller.json、automatic_evaluation_handoff.json及完整权限进程，禁止再次手动启动评价。旧calibration PID42844已经退出。
 
