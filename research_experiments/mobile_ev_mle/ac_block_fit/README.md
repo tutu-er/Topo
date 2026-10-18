@@ -10,7 +10,7 @@
 - reference_variants.py：原TRF加相同列尺度的强对照；gpu.py支持FP64完整AC/导数，QR仍在CPU。
 - math.md、protocol.md：公式、等价前提、验收条件和数据边界。
 
-当前116项CPU组件测试及4项GPU测试通过。首轮45个数值条件完成，第二轮54个独立进程对照运行中，见checkpoint.json。完整混合CPU/GPU对照12/12完成：CIGRE约慢3.94倍，32末端受控例配对中位约快1.33倍；32末端不是原case33科学算例。求解器ftol/xtol成功和严格梯度验收分开保存；数值提速不等于新增线路信息。
+当前116项CPU组件测试及4项GPU测试通过。117个CPU计时条件、12个CPU/GPU拟合及2个共同精度检查完成；结果见REPORT.md，证据复原见REPRODUCE.md。paper11的QR原尺度相对原TRF配对中位快约9倍；GPU在32末端受控例约快1.33倍、在CIGRE更慢。共同严格梯度目标未通过，原冻结批次保持原实现。数值提速不等于新增线路信息。
 
 测试命令（单线程BLAS、PYTHONDONTWRITEBYTECODE=1、PYTHONPATH为执行根及rnj_wzzt_core）：
 

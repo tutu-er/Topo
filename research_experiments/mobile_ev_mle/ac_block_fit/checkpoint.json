@@ -1,19 +1,40 @@
 {
-  "status": "native_cpu_comparison_running_gpu_comparison_complete",
-  "execution_root": "D:/0-github_workspace/Topo/outputs/ev_ac_block_stage_20261018",
+  "status": "numerical_development_delivered_not_adopted_in_frozen_study",
+  "execution_root": "D:\\0-github_workspace\\Topo\\outputs\\ev_ac_block_stage_20261018",
   "canonical_branch": "codex/ev-train-validation-design",
   "original_frozen_batch_unchanged": true,
-  "stages": {
-    "fixed_source": "implemented; short tests passed; full-history timing pending",
-    "joint_qr": "implemented; linear and complete-AC short tests passed; native timing pending",
-    "scaling": "reference and jac modes implemented; independent timing pending",
-    "gpu": "isolated dependency installation and arithmetic validation in progress"
-  },
-  "next": "finish 54 declared CPU comparisons and precision audit, run tolerance check, package evidence and report; do not replace original frozen policy",
+  "original_frozen_source_files": 893,
   "component_tests": 120,
-  "cpu_matrix": "outputs/cpu_compare_v2",
-  "cpu_total_tasks": 54,
-  "cpu_controller_pid": 44344,
-  "gpu_matrix": "outputs/gpu_fit_v1",
-  "gpu_completed_fits": 12
+  "evidence_replay_cpu_tests": 116,
+  "timing_attempts": {
+    "cpu": 117,
+    "gpu_full_fits": 12,
+    "common_precision": 2,
+    "total": 131
+  },
+  "independent_historical_inputs": 3,
+  "controlled_arithmetic_fixture_count": 1,
+  "stages": {
+    "fixed_source": "independent and batched implementations validated; speed conditional",
+    "joint_QR": "bounded model and full AC validated; some different local endpoints retained",
+    "scaling_precision": "matched-scale baselines and two tolerances tested; strict common gradient not reached",
+    "GPU": "arithmetic and 12 full hybrid fits validated; 1.334x controlled32, 0.254x CIGRE"
+  },
+  "archive": {
+    "archive": "numerical_evidence_v1.zip",
+    "sha256": "fe01244458b72e63802be5d526e1642a808f2df52cbead1c4e2bbe4473136c37",
+    "bytes": 4582177,
+    "members": 712,
+    "all_members_reopened_and_hash_verified": true,
+    "original_frozen_scientific_files_unchanged": 893,
+    "reference_source_subset_files": 55,
+    "original_policy": "abe6a12df0497d0787e86cb700b573ff53c23057216fc288dcc2ba79185b1f54",
+    "GPU_binaries_included": false,
+    "scientific_samples_or_calibration_created": 0
+  },
+  "remaining": "case33 developer history and multiple-candidate ordering before any new policy freeze; original statistical batch not replaced",
+  "validated_source_commits": [
+    "6e76a539",
+    "d3cb6744"
+  ]
 }
