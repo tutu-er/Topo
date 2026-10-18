@@ -309,4 +309,3 @@ def test_source_row_permutation_is_detected_before_any_truth_access(tmp_path, mo
     np.savez_compressed(path, **arrays)
     result = module.audit_benchmark(directory, dataset, only_jobs=[key])
     assert any("P_source uses all 3x96 rows" in c["check"] for c in result["checks"] if not c["passed"])
-
