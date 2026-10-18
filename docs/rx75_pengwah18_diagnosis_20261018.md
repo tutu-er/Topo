@@ -182,6 +182,6 @@ D:/apps/miniconda3/envs/Topo/python.exe -B -m pytest tests/test_refit_rx75_resol
   --basetemp D:/0-github_workspace/Topo/tmp/pytest_refit_rx75_budgetfix_20261018
 ```
 
-最新受影响测试为 **6 passed**，包括阈值等号与绝对容差、root-stem收缩和singleton保留、288行Source对齐、运行中/覆盖/异输入拒绝、无源与非零Source两轮真实固定支持求解。新增预算回归覆盖“上次求解已认证、下一次求解开始前预算耗尽”：此时保留已认证checkpoint并标记incomplete。该修复面向未来中断状态。上述193项审计的producer源码哈希核对发生在补丁之前；已完成结果继续保留当次producer SHA及原文件，并未将其改写成修补后脚本的运行记录。
+最新受影响测试为 **6 passed**，包括阈值等号与绝对容差、root-stem收缩和singleton保留、288行Source对齐、运行中/覆盖/异输入拒绝、无源与非零Source两轮真实固定支持求解。新增预算回归覆盖“上次求解已认证、下一次求解开始前预算耗尽”：此时保留已认证checkpoint并标记incomplete。该修复面向未来中断状态。上述193项审计的producer源码哈希核对发生在补丁之前；已完成结果继续保留当次producer SHA及原文件，并未将其改写成修补后脚本的运行记录。补丁前的5个producer文件已按原记录SHA精确归档，见[archive_mapping.json](/D:/0-github_workspace/Topo/outputs/source_ac288_rx75_refit_20261018/no_source_hybrid/archive_mapping.json)；旧refit脚本的SHA为`4e65eb5601276703ac60a5fceb39f999a1e3c2a7b22c8c6a598ea1463b725c78`。追加归档前的34个既有结果文件逐项保持不变。
 
 实现：[refit_rx75_resolution.py](/D:/0-github_workspace/Topo/research_experiments/rnj/refit_rx75_resolution.py)、[测试](/D:/0-github_workspace/Topo/tests/test_refit_rx75_resolution.py)。本报告的经验结论限于该无源算例：现有观测尺度能区分其短伪边，收缩后重新拟合有效。在线RX75约束与有源比较须按其各自冻结协议报告完整结果。
