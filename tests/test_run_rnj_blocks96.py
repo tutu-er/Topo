@@ -18,6 +18,31 @@ class KnownSource:
         self.p_pu, self.q_pu, self.provenance = p_pu, q_pu, provenance
 
 
+def test_json_retries_only_transient_permission_errors_without_repeating_computation(tmp_path, monkeypatch):
+    original, calls = driver._legacy_write_json, []
+    def transient(path, value):
+        calls.append((str(path), value))
+        if len(calls) <= 2:
+            raise PermissionError("fixture transient Windows sharing conflict")
+        return original(path, value)
+    monkeypatch.setattr(driver, "_legacy_write_json", transient)
+    monkeypatch.setattr(driver, "sleep", lambda duration: None)
+    monkeypatch.setattr(driver, "JSON_PERMISSION_RETRIES", [])
+    value = {"certified_objective": .123}
+    driver.write_json(tmp_path/"event.json", value)
+    assert len(calls) == 3 and all(v is value for _, v in calls)
+    assert driver.read_json(tmp_path/"event.json") == value
+    assert len(driver.JSON_PERMISSION_RETRIES) == 2
+    calls.clear()
+    def permanent(path, value):
+        calls.append(None)
+        raise PermissionError("fixture permanent conflict")
+    monkeypatch.setattr(driver, "_legacy_write_json", permanent)
+    with pytest.raises(PermissionError, match="permanent"):
+        driver.write_json(tmp_path/"permanent.json", value)
+    assert len(calls) == 20 and not (tmp_path/"permanent.json").exists()
+
+
 def input_fixture(directory, active):
     rng = np.random.default_rng(85)
     labels, t = [11, 12, 13, 14], pd.Index(range(96), name="t")

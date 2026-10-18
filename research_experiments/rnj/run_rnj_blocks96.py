@@ -33,7 +33,7 @@ from research_experiments.rnj.run_source_ac288 import (
     select_snapshot_model as _select_snapshot_model,
 )
 from research_experiments.rnj.run_source_ac96_full_history import (
-    plain, read_json, write_json, sha256, _complete_stop, MethodBudgetExhausted,
+    plain, read_json, write_json as _legacy_write_json, sha256, _complete_stop, MethodBudgetExhausted,
 )
 from research_experiments.rnj.run_rx75_source_comparison import (
     resolution_tree, with_resolution, controller_lock, save_checkpoint, recover_process,
@@ -58,6 +58,23 @@ DESIGN_PROTOCOL = Path("docs/rnj_blocks96_protocol_20261019.md")
 METRIC_KEYS = tuple(f"{p}_{k}" for p in ("family", "active", "resolution")
                     for k in ("clade_f1", "precision", "recall")) + (
                         "clade_f1", "r_relative_error", "x_relative_error")
+JSON_PERMISSION_RETRIES = []
+
+
+def write_json(path, value):
+    """Bounded retry for transient Windows sharing/access conflicts only.
+
+    The JSON and target are unchanged between retries; optimization is never
+    repeated here. Permanent errors still propagate and retain failed results.
+    """
+    for attempt in range(20):
+        try:
+            return _legacy_write_json(path, value)
+        except PermissionError as error:
+            JSON_PERMISSION_RETRIES.append({"path": str(path), "attempt": attempt+1, "error": str(error)})
+            if attempt == 19:
+                raise
+            sleep(min(.01*2**attempt, .2))
 
 
 def job_catalog():
@@ -86,6 +103,20 @@ class RecordedSolver(BudgetedSolver):
 
     def __enter__(self):
         super().__enter__()
+        from research_experiments.rnj import run_source_ac288 as recording_module
+        self.recording_module = recording_module
+        self.previous_writer = recording_module.write_json
+        self.active_metadata = None
+        def recorded_write(path, value):
+            if self.active_metadata is not None:
+                # Annotate BEFORE the original observer publishes its event;
+                # avoid a second immediate replacement of the same JSON files.
+                if Path(path).name == "solver_events.json" and value:
+                    value[-1].update(plain(self.active_metadata))
+                elif isinstance(value, dict) and "sequence" in value:
+                    value.update(plain(self.active_metadata))
+            return write_json(path, value)
+        recording_module.write_json = recorded_write
         def wrapper(original, source_builder):
             signature = inspect.signature(original)
             @wraps(original)
@@ -119,18 +150,18 @@ class RecordedSolver(BudgetedSolver):
     def __exit__(self, *args):
         for module, name, original in reversed(self.builders):
             setattr(module, name, original)
+        self.recording_module.write_json = self.previous_writer
         super().__exit__(*args)
 
     def solve(self, variables, rows, **kwargs):
         metadata = self.metadata.get(id(variables))
         if metadata is None:
             raise RuntimeError("solve has no passive builder/family record")
-        result = super().solve(variables, rows, **kwargs)
-        self.events[-1].update(plain(metadata))
-        sequence = self.events[-1]["sequence"]
-        write_json(self.directory/"solver"/f"{sequence:06d}.json", self.events[-1])
-        write_json(self.directory/"solver_events.json", self.events)
-        return result
+        self.active_metadata = metadata
+        try:
+            return super().solve(variables, rows, **kwargs)
+        finally:
+            self.active_metadata = None
 
 
 def select_snapshot_model(*args, **kwargs):
@@ -326,7 +357,7 @@ def worker(payload_path):
         model = select_snapshot_model(state, solver_events=events, progress_events=progress, status=status, stop_reason=reason)
         write_json(directory/"error.json", error)
     model.update(schema_version=5, status=status, stop_reason=reason, bootstrap=selection, budget=job,
-                 core_parameters=parameters, timing=timing)
+                 core_parameters=parameters, timing=timing, recording_permission_retries=JSON_PERMISSION_RETRIES)
     if calibration is not None:
         model = with_resolution(model, calibration)
     from research_experiments.rnj.prepare_source_ac288_runtime import verify_loaded_modules
@@ -492,6 +523,9 @@ def prepare(args):
         "primary_topology_metric": "resolution_clade_f1", "retained_metrics": ["family", "active", "resolution", "R", "X"],
         "solver": args.solver, "concurrency": args.workers, "solver_threads": 1, "blas_threads": 1,
         "hard_timeout_grace_seconds": 30, "truth_used_for_selection": False,
+        "recording_policy": {"permission_retry_limit": 20, "retry_delay_cap_seconds": .2,
+            "solver_metadata": "annotate before first publication; no duplicate JSON replacement",
+            "optimization_repeated_on_write_retry": False},
         "dataset_manifest_sha256": sha256(dataset/"manifest.json"), "runtime_manifest_sha256": sha256(runtime/"runtime_manifest.json"),
         "design_protocol_path": DESIGN_PROTOCOL.as_posix(), "design_protocol_sha256": sha256(ROOT/DESIGN_PROTOCOL),
         "runtime_directory": str(runtime), "source_sha256": source_closure(),
