@@ -554,6 +554,35 @@ def audit_input_hashes(directory, dataset, variant, job_dir, audit, prefix):
                       and file_hash(source) == checksum and file_hash(duplicate) == checksum)
 
 
+def audit_runtime_import(imported, runtime, audit, prefix, *, completed):
+    """Check every recorded imported package module against frozen bytes."""
+    runtime = Path(runtime).resolve()
+    audit.require(f"{prefix}: worker runtime directory matches frozen protocol",
+                  Path(imported.get("runtime_dir", runtime)).resolve() == runtime)
+    origins = imported.get("module_origins")
+    if isinstance(origins, dict):
+        required = {"rnj_wzzt", "rnj_wzzt.estimation.laminar_l1_milp",
+                    "rnj_wzzt.estimation.multiscenario", "rnj_wzzt.pipeline"}
+        audit.require(f"{prefix}: actual package/module origin inventory retained", required <= set(origins))
+        hashes = read_json(runtime / "runtime_manifest.json")["runtime_sha256"]
+        package = runtime / "rnj_wzzt"
+        for name, origin in origins.items():
+            path = Path(origin).resolve()
+            inside = path.is_relative_to(package)
+            relative = path.relative_to(package).as_posix() if inside else None
+            audit.require(f"{prefix}: imported module {name} comes from exact frozen bytes",
+                          (name == "rnj_wzzt" or name.startswith("rnj_wzzt."))
+                          and inside and relative in hashes and path.is_file()
+                          and file_hash(path) == hashes[relative])
+    else:
+        # Before a hard process interruption only the initial core provenance
+        # checkpoint may exist; complete runs must retain the full inventory.
+        audit.require(f"{prefix}: full module origins retained on completed run", not completed)
+        core = runtime / "rnj_wzzt/estimation/laminar_l1_milp.py"
+        audit.require(f"{prefix}: interrupted worker imported exact frozen core",
+                      imported.get("core_file") is not None and Path(imported["core_file"]).resolve() == core)
+
+
 def audit_solver_events(job_dir, model, job, audit, prefix):
     events = model.get("solver_events", [])
     audit.require(f"{prefix}: initializer and every attempted solve retained", len(events)
@@ -688,8 +717,8 @@ def audit_benchmark(directory, dataset_directory=None, *, only_jobs=None):
             audit.require(f"{key}: three original scenario row ranges retained",
                           [block["row_range"] for block in use["scenarios"]] == [[0, 96], [96, 192], [192, 288]])
             imported = read_json(folder / "runtime_import.json")
-            frozen_core = Path(protocol["runtime_directory"]) / "rnj_wzzt/estimation/laminar_l1_milp.py"
-            audit.require(f"{key}: worker imported the exact frozen package", Path(imported["core_file"]).resolve() == frozen_core.resolve())
+            audit_runtime_import(imported, protocol["runtime_directory"], audit, key,
+                                 completed=result["status"] == "complete")
             if not result.get("has_model"):
                 audit.require(f"{key}: unavailable R/X matrices are empty", arrays["R"].shape == (0, 0) and arrays["X"].shape == (0, 0))
                 continue
@@ -797,7 +826,8 @@ def main():
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     rows = [{**{key: value for key, value in row.items() if key not in {"metrics_recomputed", "progress_audit", "selected_blocks_recomputed"}},
              **(row["metrics_recomputed"] or {})} for row in result["metrics_recomputed"]]
-    pd.DataFrame(rows).to_csv(output.with_name("metrics_recomputed.csv"), index=False, float_format="%.17g")
+    csv_output = output.with_suffix(".csv") if args.output else output.with_name("metrics_recomputed.csv")
+    pd.DataFrame(rows).to_csv(csv_output, index=False, float_format="%.17g")
     print(json.dumps({name: result[name] for name in ("passed", "check_count", "failed_count", "jobs_expected", "jobs_present")}))
     for check in result["checks"]:
         if not check["passed"]:

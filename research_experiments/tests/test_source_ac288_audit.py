@@ -309,3 +309,31 @@ def test_source_row_permutation_is_detected_before_any_truth_access(tmp_path, mo
     np.savez_compressed(path, **arrays)
     result = module.audit_benchmark(directory, dataset, only_jobs=[key])
     assert any("P_source uses all 3x96 rows" in c["check"] for c in result["checks"] if not c["passed"])
+
+
+def test_every_imported_module_must_match_frozen_runtime_bytes(tmp_path):
+    runtime = tmp_path / "runtime"
+    files = {"rnj_wzzt": "__init__.py", "rnj_wzzt.estimation.laminar_l1_milp": "estimation/laminar_l1_milp.py",
+             "rnj_wzzt.estimation.multiscenario": "estimation/multiscenario.py", "rnj_wzzt.pipeline": "pipeline.py"}
+    origins, hashes = {}, {}
+    for name, relative in files.items():
+        path = runtime / "rnj_wzzt" / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("# frozen bytes\n", encoding="utf-8")
+        origins[name] = str(path)
+        hashes[relative] = module.file_hash(path)
+    _write_json(runtime / "runtime_manifest.json", {"runtime_sha256": hashes})
+    imported = {"runtime_dir": str(runtime), "module_origins": origins}
+    audit = Audit()
+    module.audit_runtime_import(imported, runtime, audit, "worker", completed=True)
+    assert audit.result()["passed"], failed(audit)
+    outside = tmp_path / "other_checkout.py"
+    outside.write_text("# frozen bytes\n", encoding="utf-8")
+    origins["rnj_wzzt.pipeline"] = str(outside)
+    audit = Audit()
+    module.audit_runtime_import(imported, runtime, audit, "worker", completed=True)
+    assert any("rnj_wzzt.pipeline comes from exact frozen bytes" in c for c in failed(audit))
+    audit = Audit()
+    module.audit_runtime_import({"core_file": str(runtime / "rnj_wzzt/estimation/laminar_l1_milp.py")},
+                                runtime, audit, "worker", completed=True)
+    assert any("full module origins retained" in c for c in failed(audit))
