@@ -1,0 +1,410 @@
+{
+  "status": "complete",
+  "protocol": {
+    "version": "alpha_resistance_sensitivity_v1",
+    "alphas": [
+      0.2,
+      0.1,
+      0.05,
+      0.01,
+      0.001
+    ],
+    "resistance_factors": [
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "solve_alpha": 0.05,
+    "workers": 2,
+    "input_policy": "reuse the exact eight frozen conditions; no new history or noise",
+    "floor_policy": "factor times the minimum R of the full public closed-plus-tie asset table",
+    "stress_policy": "factor>1 is outside the all-asset coverage assumption and is not recommended for deployment"
+  },
+  "prior": {
+    "public_minimum_resistance_ohm": 0.0922,
+    "public_minimum_impedance_modulus_ohm": 0.10348835683302736,
+    "original_minimum_modulus_ohm": 0.05174417841651368,
+    "original_implied_physical_R_min_ohm": 0.012549806654240676,
+    "original_QP_implied_R_min_ohm": 0.010348835683302736,
+    "asset_table_source": {
+      "source_path": "terminal_case33/data/case33bw_raw.py",
+      "source_sha256": "18103aa324e894af25eb2db2c7fca3bf18df9eb92f9b9106ec20451ff8641506",
+      "source_bytes": 4223,
+      "data_kind": "complete_standard_network_static_parameters",
+      "source_url": "https://raw.githubusercontent.com/MATPOWER/matpower/7.1/data/case33bw.m",
+      "publication_doi": "10.1109/61.25627",
+      "upstream_source_url": "https://raw.githubusercontent.com/MATPOWER/matpower/7.1/data/case33bw.m",
+      "upstream_source_sha256": "b40831eeb444669ae876e2996f0dda9f05cd83e81b314b8dfca51e4890cca95d",
+      "source_version": "MATPOWER 7.1",
+      "original_source_base_mva": 10.0,
+      "local_power_base_mva": 10.0,
+      "power_base_rebased": false,
+      "R_X_unit": "ohm",
+      "P_Q_unit": "kW_kvar",
+      "all_original_loads_retained": true,
+      "modifications": [
+        "closed radial state retained; five normally open ties excluded",
+        "original MATPOWER 7.1 10 MVA power base retained; physical ohms and kW unchanged"
+      ],
+      "field_PQV": false,
+      "load_time_series_source": null
+    },
+    "zbase_ohm": 16.02756
+  },
+  "summary": [
+    {
+      "factor": 0.0,
+      "r_min_ohm": 0.0,
+      "alpha": 0.2,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470847877507,
+        1.1535121768895527
+      ]
+    },
+    {
+      "factor": 0.0,
+      "r_min_ohm": 0.0,
+      "alpha": 0.1,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470847877507,
+        1.1535121768895527
+      ]
+    },
+    {
+      "factor": 0.0,
+      "r_min_ohm": 0.0,
+      "alpha": 0.05,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470847877507,
+        1.1535121768895527
+      ]
+    },
+    {
+      "factor": 0.0,
+      "r_min_ohm": 0.0,
+      "alpha": 0.01,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470847877507,
+        1.1535121768895527
+      ]
+    },
+    {
+      "factor": 0.0,
+      "r_min_ohm": 0.0,
+      "alpha": 0.001,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470847877507,
+        1.1535121768895527
+      ]
+    },
+    {
+      "factor": 0.25,
+      "r_min_ohm": 0.02305,
+      "alpha": 0.2,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470678051867,
+        1.1544100448390104
+      ]
+    },
+    {
+      "factor": 0.25,
+      "r_min_ohm": 0.02305,
+      "alpha": 0.1,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470678051867,
+        1.1544100448390104
+      ]
+    },
+    {
+      "factor": 0.25,
+      "r_min_ohm": 0.02305,
+      "alpha": 0.05,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470678051867,
+        1.1544100448390104
+      ]
+    },
+    {
+      "factor": 0.25,
+      "r_min_ohm": 0.02305,
+      "alpha": 0.01,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470678051867,
+        1.1544100448390104
+      ]
+    },
+    {
+      "factor": 0.25,
+      "r_min_ohm": 0.02305,
+      "alpha": 0.001,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470678051867,
+        1.1544100448390104
+      ]
+    },
+    {
+      "factor": 0.5,
+      "r_min_ohm": 0.0461,
+      "alpha": 0.2,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470550983253,
+        1.156758208081361
+      ]
+    },
+    {
+      "factor": 0.5,
+      "r_min_ohm": 0.0461,
+      "alpha": 0.1,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470550983253,
+        1.156758208081361
+      ]
+    },
+    {
+      "factor": 0.5,
+      "r_min_ohm": 0.0461,
+      "alpha": 0.05,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470550983253,
+        1.156758208081361
+      ]
+    },
+    {
+      "factor": 0.5,
+      "r_min_ohm": 0.0461,
+      "alpha": 0.01,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470550983253,
+        1.156758208081361
+      ]
+    },
+    {
+      "factor": 0.5,
+      "r_min_ohm": 0.0461,
+      "alpha": 0.001,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470550983253,
+        1.156758208081361
+      ]
+    },
+    {
+      "factor": 1.0,
+      "r_min_ohm": 0.0922,
+      "alpha": 0.2,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470225092763,
+        1.1670974031191303
+      ]
+    },
+    {
+      "factor": 1.0,
+      "r_min_ohm": 0.0922,
+      "alpha": 0.1,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470225092763,
+        1.1670974031191303
+      ]
+    },
+    {
+      "factor": 1.0,
+      "r_min_ohm": 0.0922,
+      "alpha": 0.05,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470225092763,
+        1.1670974031191303
+      ]
+    },
+    {
+      "factor": 1.0,
+      "r_min_ohm": 0.0922,
+      "alpha": 0.01,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470225092763,
+        1.1670974031191303
+      ]
+    },
+    {
+      "factor": 1.0,
+      "r_min_ohm": 0.0922,
+      "alpha": 0.001,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": true,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904470225092763,
+        1.1670974031191303
+      ]
+    },
+    {
+      "factor": 2.0,
+      "r_min_ohm": 0.1844,
+      "alpha": 0.2,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": false,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904524978579476,
+        1.1928750462758795
+      ]
+    },
+    {
+      "factor": 2.0,
+      "r_min_ohm": 0.1844,
+      "alpha": 0.1,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": false,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904524978579476,
+        1.1928750462758795
+      ]
+    },
+    {
+      "factor": 2.0,
+      "r_min_ohm": 0.1844,
+      "alpha": 0.05,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": false,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904524978579476,
+        1.1928750462758795
+      ]
+    },
+    {
+      "factor": 2.0,
+      "r_min_ohm": 0.1844,
+      "alpha": 0.01,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": false,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904524978579476,
+        1.1928750462758795
+      ]
+    },
+    {
+      "factor": 2.0,
+      "r_min_ohm": 0.1844,
+      "alpha": 0.001,
+      "candidate_slots": 80,
+      "prior_covers_all_public_assets": false,
+      "raw_rejected": 0,
+      "residual_rejected": 0,
+      "max_AC_sse_lower": 0.0,
+      "qp_lower_range": [
+        0.002904524978579476,
+        1.1928750462758795
+      ]
+    }
+  ],
+  "candidate_failures": 0,
+  "elapsed_seconds": 22.55370029999176
+}
