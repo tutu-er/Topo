@@ -1,0 +1,3678 @@
+{
+  "review_scope": "Saved output and source inspection only; no solver or estimator execution; truth-only posthoc path scoring is diagnostic, not selection.",
+  "pure_linear_source": "outputs/laminar_l1_milp_noisy_paper_cases_600s/soumalas11",
+  "pure_linear_config": {
+    "cases": [
+      "soumalas11"
+    ],
+    "seeds": [
+      20260903
+    ],
+    "regimes": [
+      "response_outliers"
+    ],
+    "regime_predictor_noise_fractions": {
+      "response_outliers": 0.0,
+      "eiv_response_outliers": 0.02
+    },
+    "sample_count": 48,
+    "train_count": 32,
+    "validation_count": 8,
+    "test_count": 8,
+    "time_limit_seconds_per_extension": 600.0,
+    "coefficient_bound_for_R_and_X": 2.0,
+    "response_laplace_fraction_of_signal_mad": 0.05,
+    "outlier_fraction": 0.05,
+    "gross_outlier_fraction_of_signal_mad": 1.5,
+    "truth_used_for_candidate_generation": false,
+    "validation_and_test_use_fixed_training_intercepts": true
+  },
+  "hybrid_linear_source": "outputs/rnj_warmstart_laminar_noisy_r75_k2/soumalas11",
+  "hybrid_linear_config": {
+    "cases": [
+      "soumalas11"
+    ],
+    "seeds": [
+      20260903
+    ],
+    "regimes": [
+      "response_outliers"
+    ],
+    "sample_count": 48,
+    "train_count": 32,
+    "validation_count": 8,
+    "time_limit_seconds_per_extension": 600.0,
+    "coefficient_bound": 2.0,
+    "modes": [
+      "R"
+    ],
+    "bootstrap_replicates": 12,
+    "confidence_threshold": 0.75,
+    "tolerance_factor": 0.16,
+    "maximum_support_size": null,
+    "maximum_support_count": 2,
+    "ridge_alpha": 1e-06,
+    "selection_only": false,
+    "truth_used_for_candidate_generation": false
+  },
+  "legacy_linear_fits": {
+    "pure_F1": 0.8888888888888888,
+    "hybrid_F1": 1.0,
+    "pure_seconds": 224.71865070000058,
+    "hybrid_seconds_end_to_end": 156.2099414000113,
+    "data_model": "exact LinDistFlow response, then Laplace response noise and gross errors; not AC",
+    "data_source_lines": "experiments/run_laminar_l1_noisy_multicase.py:303-315",
+    "actual_fit_parameters_lines": "experiments/run_laminar_l1_noisy_multicase.py:344-359",
+    "historical_version_evidence": "Initial Git import 6917d4f6 retains fixed_intercepts; current script updated to zero bias. Saved legacy run lacks source hashes."
+  },
+  "legacy_AC_reference": [
+    {
+      "job_id": "ac_soumalas11_n0_r0_reference",
+      "unrestricted": {
+        "row": {
+          "tier": "ac",
+          "stress": "reference",
+          "shape": "soumalas11",
+          "repeat": 0,
+          "job_id": "ac_soumalas11_n0_r0_reference",
+          "cluster_id": "ac_soumalas11_n0_r0",
+          "n": 11,
+          "bootstrap_replicates": 20,
+          "search_budget_seconds": 4.0,
+          "method": "wzzt_unrestricted",
+          "elapsed_seconds": 1.6413848999945913,
+          "status": "complete",
+          "clade_f1": 0.0,
+          "clade_precision": 0.0,
+          "clade_recall": 0.0,
+          "clade_exact": 0.0,
+          "clade_tp": 0,
+          "clade_fp": 0,
+          "clade_fn": 4,
+          "root_clade_precision": 0.0,
+          "root_clade_recall": 0.0,
+          "root_clade_f1": 0.0,
+          "root_clade_exact": 0.0,
+          "root_clade_tp": 0,
+          "root_clade_fp": 0,
+          "root_clade_fn": 3,
+          "terminal_clade_precision": 0.0,
+          "terminal_clade_recall": 0.0,
+          "terminal_clade_f1": 0.0,
+          "terminal_clade_exact": 0.0,
+          "terminal_clade_tp": 0,
+          "terminal_clade_fp": 0,
+          "terminal_clade_fn": 3,
+          "root_partition_precision": 0.0,
+          "root_partition_recall": 0.0,
+          "root_partition_f1": 0.0,
+          "root_partition_exact": 0.0,
+          "root_partition_tp": 0,
+          "root_partition_fp": 11,
+          "root_partition_fn": 3,
+          "terminal_parent_exact": 0.0,
+          "terminal_parent_count": 11,
+          "train_mae": 0.0008795170955049849,
+          "train_rmse": 0.001304618052938599,
+          "validation_mae": 0.0009967404511147088,
+          "validation_rmse": 0.0014261153245085474,
+          "test_mae": 0.001019561664003295,
+          "test_rmse": 0.0014352269613138572,
+          "r_relative_error": 0.8704814561003842,
+          "x_relative_error": 2.6970969843181254,
+          "r_distance_relative_error": 0.5947108068915335,
+          "x_distance_relative_error": 4.491324331834764,
+          "fixed_refit_certified": true,
+          "selected_blocks": 1,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_native_milp",
+          "candidate_truth_recall": null,
+          "candidate_count": null,
+          "stop_reason": "extension_not_proven_optimal",
+          "selected_path_index": 0,
+          "selected_iteration": 11,
+          "attempted_extensions": 1,
+          "search_incomplete": true,
+          "extensions_certified_optimal": 0,
+          "all_attempted_extensions_certified": false,
+          "structural_search_complete": false
+        },
+        "clades": [],
+        "details": {
+          "fixed_solver": {
+            "status": 0,
+            "success": true,
+            "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "objective": 0.0008795170955049856,
+            "dual_bound": null,
+            "mip_gap": null,
+            "node_count": null,
+            "runtime_seconds": 0.03207349999865983,
+            "variable_count": 1111,
+            "binary_variable_count": 0,
+            "constraint_count": 2112
+          },
+          "fixed_refit_certified": true,
+          "active_weight_clades": [],
+          "selected_blocks": 1,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_native_milp",
+          "candidate_truth_recall": null,
+          "candidate_count": null,
+          "stop_reason": "extension_not_proven_optimal",
+          "selected_path_index": 0,
+          "selected_iteration": 11,
+          "attempted_extensions": 1,
+          "solver_audit": {
+            "adapter": "bounded_native_milp",
+            "certificate_scope": "all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy",
+            "solver_calls": [
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008795170955049856,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03231490000325721,
+                "variable_count": 1111,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 1,
+                "success": false,
+                "message": "Time limit reached. (HiGHS Status 13: Time limit reached)",
+                "objective": 0.0007279953162436232,
+                "dual_bound": 0.0004271268665862375,
+                "mip_gap": 0.413283496396425,
+                "node_count": 1,
+                "runtime_seconds": 1.5278368999934173,
+                "variable_count": 1355,
+                "binary_variable_count": 44,
+                "constraint_count": 2839
+              }
+            ],
+            "enumerations": [],
+            "model_wall_seconds": 1.59700139999768,
+            "solver_seconds": 1.5601517999966745
+          },
+          "path": [
+            {
+              "iteration": 11,
+              "train_mae": 0.0008795170955049856,
+              "validation_mae": 0.0009967404511147088,
+              "validation_se": 8.072094671007042e-05
+            }
+          ],
+          "search_incomplete": true,
+          "extensions_certified_optimal": 0,
+          "all_attempted_extensions_certified": false,
+          "structural_search_complete": false
+        }
+      },
+      "finite_RNJ_pool": {
+        "row": {
+          "tier": "ac",
+          "stress": "reference",
+          "shape": "soumalas11",
+          "repeat": 0,
+          "job_id": "ac_soumalas11_n0_r0_reference",
+          "cluster_id": "ac_soumalas11_n0_r0",
+          "n": 11,
+          "bootstrap_replicates": 20,
+          "search_budget_seconds": 4.0,
+          "method": "wzzt_rnj_pool",
+          "elapsed_seconds": 1.1333978999900864,
+          "status": "complete",
+          "clade_f1": 1.0,
+          "clade_precision": 1.0,
+          "clade_recall": 1.0,
+          "clade_exact": 1.0,
+          "clade_tp": 4,
+          "clade_fp": 0,
+          "clade_fn": 0,
+          "root_clade_precision": 1.0,
+          "root_clade_recall": 1.0,
+          "root_clade_f1": 1.0,
+          "root_clade_exact": 1.0,
+          "root_clade_tp": 3,
+          "root_clade_fp": 0,
+          "root_clade_fn": 0,
+          "terminal_clade_precision": 1.0,
+          "terminal_clade_recall": 1.0,
+          "terminal_clade_f1": 1.0,
+          "terminal_clade_exact": 1.0,
+          "terminal_clade_tp": 3,
+          "terminal_clade_fp": 0,
+          "terminal_clade_fn": 0,
+          "root_partition_precision": 1.0,
+          "root_partition_recall": 1.0,
+          "root_partition_f1": 1.0,
+          "root_partition_exact": 1.0,
+          "root_partition_tp": 3,
+          "root_partition_fp": 0,
+          "root_partition_fn": 0,
+          "terminal_parent_exact": 1.0,
+          "terminal_parent_count": 11,
+          "train_mae": 0.0004406664472693979,
+          "train_rmse": 0.000573169070381512,
+          "validation_mae": 0.00046832313921856624,
+          "validation_rmse": 0.0005837001998857468,
+          "test_mae": 0.00048224039890165627,
+          "test_rmse": 0.0006070925990860107,
+          "r_relative_error": 0.11379297797513677,
+          "x_relative_error": 0.487754011051654,
+          "r_distance_relative_error": 0.16704773949704158,
+          "x_distance_relative_error": 0.7604648055093061,
+          "fixed_refit_certified": true,
+          "selected_blocks": 1,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_exact_lp_enumeration",
+          "candidate_truth_recall": 1.0,
+          "candidate_count": 4,
+          "stop_reason": "no_feasible_extension",
+          "selected_path_index": 4,
+          "selected_iteration": 15,
+          "attempted_extensions": 5,
+          "search_incomplete": false,
+          "extensions_certified_optimal": 4,
+          "all_attempted_extensions_certified": true,
+          "structural_search_complete": true
+        },
+        "clades": [
+          [
+            101,
+            102,
+            103
+          ],
+          [
+            106,
+            107,
+            108
+          ],
+          [
+            109,
+            110,
+            111
+          ],
+          [
+            104,
+            105,
+            106,
+            107,
+            108
+          ]
+        ],
+        "details": {
+          "fixed_solver": {
+            "status": 0,
+            "success": true,
+            "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "objective": 0.00044066644726939284,
+            "dual_bound": null,
+            "mip_gap": null,
+            "node_count": null,
+            "runtime_seconds": 0.07748200000060024,
+            "variable_count": 1119,
+            "binary_variable_count": 0,
+            "constraint_count": 2112
+          },
+          "fixed_refit_certified": true,
+          "active_weight_clades": [
+            [
+              101,
+              102,
+              103
+            ],
+            [
+              106,
+              107,
+              108
+            ],
+            [
+              109,
+              110,
+              111
+            ],
+            [
+              104,
+              105,
+              106,
+              107,
+              108
+            ]
+          ],
+          "selected_blocks": 1,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_exact_lp_enumeration",
+          "candidate_truth_recall": 1.0,
+          "candidate_count": 4,
+          "stop_reason": "no_feasible_extension",
+          "selected_path_index": 4,
+          "selected_iteration": 15,
+          "attempted_extensions": 5,
+          "solver_audit": {
+            "adapter": "bounded_exact_lp_enumeration",
+            "certificate_scope": "all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy",
+            "solver_calls": [
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008795170955049856,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03357479999976931,
+                "variable_count": 1111,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008201205182588627,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.04347109999798704,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0006917393784192106,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.043307300002197735,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008113952533240514,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.043440300003567245,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0006064772747322239,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.054306400001223665,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0006064772747322239,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05326490000152262,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005470806974861011,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06074069999885978,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005681848666964486,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.071090199999162,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00053835543255129,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.063657399994554,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00053835543255129,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06268339999951422,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004789588553051675,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06618359999993118,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005000630245155146,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06395440000051167,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004789588553051675,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06531660000473494,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004406664472693903,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07216370000242023,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004406664472693903,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0738089999940712,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              }
+            ],
+            "enumerations": [
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ]
+                ],
+                "candidate_count": 4,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0008201205182588627,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008201205182588627,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.04347109999798704,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.050795300005120225
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0006917393784192106,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0006917393784192106,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.043307300002197735,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.0508553000036045
+                  },
+                  {
+                    "support": [
+                      8,
+                      9,
+                      10
+                    ],
+                    "objective": 0.0008113952533240514,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008113952533240514,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.043440300003567245,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.05186590000084834
+                  },
+                  {
+                    "support": [
+                      3,
+                      4,
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0006064772747322239,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0006064772747322239,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.054306400001223665,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06220200000097975
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.21579860000201734
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 3,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0005470806974861011,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005470806974861011,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06074069999885978,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06842730000062147
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005681848666964486,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005681848666964486,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.071090199999162,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08029740000347374
+                  },
+                  {
+                    "support": [
+                      8,
+                      9,
+                      10
+                    ],
+                    "objective": 0.00053835543255129,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00053835543255129,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.063657399994554,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07624630000645993
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.22504979999939678
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ]
+                ],
+                "candidate_count": 2,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0004789588553051675,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0004789588553051675,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06618359999993118,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07738329999847338
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005000630245155146,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005000630245155146,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06395440000051167,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07222209999599727
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.14967600000090897
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ]
+                ],
+                "candidate_count": 1,
+                "candidate_results": [
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0004406664472693903,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0004406664472693903,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.07216370000242023,
+                      "variable_count": 1119,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08222729999397416
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.0822797000000719
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    5,
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 0,
+                "candidate_results": []
+              }
+            ],
+            "model_wall_seconds": 1.0205975999997463,
+            "solver_seconds": 0.8709638000000268
+          },
+          "path": [
+            {
+              "iteration": 11,
+              "train_mae": 0.0008795170955049856,
+              "validation_mae": 0.0009967404511147088,
+              "validation_se": 8.072094671007042e-05
+            },
+            {
+              "iteration": 12,
+              "train_mae": 0.0006064772747322239,
+              "validation_mae": 0.0006453550520931613,
+              "validation_se": 1.7954012155199354e-05
+            },
+            {
+              "iteration": 13,
+              "train_mae": 0.00053835543255129,
+              "validation_mae": 0.0005627182648259572,
+              "validation_se": 1.5545035788225588e-05
+            },
+            {
+              "iteration": 14,
+              "train_mae": 0.0004789588553051675,
+              "validation_mae": 0.0005044217019965645,
+              "validation_se": 9.698210568202685e-06
+            },
+            {
+              "iteration": 15,
+              "train_mae": 0.0004406664472693903,
+              "validation_mae": 0.0004685434705761403,
+              "validation_se": 9.703199301212412e-06
+            }
+          ],
+          "search_incomplete": false,
+          "extensions_certified_optimal": 4,
+          "all_attempted_extensions_certified": true,
+          "structural_search_complete": true
+        }
+      }
+    },
+    {
+      "job_id": "ac_soumalas11_n0_r1_reference",
+      "unrestricted": {
+        "row": {
+          "tier": "ac",
+          "stress": "reference",
+          "shape": "soumalas11",
+          "repeat": 1,
+          "job_id": "ac_soumalas11_n0_r1_reference",
+          "cluster_id": "ac_soumalas11_n0_r1",
+          "n": 11,
+          "bootstrap_replicates": 20,
+          "search_budget_seconds": 4.0,
+          "method": "wzzt_unrestricted",
+          "elapsed_seconds": 1.6496505000031902,
+          "status": "complete",
+          "clade_f1": 0.0,
+          "clade_precision": 0.0,
+          "clade_recall": 0.0,
+          "clade_exact": 0.0,
+          "clade_tp": 0,
+          "clade_fp": 0,
+          "clade_fn": 4,
+          "root_clade_precision": 0.0,
+          "root_clade_recall": 0.0,
+          "root_clade_f1": 0.0,
+          "root_clade_exact": 0.0,
+          "root_clade_tp": 0,
+          "root_clade_fp": 0,
+          "root_clade_fn": 3,
+          "terminal_clade_precision": 0.0,
+          "terminal_clade_recall": 0.0,
+          "terminal_clade_f1": 0.0,
+          "terminal_clade_exact": 0.0,
+          "terminal_clade_tp": 0,
+          "terminal_clade_fp": 0,
+          "terminal_clade_fn": 3,
+          "root_partition_precision": 0.0,
+          "root_partition_recall": 0.0,
+          "root_partition_f1": 0.0,
+          "root_partition_exact": 0.0,
+          "root_partition_tp": 0,
+          "root_partition_fp": 11,
+          "root_partition_fn": 3,
+          "terminal_parent_exact": 0.0,
+          "terminal_parent_count": 11,
+          "train_mae": 0.0008735486608504946,
+          "train_rmse": 0.0012828833629282953,
+          "validation_mae": 0.0009140011311501644,
+          "validation_rmse": 0.00127764697254638,
+          "test_mae": 0.0010052131742099876,
+          "test_rmse": 0.0014085568180063886,
+          "r_relative_error": 0.9084039826423586,
+          "x_relative_error": 2.641880961343247,
+          "r_distance_relative_error": 0.6192159601558851,
+          "x_distance_relative_error": 4.241931698414218,
+          "fixed_refit_certified": true,
+          "selected_blocks": 2,
+          "selected_false_blocks": 1,
+          "search_adapter": "bounded_native_milp",
+          "candidate_truth_recall": null,
+          "candidate_count": null,
+          "stop_reason": "extension_not_proven_optimal",
+          "selected_path_index": 0,
+          "selected_iteration": 11,
+          "attempted_extensions": 1,
+          "search_incomplete": true,
+          "extensions_certified_optimal": 0,
+          "all_attempted_extensions_certified": false,
+          "structural_search_complete": false
+        },
+        "clades": [],
+        "details": {
+          "fixed_solver": {
+            "status": 0,
+            "success": true,
+            "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "objective": 0.0008735486608504958,
+            "dual_bound": null,
+            "mip_gap": null,
+            "node_count": null,
+            "runtime_seconds": 0.03318859999853885,
+            "variable_count": 1111,
+            "binary_variable_count": 0,
+            "constraint_count": 2112
+          },
+          "fixed_refit_certified": true,
+          "active_weight_clades": [],
+          "selected_blocks": 2,
+          "selected_false_blocks": 1,
+          "search_adapter": "bounded_native_milp",
+          "candidate_truth_recall": null,
+          "candidate_count": null,
+          "stop_reason": "extension_not_proven_optimal",
+          "selected_path_index": 0,
+          "selected_iteration": 11,
+          "attempted_extensions": 1,
+          "solver_audit": {
+            "adapter": "bounded_native_milp",
+            "certificate_scope": "all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy",
+            "solver_calls": [
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008735486608504958,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.031996899997466244,
+                "variable_count": 1111,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 1,
+                "success": false,
+                "message": "Time limit reached. (HiGHS Status 13: Time limit reached)",
+                "objective": 0.0007143171728735485,
+                "dual_bound": 0.0004265429999276963,
+                "mip_gap": 0.4028660990862042,
+                "node_count": 1,
+                "runtime_seconds": 1.5365852999966592,
+                "variable_count": 1355,
+                "binary_variable_count": 44,
+                "constraint_count": 2839
+              }
+            ],
+            "enumerations": [],
+            "model_wall_seconds": 1.6057755000001634,
+            "solver_seconds": 1.5685821999941254
+          },
+          "path": [
+            {
+              "iteration": 11,
+              "train_mae": 0.0008735486608504958,
+              "validation_mae": 0.0009140011311501644,
+              "validation_se": 8.251056041065802e-05
+            }
+          ],
+          "search_incomplete": true,
+          "extensions_certified_optimal": 0,
+          "all_attempted_extensions_certified": false,
+          "structural_search_complete": false
+        }
+      },
+      "finite_RNJ_pool": {
+        "row": {
+          "tier": "ac",
+          "stress": "reference",
+          "shape": "soumalas11",
+          "repeat": 1,
+          "job_id": "ac_soumalas11_n0_r1_reference",
+          "cluster_id": "ac_soumalas11_n0_r1",
+          "n": 11,
+          "bootstrap_replicates": 20,
+          "search_budget_seconds": 4.0,
+          "method": "wzzt_rnj_pool",
+          "elapsed_seconds": 1.5293297999960487,
+          "status": "complete",
+          "clade_f1": 1.0,
+          "clade_precision": 1.0,
+          "clade_recall": 1.0,
+          "clade_exact": 1.0,
+          "clade_tp": 4,
+          "clade_fp": 0,
+          "clade_fn": 0,
+          "root_clade_precision": 1.0,
+          "root_clade_recall": 1.0,
+          "root_clade_f1": 1.0,
+          "root_clade_exact": 1.0,
+          "root_clade_tp": 3,
+          "root_clade_fp": 0,
+          "root_clade_fn": 0,
+          "terminal_clade_precision": 1.0,
+          "terminal_clade_recall": 1.0,
+          "terminal_clade_f1": 1.0,
+          "terminal_clade_exact": 1.0,
+          "terminal_clade_tp": 3,
+          "terminal_clade_fp": 0,
+          "terminal_clade_fn": 0,
+          "root_partition_precision": 1.0,
+          "root_partition_recall": 1.0,
+          "root_partition_f1": 1.0,
+          "root_partition_exact": 1.0,
+          "root_partition_tp": 3,
+          "root_partition_fp": 0,
+          "root_partition_fn": 0,
+          "terminal_parent_exact": 1.0,
+          "terminal_parent_count": 11,
+          "train_mae": 0.00043704844666761733,
+          "train_rmse": 0.0005657992858811711,
+          "validation_mae": 0.0004748572052151417,
+          "validation_rmse": 0.0006005114158726154,
+          "test_mae": 0.0005016119120816469,
+          "test_rmse": 0.000627699736428247,
+          "r_relative_error": 0.08810833686257459,
+          "x_relative_error": 0.3072919581180108,
+          "r_distance_relative_error": 0.10830709462598147,
+          "x_distance_relative_error": 0.3942492572065217,
+          "fixed_refit_certified": true,
+          "selected_blocks": 2,
+          "selected_false_blocks": 1,
+          "search_adapter": "bounded_exact_lp_enumeration",
+          "candidate_truth_recall": 1.0,
+          "candidate_count": 5,
+          "stop_reason": "no_feasible_extension",
+          "selected_path_index": 4,
+          "selected_iteration": 15,
+          "attempted_extensions": 6,
+          "search_incomplete": false,
+          "extensions_certified_optimal": 5,
+          "all_attempted_extensions_certified": true,
+          "structural_search_complete": true
+        },
+        "clades": [
+          [
+            101,
+            102,
+            103
+          ],
+          [
+            106,
+            107,
+            108
+          ],
+          [
+            109,
+            110,
+            111
+          ],
+          [
+            104,
+            105,
+            106,
+            107,
+            108
+          ]
+        ],
+        "details": {
+          "fixed_solver": {
+            "status": 0,
+            "success": true,
+            "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "objective": 0.0004370484466676168,
+            "dual_bound": null,
+            "mip_gap": null,
+            "node_count": null,
+            "runtime_seconds": 0.07101359999796841,
+            "variable_count": 1119,
+            "binary_variable_count": 0,
+            "constraint_count": 2112
+          },
+          "fixed_refit_certified": true,
+          "active_weight_clades": [
+            [
+              101,
+              102,
+              103
+            ],
+            [
+              106,
+              107,
+              108
+            ],
+            [
+              109,
+              110,
+              111
+            ],
+            [
+              104,
+              105,
+              106,
+              107,
+              108
+            ]
+          ],
+          "selected_blocks": 2,
+          "selected_false_blocks": 1,
+          "search_adapter": "bounded_exact_lp_enumeration",
+          "candidate_truth_recall": 1.0,
+          "candidate_count": 5,
+          "stop_reason": "no_feasible_extension",
+          "selected_path_index": 4,
+          "selected_iteration": 15,
+          "attempted_extensions": 6,
+          "solver_audit": {
+            "adapter": "bounded_exact_lp_enumeration",
+            "certificate_scope": "all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy",
+            "solver_calls": [
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008735486608504958,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03219610000087414,
+                "variable_count": 1111,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008574317414462593,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.037058399997476954,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008323343706733175,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.04263300000457093,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0006821643327697623,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.04299409999657655,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0007986034981027161,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.045236099998874124,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005856468745335779,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05543430000398075,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005856468745335779,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05575130000215722,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005695299551293421,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05632280000281753,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005444325843563996,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.059440699995320756,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005532078995925704,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05566949999774806,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005107017117857995,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06134520000341581,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005107017117857995,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.058070999999472406,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004945847923815631,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06373150000581518,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004694874216086223,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06441020000056596,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004782627368447984,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0629692000002251,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004694874216086223,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0677536000002874,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0004691749260296122,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07115340000018477,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00043704844666761744,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0733544000031543,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00043704844666761744,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07283949999691686,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00043673595108860636,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07718880000174977,
+                "variable_count": 1121,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00043673595108860636,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07639699999708682,
+                "variable_count": 1121,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              }
+            ],
+            "enumerations": [
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ]
+                ],
+                "candidate_count": 5,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      2
+                    ],
+                    "objective": 0.0008574317414462593,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008574317414462593,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.037058399997476954,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.04400120000354946
+                  },
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0008323343706733175,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008323343706733175,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.04263300000457093,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.04986359999747947
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0006821643327697623,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0006821643327697623,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.04299409999657655,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.05070770000020275
+                  },
+                  {
+                    "support": [
+                      8,
+                      9,
+                      10
+                    ],
+                    "objective": 0.0007986034981027161,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0007986034981027161,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.045236099998874124,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.05274680000002263
+                  },
+                  {
+                    "support": [
+                      3,
+                      4,
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005856468745335779,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005856468745335779,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.05543430000398075,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.0634961999967345
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.2609191000010469
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 4,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      2
+                    ],
+                    "objective": 0.0005695299551293421,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005695299551293421,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.05632280000281753,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06459750000067288
+                  },
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0005444325843563996,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005444325843563996,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.059440699995320756,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06759990000136895
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005532078995925704,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005532078995925704,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.05566949999774806,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06363259999488946
+                  },
+                  {
+                    "support": [
+                      8,
+                      9,
+                      10
+                    ],
+                    "objective": 0.0005107017117857995,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005107017117857995,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06134520000341581,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06938960000115912
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.2653184000009787
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ]
+                ],
+                "candidate_count": 3,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      2
+                    ],
+                    "objective": 0.0004945847923815631,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0004945847923815631,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06373150000581518,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07175879999704193
+                  },
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0004694874216086223,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0004694874216086223,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06441020000056596,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07278700000460958
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0004782627368447984,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0004782627368447984,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.0629692000002251,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07129719999647932
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.21593669999856502
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ]
+                ],
+                "candidate_count": 2,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      2
+                    ],
+                    "objective": 0.0004691749260296122,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0004691749260296122,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.07115340000018477,
+                      "variable_count": 1119,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08021480000024894
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.00043704844666761744,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00043704844666761744,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.0733544000031543,
+                      "variable_count": 1119,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08213879999675555
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.1624320000046282
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    5,
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 1,
+                "candidate_results": [
+                  {
+                    "support": [
+                      0,
+                      2
+                    ],
+                    "objective": 0.00043673595108860636,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00043673595108860636,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.07718880000174977,
+                      "variable_count": 1121,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08705290000216337
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.08711430000403197
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    0,
+                    2
+                  ]
+                ],
+                "candidate_count": 0,
+                "candidate_results": []
+              }
+            ],
+            "model_wall_seconds": 1.4232952000020305,
+            "solver_seconds": 1.2319501000092714
+          },
+          "path": [
+            {
+              "iteration": 11,
+              "train_mae": 0.0008735486608504958,
+              "validation_mae": 0.0009140011311501644,
+              "validation_se": 8.251056041065802e-05
+            },
+            {
+              "iteration": 12,
+              "train_mae": 0.0005856468745335779,
+              "validation_mae": 0.0006150908044209295,
+              "validation_se": 2.8730803092756167e-05
+            },
+            {
+              "iteration": 13,
+              "train_mae": 0.0005107017117857995,
+              "validation_mae": 0.000552145725704228,
+              "validation_se": 2.135314531594239e-05
+            },
+            {
+              "iteration": 14,
+              "train_mae": 0.0004694874216086223,
+              "validation_mae": 0.0005031333228368688,
+              "validation_se": 1.8260792141783596e-05
+            },
+            {
+              "iteration": 15,
+              "train_mae": 0.00043704844666761744,
+              "validation_mae": 0.0004747580670495798,
+              "validation_se": 1.863836621024238e-05
+            },
+            {
+              "iteration": 16,
+              "train_mae": 0.00043673595108860636,
+              "validation_mae": 0.00047611063458690523,
+              "validation_se": 1.8689916772240957e-05
+            }
+          ],
+          "search_incomplete": false,
+          "extensions_certified_optimal": 5,
+          "all_attempted_extensions_certified": true,
+          "structural_search_complete": true
+        }
+      }
+    },
+    {
+      "job_id": "ac_soumalas11_n0_r2_reference",
+      "unrestricted": {
+        "row": {
+          "tier": "ac",
+          "stress": "reference",
+          "shape": "soumalas11",
+          "repeat": 2,
+          "job_id": "ac_soumalas11_n0_r2_reference",
+          "cluster_id": "ac_soumalas11_n0_r2",
+          "n": 11,
+          "bootstrap_replicates": 20,
+          "search_budget_seconds": 4.0,
+          "method": "wzzt_unrestricted",
+          "elapsed_seconds": 1.6929650000020047,
+          "status": "complete",
+          "clade_f1": 0.0,
+          "clade_precision": 0.0,
+          "clade_recall": 0.0,
+          "clade_exact": 0.0,
+          "clade_tp": 0,
+          "clade_fp": 0,
+          "clade_fn": 4,
+          "root_clade_precision": 0.0,
+          "root_clade_recall": 0.0,
+          "root_clade_f1": 0.0,
+          "root_clade_exact": 0.0,
+          "root_clade_tp": 0,
+          "root_clade_fp": 0,
+          "root_clade_fn": 3,
+          "terminal_clade_precision": 0.0,
+          "terminal_clade_recall": 0.0,
+          "terminal_clade_f1": 0.0,
+          "terminal_clade_exact": 0.0,
+          "terminal_clade_tp": 0,
+          "terminal_clade_fp": 0,
+          "terminal_clade_fn": 3,
+          "root_partition_precision": 0.0,
+          "root_partition_recall": 0.0,
+          "root_partition_f1": 0.0,
+          "root_partition_exact": 0.0,
+          "root_partition_tp": 0,
+          "root_partition_fp": 11,
+          "root_partition_fn": 3,
+          "terminal_parent_exact": 0.0,
+          "terminal_parent_count": 11,
+          "train_mae": 0.0009191020158971118,
+          "train_rmse": 0.0013107789913669452,
+          "validation_mae": 0.0010041158876754328,
+          "validation_rmse": 0.001412191347110867,
+          "test_mae": 0.0009660988831208981,
+          "test_rmse": 0.001374318824122238,
+          "r_relative_error": 0.898308041238669,
+          "x_relative_error": 2.9194334742756065,
+          "r_distance_relative_error": 0.6293702543057652,
+          "x_distance_relative_error": 4.7400366282291175,
+          "fixed_refit_certified": true,
+          "selected_blocks": 0,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_native_milp",
+          "candidate_truth_recall": null,
+          "candidate_count": null,
+          "stop_reason": "extension_not_proven_optimal",
+          "selected_path_index": 0,
+          "selected_iteration": 11,
+          "attempted_extensions": 1,
+          "search_incomplete": true,
+          "extensions_certified_optimal": 0,
+          "all_attempted_extensions_certified": false,
+          "structural_search_complete": false
+        },
+        "clades": [],
+        "details": {
+          "fixed_solver": {
+            "status": 0,
+            "success": true,
+            "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "objective": 0.0009191020158971122,
+            "dual_bound": null,
+            "mip_gap": null,
+            "node_count": null,
+            "runtime_seconds": 0.03304499999649124,
+            "variable_count": 1111,
+            "binary_variable_count": 0,
+            "constraint_count": 2112
+          },
+          "fixed_refit_certified": true,
+          "active_weight_clades": [],
+          "selected_blocks": 0,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_native_milp",
+          "candidate_truth_recall": null,
+          "candidate_count": null,
+          "stop_reason": "extension_not_proven_optimal",
+          "selected_path_index": 0,
+          "selected_iteration": 11,
+          "attempted_extensions": 1,
+          "solver_audit": {
+            "adapter": "bounded_native_milp",
+            "certificate_scope": "all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy",
+            "solver_calls": [
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0009191020158971122,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03199509999831207,
+                "variable_count": 1111,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 1,
+                "success": false,
+                "message": "Time limit reached. (HiGHS Status 13: Time limit reached)",
+                "objective": 0.0008062996205830638,
+                "dual_bound": 0.00044415592672599505,
+                "mip_gap": 0.44914283054627985,
+                "node_count": 1,
+                "runtime_seconds": 1.581290900001477,
+                "variable_count": 1355,
+                "binary_variable_count": 44,
+                "constraint_count": 2839
+              }
+            ],
+            "enumerations": [],
+            "model_wall_seconds": 1.6491617000065162,
+            "solver_seconds": 1.613285999999789
+          },
+          "path": [
+            {
+              "iteration": 11,
+              "train_mae": 0.0009191020158971122,
+              "validation_mae": 0.0010041158876754328,
+              "validation_se": 6.256434895774428e-05
+            }
+          ],
+          "search_incomplete": true,
+          "extensions_certified_optimal": 0,
+          "all_attempted_extensions_certified": false,
+          "structural_search_complete": false
+        }
+      },
+      "finite_RNJ_pool": {
+        "row": {
+          "tier": "ac",
+          "stress": "reference",
+          "shape": "soumalas11",
+          "repeat": 2,
+          "job_id": "ac_soumalas11_n0_r2_reference",
+          "cluster_id": "ac_soumalas11_n0_r2",
+          "n": 11,
+          "bootstrap_replicates": 20,
+          "search_budget_seconds": 4.0,
+          "method": "wzzt_rnj_pool",
+          "elapsed_seconds": 1.5056276000032085,
+          "status": "complete",
+          "clade_f1": 1.0,
+          "clade_precision": 1.0,
+          "clade_recall": 1.0,
+          "clade_exact": 1.0,
+          "clade_tp": 4,
+          "clade_fp": 0,
+          "clade_fn": 0,
+          "root_clade_precision": 1.0,
+          "root_clade_recall": 1.0,
+          "root_clade_f1": 1.0,
+          "root_clade_exact": 1.0,
+          "root_clade_tp": 3,
+          "root_clade_fp": 0,
+          "root_clade_fn": 0,
+          "terminal_clade_precision": 1.0,
+          "terminal_clade_recall": 1.0,
+          "terminal_clade_f1": 1.0,
+          "terminal_clade_exact": 1.0,
+          "terminal_clade_tp": 3,
+          "terminal_clade_fp": 0,
+          "terminal_clade_fn": 0,
+          "root_partition_precision": 1.0,
+          "root_partition_recall": 1.0,
+          "root_partition_f1": 1.0,
+          "root_partition_exact": 1.0,
+          "root_partition_tp": 3,
+          "root_partition_fp": 0,
+          "root_partition_fn": 0,
+          "terminal_parent_exact": 1.0,
+          "terminal_parent_count": 11,
+          "train_mae": 0.0004523651958292403,
+          "train_rmse": 0.0005818471548269014,
+          "validation_mae": 0.0005380258631722832,
+          "validation_rmse": 0.0006715887564174467,
+          "test_mae": 0.0004873645573907443,
+          "test_rmse": 0.0006156687594236479,
+          "r_relative_error": 0.11622595397609425,
+          "x_relative_error": 0.5336480941292737,
+          "r_distance_relative_error": 0.11688951192964038,
+          "x_distance_relative_error": 0.6330723273347688,
+          "fixed_refit_certified": true,
+          "selected_blocks": 0,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_exact_lp_enumeration",
+          "candidate_truth_recall": 1.0,
+          "candidate_count": 5,
+          "stop_reason": "no_feasible_extension",
+          "selected_path_index": 4,
+          "selected_iteration": 15,
+          "attempted_extensions": 6,
+          "search_incomplete": false,
+          "extensions_certified_optimal": 5,
+          "all_attempted_extensions_certified": true,
+          "structural_search_complete": true
+        },
+        "clades": [
+          [
+            101,
+            102,
+            103
+          ],
+          [
+            106,
+            107,
+            108
+          ],
+          [
+            109,
+            110,
+            111
+          ],
+          [
+            104,
+            105,
+            106,
+            107,
+            108
+          ]
+        ],
+        "details": {
+          "fixed_solver": {
+            "status": 0,
+            "success": true,
+            "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+            "objective": 0.00045236519582923963,
+            "dual_bound": null,
+            "mip_gap": null,
+            "node_count": null,
+            "runtime_seconds": 0.07124859999748878,
+            "variable_count": 1119,
+            "binary_variable_count": 0,
+            "constraint_count": 2112
+          },
+          "fixed_refit_certified": true,
+          "active_weight_clades": [
+            [
+              101,
+              102,
+              103
+            ],
+            [
+              106,
+              107,
+              108
+            ],
+            [
+              109,
+              110,
+              111
+            ],
+            [
+              104,
+              105,
+              106,
+              107,
+              108
+            ]
+          ],
+          "selected_blocks": 0,
+          "selected_false_blocks": 0,
+          "search_adapter": "bounded_exact_lp_enumeration",
+          "candidate_truth_recall": 1.0,
+          "candidate_count": 5,
+          "stop_reason": "no_feasible_extension",
+          "selected_path_index": 4,
+          "selected_iteration": 15,
+          "attempted_extensions": 6,
+          "solver_audit": {
+            "adapter": "bounded_exact_lp_enumeration",
+            "certificate_scope": "all certified fixed-support LP optima for one supplied finite-domain extension; forward path remains greedy",
+            "solver_calls": [
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0009191020158971122,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.032015200005844235,
+                "variable_count": 1111,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008246599167630149,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03711079999629874,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008633365629380316,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03924320000078296,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0007108416468312779,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.03942950000055134,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0008474679261120824,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.039705000002868474,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0006137628323190881,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05408980000356678,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0006137628323190881,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05364969999936875,
+                "variable_count": 1113,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005991769928440185,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.057229300000471994,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005579973793600082,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.057989100001577754,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005797647385733493,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05851690000417875,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005421287425340563,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.05624009999883128,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005421287425340563,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06053210000391118,
+                "variable_count": 1115,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005275429030589864,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06211369999800809,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00048636328957497735,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06579260000580689,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0005081306487883195,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06682310000178404,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00048636328957497735,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.06637790000240784,
+                "variable_count": 1117,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00047177745009990645,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07324119999975665,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00045236519582923974,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0703256999986479,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00045236519582923974,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0708777999971062,
+                "variable_count": 1119,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00045207821957317135,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07357510000292677,
+                "variable_count": 1121,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              },
+              {
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00045207821957317135,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.07632549999834737,
+                "variable_count": 1121,
+                "binary_variable_count": 0,
+                "constraint_count": 2112
+              }
+            ],
+            "enumerations": [
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ]
+                ],
+                "candidate_count": 5,
+                "candidate_results": [
+                  {
+                    "support": [
+                      6,
+                      7
+                    ],
+                    "objective": 0.0008246599167630149,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008246599167630149,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.03711079999629874,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.044406299995898735
+                  },
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0008633365629380316,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008633365629380316,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.03924320000078296,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.04658180000114953
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0007108416468312779,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0007108416468312779,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.03942950000055134,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.046675999998115
+                  },
+                  {
+                    "support": [
+                      8,
+                      9,
+                      10
+                    ],
+                    "objective": 0.0008474679261120824,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0008474679261120824,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.039705000002868474,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.046745899999223184
+                  },
+                  {
+                    "support": [
+                      3,
+                      4,
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0006137628323190881,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0006137628323190881,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.05408980000356678,
+                      "variable_count": 1113,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06139570000232197
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.24589940000441857
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 4,
+                "candidate_results": [
+                  {
+                    "support": [
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005991769928440185,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005991769928440185,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.057229300000471994,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06506269999954384
+                  },
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.0005579973793600082,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005579973793600082,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.057989100001577754,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06613500000094064
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005797647385733493,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005797647385733493,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.05851690000417875,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06672560000151861
+                  },
+                  {
+                    "support": [
+                      8,
+                      9,
+                      10
+                    ],
+                    "objective": 0.0005421287425340563,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005421287425340563,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.05624009999883128,
+                      "variable_count": 1115,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.06403719999798341
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.2620552000007592
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ]
+                ],
+                "candidate_count": 3,
+                "candidate_results": [
+                  {
+                    "support": [
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005275429030589864,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005275429030589864,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06211369999800809,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07116859999950975
+                  },
+                  {
+                    "support": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "objective": 0.00048636328957497735,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00048636328957497735,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06579260000580689,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07452310000371654
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.0005081306487883195,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.0005081306487883195,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.06682310000178404,
+                      "variable_count": 1117,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07552720000239788
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.2213040999995428
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ]
+                ],
+                "candidate_count": 2,
+                "candidate_results": [
+                  {
+                    "support": [
+                      6,
+                      7
+                    ],
+                    "objective": 0.00047177745009990645,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00047177745009990645,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.07324119999975665,
+                      "variable_count": 1119,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08188240000163205
+                  },
+                  {
+                    "support": [
+                      5,
+                      6,
+                      7
+                    ],
+                    "objective": 0.00045236519582923974,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00045236519582923974,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.0703256999986479,
+                      "variable_count": 1119,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.07968460000120103
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.16164410000055796
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    5,
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 1,
+                "candidate_results": [
+                  {
+                    "support": [
+                      6,
+                      7
+                    ],
+                    "objective": 0.00045207821957317135,
+                    "certified_optimal": true,
+                    "diagnostics": {
+                      "status": 0,
+                      "success": true,
+                      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                      "objective": 0.00045207821957317135,
+                      "dual_bound": null,
+                      "mip_gap": null,
+                      "node_count": null,
+                      "runtime_seconds": 0.07357510000292677,
+                      "variable_count": 1121,
+                      "binary_variable_count": 0,
+                      "constraint_count": 2112
+                    },
+                    "wall_seconds": 0.08329080000112299
+                  }
+                ],
+                "all_candidates_certified_optimal": true,
+                "wall_seconds": 0.08337989999563433
+              },
+              {
+                "existing_supports": [
+                  [
+                    0
+                  ],
+                  [
+                    1
+                  ],
+                  [
+                    2
+                  ],
+                  [
+                    3
+                  ],
+                  [
+                    4
+                  ],
+                  [
+                    5
+                  ],
+                  [
+                    6
+                  ],
+                  [
+                    7
+                  ],
+                  [
+                    8
+                  ],
+                  [
+                    9
+                  ],
+                  [
+                    10
+                  ],
+                  [
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    8,
+                    9,
+                    10
+                  ],
+                  [
+                    0,
+                    1,
+                    2
+                  ],
+                  [
+                    5,
+                    6,
+                    7
+                  ],
+                  [
+                    6,
+                    7
+                  ]
+                ],
+                "candidate_count": 0,
+                "candidate_results": []
+              }
+            ],
+            "model_wall_seconds": 1.39983470000152,
+            "solver_seconds": 1.211203300023044
+          },
+          "path": [
+            {
+              "iteration": 11,
+              "train_mae": 0.0009191020158971122,
+              "validation_mae": 0.0010041158876754328,
+              "validation_se": 6.256434895774428e-05
+            },
+            {
+              "iteration": 12,
+              "train_mae": 0.0006137628323190881,
+              "validation_mae": 0.000685864693736924,
+              "validation_se": 2.5248209688653214e-05
+            },
+            {
+              "iteration": 13,
+              "train_mae": 0.0005421287425340563,
+              "validation_mae": 0.0006414436708304102,
+              "validation_se": 2.4890672504597526e-05
+            },
+            {
+              "iteration": 14,
+              "train_mae": 0.00048636328957497735,
+              "validation_mae": 0.000569393410462517,
+              "validation_se": 1.8102050002352482e-05
+            },
+            {
+              "iteration": 15,
+              "train_mae": 0.00045236519582923974,
+              "validation_mae": 0.0005369290133261136,
+              "validation_se": 1.5018399415104848e-05
+            },
+            {
+              "iteration": 16,
+              "train_mae": 0.00045207821957317135,
+              "validation_mae": 0.0005380619854530821,
+              "validation_se": 1.4867420490048087e-05
+            }
+          ],
+          "search_incomplete": false,
+          "extensions_certified_optimal": 5,
+          "all_attempted_extensions_certified": true,
+          "structural_search_complete": true
+        }
+      }
+    }
+  ]
+}
