@@ -2,19 +2,17 @@
 from pathlib import Path
 from datetime import datetime,timezone
 import argparse,json,os,subprocess,sys,time,traceback
+from runtime_resume import io as runtime_io,read_shared_json,process_is_alive
 
 
 def now():return datetime.now(timezone.utc).isoformat()
 
 
 def write(path,value):
-    path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
-    temporary=path.with_name(path.name+'.tmp')
-    temporary.write_text(json.dumps(value,ensure_ascii=False,sort_keys=True)+'\n',encoding='utf-8')
-    temporary.replace(path)
+    runtime_io.write(path,value)
 
 
-def read(path):return json.loads(Path(path).read_bytes())
+def read(path):return read_shared_json(path)
 
 
 def main():
@@ -50,7 +48,12 @@ def main():
                 if status=='blocked':raise RuntimeError('controller blocked; no replacement batch started')
                 clock=controller.get('updated_utc',controller.get('started_utc'))
                 if clock and (datetime.now(timezone.utc)-datetime.fromisoformat(clock)).total_seconds()>300:
-                    raise RuntimeError('controller heartbeat stale for >300 seconds; inspect PID, do not restart blindly')
+                    pids=[controller.get('pid'),*controller.get('live_worker_pids',[])]
+                    active=[int(pid) for pid in pids if pid and process_is_alive(pid)]
+                    if active:
+                        save(health='heartbeat_stale_but_processes_active',active_recorded_pids=active)
+                    else:
+                        raise RuntimeError('controller heartbeat stale and all recorded processes exited; inspect recovery checkpoint')
             time.sleep(30)
         run_step('analysis',['-m','research_experiments.mobile_ev_mle.reference_benchmark.analysis','--output',output])
         run_step('diagnostics',[root/'outputs/reference_tools/diagnostics.py','--output',output])

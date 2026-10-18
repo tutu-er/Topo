@@ -50,6 +50,14 @@ the projected JSON object, including every retained physical observation/state.
 Publisher should commit `bundle/` and `delivery_manifest.json` only, without the
 large duplicate archives. No Git operation is performed by this tool.
 
+If Windows status-file recovery was used, its launcher, tests, receipts and
+per-process retry logs are saved separately under `provenance/runtime_tools/`
+and `provenance/runtime_history/`. These retries call the original serializer;
+the frozen scientific source, configuration, samples and failed results remain
+unchanged. For a compute continuation, place runtime tools back under the
+execution source's `outputs/reference_tools/`; archive locations are provenance
+copies, not alternate source roots.
+
 Development-only validation:
 
 ```powershell

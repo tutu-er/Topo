@@ -2,6 +2,8 @@
 
 本轮承接已完成的full_pipeline；先读protocol.md、math.md及sources中的来源审查。来源、单位、内点表示、预测边界和稀疏AC实现已验证；新旧流程共220项测试通过。893份科学源码及配置已冻结，256条件批次正在运行；当前进度与续接见checkpoint.json和resume.md。
 
+运行续接：开发阶段状态文件停止更新，原16个worker仍在计算；实际保存进度见执行副本outputs/reference_v1/recovery.json。外围恢复监测等待原进程自然退出后续接同一批次，保留结果和失败，科学源码及配置不变。具体工具、自检和运行时改动证据位于evidence/tools；当前进程存活时不要重复运行下方controller命令。
+
 已逐条核对原MATPOWER case33bw和CIGRE居民子网。旧paper11/paper15只是项目自建论文风格网络，恢复原放大前阻抗并单列变压器扩展；尚未取得之前五篇论文作者最终单相等效逐线数值，具体缺口保留。
 
 各网保留原生P/Q额定值，再乘SimBench原生LV聚合P/Q曲线。源P/Q在同一物理接口，输入与未来真值分开。SINTEF/CINELDI小时数据已取得，但原负荷CSV单位未证实，暂不猜单位用于原网AC。

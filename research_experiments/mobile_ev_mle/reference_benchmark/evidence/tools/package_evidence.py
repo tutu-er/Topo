@@ -498,6 +498,22 @@ def package(output,destination,*,source_root=DEFAULT_ROOT,max_mib=20.,verify_sta
     for name in ("diagnostics.py","diagnostics_selftest_receipt.json","package_selftest_receipt.json"):
         src=Path(__file__).parent/name
         if src.is_file():copy_file(src,"postprocessing/"+name)
+    # Runtime-only permission retries preserve the frozen numerical code and
+    # record bytes. Archive their separate versions instead of implying that
+    # source hashes alone describe the status-file recovery environment.
+    for name in ("runtime_resume.py","recovery_supervisor.py","finish_watch.py",
+            "recovery_tests.py","recovery_selftest_receipt.json",
+            "runtime_recovery_audit.md","runtime_resume_inventory_audit.json"):
+        src=Path(__file__).parent/name
+        if src.is_file():copy_file(src,"provenance/runtime_tools/"+name)
+    src=Path(__file__).parent/"runtime_resume_selftest/receipt.json"
+    if src.is_file():copy_file(src,"provenance/runtime_tools/runtime_resume_selftest.json")
+    runtime_paths=[*output.glob("runtime_resume_*.json"),*output.glob("runtime_*.stderr.log")]
+    runtime_paths.extend(output/name for name in ("recovery.json","controller.stderr.log"))
+    runtime_paths.extend((output/"runtime_io").glob("*.jsonl"))
+    runtime_paths.extend(path for path in (output/"recovery_initial").rglob("*") if path.is_file())
+    for src in sorted(set(path for path in runtime_paths if path.is_file())):
+        copy_file(src,"provenance/runtime_history/"+src.relative_to(output).as_posix())
     copy_file(Path(analysis.__file__),"postprocessing/reference_benchmark_analysis.py")
     copy_file(Path(__file__),"postprocessing/package_evidence.py")
     receipt=pick(controller,("schema","status","phases","freeze_identity","controller_policy_sha256",
