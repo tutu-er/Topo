@@ -23,6 +23,10 @@
 
 从正确结构继续新增5个假簇，总训练MAE仅降低约0.402%。首个退化步骤的训练增益为7.173e-7，数值接受阈值约1.045e-10，因而代码按设定接受了它。该阈值用于排除数值零增益，没有控制噪声下的结构复杂度。MILP已完成单步求解，问题主要在路径选择标准，而非把“未收敛”误报为完成。
 
+![soumalas11训练损失与拓扑F1](source_ac96_diagnosis_20261018_evidence/soumalas11_training_vs_topology.png)
+
+图中F1仅为事后评价，标出的正确结构点不参与部署选模；上图展示首轮保存的96点全训练路径。
+
 纯WZZT四种源型的保存路径最高F1均为0.8889，正式末点均为0.6154；无源与间歇源联合方法的中间点曾达到F1=1。前者还包含早期贪心加入的跨主支路假簇 `[101,102,103,109,110,111]`，所以正确选模也未必单独消除全部路径偏差。以上最佳路径点仅为事后诊断，不能用真值直接选择部署模型。
 
 ### 实现与数据核查
@@ -32,6 +36,20 @@
 pengwah18真实模型包含18个终端原子与7个共享簇，而单点初始化只含前18个。丢失的跨终端贡献占各节点平均真实线性响应的42.34%–83.87%，初始对角系数随之吸收上游其他终端的响应。其大系数符合该受限模型的条件L1最优性，不能据此认定权重提取错误。
 
 含噪设计矩阵 `[P,Q]` 条件数：pengwah18约3486、soumalas11约2228。电压量测引入的平方电压降误差RMSE分别约为真实动态响应尺度的24.9%、59.8%。这些是本日数据的数值诊断；P/Q共变及R/X补偿增加了参数和弱簇的不稳定性。
+
+### 单独改变上界的固定族诊断
+
+另在用户指定的pengwah18前64点上，将初始singleton族保持不变，仅将R/X上界依次取2、4、32；每个终端是独立的两个系数L1小LP，共54项。全部通过独立原始/对偶目标、约束、驻点和互补核验，最大绝对对偶gap为1.84e-18。B=2与正式完整方法初始化的目标完全一致、权重最大差1.1e-15。
+
+| 上界B | 训练MAE | 后32点验证MAE | R矩阵误差% | X矩阵误差% |
+|---|---:|---:|---:|---:|
+| 2 | 0.00198370 | 0.00278661 | 206.12 | 400.91 |
+| 4 | 0.00196142 | 0.00278228 | 206.71 | 421.71 |
+| 32 | 0.00196142 | 0.00278228 | 206.71 | 421.71 |
+
+放到4使训练MAE下降1.12%、验证下降0.156%，系数矩阵误差反而增加；最大X为2.279，放到32没有额外收益。因此，初始受限族确有轻微的界截断，但大矩阵误差主要需要通过共享结构恢复来处理。该诊断只改变固定族的连续参数域，不做拓扑搜索，不按真值选界，也不改变正式两档预算实验。
+
+这一结构限制也能直接核算：singleton族的R/X必为对角矩阵，任何对角矩阵到真实R/X的相对Frobenius误差至少为真实非对角部分的范数占比，本例分别为79.29%与80.42%。放大对角系数上界无法补出这些共享响应。
 
 ## 历史较好结果为何不能直接横比
 
@@ -57,6 +75,8 @@ pengwah18真实模型包含18个终端原子与7个共享簇，而单点初始�
 ```powershell
 & D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.rnj.run_source_ac96_full_history --prepare-only
 & D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.rnj.run_source_ac96_full_history
+& D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.rnj.audit_source_ac96_full_history outputs/source_ac96_full_history_pengwah18_20261018
+& D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.rnj.summarize_source_ac96_full_history --output-dir outputs/source_ac96_full_history_pengwah18_20261018/reports
 ```
 
 ## 冻结的完整主线规则
@@ -110,5 +130,6 @@ pengwah18真实模型包含18个终端原子与7个共享簇，而单点初始�
 - [pengwah18初始化与系数界算术](source_ac96_diagnosis_20261018_evidence/pengwah18_no_source_wzzt_readonly_analysis.json)
 - [两网络的噪声、条件数与单位核查](source_ac96_diagnosis_20261018_evidence/readonly_conditioning_diagnostics.json)
 - [32个WZZT模型设置](source_ac96_diagnosis_20261018_evidence/selection_model_summary.csv)与[117个路径点](source_ac96_diagnosis_20261018_evidence/selection_path_metrics.csv)。
+- [固定族上界LP汇总](source_ac96_diagnosis_20261018_evidence/bound_lp_diagnostic_summary.json)、[三档汇总CSV](source_ac96_diagnosis_20261018_evidence/bound_lp_diagnostic.csv)和[54项状态与数值证据](source_ac96_diagnosis_20261018_evidence/bound_lp_diagnostic_terminals.csv)。
 
-这些诊断只读取已保存数据和模型，没有重新拟合；最大路径F1仅为事后说明，未进入复测的选模规则。
+路径、历史记录和单位诊断是对已有模型的只读重建；上界诊断另外执行上述54个固定族小LP。最大路径F1仅为事后说明，未进入复测的选模规则。

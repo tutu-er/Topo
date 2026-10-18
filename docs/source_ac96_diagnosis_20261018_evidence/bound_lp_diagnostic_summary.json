@@ -1,0 +1,125 @@
+{
+  "diagnostic": "Fixed singleton family only; independent terminal LAD LPs; not topology search or a full WZZT method.",
+  "case": "pengwah18",
+  "variant": "no_source",
+  "training_samples": 64,
+  "validation_samples": 32,
+  "bounds_predeclared": [
+    2.0,
+    4.0,
+    32.0
+  ],
+  "bounds_selected_using_truth": false,
+  "solver": "scipy.optimize.linprog(method='highs')",
+  "solver_threads": 1,
+  "fits_expected": 54,
+  "fits_attempted": 54,
+  "fits_certified": 54,
+  "physical_truth_opened_after_all_fits": true,
+  "dual_formula": "inequality_marginals @ rhs + finite_lower_marginals @ lower_bounds + finite_upper_marginals @ upper_bounds",
+  "input_sha256": {
+    "pengwah18/no_source/observed/P_terminal.csv": "bd133b44d39bcc4b042efd4c058457b21f151664fac2319910f77bf25cfce95f",
+    "pengwah18/no_source/observed/Q_terminal.csv": "0edfed199d5fb3591dce9894426d40f7c18540d190da3fbcb1b18c55d8c18391",
+    "pengwah18/no_source/observed/drop_target.csv": "0db6408ea39663bcefc07a00dea871fa14b9397cddfaa560d6b3ea1a47594b7d",
+    "pengwah18/no_source/source/amplitudes.csv": "420eb3f6e651a7196bd4c15d264829547f15bd1116c2271a3fce61065dbc2b96"
+  },
+  "inputs_unchanged": true,
+  "source_sha256": "c0939ad959595ec220150f5f35031229984b8e4675d596dee8a235ff79413c42",
+  "git_head": "a58931884f6359b97e4e27f541611d9691ef27f3",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "scipy": "1.17.1",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    }
+  },
+  "summary": [
+    {
+      "coefficient_bound": 2.0,
+      "terminals_expected": 18,
+      "terminals_attempted": 18,
+      "terminals_certified": 18,
+      "elapsed_seconds": 0.06642970000393689,
+      "train_mae": 0.001983702815897979,
+      "validation_mae": 0.0027866132381356456,
+      "r_relative_error": 2.061205247628515,
+      "x_relative_error": 4.009096220747421,
+      "r_max": 1.1053188496577857,
+      "x_max": 2.0,
+      "r_at_bound_count": 0,
+      "x_at_bound_count": 2,
+      "max_absolute_dual_gap": 1.8431436932253575e-18,
+      "max_constraint_violation": 8.673617379884035e-18
+    },
+    {
+      "coefficient_bound": 4.0,
+      "terminals_expected": 18,
+      "terminals_attempted": 18,
+      "terminals_certified": 18,
+      "elapsed_seconds": 0.09076009993441403,
+      "train_mae": 0.0019614151837787095,
+      "validation_mae": 0.002782277658713502,
+      "r_relative_error": 2.067149853334321,
+      "x_relative_error": 4.217140443311015,
+      "r_max": 1.1053188496577857,
+      "x_max": 2.2792290763269807,
+      "r_at_bound_count": 0,
+      "x_at_bound_count": 0,
+      "max_absolute_dual_gap": 1.8431436932253575e-18,
+      "max_constraint_violation": 6.938893903907228e-18
+    },
+    {
+      "coefficient_bound": 32.0,
+      "terminals_expected": 18,
+      "terminals_attempted": 18,
+      "terminals_certified": 18,
+      "elapsed_seconds": 0.07937319995835423,
+      "train_mae": 0.0019614151837787095,
+      "validation_mae": 0.002782277658713502,
+      "r_relative_error": 2.067149853334321,
+      "x_relative_error": 4.217140443311015,
+      "r_max": 1.1053188496577857,
+      "x_max": 2.2792290763269807,
+      "r_at_bound_count": 0,
+      "x_at_bound_count": 0,
+      "max_absolute_dual_gap": 1.8431436932253575e-18,
+      "max_constraint_violation": 6.938893903907228e-18
+    }
+  ],
+  "formal_B2_initialization_comparisons": [
+    {
+      "reference": "D:\\0-github_workspace\\Topo\\outputs\\source_ac96_full_history_pengwah18_20261018\\jobs\\pengwah18__no_source__WZZT__t1\\progress\\000001.json",
+      "available": true,
+      "sha256": "876b5311c618a2ed9437176a4821df5b907a35f90ce454ec104093cc62ad92c6",
+      "objective_absolute_difference": 0.0,
+      "r_weights_max_abs_difference": 3.3306690738754696e-16,
+      "x_weights_max_abs_difference": 1.0824674490095276e-15,
+      "objective_reproduced": true,
+      "weights_reproduced": true
+    },
+    {
+      "reference": "D:\\0-github_workspace\\Topo\\outputs\\source_ac96_full_history_pengwah18_20261018\\jobs\\pengwah18__no_source__WZZT__t100\\progress\\000001.json",
+      "available": true,
+      "sha256": "d5c5d43fcc53d873542eb194d5b90a91b42e11f69732e54a3a227f371c3e0430",
+      "objective_absolute_difference": 0.0,
+      "r_weights_max_abs_difference": 3.3306690738754696e-16,
+      "x_weights_max_abs_difference": 1.0824674490095276e-15,
+      "objective_reproduced": true,
+      "weights_reproduced": true
+    }
+  ],
+  "full_raw_json_sha256": "92d5676e2669775610d1c3d5fea934d1c58739e20e48f414e8454d87306716a6",
+  "full_raw_local_path": "outputs/source_ac96_diagnosis_20261018/bound_lp_diagnostic.json",
+  "additional_posthoc_diagonal_family_lower_bound": {
+    "formula": "norm(M_true - diag(diag(M_true)), fro) / norm(M_true, fro)",
+    "r_relative_error_minimum": 0.792853928485945,
+    "x_relative_error_minimum": 0.8042321931732708,
+    "use": "read-only structural diagnostic after fitting, not bound selection"
+  }
+}

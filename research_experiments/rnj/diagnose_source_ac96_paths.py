@@ -77,12 +77,42 @@ def audit_paths(run, dataset, case):
     return rows, jobs
 
 
+def plot_saved_paths(rows, output, case):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    figure, axes = plt.subplots(2, 1, figsize=(8, 6.5), sharex=True, layout="constrained")
+    for method, color in (("WZZT", "#3266a8"), ("RNJ+WZZT", "#c24d28")):
+        points = [r for r in rows if r["variant"] == "no_source" and r["method"] == method]
+        if not points:
+            continue
+        x = [r["active_nontrivial_clades"] for r in points]
+        axes[0].plot(x, [r["train_mae"] * 1e3 for r in points], "o-", color=color, label=method)
+        axes[1].plot(x, [r["clade_f1"] for r in points], "o-", color=color, label=method)
+        exact = [r for r in points if abs(r["clade_f1"] - 1) < 1e-12]
+        if exact:
+            at = exact[0]["active_nontrivial_clades"]
+            axes[1].axvline(at, color=color, linestyle=":", alpha=.6)
+            axes[1].annotate("F1 = 1 (post-hoc)", xy=(at, 1), xytext=(at + .7, .91),
+                             arrowprops={"arrowstyle": "->", "color": color}, color=color)
+    axes[0].set(ylabel="Training MAE (x 1e-3)", title=f"{case}: saved no-source paths, 96 training points")
+    axes[1].set(xlabel="Active nontrivial clades", ylabel="Topology F1 (post-hoc)", ylim=(-.03, 1.08))
+    for axis in axes:
+        axis.grid(alpha=.25)
+        axis.legend(loc="best")
+    target = output / f"{case}_training_vs_topology.png"
+    figure.savefig(target, dpi=180, facecolor="white")
+    plt.close(figure)
+    return target
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", type=Path, default=ROOT / "outputs/source_ac96_benchmark_20261018")
     parser.add_argument("--dataset", type=Path, default=ROOT / "outputs/source_ac96_20261018")
     parser.add_argument("--case", choices=("soumalas11", "pengwah18"), default="soumalas11")
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/source_ac96_diagnosis_20261018")
+    parser.add_argument("--plot", action="store_true", help="Plot saved no-source loss/F1; no fitting")
     args = parser.parse_args()
     rows, jobs = audit_paths(args.run, args.dataset, args.case)
     args.output.mkdir(parents=True, exist_ok=True)
@@ -94,6 +124,8 @@ def main():
               "path_objectives_independently_reproduced": len(rows), "jobs": jobs}
     (args.output / f"{args.case}_saved_path_audit.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if args.plot:
+        plot_saved_paths(rows, args.output, args.case)
     print(json.dumps({"case": args.case, "path_points": len(rows), "jobs": len(jobs)}))
 
 
