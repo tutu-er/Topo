@@ -48,3 +48,22 @@ def test_invalid_scaling_is_explicit_failure():
     c,obs,model,opts,_=fixture()
     with pytest.raises(ValueError,match='scale_mode'):
         fit_rx_blocks(c,obs,model,scale_mode='unknown',**opts)
+
+
+def test_gap_acceptance_records_the_same_convex_model_bound():
+    c,obs,model,opts,_=fixture()
+    opts.update(max_nfev=30)
+    strict=fit_rx_blocks(c,obs,model,inner_tol=1e-25,**opts)
+    gap=fit_rx_blocks(c,obs,model,inner_tol=1e-25,
+        inner_acceptance='certified_gap',**opts)
+    assert not strict.success
+    accepted=[r for r in gap.diagnostics['trace'] if r.get('inner_gap_pass')]
+    assert accepted
+    assert all(r['inner_gap_upper_bound']<=r['inner_gap_threshold'] for r in accepted)
+    assert gap.loss<strict.loss
+
+
+def test_unknown_backend_is_not_silently_ignored():
+    c,obs,model,opts,_=fixture()
+    with pytest.raises(ValueError,match='backend'):
+        fit_rx_blocks(c,obs,model,backend='unknown',**opts)

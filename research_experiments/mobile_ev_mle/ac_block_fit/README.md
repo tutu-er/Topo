@@ -1,5 +1,9 @@
 # AC拟合的分块求解开发
 
+先读[当前数学模型](current_model.md)、[本轮共同梯度与多候选核对](FOLLOWUP_REPORT.md)和[续接检查点](followup_checkpoint.json)。新增预算内驻点修整，开发156项CPU测试通过；独立恢复曾有1项未解释失败、唯一完整复验通过，原失败保留。充分收敛的8候选及5候选对的参数/非零功率AC导数一致。case33另8次同起点严格拟合仍未通过，已定位一个由R/alpha映射切点主导的拒绝步。原TRF继续默认，QR暂不接替后续科学实验；物理R/X凸约束GN修正仅完成推导。
+
+新证据的复算见[REPLAY_FOLLOWUP.md](REPLAY_FOLLOWUP.md)，原单候选/GPU证据及下列旧分母保持原样。
+
 保留完整AC、原R/X参数域及条件输出损失，改进数值求解。执行目录为D:/0-github_workspace/Topo/outputs/ev_ac_block_stage_20261018，原reference_benchmark冻结批次继续使用自己的执行副本，不接入本目录改动。
 
 - fixed_source.py：固定线路，逐时二维有界源拟合；保留各期失败，最后整历史完整AC回放。
