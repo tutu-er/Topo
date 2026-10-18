@@ -16,11 +16,18 @@ from .linear import solve_block_step
 
 
 def minimize_block_lm(problem, *, max_nfev=250, tol=1e-8, inner_tol=1e-10,
-                      inner_maxiter=2000, scale_mode='reference'):
+                      inner_maxiter=2000, scale_mode='reference',
+                      block_function=problem_blocks,inner_acceptance='kkt',
+                      inner_gap_rtol=1e-8,stationarity_tol=None):
     if scale_mode not in ('reference','jac'):
         raise ValueError('scale_mode must be reference or jac')
     if max_nfev < 1 or tol <= np.finfo(float).eps or inner_tol <= 0:
         raise ValueError('invalid numerical budget or precision')
+    if inner_acceptance not in ('kkt','certified_gap') or not 0<inner_gap_rtol<1:
+        raise ValueError('invalid inner acceptance rule')
+    if stationarity_tol is not None and stationarity_tol<=0:
+        raise ValueError('stationarity_tol must be positive')
+    gradient_target=tol if stationarity_tol is None else stationarity_tol
     x = problem.start.copy(); trace = []; timings = dict(ac=0.,derivatives=0.,linear=0.)
     nfev = 0; status = 0; message = 'maximum AC evaluation budget reached'
     clock = perf_counter(); residual = problem.evaluate(x)
@@ -28,16 +35,16 @@ def minimize_block_lm(problem, *, max_nfev=250, tol=1e-8, inner_tol=1e-10,
     loss = .5*float(residual@residual); damping = None; njev = 0
     scale = problem.scale.copy(); norm_cache = None
     while nfev < max_nfev:
-        clock = perf_counter(); line, source = problem_blocks(problem,x)
+        clock = perf_counter(); line, source = block_function(problem,x)
         timings['derivatives'] += perf_counter()-clock; njev += 1
         if scale_mode == 'jac':
             norms = column_norms(line,source)
-            norm_cache = norms if norm_cache is None else np.maximum(norm_cache,norms)
-            # Identically zero columns retain their declared characteristic scale.
-            scale = np.divide(1.,norm_cache,out=problem.scale.copy(),where=norm_cache>0)
+            # Match SciPy's x_scale='jac', including initially zero columns.
+            norm_cache = np.where(norms>0,norms,1.) if norm_cache is None else np.maximum(norm_cache,norms)
+            scale = 1./norm_cache
         grad = gradient(line,source,residual)
         opt = projected_gradient(x,grad,problem.lower,problem.upper,scale)
-        if opt <= tol:
+        if opt <= gradient_target:
             status = 1; message = 'scaled projected gradient tolerance reached'; break
         d = line.shape[-1]
         scaled_line = line*scale[:d][None,None,:]
@@ -51,10 +58,17 @@ def minimize_block_lm(problem, *, max_nfev=250, tol=1e-8, inner_tol=1e-10,
                 (problem.lower-x)/scale,(problem.upper-x)/scale,
                 damping=damping,kkt_tol=inner_tol,max_iter=inner_maxiter)
             timings['linear'] += perf_counter()-clock
+            gap=step.get('error_bound');model_decrease=loss-float(step['objective'])
+            gap_pass=bool(inner_acceptance=='certified_gap' and gap is not None
+                and np.isfinite(gap) and model_decrease>0 and step['max_feasibility_violation']==0
+                and gap<=inner_gap_rtol*model_decrease)
             info = dict(nfev=nfev,loss=2*loss,damping=float(damping),
-                inner_success=bool(step['success']),inner_kkt=float(step['kkt']),
+                inner_success=bool(step['success'] or gap_pass),inner_kkt_pass=bool(step['success']),
+                inner_gap_pass=gap_pass,inner_gap_upper_bound=gap,
+                inner_gap_threshold=inner_gap_rtol*max(model_decrease,0.),
+                inner_kkt=float(step['kkt']),
                 inner_iterations=int(step['iterations']),accepted=False)
-            if not step['success']:
+            if not info['inner_success']:
                 trace.append(info); status=-4; message='bounded linear subproblem did not meet KKT tolerance'; break
             eta = np.asarray(step['step']); delta=scale*eta
             predicted_residual = residual+matvec(scaled_line,scaled_source,eta).ravel()
@@ -79,9 +93,9 @@ def minimize_block_lm(problem, *, max_nfev=250, tol=1e-8, inner_tol=1e-10,
                 info['accepted']=True; accepted=True
                 if gain>.75:damping=max(1e-18,damping*.3)
                 elif gain<.25:damping*=2
-                if actual <= tol*max(old_loss,np.finfo(float).tiny) and gain>.25:
+                if stationarity_tol is None and actual <= tol*max(old_loss,np.finfo(float).tiny) and gain>.25:
                     status=2; message='relative full-AC objective tolerance reached'
-                elif np.linalg.norm(delta) <= tol*(tol+np.linalg.norm(x)):
+                elif stationarity_tol is None and np.linalg.norm(delta) <= tol*(tol+np.linalg.norm(x)):
                     status=3; message='parameter-step tolerance reached'
             else:
                 damping=min(1e30,damping*10.)
@@ -95,7 +109,7 @@ def minimize_block_lm(problem, *, max_nfev=250, tol=1e-8, inner_tol=1e-10,
     clock=perf_counter();residual=problem.evaluate(x)
     timings['ac']+=perf_counter()-clock
     final_replay_calls=problem.base.ac_calls-before_calls
-    clock=perf_counter();line,source=problem_blocks(problem,x)
+    clock=perf_counter();line,source=block_function(problem,x)
     timings['derivatives']+=perf_counter()-clock
     njev+=1
     grad=gradient(line,source,residual)
@@ -104,7 +118,7 @@ def minimize_block_lm(problem, *, max_nfev=250, tol=1e-8, inner_tol=1e-10,
         nfev=nfev,njev=njev,optimality=opt,reference_scaled_projected_gradient=
         projected_gradient(x,grad,problem.lower,problem.upper,problem.scale),
         gradient_infinity=float(np.max(abs(grad),initial=0.)),
-        stationarity_pass=bool(opt<=tol),stationarity_tolerance=tol,
+        stationarity_pass=bool(opt<=gradient_target),stationarity_tolerance=gradient_target,
         final_replay_ac_calls=final_replay_calls,
         budget_definition='max_nfev counts optimization residual trials; initialization and final audit separately recorded',
         trace=trace,timings=timings,scale=scale)
@@ -115,8 +129,12 @@ def fit_rx_blocks(candidate,observations,model,*,initial=None,fixed_r=None,fixed
                   source_p_bounds=(-.5,.5),source_q_bounds=(-.5,.5),
                   voltage_bounds=(.85,1.15),multistart=1,max_nfev=250,tol=1e-8,
                   seed=0,call_counter=None,inner_tol=1e-10,inner_maxiter=2000,
-                  scale_mode='reference'):
+                  scale_mode='reference',inner_acceptance='kkt',inner_gap_rtol=1e-8,
+                  stationarity_tol=None,backend='cpu',gpu_dependency_path=None):
+    if backend not in ('cpu','gpu'):
+        raise ValueError('backend must be cpu or gpu')
     if fixed_r is not None or fixed_x is not None:
+        if backend=='gpu':raise ValueError('GPU fixed-source solver is not implemented; use explicit CPU fixed-source methods')
         from .fixed_source import fit_fixed_sources
         return fit_fixed_sources(candidate,observations,model,initial=initial,fixed_r=fixed_r,
             fixed_x=fixed_x,r_bounds=r_bounds,x_bounds=x_bounds,ratio_bounds=ratio_bounds,
@@ -144,8 +162,16 @@ def fit_rx_blocks(candidate,observations,model,*,initial=None,fixed_r=None,fixed
             trials.append(dict(line_factor=.5**power,success=False,error=repr(exc)))
     if not trials[-1]['success']:
         raise RuntimeError('all declared initial AC feasibility trials failed: '+str(trials))
-    result=minimize_block_lm(problem,max_nfev=max_nfev,tol=tol,inner_tol=inner_tol,
-        inner_maxiter=inner_maxiter,scale_mode=scale_mode)
+    solve_options=dict(max_nfev=max_nfev,tol=tol,inner_tol=inner_tol,
+        inner_maxiter=inner_maxiter,scale_mode=scale_mode,inner_acceptance=inner_acceptance,
+        inner_gap_rtol=inner_gap_rtol,stationarity_tol=stationarity_tol)
+    if backend=='gpu':
+        from .gpu import configure_dependency_path,gpu_problem_context
+        if gpu_dependency_path is not None:configure_dependency_path(gpu_dependency_path)
+        with gpu_problem_context(problem) as context:
+            result=minimize_block_lm(problem,block_function=context.blocks,**solve_options)
+    else:
+        result=minimize_block_lm(problem,**solve_options)
     x=result['x']; residual=result['fun'];loss=float(residual@residual)
     problem.evaluate(x);base=problem.base;phy=base.cache['physical']
     r,xx,source=problem.unpack(x); voltage=abs(phy['voltage'])
@@ -165,12 +191,14 @@ def fit_rx_blocks(candidate,observations,model,*,initial=None,fixed_r=None,fixed
         ac_evaluations=base.ac_calls,ac_time_slice_evaluations=base.ac_calls*problem.t,
         full_global_Jacobian_formed=False,scale_mode=scale_mode,
         reference_scaled_projected_gradient=result['reference_scaled_projected_gradient'],
-        stationarity_pass=result['stationarity_pass'],stationarity_tolerance=tol,
+        stationarity_pass=result['stationarity_pass'],stationarity_tolerance=result['stationarity_tolerance'],
         stationarity_coordinates='R_alpha_optimizer_box; not a physical R_X_cone_KKT_certificate at collapsed corners',
         termination_definition='solver success may use ftol/xtol, as in reference; strict stationarity separately recorded',
         residual_budget_definition=result['budget_definition'],
         final_replay_ac_calls=result['final_replay_ac_calls'],
         gradient_infinity=result['gradient_infinity'],inner_tol=inner_tol,
+        inner_acceptance=inner_acceptance,inner_gap_rtol=inner_gap_rtol,
+        backend='GPU_FP64_AC_and_derivatives_CPU_QR' if backend=='gpu' else 'CPU',
         inner_iterations=sum(item['inner_iterations'] for item in result['trace']),
         trace=result['trace'],timings=result['timings'],
         ac_equation_residual=float(phy['ac_equation_residual']),
