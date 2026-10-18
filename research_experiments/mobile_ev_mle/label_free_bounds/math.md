@@ -180,7 +180,7 @@ K_0\sqrt{\chi^2_{r_0,1-\alpha_1}}+
 
 - Cavraro与Kekatos的主动探测方法用最小电阻与响应估计误差建立结构层次分离条件；要求探测覆盖和短时负荷条件：[原文§III、VI](https://arxiv.org/pdf/1803.04506)。它为EV梯度/响应的激励设计提供依据，但其短时可控功率与全叶覆盖条件须单独核查。
 - Park等从末端P/Q/V矩估计阻抗和拓扑；其P/Q协方差可逆及跨节点独立条件明确说明固定功率因数/高度相关负荷为何使R/X难以拆开：[原文§IV](https://arxiv.org/pdf/1803.04812)。
-- Wasserman等的分割似然检验用当前数据训练一个正规化预测密度q_H，对测试块构造E_k=q_H(Y)/U_k(Y)，其中U_k必须上界候选k的最大似然。真候选下E[E_k|H]<=1，故E_k>1/alpha可拒绝；无需真拓扑标签。完整P/Q/V和源可在分母优化，但全局似然上界仍是计算瓶颈：[Universal Inference，§2、6](https://arxiv.org/pdf/1912.11436)。
+- Wasserman等的分割似然检验用当前数据训练一个正规化预测密度q_H，对测试块构造E_k=q_H(Y)/p_k_up(Y)，其中p_k_up表示候选k的最大似然上界。真候选下E[E_k|H]<=1，故E_k>1/alpha可拒绝；无需真拓扑标签。完整P/Q/V和源可在分母优化，但全局似然上界仍是计算瓶颈：[Universal Inference，§2、6](https://arxiv.org/pdf/1912.11436)。
 - 候选特定参数bootstrap也不需要已知真拓扑：对每个候选按自己的拟合模型模拟再重拟合。其有限样本覆盖不自动成立，尤其这里有弱识别、活动边界和逐时未知量：[Lee与Young，§1–3](https://www.ma.ic.ac.uk/~ayoung/papers/statprob.pdf)。
 
 以上文献均依据开放全文核对。当前实现是本文件第1–7节的界检验，没有把bootstrap或分割似然接入。
