@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "tests": 13,
+  "test_command": "python -m pytest research_experiments/mobile_ev_mle/reference_benchmark/test_data_sources.py -q -p no:cacheprovider --basetemp <stage>/audit/pytest_data_sources_4",
+  "actual_data_read": [
+    "SimBench96 PQ profiles,35136 native15minute points",
+    "all four SINTEF grids,8760 native hourly points"
+  ],
+  "fit_calls": 0,
+  "planning_calls": 0,
+  "files": [
+    {
+      "path": "research_experiments/mobile_ev_mle/reference_benchmark/data_sources.py",
+      "bytes": 14214,
+      "sha256": "7383d64e108fdc4f0199fc787c2b23c1c6973087a5380cc4744983bdbf65b4b6"
+    },
+    {
+      "path": "research_experiments/mobile_ev_mle/reference_benchmark/test_data_sources.py",
+      "bytes": 6630,
+      "sha256": "94718f69bd39334905b37836fbabfc6d227af605eaa85b86e292a679aafadc73"
+    },
+    {
+      "path": "audit/data_inventory.json",
+      "bytes": 14789,
+      "sha256": "359cf6bb62175dd9a53332ebe5b85abd8436cf3e9bba04e8ad1b46810fffab9f"
+    },
+    {
+      "path": "audit/household_profile_origin.json",
+      "bytes": 3647,
+      "sha256": "d2e9e73e46f1783b8f1e369dc78a1f94f91d7786b385cc411aa70c821cdfbc6e"
+    },
+    {
+      "path": "audit/SimBench_1.6.3_LICENSE.txt",
+      "bytes": 2054,
+      "sha256": "0cfdc8e5b990cee1e6d0e15e66094177a4d1d48479f7d0efb247b7949bdc114f"
+    },
+    {
+      "path": "data_external/simbench/acquisition.json",
+      "bytes": 2743,
+      "sha256": "98d8a31f9612b681353ebda973cf6d33e555bdf036e6979e6d5e0044484ca039"
+    },
+    {
+      "path": "data_external/sintef_cineldi_14528192/acquisition.json",
+      "bytes": 4472,
+      "sha256": "8f2a345c541c08ce22eccd1fe69be6590a164903a44b689e8c135a28aceba026"
+    }
+  ],
+  "warnings": [
+    "SINTEF raw load units unresolved; no original-grid AC use",
+    "HS0..27 are EHV aggregation profiles, not household profiles",
+    "official SimBench H0 five LV profiles are reused in original network; no independent-household claim",
+    "SimBench current clock explicitly localized Germany DST before UTC conversion"
+  ]
+}

@@ -43,7 +43,9 @@ IEEE European LV 是与 Pengwah 原文关联最直接的标准低压例，但原
 
 ## 2. 完整case33bw：可以立即使用，但需保留内点负荷
 
-[MATPOWER官方源码](https://matpower.org/docs/ref/matpower6.0/case33bw.html)正文及全数据表已读。原始33母线、12.66kV；32条闭合边、5条常开联络边；总负荷3715kW/2300kvar。线路表单位Ω、负荷表kW/kvar。官方基准100MVA，项目本地原始适配器采用10MVA；Ω和kW保持一致时只是重新标幺，必须写明本轮基准。
+[本轮固定的MATPOWER7.1官方源文件](https://raw.githubusercontent.com/MATPOWER/matpower/7.1/data/case33bw.m)及全数据表已读。原始33母线、12.66kV；32条闭合边、5条常开联络边；总负荷3715kW/2300kvar。线路表单位Ω、负荷表kW/kvar。该7.1文件明确为`mpc.baseMVA = 10`，与本地适配器一致，本轮没有换功率基准。
+
+版本核对（2026-10-18补正）：先前阅读的[MATPOWER6.0文档](https://matpower.org/docs/ref/matpower6.0/case33bw.html)源码第17行为`baseMVA=100`；本轮固定SHA的7.1源码第17行则为10。原报告将6.0文档的基准与7.1固定文件混写为“官方100、本地10重新标幺”，现予纠正。两者原Ω和kW表一致，版本之间的标幺基准差异不改变物理网络；当前导出来源、metadata和核验函数均以7.1的10MVA为准。
 
 本地完整表：`terminal_case33/data/case33bw_raw.py`。此前 `ev_physical_cases.case33_local_standard()` 只保留5条线路和4/19/23三负荷，清零2/3内点负荷并删除其他母线，是局部派生例，不能充当本轮完整33节点算例。
 
@@ -108,7 +110,9 @@ Pengwah IV-G确认55客户、分相和一天P曲线。EPRI官方[Examples, Docs 
 
 物理导出实现于 `research_experiments/mobile_ev_mle/reference_benchmark/networks.py`，独立测试15项通过，仅涉及数据/结构/来源核查，无AC拟合。统一导出 `buses[{bus_id,pd_kw,qd_kvar}]`、`branches[{from_bus,to_bus,r_ohm,x_ohm}]`、`root_bus/base_kv/base_mva/base_kw/observation_bus_ids/source_bus` 及来源/物理内容哈希；内点负荷保留。编码代理另行处理精确零阻抗虚拟量测叶。
 
-完整case33另取 [MATPOWER7.1官方源文件](https://raw.githubusercontent.com/MATPOWER/matpower/7.1/data/case33bw.m)，4866字节，SHA-256 `b40831eeb444669ae876e2996f0dda9f05cd83e81b314b8dfca51e4890cca95d`，保存为本目录 `case33bw_matpower_7.1.m`。逐条核对33个母线P/Q和32条闭合线原Ω表，全部与本地适配一致；未执行MATLAB代码。
+完整case33另取 [MATPOWER7.1官方源文件](https://raw.githubusercontent.com/MATPOWER/matpower/7.1/data/case33bw.m)，4866字节，SHA-256 `b40831eeb444669ae876e2996f0dda9f05cd83e81b314b8dfca51e4890cca95d`，保存为本目录 `case33bw_matpower_7.1.m`。逐条核对33个母线P/Q、32条闭合线原Ω表和显式`baseMVA=10`，全部与本地适配一致；未执行MATLAB代码。`verify_case33_source`现在解析并核对基准，避免仅查Ω/kW时漏掉版本元数据错误。
+
+基准元数据补正的验证：`test_networks.py`共16项通过（0.58秒），包括把基准改为100且更新校验哈希后，核验函数仍明确拒绝与本轮10 MVA适配不一致的文件。更正前prepared与更正后网络的物理内容哈希均为`706b0c3ca93c336bc675b119b0454dc8c83e34ca15ff8bc9a0fa7ab4a6fb2c9b`，证明Ω、kW/kvar、物理连接和计算基准未变。旧prepared中来源metadata仍保留错误陈述，主流程应保留旧版、重新生成新输入版本，不能静默覆盖原证据。
 
 CIGRE源来自 [pandapower v3.2.1 官方模块](https://raw.githubusercontent.com/e2nIEE/pandapower/v3.2.1/pandapower/networks/cigre_networks.py)，公开源码29516字节，SHA-256 `04817b6bdb11074310fc1e59aa91a27bf5b335a3c1236cb56b655fc73a6a1480`；保存为本目录 `cigre_networks_pandapower_v3.2.1.py`。实际阅读和AST核验 `create_cigre_network_lv` 的居民母线、17条居民线路、6个居民负荷、UG1/UG3库和R0–R1变压器数据。未导入或执行该下载模块、未安装pandapower。
 

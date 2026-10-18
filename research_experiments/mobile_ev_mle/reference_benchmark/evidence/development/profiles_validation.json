@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "data_sources_tests": 13,
+  "profiles_tests": 6,
+  "combined_tests": 19,
+  "prepare_seconds": 2.301,
+  "counts": {
+    "calibration": 16,
+    "development": 4,
+    "evaluation": 12
+  },
+  "forecast_configs": {
+    "p": {
+      "ar_lags": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "calendar": true,
+      "dt_minutes": 15,
+      "max_causal_gap": 4,
+      "method": "seasonal_naive",
+      "ridge_alpha": 10.0,
+      "seasonal_slots": 96
+    },
+    "q": {
+      "ar_lags": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "calendar": true,
+      "dt_minutes": 15,
+      "max_causal_gap": 4,
+      "method": "ridge",
+      "ridge_alpha": 100.0,
+      "seasonal_slots": 96
+    }
+  },
+  "fits": 0,
+  "planning_calls": 0,
+  "files": [
+    {
+      "path": "research_experiments/mobile_ev_mle/reference_benchmark/profiles.py",
+      "bytes": 11888,
+      "sha256": "b30d936b5cd01e9e626d12f7ffc52d10f9407539acf264294cfee2af45136c30"
+    },
+    {
+      "path": "research_experiments/mobile_ev_mle/reference_benchmark/test_profiles.py",
+      "bytes": 5682,
+      "sha256": "14b7b3fd39b476c708f030900eaa77744056cf2669891f619268652fb764e990"
+    },
+    {
+      "path": "outputs/inputs_v1/prepared.json.gz",
+      "bytes": 310536,
+      "sha256": "44fa25b63d3e72980993b8c877ccdf5709b6cb571386d2e4f007c303dc179cac"
+    },
+    {
+      "path": "outputs/inputs_v1/manifest.json",
+      "bytes": 949,
+      "sha256": "675d1c95976fdb62bef7b5ac5b8ac7771abe96e407a2f7c067e64e0490a66f53"
+    }
+  ]
+}

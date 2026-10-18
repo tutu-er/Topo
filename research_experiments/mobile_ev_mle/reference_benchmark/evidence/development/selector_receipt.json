@@ -1,0 +1,25 @@
+{
+  "scope": "observed-only WZZT/AC signed-forecast EV selector",
+  "created_utc": "2026-10-18T02:00:43.200212+00:00",
+  "files": {
+    "selector.py": {
+      "sha256": "8579384dead37c1c8edda88b7ea0487e64c24d27cbc46ec2d4bc82ec0451db9c",
+      "bytes": 14716
+    },
+    "test_selector.py": {
+      "sha256": "3e860629727d08dccb97077e8df2fc42e609a4b2ac2aa5109ad4055d9a2904f5",
+      "bytes": 7449
+    }
+  },
+  "tests": {
+    "command": "python -m pytest research_experiments/mobile_ev_mle/reference_benchmark/test_selector.py -q",
+    "passed": 8,
+    "failed": 0,
+    "seconds": 10.89,
+    "native_solver": "gurobi for small operation/MILP integration",
+    "passive_and_history": "history fixtures are supplied in selector integration tests; native passive and AC fitting are tested separately"
+  },
+  "forecast_configs": "distinct development-frozen p/q; accepts uppercase aliases",
+  "no_future_or_truth_selector_inputs": true,
+  "formal_evaluation_run": false
+}
