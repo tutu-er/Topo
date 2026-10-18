@@ -1182,6 +1182,7 @@ def fit_laminar_l1_sensitivity(
     presolve: bool = True,
     disp: bool = False,
     solver: str = "highs",
+    progress_callback: Callable[[dict], None] | None = None,
 ) -> LaminarL1Result:
     """Fit a forward path of exact bounded one-atom laminar L1 MILPs.
 
@@ -1195,9 +1196,14 @@ def fit_laminar_l1_sensitivity(
     validation MAE, starting from that initial family.
     ``solver`` selects ``highs`` or ``gurobi`` for both extension MILPs and
     fixed-support LP refits. It does not change the mathematical model.
+    ``progress_callback`` observes deep-copied certified paths, attempted
+    extensions and bounds. Its return value is ignored; the default ``None``
+    adds no observations and leaves the search unchanged.
     """
 
     _validate_solver(solver)
+    if progress_callback is not None and not callable(progress_callback):
+        raise ValueError("progress_callback must be callable or None")
     prepared = _prepare_scenarios(scenarios)
     validation_prepared = None
     if validation_scenarios is not None:
@@ -1280,6 +1286,24 @@ def fit_laminar_l1_sensitivity(
 
     current, path = initialize_path()
     seen_families: set[frozenset[IndexSupport]] = {frozenset(initial_family)}
+
+    def observe(event):
+        if progress_callback is not None:
+            from copy import deepcopy
+            progress_callback(deepcopy({
+                "event": event,
+                "terminal_labels": prepared.labels,
+                "initial_supports": initial_family,
+                "path": tuple(path),
+                "attempted_extensions": tuple(attempts),
+                "selected_path_index": _choose_path_point(path),
+                "r_upper_bound": r_bound,
+                "x_upper_bound": x_bound,
+                "bound_expansions": bound_expansions,
+                "stop_reason": stop_reason if event == "stopped" else "in_progress",
+            }))
+
+    observe("initialized")
     iteration = frozen_support_count + 1
     while iteration <= max_atoms:
         gain_tolerance = improvement_abs_tol + improvement_rel_tol * max(
@@ -1298,6 +1322,7 @@ def fit_laminar_l1_sensitivity(
             solver=solver,
         )
         attempts.append(extension)
+        observe("extension_attempted")
         if extension.diagnostics.status == 2:
             stop_reason = "no_feasible_extension"
             break
@@ -1334,6 +1359,7 @@ def fit_laminar_l1_sensitivity(
             if bound_expansions >= max_bound_expansions:
                 stop_reason = "bound_expansion_limit"
                 break
+            observe("bounds_expansion_requested")
             if r_active:
                 r_bound *= bound_expansion_factor
             if x_active:
@@ -1347,6 +1373,7 @@ def fit_laminar_l1_sensitivity(
             current, path = initialize_path()
             seen_families = {frozenset(initial_family)}
             iteration = frozen_support_count + 1
+            observe("bounds_restarted")
             continue
 
         # Remove near-zero atoms only when a re-solve preserves the L1 optimum.
@@ -1381,11 +1408,13 @@ def fit_laminar_l1_sensitivity(
         path.append(
             path_point(current, iteration, gain=float(gain), solver=extension.diagnostics)
         )
+        observe("path_accepted")
         if len(supports) >= 2 * prepared.n - 1:
             stop_reason = "laminar_family_limit"
             break
         iteration += 1
 
+    observe("stopped")
     selected_index = _choose_path_point(path)
     selected = path[selected_index]
     return LaminarL1Result(

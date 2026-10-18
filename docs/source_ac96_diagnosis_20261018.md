@@ -52,6 +52,13 @@ pengwah18真实模型包含18个终端原子与7个共享簇，而单点初始�
 
 本次只执行上述同组、完整方法的时间对照，不新增网络或有源工况。正式计划为6个模型：NJ/RNJ各一个64点训练基线，加两种WZZT各两档预算。新目录为 `outputs/source_ac96_full_history_pengwah18_20261018/`，新入口直接复用主线核心，不再使用上一轮省略步骤的包装器。与旧96点全训练成绩的差异包含数据划分和算法恢复两项，纯时限效应应比较本次两档预算。
 
+完整入口与被动检查点改动已通过69项测试，包括真实Gurobi四终端96点按64/32划分的完整路径预演；检查点回调默认关闭，深拷贝观察及其返回值不改变核心算法。使用以下入口先冻结协议，再启动本组任务：
+
+```powershell
+& D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.rnj.run_source_ac96_full_history --prepare-only
+& D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.rnj.run_source_ac96_full_history
+```
+
 ## 冻结的完整主线规则
 
 复测基准是当前 `rnj_wzzt_core/rnj_wzzt/pipeline.py` 的零截距、原终端、自由支撑流程，而非旧白名单/聚合/截距版。用户已批准将主线默认的多训练日/多验证日改为64/32；时限按首轮60秒基准扩大100倍，后端仍为同一Gurobi标准矩阵适配。
