@@ -22,7 +22,7 @@ from research_experiments.rnj.audit_source_ac96_benchmark import (
 )
 from research_experiments.rnj import audit_source_ac288 as evidence
 from research_experiments.rnj.audit_rx75_source_comparison import (
-    audit_floor_domain, independent_calibration, independent_tree_resolution, resolution_atoms,
+    independent_calibration, independent_tree_resolution, resolution_atoms,
 )
 
 
@@ -298,21 +298,85 @@ def audit_initialization(model, selected_labels, labels, audit, prefix="initial"
             "partition": [list(group) for group in actual], "partition_size": len(actual)}
 
 
+class _IndexedRows(list):
+    """Index only fully aggregated, exactly zero-cleared COO column supports."""
+    def __init__(self, rows):
+        super().__init__(rows)
+        self.by_columns = {}
+        self.columns, self.values = [], []
+        for index, row in enumerate(self):
+            columns = tuple(sorted(row))
+            values = np.asarray([row[column] for column in columns], dtype=float)
+            self.columns.append(columns)
+            self.values.append(values)
+            self.by_columns.setdefault(columns, []).append(index)
+
+
 def _coo_rows(saved):
     rows = [{} for _ in saved["constraint_lower"]]
     for row, column, value in zip(saved["constraint_row_index"], saved["constraint_col_index"], saved["constraint_data"], strict=True):
         target = rows[int(row)]
         target[int(column)] = target.get(int(column), 0.) + float(value)
-    return [{column: value for column, value in row.items() if value != 0.} for row in rows]
+    return _IndexedRows([{column: value for column, value in row.items() if value != 0.} for row in rows])
+
+
+def _scalar_close(actual, expected):
+    if np.isinf(expected):
+        return actual == expected
+    return abs(actual-expected) <= 1e-12+1e-10*abs(expected)
 
 
 def _has_row(rows, saved, entries, *, lower=-np.inf, upper=np.inf):
     entries = {int(k): float(v) for k, v in entries.items() if v != 0.}
-    return any(set(row) == set(entries)
-               and all(np.isclose(row[j], value, atol=1e-12, rtol=1e-10) for j, value in entries.items())
-               and np.isclose(saved["constraint_lower"][i], lower, atol=1e-12, rtol=1e-10)
-               and np.isclose(saved["constraint_upper"][i], upper, atol=1e-12, rtol=1e-10)
-               for i, row in enumerate(rows))
+    columns = tuple(sorted(entries))
+    values = np.asarray([entries[column] for column in columns], dtype=float)
+    if not isinstance(rows, _IndexedRows):
+        rows = _IndexedRows(rows)
+    return any(_scalar_close(saved["constraint_lower"][i], lower)
+               and _scalar_close(saved["constraint_upper"][i], upper)
+               and np.allclose(rows.values[i], values, atol=1e-12, rtol=1e-10)
+               for i in rows.by_columns.get(columns, ()))
+
+
+def audit_floor_domain(event, saved, n, partition, calibration, audit, prefix):
+    """Same original floor-row audit, indexed without scanning residual rows."""
+    slices, rows = event["variable_slices"], _coo_rows(saved)
+    r, x = slices.get("old_r", slices.get("r")), slices.get("old_x", slices.get("x"))
+    if r is None or x is None:
+        raise ValueError("raw atom-weight slices missing")
+    k = int(r[1])-int(r[0])
+    audit.require(f"{prefix}: old weights include original singleton prefix", k >= n and int(x[1])-int(x[0]) == k)
+    a, b, tau = (calibration[name] for name in ("a", "b", "tau"))
+    audit.require(f"{prefix}: positive fixed geometry fits coefficient capacity", a > 0 and b > 0 and tau > 0
+                  and np.isfinite([a, b, tau]).all()
+                  and a*saved["upper_bounds"][r[0]]+b*saved["upper_bounds"][x[0]]+1e-12 >= tau)
+    active = slices.get("edge_active")
+    audit.require(f"{prefix}: one activation per old non-singleton only", (active is None and k == n)
+                  or (active is not None and int(active[1])-int(active[0]) == k-n))
+    if active is not None:
+        for offset, atom in enumerate(range(n, k)):
+            ri, xi, ei = int(r[0])+atom, int(x[0])+atom, int(active[0])+offset
+            ur, ux = saved["upper_bounds"][ri], saved["upper_bounds"][xi]
+            audit.require(f"{prefix}: old edge[{atom}] activation binary domain", saved["integrality"][ei] == 1
+                          and saved["lower_bounds"][ei] == 0 and saved["upper_bounds"][ei] == 1)
+            audit.require(f"{prefix}: old edge[{atom}] exact zero-or-floor rows",
+                          _has_row(rows, saved, {ri: 1., ei: -ur}, upper=0.)
+                          and _has_row(rows, saved, {xi: 1., ei: -ux}, upper=0.)
+                          and _has_row(rows, saved, {ri: a, xi: b, ei: -tau}, lower=0.))
+            containing = [index for columns, indices in rows.by_columns.items() if ei in columns for index in indices]
+            audit.require(f"{prefix}: activation does not constrain Source path", len(containing) == 3
+                          and all(set(rows.columns[i]) <= {ri, xi, ei} for i in containing))
+    if "new_r" in slices:
+        ri, xi, z = int(slices["new_r"][0]), int(slices["new_x"][0]), slices["z"]
+        audit.require(f"{prefix}: candidate coefficient reaches fixed resolution", _has_row(rows, saved, {ri: a, xi: b}, lower=tau))
+        audit.require(f"{prefix}: membership dimension is partition size", int(z[1])-int(z[0]) == len(partition))
+        cardinality = {int(z[0])+i: float(len(group)) for i, group in enumerate(partition)}
+        audit.require(f"{prefix}: original-terminal candidate cardinality >=2", _has_row(rows, saved, cardinality, lower=2.))
+        if "primal" in saved:
+            value = saved["primal"]
+            count = sum(len(group) for i, group in enumerate(partition) if value[int(z[0])+i] > .5)
+            audit.require(f"{prefix}: incumbent contains >=2 original terminals", count >= 2)
+            audit.require(f"{prefix}: incumbent new coefficient satisfies fixed floor", a*value[ri]+b*value[xi]+1e-6 >= tau)
 
 
 def audit_membership_domain(event, saved, n, partition, supports, audit, prefix="raw", *, source_active,
@@ -493,10 +557,12 @@ def audit_residual_rows(event, saved, arrays, supports, partition, audit, prefix
             correct = len(indices) == 2
             for sign, lo, hi in ((1., target, np.inf), (-1., -np.inf, target)):
                 expected = prediction | {error: sign}
-                correct &= any(set(rows[i]) == set(expected)
-                               and all(np.isclose(rows[i][column], value, atol=1e-12, rtol=1e-10) for column, value in expected.items())
-                               and np.isclose(saved["constraint_lower"][i], lo, atol=1e-12, rtol=1e-10)
-                               and np.isclose(saved["constraint_upper"][i], hi, atol=1e-12, rtol=1e-10)
+                columns = tuple(sorted(expected))
+                values = np.asarray([expected[column] for column in columns])
+                correct &= any(rows.columns[i] == columns
+                               and _scalar_close(saved["constraint_lower"][i], lo)
+                               and _scalar_close(saved["constraint_upper"][i], hi)
+                               and np.allclose(rows.values[i], values, atol=1e-12, rtol=1e-10)
                                for i in indices)
             if not correct:
                 mismatches.append([t, output])

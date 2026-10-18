@@ -266,6 +266,49 @@ def test_raw_residual_source_amplitudes_are_once_per_output_not_group_size():
     assert any("exactly once" in name for name in failures(broken))
 
 
+def test_coo_support_index_aggregates_duplicates_and_clears_exact_zeros_first():
+    saved = {"constraint_row_index": np.array([0, 0, 0, 0, 1, 2, 2]),
+             "constraint_col_index": np.array([2, 2, 2, 4, 4, 3, 3]),
+             "constraint_data": np.array([1., 2., -3., 2., 2., 1., -1.]),
+             "constraint_lower": np.array([0., 1., 0.]), "constraint_upper": np.array([np.inf, np.inf, 0.])}
+    rows = subject._coo_rows(saved)
+    assert rows == [{4: 2.}, {4: 2.}, {}]
+    assert rows.by_columns == {(4,): [0, 1], (): [2]}
+    assert subject._has_row(rows, saved, {2: 0., 4: 2.}, lower=0.)
+    assert subject._has_row(rows, saved, {}, lower=0., upper=0.)
+    assert not subject._has_row(rows, saved, {4: 2.}, lower=2.)
+    # Keep exactly the original numerical comparison tolerances.
+    assert subject._has_row(rows, saved, {4: 2.+1e-10}, lower=1.)
+    assert not subject._has_row(rows, saved, {4: 2.+1e-7}, lower=1.)
+
+
+def test_indexed_original_floor_rows_and_extra_source_activation_tie():
+    entries = [({2: 1., 6: -2.}, -np.inf, 0.), ({5: 1., 6: -3.}, -np.inf, 0.),
+               ({2: 1., 5: 1., 6: -.2}, 0., np.inf), ({7: 1., 8: 1.}, .2, np.inf),
+               ({9: 1., 10: 1.}, 2., np.inf)]
+    row, col, data = [], [], []
+    for i, (terms, _, _) in enumerate(entries):
+        for j, value in terms.items(): row.append(i); col.append(j); data.append(value)
+    saved = {"constraint_row_index": np.array(row), "constraint_col_index": np.array(col), "constraint_data": np.array(data),
+             "constraint_lower": np.array([v[1] for v in entries]), "constraint_upper": np.array([v[2] for v in entries]),
+             "lower_bounds": np.zeros(11), "upper_bounds": np.array([2.]*3+[3.]*3+[1., 2., 3., 1., 1.]),
+             "integrality": np.array([0]*6+[1, 0, 0, 1, 1]), "primal": np.array([0.]*7+[.2, 0., 1., 1.])}
+    event = {"variable_slices": {"old_r": [0, 3], "old_x": [3, 6], "edge_active": [6, 7],
+                                 "new_r": [7, 8], "new_x": [8, 9], "z": [9, 11]}}
+    audit = subject.Audit()
+    subject.audit_floor_domain(event, saved, 2, [[0], [1]], {"a": 1., "b": 1., "tau": .2}, audit, "floor")
+    assert not failures(audit), failures(audit)
+    i = len(entries)
+    saved["constraint_row_index"] = np.r_[saved["constraint_row_index"], i, i]
+    saved["constraint_col_index"] = np.r_[saved["constraint_col_index"], 6, 0]
+    saved["constraint_data"] = np.r_[saved["constraint_data"], 1., -1.]
+    saved["constraint_lower"] = np.r_[saved["constraint_lower"], 0.]
+    saved["constraint_upper"] = np.r_[saved["constraint_upper"], np.inf]
+    broken = subject.Audit()
+    subject.audit_floor_domain(event, saved, 2, [[0], [1]], {"a": 1., "b": 1., "tau": .2}, broken, "floor")
+    assert any("activation does not constrain Source path" in name for name in failures(broken))
+
+
 def write_inputs(directory):
     observed, source = directory/"observed", directory/"source"
     observed.mkdir(); source.mkdir()
