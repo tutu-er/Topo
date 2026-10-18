@@ -13,6 +13,7 @@
 | `rnj/run_*.py`、辅助模块 | 根信息、公共模态、正则化、消融及压力对照 |
 | `rnj/scripts/run_matched_rnj_tuning.py` | 在主实验之外追加匹配调参，继续排除在主实验指纹集合之外 |
 | `rnj/prepare_source_ac96.py`、`rnj/audit_source_ac96.py` | 四网络一天96点的无源/有源配对AC数据与独立物理核验；见[数据协议与结果](../docs/source_ac96_20261018.md) |
+| `rnj/run_source_ac96_benchmark.py`、`rnj/source_ac96_trees.py`、`rnj/source_ac96_wzzt.py` | 同一96点数据的NJ、RNJ、WZZT、RNJ+WZZT源位置未知比较；[协议与结果](../docs/source_ac96_benchmark_20261018.md)，独立复核和汇总由 `audit_source_ac96_benchmark.py`、`summarize_source_ac96_benchmark.py` 完成 |
 | [`theft/`](theft/README.md) | 偷电、未计量负荷实验的索引和隔离启动器 |
 | `tests/` | 上述实验的数值检查和入口兼容测试 |
 
