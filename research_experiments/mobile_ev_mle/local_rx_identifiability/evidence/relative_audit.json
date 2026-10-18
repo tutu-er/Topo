@@ -1,0 +1,840 @@
+{
+  "schema": "independent_relative_bootstrap_audit_v1",
+  "directory": "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1",
+  "complete": true,
+  "audit_pass": true,
+  "expected_candidate_slots": 16,
+  "saved_candidate_slots": 16,
+  "completed_candidate_slots": 16,
+  "missing_files": [],
+  "original_history_conditions": 4,
+  "original_history_randomness_families": 2,
+  "history_pairing": "ordinary/correlated share same network/seed RNG streams; four conditions are paired, not four independent histories",
+  "true_candidate_denominator": 4,
+  "true_candidate_evaluable": 4,
+  "false_reject": 0,
+  "wrong_candidate_denominator": 12,
+  "wrong_candidate_evaluable": 12,
+  "wrong_reject": 2,
+  "absolute_false_reject": 0,
+  "absolute_wrong_reject": 0,
+  "relative_failed_statistic_repeats": 9,
+  "configured_simulated_datasets": 624,
+  "audited_simulated_datasets": 624,
+  "reused_own_failed_repeats": 3,
+  "competitor_unqualified_fits": 6,
+  "skipped_competitor_fits": 9,
+  "extra_fit_calls": 1863,
+  "extra_ac_calls": 228924,
+  "extra_fit_seconds_sum": 1700.7778940988355,
+  "extra_slot_seconds_sum": 1703.420736100059,
+  "extra_batch_wall_seconds": 461.65041379997274,
+  "reused_own_bootstrap_seconds_sum": 576.8631479999167,
+  "conditions": {
+    "paper15_ordinary_31001_N96_K": {
+      "spec": {
+        "network": "paper15",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "truth_label": "star",
+      "retained": [
+        "star",
+        "pair01",
+        "pair12"
+      ],
+      "rejected": [
+        "pair02"
+      ],
+      "unavailable": []
+    },
+    "paper15_correlated_31001_N96_K": {
+      "spec": {
+        "network": "paper15",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "truth_label": "star",
+      "retained": [
+        "star",
+        "pair01",
+        "pair02",
+        "pair12"
+      ],
+      "rejected": [],
+      "unavailable": []
+    },
+    "paper11_ordinary_31001_N96_K": {
+      "spec": {
+        "network": "paper11",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "truth_label": "star",
+      "retained": [
+        "star",
+        "pair02",
+        "pair12"
+      ],
+      "rejected": [
+        "pair01"
+      ],
+      "unavailable": []
+    },
+    "paper11_correlated_31001_N96_K": {
+      "spec": {
+        "network": "paper11",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "truth_label": "star",
+      "retained": [
+        "star",
+        "pair01",
+        "pair02",
+        "pair12"
+      ],
+      "rejected": [],
+      "unavailable": []
+    }
+  },
+  "rows": [
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "star",
+      "file": "paper15_ordinary_31001_N96_K_star.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.0,
+        "invalid": [],
+        "losses": {
+          "star": 287.7989894515167,
+          "pair01": 291.3132259686891,
+          "pair02": 289.6805410478699,
+          "pair12": 289.18286914425573
+        }
+      },
+      "decision": {
+        "pvalue": 1.0,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 39
+      },
+      "reject": false,
+      "absolute_pvalue": 0.45,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 8774,
+      "extra_fit_seconds_sum": 61.445691199740395,
+      "extra_slot_seconds": 61.555678999982774,
+      "reused_own_bootstrap_seconds": 3.794296900043264,
+      "evaluation_true_candidate": true
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair01",
+      "file": "paper15_ordinary_31001_N96_K_pair01.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 3.514236517172378,
+        "invalid": [],
+        "losses": {
+          "star": 287.7989894515167,
+          "pair01": 291.3132259686891,
+          "pair02": 289.6805410478699,
+          "pair12": 289.18286914425573
+        }
+      },
+      "decision": {
+        "pvalue": 0.175,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 6
+      },
+      "reject": false,
+      "absolute_pvalue": 0.25,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 6419,
+      "extra_fit_seconds_sum": 43.980313499982,
+      "extra_slot_seconds": 44.085591400042176,
+      "reused_own_bootstrap_seconds": 19.35580039996421,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair02",
+      "file": "paper15_ordinary_31001_N96_K_pair02.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 1.8815515963531766,
+        "invalid": [],
+        "losses": {
+          "star": 287.7989894515167,
+          "pair01": 291.3132259686891,
+          "pair02": 289.6805410478699,
+          "pair12": 289.18286914425573
+        }
+      },
+      "decision": {
+        "pvalue": 0.025,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 0
+      },
+      "reject": true,
+      "absolute_pvalue": 0.325,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 6418,
+      "extra_fit_seconds_sum": 43.64015590050258,
+      "extra_slot_seconds": 43.75157079997007,
+      "reused_own_bootstrap_seconds": 14.517608100024518,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair12",
+      "file": "paper15_ordinary_31001_N96_K_pair12.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 1.383879692739015,
+        "invalid": [],
+        "losses": {
+          "star": 287.7989894515167,
+          "pair01": 291.3132259686891,
+          "pair02": 289.6805410478699,
+          "pair12": 289.18286914425573
+        }
+      },
+      "decision": {
+        "pvalue": 0.15,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 5
+      },
+      "reject": false,
+      "absolute_pvalue": 0.325,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 8027,
+      "extra_fit_seconds_sum": 55.40339299978223,
+      "extra_slot_seconds": 55.524696100037545,
+      "reused_own_bootstrap_seconds": 18.460281799954828,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "star",
+      "file": "paper15_correlated_31001_N96_K_star.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.0,
+        "invalid": [],
+        "losses": {
+          "star": 290.3975560956711,
+          "pair01": 290.4847156905795,
+          "pair02": 291.34965838130813,
+          "pair12": 290.9375074762104
+        }
+      },
+      "decision": {
+        "pvalue": 1.0,
+        "replicates": 39,
+        "failed": 2,
+        "valid": 37,
+        "upper_tail": 39
+      },
+      "reject": false,
+      "absolute_pvalue": 0.325,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 2,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 21333,
+      "extra_fit_seconds_sum": 165.66177360032452,
+      "extra_slot_seconds": 165.85354839998763,
+      "reused_own_bootstrap_seconds": 33.0602275999845,
+      "evaluation_true_candidate": true
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair01",
+      "file": "paper15_correlated_31001_N96_K_pair01.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.08715959490837122,
+        "invalid": [],
+        "losses": {
+          "star": 290.3975560956711,
+          "pair01": 290.4847156905795,
+          "pair02": 291.34965838130813,
+          "pair12": 290.9375074762104
+        }
+      },
+      "decision": {
+        "pvalue": 0.425,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 16
+      },
+      "reject": false,
+      "absolute_pvalue": 0.45,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 18714,
+      "extra_fit_seconds_sum": 142.15238409966696,
+      "extra_slot_seconds": 142.33935669995844,
+      "reused_own_bootstrap_seconds": 63.89381959999446,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair02",
+      "file": "paper15_correlated_31001_N96_K_pair02.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.9521022856370109,
+        "invalid": [],
+        "losses": {
+          "star": 290.3975560956711,
+          "pair01": 290.4847156905795,
+          "pair02": 291.34965838130813,
+          "pair12": 290.9375074762104
+        }
+      },
+      "decision": {
+        "pvalue": 0.4,
+        "replicates": 39,
+        "failed": 2,
+        "valid": 37,
+        "upper_tail": 15
+      },
+      "reject": false,
+      "absolute_pvalue": 0.4,
+      "absolute_reject": false,
+      "own_failed_replicates": 1,
+      "competitor_unqualified_fits": 1,
+      "skipped_competitor_fits": 3,
+      "extra_fit_calls": 114,
+      "extra_ac_calls": 20181,
+      "extra_fit_seconds_sum": 152.21931939950446,
+      "extra_slot_seconds": 152.41177240002435,
+      "reused_own_bootstrap_seconds": 80.78545979998307,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper15",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair12",
+      "file": "paper15_correlated_31001_N96_K_pair12.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.5399513805392644,
+        "invalid": [],
+        "losses": {
+          "star": 290.3975560956711,
+          "pair01": 290.4847156905795,
+          "pair02": 291.34965838130813,
+          "pair12": 290.9375074762104
+        }
+      },
+      "decision": {
+        "pvalue": 0.6,
+        "replicates": 39,
+        "failed": 1,
+        "valid": 38,
+        "upper_tail": 23
+      },
+      "reject": false,
+      "absolute_pvalue": 0.35,
+      "absolute_reject": false,
+      "own_failed_replicates": 1,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 3,
+      "extra_fit_calls": 114,
+      "extra_ac_calls": 23359,
+      "extra_fit_seconds_sum": 176.5510680002626,
+      "extra_slot_seconds": 176.73691630002577,
+      "reused_own_bootstrap_seconds": 42.93116599996574,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "star",
+      "file": "paper11_ordinary_31001_N96_K_star.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.0,
+        "invalid": [],
+        "losses": {
+          "star": 242.88241264223188,
+          "pair01": 256.08622894587086,
+          "pair02": 243.00987115066474,
+          "pair12": 243.3233579232844
+        }
+      },
+      "decision": {
+        "pvalue": 1.0,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 39
+      },
+      "reject": false,
+      "absolute_pvalue": 0.975,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 7477,
+      "extra_fit_seconds_sum": 58.49106530024437,
+      "extra_slot_seconds": 58.67238240002189,
+      "reused_own_bootstrap_seconds": 11.687499899999239,
+      "evaluation_true_candidate": true
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair01",
+      "file": "paper11_ordinary_31001_N96_K_pair01.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 13.203816303638973,
+        "invalid": [],
+        "losses": {
+          "star": 242.88241264223188,
+          "pair01": 256.08622894587086,
+          "pair02": 243.00987115066474,
+          "pair12": 243.3233579232844
+        }
+      },
+      "decision": {
+        "pvalue": 0.025,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 0
+      },
+      "reject": true,
+      "absolute_pvalue": 0.875,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 7460,
+      "extra_fit_seconds_sum": 57.657753899809904,
+      "extra_slot_seconds": 57.84833270002855,
+      "reused_own_bootstrap_seconds": 21.051446299999952,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair02",
+      "file": "paper11_ordinary_31001_N96_K_pair02.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.1274585084328521,
+        "invalid": [],
+        "losses": {
+          "star": 242.88241264223188,
+          "pair01": 256.08622894587086,
+          "pair02": 243.00987115066474,
+          "pair12": 243.3233579232844
+        }
+      },
+      "decision": {
+        "pvalue": 0.325,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 12
+      },
+      "reject": false,
+      "absolute_pvalue": 1.0,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 5902,
+      "extra_fit_seconds_sum": 45.66488200001186,
+      "extra_slot_seconds": 45.842475300014485,
+      "reused_own_bootstrap_seconds": 23.90124500001548,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "ordinary",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair12",
+      "file": "paper11_ordinary_31001_N96_K_pair12.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.44094528105250674,
+        "invalid": [],
+        "losses": {
+          "star": 242.88241264223188,
+          "pair01": 256.08622894587086,
+          "pair02": 243.00987115066474,
+          "pair12": 243.3233579232844
+        }
+      },
+      "decision": {
+        "pvalue": 0.4,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 15
+      },
+      "reject": false,
+      "absolute_pvalue": 0.9,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 6294,
+      "extra_fit_seconds_sum": 49.948606599878985,
+      "extra_slot_seconds": 50.140981399978045,
+      "reused_own_bootstrap_seconds": 27.745939999993425,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "star",
+      "file": "paper11_correlated_31001_N96_K_star.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.23451382648491403,
+        "invalid": [],
+        "losses": {
+          "star": 244.30627731171958,
+          "pair01": 244.40890971259483,
+          "pair02": 244.07176348523467,
+          "pair12": 244.88547284590652
+        }
+      },
+      "decision": {
+        "pvalue": 0.6,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 23
+      },
+      "reject": false,
+      "absolute_pvalue": 0.95,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 24075,
+      "extra_fit_seconds_sum": 179.16237319947686,
+      "extra_slot_seconds": 179.31819580000592,
+      "reused_own_bootstrap_seconds": 31.966080399986822,
+      "evaluation_true_candidate": true
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair01",
+      "file": "paper11_correlated_31001_N96_K_pair01.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.3371462273601651,
+        "invalid": [],
+        "losses": {
+          "star": 244.30627731171958,
+          "pair01": 244.40890971259483,
+          "pair02": 244.07176348523467,
+          "pair12": 244.88547284590652
+        }
+      },
+      "decision": {
+        "pvalue": 0.525,
+        "replicates": 39,
+        "failed": 0,
+        "valid": 39,
+        "upper_tail": 20
+      },
+      "reject": false,
+      "absolute_pvalue": 0.95,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 0,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 19592,
+      "extra_fit_seconds_sum": 145.96736509999027,
+      "extra_slot_seconds": 146.1295339000062,
+      "reused_own_bootstrap_seconds": 70.60986210004194,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair02",
+      "file": "paper11_correlated_31001_N96_K_pair02.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.0,
+        "invalid": [],
+        "losses": {
+          "star": 244.30627731171958,
+          "pair01": 244.40890971259483,
+          "pair02": 244.07176348523467,
+          "pair12": 244.88547284590652
+        }
+      },
+      "decision": {
+        "pvalue": 1.0,
+        "replicates": 39,
+        "failed": 1,
+        "valid": 38,
+        "upper_tail": 39
+      },
+      "reject": false,
+      "absolute_pvalue": 0.95,
+      "absolute_reject": false,
+      "own_failed_replicates": 0,
+      "competitor_unqualified_fits": 1,
+      "skipped_competitor_fits": 0,
+      "extra_fit_calls": 117,
+      "extra_ac_calls": 20689,
+      "extra_fit_seconds_sum": 152.53722609981196,
+      "extra_slot_seconds": 152.7281451000017,
+      "reused_own_bootstrap_seconds": 58.10851230000844,
+      "evaluation_true_candidate": false
+    },
+    {
+      "spec": {
+        "network": "paper11",
+        "regime": "correlated",
+        "seed": 31001,
+        "N": 96,
+        "boundary": "K"
+      },
+      "candidate": "pair12",
+      "file": "paper11_correlated_31001_N96_K_pair12.json",
+      "status": "completed",
+      "observed": {
+        "valid": true,
+        "statistic": 0.8137093606718508,
+        "invalid": [],
+        "losses": {
+          "star": 244.30627731171958,
+          "pair01": 244.40890971259483,
+          "pair02": 244.07176348523467,
+          "pair12": 244.88547284590652
+        }
+      },
+      "decision": {
+        "pvalue": 0.4,
+        "replicates": 39,
+        "failed": 3,
+        "valid": 36,
+        "upper_tail": 15
+      },
+      "reject": false,
+      "absolute_pvalue": 0.95,
+      "absolute_reject": false,
+      "own_failed_replicates": 1,
+      "competitor_unqualified_fits": 2,
+      "skipped_competitor_fits": 3,
+      "extra_fit_calls": 114,
+      "extra_ac_calls": 24210,
+      "extra_fit_seconds_sum": 170.29452319984557,
+      "extra_slot_seconds": 170.48155839997344,
+      "reused_own_bootstrap_seconds": 54.9939017999568,
+      "evaluation_true_candidate": false
+    }
+  ],
+  "issues": [],
+  "artifact_sha256": {
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_ordinary_31001_N96_K_star.json": "0fdc30e90fe9dce509cb94a1ab9395382c51ce789d6f581e40ab3f66d932fa18",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\inference\\paper15_ordinary_31001_N96_K.json.gz": "1332c295c815cd972f5999204450a6a092a894818b6ca4743a569f65def0423c",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_ordinary_31001_N96_K_star.json": "942d0099f750d75059ff19fc96e4b324dfe8d26c73612f08b05a44e0db29a262",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\source_manifest.json": "9368376e1b7de011e374b514dc2bc26d4d55d209decf30cb45b103ae600e6e7f",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_ordinary_31001_N96_K_pair01.json": "2f74bf7f428402e63d2cad35d37afac7c615a093bcf11a99e53513e26d0d31ec",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_ordinary_31001_N96_K_pair01.json": "e0f38018b7ecbac0ed42ca8ac0398376163653f80e9660e8afc7ca2f315a267c",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_ordinary_31001_N96_K_pair02.json": "70150980fbfb87e5627b06cee506dce8013caf63738d30311600f20740deaddc",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_ordinary_31001_N96_K_pair02.json": "a7f9e187f8f92d6508b007444b30bcc0c1bd25b45021319f7a2a2502a1525202",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_ordinary_31001_N96_K_pair12.json": "9cce3d1fdac700897be01b067c8743ed68c0c7cd43e61a6e65517d777b68d8ee",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_ordinary_31001_N96_K_pair12.json": "7d2f00b5dfa9487026ac1a98063e609cc56bf74490c296e966b5f08808fd1a76",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_correlated_31001_N96_K_star.json": "05e917d6df7d48c1c4d9ef614fc955547578298635bb6a4012cf82fa9bbf36b1",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\inference\\paper15_correlated_31001_N96_K.json.gz": "61e6abfc53bc94e1459750653eb0d2bab7a17b9a010b9b3186aa12f1d0d4995d",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_correlated_31001_N96_K_star.json": "c8332ed96700430df53f7f47d6a77236d52675e057858fb3cd7332306059beef",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_correlated_31001_N96_K_pair01.json": "52db97b30555a327e8bad2f8739e77a634d122ec8ea38788e5bf343e9430bdf4",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_correlated_31001_N96_K_pair01.json": "58c497f0290cd75d25fd2b742d0db35cc5f3c55756849dd9999b889c6ad94f20",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_correlated_31001_N96_K_pair02.json": "d1142573cd6219c9ebab2bc32df2ab5e10c2a9d600e62b6315cf3a14849a51d8",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_correlated_31001_N96_K_pair02.json": "18e54da0f386e1403260545cd2fdbd5a4fc6e2e405daa70b934ce1b1babcba96",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper15_correlated_31001_N96_K_pair12.json": "15921ac9b76bc8f11b67aaa222e4dc573359c93311a007fa8e5d0d2489a84ba3",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper15_correlated_31001_N96_K_pair12.json": "2cbc4a560206e75ec7b37d0c9c93365aee3d6ee8fc1b0b93c327d2c6c0927565",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_ordinary_31001_N96_K_star.json": "9b14d112981e71684b88ad2e8204eed4d567afef5acbe8d2e430b30568e892b0",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\inference\\paper11_ordinary_31001_N96_K.json.gz": "299089d8552f11fbd1d262db70017ca9dd74075ec0d72c6608aa9d70a2b52aa7",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_ordinary_31001_N96_K_star.json": "a696808130a0ba84a6d6014f791bb6c017342f3c85558007f7be4e0af966c2b2",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_ordinary_31001_N96_K_pair01.json": "113482ff57c2c79219db81d361c8714a7ab859100196d36314eb0dbb47c09cdf",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_ordinary_31001_N96_K_pair01.json": "0631850c39f80a0887a3ff0417b0a5721609b00471540b1e097f17e78c457e21",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_ordinary_31001_N96_K_pair02.json": "bbfd98fcf15a71d66b02b170f93a5767120d04d069116041de2d6bd136fe4d55",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_ordinary_31001_N96_K_pair02.json": "b60568166ad11cced3b58454833f70325ab08f75b9c6f30f01ff96392a6730b7",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_ordinary_31001_N96_K_pair12.json": "ed96c0e2ebbd654442b31b9f14d410b120d8ad71f714036c742e304b62c684a5",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_ordinary_31001_N96_K_pair12.json": "792de475ce328f9ed527fd1ab416a5f494dbd1bdd297d78f09fe84ac3c66692d",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_correlated_31001_N96_K_star.json": "6fa1fe95ea6079e022c9d9056c596b5eec8c5f97441095795b7f092611362b87",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\inference\\paper11_correlated_31001_N96_K.json.gz": "e850988bed26cd3a0e6460250bdad3e41ba70c9f5efaabcf419ba566d0f5879a",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_correlated_31001_N96_K_star.json": "a07561e94c54060d824813c71376ef9bb7c601428a3f834b535d38e41e80d8e8",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_correlated_31001_N96_K_pair01.json": "d9e05acf554ed8271b94858174606f07acee873153b81ac6661ac37565f4f231",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_correlated_31001_N96_K_pair01.json": "ea36439cad80fcc013e9547cfd1835cc638b73a28ee35b5aad8b83b1fdcaa6a3",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_correlated_31001_N96_K_pair02.json": "bae47c7e9325c2555cbc8df678b2b8de7a70a84744551fc6e53c50d0b9497441",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_correlated_31001_N96_K_pair02.json": "e2ab30a6240f19859edb7a5e7a77763e3ad6bc0d927f0808711613bb9088bc6c",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\relative_bootstrap\\paper11_correlated_31001_N96_K_pair12.json": "502804ed69d3d2ebfedb2a2246c7d6461f18b2dba553e4e1eb195568d398b78c",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\outputs\\local_rx_main_v1\\bootstrap\\paper11_correlated_31001_N96_K_pair12.json": "859c2bf9e8ca35b13dbc0c628610f85809446792bfffcfd5d3a5e0085d7ef898"
+  },
+  "source_sha256": {
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_mle\\local_rx_identifiability\\relative_bootstrap.py": "649f0b71158802e1c3fe157d7e9c374d2954674ee3447f615bda754046dd3faa",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_mle\\local_rx_identifiability\\fitting.py": "db25b605157c6920ed395d7c87adc1e23dab4f31bb8ac771a685b1055a5da9c4",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_mle\\local_rx_identifiability\\cases.py": "cd4e32fd02e46c82243b1d59589298b9ed55cbdd4502f37459799458dc360728",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_mle\\local_rx_identifiability\\rejection.py": "dbaff57d78eef5e20d5862ff7285e1ea2e41eb75c84ae70850e3fcabf7351fe4",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_mle\\local_rx_identifiability\\experiment.py": "e99f06b3d616b1a6bca66db2c652ed73722a4e0b036d0107fc83766153badecb",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_mle\\likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "D:\\0-github_workspace\\Topo\\outputs\\lb\\research_experiments\\mobile_ev_probing\\ac_general_v9.py": "4c8a41a54b53920b4296d0c764cc05bd01c18f0fc42faac3019b5c443f1299bf"
+  },
+  "auditor_sha256": "60ac6f0833abd16e152dd01d8d12f26b35c893e483bcbec27ddbcef716fe54a7",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.4.6"
+  },
+  "newly_fitted_states": 0,
+  "audit_seconds": 0.3409663999918848,
+  "scope": "exploratory candidate plug-in local bootstrap; no uniform frequentist or posterior claim"
+}
