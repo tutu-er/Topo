@@ -35,6 +35,7 @@ class PhysicalDomain:
     ratio_min: float | None = None
     ratio_max: float | None = None
     source_power_cap: float = 0.0
+    r_min: float | Sequence[float] = 0.0
 
 
 @dataclass(frozen=True)
@@ -177,14 +178,22 @@ def _domain_arrays(tree, domain, observed, m):
         raise ValueError("ratio_max must be finite and nonnegative")
     if lo is not None and hi is not None and lo > hi:
         raise ValueError("ratio_min exceeds ratio_max")
+    rmin = _array(domain.r_min, (m,), "r_min", nonnegative=True)
+    # In the first quadrant, the largest admissible resistance is attained
+    # at |z|=zmax and at the smallest admissible X/R angle. This checks the
+    # physical (circular) domain, not just its more permissive box relaxation.
+    min_angle = 0. if lo is None else np.arctan(lo)
+    r_available = zmax * np.cos(min_angle)
+    if np.any(rmin > r_available):
+        raise ValueError("physical parameter domain is empty: r_min conflicts with z_max and ratio_min")
     if not np.isfinite(domain.source_power_cap) or domain.source_power_cap < 0:
         raise ValueError("invalid source_power_cap")
     if tree.source_node is None and domain.source_power_cap:
         raise ValueError("source_power_cap needs source_node")
-    return zmin, zmax, caps
+    return zmin, zmax, caps, rmin
 
 
-def _outer_constraints(zmin, zmax, ratio_min, ratio_max):
+def _outer_constraints(zmin, zmax, ratio_min, ratio_max, r_min=0.):
     m = len(zmin)
     rows, rhs = [], []
     for e in range(m):
@@ -197,18 +206,31 @@ def _outer_constraints(zmin, zmax, ratio_min, ratio_max):
         if ratio_max is not None:
             row = np.zeros(2*m); row[e] = ratio_max; row[m+e] = -1
             rows.append(row); rhs.append(0.)
-    return np.asarray(rows), np.asarray(rhs), np.zeros(2*m), np.tile(zmax, 2)
+    lower = np.zeros(2*m)
+    lower[:m] = _array(r_min, (m,), "r_min", nonnegative=True)
+    return np.asarray(rows), np.asarray(rhs), lower, np.tile(zmax, 2)
 
 
-def _physical_theta(theta, zmin, zmax, ratio_min, ratio_max):
+def _physical_theta(theta, zmin, zmax, ratio_min, ratio_max, r_min=0.):
     """Produce a physical-domain point for a separate feasible AC backscore."""
     m = len(zmin)
     r, x = np.maximum(theta[:m], 0), np.maximum(theta[m:], 0)
     angle = np.arctan2(x, r)
     amin = 0 if ratio_min is None else np.arctan(ratio_min)
     amax = np.pi/2 if ratio_max is None else np.arctan(ratio_max)
+    rmin = _array(r_min, (m,), "r_min", nonnegative=True)
+    if np.any(rmin > zmax*np.cos(amin)):
+        raise ValueError("physical parameter domain is empty: r_min conflicts with z_max and ratio_min")
+    # Retain the exact previous projection when the new assumption is absent.
+    # For r_min>0 the angle must additionally allow r>=r_min at radius<=zmax.
+    if np.any(rmin):
+        amax = np.minimum(amax, np.arccos(np.clip(rmin/zmax, 0., 1.)))
     angle = np.clip(angle, amin, amax)
     radius = np.clip(np.hypot(r, x), zmin, zmax)
+    if np.any(rmin):
+        required_radius = np.divide(rmin, np.cos(angle),
+                                    out=np.zeros_like(rmin), where=rmin>0)
+        radius = np.minimum(zmax, np.maximum(radius, required_radius))
     return np.r_[radius*np.cos(angle), radius*np.sin(angle)]
 
 
@@ -306,7 +328,7 @@ def certify_candidate(tree: TreeSpec, obs: Measurements, domain: PhysicalDomain,
     sv = _array(obs.sigma_v, shape, "sigma_v", positive=True)
     sr = _array(0. if obs.sigma_root is None else obs.sigma_root,
                 (tcount,), "sigma_root", nonnegative=True)
-    zmin, zmax, caps = _domain_arrays(tree, domain, observed, m)
+    zmin, zmax, caps, rmin = _domain_arrays(tree, domain, observed, m)
     projection = np.eye(n)
     a_voltage = a_load.copy()
     removed = ()
@@ -332,7 +354,7 @@ def certify_candidate(tree: TreeSpec, obs: Measurements, domain: PhysicalDomain,
         aa[:, m+e] = (2*qsum[:,e,None]*pa[None,:,e]).reshape(-1)
     yy = root[:,None]**2-v**2
     bb = (yy @ projection.T).reshape(-1)
-    c, d, lower, upper = _outer_constraints(zmin,zmax,domain.ratio_min,domain.ratio_max)
+    c, d, lower, upper = _outer_constraints(zmin,zmax,domain.ratio_min,domain.ratio_max,rmin)
     qp = qp_with_support_bound(aa,bb,c,d,lower,upper,
                                time_limit=solver_time_limit,solver=solver,
                                numerical_guard=numerical_guard)
@@ -392,7 +414,7 @@ def certify_candidate(tree: TreeSpec, obs: Measurements, domain: PhysicalDomain,
     noise_radius=linear_radius+quadratic_radius
     residual_threshold=float((delta+noise_radius)**2)
     residual_reject=bool(qp["support_lower"]>residual_threshold)
-    physical=_physical_theta(qp["theta"],zmin,zmax,domain.ratio_min,domain.ratio_max)
+    physical=_physical_theta(qp["theta"],zmin,zmax,domain.ratio_min,domain.ratio_max,rmin)
     return Certificate(
         status="rejected" if ac_lower>threshold else "not_rejected",
         reject=bool(ac_lower>threshold),alpha=float(alpha),raw_noise_dimension=dim,
@@ -413,6 +435,9 @@ def certify_candidate(tree: TreeSpec, obs: Measurements, domain: PhysicalDomain,
         diagnostics={"qp_domain_violation":qp["domain_violation"],
                      "qp_domain":"first_quadrant_box_with_r_plus_x_norm_outer_cut",
                      "physical_norm_bounds":[zmin.tolist(),zmax.tolist()],
+                     "physical_resistance_min":rmin.tolist(),
+                     "physical_resistance_min_active":bool(np.any(rmin)),
+                     "resistance_min_affects":"parameter_domain_only_remainder_and_noise_bounds_unchanged",
                      "noise_model":"independent_zero_mean_raw_gaussian_known_sigmas",
                      "sigma_estimated_from_candidate_residuals":False,
                      "confidence_scope":"declared_domain_and_candidate_pool",

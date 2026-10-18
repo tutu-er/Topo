@@ -147,6 +147,7 @@ def physical_checks(tree, obs, domain, point):
     radius = abs(z)
     zlo = _broadcast(domain.z_min, z.shape, "z_min", positive=True)
     zhi = _broadcast(domain.z_max, z.shape, "z_max", positive=True)
+    rmin = _broadcast(domain.r_min, z.shape, "r_min")
     root = _broadcast(obs.root_v, (len(p),), "root_v", positive=True)
     tolerance = 1e-10
     return dict(
@@ -154,6 +155,7 @@ def physical_checks(tree, obs, domain, point):
         all_bus_voltage=bool(min(float(v.min()), float(root.min())) >= domain.v_min-tolerance
                              and max(float(v.max()), float(root.max())) <= domain.v_max+tolerance),
         impedance_modulus=bool(np.all(radius >= zlo-tolerance) and np.all(radius <= zhi+tolerance)),
+        resistance_floor=bool(np.all(z.real >= rmin-tolerance)),
         impedance_ratio=bool(np.all(z.imag/z.real >= domain.ratio_min-tolerance)
                              and np.all(z.imag/z.real <= domain.ratio_max+tolerance)),
         ac_equations=bool(point["ac_equation_residual"] <= 1e-9),

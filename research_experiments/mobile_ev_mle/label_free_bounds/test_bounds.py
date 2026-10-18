@@ -7,7 +7,8 @@ from scipy.stats import chi2
 
 from research_experiments.mobile_ev_mle.label_free_bounds.bounds import (
     Measurements, PhysicalDomain, TreeSpec, certify_candidate,
-    linear_voltage_matrix, path_support, qp_with_support_bound)
+    linear_voltage_matrix, path_support, qp_with_support_bound,
+    _outer_constraints, _physical_theta)
 
 
 def exact_ac(tree, r, x, p, q, source=0j, root=1.):
@@ -262,3 +263,77 @@ def test_residual_chi_noisy_root_square_correction_is_included():
                             PhysicalDomain(.01,.03,.9,1.1,[.06]))
     assert noisy.residual_chi_linear_radius > fixed.residual_chi_linear_radius
     assert noisy.residual_chi_quadratic_radius > fixed.residual_chi_quadratic_radius
+
+
+def test_resistance_floor_zero_preserves_default_numeric_results():
+    tree=TreeSpec(0,[(0,1),(1,2)],[1,2])
+    obs=Measurements(np.array([[.03,.04],[.04,.02]]),
+                     np.array([[.01,.014],[.012,.008]]),
+                     np.array([[.998,.996],[.997,.996]]),1.,1e-4,1e-4,1e-4)
+    domain=PhysicalDomain(.005,.03,.9,1.1,[.07,.07],ratio_min=.2,ratio_max=1.)
+    default=certify_candidate(tree,obs,domain,solver="scipy")
+    explicit=certify_candidate(tree,obs,replace(domain,r_min=np.zeros(2)),solver="scipy")
+    for name in ("qp_primal","qp_support_lower","ac_sse_lower","remainder_norm",
+                 "lipschitz_k","qp_rejection_threshold","residual_chi_threshold"):
+        assert getattr(default,name)==getattr(explicit,name)
+    assert default.theta==explicit.theta
+    assert not default.diagnostics["physical_resistance_min_active"]
+
+
+def test_positive_resistance_floor_has_valid_qp_lower_bound():
+    # min (r-.02)^2+(x-.01)^2 with r>=.08 has optimum .0036.
+    c,d,lower,upper=_outer_constraints(np.array([.02]),np.array([.2]),
+                                      .1,1.,r_min=.08)
+    result=qp_with_support_bound(np.eye(2),np.array([.02,.01]),c,d,lower,upper,
+                                 solver="scipy")
+    assert result["primal"]==pytest.approx(.0036,abs=1e-10)
+    assert .0036-1e-8 <= result["support_lower"] <= .0036
+    assert result["theta"][0]>=.08-1e-9
+    # An independently declared feasible physical point also upper-bounds it.
+    feasible=np.array([.09,.03])
+    assert result["support_lower"] <= float(np.sum((feasible-[.02,.01])**2))
+
+
+@pytest.mark.parametrize("theta",[
+    [0.,0.,0.,0.], [.01,.6,.9,.001], [-1.,-2.,-3.,-4.], [.3,.3,.3,.3]])
+def test_resistance_floor_physical_projection_satisfies_all_domains(theta):
+    zmin=np.array([.05,.07]); zmax=np.array([.2,.3]); rmin=np.array([.12,.2])
+    point=_physical_theta(np.array(theta),zmin,zmax,.4,1.2,rmin)
+    r,x=point[:2],point[2:]
+    assert np.all(r>=rmin-1e-14)
+    assert np.all(np.hypot(r,x)>=zmin-1e-14)
+    assert np.all(np.hypot(r,x)<=zmax+1e-14)
+    assert np.all(x/r>=.4-1e-14)
+    assert np.all(x/r<=1.2+1e-14)
+
+
+def test_resistance_floor_does_not_change_ac_remainder_or_noise_envelopes():
+    tree=TreeSpec(0,[(0,1),(1,2)],[1,2])
+    obs=Measurements(np.array([[.03,.04]]),np.array([[.01,.014]]),
+                     np.array([[.998,.996]]),1.,1e-4,1e-4,1e-4)
+    domain=PhysicalDomain(.005,.03,.9,1.1,[.07,.07],ratio_min=.2,ratio_max=1.)
+    before=certify_candidate(tree,obs,domain,solver="scipy")
+    after=certify_candidate(tree,obs,replace(domain,r_min=[.012,.02]),solver="scipy")
+    assert after.remainder_norm==before.remainder_norm
+    assert after.lipschitz_k==before.lipschitz_k
+    assert after.residual_chi_threshold==before.residual_chi_threshold
+    assert after.qp_rejection_threshold==before.qp_rejection_threshold
+    assert after.diagnostics["physical_resistance_min"]==[.012,.02]
+    assert after.diagnostics["physical_resistance_min_active"]
+    assert np.all(np.asarray(after.theta)[:2]>=np.array([.012,.02])-1e-12)
+
+
+@pytest.mark.parametrize("changes",[
+    {"r_min":.031},
+    {"r_min":.025,"ratio_min":1.},
+    {"r_min":-.001},
+    {"r_min":np.inf},
+    {"r_min":[.01,.02]},
+])
+def test_conflicting_or_invalid_resistance_floor_fails_explicitly(changes):
+    tree=TreeSpec(0,[(0,1)],[1])
+    obs=Measurements(np.array([[.03]]),np.array([[.01]]),np.array([[.99]]),
+                     1.,.001,.001,.001)
+    domain=PhysicalDomain(.005,.03,.9,1.1,[.07])
+    with pytest.raises(ValueError,match="r_min|physical parameter domain"):
+        certify_candidate(tree,obs,replace(domain,**changes),solver="scipy")
