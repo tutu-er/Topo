@@ -172,7 +172,12 @@ def audit_qp(candidate, obs, sigma, domain, fitted, *, v_ref=1.):
     dual_linear = float(adjusted @ corner-multiplier @ rhs)
     raw = primal-gradient @ point+dual_linear
     _close(cert['adjusted_gradient'], adjusted, 'QP dual adjusted gradient')
-    _close(cert['minimizing_corner'], corner, 'QP dual corner')
+    saved_corner=np.asarray(cert['minimizing_corner'],float)
+    if np.any(saved_corner<lower-1e-10) or np.any(saved_corner>upper+1e-10):
+        raise AssertionError('QP dual corner left the declared box')
+    # Near a zero adjusted coefficient both endpoints attain the same linear
+    # value; independent summation can change its sign at machine precision.
+    _close(adjusted @ saved_corner,adjusted @ corner,'QP dual corner value')
     _close(cert['dual_linear'], dual_linear, 'QP dual linear value')
     _close(cert['raw_lower_bound'], raw, 'QP tangent lower value')
     guarded = max(0., raw-float(cert['numerical_guard']))
@@ -224,6 +229,33 @@ def _audit_ac(candidate, obs, sigma, domain, fitted, *, expected_lines=None):
     _close(fitted['J'], .5*loss, 'full AC J', atol=1e-6)
     _close(fitted['residual'], residual, 'full AC raw residual', atol=1e-7)
     _close(fitted['v'], physical['v'], 'full AC terminal voltage', atol=1e-10)
+    # Reconstruct J=.5*SSE gradients in the scaled local coordinates.  Shared
+    # R/X contribute only in the old training solver; holdout lines are fixed.
+    dv=lk._response_derivatives(candidate,physical,False)['v']
+    m,n=candidate.m,candidate.n
+    weighted_voltage=residual[:,2*n:]/data['sig']['v']
+    local_gradient=np.c_[residual[:,:n]+np.einsum('tj,tji->ti',weighted_voltage,dv[:,:,2*m:2*m+n])*data['sig']['p'],
+                         residual[:,n:2*n]+np.einsum('tj,tji->ti',weighted_voltage,dv[:,:,2*m+n:])*data['sig']['q']]
+    db=(physical['v']-2*np.einsum('tni,ti->tn',dv[:,:,2*m:],np.c_[p,q]))/b[:,None]
+    local_gradient=np.c_[local_gradient,np.sum(weighted_voltage*db,axis=1)*.01]
+    local=np.c_[(p-data['p'])/data['sig']['p'],(q-data['q'])/data['sig']['q'],(b-1.)/.01]
+    caps=np.asarray(domain['power_caps'])
+    lower=np.c_[(-caps-data['p'])/data['sig']['p'],(-caps-data['q'])/data['sig']['q'],
+                np.full(len(p),(domain['root_min']-1.)/.01)]
+    upper=np.c_[(caps-data['p'])/data['sig']['p'],(caps-data['q'])/data['sig']['q'],
+                np.full(len(p),(domain['root_max']-1.)/.01)]
+    pg=float(np.max(np.abs(np.clip(-local_gradient,lower-local,upper-local))))
+    if expected_lines is None:
+        gradient_rx=np.einsum('tn,tne->e',weighted_voltage,dv[:,:,:2*m])
+        gr,gx=gradient_rx[:m],gradient_rx[m:]
+        shared_gradient=np.r_[gr*r+gx*x,-gr*x+gx*r]
+        theta=np.r_[np.log(np.hypot(r,x)),np.arctan2(x,r)]
+        theta_lower=np.r_[np.full(m,np.log(domain['z_min'])),np.full(m,np.arctan(domain['ratio_min']))]
+        theta_upper=np.r_[np.full(m,np.log(domain['z_max'])),np.full(m,np.arctan(domain['ratio_max']))]
+        pg=max(pg,float(np.max(np.abs(np.clip(-shared_gradient,theta_lower-theta,theta_upper-theta)))))
+    _close(fitted['projected_gradient'],pg,'AC projected gradient',atol=2e-7,rtol=1e-3)
+    if fitted.get('qualified') and pg>1.002e-4:
+        raise AssertionError('qualified AC score fails its projected-gradient rule')
     voltage, current = physical['voltage'], physical['branch_current']
     ohm = []
     for e, parent in enumerate(candidate.parents):
@@ -258,6 +290,7 @@ def _audit_ac(candidate, obs, sigma, domain, fitted, *, expected_lines=None):
     if member and not fixed_covered:
         raise AssertionError('fixed-line remainder box misses a member of its event')
     return dict(loss=loss, original_domain_legal=legal, max_ohm_residual=max_ohm,
+                projected_gradient=pg,qualified=bool(fitted.get('qualified')),
                 power_balance_residual=physical['power_balance_residual'],
                 remainder_identity_error=remainder['identity_max_abs'],
                 public_remainder_covered=public_covered,
@@ -287,6 +320,8 @@ def audit(directory):
             record_path=directory/'records'/f'{name}.json.gz'
             payload_path=directory/'inputs'/f'{name}.json.gz'
             saved, payload=read(record_path),read(payload_path)
+            if saved.get('spec') != spec or payload.get('spec') != spec:
+                raise AssertionError('record, input and configuration specifications disagree')
             if saved.get('status') != 'completed':
                 raise AssertionError('record did not complete; retained as failed condition')
             if saved.get('truth_used') is not False or payload.get('truth_used') is not False:
@@ -302,6 +337,8 @@ def audit(directory):
             old_path=baseline/'inference'/f'{name}.json.gz';old=read(old_path)
             if payload['old_inference_sha256'] != _sha(old_path):
                 raise AssertionError('old AC inference hash mismatch')
+            if payload.get('sigma') != old.get('sigma') or payload.get('domain') != old.get('domain'):
+                raise AssertionError('meter model or public domain changed from the paired old AC run')
             generated=make_case(spec['network'],'ordinary',spec['seed'],total=768)
             for channel in ('p','q','v'):
                 train=np.asarray(payload['train'][channel])
@@ -309,6 +346,8 @@ def audit(directory):
                 np.testing.assert_array_equal(train,np.asarray(old['observed'][channel]))
                 np.testing.assert_array_equal(train,np.asarray(generated['observed'][channel])[:spec['N']])
                 np.testing.assert_array_equal(hold,np.asarray(generated['observed'][channel])[672:768])
+                np.testing.assert_array_equal(np.asarray(payload['sigma'][channel]),
+                                              np.asarray(generated['meter']['sigma_'+channel]))
             if old.get('root_known') is not None or old.get('root_meter') is not None:
                 raise AssertionError('comparison includes extra boundary information')
             if set(saved['methods']) != set(METHODS):
@@ -354,6 +393,8 @@ def audit(directory):
                             _close(hold['own']['loss'],profile['loss'],'holdout response own loss')
                         if legal_lines and 'p' in hold.get('ac',{}):
                             item['holdout_ac']=_audit_ac(candidate,payload['holdout'],payload['sigma'],payload['domain'],hold['ac'],expected_lines=(r,x))
+                            if not hold['ac'].get('qualified'):
+                                warnings.append(dict(key=name,method=method,candidate=candidate_name,phase='holdout_AC_unqualified'))
                             if method == 'AC':
                                 _close(hold['own']['loss'],hold['ac']['loss'],'holdout AC own loss')
                         elif legal_lines:
@@ -374,6 +415,7 @@ def audit(directory):
     return dict(audit_pass=not errors,errors=errors,warnings=warnings,records=records,
                 expected_conditions=len(config['tasks']),audited_conditions=len(records),
                 audited_ac_states=len(ac_states),
+                qualified_ac_states=sum(row['qualified'] for row in ac_states),
                 meter_rectangle_member_count=sum(row['meter_rectangle_member'] for row in ac_states),
                 meter_rectangle_nonmember_count=sum(not row['meter_rectangle_member'] for row in ac_states),
                 max_ac_ohm_residual=max((row['max_ohm_residual'] for row in ac_states),default=None),

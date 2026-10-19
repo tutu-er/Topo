@@ -68,6 +68,9 @@ def test_independent_full_ac_residual_and_fixed_line_boundary():
         _audit_ac(candidate,obs,sigma,domain,changed,expected_lines=(r,x))
     with pytest.raises(AssertionError,match='fixed R'):
         _audit_ac(candidate,obs,sigma,domain,fitted,expected_lines=(r*1.001,x))
+    changed=deepcopy(fitted);changed['projected_gradient']+=.01
+    with pytest.raises(AssertionError,match='projected gradient'):
+        _audit_ac(candidate,obs,sigma,domain,changed,expected_lines=(r,x))
 
 
 def test_same_sign_magnitude_box_changes_do_not_make_a_confidence_claim():

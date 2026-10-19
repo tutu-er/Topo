@@ -35,6 +35,17 @@ def box_norm(halfwidth, covariance):
                 per_coordinate_RMS=float(np.sqrt(np.mean(maximum)/2)))
 
 
+def box_absolute_norm(lower, upper, covariance):
+    """Exact maximum norm about zero; boxes may have nonzero centres."""
+    lower,upper=np.asarray(lower,float),np.asarray(upper,float)
+    choices=np.array([[False,False],[False,True],[True,False],[True,True]])
+    vertices=np.where(choices[:,None,:],upper[None,:,:],lower[None,:,:])
+    precision=np.linalg.inv(covariance)
+    maximum=np.einsum('cta,tab,ctb->ct',vertices,precision,vertices).max(axis=0)
+    return dict(total=float(np.sqrt(maximum.sum())),
+                per_coordinate_RMS=float(np.sqrt(np.mean(maximum)/2)))
+
+
 def process(directory):
     directory=Path(directory);config=read(directory/'configuration.json')
     output=directory/'physics.json'
@@ -62,11 +73,14 @@ def process(directory):
             fixed=remainder_bound(c,domain,obs,sigma,alpha_meter=.01,fixed_r=fit['r'],fixed_x=fit['x'])
             meter_norm=box_norm(meter['contrast_halfwidth'],cov)
             public_norm=box_norm(np.broadcast_to(public['contrast_halfwidth'],(len(data['x']),2)),cov)
-            bounds[c.name]=meter_norm
+            absolute_norm=box_absolute_norm(meter['contrast_lower'],meter['contrast_upper'],cov)
+            bounds[c.name]=dict(half=meter_norm,absolute=absolute_norm,
+                               center=np.asarray(meter['contrast_center']))
             candidate=dict(public=public,meter=meter,fixed_lines_only=fixed,
                 feasible_AC_point_remainder=norm_record(exact['contrast_remainder'],cov),
                 identity_max_abs=exact['identity_max_abs'],
                 uniform_radius= meter_norm, public_uniform_radius=public_norm,
+                uniform_absolute_radius=absolute_norm,
                 public_to_meter_radius_ratio=public_norm['total']/meter_norm['total'],
                 fixed_line_radius=box_norm(fixed['contrast_halfwidth'],cov),
                 uniform_scope='all_public_lines_and_states_within_simultaneous_meter_rectangle',
@@ -83,12 +97,20 @@ def process(directory):
         for i,c in enumerate(bank):
             for other in bank[i+1:]:
                 distance=norm_record(predictions[c.name]-predictions[other.name],cov)
-                radius=bounds[c.name]['total']+bounds[other.name]['total']
+                radius=bounds[c.name]['absolute']['total']+bounds[other.name]['absolute']['total']
+                centered_distance=norm_record(
+                    predictions[c.name]+bounds[c.name]['center']-
+                    predictions[other.name]-bounds[other.name]['center'],cov)
+                half_radius=bounds[c.name]['half']['total']+bounds[other.name]['half']['total']
                 item['pairs'].append(dict(a=c.name,b=other.name,
                     fitted_linear_response_distance=distance,
                     sum_uniform_AC_radius=radius,
                     AC_radius_below_fitted_difference=radius < distance['total'],
                     radius_to_difference=radius/max(distance['total'],1e-30),
+                    primary_radius_reference='about_zero_to_match_raw_Hx_predictions',
+                    centered_response_distance=centered_distance,
+                    sum_uniform_centered_radius=half_radius,
+                    centered_radius_below_centered_difference=half_radius<centered_distance['total'],
                     interpretation='scale_check_of_fitted_responses_not_uniform_candidate_separation'))
         # No proof of smaller remainders on all difficult candidates means the
         # planned strict-rejection phase is not enabled by this comparison.
