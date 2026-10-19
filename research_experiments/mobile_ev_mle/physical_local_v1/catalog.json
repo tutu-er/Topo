@@ -1,0 +1,28 @@
+{
+  "schema": "physical_line_catalog_v1",
+  "frequency_hz": 50,
+  "resistance_reference_celsius": 20,
+  "source_version": "pandapower v3.2.1",
+  "source_url": "https://raw.githubusercontent.com/e2nIEE/pandapower/v3.2.1/pandapower/std_types.py",
+  "source_documentation": "https://pandapower.readthedocs.io/en/v3.2.1/std_types/basic.html",
+  "read_locations": "basic_line_std_types, LV cables lines 405-434 and LV overhead lines 605-622",
+  "original_cable_reference": "Source-code comment: Heuck, Elektrische Energieversorgung, Vieweg+Teubner, 2013, p.744",
+  "verification": "Values transcribed from pinned primary source and cross-checked against public documentation on 2026-10-19; upstream bytes are not archived here.",
+  "upstream_byte_sha256": null,
+  "types": {
+    "NAYY 4x50 SE": {"r_ohm_per_km": 0.642, "x_ohm_per_km": 0.083, "c_nf_per_km": 210.0, "max_i_ka": 0.142, "type": "cable", "section_mm2": 50},
+    "NAYY 4x120 SE": {"r_ohm_per_km": 0.225, "x_ohm_per_km": 0.080, "c_nf_per_km": 264.0, "max_i_ka": 0.242, "type": "cable", "section_mm2": 120},
+    "NAYY 4x150 SE": {"r_ohm_per_km": 0.208, "x_ohm_per_km": 0.080, "c_nf_per_km": 261.0, "max_i_ka": 0.270, "type": "cable", "section_mm2": 150},
+    "48-AL1/8-ST1A 0.4": {"r_ohm_per_km": 0.5939, "x_ohm_per_km": 0.300, "c_nf_per_km": 12.2, "max_i_ka": 0.210, "type": "overhead", "section_mm2": 48},
+    "94-AL1/15-ST1A 0.4": {"r_ohm_per_km": 0.3060, "x_ohm_per_km": 0.290, "c_nf_per_km": 13.2, "max_i_ka": 0.350, "type": "overhead", "section_mm2": 94}
+  },
+  "paper_reference": {
+    "title": "Combined Unbalanced Distribution System State and Line Impedance Matrix Estimation",
+    "authors": "Vanin et al.",
+    "version": "2023 author manuscript, arXiv v2",
+    "url": "https://arxiv.org/html/2209.10938v2",
+    "read_locations": "II-C and III-A; Fig.2-3; ENWL service-cable R/X bounds 8.96 to 16",
+    "service_x_over_r_reciprocal_range": [0.0625, 0.11160714285714285],
+    "scope": "ENWL single-phase service cables; not the identical sequence/equivalent model as the balanced three-phase NAYY catalog. These values are comparison evidence, not copied constraints."
+  }
+}

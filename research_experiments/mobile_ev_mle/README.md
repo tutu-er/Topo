@@ -1,4 +1,10 @@
-## 最新：局部响应评分与凸QP（2026-10-19）
+## 最新：保留根路径与有来源的LV线路参数（2026-10-19）
+
+先读[核验结果](physical_local_v1/results.md)、[合并公式](physical_local_v1/math.md)与[方案](physical_local_v1/protocol.md)。新算例入口`physical_local_v1.assets.build_network`默认使用公开导线型号`cable_v1`，保留原根路径、旁支和全部原表计；只允许无注入无表计的串联精确合并。`mixed_v1`为架空/电缆对照，case33/CIGRE参数保持原样，旧批次入口不改。
+
+4个合成布局×3套线路库×4种子，3/7天共96行物理核验完成，0失败；65项测试通过、3项可选原始源码字节测试跳过。正确切口和含损耗端口可精确复现全网；截块误用原根电压的误差明显。新服务线X/R约0.129，原局部[0.25,1.5]域需要调整；本轮尚未重跑R/X拟合与EV性能。数据边界及全部分母见[证据](physical_local_v1/evidence/README.md)。
+
+## 局部响应评分与凸QP（2026-10-19，旧线路库）
 
 先读[结果](local_response_score/results.md)与[数学推导](local_response_score/math.md)。在既有3/7天普通量测上，解析消去P/Q的响应评分和名义权重凸QP已实现：新配对计时较完整AC约快10倍、95倍，训练首名16/16一致；独立带噪留出真首名AC6/16、响应与QP均4/16，仍保留全部4候选。
 
