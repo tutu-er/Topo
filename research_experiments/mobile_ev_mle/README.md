@@ -1,4 +1,12 @@
-## 最新：保留根路径与有来源的LV线路参数（2026-10-19）
+## 最新：修订线路库上的根连接局部拟合（2026-10-19）
+
+先读[本轮结果](rooted_local_fit_v1/results.md)、[数学模型](rooted_local_fit_v1/math.md)与[事前方案](rooted_local_fit_v1/protocol.md)。paper15/paper11、3/7天普通带噪量测、保留原根和旁支，新拟合实际使用X/R∈[0.05,2]；64条件、416训练槽和独立留出已完成。
+
+FULL恢复全网局部信息秩，V响应误差小，但服务线X仍有数倍相对误差；单边RP+XQ误差大部分沿路径补偿。RESP/QP留出最优集合与完整AC16/16一致，逐对94/96、92/96一致，尚未稳定唯一辨识。本轮区分了原域排除真值、切口参考损失和普通负荷激励弱，没有把QP排名当拒绝概率。
+
+68项测试及576状态AC回放通过；412/416训练达标，CUT中3个AC、1个RESP未达驻点保留。独立开发验证后精修共享GN子QP，全量重算墙钟261秒；初版未完成记录单独保存。复现见[证据](rooted_local_fit_v1/evidence/README.md)，旧批次和PDF保持不变。
+
+## 保留根路径与有来源的LV线路参数（2026-10-19）
 
 先读[核验结果](physical_local_v1/results.md)、[合并公式](physical_local_v1/math.md)与[方案](physical_local_v1/protocol.md)。新算例入口`physical_local_v1.assets.build_network`默认使用公开导线型号`cable_v1`，保留原根路径、旁支和全部原表计；只允许无注入无表计的串联精确合并。`mixed_v1`为架空/电缆对照，case33/CIGRE参数保持原样，旧批次入口不改。
 

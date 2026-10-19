@@ -6,9 +6,11 @@ import csv
 import hashlib
 from pathlib import Path
 import shutil
+import tempfile
 import zipfile
 import numpy as np
 from scipy.linalg import helmert
+from .. import likelihood as lk
 from ..reference_benchmark.representation import physical_tree_ac
 from .experiment import ROOT,load,save,sha
 from .model import prepare_case,line_map,project
@@ -77,7 +79,7 @@ def finish(folder,evidence):
     config=load(folder/'configuration.json');result=load(folder/'results.json');issues=[]
     for relative,expected in config['source_sha256'].items():
         if sha(ROOT/relative.replace('\\','/'))!=expected:issues.append('changed source '+relative)
-    restored=folder/'audit_source_restore';restored.mkdir(exist_ok=False)
+    restored=Path(tempfile.mkdtemp(prefix='audit_source_restore_',dir=folder))
     with zipfile.ZipFile(folder/'scientific_sources.zip') as z:
         for member in z.namelist():
             target=(restored/member).resolve()
@@ -88,7 +90,8 @@ def finish(folder,evidence):
     audit=dict(ac_replays=0,response_replays=0,qp_bounds_checked=0,input_records_checked=0,
                max_AC_loss_difference=0.,max_AC_voltage_difference=0.,max_response_loss_difference=0.,
                max_QP_bound_difference=0.,source_members_restored=len(config['source_sha256']),
-               inference_seals_checked=0,nondecreasing_AC_traces=0,wrong_heldout_lines=0)
+               inference_seals_checked=0,nondecreasing_AC_traces=0,wrong_heldout_lines=0,
+               exact_flow_diagnostic_AC_calls=0)
     allrows=[];rankrecords=[];hashes={}
     for task in result['results']:
         if task.get('status')=='worker_failed':continue
@@ -152,6 +155,32 @@ def finish(folder,evidence):
             rr=(candidate.M*truth['r'])@candidate.M.T;xx=(candidate.M*truth['x'])@candidate.M.T
             count=spec['N'];w=truth['root_v'][:count,None]**2-2*(truth['p'][:count]@rr.T+truth['q'][:count]@xx.T)
             row['true_lines_lossless_V_error_RMSE_pu']=float(np.sqrt(np.mean((np.sqrt(np.maximum(w,.01))-truth['v'][:count])**2)))
+            real=lk.ac_predict(candidate,truth['r'],truth['x'],truth['p'][:count],truth['q'][:count],root_v=truth['root_v'][:count])
+            recv=real['voltage']*np.conj(real['branch_current'])
+            reference=recv.real*truth['r']+recv.imag*truth['x']
+            fixed=recv.real*np.asarray(fitted['r'])+recv.imag*np.asarray(fitted['x'])
+            row['leaf_exact_RPXQ_relative']=float(np.linalg.norm((fixed-reference)[:,leaf])/np.linalg.norm(reference[:,leaf]))
+            path=truth['path_edges']
+            row['path_exact_RPXQ_relative']=float(np.linalg.norm((fixed-reference)[:,path])/np.linalg.norm(reference[:,path]))
+            path_true=reference@candidate.M.T;path_est=fixed@candidate.M.T
+            row['focus_cumulative_RPXQ_relative']=float(np.linalg.norm((path_est-path_true)[:,focus])/np.linalg.norm(path_true[:,focus]))
+            absolute_path=abs(fixed-reference)@candidate.M.T
+            row['path_compensation_ratio']=float(np.linalg.norm((path_est-path_true)[:,focus])/max(np.linalg.norm(absolute_path[:,focus]),1e-20))
+            rp=recv.real*(np.asarray(fitted['r'])-truth['r']);xq=recv.imag*(np.asarray(fitted['x'])-truth['x'])
+            row['leaf_RX_compensation_ratio']=float(np.linalg.norm((rp+xq)[:,leaf])/max(np.linalg.norm(rp[:,leaf])+np.linalg.norm(xq[:,leaf]),1e-20))
+            pp=recv.real[:,leaf];qq=recv.imag[:,leaf]
+            kappa=np.sum(pp*qq,axis=0)/np.sum(pp*pp,axis=0)
+            independent_q=qq-pp*kappa
+            row['leaf_unique_X_voltage_RMS_pu']=float(np.sqrt(np.mean((independent_q*truth['x'][leaf]/abs(real['voltage'][:,leaf]))**2)))
+            audit['exact_flow_diagnostic_AC_calls']+=1
+            if row['method']=='AC':
+                modeled=lk.ac_predict(candidate,fitted['r'],fitted['x'],fitted['p'],fitted['q'],root_v=fitted['root_v'])
+                implied=modeled['voltage']*np.conj(modeled['branch_current'])
+                combination=implied.real*np.asarray(fitted['r'])+implied.imag*np.asarray(fitted['x'])
+                row['leaf_exact_RPXQ_latent_relative']=float(np.linalg.norm((combination-reference)[:,leaf])/np.linalg.norm(reference[:,leaf]))
+                row['P_latent_relative']=float(np.linalg.norm(np.asarray(fitted['p'])-truth['p'][:count])/np.linalg.norm(truth['p'][:count]))
+                row['Q_latent_relative']=float(np.linalg.norm(np.asarray(fitted['q'])-truth['q'][:count])/np.linalg.norm(truth['q'][:count]))
+                audit['exact_flow_diagnostic_AC_calls']+=1
         allrows.extend(record['rows'])
         if spec['context'] in ('FULL','CUT'):
             ranks={}
