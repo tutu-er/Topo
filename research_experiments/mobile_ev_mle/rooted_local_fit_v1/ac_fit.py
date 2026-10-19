@@ -42,7 +42,7 @@ def step(value,theta,local,lower,upper,damping):
         reduced=aa-np.einsum('tli,tlj->ij',ca,za);g=ga-np.einsum('tli,tl->i',ca,zr)
         reduced=(reduced+reduced.T)/2
         point,certificate=solve_quadratic(reduced,g-reduced@theta,
-                              .5*theta@reduced@theta-g@theta,theta,certify=False)
+                              .5*theta@reduced@theta-g@theta,theta,certify=True)
         da=point-theta
     else:da=np.empty(0);certificate={}
     dc=-zr-np.einsum('tli,i->tl',za,da)
