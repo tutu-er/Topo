@@ -4,6 +4,7 @@
 
 | 目录或模块 | 内容 |
 |---|---|
+| [`ev/`](ev/README.md) | EV封存入口：当前实现、算例结果、文件作用与归档恢复（2026-10-19；源码和证据位于独立EV工作树） |
 | `rnj/rooted_aggregation.py` | RNJ 子树聚合、伪终端、去嵌入及标签展开 |
 | `rnj/graph_adapters.py` | 从 clade 建树、从终端距离反推共享路径的研究适配 |
 | `rnj/sensitivity_geometry.py` | R、X、不同 R/X 配比和距离诊断 |
