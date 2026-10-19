@@ -1,0 +1,256 @@
+% Pure section fragment for inline insertion into the existing report.
+% Uses the report's amsmath/amsthm/booktabs/hyperref packages and proposition environment.
+% All si: labels are new. No documentclass, input, bibliography or PDF build is issued here.
+\section{疑似支路的信息价格：改进量、功率优化与成立条件}
+\label{si:section}
+
+本轮把设计目标收紧为：在一个模糊的局部块中，怎样安排同一充电任务，使疑似内部边留下更多可以测出的信号？前一节的最坏有向距离包含 \texttt{star}$\to$\texttt{cherry}：竞争 cherry 可把内部边缩得很小，接近 star。这条几乎等价的解释会压住最坏分数。三个疑似支撑等权平均时，还会把同样多的功率收益放在历史较少支持的分歧上。因此，本轮同时使用完整 AC 的局部支路信息和历史决定的任务权重；零边附近的结构、弱方向和最终候选仍全部保留。
+
+这里有两项不同的验收：\emph{优化是否改善设计指标}，以及\emph{实际新增计量是否改善完整 AC 拟合后的排错}。前者由信息矩阵和操作优化检查；后者由独立历史、相同充电任务和重新拟合的真实似然裕量检查。以下投影、价格、任务权重及标量算例是本研究的推导，原文依据在本节末集中说明。
+
+\subsection{信号与可补偿参数：历史和未来怎样一起进入}
+
+沿用前文的计量模型。$H$ 表示已经取得的历史，$N$ 表示将要取得的四个时段；$u=(u_1,\ldots,u_4)$ 是一个接入节点上的功率曲线，单位 kW。本节支撑和地点使用程序的末端标签 0、1、2，对应前文末端序号 1、2、3，区别于物理节点编号。各时段 EV 功率只加入末端总 P/Q 一次。各条线路的 R/X 跨 $H,N$ 共享；源幅值可逐时变化，始终作用于同一物理接口；已校准偏差和根电压保持已知。
+
+对疑似内部支撑 $s$，令 $\zeta=(R_s,X_s)^T\in\R^2$，单位 pu。其余参数统记为 $\nu$，包括其他全部共享线路，以及 $H,N$ 中逐时真实 P/Q 和源 P/Q。规划把 star 的线路解释嵌入对应 cherry，并令该内部边为零，得到收缩展开点 $\zeta=0$。零边用于计算局部几何，最终候选拟合继续使用原正阻抗范围。
+
+令 $\mu(\zeta,\nu,u)$ 为完整 AC 给出的计量均值，$\Sigma$ 为保存的 H/N 计量协方差。每个独立计量行只出现一次。白化均值 $m=\Sigma^{-1/2}\mu$ 将误差单位统一为标准差；在一个已声明的 AC 分支和展开点，定义
+\begin{equation}
+ A=\frac{\partial m}{\partial\zeta}\in\R^{N_y\times2},\qquad
+ B=\frac{\partial m}{\partial\nu}\in\R^{N_y\times d_\nu}.
+ \label{si:AB}
+\end{equation}
+$N_y$ 是 H+N 全部计量行数，$d_\nu$ 是其余参数数目。$A$ 表示疑似边变化的信号，$B$ 表示其他参数能够造成的变化。P/Q、电压、根总表及存在时的源表全部参与白化。公开的标准差在本轮不随 $u$ 改变，所以功率价格使用均值导数；功率相关误差模型需要另外处理协方差导数。固定的是历史解释中心；未来背景取其 H-only 拟合均值，$u$ 通过末端总 P/Q 改变未来展开状态。$A(u),B(u)$ 在该状态重新计算。
+
+共享线路与逐时状态的安排可以直接写为
+\begin{equation}
+ A=\begin{pmatrix}A_H\\A_N\end{pmatrix},\qquad
+ B=\begin{pmatrix}
+ B_{H,\beta}&B_{H,w}&0\\
+ B_{N,\beta}&0&B_{N,w}
+ \end{pmatrix}.
+ \label{si:shared-block}
+\end{equation}
+$\beta_{-s}$ 是排除目标 R/X 两列后的共享线路向量，$w_H,w_N$ 是相应窗口的逐时 P/Q 和源状态。两行块中的 $\beta_{-s}$ 只有一份。这样，竞争线路的任何调整都必须同时解释历史和未来；逐时源仍有各自幅值。实际实现先分别消去两窗口的状态，再联合消去共享线路。这与一次对式\eqref{si:shared-block}的完整列空间投影等价。
+
+\subsection{投影信息、方向尺度与 EV 增量}
+
+对一个微小支路变化 $v\in\R^2$，让竞争解释自由调整其余参数。记 $B^+$ 为 Moore--Penrose 逆，$P_B=BB^+$ 为 $B$ 列空间的正交投影，$I_{N_y}$ 为单位阵，则
+\begin{equation}
+ \boxed{\min_{\delta\nu}\norm{Av+B\delta\nu}^2
+ =v^T I(u)v,\qquad I(u)=A^T(I_{N_y}-P_B)A.}
+ \label{si:projection}
+\end{equation}
+证明只需要正交分解。写 $Av=P_BAv+(I_{N_y}-P_B)Av$，取 $\delta\nu=-B^+Av$ 消去第一部分。第二部分与任何 $B\delta\nu$ 正交，剩余平方范数无法进一步减少。这同时证明 $I(u)$ 为 $2\times2$ 半正定矩阵，单位 pu$^{-2}$。
+
+式\eqref{si:projection}度量的是\emph{其他线路、真实功率和源补偿后仍留下的信号}。只投影逐时状态会漏掉线路补偿。当前公式比较疑似内部边与其零边收缩结构；另一 cherry 的新增内部边列尚未加入 $B$。三个支撑分别计算再平均，也不等于让另一 cherry 的正边参与竞争。下一阶段先检查这项补偿对距离的影响，再接回功率优化。数值计算使用明确秩的 SVD，保留秩及边界记录；数值列缩放保持列空间，工程比较尺度另外给出。
+
+预先取 $r_*=x_*=0.003$ pu。令随机支路变化 $\Xi$ 以各 $1/2$ 的任务权重取 $(r_*,0)^T$ 或 $(0,x_*)^T$，则
+\begin{align}
+ \Omega&=\mathbb E[\Xi\Xi^T]=\tfrac12\operatorname{diag}(r_*^2,x_*^2),\nonumber\\
+ \boxed{L(u)=\tfrac12\operatorname{tr}[I(u)\Omega]}
+ &=\mathbb E\!\left[\tfrac12\min_{\delta\nu}\norm{A\Xi+B\delta\nu}^2\right].
+ \label{si:scale}
+\end{align}
+等式来自 $\mathbb E[\Xi^TI\Xi]=\operatorname{tr}(I\Omega)$。$\Omega$ 是第二矩：两个正方向的均值非零，其协方差另为 $\Omega-\mathbb E[\Xi]\mathbb E[\Xi]^T$。本分布说明怎样平均 R/X 两项任务；线路的 R 和 X 各自作为待估变量，尺度不改变拟合参数范围。
+
+固定相同协方差的两个 Gaussian 均值之间，KL 距离等于白化平方距离的一半。因此 $L$ 是声明方向尺度上的\emph{平均局部 Gaussian KL}，无量纲。每个方向的 $v^TIv$ 及矩阵秩还须另存：一个方向很强即可使 trace 较大，另一个方向仍可较弱。实际边趋零时，真实小信号的平方距离也随其幅值平方缩小。
+
+在同一历史展开点加入未来计量，信息增加具有明确的矩阵方向。对任何 $v$，令共享线路调整为 $\delta\beta_{-s}$、两窗口状态调整为 $\delta w_H,\delta w_N$：
+\begin{align}
+ v^TI_{H+N}(u)v
+ &=\min_{\delta\beta_{-s},\delta w_H,\delta w_N}
+ \Bigl\{\norm{A_Hv+B_{H,\beta}\delta\beta_{-s}+B_{H,w}\delta w_H}^2\nonumber\\
+ &\hspace{25mm}+\norm{A_Nv+B_{N,\beta}\delta\beta_{-s}+B_{N,w}\delta w_N}^2\Bigr\}\nonumber\\
+ &\ge\min_{\delta\beta_{-s},\delta w_H}
+ \norm{A_Hv+B_{H,\beta}\delta\beta_{-s}+B_{H,w}\delta w_H}^2
+ =v^TI_Hv.
+ \label{si:history-monotone}
+\end{align}
+第二项非负，故 $I_{H+N}(u)-I_H\succeq0$。这是固定中心、同一参数空间的结论。
+
+EV 相对同长度无 EV 的贡献为 $\Delta I(u)=I_{H+N}(u)-I_{H+N}(0)$。两者都有未来观测，其差可以有正有负。例如，无补偿的未来导数为 $A(u)=\operatorname{diag}(1+u,1-u)$，历史信息为 $0.01I_2$；$u=1/2$ 相对零动作的差为 $\operatorname{diag}(1.25,-0.75)$。一条方向增强，同时另一条减弱。本轮使用 $L(u)-L(0)$ 作设计收益，并保存完整差矩阵。
+
+\subsection{功率价格：包含补偿的变化，也有随机改进解释}
+
+取 $SS^T=\Omega$，令 $G=AS$、$C=B^+G$、$E=G-BC$，则 $L=\tfrac12\norm{E}_F^2$。在秩固定、导数存在的邻域内，功率价格为
+\begin{equation}
+ \boxed{\pi_t=\frac{\partial L}{\partial u_t}
+ =\operatorname{tr}\!\left[E^T
+ \left(\frac{\partial G}{\partial u_t}
+       -\frac{\partial B}{\partial u_t}C\right)\right].}
+ \label{si:price}
+\end{equation}
+推导如下：微分 $E=G-BC$ 得
+$dL=\operatorname{tr}[E^T(dG-dBC-BdC)]$；最小二乘正规式 $B^TE=0$ 消去 $dC$ 项。式\eqref{si:price}同时包含信号变化 $dG$ 和补偿空间变化 $dB$。程序用完整 AC 一阶导数的小步变化计算价格，并以重新投影后的方向有限差分独立核验；秩切换保留为失败记录。
+
+$u_t$ 用 kW 时，$\pi_t$ 的单位为 kW$^{-1}$。若时段长为 $\Delta t_t$ 小时，转移小电量 $\delta E$ 从时段 $a$ 到 $b$，首阶收益为
+\begin{equation}
+ \delta L=\delta E\left(\frac{\pi_b}{\Delta t_b}-\frac{\pi_a}{\Delta t_a}\right)+o(\delta E).
+ \label{si:energy-price}
+\end{equation}
+所以同电量任务比较的是单位电量价格之差；有限功率变化应由价格沿路径的积分或重新计算的目标评价。
+
+为准确说明随机改进，先固定一个历史中心和支撑，定义
+\[Z(u,\Xi)=\tfrac12\min_{\delta\nu}\norm{A(u)\Xi+B(u)\delta\nu}^2.\]
+对合法控制方向 $d_u\in\R^4$ 和步长 $\delta$，令
+\begin{equation}
+ R_\delta(\Xi)=\frac{Z(u+\delta d_u,\Xi)-Z(u,\Xi)}{\delta},\qquad
+ \mathbb E[R_\delta]=\frac{L(u+\delta d_u)-L(u)}{\delta}
+ \ \longrightarrow\ \pi^Td_u.
+ \label{si:random-unit}
+\end{equation}
+这里 $\Xi$ 只有两个取值，可微条件下直接交换有限求和与极限。这给出价格作为\emph{随机单位改进均值的极限}的解释。若将预测负荷、源或未来计量误差也作为随机变量，交换微分与期望还需要相应的可积控制条件，并重新核查竞争重拟合；本式当前随机性来自明确声明的工程方向。
+
+\subsection{历史决定任务权重，多个合法解释保持开放}
+
+三个支撑 $s\in\{(0,1),(0,2),(1,2)\}$ 对应三个 cherry 候选。令 $F_s(H)$ 为该候选 H-only AC 拟合取得的\emph{半 SSE}。本轮任务权重由一个简洁的规划问题给出：
+\begin{align}
+ \widetilde w&=\arg\min_{a_s\ge0,\,\sum_sa_s=1}
+ \left\{\sum_sa_sF_s(H)+\tau\sum_sa_s\log(3a_s)\right\},\nonumber\\
+ \widetilde w_s&=\frac{e^{-[F_s(H)-\min_rF_r(H)]/\tau}}
+ {\sum_re^{-[F_r(H)-\min_rF_r(H)]/\tau}}.
+ \label{si:entropy-tasks}
+\end{align}
+$\tau=1$ 的单位是半 SSE。拉格朗日一阶式为
+$F_s+\tau[\log(3a_s)+1]+\lambda=0$，归一化即得右式。减去共同最小值保持权重，改善数值范围。熵项使代价相近的任务共同参与；再混入预先固定的 $\epsilon=0.15$ 均匀任务：
+\begin{equation}
+ w_s=\frac{\epsilon}{3}+(1-\epsilon)\widetilde w_s,\qquad
+ w_s\ge0.05,\quad \sum_sw_s=1.
+ \label{si:task-floor}
+\end{equation}
+这些是设计任务的优先级。其构造使用取得的历史代价及冻结温度，不包含预测密度积分，解释为拓扑概率需要另一个概率模型。三个必要目标拟合有任一个失败时，保留权重计算失败及回退，完整目标集不缩减。
+
+历史展开点也有两种明确身份。第一类来自 star 的已取得局部拟合；第二类是沿历史平坦方向扰动后，经原参数范围、电压域、AC 平衡和历史半 SSE 独立检查的可行点，保持非 MLE 身份。两次重新拟合可能回到同一点，程序仍保留尝试与重复记录。最多保留两个实际不同的线路解释，要求历史半 SSE 与最佳已取得历史代价之差不超过 6。这个门槛是计算支持规则；统计覆盖另由独立实验检查。
+
+对第 $c$ 个保留中心定义
+\begin{equation}
+ F_c(u)=\sum_sw_s\{L_{c,s}(u)-L_{c,s}(0)\},\qquad
+ \boxed{\Phi(u)=\min_c F_c(u).}
+ \label{si:robust-task}
+\end{equation}
+历史固定后 $w_s$ 固定。若随机支撑以 $w_s$ 取值，再独立抽取上述 $\Xi$，$F_c$ 就是该工程任务的平均 EV 改进。中心取最小在期望之外：它检查同一动作能否兼顾所有保留解释。中心只有一个时，程序记录实际单中心，保留多中心构造的尝试结果。记 $C_*(u)$ 为取得最小值的中心；在各中心可微的条件下，沿 $d_u$ 的单侧方向导数为
+\begin{equation}
+ D\Phi(u;d_u)=\min_{c\in C_*(u)}\nabla F_c(u)^Td_u.
+ \label{si:active-centers}
+\end{equation}
+唯一活动中心时直接使用其梯度；多个中心并列时，主 MILP 仍同时保留全部中心的仿射行。
+
+\subsection{MILP 配置与四时段解析算例}
+
+单节点 $j$ 的可行集合 $\mathcal U_j$ 包含功率、到达前缀、接入、移动耗能、SOC、效率和充电任务。本轮每段 $1/4$ 小时、上限 6 kW、任务 3 kWh，默认充电；各策略使用相同公开约束。给定当前可行功率 $u^k$，所有中心的价格 $\pi_c^k=\nabla F_c(u^k)$ 构成操作主问题
+\begin{equation}
+ \max_{u,\eta}\eta\quad\text{s.t.}\quad
+ \eta\le F_c(u^k)+(\pi_c^k)^T(u-u^k)\quad\forall c,
+ \quad u\in\mathcal U_j,\quad\norm{u-u^k}_\infty\le r_k.
+ \label{si:MILP}
+\end{equation}
+充放电互斥等离散操作由 MILP 表达。新动作重新计算完整 AC 局部信息；目标确有增加才接受，否则缩小区域。恒充和两条操作优化生成的交替种子都保留，分别报告最佳初值与后续增益。节点外层比较符合单节点范围；主曲线选择使用优化生成。MILP 最优界属于式\eqref{si:MILP}，原非线性目标的全局性质另外证明或审计。
+
+下面的小模型说明何时有收益，也展示局部停留。令 $u_t\in[0,1]$、$\sum_{t=1}^4u_t=2$ 为归一化充电任务；未来读数为 $y_t=\beta u_t+\nu_0+e_t$，精度 $\omega=(1,a,a,1)$，$a>1$。$\nu_0$ 是一个抽象共享补偿参数，其历史精度为 $c_\nu\ge0$；此说明模型保持 $\nu_0$ 共享，实际 AC 的逐时源继续自由调整。令 $W=c_\nu+2+2a$，对目标参数 $\beta$ 的单位变化有
+\begin{align}
+ I(u)&=\min_{\delta\nu_0}\left\{c_\nu\delta\nu_0^2+\sum_t\omega_t(u_t+\delta\nu_0)^2\right\}
+ =\sum_t\omega_tu_t^2-\frac{(\sum_t\omega_tu_t)^2}{W},\nonumber\\
+ \frac{\partial I}{\partial u_t}&=2\omega_t\left(u_t-\frac{\sum_s\omega_su_s}{W}\right).
+ \label{si:scalar}
+\end{align}
+以下标量例直接最大化 $I$，所列价格为 $\partial I/\partial u$；半距离权重只同比例缩放它们。最优补偿 $\delta\nu_0=-\sum_t\omega_tu_t/W$ 给出等式。信息最大化通常仍是非凸优化：这里的 $I$ 恰为凸二次函数，正在最大化它。
+
+\begin{proposition}[四时段说明模型的全局形状]
+若 $c_\nu>a-1$，两个高精度时段满充取得全局最大值；若 $c_\nu<a-1$，一低一高满充取得全局最大值；相等时两种类型并列。
+\end{proposition}
+\noindent\emph{证明。} Hessian 为 $2[\operatorname{diag}(\omega)-\omega\omega^T/W]$。加权 Cauchy 不等式给出
+$(\omega^Tz)^2\le(\sum_t\omega_t)\sum_t\omega_tz_t^2\le W\sum_t\omega_tz_t^2$，故 Hessian 半正定。凸函数在紧多面体上的最大值可以在顶点取得。该多面体的顶点有两个 1 和两个 0：两个分数坐标可一增一减，排除顶点；整数总和又排除一个分数坐标。顶点按所选权重和只有三类，值分别为
+\begin{align}
+ I_{LL}&=2-\frac4W,\quad I_{LH}=a+1-\frac{(a+1)^2}{W},\quad
+ I_{HH}=2a-\frac{4a^2}{W},\nonumber\\
+ I_{HH}-I_{LH}&=\frac{(a-1)(c_\nu+1-a)}W.
+ \label{si:three-types}
+\end{align}
+另有 $I_{LH}-I_{LL}=(a-1)(c_\nu+a-1)/W>0$，据此比较即可。这个证明归纳解析类型，整条曲线库枚举只作为独立小审计。
+
+$c_\nu=10,a=4$ 时，恒充 $(.5,.5,.5,.5)$ 的信息为 1.25，交替满充为 3.75，中间两段满充为 4.8。恒充价格为 $(.5,2,2,.5)$，一次仿射操作优化即可选中间两段。$c_\nu=0,a=4$ 时，高精度满充只有 1.6，交替为 2.5，恒充为零且梯度为零；只按精度排序会失败。$c_\nu=10$ 的交替点 $(1,0,1,0)$ 的价格为 $(1.5,-2,6,-.5)$，其仿射最大化步仍选择原点，尽管全局值 4.8 更高。这个角点反例说明，多个起点和实际目标接受能改进搜索，局部一阶停留仍须记录。
+
+\subsection{从局部信息到统计证据：条件、反例与文献背景}
+
+式\eqref{si:projection}在局部线性模型中是精确等式。要把它作为完整非线性竞争距离的二阶主项，需要 AC 分支光滑、补偿秩稳定、可识别坐标正则，以及最优补偿为 $O(\norm{\zeta})$ 并留在相同附近；远处或其他历史解释要受到另外控制。反例 $\mu(\zeta,\nu)=\zeta+\nu^2$ 在 $(0,0)$ 有 $A=1,B=0$，给出 $I=1$；但正 $\zeta$ 可由 $\mu(0,\sqrt\zeta)$ 完全解释。补偿尺度 $\sqrt\zeta$ 改变了局部阶数。这解释了为何需要完整 AC 小支路尺度审计和多个解释点。
+
+边界处，若合法的一阶补偿集合为切向锥 $K$，则
+\begin{equation}
+ \min_{\delta\nu\in K}\norm{Av+B\delta\nu}^2\ge v^TIv.
+ \label{si:cone}
+\end{equation}
+自由投影给出该局部约束距离的下界，锥距离通常没有一个统一二次矩阵。非负 R/X 边界、秩亏及多个解释的统计门限因此单独校准。
+
+在预先固定 $A,B,u$ 的线性 Gaussian 模型
+$Y=A\zeta+B\nu+e$、$e\sim N(0,I_{N_y})$ 中，令 $Q=I_{N_y}-P_B$、$S_{\rm eff}=A^TQY$，则
+\begin{equation}
+ \mathbb E[S_{\rm eff}]=I\zeta,\quad
+ \operatorname{Cov}(S_{\rm eff})=I,\quad
+ S_{\rm eff}^TI^+S_{\rm eff}\sim\chi_{r_I}^2(\zeta^TI\zeta),\quad r_I=\operatorname{rank}(I).
+ \label{si:fixed-test}
+\end{equation}
+证明是将 $I$ 的 $r_I$ 个正特征方向标准化，得到 $r_I$ 个独立单位方差 Gaussian 分量再平方相加。这里 $\chi_{r_I}^2(\lambda)$ 表示自由度 $r_I$、非中心参数 $\lambda$ 的卡方分布；$\zeta=0$ 时回到中心卡方。目标参数允许自由取值，设计未由同一随机计量挑选。非负边界及 H 依赖动作改变这些条件，本轮 AC 判定使用独立历史。
+
+固定线性条件下，还可严格把信息与小信号排错功效相连。设 $r_I\ge1$，以中心卡方的 $1-\alpha$ 分位数 $c_\alpha$ 拒绝零支路，记 $p_d=\Pr(\chi_d^2>c_\alpha)$，故 $p_{r_I}=\alpha$。非中心卡方的矩母函数为
+\begin{equation}
+ (1-2t)^{-r_I/2}e^{\lambda t/(1-2t)}
+ =e^{-\lambda/2}\sum_{k=0}^{\infty}\frac{(\lambda/2)^k}{k!}
+ (1-2t)^{-(r_I+2k)/2},\qquad t<1/2.
+ \label{si:power-mixture}
+\end{equation}
+等式由 $t/(1-2t)=\tfrac12[(1-2t)^{-1}-1]$ 及指数级数得到；右边是 Poisson$(\lambda/2)$ 混合的卡方矩母函数，故分布也相同。对拒绝事件取概率，并在 $\lambda=0$ 附近展开，得
+\begin{equation}
+ \operatorname{power}(\lambda)
+ =e^{-\lambda/2}\sum_{k=0}^{\infty}\frac{(\lambda/2)^k}{k!}p_{r_I+2k}
+ =\alpha+\tfrac12(p_{r_I+2}-\alpha)\lambda+O(\lambda^2).
+ \label{si:power-local}
+\end{equation}
+令真实小支路为 $\zeta=\gamma\Xi$，$\gamma\downarrow0$，则 $\lambda=\gamma^2\Xi^TI\Xi$。两个有限方向的平均功效满足
+\begin{equation}
+ \mathbb E_{\Xi}[\operatorname{power}]
+ =\alpha+\tfrac12(p_{r_I+2}-\alpha)\gamma^2\operatorname{tr}(I\Omega)
+ +O(\gamma^4).
+ \label{si:average-power}
+\end{equation}
+由于 $\chi_{r_I+2}^2$ 可写成 $\chi_{r_I}^2$ 加独立的 $\chi_2^2$，有 $p_{r_I+2}>\alpha$。因此，同秩、同检验水平的固定线性设计中，信息 trace 决定小信号平均排错功效的首个改进项；用 $L$ 写时，该项为 $(p_{r_I+2}-\alpha)\gamma^2L$。秩改变时需要各自的系数；有限较大信号的平均功效涉及非线性尾概率，单靠平均 $\lambda$ 无法确定。纯 X 等弱方向继续单独保存。同秩、同检验水平下，EV 相对零动作的小信号平均功效变化为
+\begin{equation}
+ \mathbb E[\operatorname{power}(u)-\operatorname{power}(0)]
+ =(p_{r_I+2}-\alpha)\gamma^2\{L(u)-L(0)\}+O(\gamma^4).
+ \label{si:power-increment}
+\end{equation}
+余项也有明确界：Poisson 混合的二阶导数为相邻尾概率的二阶差分平均乘 $1/4$。尾概率随自由度递增且位于 $[0,1]$，故二阶差分绝对值至多 1，单任务 Taylor 余项绝对值至多 $\lambda^2/8$；方向平均后至多 $\gamma^4\mathbb E[(\Xi^TI\Xi)^2]/8$。
+固定 $r_I=2,\alpha=.1$ 时，所有任务 $\lambda=5$ 的功效为 $.62835$；一半 $\lambda=0$、一半 $\lambda=10$ 的平均功效为 $.49366$，平均信号同为 5。这个有限信号反例及余项已由 21 项独立数值检查核对；Poisson 和的遗漏质量给出级数截断界；浮点计算另与独立尾概率核对，最大差约 $8.1\times10^{-15}$。
+本推导为独立代数结论，实际 AC、历史自适应动作及非负边界仍使用下述独立校准流程。
+
+proper 预测信息增益还要求完整预测概率模型：
+\begin{align}
+ \operatorname{EIG}(u)&=\mathbb E_Y\!\left[
+ D_{\rm KL}\{p(K\mid H,Y,u)\,\|\,p(K\mid H)\}\right],\nonumber\\
+ p(Y\mid K,H,u)&=\int p(Y\mid K,\theta,H,u)p(\theta\mid K,H)\,d\theta.
+ \label{si:EIG}
+\end{align}
+$K$ 是拓扑标签，$\theta$ 包含该概率模型的连续未知量。本节的 $\Omega,w_s$ 声明工程设计任务，投影信息有局部距离含义；式\eqref{si:EIG}则积分预测密度和拓扑后验。两种对象各自检验，距离分数与实际排错的相关性也单独报告。
+
+正式策略冻结后，用 $n_C=39$ 个独立历史校准。每条历史运行全部策略，以真候选相对最优候选的\emph{完整 SSE}差的最大值为 $S_i$；必要计算失败保留为 $+\infty$。门限取第
+\begin{align}
+ k&=\lceil(n_C+1)(1-\alpha)\rceil=36,\qquad
+ \kappa_\alpha=S_{(36)},\nonumber\\
+ \Pr(S_{\rm new}>\kappa_\alpha)&\le\frac{40-36}{40}=0.10.
+ \label{si:rank-calibration}
+\end{align}
+式\eqref{si:rank-calibration}来自冻结流程下校准与新历史的交换秩；它针对声明模拟混合中的边际风险。全部策略已纳入同一个最大统计量，最终按各候选完整 AC 联合代价判定；候选漏真另计，计算失败保留全部现有候选。39 条校准全部完成，门限为 $2.9617106$；独立重放重新取得相同第 36 个值。80 条独立评价全部保存，全部策略完成79条，另1条保留恒充拟合失败；具体结果见下一小节。Pilot 三种质量条件共用同一历史，统计单位按历史聚合。
+
+采样质量提供一个提前可知的时间差异。每格 $(t,j)$ 的稳态原始读数独立平均 $m_{t,j}$ 次时，随机标准差为 $\sigma_0/\sqrt{m_{t,j}}$，固定偏差保持原值。三种 V 计划为每格 5 次、每末端 $[1,9,9,1]$ 次，以及
+\begin{equation}
+ (m_{t,j})_{t,j}=\begin{pmatrix}9&1&1\\1&9&1\\1&1&9\\9&9&9\end{pmatrix},
+ \qquad\sum_{t,j}m_{t,j}=60.
+ \label{si:public-quality}
+\end{equation}
+P/Q 和根总表每槽均平均 5 次，全部策略共享同一实际质量、背景和标准化未来噪声；异质计划作独立公开行置换。未来背景目前采用 H-only 均值，因此本轮时间选择检验的是已知计量质量与模型响应的配合。最佳负荷时段需要另行验证可信的逐时负荷、源预测。相关读数会改变平均误差公式，须以单独失配条件检验。
+
+Dette--Titoff\cite{dette}第 2 节式 (2.2)--(2.4)和第 3 节定理 3.1提供嵌套模型局部信息、共享参数补偿及判别设计的联系；第 4.2 节式 (4.1)--(4.2)保留竞争参数优化的 KL 设计次序。本节工程尺度、历史任务平均、多个解释中心及功率价格为自行推导。
+\href{https://www.stat.cmu.edu/~brian/763-2015/week06/papers/self-liang-1987.pdf}{Self--Liang (1987)}第 2 节定理 2及第 3 节定理 3、Cases 5--7说明边界下的 Gaussian 锥投影；其正定信息和固定维度条件需要对应核查。
+\href{https://arxiv.org/pdf/1802.06027}{Cavraro--Kekatos 的探测论文}所读版本为 arXiv v3（2019 年修订，2018 年首次提交）；第 II-B、III 节及定理 1提供线性配电模型的注入--电压灵敏度与指定计量覆盖下的恢复背景。正文定位记录保存于 \texttt{structured\_information\_literature.json}。完整 AC、局部边界、优化质量及实际排错的证据由本轮相应推导和独立实验给出。
+
+% Root adds independently evaluated results after this theory fragment.

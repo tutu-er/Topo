@@ -1,0 +1,310 @@
+{
+  "config": {
+    "sample_count": 100000,
+    "seed": 17031013,
+    "mc_standard_errors": 6.0,
+    "dimension": 6,
+    "historical_rows": 2,
+    "future_covariance": "identity",
+    "history_covariance": "zero",
+    "monte_carlo_usage": "independent_audit_only"
+  },
+  "config_sha256": "bfd53ecba874b4d037c26e38eaf9f0c75701b968a550c666975bf76620143c77",
+  "source_sha256": {
+    "gradient_price_theory_checks.py": "6f55b1297d6e874ef38c98a1f9ac0d78e1b5fc710c808ce8ab47087497407631",
+    "test_gradient_price_theory_checks.py": "35a5b9abb8af931e52614efd9933668955424df1acc17f5c850b25e9de50069c"
+  },
+  "created_utc": "2026-10-13T14:28:39.162439+00:00",
+  "environment": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "assumptions": {
+    "projection": "fixed symmetric idempotent fitting projection",
+    "noise": "zero-mean Gaussian with control-independent covariance",
+    "boundary": "changing active face is a separate counterexample",
+    "llr": "two fixed Gaussian models, not joint re-fitting",
+    "gradient": "limit of the expectation of coupled unit finite increments",
+    "energy": "net grid energy fixed; efficiencies/SOC constrain which transfers are feasible"
+  },
+  "projection_moments": {
+    "reference": {
+      "mean": 2.568716513613662,
+      "variance": 3.147777667356425,
+      "linear_variance": 1.9465304017077558,
+      "quadratic_variance": 1.2012472656486688,
+      "mean_prediction_loss": 1.1614741197643397,
+      "noise_offset": 1.4072423938493224
+    },
+    "margin": {
+      "mean": -0.19777086815271216,
+      "variance": 1.5336963428701418,
+      "linear_variance": 1.0971944571439691,
+      "quadratic_variance": 0.4365018857261726,
+      "mean_prediction_margin": 0.42094741022202653,
+      "noise_offset": -0.6187182783747387
+    },
+    "checks": {
+      "reference_mean": {
+        "expected": 2.568716513613662,
+        "estimate": 2.5656513281673767,
+        "standard_error": 0.005593304794150177,
+        "difference": -0.0030651854462853123,
+        "tolerance": 0.03355982877490107,
+        "passed": true
+      },
+      "reference_variance": {
+        "expected": 3.147777667356425,
+        "estimate": 3.128483962329635,
+        "standard_error": 0.020952160408215216,
+        "difference": -0.01929370502678962,
+        "tolerance": 0.1257129624592913,
+        "passed": true
+      },
+      "margin_mean": {
+        "expected": -0.19777086815271216,
+        "estimate": -0.1964049391211504,
+        "standard_error": 0.003918041329377946,
+        "difference": 0.001365929031561769,
+        "tolerance": 0.023508247986267675,
+        "passed": true
+      },
+      "margin_variance": {
+        "expected": 1.5336963428701418,
+        "estimate": 1.5350913005856315,
+        "standard_error": 0.00898200673569745,
+        "difference": 0.0013949577154896975,
+        "tolerance": 0.0538920404241847,
+        "passed": true
+      }
+    }
+  },
+  "projection_prices": {
+    "analytic": [
+      -0.11704344336996271,
+      -0.16888247278029034
+    ],
+    "expected_central_difference": [
+      -0.1170434433928058,
+      -0.16888247273971757
+    ],
+    "mean_central_difference": [
+      -0.1170434433928058,
+      -0.16888247273971757
+    ],
+    "monte_carlo": [
+      {
+        "expected": -0.11704344336996271,
+        "estimate": -0.11659019262853952,
+        "standard_error": 0.0017426861990203911,
+        "difference": 0.000453250741423189,
+        "tolerance": 0.010456117204122348,
+        "passed": true
+      },
+      {
+        "expected": -0.16888247278029034,
+        "estimate": -0.1691132012273152,
+        "standard_error": 0.0003712880704549933,
+        "difference": -0.00023072844702487494,
+        "tolerance": 0.0022277284327299595,
+        "passed": true
+      }
+    ],
+    "deterministic_check": true
+  },
+  "unit_random_increments": [
+    {
+      "delta": 0.1,
+      "analytic_price": -0.11704344336996271,
+      "finite_increment_mean": -0.1381563165691006,
+      "finite_to_price_error": -0.02111287319913789,
+      "common_random_numbers": true,
+      "check": {
+        "expected": -0.1381563165691006,
+        "estimate": -0.13770306582767694,
+        "standard_error": 0.0017426861990203911,
+        "difference": 0.00045325074142366084,
+        "tolerance": 0.010456117204122348,
+        "passed": true
+      }
+    },
+    {
+      "delta": 0.03,
+      "analytic_price": -0.11704344336996271,
+      "finite_increment_mean": -0.12337730532970408,
+      "finite_to_price_error": -0.006333861959741366,
+      "common_random_numbers": true,
+      "check": {
+        "expected": -0.12337730532970408,
+        "estimate": -0.12292405458827826,
+        "standard_error": 0.0017426861990203907,
+        "difference": 0.0004532507414258119,
+        "tolerance": 0.010456117204122345,
+        "passed": true
+      }
+    },
+    {
+      "delta": 0.01,
+      "analytic_price": -0.11704344336996271,
+      "finite_increment_mean": -0.1191547306898765,
+      "finite_to_price_error": -0.0021112873199137933,
+      "common_random_numbers": true,
+      "check": {
+        "expected": -0.1191547306898765,
+        "estimate": -0.11870147994844872,
+        "standard_error": 0.0017426861990204002,
+        "difference": 0.00045325074142778254,
+        "tolerance": 0.010456117204122402,
+        "passed": true
+      }
+    },
+    {
+      "delta": 0.003,
+      "analytic_price": -0.11704344336996271,
+      "finite_increment_mean": -0.11767682956593685,
+      "finite_to_price_error": -0.0006333861959741394,
+      "common_random_numbers": true,
+      "check": {
+        "expected": -0.11767682956593685,
+        "estimate": -0.11722357882450232,
+        "standard_error": 0.001742686199020385,
+        "difference": 0.00045325074143452715,
+        "tolerance": 0.01045611720412231,
+        "passed": true
+      }
+    }
+  ],
+  "active_boundary": [
+    {
+      "u": -1.0,
+      "mean_prediction_loss": 0.0,
+      "mean_prediction_price": 0.0,
+      "expected_loss": 0.03766989167188539,
+      "expected_price": 0.08331547058768629,
+      "loss_check": {
+        "expected": 0.03766989167188539,
+        "estimate": 0.038933962580445014,
+        "standard_error": 0.0005881310288178574,
+        "difference": 0.0012640709085596225,
+        "tolerance": 0.003528786182907144,
+        "passed": true
+      },
+      "price_check": {
+        "expected": 0.08331547058768629,
+        "estimate": 0.08522933179976785,
+        "standard_error": 0.000840265387885144,
+        "difference": 0.0019138612120815635,
+        "tolerance": 0.005041592337310864,
+        "passed": true
+      }
+    },
+    {
+      "u": 0.0,
+      "mean_prediction_loss": 0.0,
+      "mean_prediction_price": 0.0,
+      "expected_loss": 0.25,
+      "expected_price": 0.3989422804014327,
+      "loss_check": {
+        "expected": 0.25,
+        "estimate": 0.2535391979040688,
+        "standard_error": 0.0017994543196628169,
+        "difference": 0.0035391979040688137,
+        "tolerance": 0.010796725927976902,
+        "passed": true
+      },
+      "price_check": {
+        "expected": 0.3989422804014327,
+        "estimate": 0.40114374907499156,
+        "standard_error": 0.0018605524718257693,
+        "difference": 0.0022014686735588596,
+        "tolerance": 0.011163314840954617,
+        "passed": true
+      }
+    },
+    {
+      "u": 1.0,
+      "mean_prediction_loss": 0.5,
+      "mean_prediction_price": 1.0,
+      "expected_loss": 0.9623301083281146,
+      "expected_price": 1.0833154705876864,
+      "loss_check": {
+        "expected": 0.9623301083281146,
+        "estimate": 0.9681811837723214,
+        "standard_error": 0.003967214353903751,
+        "difference": 0.005851075444206821,
+        "tolerance": 0.02380328613342251,
+        "passed": true
+      },
+      "price_check": {
+        "expected": 1.0833154705876864,
+        "estimate": 1.086101975617725,
+        "standard_error": 0.002750913364008859,
+        "difference": 0.002786505030038633,
+        "tolerance": 0.016505480194053155,
+        "passed": true
+      }
+    }
+  ],
+  "fixed_gaussian_llr": {
+    "analytic": {
+      "gamma": 1.0,
+      "KL": 0.5,
+      "llr_mean": 0.5,
+      "llr_variance": 1.0,
+      "equal_prior_error": 0.3085375387259869
+    },
+    "checks": {
+      "mean": {
+        "expected": 0.5,
+        "estimate": 0.5019106717113841,
+        "standard_error": 0.003172454759438075,
+        "difference": 0.0019106717113841487,
+        "tolerance": 0.01903472856662845,
+        "passed": true
+      },
+      "variance": {
+        "expected": 1.0,
+        "estimate": 1.0064405062653177,
+        "standard_error": 0.004509517205262133,
+        "difference": 0.006440506265317669,
+        "tolerance": 0.0270571032415728,
+        "passed": true
+      },
+      "equal_prior_error": {
+        "expected": 0.3085375387259869,
+        "estimate": 0.30774,
+        "standard_error": 0.0014595828951526797,
+        "difference": -0.0007975387259868683,
+        "tolerance": 0.00875749738091608,
+        "passed": true
+      }
+    }
+  },
+  "equal_energy_transfer": {
+    "power_price": [
+      2.0,
+      3.0
+    ],
+    "dt_hours": [
+      0.25,
+      0.5
+    ],
+    "source_slot": 0,
+    "destination_slot": 1,
+    "price_per_kwh": -2.0,
+    "energy_transfer_kwh": 0.01,
+    "power_change_kw": [
+      -0.04,
+      0.02
+    ],
+    "energy_change_kwh": 0.0,
+    "score_change_linear": -0.020000000000000004,
+    "predicted_score_change": -0.02,
+    "passed": true
+  },
+  "monte_carlo_check_count": 19,
+  "monte_carlo_failure_count": 0,
+  "passed": true,
+  "affects_policy_or_thresholds": false
+}

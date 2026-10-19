@@ -1,0 +1,102 @@
+{
+  "version": 6,
+  "central_claim": "shared cross-output source errors and shared historical R can retain usable local EV response",
+  "synthetic_model": "exact declared linear squared-drop working model; no nonlinear AC/device dynamics",
+  "source_location": "fixed common-trunk endpoint; g=a*ones(3), not arbitrary hidden position",
+  "source_nominal_pu": 0.12,
+  "source_deviation_budget_pu": 0.1,
+  "actual_deviation_generation": [
+    -0.02,
+    0.02
+  ],
+  "candidates": {
+    "cherry12": [
+      0,
+      1
+    ],
+    "cherry13": [
+      0,
+      2
+    ],
+    "cherry23": [
+      1,
+      2
+    ]
+  },
+  "coefficient_box": [
+    [
+      0.01,
+      0.05
+    ],
+    [
+      0.005,
+      0.03
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ],
+    [
+      0.01,
+      0.12
+    ]
+  ],
+  "coefficient_units": "squared-voltage pu / power pu; includes factor 2",
+  "p_background_pu": [
+    0.2,
+    0.2,
+    0.2
+  ],
+  "q_background_pu": 0.0,
+  "p_only": true,
+  "old_samples": 12,
+  "new_samples": 24,
+  "interval_hours": 0.25,
+  "power_base_kw": 10.0,
+  "constant_ev_kw": 1.5,
+  "abba_ev_kw": [
+    0.0,
+    3.0,
+    3.0,
+    0.0
+  ],
+  "grid_energy_kwh": 9.0,
+  "device": {
+    "rated_charge_kw": 3.0,
+    "unidirectional": true,
+    "q_kvar": 0.0,
+    "fixed_port": 1,
+    "slot_change_limit_kw": 3.0,
+    "slot_average_minutes": 15,
+    "instantaneous_tracking_assumed": false,
+    "battery_capacity_kwh": 50.0,
+    "charging_efficiency": 0.95,
+    "initial_soc": 0.4,
+    "soc_limits": [
+      0.2,
+      0.9
+    ],
+    "battery_added_kwh": 8.55,
+    "final_soc": 0.571
+  },
+  "drop_error_bound": 1e-05,
+  "evaluation_noise": "independent uniform within +/-0.8 declared coordinate bound",
+  "seeds": [
+    1201,
+    1202,
+    1203
+  ],
+  "exploration_seed": 71,
+  "information_timing": "fixed port1/protocol before evaluation; no policy selected from heldout truth",
+  "reset_comparison": "same old+new observations; independent R per batch; max batch slack",
+  "new_only_comparison": "less information; separately labelled",
+  "source_hash": "cf09f03749298701f723e14924f889c903b96487ecd5345e558fc591c4ad06d5",
+  "python": "3.11.15",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "objective": "minimum extra max absolute squared-drop residual beyond measurement box; no probability inferred"
+}

@@ -1,0 +1,974 @@
+{
+  "scope": "linear toy; not AC, topology accuracy, calibrated test power, or EIG",
+  "score_definition": "SSE: squared whitened residual norm; not half-SSE",
+  "experiment": "future power profiling can reverse an MILP optimized EV timing",
+  "config": {
+    "n_slots": 2,
+    "n_sites": 1,
+    "dt_hours": 1.0,
+    "p_max_kw": 6.0,
+    "p_discharge_max_kw": 6.0,
+    "net_grid_energy_kwh": 6.0,
+    "battery_capacity_kwh": 60.0,
+    "initial_soc": 0.4,
+    "soc_min": 0.1,
+    "soc_max": 0.9,
+    "eta_charge": 1.0,
+    "eta_discharge": 1.0,
+    "initial_site": 0,
+    "access": null,
+    "travel_slots": 1,
+    "travel_energy_kwh": 0.0,
+    "travel_allowed": null,
+    "allow_discharge": false,
+    "max_throughput_kwh": 6.0,
+    "terminal_energy_kwh": null,
+    "terminal_site": null,
+    "require_terminal_connection": true
+  },
+  "environment": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\future_power_metric_check.py": "7a9b39561bd0be55c2cf6e21519bd90e3cd0881c3a27ffb039d8eae41818c0e1",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\test_future_power_metric_check.py": "02c249805cd8b4d787766a77daf9622ab20ca7266b21fa7015d102c23cdea189"
+  },
+  "matrix_hashes": {
+    "fixed_future_PQ": "bbc48a73641430572fac653e4faf3cba91def5d5fa4b39cd826868c8d8f8d408",
+    "profiled_future_PQ": "9fcc91a42c69f6e3804a73b925039a738762f2a6d3a5d6958e8f60c5b82780f0",
+    "shared_line_with_history": "980557b3976b6d1e41f8ea1347379255c9db074fd597e57a6c1dfd70a007343f",
+    "offset_center_-6": "194cc5671cc3366eb209bd41edb0178a3b1766d293991a9d50b6c059c5117912",
+    "offset_center_6": "0110567669bc3e4b962efc016ccc38dc20dd63cebb1c765939b0d5475f97bff7"
+  },
+  "fixed_milp": {
+    "success": true,
+    "status": "proxy_gap_met",
+    "proxy_lower": 144.00000000000475,
+    "proxy_upper": 144.00000000000637,
+    "absolute_gap": 1.6200374375330284e-12,
+    "relative_gap": 1.1250259982867882e-14,
+    "records": [
+      {
+        "origin": "operations_seed",
+        "u_kw": [
+          [
+            0.0
+          ],
+          [
+            6.0
+          ]
+        ],
+        "q_lower": 80.99999999999767,
+        "q_upper": 81.0,
+        "pair_values": [
+          {
+            "name": "fixed_future_PQ",
+            "q_lower": 80.99999999999767,
+            "q_upper": 81.0,
+            "numeric_gap": 2.3305801732931286e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "declared_initial_vector",
+        "u_kw": [
+          [
+            3.0
+          ],
+          [
+            3.0
+          ]
+        ],
+        "q_lower": 56.24999999999837,
+        "q_upper": 56.25,
+        "pair_values": [
+          {
+            "name": "fixed_future_PQ",
+            "q_lower": 56.24999999999837,
+            "q_upper": 56.25,
+            "numeric_gap": 1.6271428648906294e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "lower_0",
+        "u_kw": [
+          [
+            6.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "q_lower": 143.99999999999588,
+        "q_upper": 144.0,
+        "pair_values": [
+          {
+            "name": "fixed_future_PQ",
+            "q_lower": 143.99999999999588,
+            "q_upper": 144.0,
+            "numeric_gap": 4.121147867408581e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "upper_0",
+        "u_kw": [
+          [
+            6.000000000000185
+          ],
+          [
+            -1.8474111129762605e-13
+          ]
+        ],
+        "q_lower": 144.00000000000475,
+        "q_upper": 144.00000000000887,
+        "pair_values": [
+          {
+            "name": "fixed_future_PQ",
+            "q_lower": 144.00000000000475,
+            "q_upper": 144.00000000000887,
+            "numeric_gap": 4.121147867408581e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      }
+    ],
+    "solver_records": [
+      {
+        "kind": "direction_lower",
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "incumbent": 9.599999999999543,
+        "bound": 9.599999999999543,
+        "mip_gap": 0.0,
+        "mip_nodes": 1,
+        "variables": 15,
+        "rows": 19
+      },
+      {
+        "kind": "secant_upper",
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "incumbent": 144.00000000000637,
+        "bound": 144.00000000000637,
+        "mip_gap": 0.0,
+        "mip_nodes": 1,
+        "variables": 24,
+        "rows": 26
+      }
+    ],
+    "failures": [],
+    "qp_count": 4,
+    "cut_counts": [
+      4
+    ],
+    "witness_counts": [
+      1
+    ],
+    "final_segments": 2,
+    "pair_hashes": {
+      "fixed_future_PQ": "bbc48a73641430572fac653e4faf3cba91def5d5fa4b39cd826868c8d8f8d408"
+    },
+    "seconds": 0.02609539998229593,
+    "seed": 0,
+    "enumerated_complete_actions": 0,
+    "bound_scope": "declared frozen linearized proxy only; not complete nonlinear AC",
+    "selector_uses_truth": false,
+    "selector_uses_future_noise": false,
+    "plan": {
+      "arcs": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ],
+      "p_plus_kw": [
+        [
+          6.000000000000185
+        ],
+        [
+          -1.8474111129762605e-13
+        ]
+      ],
+      "p_minus_kw": [
+        [
+          0.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "u_kw": [
+        [
+          6.000000000000185
+        ],
+        [
+          -1.8474111129762605e-13
+        ]
+      ],
+      "energy_kwh": [
+        24.0,
+        30.000000000000185,
+        30.0
+      ]
+    },
+    "operations_audit": {
+      "feasible": true,
+      "issues": [],
+      "max_violation": 1.8474111129762605e-13,
+      "sites": [
+        0,
+        0
+      ],
+      "grid_energy_kwh": 6.0,
+      "throughput_kwh": 6.0,
+      "travel_energy_kwh": 0.0,
+      "energy_kwh": [
+        24.0,
+        30.000000000000185,
+        30.0
+      ],
+      "soc": [
+        0.4,
+        0.5000000000000031,
+        0.5
+      ],
+      "route": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ]
+    }
+  },
+  "profiled_milp": {
+    "success": true,
+    "status": "proxy_gap_met",
+    "proxy_lower": 80.19801980197794,
+    "proxy_upper": 80.1980198019828,
+    "absolute_gap": 4.860112312599085e-12,
+    "relative_gap": 6.060140044105203e-14,
+    "records": [
+      {
+        "origin": "operations_seed",
+        "u_kw": [
+          [
+            0.0
+          ],
+          [
+            6.0
+          ]
+        ],
+        "q_lower": 80.1980198019779,
+        "q_upper": 80.19801980198021,
+        "pair_values": [
+          {
+            "name": "profiled_future_PQ",
+            "q_lower": 80.1980198019779,
+            "q_upper": 80.19801980198021,
+            "numeric_gap": 2.3021584638627246e-12,
+            "optimality": 1.1102230246251565e-16,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "declared_initial_vector",
+        "u_kw": [
+          [
+            3.0
+          ],
+          [
+            3.0
+          ]
+        ],
+        "q_lower": 22.167152009317885,
+        "q_upper": 22.16715200931858,
+        "pair_values": [
+          {
+            "name": "profiled_future_PQ",
+            "q_lower": 22.167152009317885,
+            "q_upper": 22.16715200931858,
+            "numeric_gap": 6.963318810448982e-13,
+            "optimality": 2.220446049250313e-15,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "upper_0",
+        "u_kw": [
+          [
+            -8.881784197001252e-16
+          ],
+          [
+            6.000000000000001
+          ]
+        ],
+        "q_lower": 80.19801980197794,
+        "q_upper": 80.19801980198024,
+        "pair_values": [
+          {
+            "name": "profiled_future_PQ",
+            "q_lower": 80.19801980197794,
+            "q_upper": 80.19801980198024,
+            "numeric_gap": 2.3021584638627246e-12,
+            "optimality": 7.395570986446986e-31,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      }
+    ],
+    "solver_records": [
+      {
+        "kind": "direction_lower",
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "incumbent": 8.955334711889622,
+        "bound": 8.955334711889622,
+        "mip_gap": 0.0,
+        "mip_nodes": 1,
+        "variables": 15,
+        "rows": 19
+      },
+      {
+        "kind": "secant_upper",
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "incumbent": 80.1980198019828,
+        "bound": 80.1980198019828,
+        "mip_gap": 0.0,
+        "mip_nodes": 1,
+        "variables": 36,
+        "rows": 37
+      }
+    ],
+    "failures": [],
+    "qp_count": 3,
+    "cut_counts": [
+      3
+    ],
+    "witness_counts": [
+      2
+    ],
+    "final_segments": 2,
+    "pair_hashes": {
+      "profiled_future_PQ": "9fcc91a42c69f6e3804a73b925039a738762f2a6d3a5d6958e8f60c5b82780f0"
+    },
+    "seconds": 0.024441099958494306,
+    "seed": 0,
+    "enumerated_complete_actions": 0,
+    "bound_scope": "declared frozen linearized proxy only; not complete nonlinear AC",
+    "selector_uses_truth": false,
+    "selector_uses_future_noise": false,
+    "plan": {
+      "arcs": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ],
+      "p_plus_kw": [
+        [
+          -8.881784197001252e-16
+        ],
+        [
+          6.000000000000001
+        ]
+      ],
+      "p_minus_kw": [
+        [
+          0.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "u_kw": [
+        [
+          -8.881784197001252e-16
+        ],
+        [
+          6.000000000000001
+        ]
+      ],
+      "energy_kwh": [
+        24.0,
+        24.0,
+        30.0
+      ]
+    },
+    "operations_audit": {
+      "feasible": true,
+      "issues": [],
+      "max_violation": 8.881784197001252e-16,
+      "sites": [
+        0,
+        0
+      ],
+      "grid_energy_kwh": 6.0,
+      "throughput_kwh": 6.0,
+      "travel_energy_kwh": 0.0,
+      "energy_kwh": [
+        24.0,
+        24.0,
+        30.0
+      ],
+      "soc": [
+        0.4,
+        0.4,
+        0.5
+      ],
+      "route": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ]
+    }
+  },
+  "multi_center_milp": {
+    "success": true,
+    "status": "proxy_gap_met",
+    "proxy_lower": 35.99999999999895,
+    "proxy_upper": 36.0,
+    "absolute_gap": 1.0516032489249483e-12,
+    "relative_gap": 2.9211201359027196e-14,
+    "records": [
+      {
+        "origin": "operations_seed",
+        "u_kw": [
+          [
+            0.0
+          ],
+          [
+            6.0
+          ]
+        ],
+        "q_lower": 0.0,
+        "q_upper": 0.0,
+        "pair_values": [
+          {
+            "name": "offset_center_-6",
+            "q_lower": 143.99999999999588,
+            "q_upper": 144.0,
+            "numeric_gap": 4.121147867408581e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          },
+          {
+            "name": "offset_center_6",
+            "q_lower": 0.0,
+            "q_upper": 0.0,
+            "numeric_gap": 0.0,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "declared_initial_vector",
+        "u_kw": [
+          [
+            3.0
+          ],
+          [
+            3.0
+          ]
+        ],
+        "q_lower": 35.99999999999895,
+        "q_upper": 36.0,
+        "pair_values": [
+          {
+            "name": "offset_center_-6",
+            "q_lower": 35.99999999999895,
+            "q_upper": 36.0,
+            "numeric_gap": 1.0516032489249483e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          },
+          {
+            "name": "offset_center_6",
+            "q_lower": 35.99999999999895,
+            "q_upper": 36.0,
+            "numeric_gap": 1.0516032489249483e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      },
+      {
+        "origin": "lower_0",
+        "u_kw": [
+          [
+            3.0000000000000004
+          ],
+          [
+            2.9999999999999996
+          ]
+        ],
+        "q_lower": 35.99999999999894,
+        "q_upper": 35.99999999999999,
+        "pair_values": [
+          {
+            "name": "offset_center_-6",
+            "q_lower": 35.99999999999894,
+            "q_upper": 35.99999999999999,
+            "numeric_gap": 1.0516032489249483e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          },
+          {
+            "name": "offset_center_6",
+            "q_lower": 35.99999999999896,
+            "q_upper": 36.000000000000014,
+            "numeric_gap": 1.0516032489249483e-12,
+            "optimality": 0.0,
+            "acceleration": "full_BVLS"
+          }
+        ]
+      }
+    ],
+    "solver_records": [
+      {
+        "kind": "direction_lower",
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "incumbent": 5.999999999999455,
+        "bound": 5.999999999999455,
+        "mip_gap": 0.0,
+        "mip_nodes": 1,
+        "variables": 16,
+        "rows": 21
+      },
+      {
+        "kind": "secant_upper",
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "incumbent": 35.999999999999964,
+        "bound": 36.0,
+        "mip_gap": 8.881784197889439e-16,
+        "mip_nodes": 1,
+        "variables": 24,
+        "rows": 27
+      }
+    ],
+    "failures": [],
+    "qp_count": 6,
+    "cut_counts": [
+      2,
+      2
+    ],
+    "witness_counts": [
+      1,
+      1
+    ],
+    "final_segments": 2,
+    "pair_hashes": {
+      "offset_center_-6": "194cc5671cc3366eb209bd41edb0178a3b1766d293991a9d50b6c059c5117912",
+      "offset_center_6": "0110567669bc3e4b962efc016ccc38dc20dd63cebb1c765939b0d5475f97bff7"
+    },
+    "seconds": 0.027932099997997284,
+    "seed": 0,
+    "enumerated_complete_actions": 0,
+    "bound_scope": "declared frozen linearized proxy only; not complete nonlinear AC",
+    "selector_uses_truth": false,
+    "selector_uses_future_noise": false,
+    "plan": {
+      "arcs": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ],
+      "p_plus_kw": [
+        [
+          3.0
+        ],
+        [
+          3.0
+        ]
+      ],
+      "p_minus_kw": [
+        [
+          0.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "u_kw": [
+        [
+          3.0
+        ],
+        [
+          3.0
+        ]
+      ],
+      "energy_kwh": [
+        24.0,
+        27.0,
+        30.0
+      ]
+    },
+    "operations_audit": {
+      "feasible": true,
+      "issues": [],
+      "max_violation": 0.0,
+      "sites": [
+        0,
+        0
+      ],
+      "grid_energy_kwh": 6.0,
+      "throughput_kwh": 6.0,
+      "travel_energy_kwh": 0.0,
+      "energy_kwh": [
+        24.0,
+        27.0,
+        30.0
+      ],
+      "soc": [
+        0.4,
+        0.45,
+        0.5
+      ],
+      "route": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ]
+    }
+  },
+  "constant_charge_baseline": {
+    "plan": {
+      "arcs": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ],
+      "p_plus_kw": [
+        [
+          3.0
+        ],
+        [
+          3.0
+        ]
+      ],
+      "p_minus_kw": [
+        [
+          0.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "u_kw": [
+        [
+          3.0
+        ],
+        [
+          3.0
+        ]
+      ],
+      "energy_kwh": [
+        24.0,
+        27.0,
+        30.0
+      ]
+    },
+    "operations_audit": {
+      "feasible": true,
+      "issues": [],
+      "max_violation": 0.0,
+      "sites": [
+        0,
+        0
+      ],
+      "grid_energy_kwh": 6.0,
+      "throughput_kwh": 6.0,
+      "travel_energy_kwh": 0.0,
+      "energy_kwh": [
+        24.0,
+        27.0,
+        30.0
+      ],
+      "soc": [
+        0.4,
+        0.45,
+        0.5
+      ],
+      "route": [
+        {
+          "departure": 0,
+          "arrival": 1,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        },
+        {
+          "departure": 1,
+          "arrival": 2,
+          "origin": 0,
+          "destination": 0,
+          "travel_energy_kwh": 0.0
+        }
+      ]
+    },
+    "fixed_metric": {
+      "success": true,
+      "status": 3,
+      "q_lower": 56.24999999999837,
+      "q_upper": 56.25,
+      "numeric_gap": 1.6271428648906294e-12,
+      "optimality": 0.0,
+      "roundoff_guard": 1.6271428648906294e-12,
+      "z": [],
+      "acceleration": "full_BVLS",
+      "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+    },
+    "profiled_metric": {
+      "success": true,
+      "status": 3,
+      "q_lower": 22.167152009317885,
+      "q_upper": 22.16715200931858,
+      "numeric_gap": 6.963318810448982e-13,
+      "optimality": 2.220446049250313e-15,
+      "roundoff_guard": 6.584500627388542e-13,
+      "z": [
+        -1.4117647058823528,
+        -0.44554455445544566
+      ],
+      "acceleration": "full_BVLS",
+      "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+    }
+  },
+  "gain_vs_constant_charge": {
+    "fixed_metric": {
+      "gain_lower": 87.75000000000475,
+      "gain_upper": 87.75000000001049,
+      "selected_point_qp": {
+        "success": true,
+        "status": 3,
+        "q_lower": 144.00000000000475,
+        "q_upper": 144.00000000000887,
+        "numeric_gap": 4.121147867408581e-12,
+        "optimality": 0.0,
+        "roundoff_guard": 4.121147867408833e-12,
+        "z": [],
+        "acceleration": "full_BVLS",
+        "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+      },
+      "interval_scope": "same selected control QP bounds minus baseline QP bounds",
+      "global_optimum_gain_upper": 87.75000000000799
+    },
+    "profiled_metric": {
+      "gain_lower": 58.03086779265935,
+      "gain_upper": 58.03086779266235,
+      "selected_point_qp": {
+        "success": true,
+        "status": 3,
+        "q_lower": 80.19801980197794,
+        "q_upper": 80.19801980198024,
+        "numeric_gap": 2.3021584638627246e-12,
+        "optimality": 7.395570986446986e-31,
+        "roundoff_guard": 2.307786525136073e-12,
+        "z": [
+          4.1796631515300015e-16,
+          -0.8910891089108914
+        ],
+        "acceleration": "full_BVLS",
+        "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+      },
+      "interval_scope": "same selected control QP bounds minus baseline QP bounds",
+      "global_optimum_gain_upper": 58.03086779266491
+    },
+    "fixed_selected_under_profiled_metric": {
+      "gain_lower": -13.696563774024337,
+      "gain_upper": -13.696563774023245
+    }
+  },
+  "cross_evaluation": {
+    "fixed_selected": {
+      "fixed_metric": {
+        "success": true,
+        "status": 3,
+        "q_lower": 144.00000000000475,
+        "q_upper": 144.00000000000887,
+        "numeric_gap": 4.121147867408581e-12,
+        "optimality": 0.0,
+        "roundoff_guard": 4.121147867408833e-12,
+        "z": [],
+        "acceleration": "full_BVLS",
+        "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+      },
+      "profiled_metric": {
+        "success": true,
+        "status": 3,
+        "q_lower": 8.470588235294244,
+        "q_upper": 8.47058823529464,
+        "numeric_gap": 3.9612757518625585e-13,
+        "optimality": 4.884981308350689e-15,
+        "roundoff_guard": 2.691703069585505e-13,
+        "z": [
+          -2.823529411764793,
+          2.743679870756823e-14
+        ],
+        "acceleration": "full_BVLS",
+        "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+      }
+    },
+    "free_selected": {
+      "fixed_metric": {
+        "success": true,
+        "status": 3,
+        "q_lower": 80.9999999999977,
+        "q_upper": 81.00000000000003,
+        "numeric_gap": 2.3305801732931286e-12,
+        "optimality": 0.0,
+        "roundoff_guard": 2.3305801732931294e-12,
+        "z": [],
+        "acceleration": "full_BVLS",
+        "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+      },
+      "profiled_metric": {
+        "success": true,
+        "status": 3,
+        "q_lower": 80.19801980197794,
+        "q_upper": 80.19801980198024,
+        "numeric_gap": 2.3021584638627246e-12,
+        "optimality": 7.395570986446986e-31,
+        "roundoff_guard": 2.307786525136073e-12,
+        "z": [
+          4.1796631515300015e-16,
+          -0.8910891089108914
+        ],
+        "acceleration": "full_BVLS",
+        "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+      }
+    }
+  },
+  "shared_line_audit": {
+    "balanced": {
+      "success": true,
+      "status": 3,
+      "q_lower": 5.999999999999769,
+      "q_upper": 6.0,
+      "numeric_gap": 2.3092638912203256e-13,
+      "optimality": 1.3322676295501878e-15,
+      "roundoff_guard": 1.9895196601282896e-13,
+      "z": [
+        -2.0000000000000004
+      ],
+      "acceleration": "full_BVLS",
+      "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+    },
+    "pulse": {
+      "success": true,
+      "status": 3,
+      "q_lower": 23.999999999999257,
+      "q_upper": 24.0,
+      "numeric_gap": 7.425171588693047e-13,
+      "optimality": 1.3322676295501878e-15,
+      "roundoff_guard": 7.105427357601011e-13,
+      "z": [
+        -2.0000000000000004
+      ],
+      "acceleration": "full_BVLS",
+      "semantics": "frozen convex box QP; primal is upper; tangent is numerical lower"
+    }
+  },
+  "audit_method": "independent closed forms in tests; no action/route grid",
+  "selector_enumerated_complete_actions": 0,
+  "selector_inputs_exclude_truth_and_future_noise": true
+}

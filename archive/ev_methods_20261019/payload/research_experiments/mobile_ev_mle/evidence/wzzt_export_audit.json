@@ -1,0 +1,5587 @@
+{
+  "history_count": 6,
+  "pilot_only": true,
+  "source_sha256": {
+    "research_experiments\\mobile_ev_mle\\candidates.py": "3b0a046abb4c76f8fa8a1a317db7f53b57927cf54622f60b65e1a4bcae09935c",
+    "research_experiments\\mobile_ev_mle\\adaptive_history.py": "6eaacc48f6173f22f7700d4629e04b958d8f4bf22bfb9de373ae5f911d8bb813",
+    "research_experiments\\mobile_ev_mle\\likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "research_experiments\\mobile_ev_probing\\passive_bridge_v9.py": "d3c66b6d07c549db57a76db0f302d71b2ceacaf84fefcaf54351988fea5e872d",
+    "research_experiments\\mobile_ev_probing\\wzzt_adapter.py": "93aef8a0cf78c74c44d16c13140c0640fca0a03be2915a33c9e8a06d7325cb94",
+    "rnj_wzzt_core\\rnj_wzzt\\estimation\\laminar_l1_source.py": "d335c80f18f6ff3839a545f93bfb28579fe149a612b3e903c52fad1fa89725cd"
+  },
+  "audit_source_sha256": "79cd5735b747321c0b9e7a54f1f24a2a67de3caf173d348e3c807199990cfb54",
+  "selector_input_whitelist": [
+    "history_p",
+    "history_q",
+    "history_v",
+    "history_root_v"
+  ],
+  "truth_read_only_after_proposal": true,
+  "proposal_uses_truth": false,
+  "uses_structure": true,
+  "uses_impedance_initial": false,
+  "estimates_source": false,
+  "WZZT_and_AC_same_history_extra_likelihood": false,
+  "bridge_exports_matrices": false,
+  "bridge_exports_atom_weights": false,
+  "bridge_exports_pointwise_residuals": false,
+  "bridge_exports_source_response": false,
+  "adapter_solution_has_matrices_weights_and_source_fields": true,
+  "topology_global_optimality": false,
+  "n3_repair_bank_complete_only_reduced_class": true,
+  "expansion_or_weight_warmstart_implemented": false,
+  "records": [
+    {
+      "history_id": "710009",
+      "history_sha256": "84d2cf85a30f1a03ce018de1b784860e206f558f827074ec67a2f55ad5e93e16",
+      "history_shape": [
+        12,
+        3
+      ],
+      "proposal": {
+        "passive": {
+          "schema": 9,
+          "n_terminal": 3,
+          "n_observation": 12,
+          "candidates": [
+            {
+              "id": "passive_6f37ae37aa17",
+              "supports": [
+                [
+                  0,
+                  2
+                ]
+              ],
+              "rank": 1,
+              "proposal_origins": [
+                "rnj:time_centered_effective_pq:tolerance=0",
+                "rnj:time_centered_effective_pq:tolerance=0.08",
+                "rnj:time_centered_effective_pq:tolerance=0.16",
+                "wzzt:accepted_path:2",
+                "local:seed=0:unchanged",
+                "local:seed=1:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.0001499126784961984,
+              "linear_contrast_rmse": 0.00019072491844707374,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 1.259029772798792e-17,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_4c0107d46bec",
+              "supports": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "rank": 2,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0",
+                "rnj:raw_effective_pq:tolerance=0.08",
+                "rnj:raw_effective_pq:tolerance=0.16",
+                "local:seed=0:rooted_interchange",
+                "local:seed=1:unchanged"
+              ],
+              "linear_contrast_mae": 0.00015407498938344301,
+              "linear_contrast_rmse": 0.00019230822993902176,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 2.4076064492756233e-17,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_2883ec195bfd",
+              "supports": [],
+              "rank": 3,
+              "proposal_origins": [
+                "wzzt:accepted_path:0",
+                "wzzt:accepted_path:1",
+                "local:seed=0:delete_clade",
+                "local:seed=1:delete_clade",
+                "local:seed=2:unchanged"
+              ],
+              "linear_contrast_mae": 0.00015852112686854644,
+              "linear_contrast_rmse": 0.00019915264975173643,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 7.874018277675976e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_9c8cb5baf12d",
+              "supports": [
+                [
+                  1,
+                  2
+                ]
+              ],
+              "rank": 4,
+              "proposal_origins": [
+                "local:seed=0:rooted_interchange",
+                "local:seed=1:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00015852112686854644,
+              "linear_contrast_rmse": 0.00019915264975173643,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 7.887570804832045e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            }
+          ],
+          "diagnostics": {
+            "rnj": [
+              {
+                "mode": "raw_effective_pq",
+                "success": true,
+                "r2": 0.928168362475783,
+                "effective_pq_condition": 97.0125342744824,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 9.378518045747168e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.043429794795794e-06,
+                  "objective": 1.521714897397897e-06
+                }
+              },
+              {
+                "mode": "time_centered_effective_pq",
+                "success": true,
+                "r2": 0.9555534133194143,
+                "effective_pq_condition": 4.506338330477528,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 9.228672563658516e-16,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 1.0297130794385999e-07,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 1.8831544266976243e-06,
+                  "objective": 9.415772133488121e-07
+                }
+              }
+            ],
+            "wzzt": {
+              "called": true,
+              "support_indices": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  0,
+                  2
+                ]
+              ],
+              "train_mae": 0.00020102938776193544,
+              "adjusted_train_mae": 0.00020102938776193544,
+              "path_length": 3,
+              "stop_reason": "max_atoms",
+              "r_upper_bound": 0.2,
+              "x_upper_bound": 0.1,
+              "bound_active": false,
+              "solver_objective_scale": 100000.0,
+              "certified_r_lower_bounds": [],
+              "r_path_upper_bound": null,
+              "x_path_upper_bound": null,
+              "certified_x_lower_bounds": [],
+              "solver_attempts": [
+                {
+                  "stage": "initial",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00026091235779175805,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0032903000246733427,
+                  "variable_count": 42,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00020895123238610176,
+                  "dual_bound": 0.00020895123238610176,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.056738600018434227,
+                  "variable_count": 74,
+                  "binary_variable_count": 12,
+                  "constraint_count": 139,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002089512323862373,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.002426199964247644,
+                  "variable_count": 44,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00020102938776026075,
+                  "dual_bound": 0.00020102938776026075,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.0281358000356704,
+                  "variable_count": 79,
+                  "binary_variable_count": 15,
+                  "constraint_count": 147,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002010293877602139,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0023367999820038676,
+                  "variable_count": 46,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                }
+              ],
+              "mandatory_supports": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ]
+              ],
+              "global_topology_optimality": false
+            }
+          },
+          "generated_count": 4,
+          "retained_count": 4,
+          "base_count": 3,
+          "discarded_base_count": 0,
+          "coverage": "finite observation-generated proposal bank; not all radial topologies",
+          "selection_uses_truth": false,
+          "ranking_is_ac_evidence": false,
+          "certified_supports": [],
+          "rnj_supports_fixed_in_wzzt": false,
+          "config": {
+            "kappa": 0.5,
+            "tolerance_factors": [
+              0.0,
+              0.08,
+              0.16
+            ],
+            "max_candidates": 8,
+            "wzzt_time_limit_per_solve": 0.3,
+            "wzzt_max_atoms": 5,
+            "coefficient_bound": 0.2,
+            "neighbor_seed_count": 3,
+            "run_wzzt": true
+          },
+          "seconds": 0.11099049996118993
+        },
+        "bank": [
+          {
+            "name": "clade_02",
+            "supports": [
+              [
+                0,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_01",
+            "supports": [
+              [
+                0,
+                1
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "star",
+            "supports": [],
+            "origins": [
+              "passive",
+              "declared_local_repair_star"
+            ]
+          },
+          {
+            "name": "clade_12",
+            "supports": [
+              [
+                1,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          }
+        ],
+        "uses_truth": false,
+        "n3_complete_reduced_class": true,
+        "coverage": "reduced star/cherry class"
+      },
+      "adapter_capture": [
+        {
+          "source_inputs_is_None": true,
+          "source_p_error_max": 0.0,
+          "source_q_error_max": 0.0,
+          "result_summary": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                2
+              ]
+            ],
+            "train_mae": 0.00020102938776193544,
+            "adjusted_train_mae": 0.00020102938776193544,
+            "path_length": 3,
+            "stop_reason": "max_atoms",
+            "r_upper_bound": 0.2,
+            "x_upper_bound": 0.1,
+            "bound_active": false,
+            "solver_objective_scale": 100000.0,
+            "certified_r_lower_bounds": [],
+            "r_path_upper_bound": null,
+            "x_path_upper_bound": null,
+            "certified_x_lower_bounds": [],
+            "solver_attempts": [
+              {
+                "stage": "initial",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00026091235779175805,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0032903000246733427,
+                "variable_count": 42,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00020895123238610176,
+                "dual_bound": 0.00020895123238610176,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.056738600018434227,
+                "variable_count": 74,
+                "binary_variable_count": 12,
+                "constraint_count": 139,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002089512323862373,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.002426199964247644,
+                "variable_count": 44,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00020102938776026075,
+                "dual_bound": 0.00020102938776026075,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.0281358000356704,
+                "variable_count": 79,
+                "binary_variable_count": 15,
+                "constraint_count": 147,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002010293877602139,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0023367999820038676,
+                "variable_count": 46,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              }
+            ]
+          },
+          "summary_keys": [
+            "support_indices",
+            "train_mae",
+            "adjusted_train_mae",
+            "path_length",
+            "stop_reason",
+            "r_upper_bound",
+            "x_upper_bound",
+            "bound_active",
+            "solver_objective_scale",
+            "certified_r_lower_bounds",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "solver_attempts"
+          ],
+          "selected_solution_fields": [
+            "terminal_labels",
+            "support_indices",
+            "r_values",
+            "x_values",
+            "r_matrix",
+            "x_matrix",
+            "h",
+            "g_r",
+            "g_x",
+            "train_mae",
+            "adjusted_train_mae",
+            "diagnostics",
+            "validation_mae",
+            "adjusted_validation_mae",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "certified_r_lower_bounds",
+            "r_upper_bound",
+            "x_upper_bound"
+          ],
+          "returned_path_count": 3,
+          "selected_solution": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                2
+              ]
+            ],
+            "r_atom_coefficients": [
+              0.06186137187113134,
+              0.04374360045922043,
+              0.05653421020208887,
+              0.023571551187875538,
+              0.028038269127108776
+            ],
+            "x_atom_coefficients": [
+              0.014897568042169688,
+              0.0,
+              0.032248545885731325,
+              0.0,
+              0.0
+            ],
+            "r_sensitivity_matrix": [
+              [
+                0.11347119218611565,
+                0.023571551187875538,
+                0.05160982031498432
+              ],
+              [
+                0.023571551187875538,
+                0.06731515164709598,
+                0.023571551187875538
+              ],
+              [
+                0.05160982031498432,
+                0.023571551187875538,
+                0.10814403051707318
+              ]
+            ],
+            "x_sensitivity_matrix": [
+              [
+                0.014897568042169688,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.032248545885731325
+              ]
+            ],
+            "h": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "g_r": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "g_x": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_residual_reconstructed_for_audit": [
+              [
+                -0.0001685194256129431,
+                4.891920202254596e-16,
+                2.0039525594484076e-14
+              ],
+              [
+                -3.5190567659805494e-05,
+                -0.00038938784304601466,
+                -0.0001344223763730737
+              ],
+              [
+                -3.9781673690526126e-05,
+                2.116997867351693e-05,
+                2.2832430390806735e-14
+              ],
+              [
+                -0.0003467133484005881,
+                -0.00034224795902817323,
+                -0.00011007503274811092
+              ],
+              [
+                0.000217072912038669,
+                -0.0007705669387380529,
+                -0.00021410068110644734
+              ],
+              [
+                2.4293067557579207e-14,
+                0.00021314470885095034,
+                0.00022032767185744054
+              ],
+              [
+                -5.5157466493285096e-05,
+                -0.0006139793393406222,
+                0.00024168209401947624
+              ],
+              [
+                0.00023975862217261168,
+                0.00016741792176430854,
+                0.0006511039232098004
+              ],
+              [
+                3.499091456548101e-05,
+                2.7883450890459766e-05,
+                0.0006018149636392023
+              ],
+              [
+                -0.00010030163968326178,
+                -0.0005442105467455341,
+                -0.00017346301320393664
+              ],
+              [
+                0.00020680789087539064,
+                0.0003417512311100889,
+                -1.4013823773594697e-05
+              ],
+              [
+                2.5379004453540688e-14,
+                -1.734723475976807e-18,
+                2.527492104498208e-14
+              ]
+            ],
+            "reconstructed_MAE": 0.00020102938776193544,
+            "train_mae": 0.00020102938776193544,
+            "source_variables_active": false,
+            "raw_residual_is_exported_by_bridge": false
+          }
+        }
+      ],
+      "rnj_internal_capture": [
+        {
+          "mode": "raw_effective_pq",
+          "estimated_r": [
+            [
+              0.0688113004136623,
+              0.048595847460809825,
+              0.04801458291179309
+            ],
+            [
+              0.048595847460809825,
+              0.04885628778538346,
+              0.0
+            ],
+            [
+              0.04801458291179309,
+              0.0,
+              0.11857485712748098
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.928168362475783,
+          "condition": null,
+          "root_depths": [
+            0.5544051841614902,
+            0.39362981173546296,
+            0.9553447632509975
+          ],
+          "shared_paths": [
+            [
+              0.5544051841614902,
+              0.3915314722877223,
+              0.38684828686022843
+            ],
+            [
+              0.3915314722877223,
+              0.39362981173546296,
+              0.0
+            ],
+            [
+              0.38684828686022843,
+              0.0,
+              0.9553447632509975
+            ]
+          ],
+          "exported_by_bridge": false
+        },
+        {
+          "mode": "time_centered_effective_pq",
+          "estimated_r": [
+            [
+              0.07752177212211775,
+              0.06217910420058955,
+              0.0656002010372506
+            ],
+            [
+              0.06217910420058955,
+              0.062179207171897496,
+              0.0
+            ],
+            [
+              0.0656002010372506,
+              0.0,
+              0.11754943609537535
+            ]
+          ],
+          "estimated_x": [
+            [
+              1.575364593597215e-16,
+              0.0,
+              7.798501899145432e-17
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              7.798501899145432e-17,
+              0.0,
+              7.798501899145432e-17
+            ]
+          ],
+          "r2": 0.9555534133194143,
+          "condition": null,
+          "root_depths": [
+            0.6736019605864025,
+            0.5402873891055996,
+            1.0214102238908904
+          ],
+          "shared_paths": [
+            [
+              0.6736019605864025,
+              0.5402864943676051,
+              0.5700130792152874
+            ],
+            [
+              0.5402864943676051,
+              0.5402873891055996,
+              0.0
+            ],
+            [
+              0.5700130792152874,
+              0.0,
+              1.0214102238908904
+            ]
+          ],
+          "exported_by_bridge": false
+        }
+      ],
+      "observed_structure_disagreement_clades": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "structural_disagreement_scope": "all replaceable proposals, including generated neighborhoods",
+      "origin_specific_families": {
+        "raw_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "centered_RNJ_tolerance0": [
+          [
+            [
+              0,
+              2
+            ]
+          ]
+        ],
+        "WZZT_selected_normalized": [
+          [
+            0,
+            2
+          ]
+        ]
+      },
+      "passive_exported_keys": [
+        "schema",
+        "n_terminal",
+        "n_observation",
+        "candidates",
+        "diagnostics",
+        "generated_count",
+        "retained_count",
+        "base_count",
+        "discarded_base_count",
+        "coverage",
+        "selection_uses_truth",
+        "ranking_is_ac_evidence",
+        "certified_supports",
+        "rnj_supports_fixed_in_wzzt",
+        "config",
+        "seconds"
+      ],
+      "passive_candidate_keys": [
+        "id",
+        "supports",
+        "rank",
+        "proposal_origins",
+        "linear_contrast_mae",
+        "linear_contrast_rmse",
+        "rank_fit_success",
+        "rank_fit_status",
+        "rank_fit_optimality",
+        "ac_evidence",
+        "certified_supports",
+        "replaceable"
+      ],
+      "uses_structure": true,
+      "uses_impedance_initial": false,
+      "estimates_source": false,
+      "source_claim_scope": "actual default proposal branch, not all optional adapter branches",
+      "offline_evaluator_only": {
+        "true_name": "clade_02",
+        "truth_topology": 2,
+        "final_n3_bank_names": [
+          "clade_02",
+          "clade_01",
+          "star",
+          "clade_12"
+        ],
+        "true_name_in_final_bank": true
+      }
+    },
+    {
+      "history_id": "710010",
+      "history_sha256": "de5ab5871ca8bde5b189d4ccafeadc04d1deda115566b24572129b603c5c0b5d",
+      "history_shape": [
+        12,
+        3
+      ],
+      "proposal": {
+        "passive": {
+          "schema": 9,
+          "n_terminal": 3,
+          "n_observation": 12,
+          "candidates": [
+            {
+              "id": "passive_9c8cb5baf12d",
+              "supports": [
+                [
+                  1,
+                  2
+                ]
+              ],
+              "rank": 1,
+              "proposal_origins": [
+                "local:seed=0:rooted_interchange",
+                "local:seed=2:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00013945570131965773,
+              "linear_contrast_rmse": 0.00017544875410279928,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 4.802676810931883e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_6f37ae37aa17",
+              "supports": [
+                [
+                  0,
+                  2
+                ]
+              ],
+              "rank": 2,
+              "proposal_origins": [
+                "rnj:time_centered_effective_pq:tolerance=0",
+                "wzzt:accepted_path:2",
+                "local:seed=0:unchanged",
+                "local:seed=2:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00013998411224955284,
+              "linear_contrast_rmse": 0.00017560808589458127,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 2.6664597179565375e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_2883ec195bfd",
+              "supports": [],
+              "rank": 3,
+              "proposal_origins": [
+                "rnj:time_centered_effective_pq:tolerance=0.08",
+                "rnj:time_centered_effective_pq:tolerance=0.16",
+                "wzzt:accepted_path:0",
+                "wzzt:accepted_path:1",
+                "local:seed=0:delete_clade",
+                "local:seed=1:unchanged",
+                "local:seed=2:delete_clade"
+              ],
+              "linear_contrast_mae": 0.00013998411224955298,
+              "linear_contrast_rmse": 0.00017560808589458135,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 2.628343235330094e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_4c0107d46bec",
+              "supports": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "rank": 4,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0",
+                "rnj:raw_effective_pq:tolerance=0.08",
+                "rnj:raw_effective_pq:tolerance=0.16",
+                "local:seed=0:rooted_interchange",
+                "local:seed=2:unchanged"
+              ],
+              "linear_contrast_mae": 0.00014029433415032976,
+              "linear_contrast_rmse": 0.00017517588350754055,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 1.4772254600114998e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            }
+          ],
+          "diagnostics": {
+            "rnj": [
+              {
+                "mode": "raw_effective_pq",
+                "success": true,
+                "r2": 0.8866065803122176,
+                "effective_pq_condition": 162.70010883479864,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 6.381840008738412e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.863976003946953e-06,
+                  "objective": 1.9319880019734766e-06
+                }
+              },
+              {
+                "mode": "time_centered_effective_pq",
+                "success": true,
+                "r2": 0.8910071493700137,
+                "effective_pq_condition": 12.122770655483533,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 7.499714828163087e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.7140229176933307e-06,
+                  "objective": 1.8570114588466654e-06
+                }
+              }
+            ],
+            "wzzt": {
+              "called": true,
+              "support_indices": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  0,
+                  2
+                ]
+              ],
+              "train_mae": 0.000207903597368813,
+              "adjusted_train_mae": 0.000207903597368813,
+              "path_length": 3,
+              "stop_reason": "max_atoms",
+              "r_upper_bound": 0.2,
+              "x_upper_bound": 0.1,
+              "bound_active": false,
+              "solver_objective_scale": 100000.0,
+              "certified_r_lower_bounds": [],
+              "r_path_upper_bound": null,
+              "x_path_upper_bound": null,
+              "certified_x_lower_bounds": [],
+              "solver_attempts": [
+                {
+                  "stage": "initial",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00025020244238187027,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.002033500000834465,
+                  "variable_count": 42,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00021358876430595768,
+                  "dual_bound": 0.00021358876430595768,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.04847609996795654,
+                  "variable_count": 74,
+                  "binary_variable_count": 12,
+                  "constraint_count": 139,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00021358876430595955,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.002525900024920702,
+                  "variable_count": 44,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00020790359736880363,
+                  "dual_bound": 0.00020790359736880363,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.019294300000183284,
+                  "variable_count": 79,
+                  "binary_variable_count": 15,
+                  "constraint_count": 147,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00020790359736880617,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0022315001115202904,
+                  "variable_count": 46,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                }
+              ],
+              "mandatory_supports": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ]
+              ],
+              "global_topology_optimality": false
+            }
+          },
+          "generated_count": 4,
+          "retained_count": 4,
+          "base_count": 3,
+          "discarded_base_count": 0,
+          "coverage": "finite observation-generated proposal bank; not all radial topologies",
+          "selection_uses_truth": false,
+          "ranking_is_ac_evidence": false,
+          "certified_supports": [],
+          "rnj_supports_fixed_in_wzzt": false,
+          "config": {
+            "kappa": 0.5,
+            "tolerance_factors": [
+              0.0,
+              0.08,
+              0.16
+            ],
+            "max_candidates": 8,
+            "wzzt_time_limit_per_solve": 0.3,
+            "wzzt_max_atoms": 5,
+            "coefficient_bound": 0.2,
+            "neighbor_seed_count": 3,
+            "run_wzzt": true
+          },
+          "seconds": 0.08945069997571409
+        },
+        "bank": [
+          {
+            "name": "clade_12",
+            "supports": [
+              [
+                1,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_02",
+            "supports": [
+              [
+                0,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "star",
+            "supports": [],
+            "origins": [
+              "passive",
+              "declared_local_repair_star"
+            ]
+          },
+          {
+            "name": "clade_01",
+            "supports": [
+              [
+                0,
+                1
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          }
+        ],
+        "uses_truth": false,
+        "n3_complete_reduced_class": true,
+        "coverage": "reduced star/cherry class"
+      },
+      "adapter_capture": [
+        {
+          "source_inputs_is_None": true,
+          "source_p_error_max": 0.0,
+          "source_q_error_max": 0.0,
+          "result_summary": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                2
+              ]
+            ],
+            "train_mae": 0.000207903597368813,
+            "adjusted_train_mae": 0.000207903597368813,
+            "path_length": 3,
+            "stop_reason": "max_atoms",
+            "r_upper_bound": 0.2,
+            "x_upper_bound": 0.1,
+            "bound_active": false,
+            "solver_objective_scale": 100000.0,
+            "certified_r_lower_bounds": [],
+            "r_path_upper_bound": null,
+            "x_path_upper_bound": null,
+            "certified_x_lower_bounds": [],
+            "solver_attempts": [
+              {
+                "stage": "initial",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00025020244238187027,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.002033500000834465,
+                "variable_count": 42,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00021358876430595768,
+                "dual_bound": 0.00021358876430595768,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.04847609996795654,
+                "variable_count": 74,
+                "binary_variable_count": 12,
+                "constraint_count": 139,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00021358876430595955,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.002525900024920702,
+                "variable_count": 44,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00020790359736880363,
+                "dual_bound": 0.00020790359736880363,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.019294300000183284,
+                "variable_count": 79,
+                "binary_variable_count": 15,
+                "constraint_count": 147,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00020790359736880617,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0022315001115202904,
+                "variable_count": 46,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              }
+            ]
+          },
+          "summary_keys": [
+            "support_indices",
+            "train_mae",
+            "adjusted_train_mae",
+            "path_length",
+            "stop_reason",
+            "r_upper_bound",
+            "x_upper_bound",
+            "bound_active",
+            "solver_objective_scale",
+            "certified_r_lower_bounds",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "solver_attempts"
+          ],
+          "selected_solution_fields": [
+            "terminal_labels",
+            "support_indices",
+            "r_values",
+            "x_values",
+            "r_matrix",
+            "x_matrix",
+            "h",
+            "g_r",
+            "g_x",
+            "train_mae",
+            "adjusted_train_mae",
+            "diagnostics",
+            "validation_mae",
+            "adjusted_validation_mae",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "certified_r_lower_bounds",
+            "r_upper_bound",
+            "x_upper_bound"
+          ],
+          "returned_path_count": 3,
+          "selected_solution": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                2
+              ]
+            ],
+            "r_atom_coefficients": [
+              0.02980440555851881,
+              0.06688884699672025,
+              0.04215715462083851,
+              0.0,
+              0.020261788951377493
+            ],
+            "x_atom_coefficients": [
+              0.037344571743095245,
+              0.05235417553584989,
+              0.0,
+              0.024340732451539004,
+              0.0
+            ],
+            "r_sensitivity_matrix": [
+              [
+                0.0500661945098963,
+                0.0,
+                0.020261788951377493
+              ],
+              [
+                0.0,
+                0.06688884699672025,
+                0.0
+              ],
+              [
+                0.020261788951377493,
+                0.0,
+                0.062418943572216
+              ]
+            ],
+            "x_sensitivity_matrix": [
+              [
+                0.06168530419463425,
+                0.024340732451539004,
+                0.024340732451539004
+              ],
+              [
+                0.024340732451539004,
+                0.0766949079873889,
+                0.024340732451539004
+              ],
+              [
+                0.024340732451539004,
+                0.024340732451539004,
+                0.024340732451539004
+              ]
+            ],
+            "h": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "g_r": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "g_x": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_residual_reconstructed_for_audit": [
+              [
+                3.395885617304452e-05,
+                -0.00017030549590678692,
+                -6.571497641741364e-05
+              ],
+              [
+                -0.0008505764250373513,
+                -0.0003735949955106163,
+                -0.0005477606796208054
+              ],
+              [
+                -0.0007722719308983494,
+                -3.8163916471489756e-17,
+                -4.26636137675282e-05
+              ],
+              [
+                -0.0001419495964496264,
+                -3.122502256758253e-17,
+                -2.6020852139652106e-17
+              ],
+              [
+                0.00012101018052852047,
+                0.00022719449771309297,
+                0.0004118795775355528
+              ],
+              [
+                -5.927749558655611e-05,
+                -0.00015017672889748937,
+                -1.3198483174542766e-05
+              ],
+              [
+                -1.9081958235744878e-17,
+                0.00023803600456653515,
+                3.4991593078138525e-05
+              ],
+              [
+                6.686311517470345e-06,
+                -0.00043633969540619877,
+                0.00018597665530229422
+              ],
+              [
+                -4.85722573273506e-17,
+                0.0004119280422747607,
+                2.486995706022302e-05
+              ],
+              [
+                -0.0003324599171785035,
+                -0.0006574588276295236,
+                -0.0001406137749926529
+              ],
+              [
+                7.949424674248695e-05,
+                0.0004234696115358143,
+                0.000152599136831447
+              ],
+              [
+                -3.469446951953614e-17,
+                0.00037807219794371363,
+                -3.122502256758253e-17
+              ]
+            ],
+            "reconstructed_MAE": 0.000207903597368813,
+            "train_mae": 0.000207903597368813,
+            "source_variables_active": false,
+            "raw_residual_is_exported_by_bridge": false
+          }
+        }
+      ],
+      "rnj_internal_capture": [
+        {
+          "mode": "raw_effective_pq",
+          "estimated_r": [
+            [
+              0.05989498730801354,
+              0.023128521467651257,
+              0.007513003719457873
+            ],
+            [
+              0.023128521467651257,
+              0.04852402037727224,
+              0.021395028004183143
+            ],
+            [
+              0.007513003719457873,
+              0.021395028004183143,
+              0.06275487729536763
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.8866065803122176,
+          "condition": null,
+          "root_depths": [
+            0.5655814152414346,
+            0.4582066939433175,
+            0.5925870245450052
+          ],
+          "shared_paths": [
+            [
+              0.5655814152414346,
+              0.21839994450363534,
+              0.07094442235229642
+            ],
+            [
+              0.21839994450363534,
+              0.4582066939433175,
+              0.20203076687382562
+            ],
+            [
+              0.07094442235229642,
+              0.20203076687382562,
+              0.5925870245450052
+            ]
+          ],
+          "exported_by_bridge": false
+        },
+        {
+          "mode": "time_centered_effective_pq",
+          "estimated_r": [
+            [
+              0.07114057394170878,
+              0.013309380578489807,
+              0.015804260553383537
+            ],
+            [
+              0.013309380578489807,
+              0.062366551811684656,
+              0.015055904324710122
+            ],
+            [
+              0.015804260553383537,
+              0.015055904324710122,
+              0.06895452117072552
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.8910071493700137,
+          "condition": null,
+          "root_depths": [
+            0.505604164341937,
+            0.44324618940342403,
+            0.49006763823257493
+          ],
+          "shared_paths": [
+            [
+              0.505604164341937,
+              0.09459128416380204,
+              0.11232268039730954
+            ],
+            [
+              0.09459128416380204,
+              0.44324618940342403,
+              0.10700402741682423
+            ],
+            [
+              0.11232268039730954,
+              0.10700402741682423,
+              0.49006763823257493
+            ]
+          ],
+          "exported_by_bridge": false
+        }
+      ],
+      "observed_structure_disagreement_clades": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "structural_disagreement_scope": "all replaceable proposals, including generated neighborhoods",
+      "origin_specific_families": {
+        "raw_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "centered_RNJ_tolerance0": [
+          [
+            [
+              0,
+              2
+            ]
+          ]
+        ],
+        "WZZT_selected_normalized": [
+          [
+            0,
+            2
+          ]
+        ]
+      },
+      "passive_exported_keys": [
+        "schema",
+        "n_terminal",
+        "n_observation",
+        "candidates",
+        "diagnostics",
+        "generated_count",
+        "retained_count",
+        "base_count",
+        "discarded_base_count",
+        "coverage",
+        "selection_uses_truth",
+        "ranking_is_ac_evidence",
+        "certified_supports",
+        "rnj_supports_fixed_in_wzzt",
+        "config",
+        "seconds"
+      ],
+      "passive_candidate_keys": [
+        "id",
+        "supports",
+        "rank",
+        "proposal_origins",
+        "linear_contrast_mae",
+        "linear_contrast_rmse",
+        "rank_fit_success",
+        "rank_fit_status",
+        "rank_fit_optimality",
+        "ac_evidence",
+        "certified_supports",
+        "replaceable"
+      ],
+      "uses_structure": true,
+      "uses_impedance_initial": false,
+      "estimates_source": false,
+      "source_claim_scope": "actual default proposal branch, not all optional adapter branches",
+      "offline_evaluator_only": {
+        "true_name": "clade_02",
+        "truth_topology": 2,
+        "final_n3_bank_names": [
+          "clade_12",
+          "clade_02",
+          "star",
+          "clade_01"
+        ],
+        "true_name_in_final_bank": true
+      }
+    },
+    {
+      "history_id": "710011",
+      "history_sha256": "467921aeb9934282f76e276d926cb99d4c26d7fe438d1608f6d113729db0fce7",
+      "history_shape": [
+        12,
+        3
+      ],
+      "proposal": {
+        "passive": {
+          "schema": 9,
+          "n_terminal": 3,
+          "n_observation": 12,
+          "candidates": [
+            {
+              "id": "passive_4c0107d46bec",
+              "supports": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "rank": 1,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0",
+                "rnj:raw_effective_pq:tolerance=0.08",
+                "rnj:raw_effective_pq:tolerance=0.16",
+                "rnj:time_centered_effective_pq:tolerance=0",
+                "rnj:time_centered_effective_pq:tolerance=0.08",
+                "rnj:time_centered_effective_pq:tolerance=0.16",
+                "wzzt:accepted_path:2",
+                "local:seed=0:unchanged"
+              ],
+              "linear_contrast_mae": 0.00013161090544376702,
+              "linear_contrast_rmse": 0.00016480274378922699,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 2.15485181781494e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_2883ec195bfd",
+              "supports": [],
+              "rank": 2,
+              "proposal_origins": [
+                "wzzt:accepted_path:0",
+                "wzzt:accepted_path:1",
+                "local:seed=0:delete_clade",
+                "local:seed=1:unchanged"
+              ],
+              "linear_contrast_mae": 0.00014753289925637975,
+              "linear_contrast_rmse": 0.00018511136355839393,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 7.470830594782929e-19,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_6f37ae37aa17",
+              "supports": [
+                [
+                  0,
+                  2
+                ]
+              ],
+              "rank": 3,
+              "proposal_origins": [
+                "local:seed=0:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00014753289925637986,
+              "linear_contrast_rmse": 0.00018511136355839396,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 6.606856988583543e-19,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_9c8cb5baf12d",
+              "supports": [
+                [
+                  1,
+                  2
+                ]
+              ],
+              "rank": 4,
+              "proposal_origins": [
+                "local:seed=0:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00014753289925637986,
+              "linear_contrast_rmse": 0.00018511136355839396,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 6.606856988583543e-19,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            }
+          ],
+          "diagnostics": {
+            "rnj": [
+              {
+                "mode": "raw_effective_pq",
+                "success": true,
+                "r2": 0.9272917994877118,
+                "effective_pq_condition": 174.88018270836764,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 8.728621581896362e-17,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 6.069890521506883e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.6623311156061024e-06,
+                  "objective": 1.8311655578030512e-06
+                }
+              },
+              {
+                "mode": "time_centered_effective_pq",
+                "success": true,
+                "r2": 0.9278165189264606,
+                "effective_pq_condition": 10.613261180977416,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 5.403067150390191e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.6359008599547006e-06,
+                  "objective": 1.8179504299773503e-06
+                }
+              }
+            ],
+            "wzzt": {
+              "called": true,
+              "support_indices": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  0,
+                  1
+                ]
+              ],
+              "train_mae": 0.00021932085891233644,
+              "adjusted_train_mae": 0.00021932085891233644,
+              "path_length": 3,
+              "stop_reason": "max_atoms",
+              "r_upper_bound": 0.2,
+              "x_upper_bound": 0.1,
+              "bound_active": true,
+              "solver_objective_scale": 100000.0,
+              "certified_r_lower_bounds": [],
+              "r_path_upper_bound": null,
+              "x_path_upper_bound": null,
+              "certified_x_lower_bounds": [],
+              "solver_attempts": [
+                {
+                  "stage": "initial",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00026216533229694866,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0019697999814525247,
+                  "variable_count": 42,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00023596731728972776,
+                  "dual_bound": 0.00023596731728972776,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.04769290005788207,
+                  "variable_count": 74,
+                  "binary_variable_count": 12,
+                  "constraint_count": 139,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00023596731728973462,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.002391900052316487,
+                  "variable_count": 44,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00021932085891213522,
+                  "dual_bound": 0.00021932085891213522,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.029111000010743737,
+                  "variable_count": 79,
+                  "binary_variable_count": 15,
+                  "constraint_count": 147,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002193208589123359,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.002637899946421385,
+                  "variable_count": 46,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                }
+              ],
+              "mandatory_supports": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ]
+              ],
+              "global_topology_optimality": false
+            }
+          },
+          "generated_count": 4,
+          "retained_count": 4,
+          "base_count": 2,
+          "discarded_base_count": 0,
+          "coverage": "finite observation-generated proposal bank; not all radial topologies",
+          "selection_uses_truth": false,
+          "ranking_is_ac_evidence": false,
+          "certified_supports": [],
+          "rnj_supports_fixed_in_wzzt": false,
+          "config": {
+            "kappa": 0.5,
+            "tolerance_factors": [
+              0.0,
+              0.08,
+              0.16
+            ],
+            "max_candidates": 8,
+            "wzzt_time_limit_per_solve": 0.3,
+            "wzzt_max_atoms": 5,
+            "coefficient_bound": 0.2,
+            "neighbor_seed_count": 3,
+            "run_wzzt": true
+          },
+          "seconds": 0.09958120004739612
+        },
+        "bank": [
+          {
+            "name": "clade_01",
+            "supports": [
+              [
+                0,
+                1
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "star",
+            "supports": [],
+            "origins": [
+              "passive",
+              "declared_local_repair_star"
+            ]
+          },
+          {
+            "name": "clade_02",
+            "supports": [
+              [
+                0,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_12",
+            "supports": [
+              [
+                1,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          }
+        ],
+        "uses_truth": false,
+        "n3_complete_reduced_class": true,
+        "coverage": "reduced star/cherry class"
+      },
+      "adapter_capture": [
+        {
+          "source_inputs_is_None": true,
+          "source_p_error_max": 0.0,
+          "source_q_error_max": 0.0,
+          "result_summary": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            "train_mae": 0.00021932085891233644,
+            "adjusted_train_mae": 0.00021932085891233644,
+            "path_length": 3,
+            "stop_reason": "max_atoms",
+            "r_upper_bound": 0.2,
+            "x_upper_bound": 0.1,
+            "bound_active": true,
+            "solver_objective_scale": 100000.0,
+            "certified_r_lower_bounds": [],
+            "r_path_upper_bound": null,
+            "x_path_upper_bound": null,
+            "certified_x_lower_bounds": [],
+            "solver_attempts": [
+              {
+                "stage": "initial",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00026216533229694866,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0019697999814525247,
+                "variable_count": 42,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00023596731728972776,
+                "dual_bound": 0.00023596731728972776,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.04769290005788207,
+                "variable_count": 74,
+                "binary_variable_count": 12,
+                "constraint_count": 139,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00023596731728973462,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.002391900052316487,
+                "variable_count": 44,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00021932085891213522,
+                "dual_bound": 0.00021932085891213522,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.029111000010743737,
+                "variable_count": 79,
+                "binary_variable_count": 15,
+                "constraint_count": 147,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002193208589123359,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.002637899946421385,
+                "variable_count": 46,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              }
+            ]
+          },
+          "summary_keys": [
+            "support_indices",
+            "train_mae",
+            "adjusted_train_mae",
+            "path_length",
+            "stop_reason",
+            "r_upper_bound",
+            "x_upper_bound",
+            "bound_active",
+            "solver_objective_scale",
+            "certified_r_lower_bounds",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "solver_attempts"
+          ],
+          "selected_solution_fields": [
+            "terminal_labels",
+            "support_indices",
+            "r_values",
+            "x_values",
+            "r_matrix",
+            "x_matrix",
+            "h",
+            "g_r",
+            "g_x",
+            "train_mae",
+            "adjusted_train_mae",
+            "diagnostics",
+            "validation_mae",
+            "adjusted_validation_mae",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "certified_r_lower_bounds",
+            "r_upper_bound",
+            "x_upper_bound"
+          ],
+          "returned_path_count": 3,
+          "selected_solution": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            "r_atom_coefficients": [
+              0.023255874938538118,
+              0.014087850715778987,
+              0.07807014301709135,
+              0.0016814311307673643,
+              0.06132703327502252
+            ],
+            "x_atom_coefficients": [
+              0.0,
+              0.03801288502494469,
+              0.1,
+              0.021099294619596344,
+              0.0
+            ],
+            "r_sensitivity_matrix": [
+              [
+                0.086264339344328,
+                0.06300846440578989,
+                0.0016814311307673643
+              ],
+              [
+                0.06300846440578989,
+                0.07709631512156886,
+                0.0016814311307673643
+              ],
+              [
+                0.0016814311307673643,
+                0.0016814311307673643,
+                0.07975157414785872
+              ]
+            ],
+            "x_sensitivity_matrix": [
+              [
+                0.021099294619596344,
+                0.021099294619596344,
+                0.021099294619596344
+              ],
+              [
+                0.021099294619596344,
+                0.05911217964454103,
+                0.021099294619596344
+              ],
+              [
+                0.021099294619596344,
+                0.021099294619596344,
+                0.12109929461959634
+              ]
+            ],
+            "h": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "g_r": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "g_x": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_residual_reconstructed_for_audit": [
+              [
+                8.787329703800403e-05,
+                0.0003361753452588226,
+                0.0002291059837873366
+              ],
+              [
+                -8.033540772600309e-05,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.00044552405120453983,
+                0.0007725643183203248
+              ],
+              [
+                0.00016236783655682735,
+                0.0004674583877327075,
+                -2.1551419677849626e-07
+              ],
+              [
+                0.0,
+                -5.5996766411756105e-06,
+                9.858563274740828e-06
+              ],
+              [
+                -0.00015981474437072943,
+                -0.00013645963850530962,
+                0.0
+              ],
+              [
+                6.80796252714791e-05,
+                -0.00016178991054352845,
+                -0.00012804240592322047
+              ],
+              [
+                -0.0003441319578243729,
+                -3.469446951953614e-18,
+                -0.0003238081450727924
+              ],
+              [
+                -0.000676760022384388,
+                -0.0006594709664623534,
+                -0.0003570604264567373
+              ],
+              [
+                0.00016411723310940166,
+                -3.469446951953614e-18,
+                0.0005115321058518155
+              ],
+              [
+                4.723805524747826e-05,
+                5.7527765996462366e-05,
+                1.4625378474315137e-05
+              ],
+              [
+                -0.00035192335023117097,
+                -0.0003517957752531553,
+                -0.0007842950321281343
+              ]
+            ],
+            "reconstructed_MAE": 0.00021932085891233644,
+            "train_mae": 0.00021932085891233644,
+            "source_variables_active": false,
+            "raw_residual_is_exported_by_bridge": false
+          }
+        }
+      ],
+      "rnj_internal_capture": [
+        {
+          "mode": "raw_effective_pq",
+          "estimated_r": [
+            [
+              0.08276375208894679,
+              0.060768531465391504,
+              0.0031955406342395257
+            ],
+            [
+              0.060768531465391504,
+              0.06076859216429672,
+              0.02893100641193785
+            ],
+            [
+              0.0031955406342395257,
+              0.02893100641193785,
+              0.08589086794339414
+            ]
+          ],
+          "estimated_x": [
+            [
+              2.6305421290831876e-17,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.9272917994877118,
+          "condition": null,
+          "root_depths": [
+            0.6819782750040472,
+            0.5007368396504377,
+            0.7077458969680908
+          ],
+          "shared_paths": [
+            [
+              0.6819782750040472,
+              0.5007363394878227,
+              0.026331446248375894
+            ],
+            [
+              0.5007363394878227,
+              0.5007368396504377,
+              0.23839322588637704
+            ],
+            [
+              0.026331446248375894,
+              0.23839322588637704,
+              0.7077458969680908
+            ]
+          ],
+          "exported_by_bridge": false
+        },
+        {
+          "mode": "time_centered_effective_pq",
+          "estimated_r": [
+            [
+              0.08275074302606235,
+              0.05981230018841381,
+              0.0033237258636866322
+            ],
+            [
+              0.05981230018841381,
+              0.05981235421908532,
+              0.026918037519634872
+            ],
+            [
+              0.0033237258636866322,
+              0.026918037519634872,
+              0.08370613825242695
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.9278165189264606,
+          "condition": null,
+          "root_depths": [
+            0.6834377154037172,
+            0.49398974831603654,
+            0.6913283168283908
+          ],
+          "shared_paths": [
+            [
+              0.6834377154037172,
+              0.49398930207715885,
+              0.02745062494714774
+            ],
+            [
+              0.49398930207715885,
+              0.49398974831603654,
+              0.22231585352383756
+            ],
+            [
+              0.02745062494714774,
+              0.22231585352383756,
+              0.6913283168283908
+            ]
+          ],
+          "exported_by_bridge": false
+        }
+      ],
+      "observed_structure_disagreement_clades": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "structural_disagreement_scope": "all replaceable proposals, including generated neighborhoods",
+      "origin_specific_families": {
+        "raw_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "centered_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "WZZT_selected_normalized": [
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "passive_exported_keys": [
+        "schema",
+        "n_terminal",
+        "n_observation",
+        "candidates",
+        "diagnostics",
+        "generated_count",
+        "retained_count",
+        "base_count",
+        "discarded_base_count",
+        "coverage",
+        "selection_uses_truth",
+        "ranking_is_ac_evidence",
+        "certified_supports",
+        "rnj_supports_fixed_in_wzzt",
+        "config",
+        "seconds"
+      ],
+      "passive_candidate_keys": [
+        "id",
+        "supports",
+        "rank",
+        "proposal_origins",
+        "linear_contrast_mae",
+        "linear_contrast_rmse",
+        "rank_fit_success",
+        "rank_fit_status",
+        "rank_fit_optimality",
+        "ac_evidence",
+        "certified_supports",
+        "replaceable"
+      ],
+      "uses_structure": true,
+      "uses_impedance_initial": false,
+      "estimates_source": false,
+      "source_claim_scope": "actual default proposal branch, not all optional adapter branches",
+      "offline_evaluator_only": {
+        "true_name": "clade_01",
+        "truth_topology": 1,
+        "final_n3_bank_names": [
+          "clade_01",
+          "star",
+          "clade_02",
+          "clade_12"
+        ],
+        "true_name_in_final_bank": true
+      }
+    },
+    {
+      "history_id": "710012",
+      "history_sha256": "0700ee1d8b93b07f3cc5f3260331db98a2b77ee5ab16ed68953baa87b6b23641",
+      "history_shape": [
+        12,
+        3
+      ],
+      "proposal": {
+        "passive": {
+          "schema": 9,
+          "n_terminal": 3,
+          "n_observation": 12,
+          "candidates": [
+            {
+              "id": "passive_2883ec195bfd",
+              "supports": [],
+              "rank": 1,
+              "proposal_origins": [
+                "rnj:time_centered_effective_pq:tolerance=0.16",
+                "wzzt:accepted_path:0",
+                "wzzt:accepted_path:1",
+                "local:seed=0:unchanged",
+                "local:seed=1:delete_clade",
+                "local:seed=2:delete_clade"
+              ],
+              "linear_contrast_mae": 0.00011930583662516363,
+              "linear_contrast_rmse": 0.00015522759708998715,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 4.628188023797497e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_9c8cb5baf12d",
+              "supports": [
+                [
+                  1,
+                  2
+                ]
+              ],
+              "rank": 2,
+              "proposal_origins": [
+                "local:seed=1:rooted_interchange",
+                "local:seed=2:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00011930583662516363,
+              "linear_contrast_rmse": 0.00015522759708998707,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 4.604471101274377e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_6f37ae37aa17",
+              "supports": [
+                [
+                  0,
+                  2
+                ]
+              ],
+              "rank": 3,
+              "proposal_origins": [
+                "wzzt:accepted_path:2",
+                "local:seed=1:unchanged",
+                "local:seed=2:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00012016285142992844,
+              "linear_contrast_rmse": 0.0001538103414099905,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 6.5052130349130266e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_4c0107d46bec",
+              "supports": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "rank": 4,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0",
+                "rnj:raw_effective_pq:tolerance=0.08",
+                "rnj:raw_effective_pq:tolerance=0.16",
+                "rnj:time_centered_effective_pq:tolerance=0",
+                "rnj:time_centered_effective_pq:tolerance=0.08",
+                "local:seed=1:rooted_interchange",
+                "local:seed=2:unchanged"
+              ],
+              "linear_contrast_mae": 0.00012071883788747226,
+              "linear_contrast_rmse": 0.0001531109196573919,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 1.3213713977167085e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            }
+          ],
+          "diagnostics": {
+            "rnj": [
+              {
+                "mode": "raw_effective_pq",
+                "success": true,
+                "r2": 0.8194439524222733,
+                "effective_pq_condition": 110.75154963935036,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 5.551115123125783e-17,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 7.325080917243467e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 4.239651998221264e-06,
+                  "objective": 2.119825999110632e-06
+                }
+              },
+              {
+                "mode": "time_centered_effective_pq",
+                "success": true,
+                "r2": 0.8456846683187567,
+                "effective_pq_condition": 6.43044180422687,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 6.997276703128973e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.623491503583774e-06,
+                  "objective": 1.811745751791887e-06
+                }
+              }
+            ],
+            "wzzt": {
+              "called": true,
+              "support_indices": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  0,
+                  2
+                ]
+              ],
+              "train_mae": 0.0002594987072722561,
+              "adjusted_train_mae": 0.0002594987072722561,
+              "path_length": 3,
+              "stop_reason": "max_atoms",
+              "r_upper_bound": 0.2,
+              "x_upper_bound": 0.1,
+              "bound_active": false,
+              "solver_objective_scale": 100000.0,
+              "certified_r_lower_bounds": [],
+              "r_path_upper_bound": null,
+              "x_path_upper_bound": null,
+              "certified_x_lower_bounds": [],
+              "solver_attempts": [
+                {
+                  "stage": "initial",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00026848172447750896,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0019656000658869743,
+                  "variable_count": 42,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002602044889878878,
+                  "dual_bound": 0.0002602044889878878,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.046986599918454885,
+                  "variable_count": 74,
+                  "binary_variable_count": 12,
+                  "constraint_count": 139,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002602044889878895,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0025068999966606498,
+                  "variable_count": 44,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002594987072722601,
+                  "dual_bound": 0.0002594987072722601,
+                  "mip_gap": 0.0,
+                  "node_count": 0,
+                  "runtime_seconds": 0.022410200093872845,
+                  "variable_count": 79,
+                  "binary_variable_count": 15,
+                  "constraint_count": 147,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00025949870727225583,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0024304999969899654,
+                  "variable_count": 46,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                }
+              ],
+              "mandatory_supports": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ]
+              ],
+              "global_topology_optimality": false
+            }
+          },
+          "generated_count": 4,
+          "retained_count": 4,
+          "base_count": 3,
+          "discarded_base_count": 0,
+          "coverage": "finite observation-generated proposal bank; not all radial topologies",
+          "selection_uses_truth": false,
+          "ranking_is_ac_evidence": false,
+          "certified_supports": [],
+          "rnj_supports_fixed_in_wzzt": false,
+          "config": {
+            "kappa": 0.5,
+            "tolerance_factors": [
+              0.0,
+              0.08,
+              0.16
+            ],
+            "max_candidates": 8,
+            "wzzt_time_limit_per_solve": 0.3,
+            "wzzt_max_atoms": 5,
+            "coefficient_bound": 0.2,
+            "neighbor_seed_count": 3,
+            "run_wzzt": true
+          },
+          "seconds": 0.09050990000832826
+        },
+        "bank": [
+          {
+            "name": "star",
+            "supports": [],
+            "origins": [
+              "passive",
+              "declared_local_repair_star"
+            ]
+          },
+          {
+            "name": "clade_12",
+            "supports": [
+              [
+                1,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_02",
+            "supports": [
+              [
+                0,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_01",
+            "supports": [
+              [
+                0,
+                1
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          }
+        ],
+        "uses_truth": false,
+        "n3_complete_reduced_class": true,
+        "coverage": "reduced star/cherry class"
+      },
+      "adapter_capture": [
+        {
+          "source_inputs_is_None": true,
+          "source_p_error_max": 0.0,
+          "source_q_error_max": 0.0,
+          "result_summary": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                2
+              ]
+            ],
+            "train_mae": 0.0002594987072722561,
+            "adjusted_train_mae": 0.0002594987072722561,
+            "path_length": 3,
+            "stop_reason": "max_atoms",
+            "r_upper_bound": 0.2,
+            "x_upper_bound": 0.1,
+            "bound_active": false,
+            "solver_objective_scale": 100000.0,
+            "certified_r_lower_bounds": [],
+            "r_path_upper_bound": null,
+            "x_path_upper_bound": null,
+            "certified_x_lower_bounds": [],
+            "solver_attempts": [
+              {
+                "stage": "initial",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00026848172447750896,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0019656000658869743,
+                "variable_count": 42,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002602044889878878,
+                "dual_bound": 0.0002602044889878878,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.046986599918454885,
+                "variable_count": 74,
+                "binary_variable_count": 12,
+                "constraint_count": 139,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002602044889878895,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0025068999966606498,
+                "variable_count": 44,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002594987072722601,
+                "dual_bound": 0.0002594987072722601,
+                "mip_gap": 0.0,
+                "node_count": 0,
+                "runtime_seconds": 0.022410200093872845,
+                "variable_count": 79,
+                "binary_variable_count": 15,
+                "constraint_count": 147,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00025949870727225583,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0024304999969899654,
+                "variable_count": 46,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              }
+            ]
+          },
+          "summary_keys": [
+            "support_indices",
+            "train_mae",
+            "adjusted_train_mae",
+            "path_length",
+            "stop_reason",
+            "r_upper_bound",
+            "x_upper_bound",
+            "bound_active",
+            "solver_objective_scale",
+            "certified_r_lower_bounds",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "solver_attempts"
+          ],
+          "selected_solution_fields": [
+            "terminal_labels",
+            "support_indices",
+            "r_values",
+            "x_values",
+            "r_matrix",
+            "x_matrix",
+            "h",
+            "g_r",
+            "g_x",
+            "train_mae",
+            "adjusted_train_mae",
+            "diagnostics",
+            "validation_mae",
+            "adjusted_validation_mae",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "certified_r_lower_bounds",
+            "r_upper_bound",
+            "x_upper_bound"
+          ],
+          "returned_path_count": 3,
+          "selected_solution": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                2
+              ]
+            ],
+            "r_atom_coefficients": [
+              0.057781204247912166,
+              0.09741380661418063,
+              0.06806963501451477,
+              0.005485404563022584,
+              0.0
+            ],
+            "x_atom_coefficients": [
+              0.06549957591180072,
+              0.0,
+              0.05865189046688261,
+              0.013259980014710591,
+              0.006703930376980306
+            ],
+            "r_sensitivity_matrix": [
+              [
+                0.06326660881093475,
+                0.005485404563022584,
+                0.005485404563022584
+              ],
+              [
+                0.005485404563022584,
+                0.10289921117720321,
+                0.005485404563022584
+              ],
+              [
+                0.005485404563022584,
+                0.005485404563022584,
+                0.07355503957753735
+              ]
+            ],
+            "x_sensitivity_matrix": [
+              [
+                0.08546348630349163,
+                0.013259980014710591,
+                0.019963910391690896
+              ],
+              [
+                0.013259980014710591,
+                0.013259980014710591,
+                0.013259980014710591
+              ],
+              [
+                0.019963910391690896,
+                0.013259980014710591,
+                0.0786158008585735
+              ]
+            ],
+            "h": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "g_r": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "g_x": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_residual_reconstructed_for_audit": [
+              [
+                0.000507291932331403,
+                0.0004009697900661177,
+                0.0
+              ],
+              [
+                0.0005348708860338988,
+                0.0005270106802336798,
+                0.00034927850063043095
+              ],
+              [
+                0.000278402795217559,
+                0.0007071973753160713,
+                0.0001677990812337573
+              ],
+              [
+                -0.00027728471087970843,
+                -0.000245909230792693,
+                -2.7515395667386533e-05
+              ],
+              [
+                0.00018923830976626428,
+                0.0,
+                -3.469446951953614e-18
+              ],
+              [
+                0.00027690921392066817,
+                0.0005164831143544043,
+                0.00033011165931077363
+              ],
+              [
+                -1.734723475976807e-18,
+                -6.804093354361579e-06,
+                0.0
+              ],
+              [
+                -0.00022275251557488454,
+                0.0,
+                -0.00033156793208821006
+              ],
+              [
+                -0.000469166423480211,
+                -0.0003233721062420418,
+                -0.00033475041649506064
+              ],
+              [
+                -0.0002015491561266746,
+                -8.04872239280937e-05,
+                -0.0006664407747729757
+              ],
+              [
+                -6.938893903907228e-18,
+                0.00041207375497337786,
+                0.0005923326928029722
+              ],
+              [
+                -3.469446951953614e-18,
+                -5.3586433793615176e-05,
+                0.0003107972624139081
+              ]
+            ],
+            "reconstructed_MAE": 0.0002594987072722561,
+            "train_mae": 0.0002594987072722561,
+            "source_variables_active": false,
+            "raw_residual_is_exported_by_bridge": false
+          }
+        }
+      ],
+      "rnj_internal_capture": [
+        {
+          "mode": "raw_effective_pq",
+          "estimated_r": [
+            [
+              0.06428586746094413,
+              0.01842468753463719,
+              0.015501466714141312
+            ],
+            [
+              0.01842468753463719,
+              0.09128458575866412,
+              0.0
+            ],
+            [
+              0.015501466714141312,
+              0.0,
+              0.0891613084544522
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.8194439524222733,
+          "condition": null,
+          "root_depths": [
+            0.34307247220259957,
+            0.48715572717816097,
+            0.4758244964940576
+          ],
+          "shared_paths": [
+            [
+              0.34307247220259957,
+              0.09832648063602202,
+              0.08272621523879588
+            ],
+            [
+              0.09832648063602202,
+              0.48715572717816097,
+              0.0
+            ],
+            [
+              0.08272621523879588,
+              0.0,
+              0.4758244964940576
+            ]
+          ],
+          "exported_by_bridge": false
+        },
+        {
+          "mode": "time_centered_effective_pq",
+          "estimated_r": [
+            [
+              0.06207313431234379,
+              0.012230563891071725,
+              0.009284667566567848
+            ],
+            [
+              0.012230563891071725,
+              0.07943700163326267,
+              5.278617444435857e-18
+            ],
+            [
+              0.009284667566567848,
+              5.278617444435857e-18,
+              0.08116134714310087
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.8456846683187567,
+          "condition": null,
+          "root_depths": [
+            0.34715439135077547,
+            0.4442647251218624,
+            0.45390841594846343
+          ],
+          "shared_paths": [
+            [
+              0.34715439135077547,
+              0.06840147530036103,
+              0.05192605712074028
+            ],
+            [
+              0.06840147530036103,
+              0.4442647251218624,
+              2.952155141507504e-17
+            ],
+            [
+              0.05192605712074028,
+              2.952155141507504e-17,
+              0.45390841594846343
+            ]
+          ],
+          "exported_by_bridge": false
+        }
+      ],
+      "observed_structure_disagreement_clades": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "structural_disagreement_scope": "all replaceable proposals, including generated neighborhoods",
+      "origin_specific_families": {
+        "raw_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "centered_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "WZZT_selected_normalized": [
+          [
+            0,
+            2
+          ]
+        ]
+      },
+      "passive_exported_keys": [
+        "schema",
+        "n_terminal",
+        "n_observation",
+        "candidates",
+        "diagnostics",
+        "generated_count",
+        "retained_count",
+        "base_count",
+        "discarded_base_count",
+        "coverage",
+        "selection_uses_truth",
+        "ranking_is_ac_evidence",
+        "certified_supports",
+        "rnj_supports_fixed_in_wzzt",
+        "config",
+        "seconds"
+      ],
+      "passive_candidate_keys": [
+        "id",
+        "supports",
+        "rank",
+        "proposal_origins",
+        "linear_contrast_mae",
+        "linear_contrast_rmse",
+        "rank_fit_success",
+        "rank_fit_status",
+        "rank_fit_optimality",
+        "ac_evidence",
+        "certified_supports",
+        "replaceable"
+      ],
+      "uses_structure": true,
+      "uses_impedance_initial": false,
+      "estimates_source": false,
+      "source_claim_scope": "actual default proposal branch, not all optional adapter branches",
+      "offline_evaluator_only": {
+        "true_name": "star",
+        "truth_topology": 0,
+        "final_n3_bank_names": [
+          "star",
+          "clade_12",
+          "clade_02",
+          "clade_01"
+        ],
+        "true_name_in_final_bank": true
+      }
+    },
+    {
+      "history_id": "710013",
+      "history_sha256": "229fd2e191fe0cabd8ac6226e189619adc96c3203c3433734fff3ff7be84ffcd",
+      "history_shape": [
+        12,
+        3
+      ],
+      "proposal": {
+        "passive": {
+          "schema": 9,
+          "n_terminal": 3,
+          "n_observation": 12,
+          "candidates": [
+            {
+              "id": "passive_4c0107d46bec",
+              "supports": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "rank": 1,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0",
+                "rnj:raw_effective_pq:tolerance=0.08",
+                "rnj:time_centered_effective_pq:tolerance=0",
+                "rnj:time_centered_effective_pq:tolerance=0.08",
+                "rnj:time_centered_effective_pq:tolerance=0.16",
+                "local:seed=0:unchanged",
+                "local:seed=1:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.0001354400228966144,
+              "linear_contrast_rmse": 0.00016679065506181276,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 3.821812658011403e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_6f37ae37aa17",
+              "supports": [
+                [
+                  0,
+                  2
+                ]
+              ],
+              "rank": 2,
+              "proposal_origins": [
+                "wzzt:accepted_path:1",
+                "wzzt:accepted_path:2",
+                "local:seed=0:rooted_interchange",
+                "local:seed=1:unchanged"
+              ],
+              "linear_contrast_mae": 0.0001375132138375284,
+              "linear_contrast_rmse": 0.0001693131520277086,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 3.7608262858090935e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_2883ec195bfd",
+              "supports": [],
+              "rank": 3,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0.16",
+                "wzzt:accepted_path:0",
+                "local:seed=0:delete_clade",
+                "local:seed=1:delete_clade",
+                "local:seed=2:unchanged"
+              ],
+              "linear_contrast_mae": 0.00013868170586160377,
+              "linear_contrast_rmse": 0.00017090377595315058,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 2.100641709190665e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_9c8cb5baf12d",
+              "supports": [
+                [
+                  1,
+                  2
+                ]
+              ],
+              "rank": 4,
+              "proposal_origins": [
+                "local:seed=0:rooted_interchange",
+                "local:seed=1:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00013868170586160385,
+              "linear_contrast_rmse": 0.00017090377595315072,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 1.830438199016543e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            }
+          ],
+          "diagnostics": {
+            "rnj": [
+              {
+                "mode": "raw_effective_pq",
+                "success": true,
+                "r2": 0.7582314078062374,
+                "effective_pq_condition": 105.53639048548972,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 9.79378089115356e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 2.415575473630029e-06,
+                  "objective": 1.2077877368150146e-06
+                }
+              },
+              {
+                "mode": "time_centered_effective_pq",
+                "success": true,
+                "r2": 0.7956434263601008,
+                "effective_pq_condition": 2.663173909706437,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 3.2772025656013073e-15,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 8.718063121057521e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 2.0417818653797213e-06,
+                  "objective": 1.0208909326898607e-06
+                }
+              }
+            ],
+            "wzzt": {
+              "called": true,
+              "support_indices": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ]
+              ],
+              "train_mae": 0.00018396089428948195,
+              "adjusted_train_mae": 0.00018396089428948195,
+              "path_length": 3,
+              "stop_reason": "max_atoms",
+              "r_upper_bound": 0.2,
+              "x_upper_bound": 0.1,
+              "bound_active": false,
+              "solver_objective_scale": 100000.0,
+              "certified_r_lower_bounds": [],
+              "r_path_upper_bound": null,
+              "x_path_upper_bound": null,
+              "certified_x_lower_bounds": [],
+              "solver_attempts": [
+                {
+                  "stage": "initial",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00019344056432754213,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0021444999147206545,
+                  "variable_count": 42,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00018465197076057612,
+                  "dual_bound": 0.00018465197076057612,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.045316900010220706,
+                  "variable_count": 74,
+                  "binary_variable_count": 12,
+                  "constraint_count": 139,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00018465197076058133,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0024797000223770738,
+                  "variable_count": 44,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00018396089428947634,
+                  "dual_bound": 0.00018396089428947634,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.009707999997772276,
+                  "variable_count": 79,
+                  "binary_variable_count": 15,
+                  "constraint_count": 146,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00018396089428947824,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.002279500011354685,
+                  "variable_count": 46,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                }
+              ],
+              "mandatory_supports": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ]
+              ],
+              "global_topology_optimality": false
+            }
+          },
+          "generated_count": 4,
+          "retained_count": 4,
+          "base_count": 3,
+          "discarded_base_count": 0,
+          "coverage": "finite observation-generated proposal bank; not all radial topologies",
+          "selection_uses_truth": false,
+          "ranking_is_ac_evidence": false,
+          "certified_supports": [],
+          "rnj_supports_fixed_in_wzzt": false,
+          "config": {
+            "kappa": 0.5,
+            "tolerance_factors": [
+              0.0,
+              0.08,
+              0.16
+            ],
+            "max_candidates": 8,
+            "wzzt_time_limit_per_solve": 0.3,
+            "wzzt_max_atoms": 5,
+            "coefficient_bound": 0.2,
+            "neighbor_seed_count": 3,
+            "run_wzzt": true
+          },
+          "seconds": 0.076127800042741
+        },
+        "bank": [
+          {
+            "name": "clade_01",
+            "supports": [
+              [
+                0,
+                1
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_02",
+            "supports": [
+              [
+                0,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "star",
+            "supports": [],
+            "origins": [
+              "passive",
+              "declared_local_repair_star"
+            ]
+          },
+          {
+            "name": "clade_12",
+            "supports": [
+              [
+                1,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          }
+        ],
+        "uses_truth": false,
+        "n3_complete_reduced_class": true,
+        "coverage": "reduced star/cherry class"
+      },
+      "adapter_capture": [
+        {
+          "source_inputs_is_None": true,
+          "source_p_error_max": 0.0,
+          "source_q_error_max": 0.0,
+          "result_summary": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            "train_mae": 0.00018396089428948195,
+            "adjusted_train_mae": 0.00018396089428948195,
+            "path_length": 3,
+            "stop_reason": "max_atoms",
+            "r_upper_bound": 0.2,
+            "x_upper_bound": 0.1,
+            "bound_active": false,
+            "solver_objective_scale": 100000.0,
+            "certified_r_lower_bounds": [],
+            "r_path_upper_bound": null,
+            "x_path_upper_bound": null,
+            "certified_x_lower_bounds": [],
+            "solver_attempts": [
+              {
+                "stage": "initial",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00019344056432754213,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0021444999147206545,
+                "variable_count": 42,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00018465197076057612,
+                "dual_bound": 0.00018465197076057612,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.045316900010220706,
+                "variable_count": 74,
+                "binary_variable_count": 12,
+                "constraint_count": 139,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00018465197076058133,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0024797000223770738,
+                "variable_count": 44,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00018396089428947634,
+                "dual_bound": 0.00018396089428947634,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.009707999997772276,
+                "variable_count": 79,
+                "binary_variable_count": 15,
+                "constraint_count": 146,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00018396089428947824,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.002279500011354685,
+                "variable_count": 46,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              }
+            ]
+          },
+          "summary_keys": [
+            "support_indices",
+            "train_mae",
+            "adjusted_train_mae",
+            "path_length",
+            "stop_reason",
+            "r_upper_bound",
+            "x_upper_bound",
+            "bound_active",
+            "solver_objective_scale",
+            "certified_r_lower_bounds",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "solver_attempts"
+          ],
+          "selected_solution_fields": [
+            "terminal_labels",
+            "support_indices",
+            "r_values",
+            "x_values",
+            "r_matrix",
+            "x_matrix",
+            "h",
+            "g_r",
+            "g_x",
+            "train_mae",
+            "adjusted_train_mae",
+            "diagnostics",
+            "validation_mae",
+            "adjusted_validation_mae",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "certified_r_lower_bounds",
+            "r_upper_bound",
+            "x_upper_bound"
+          ],
+          "returned_path_count": 3,
+          "selected_solution": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            "r_atom_coefficients": [
+              0.05750157128983909,
+              0.1141905535132989,
+              0.06066067456352347,
+              0.01633393517342187,
+              0.0
+            ],
+            "x_atom_coefficients": [
+              0.02878664843520059,
+              0.0,
+              0.092807926917621,
+              0.0,
+              0.014687774985841826
+            ],
+            "r_sensitivity_matrix": [
+              [
+                0.07383550646326097,
+                0.0,
+                0.01633393517342187
+              ],
+              [
+                0.0,
+                0.1141905535132989,
+                0.0
+              ],
+              [
+                0.01633393517342187,
+                0.0,
+                0.07699460973694534
+              ]
+            ],
+            "x_sensitivity_matrix": [
+              [
+                0.043474423421042414,
+                0.014687774985841826,
+                0.014687774985841826
+              ],
+              [
+                0.014687774985841826,
+                0.014687774985841826,
+                0.014687774985841826
+              ],
+              [
+                0.014687774985841826,
+                0.014687774985841826,
+                0.10749570190346283
+              ]
+            ],
+            "h": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "g_r": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "g_x": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_residual_reconstructed_for_audit": [
+              [
+                -0.0003998190528868139,
+                -0.0005710192149028532,
+                -0.0005234984095672697
+              ],
+              [
+                3.4022563089422184e-05,
+                0.0005551407459795862,
+                -0.0003642241844126204
+              ],
+              [
+                6.256496765937036e-05,
+                5.012323129082244e-05,
+                5.064381156551223e-05
+              ],
+              [
+                9.020562075079397e-17,
+                2.42861286636753e-17,
+                -0.00018099483075569023
+              ],
+              [
+                -0.0004562845556740497,
+                -0.0001229025533597862,
+                6.938893903907228e-18
+              ],
+              [
+                0.00020670637468766725,
+                -0.00021286941908075022,
+                -0.00015353777681530872
+              ],
+              [
+                -0.000164230395705919,
+                7.075742334770874e-05,
+                -2.0816681711721685e-17
+              ],
+              [
+                -0.0005901437762138809,
+                -0.00025350494036370866,
+                -2.0816681711721685e-17
+              ],
+              [
+                1.734723475976807e-18,
+                -0.00016577849069344432,
+                1.5340816081090697e-05
+              ],
+              [
+                -2.949029909160572e-17,
+                0.000265848780115277,
+                6.334307348609958e-05
+              ],
+              [
+                -3.104950603633437e-05,
+                -0.00025497467835827736,
+                -6.742992973541098e-05
+              ],
+              [
+                0.0004202883967994609,
+                0.00026758816264688817,
+                4.796213311013264e-05
+              ]
+            ],
+            "reconstructed_MAE": 0.00018396089428948195,
+            "train_mae": 0.00018396089428948195,
+            "source_variables_active": false,
+            "raw_residual_is_exported_by_bridge": false
+          }
+        }
+      ],
+      "rnj_internal_capture": [
+        {
+          "mode": "raw_effective_pq",
+          "estimated_r": [
+            [
+              0.0726344915681281,
+              0.015206011035805893,
+              0.009724277822022885
+            ],
+            [
+              0.015206011035805893,
+              0.0954810357944823,
+              6.0721761799260585e-18
+            ],
+            [
+              0.009724277822022885,
+              6.0721761799260585e-18,
+              0.10894345626365022
+            ]
+          ],
+          "estimated_x": [
+            [
+              3.6749747504868506e-17,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.7582314078062374,
+          "condition": null,
+          "root_depths": [
+            0.3240956095425565,
+            0.42603704971958545,
+            0.48610646403882457
+          ],
+          "shared_paths": [
+            [
+              0.3240956095425565,
+              0.06784932762608942,
+              0.04338979567487723
+            ],
+            [
+              0.06784932762608942,
+              0.42603704971958545,
+              2.7094092597000688e-17
+            ],
+            [
+              0.04338979567487723,
+              2.7094092597000688e-17,
+              0.48610646403882457
+            ]
+          ],
+          "exported_by_bridge": false
+        },
+        {
+          "mode": "time_centered_effective_pq",
+          "estimated_r": [
+            [
+              0.0804218969599721,
+              0.02860448525588995,
+              0.016145546988382387
+            ],
+            [
+              0.02860448525588995,
+              0.11914904362832078,
+              0.0
+            ],
+            [
+              0.016145546988382387,
+              0.0,
+              0.08926901070800744
+            ]
+          ],
+          "estimated_x": [
+            [
+              8.218577003109313e-16,
+              8.218577003109313e-16,
+              0.0
+            ],
+            [
+              8.218577003109313e-16,
+              8.218577003109313e-16,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.7956434263601008,
+          "condition": null,
+          "root_depths": [
+            0.3706610843714683,
+            0.549152847452457,
+            0.4114370533471402
+          ],
+          "shared_paths": [
+            [
+              0.3706610843714683,
+              0.13183684946045227,
+              0.07441413571061313
+            ],
+            [
+              0.13183684946045227,
+              0.549152847452457,
+              0.0
+            ],
+            [
+              0.07441413571061313,
+              0.0,
+              0.4114370533471402
+            ]
+          ],
+          "exported_by_bridge": false
+        }
+      ],
+      "observed_structure_disagreement_clades": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "structural_disagreement_scope": "all replaceable proposals, including generated neighborhoods",
+      "origin_specific_families": {
+        "raw_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "centered_RNJ_tolerance0": [
+          [
+            [
+              0,
+              1
+            ]
+          ]
+        ],
+        "WZZT_selected_normalized": [
+          [
+            0,
+            2
+          ]
+        ]
+      },
+      "passive_exported_keys": [
+        "schema",
+        "n_terminal",
+        "n_observation",
+        "candidates",
+        "diagnostics",
+        "generated_count",
+        "retained_count",
+        "base_count",
+        "discarded_base_count",
+        "coverage",
+        "selection_uses_truth",
+        "ranking_is_ac_evidence",
+        "certified_supports",
+        "rnj_supports_fixed_in_wzzt",
+        "config",
+        "seconds"
+      ],
+      "passive_candidate_keys": [
+        "id",
+        "supports",
+        "rank",
+        "proposal_origins",
+        "linear_contrast_mae",
+        "linear_contrast_rmse",
+        "rank_fit_success",
+        "rank_fit_status",
+        "rank_fit_optimality",
+        "ac_evidence",
+        "certified_supports",
+        "replaceable"
+      ],
+      "uses_structure": true,
+      "uses_impedance_initial": false,
+      "estimates_source": false,
+      "source_claim_scope": "actual default proposal branch, not all optional adapter branches",
+      "offline_evaluator_only": {
+        "true_name": "clade_02",
+        "truth_topology": 2,
+        "final_n3_bank_names": [
+          "clade_01",
+          "clade_02",
+          "star",
+          "clade_12"
+        ],
+        "true_name_in_final_bank": true
+      }
+    },
+    {
+      "history_id": "710014",
+      "history_sha256": "b394256187b9dd06e9810fd1f8a3ae405b3c9ba5b987b9ed51987665339e06f8",
+      "history_shape": [
+        12,
+        3
+      ],
+      "proposal": {
+        "passive": {
+          "schema": 9,
+          "n_terminal": 3,
+          "n_observation": 12,
+          "candidates": [
+            {
+              "id": "passive_9c8cb5baf12d",
+              "supports": [
+                [
+                  1,
+                  2
+                ]
+              ],
+              "rank": 1,
+              "proposal_origins": [
+                "rnj:raw_effective_pq:tolerance=0",
+                "rnj:raw_effective_pq:tolerance=0.08",
+                "rnj:raw_effective_pq:tolerance=0.16",
+                "wzzt:accepted_path:2",
+                "local:seed=0:unchanged",
+                "local:seed=2:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.00014845426546563855,
+              "linear_contrast_rmse": 0.00019330710739429507,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 3.977243203832567e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_2883ec195bfd",
+              "supports": [],
+              "rank": 2,
+              "proposal_origins": [
+                "wzzt:accepted_path:0",
+                "wzzt:accepted_path:1",
+                "local:seed=0:delete_clade",
+                "local:seed=1:unchanged",
+                "local:seed=2:delete_clade"
+              ],
+              "linear_contrast_mae": 0.00015126448010208127,
+              "linear_contrast_rmse": 0.00019436021719727178,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 1.5774929851427276e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_4c0107d46bec",
+              "supports": [
+                [
+                  0,
+                  1
+                ]
+              ],
+              "rank": 3,
+              "proposal_origins": [
+                "local:seed=0:rooted_interchange",
+                "local:seed=2:rooted_interchange"
+              ],
+              "linear_contrast_mae": 0.0001512644801020814,
+              "linear_contrast_rmse": 0.00019436021719727186,
+              "rank_fit_success": true,
+              "rank_fit_status": 1,
+              "rank_fit_optimality": 1.8516140226979005e-18,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            },
+            {
+              "id": "passive_6f37ae37aa17",
+              "supports": [
+                [
+                  0,
+                  2
+                ]
+              ],
+              "rank": 4,
+              "proposal_origins": [
+                "rnj:time_centered_effective_pq:tolerance=0",
+                "rnj:time_centered_effective_pq:tolerance=0.08",
+                "rnj:time_centered_effective_pq:tolerance=0.16",
+                "local:seed=0:rooted_interchange",
+                "local:seed=2:unchanged"
+              ],
+              "linear_contrast_mae": 0.0001524591560823388,
+              "linear_contrast_rmse": 0.00019390786447514674,
+              "rank_fit_success": true,
+              "rank_fit_status": 3,
+              "rank_fit_optimality": 1.5101326900123294e-17,
+              "ac_evidence": null,
+              "certified_supports": [],
+              "replaceable": true
+            }
+          ],
+          "diagnostics": {
+            "rnj": [
+              {
+                "mode": "raw_effective_pq",
+                "success": true,
+                "r2": 0.7722539467267737,
+                "effective_pq_condition": 108.02099137524438,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 1.0267891271271119e-07,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 4.886163370396106e-06,
+                  "objective": 2.443081685198053e-06
+                }
+              },
+              {
+                "mode": "time_centered_effective_pq",
+                "success": true,
+                "r2": 0.8517338250708533,
+                "effective_pq_condition": 5.384153968342224,
+                "effective_pq_rank": 3,
+                "augmented_pq_condition": null,
+                "augmented_zero_q_channel": true,
+                "solver": {
+                  "method": "SLSQP_convex_QP",
+                  "coordinates": "spectral_preconditioned",
+                  "success": true,
+                  "iterations": 2,
+                  "message": "Optimization terminated successfully",
+                  "maximum_scaled_constraint_violation_before_cleanup": 0.0,
+                  "constraint_mode": "ordered",
+                  "alpha": 0.0,
+                  "r_margin": 7.409190764455825e-08,
+                  "x_margin": 0.0,
+                  "squared_residual_sum": 3.1809673212576565e-06,
+                  "objective": 1.5904836606288282e-06
+                }
+              }
+            ],
+            "wzzt": {
+              "called": true,
+              "support_indices": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "train_mae": 0.00025040043901187055,
+              "adjusted_train_mae": 0.00025040043901187055,
+              "path_length": 3,
+              "stop_reason": "max_atoms",
+              "r_upper_bound": 0.2,
+              "x_upper_bound": 0.1,
+              "bound_active": false,
+              "solver_objective_scale": 100000.0,
+              "certified_r_lower_bounds": [],
+              "r_path_upper_bound": null,
+              "x_path_upper_bound": null,
+              "certified_x_lower_bounds": [],
+              "solver_attempts": [
+                {
+                  "stage": "initial",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0003027652800495946,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0021522999741137028,
+                  "variable_count": 42,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00025401018524216085,
+                  "dual_bound": 0.00025401018524216085,
+                  "mip_gap": 0.0,
+                  "node_count": 1,
+                  "runtime_seconds": 0.044604400056414306,
+                  "variable_count": 74,
+                  "binary_variable_count": 12,
+                  "constraint_count": 139,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.0002540101852421642,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0020892000757157803,
+                  "variable_count": 44,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "extension",
+                  "accepted": true,
+                  "added_support": [
+                    1,
+                    2
+                  ],
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00025040043901116717,
+                  "dual_bound": 0.00025040043901116717,
+                  "mip_gap": 0.0,
+                  "node_count": 0,
+                  "runtime_seconds": 0.02043439995031804,
+                  "variable_count": 79,
+                  "binary_variable_count": 15,
+                  "constraint_count": 147,
+                  "solver": "highs",
+                  "raw_status": null
+                },
+                {
+                  "stage": "refit",
+                  "accepted": true,
+                  "added_support": null,
+                  "status": 0,
+                  "success": true,
+                  "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                  "objective": 0.00025040043901102145,
+                  "dual_bound": null,
+                  "mip_gap": null,
+                  "node_count": null,
+                  "runtime_seconds": 0.0023849999997764826,
+                  "variable_count": 46,
+                  "binary_variable_count": 0,
+                  "constraint_count": 72,
+                  "solver": "highs",
+                  "raw_status": null
+                }
+              ],
+              "mandatory_supports": [
+                [
+                  0
+                ],
+                [
+                  1
+                ],
+                [
+                  2
+                ]
+              ],
+              "global_topology_optimality": false
+            }
+          },
+          "generated_count": 4,
+          "retained_count": 4,
+          "base_count": 3,
+          "discarded_base_count": 0,
+          "coverage": "finite observation-generated proposal bank; not all radial topologies",
+          "selection_uses_truth": false,
+          "ranking_is_ac_evidence": false,
+          "certified_supports": [],
+          "rnj_supports_fixed_in_wzzt": false,
+          "config": {
+            "kappa": 0.5,
+            "tolerance_factors": [
+              0.0,
+              0.08,
+              0.16
+            ],
+            "max_candidates": 8,
+            "wzzt_time_limit_per_solve": 0.3,
+            "wzzt_max_atoms": 5,
+            "coefficient_bound": 0.2,
+            "neighbor_seed_count": 3,
+            "run_wzzt": true
+          },
+          "seconds": 0.08616099995560944
+        },
+        "bank": [
+          {
+            "name": "clade_12",
+            "supports": [
+              [
+                1,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "star",
+            "supports": [],
+            "origins": [
+              "passive",
+              "declared_local_repair_star"
+            ]
+          },
+          {
+            "name": "clade_01",
+            "supports": [
+              [
+                0,
+                1
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          },
+          {
+            "name": "clade_02",
+            "supports": [
+              [
+                0,
+                2
+              ]
+            ],
+            "origins": [
+              "passive",
+              "declared_local_repair_all_cherries"
+            ]
+          }
+        ],
+        "uses_truth": false,
+        "n3_complete_reduced_class": true,
+        "coverage": "reduced star/cherry class"
+      },
+      "adapter_capture": [
+        {
+          "source_inputs_is_None": true,
+          "source_p_error_max": 0.0,
+          "source_q_error_max": 0.0,
+          "result_summary": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "train_mae": 0.00025040043901187055,
+            "adjusted_train_mae": 0.00025040043901187055,
+            "path_length": 3,
+            "stop_reason": "max_atoms",
+            "r_upper_bound": 0.2,
+            "x_upper_bound": 0.1,
+            "bound_active": false,
+            "solver_objective_scale": 100000.0,
+            "certified_r_lower_bounds": [],
+            "r_path_upper_bound": null,
+            "x_path_upper_bound": null,
+            "certified_x_lower_bounds": [],
+            "solver_attempts": [
+              {
+                "stage": "initial",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0003027652800495946,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0021522999741137028,
+                "variable_count": 42,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  0,
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00025401018524216085,
+                "dual_bound": 0.00025401018524216085,
+                "mip_gap": 0.0,
+                "node_count": 1,
+                "runtime_seconds": 0.044604400056414306,
+                "variable_count": 74,
+                "binary_variable_count": 12,
+                "constraint_count": 139,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.0002540101852421642,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0020892000757157803,
+                "variable_count": 44,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "extension",
+                "accepted": true,
+                "added_support": [
+                  1,
+                  2
+                ],
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00025040043901116717,
+                "dual_bound": 0.00025040043901116717,
+                "mip_gap": 0.0,
+                "node_count": 0,
+                "runtime_seconds": 0.02043439995031804,
+                "variable_count": 79,
+                "binary_variable_count": 15,
+                "constraint_count": 147,
+                "solver": "highs",
+                "raw_status": null
+              },
+              {
+                "stage": "refit",
+                "accepted": true,
+                "added_support": null,
+                "status": 0,
+                "success": true,
+                "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+                "objective": 0.00025040043901102145,
+                "dual_bound": null,
+                "mip_gap": null,
+                "node_count": null,
+                "runtime_seconds": 0.0023849999997764826,
+                "variable_count": 46,
+                "binary_variable_count": 0,
+                "constraint_count": 72,
+                "solver": "highs",
+                "raw_status": null
+              }
+            ]
+          },
+          "summary_keys": [
+            "support_indices",
+            "train_mae",
+            "adjusted_train_mae",
+            "path_length",
+            "stop_reason",
+            "r_upper_bound",
+            "x_upper_bound",
+            "bound_active",
+            "solver_objective_scale",
+            "certified_r_lower_bounds",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "solver_attempts"
+          ],
+          "selected_solution_fields": [
+            "terminal_labels",
+            "support_indices",
+            "r_values",
+            "x_values",
+            "r_matrix",
+            "x_matrix",
+            "h",
+            "g_r",
+            "g_x",
+            "train_mae",
+            "adjusted_train_mae",
+            "diagnostics",
+            "validation_mae",
+            "adjusted_validation_mae",
+            "r_path_upper_bound",
+            "x_path_upper_bound",
+            "certified_x_lower_bounds",
+            "certified_r_lower_bounds",
+            "r_upper_bound",
+            "x_upper_bound"
+          ],
+          "returned_path_count": 3,
+          "selected_solution": {
+            "support_indices": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "r_atom_coefficients": [
+              0.11454984748759156,
+              0.022494729122503276,
+              0.09043872606439333,
+              0.0,
+              0.01941718433350048
+            ],
+            "x_atom_coefficients": [
+              0.04360948965699395,
+              0.028384243844604858,
+              0.0,
+              0.04785569547550381,
+              0.0
+            ],
+            "r_sensitivity_matrix": [
+              [
+                0.11454984748759156,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.04191191345600376,
+                0.01941718433350048
+              ],
+              [
+                0.0,
+                0.01941718433350048,
+                0.10985591039789382
+              ]
+            ],
+            "x_sensitivity_matrix": [
+              [
+                0.09146518513249775,
+                0.04785569547550381,
+                0.04785569547550381
+              ],
+              [
+                0.04785569547550381,
+                0.07623993932010867,
+                0.04785569547550381
+              ],
+              [
+                0.04785569547550381,
+                0.04785569547550381,
+                0.04785569547550381
+              ]
+            ],
+            "h": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "g_r": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "g_x": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "raw_residual_reconstructed_for_audit": [
+              [
+                -8.899340305566772e-05,
+                -3.5926123187479675e-15,
+                9.085705919855552e-05
+              ],
+              [
+                0.0003354925421715227,
+                0.0006725298647710203,
+                -3.490263633665336e-15
+              ],
+              [
+                -1.9254568030809688e-05,
+                -0.00014548298605558327,
+                -0.00039590640858322076
+              ],
+              [
+                -2.2225576829092153e-05,
+                -0.0005655819997522384,
+                -0.0003593865605790239
+              ],
+              [
+                2.861960070150646e-05,
+                -0.0005359929153706047,
+                -1.1130545660317098e-05
+              ],
+              [
+                0.0004549306671619499,
+                0.0007350384762840924,
+                0.0006023463319377587
+              ],
+              [
+                0.00016409043043186938,
+                -3.885780586188048e-15,
+                0.00051031334785075
+              ],
+              [
+                -3.99333344169861e-15,
+                0.0003023543027310116,
+                -9.243378178877548e-05
+              ],
+              [
+                -4.010680676458378e-15,
+                -6.418476861114186e-17,
+                -3.7816971776294395e-15
+              ],
+              [
+                -0.0005205796473303527,
+                -0.0005619249990721567,
+                7.552524074810885e-05
+              ],
+              [
+                -0.00023962427121270238,
+                -0.00026922168084713913,
+                -9.720308906268488e-05
+              ],
+              [
+                0.00032442119370744774,
+                0.000354903196937097,
+                0.0004380511165414623
+              ]
+            ],
+            "reconstructed_MAE": 0.00025040043901187055,
+            "train_mae": 0.00025040043901187055,
+            "source_variables_active": false,
+            "raw_residual_is_exported_by_bridge": false
+          }
+        }
+      ],
+      "rnj_internal_capture": [
+        {
+          "mode": "raw_effective_pq",
+          "estimated_r": [
+            [
+              0.11473779045347818,
+              0.010677896173405447,
+              0.025893197593456863
+            ],
+            [
+              0.010677896173405447,
+              0.06227158057777337,
+              0.028032843225515167
+            ],
+            [
+              0.025893197593456863,
+              0.028032843225515167,
+              0.09799307871353856
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.7722539467267737,
+          "condition": null,
+          "root_depths": [
+            0.6135025032808024,
+            0.3329658904596593,
+            0.5239685970711156
+          ],
+          "shared_paths": [
+            [
+              0.6135025032808024,
+              0.05709466781838447,
+              0.1384508232095616
+            ],
+            [
+              0.05709466781838447,
+              0.3329658904596593,
+              0.14989149978363112
+            ],
+            [
+              0.1384508232095616,
+              0.14989149978363112,
+              0.5239685970711156
+            ]
+          ],
+          "exported_by_bridge": false
+        },
+        {
+          "mode": "time_centered_effective_pq",
+          "estimated_r": [
+            [
+              0.10955372621712461,
+              6.245208926421354e-18,
+              0.025917854627646033
+            ],
+            [
+              6.245208926421354e-18,
+              0.050977070544919977,
+              0.008852195787379339
+            ],
+            [
+              0.025917854627646033,
+              0.008852195787379339,
+              0.07945532374493837
+            ]
+          ],
+          "estimated_x": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "r2": 0.8517338250708533,
+          "condition": null,
+          "root_depths": [
+            0.6005764652789504,
+            0.27945766789772714,
+            0.4355762157076741
+          ],
+          "shared_paths": [
+            [
+              0.6005764652789504,
+              3.423640282691179e-17,
+              0.14208237416804756
+            ],
+            [
+              3.423640282691179e-17,
+              0.27945766789772714,
+              0.04852797471630386
+            ],
+            [
+              0.14208237416804756,
+              0.04852797471630386,
+              0.4355762157076741
+            ]
+          ],
+          "exported_by_bridge": false
+        }
+      ],
+      "observed_structure_disagreement_clades": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "structural_disagreement_scope": "all replaceable proposals, including generated neighborhoods",
+      "origin_specific_families": {
+        "raw_RNJ_tolerance0": [
+          [
+            [
+              1,
+              2
+            ]
+          ]
+        ],
+        "centered_RNJ_tolerance0": [
+          [
+            [
+              0,
+              2
+            ]
+          ]
+        ],
+        "WZZT_selected_normalized": [
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "passive_exported_keys": [
+        "schema",
+        "n_terminal",
+        "n_observation",
+        "candidates",
+        "diagnostics",
+        "generated_count",
+        "retained_count",
+        "base_count",
+        "discarded_base_count",
+        "coverage",
+        "selection_uses_truth",
+        "ranking_is_ac_evidence",
+        "certified_supports",
+        "rnj_supports_fixed_in_wzzt",
+        "config",
+        "seconds"
+      ],
+      "passive_candidate_keys": [
+        "id",
+        "supports",
+        "rank",
+        "proposal_origins",
+        "linear_contrast_mae",
+        "linear_contrast_rmse",
+        "rank_fit_success",
+        "rank_fit_status",
+        "rank_fit_optimality",
+        "ac_evidence",
+        "certified_supports",
+        "replaceable"
+      ],
+      "uses_structure": true,
+      "uses_impedance_initial": false,
+      "estimates_source": false,
+      "source_claim_scope": "actual default proposal branch, not all optional adapter branches",
+      "offline_evaluator_only": {
+        "true_name": "clade_02",
+        "truth_topology": 2,
+        "final_n3_bank_names": [
+          "clade_12",
+          "star",
+          "clade_01",
+          "clade_02"
+        ],
+        "true_name_in_final_bank": true
+      }
+    }
+  ]
+}

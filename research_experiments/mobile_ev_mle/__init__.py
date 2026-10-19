@@ -1,1 +1,3 @@
-"""Research-only AC likelihood and EV discrimination experiment."""
+"""Sealed EV research. See research_experiments/ev/README.md."""
+
+ARCHIVED = True

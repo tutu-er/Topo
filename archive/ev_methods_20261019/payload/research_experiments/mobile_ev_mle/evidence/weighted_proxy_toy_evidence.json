@@ -1,0 +1,979 @@
+{
+  "version": 2,
+  "config": {
+    "n_slots": 2,
+    "n_sites": 1,
+    "dt_hours": 1,
+    "p_max_kw": 6,
+    "p_discharge_max_kw": 6.0,
+    "net_grid_energy_kwh": 6,
+    "battery_capacity_kwh": 100,
+    "initial_soc": 0.3,
+    "soc_min": 0.1,
+    "soc_max": 0.9,
+    "eta_charge": 1,
+    "eta_discharge": 1,
+    "initial_site": 0,
+    "access": null,
+    "travel_slots": 1,
+    "travel_energy_kwh": 0,
+    "travel_allowed": null,
+    "allow_discharge": false,
+    "max_throughput_kwh": null,
+    "terminal_energy_kwh": null,
+    "terminal_site": null,
+    "require_terminal_connection": true
+  },
+  "runtime": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\weighted_proxy_milp.py": "7250729e773977bea3b2e01e7c72e556514adf482a6884822c27c8860763f370",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\ev_information_milp.py": "9600fc5a787ed160c3f4386700b325a7e8ff26820a0753f5c3da9c3dd7c489c7",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\ev_operations_milp.py": "f9b2b6e8b6e7704efc1184295bcf2b9f5824d9cee5e36821d8e920adc1b13c29",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\history_qp_acceleration.py": "980e080b1892d27b56c0125e2b82069e277900b5d3807ff9aa6e468e3f85c385",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\expected_scenario_design_math.md": "f80cbdde9e6dd0c674c6dcc47158309ab8c24c40d8daeb2558594398fb05fe98",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\test_weighted_proxy_milp.py": "4eb7c7858d8f51774582911c3a03f5a55d3b3ea96f82998af0558e69f9419408"
+  },
+  "tests_passed": 14,
+  "seed": "deterministic MILPs, no stochastic forecast draw",
+  "cases": [
+    {
+      "case": "unequal_mass_squares",
+      "weights": {
+        "early": 0.8,
+        "late": 0.2
+      },
+      "weights_calibrated": false,
+      "analytic_expected_optimum": 28.8,
+      "analytic_original_worst_over_all_scenarios_optimum": 9,
+      "result": {
+        "status": "proxy_gap_met",
+        "failure": null,
+        "score_lower": 28.79999999999916,
+        "score_upper": 28.80000000000191,
+        "proxy_gap": 2.7498003873915877e-12,
+        "raw_proxy_gap": 2.7498003873915877e-12,
+        "bounds_valid": true,
+        "qp_calls": 4,
+        "records": [
+          {
+            "origin": "operations_MILP_seed",
+            "u_kw": [
+              [
+                0.0
+              ],
+              [
+                6.0
+              ]
+            ],
+            "lower": 7.19999999999979,
+            "upper": 7.2,
+            "competitor_lower": {
+              "h": 7.19999999999979
+            },
+            "competitor_upper": {
+              "h": 7.2
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          },
+          {
+            "origin": "upper_master_0",
+            "u_kw": [
+              [
+                6.0
+              ],
+              [
+                0.0
+              ]
+            ],
+            "lower": 28.79999999999916,
+            "upper": 28.8,
+            "competitor_lower": {
+              "h": 28.79999999999916
+            },
+            "competitor_upper": {
+              "h": 28.8
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          }
+        ],
+        "master_records": [
+          {
+            "kind": "lower",
+            "status": 0,
+            "success": true,
+            "incumbent": 7.20000000072,
+            "master_best_bound": 7.20000000072,
+            "full_proxy_upper_bound": null,
+            "variables": 18,
+            "rows": 21
+          },
+          {
+            "kind": "upper",
+            "status": 0,
+            "success": true,
+            "incumbent": 28.80000000000191,
+            "master_best_bound": 28.80000000000191,
+            "full_proxy_upper_bound": 28.80000000000191,
+            "variables": 38,
+            "rows": 39
+          }
+        ],
+        "seconds": 0.03577789990231395,
+        "enumerated_complete_actions": 0,
+        "scope": "predeclared finite affine scenario proxy only",
+        "is_EIG": false,
+        "is_formal_policy": false,
+        "nonlinear_AC_certificate": false,
+        "weights_calibrated": false,
+        "plan": {
+          "arcs": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ],
+          "p_plus_kw": [
+            [
+              6.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "p_minus_kw": [
+            [
+              0.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "u_kw": [
+            [
+              6.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "energy_kwh": [
+            30.0,
+            36.0,
+            36.0
+          ]
+        },
+        "independent_plan_check": {
+          "feasible": true,
+          "issues": [],
+          "max_violation": 0.0,
+          "sites": [
+            0,
+            0
+          ],
+          "grid_energy_kwh": 6.0,
+          "throughput_kwh": 6.0,
+          "travel_energy_kwh": 0.0,
+          "energy_kwh": [
+            30.0,
+            36.0,
+            36.0
+          ],
+          "soc": [
+            0.3,
+            0.36,
+            0.36
+          ],
+          "route": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ]
+        }
+      },
+      "analytic_optimum_enclosed": true,
+      "frozen_pairs": {
+        "h": {
+          "early": {
+            "name": "early",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                1.0,
+                0.0
+              ]
+            ],
+            "A": [
+              []
+            ],
+            "F": [],
+            "lower": [],
+            "upper": [],
+            "fingerprint": "9ceac8aef4f14e01130cfeb3579b9b1ef34b2ffaf1c4eb6f69112b33bfdfd600"
+          },
+          "late": {
+            "name": "late",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                0.0,
+                1.0
+              ]
+            ],
+            "A": [
+              []
+            ],
+            "F": [],
+            "lower": [],
+            "upper": [],
+            "fingerprint": "fba4c5453d2bd5a7bb81fc54c0714ae88472936545e4d2707b2f289d01234c50"
+          }
+        }
+      }
+    },
+    {
+      "case": "uninformative_scenario",
+      "weights": {
+        "early": 0.8,
+        "late": 0.2
+      },
+      "weights_calibrated": false,
+      "analytic_expected_optimum": 28.8,
+      "analytic_original_worst_over_all_scenarios_optimum": 0,
+      "result": {
+        "status": "proxy_gap_met",
+        "failure": null,
+        "score_lower": 28.79999999999916,
+        "score_upper": 28.80000000288,
+        "proxy_gap": 2.880842231434144e-09,
+        "raw_proxy_gap": 2.880842231434144e-09,
+        "bounds_valid": true,
+        "qp_calls": 4,
+        "records": [
+          {
+            "origin": "operations_MILP_seed",
+            "u_kw": [
+              [
+                0.0
+              ],
+              [
+                6.0
+              ]
+            ],
+            "lower": 0.0,
+            "upper": 0.0,
+            "competitor_lower": {
+              "h": 0.0
+            },
+            "competitor_upper": {
+              "h": 0.0
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          },
+          {
+            "origin": "upper_master_0",
+            "u_kw": [
+              [
+                6.0
+              ],
+              [
+                0.0
+              ]
+            ],
+            "lower": 28.79999999999916,
+            "upper": 28.8,
+            "competitor_lower": {
+              "h": 28.79999999999916
+            },
+            "competitor_upper": {
+              "h": 28.8
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          }
+        ],
+        "master_records": [
+          {
+            "kind": "lower",
+            "status": 0,
+            "success": true,
+            "incumbent": -0.0,
+            "master_best_bound": -0.0,
+            "full_proxy_upper_bound": null,
+            "variables": 18,
+            "rows": 21
+          },
+          {
+            "kind": "upper",
+            "status": 0,
+            "success": true,
+            "incumbent": 28.80000000288,
+            "master_best_bound": 28.80000000288,
+            "full_proxy_upper_bound": 28.80000000288,
+            "variables": 26,
+            "rows": 29
+          }
+        ],
+        "seconds": 0.016747199930250645,
+        "enumerated_complete_actions": 0,
+        "scope": "predeclared finite affine scenario proxy only",
+        "is_EIG": false,
+        "is_formal_policy": false,
+        "nonlinear_AC_certificate": false,
+        "weights_calibrated": false,
+        "plan": {
+          "arcs": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ],
+          "p_plus_kw": [
+            [
+              6.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "p_minus_kw": [
+            [
+              0.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "u_kw": [
+            [
+              6.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "energy_kwh": [
+            30.0,
+            36.0,
+            36.0
+          ]
+        },
+        "independent_plan_check": {
+          "feasible": true,
+          "issues": [],
+          "max_violation": 0.0,
+          "sites": [
+            0,
+            0
+          ],
+          "grid_energy_kwh": 6.0,
+          "throughput_kwh": 6.0,
+          "travel_energy_kwh": 0.0,
+          "energy_kwh": [
+            30.0,
+            36.0,
+            36.0
+          ],
+          "soc": [
+            0.3,
+            0.36,
+            0.36
+          ],
+          "route": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ]
+        }
+      },
+      "analytic_optimum_enclosed": true,
+      "frozen_pairs": {
+        "h": {
+          "early": {
+            "name": "early",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                1.0,
+                0.0
+              ]
+            ],
+            "A": [
+              []
+            ],
+            "F": [],
+            "lower": [],
+            "upper": [],
+            "fingerprint": "9ceac8aef4f14e01130cfeb3579b9b1ef34b2ffaf1c4eb6f69112b33bfdfd600"
+          },
+          "late": {
+            "name": "zero",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            "A": [
+              []
+            ],
+            "F": [],
+            "lower": [],
+            "upper": [],
+            "fingerprint": "70972b33227ac0f1cb426f6c014ef635fc4d7113324b3922461d000e4711da2a"
+          }
+        }
+      }
+    },
+    {
+      "case": "zero_mass_scenario",
+      "weights": {
+        "early": 1.0,
+        "late": 0.0
+      },
+      "weights_calibrated": false,
+      "analytic_expected_optimum": 36.0,
+      "analytic_original_worst_over_all_scenarios_optimum": 9,
+      "result": {
+        "status": "proxy_gap_met",
+        "failure": null,
+        "score_lower": 35.99999999999895,
+        "score_upper": 36.0000000036,
+        "proxy_gap": 3.6010519011142605e-09,
+        "raw_proxy_gap": 3.6010519011142605e-09,
+        "bounds_valid": true,
+        "qp_calls": 4,
+        "records": [
+          {
+            "origin": "operations_MILP_seed",
+            "u_kw": [
+              [
+                0.0
+              ],
+              [
+                6.0
+              ]
+            ],
+            "lower": 0.0,
+            "upper": 0.0,
+            "competitor_lower": {
+              "h": 0.0
+            },
+            "competitor_upper": {
+              "h": 0.0
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          },
+          {
+            "origin": "upper_master_0",
+            "u_kw": [
+              [
+                6.0
+              ],
+              [
+                3.3306690738754696e-16
+              ]
+            ],
+            "lower": 35.99999999999895,
+            "upper": 36.0,
+            "competitor_lower": {
+              "h": 35.99999999999895
+            },
+            "competitor_upper": {
+              "h": 36.0
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          }
+        ],
+        "master_records": [
+          {
+            "kind": "lower",
+            "status": 0,
+            "success": true,
+            "incumbent": -0.0,
+            "master_best_bound": -0.0,
+            "full_proxy_upper_bound": null,
+            "variables": 18,
+            "rows": 21
+          },
+          {
+            "kind": "upper",
+            "status": 0,
+            "success": true,
+            "incumbent": 36.0000000036,
+            "master_best_bound": 36.0000000036,
+            "full_proxy_upper_bound": 36.0000000036,
+            "variables": 38,
+            "rows": 39
+          }
+        ],
+        "seconds": 0.012733199982903898,
+        "enumerated_complete_actions": 0,
+        "scope": "predeclared finite affine scenario proxy only",
+        "is_EIG": false,
+        "is_formal_policy": false,
+        "nonlinear_AC_certificate": false,
+        "weights_calibrated": false,
+        "plan": {
+          "arcs": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ],
+          "p_plus_kw": [
+            [
+              6.0
+            ],
+            [
+              3.3306690738754696e-16
+            ]
+          ],
+          "p_minus_kw": [
+            [
+              0.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "u_kw": [
+            [
+              6.0
+            ],
+            [
+              3.3306690738754696e-16
+            ]
+          ],
+          "energy_kwh": [
+            30.0,
+            36.0,
+            36.0
+          ]
+        },
+        "independent_plan_check": {
+          "feasible": true,
+          "issues": [],
+          "max_violation": 0.0,
+          "sites": [
+            0,
+            0
+          ],
+          "grid_energy_kwh": 6.0,
+          "throughput_kwh": 6.0,
+          "travel_energy_kwh": 0.0,
+          "energy_kwh": [
+            30.0,
+            36.0,
+            36.0
+          ],
+          "soc": [
+            0.3,
+            0.36,
+            0.36
+          ],
+          "route": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ]
+        }
+      },
+      "analytic_optimum_enclosed": true,
+      "frozen_pairs": {
+        "h": {
+          "early": {
+            "name": "early",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                1.0,
+                0.0
+              ]
+            ],
+            "A": [
+              []
+            ],
+            "F": [],
+            "lower": [],
+            "upper": [],
+            "fingerprint": "9ceac8aef4f14e01130cfeb3579b9b1ef34b2ffaf1c4eb6f69112b33bfdfd600"
+          },
+          "late": {
+            "name": "late",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                0.0,
+                1.0
+              ]
+            ],
+            "A": [
+              []
+            ],
+            "F": [],
+            "lower": [],
+            "upper": [],
+            "fingerprint": "fba4c5453d2bd5a7bb81fc54c0714ae88472936545e4d2707b2f289d01234c50"
+          }
+        }
+      }
+    },
+    {
+      "case": "nonzero_F_competitor_refit",
+      "weights": {
+        "only": 1.0
+      },
+      "weights_calibrated": false,
+      "analytic_expected_optimum": 27.0,
+      "analytic_original_worst_over_all_scenarios_optimum": 27,
+      "result": {
+        "status": "required_failure",
+        "failure": "invalid expected-proxy design bounds; keep raw controls and numerical violations",
+        "score_lower": 27.000000008095622,
+        "score_upper": 27.0000000027,
+        "proxy_gap": null,
+        "raw_proxy_gap": -5.395623503545721e-09,
+        "bounds_valid": false,
+        "qp_calls": 3,
+        "records": [
+          {
+            "origin": "operations_MILP_seed",
+            "u_kw": [
+              [
+                0.0
+              ],
+              [
+                6.0
+              ]
+            ],
+            "lower": 0.0,
+            "upper": 0.0,
+            "competitor_lower": {
+              "h": 0.0
+            },
+            "competitor_upper": {
+              "h": 0.0
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          },
+          {
+            "origin": "upper_master_0",
+            "u_kw": [
+              [
+                6.0
+              ],
+              [
+                0.0
+              ]
+            ],
+            "lower": 26.999999999999204,
+            "upper": 27.0,
+            "competitor_lower": {
+              "h": 26.999999999999204
+            },
+            "competitor_upper": {
+              "h": 27.0
+            },
+            "operation_max_violation": 0.0,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          },
+          {
+            "origin": "upper_master_1",
+            "u_kw": [
+              [
+                6.000000000899601
+              ],
+              [
+                -8.996012823558885e-10
+              ]
+            ],
+            "lower": 27.000000008095622,
+            "upper": 27.000000008096418,
+            "competitor_lower": {
+              "h": 27.000000008095622
+            },
+            "competitor_upper": {
+              "h": 27.000000008096418
+            },
+            "operation_max_violation": 8.996012823558885e-10,
+            "operation_check_tolerance": 2e-06,
+            "QP_evaluated_at_raw_numerical_control": true
+          }
+        ],
+        "master_records": [
+          {
+            "kind": "lower",
+            "status": 0,
+            "success": true,
+            "incumbent": -0.0,
+            "master_best_bound": -0.0,
+            "full_proxy_upper_bound": null,
+            "variables": 15,
+            "rows": 18
+          },
+          {
+            "kind": "upper",
+            "status": 0,
+            "success": true,
+            "incumbent": 36.0000000036,
+            "master_best_bound": 36.0000000036,
+            "full_proxy_upper_bound": 36.0000000036,
+            "variables": 25,
+            "rows": 27
+          },
+          {
+            "kind": "lower",
+            "status": 0,
+            "success": true,
+            "incumbent": 27.0000000027,
+            "master_best_bound": 27.0000000027,
+            "full_proxy_upper_bound": null,
+            "variables": 16,
+            "rows": 19
+          },
+          {
+            "kind": "upper",
+            "status": 0,
+            "success": true,
+            "incumbent": 27.0000000027,
+            "master_best_bound": 27.0000000027,
+            "full_proxy_upper_bound": 27.0000000027,
+            "variables": 49,
+            "rows": 39
+          }
+        ],
+        "seconds": 0.02319300000090152,
+        "enumerated_complete_actions": 0,
+        "scope": "predeclared finite affine scenario proxy only",
+        "is_EIG": false,
+        "is_formal_policy": false,
+        "nonlinear_AC_certificate": false,
+        "weights_calibrated": false,
+        "plan": {
+          "arcs": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ],
+          "p_plus_kw": [
+            [
+              6.000000000899601
+            ],
+            [
+              -8.996012823558885e-10
+            ]
+          ],
+          "p_minus_kw": [
+            [
+              0.0
+            ],
+            [
+              0.0
+            ]
+          ],
+          "u_kw": [
+            [
+              6.000000000899601
+            ],
+            [
+              -8.996012823558885e-10
+            ]
+          ],
+          "energy_kwh": [
+            30.0,
+            36.000000000899604,
+            36.0
+          ]
+        },
+        "independent_plan_check": {
+          "feasible": true,
+          "issues": [],
+          "max_violation": 8.996012823558885e-10,
+          "sites": [
+            0,
+            0
+          ],
+          "grid_energy_kwh": 6.0,
+          "throughput_kwh": 6.0,
+          "travel_energy_kwh": 0.0,
+          "energy_kwh": [
+            30.0,
+            36.000000000899604,
+            36.0
+          ],
+          "soc": [
+            0.3,
+            0.360000000008996,
+            0.36
+          ],
+          "route": [
+            {
+              "departure": 0,
+              "arrival": 1,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            },
+            {
+              "departure": 1,
+              "arrival": 2,
+              "origin": 0,
+              "destination": 0,
+              "travel_energy_kwh": 0.0
+            }
+          ]
+        }
+      },
+      "analytic_optimum_enclosed": false,
+      "frozen_pairs": {
+        "h": {
+          "only": {
+            "name": "penalty",
+            "c": [
+              0.0
+            ],
+            "B": [
+              [
+                1.0,
+                0.0
+              ]
+            ],
+            "A": [
+              [
+                1.0
+              ]
+            ],
+            "F": [
+              [
+                1.7320508075688772
+              ]
+            ],
+            "lower": [
+              -2.0
+            ],
+            "upper": [
+              2.0
+            ],
+            "fingerprint": "d74573f0df44d746fa4e5e38d9fa06c50169e53d5a04df669187dbc4bf8eaf1d"
+          }
+        }
+      }
+    }
+  ],
+  "required_case_count": 4,
+  "valid_analytic_interval_case_count": 3,
+  "required_computational_failure_count": 1,
+  "initial_evidence_sha256": "83693d1907f41b0cdf67e769ce2eae9272108850e88006c6fd16c922725defb8",
+  "initial_validation_issue": "initial nonzero-F search accepted tiny negative global proxy gap; latest strictly preserves failure",
+  "primary_frozen_policy_modified": false,
+  "new_calibration_or_evaluation_run": false,
+  "proper_predictive_model_implemented": false,
+  "is_formal_policy": false,
+  "nonlinear_AC_claim": false,
+  "numerical_interval_arithmetic_certificate": false
+}

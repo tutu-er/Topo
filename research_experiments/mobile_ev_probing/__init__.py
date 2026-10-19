@@ -1,1 +1,3 @@
-"""Reproducible mobile-EV probing research; production pipeline is unchanged."""
+"""Sealed EV research. See research_experiments/ev/README.md."""
+
+ARCHIVED = True

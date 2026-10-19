@@ -4,8 +4,9 @@
 
 | 目录或模块 | 内容 |
 |---|---|
-| [`mobile_ev_mle/`](mobile_ev_mle/README.md) | 当前 EV 研究入口：固定拓扑 AC 最大似然估计，以及基于 Dette 的 EV 设计；尚待实现 |
-| [`mobile_ev_probing/`](mobile_ev_probing/README.md) | 停用的旧 EV 实验与可复用组件；旧结果不代表 MLE 路线的效果 |
+| [`ev/`](ev/README.md) | EV研究封存入口：当前实现、算例结果、文件作用与证据恢复（2026-10-19） |
+| [`mobile_ev_mle/`](mobile_ev_mle/README.md) | 已封存的原MLE/EV入口；源码和结果在日期归档中 |
+| [`mobile_ev_probing/`](mobile_ev_probing/README.md) | 已封存的旧误差盒/外LP与AC组件；和MLE/EV源码一起保留 |
 | `rnj/rooted_aggregation.py` | RNJ 子树聚合、伪终端、去嵌入及标签展开 |
 | `rnj/graph_adapters.py` | 从 clade 建树、从终端距离反推共享路径的研究适配 |
 | `rnj/sensitivity_geometry.py` | R、X、不同 R/X 配比和距离诊断 |

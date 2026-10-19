@@ -1,0 +1,217 @@
+{
+  "schema": "ev_mobile_reliability_v2_checkpoint",
+  "status": "complete",
+  "branch": "codex/ev-train-validation-design",
+  "canonical_workspace": "C:/Users/23761/.codex/worktrees/36a1/Topo",
+  "execution_workspace": "D:/0-github_workspace/Topo/outputs/ev_rx_stage_20261015",
+  "source_commit": "0706e99a",
+  "source_commit_pushed": true,
+  "policy_id": "35e7a11ba65a5366930888272f516c3165355f5dbe20de69919734dfd45e23e3",
+  "completed": [
+    "old 72-history tie and common-error audit",
+    "original 4-pilot and 28-slot development, 16 independent base seeds",
+    "guard30 28-slot development, failures retained",
+    "guard60 cost acceptance on 4 reused development slots",
+    "144 implementation and independent-audit tests",
+    "mathematical model, derivation, prospective acceptance and independent calibration rules",
+    "source-cache owner audit: 16 tests and independent static review",
+    "uncertainty and paired analysis: 10 tests and independent static review",
+    "operational checkpoint retry recovery: 14 controller tests",
+    "192 independent calibration histories merged",
+    "858 threshold groups independently checked; both banks saved before original evaluation launch",
+    "96 independent formal evaluation histories completed (48 per bank)",
+    "both-bank independent statistical and accounting checks passed",
+    "both-bank uncertainty and prespecified paired comparisons completed",
+    "8 predeclared spatial histories /32 method slots completed without failure",
+    "237 final aggregate implementation/audit tests passed; initial setup failure retained",
+    "115 frozen science files byte-checked unchanged in both workspaces",
+    "288/288 source-profile cache ownership audited exactly; no unowned hits or unknown histories",
+    "all352 source-slot physical replays passed;58992 states and139468 AC blocks",
+    "352 physical input SHA multiset equals352 delivery raw SHA multiset",
+    "21 evidence packages /430 tar members verified; both bank eval0 raw gzip restored exact",
+    "all60 delivery files copied to canonical workspace with identical SHA",
+    "final concise mathematical/results report and all11-method cost table completed",
+    "final gate verified115 source bytes in both workspaces, original thresholds,237 tests and unrelated hashes",
+    "primary352-slot AC aggregate uses exact-recoverable old/new reviewer sources; same raw SHA and core totals",
+    "final evidence/report publication a1090616 pushed normally; upstream0/0 verified",
+    "89 committed data/archive Git objects restore exact expected bytes",
+    "completed topo-ev automation deleted after successful publication; no new batch"
+  ],
+  "formal_plan": {
+    "banks": [
+      "n3",
+      "n4"
+    ],
+    "calibration_per_bank": 96,
+    "evaluation_per_bank": 48,
+    "methods": 11,
+    "inference_modes": 3,
+    "rules": [
+      "global_R",
+      "H_R",
+      "label_R",
+      "global_AIC",
+      "label_AIC"
+    ],
+    "primary_rule_comparison": [
+      "label_AIC",
+      "H_R"
+    ],
+    "planning_soft_seconds": 60,
+    "single_MILP_seconds": 2,
+    "compute_workers": 2,
+    "thresholds_saved_before_evaluation_read": true
+  },
+  "calibration_chunk_directories": [
+    "outputs/mobile_v2_formal_cal_n3_part0",
+    "outputs/mobile_v2_formal_cal_n3_part1",
+    "outputs/mobile_v2_formal_cal_n4_part0",
+    "outputs/mobile_v2_formal_cal_n4_part1"
+  ],
+  "calibration_worker_logs": [
+    "outputs/mobile_v2_formal_cal_worker0.log",
+    "outputs/mobile_v2_formal_cal_worker1.log"
+  ],
+  "remaining": [],
+  "constraints": [
+    "do not change the 115 scientific source files during this frozen policy",
+    "do not tune policy or thresholds with formal evaluation",
+    "do not run physical audits concurrently with action planning",
+    "retain raw, numerical failures, legal fallback, unresolved and candidate-miss denominators",
+    "preserve unrelated PDF and pyproject modifications"
+  ],
+  "continuation": {
+    "kind": "thread heartbeat",
+    "id": "topo-ev",
+    "interval_minutes": 20,
+    "stop_condition": "all frozen evaluation, audits, delivery, report and push complete; then pause",
+    "status": "deleted_after_completed_delivery",
+    "deleted_utc": "2026-10-16T10:48:12.102865+00:00",
+    "delete_tool_result": "deleted",
+    "further_batches_authorized_by_this_run": false
+  },
+  "controller_recovery": {
+    "previous_pid": 44904,
+    "previous_session": 41992,
+    "failure": "PermissionError WinError 5 replacing operational checkpoint; calibration workers continued",
+    "failure_log": "outputs/mobile_v2_orchestrator.log",
+    "failed_hidden_launch_pid": 30092,
+    "recovered_utc": "2026-10-16T05:03:28+00:00",
+    "source_sha256": "2b4cee05388b6ae49ea51173fc523fe5cc1be4cd9fb53090b6bc1ced75876835",
+    "tests": 14,
+    "scientific_policy_changed": false,
+    "recovery_controller_pid": 15048,
+    "recovery_session": 82693,
+    "recovery_log": "outputs/mobile_v2_orchestrator_v3.log"
+  },
+  "resume_file": "ev_mobile_v2_resume.md",
+  "last_verified_progress": {
+    "updated_utc": "2026-10-16T10:40:33.924379+00:00",
+    "controller_status": "statistical_complete",
+    "all_compute_and_postprocessing_complete": true,
+    "calibration_histories": 192,
+    "evaluation_histories": 96
+  },
+  "operational_evidence": "evidence/ev_mobile_v2/operations_20261016/manifest.json",
+  "calibration_evidence": "evidence/ev_mobile_v2/formal_thresholds/manifest.json",
+  "evaluation_recovery": {
+    "schema": "EV_evaluation_operational_resume_v1",
+    "observed_dead_utc": "2026-10-16T06:14:19+00:00",
+    "previous_controller_pid": 15048,
+    "previous_worker_pids": [
+      45736,
+      43128
+    ],
+    "last_previous_progress_utc": "2026-10-16T06:11:02.333331+00:00",
+    "cause": "not established; no running matching Python process found by host query",
+    "new_controller_pid": 25832,
+    "new_controller_log": "outputs/mobile_v2_orchestrator_v4.log",
+    "new_worker_pids": {
+      "0": 29056,
+      "1": 30616
+    },
+    "recovery": "host-permission hidden Start-Process; existing thresholds and completed records retained, only missing ranges resumed",
+    "scientific_policy_changed": false,
+    "timing_scope": "reported method times describe saved completed executions; lost partial work and process downtime are separate operational overhead"
+  },
+  "active_controller": null,
+  "updated_utc": "2026-10-16T10:48:12.102865+00:00",
+  "postprocessing": {
+    "physical_launch_manifest": "outputs/mobile_v2_physical_review_launch_v1.json",
+    "physical_review_pids": null,
+    "physical_review_expected_total": 320,
+    "physical_cost4_passed": true,
+    "owner_and_pack_supervisor_pid": null,
+    "owner_child_pid": null,
+    "owner_pack_state": "outputs/mobile_v2_evidence_run_v1.json",
+    "spatial_complete": "outputs/mobile_v2_spatial_v1/summary.json",
+    "spatial_scope": {
+      "history_denominator": 8,
+      "method_slots": 32,
+      "actual_moved_slots": 7,
+      "distinct_moving_plans": 4,
+      "failed": 0
+    },
+    "test_report": "outputs/ev_mobile_v2_final_tests_v2.xml",
+    "poststats_evidence": "evidence/ev_mobile_v2/poststats_20261016/manifest.json",
+    "owner_complete": {
+      "histories": 288,
+      "unknown": 0,
+      "unowned_hits": 0,
+      "cap_fixed_queries": 1651,
+      "cap_fixed_cache_hits": 1107,
+      "known_unowned_seconds": 0,
+      "source_report": "outputs/mobile_v2_formal_source_cache_owners_v1.json.gz"
+    },
+    "pack_child_pid": null,
+    "pack_validation_waiter_pid": null,
+    "pack_validation_report": "outputs/mobile_v2_evidence_validation_v1.json",
+    "cache_evidence": "evidence/ev_mobile_v2/cache_audit_20261016/manifest.json",
+    "physical_complete": {
+      "source_slots": 352,
+      "saved_states_replayed": 58992,
+      "AC_block_replays": 139468,
+      "recorded_planning_failures": 49,
+      "recorded_inference_failures": 2,
+      "recorded_operation_failures": 0,
+      "replay_failure_slots": 0,
+      "formal_evaluation_final_inference_failures": 0,
+      "scope": "352 source slots include repeated development; formal IID histories are192cal+96eval"
+    },
+    "evidence_pack_complete": {
+      "logical_directories": 14,
+      "experiment_slots": 352,
+      "packages": 21,
+      "bytes": 55591805,
+      "max_package_bytes": 19408440,
+      "compact_representatives": 14,
+      "full_raw_gzip_restored": 2,
+      "success": true,
+      "manifest_id": "c9774c6246cf3949db6aa4c0c89fb856472e7542bb589a77895b9a5c50a3eda5"
+    }
+  },
+  "final_delivery": {
+    "results": "ev_mobile_v2_results.md",
+    "costs": "ev_mobile_v2_costs.md",
+    "evidence": "evidence/ev_mobile_v2/final_20261016/manifest.json",
+    "data": "evidence/ev_mobile_v2/delivery/pack_manifest.json",
+    "final_gate": "outputs/mobile_v2_final_gate_v2.json",
+    "source_unchanged": 115,
+    "evaluation_used_for_tuning": false,
+    "old_PDF_modified_by_this_round": false,
+    "new_batch_started": false,
+    "physical_summary": "outputs/mobile_v2_full_physical_summary_v2.json"
+  },
+  "publication": {
+    "commit": "a10906160795b80cf685c803f80e02517a4277c8",
+    "remote": "https://github.com/tutu-er/Topo.git",
+    "branch": "codex/ev-train-validation-design",
+    "normal_push_success": true,
+    "upstream_ahead_behind": [
+      0,
+      0
+    ],
+    "committed_evidence_objects_verified": 89,
+    "closure_record": "evidence/ev_mobile_v2/final_20261016/publication_receipt.json"
+  }
+}

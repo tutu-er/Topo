@@ -1,0 +1,1224 @@
+{
+  "scope": "declared_two_slot_profiled_linear_examples_not_full_AC",
+  "version": "ev_flexibility_analytic_v1",
+  "selector_uses_true_topology": false,
+  "selector_uses_future_noise": false,
+  "random_seed": null,
+  "cases": {
+    "one_way_terminal_service": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.015061900001455797,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.014373199999681674,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        0.0,
+        0.5000000000000002
+      ],
+      "distance_squared": 0.1250000000000001,
+      "amplitude": 0.5000000000000002,
+      "amplitude_best_bound": 0.5000000000000002,
+      "distance_best_bound": 0.1250000000000001,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 4.0,
+      "declared_contrast_absolute_bound": 2.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "eta_charge": 0.9,
+        "eta_discharge": 0.9,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.45,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true
+          ],
+          [
+            true
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.0
+        ],
+        [
+          0.5000000000000002
+        ]
+      ],
+      "signed_contrast": -0.5000000000000002,
+      "direction_binary": -0.0,
+      "z": 0.5000000000000002,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 3.469446951953614e-17,
+      "battery": {
+        "grid_charge_kwh": 0.5000000000000002,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.5000000000000002,
+        "grid_throughput_kwh": 0.5000000000000002,
+        "conversion_loss_kwh": 0.05000000000000001,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.0,
+          2.45
+        ],
+        "battery_gain_kwh": 0.4500000000000002,
+        "balance_residual_kwh": 3.469446951953614e-17
+      }
+    },
+    "v2g_same_terminal_service": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.01134259999889764,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.01099380000232486,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        1.0,
+        -0.4049999999999998
+      ],
+      "distance_squared": 0.9870124999999997,
+      "amplitude": 1.4049999999999998,
+      "amplitude_best_bound": 1.4049999999999998,
+      "distance_best_bound": 0.9870124999999997,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 4.0,
+      "declared_contrast_absolute_bound": 2.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "eta_charge": 0.9,
+        "eta_discharge": 0.9,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.45,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true
+          ],
+          [
+            true
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          1.0
+        ],
+        [
+          -0.4049999999999998
+        ]
+      ],
+      "signed_contrast": 1.4049999999999998,
+      "direction_binary": 1.0,
+      "z": 1.4049999999999998,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 5.551115123125783e-17,
+      "battery": {
+        "grid_charge_kwh": 1.0,
+        "grid_export_kwh": 0.4049999999999998,
+        "grid_net_kwh": 0.5950000000000002,
+        "grid_throughput_kwh": 1.4049999999999998,
+        "conversion_loss_kwh": 0.14499999999999996,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.9,
+          2.45
+        ],
+        "battery_gain_kwh": 0.4500000000000002,
+        "balance_residual_kwh": 5.551115123125783e-17
+      }
+    },
+    "staff_original_window": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.001805900003091665,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.0014592999978049193,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        0.5,
+        0.0
+      ],
+      "distance_squared": 0.125,
+      "amplitude": 0.5,
+      "amplitude_best_bound": 0.5,
+      "distance_best_bound": 0.125,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 2.0,
+      "declared_contrast_absolute_bound": 1.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0
+        ],
+        [
+          3.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true
+          ],
+          [
+            false
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.5
+        ],
+        [
+          0.0
+        ]
+      ],
+      "signed_contrast": 0.5,
+      "direction_binary": 1.0,
+      "z": 0.5,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 0.0,
+      "battery": {
+        "grid_charge_kwh": 0.5,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.5,
+        "grid_throughput_kwh": 0.5,
+        "conversion_loss_kwh": 0.0,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.5,
+          2.5
+        ],
+        "battery_gain_kwh": 0.5,
+        "balance_residual_kwh": 0.0
+      }
+    },
+    "staff_added_window": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.011725299998943228,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.011431599999923492,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        0.0,
+        0.5
+      ],
+      "distance_squared": 1.125,
+      "amplitude": 1.5,
+      "amplitude_best_bound": 1.5,
+      "distance_best_bound": 1.125,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 8.0,
+      "declared_contrast_absolute_bound": 4.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0
+        ],
+        [
+          3.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true
+          ],
+          [
+            true
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.0
+        ],
+        [
+          0.5
+        ]
+      ],
+      "signed_contrast": -1.5,
+      "direction_binary": -0.0,
+      "z": 1.5,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 0.0,
+      "battery": {
+        "grid_charge_kwh": 0.5,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.5,
+        "grid_throughput_kwh": 0.5,
+        "conversion_loss_kwh": 0.0,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.0,
+          2.5
+        ],
+        "battery_gain_kwh": 0.5,
+        "balance_residual_kwh": 0.0
+      }
+    },
+    "staff_original_high_window": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.0016512000001966953,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.0013666999984707218,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        0.5,
+        0.0
+      ],
+      "distance_squared": 1.125,
+      "amplitude": 1.5,
+      "amplitude_best_bound": 1.5,
+      "distance_best_bound": 1.125,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 6.0,
+      "declared_contrast_absolute_bound": 3.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          3.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true
+          ],
+          [
+            false
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.5
+        ],
+        [
+          0.0
+        ]
+      ],
+      "signed_contrast": 1.5,
+      "direction_binary": 1.0,
+      "z": 1.5,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 0.0,
+      "battery": {
+        "grid_charge_kwh": 0.5,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.5,
+        "grid_throughput_kwh": 0.5,
+        "conversion_loss_kwh": 0.0,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.5,
+          2.5
+        ],
+        "battery_gain_kwh": 0.5,
+        "balance_residual_kwh": 0.0
+      }
+    },
+    "staff_forced_shift_loses_window": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.0015442000003531575,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.00127269999939017,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        0.0,
+        0.5
+      ],
+      "distance_squared": 0.125,
+      "amplitude": 0.5,
+      "amplitude_best_bound": 0.5,
+      "distance_best_bound": 0.125,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 2.0,
+      "declared_contrast_absolute_bound": 1.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          3.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            false
+          ],
+          [
+            true
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.0
+        ],
+        [
+          0.5
+        ]
+      ],
+      "signed_contrast": -0.5,
+      "direction_binary": 0.0,
+      "z": 0.5,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 0.0,
+      "battery": {
+        "grid_charge_kwh": 0.5,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.5,
+        "grid_throughput_kwh": 0.5,
+        "conversion_loss_kwh": 0.0,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.0,
+          2.5
+        ],
+        "battery_gain_kwh": 0.5,
+        "balance_residual_kwh": 0.0
+      }
+    },
+    "mobile_local_blind_spot": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.0016601999996055383,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.0013725000026170164,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 1,
+      "net_power_kw": [
+        0.0,
+        0.6
+      ],
+      "distance_squared": 0.18,
+      "amplitude": 0.6,
+      "amplitude_best_bound": 0.6,
+      "distance_best_bound": 0.18,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 2.0,
+      "declared_contrast_absolute_bound": 1.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 2,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true,
+            false
+          ],
+          [
+            true,
+            true
+          ]
+        ],
+        "travel_slots": [
+          0,
+          1
+        ],
+        "driving_energy_kwh": [
+          0.0,
+          0.1
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.6
+        ]
+      ],
+      "signed_contrast": -0.6,
+      "direction_binary": 0.0,
+      "z": 0.6,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 2.7755575615628914e-17,
+      "battery": {
+        "grid_charge_kwh": 0.6,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.6,
+        "grid_throughput_kwh": 0.6,
+        "conversion_loss_kwh": 0.0,
+        "driving_energy_kwh": 0.1,
+        "battery_energy_kwh": [
+          1.9,
+          1.9,
+          2.5
+        ],
+        "battery_gain_kwh": 0.5,
+        "balance_residual_kwh": -2.7755575615628914e-17
+      }
+    },
+    "mobile_travel_exhausts_window": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.02102970000123605,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 4,
+          "message": "(HiGHS Status 4: Solve error)",
+          "seconds": 0.0119328000000678,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        },
+        {
+          "presolve": false,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.008813000000372995,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        0.0,
+        0.5
+      ],
+      "distance_squared": 0.125,
+      "amplitude": 0.5,
+      "amplitude_best_bound": 0.5,
+      "distance_best_bound": 0.125,
+      "absolute_amplitude_gap": 0.0,
+      "big_m": 4.0,
+      "declared_contrast_absolute_bound": 2.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0,
+          10.0
+        ],
+        [
+          1.0,
+          10.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 2,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true,
+            false
+          ],
+          [
+            true,
+            false
+          ]
+        ],
+        "travel_slots": [
+          0,
+          2
+        ],
+        "driving_energy_kwh": [
+          0.0,
+          0.1
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.5,
+          0.0
+        ]
+      ],
+      "signed_contrast": -0.5,
+      "direction_binary": 0.0,
+      "z": 0.5,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 0.0,
+      "battery": {
+        "grid_charge_kwh": 0.5,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 0.5,
+        "grid_throughput_kwh": 0.5,
+        "conversion_loss_kwh": 0.0,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.0,
+          2.5
+        ],
+        "battery_gain_kwh": 0.5,
+        "balance_residual_kwh": 0.0
+      }
+    },
+    "v2g_no_charge_headroom": {
+      "status": 0,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "seconds": 0.0017000000007101335,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 0,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "seconds": 0.0014001999988977332,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": true,
+      "site": 0,
+      "net_power_kw": [
+        1.0,
+        1.0
+      ],
+      "distance_squared": 0.0,
+      "amplitude": 0.0,
+      "amplitude_best_bound": -0.0,
+      "distance_best_bound": 0.0,
+      "absolute_amplitude_gap": -0.0,
+      "big_m": 4.0,
+      "declared_contrast_absolute_bound": 2.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            1.0
+          ],
+          [
+            1.0
+          ]
+        ],
+        "eta_charge": 0.9,
+        "eta_discharge": 0.9,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 3.8,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            true
+          ],
+          [
+            true
+          ]
+        ],
+        "travel_slots": [
+          0
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      },
+      "net_power_by_site_kw": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "signed_contrast": 0.0,
+      "direction_binary": 0.0,
+      "z": 0.0,
+      "solver_mip_gap": 0.0,
+      "inequality_violation": 0.0,
+      "bounds_violation": 0.0,
+      "integrality_violation": 0.0,
+      "decoded_physical_violation": 2.220446049250313e-16,
+      "battery": {
+        "grid_charge_kwh": 2.0,
+        "grid_export_kwh": 0.0,
+        "grid_net_kwh": 2.0,
+        "grid_throughput_kwh": 2.0,
+        "conversion_loss_kwh": 0.19999999999999996,
+        "driving_energy_kwh": 0.0,
+        "battery_energy_kwh": [
+          2.0,
+          2.9,
+          3.8
+        ],
+        "battery_gain_kwh": 1.7999999999999998,
+        "balance_residual_kwh": 2.220446049250313e-16
+      }
+    },
+    "all_sites_operationally_infeasible": {
+      "status": 2,
+      "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "seconds": 0.010215900001639966,
+      "solver_attempts": [
+        {
+          "presolve": true,
+          "status": 2,
+          "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+          "seconds": 0.001344000000244705,
+          "same_constraint_matrix": true,
+          "same_objective": true
+        }
+      ],
+      "success": false,
+      "site": null,
+      "net_power_kw": null,
+      "distance_squared": null,
+      "amplitude": null,
+      "amplitude_best_bound": null,
+      "distance_best_bound": null,
+      "absolute_amplitude_gap": null,
+      "big_m": 0.0,
+      "declared_contrast_absolute_bound": 0.0,
+      "formulation": "rank_one_sign_disjunction_MILP",
+      "history_precision": 0.0,
+      "includes_complete_curve_library": false,
+      "includes_joint_site_choice": true,
+      "sensitivity": [
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "operational_constraints": {
+        "n_sites": 1,
+        "dt_hours": 1.0,
+        "p_charge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "p_discharge_max_kw": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "initial_energy_kwh": 2.0,
+        "terminal_energy_kwh": 2.5,
+        "energy_min_kwh": 0.0,
+        "energy_max_kwh": 4.0,
+        "effective_availability": [
+          [
+            false
+          ],
+          [
+            false
+          ]
+        ],
+        "travel_slots": [
+          2
+        ],
+        "driving_energy_kwh": [
+          0.0
+        ]
+      }
+    }
+  },
+  "constant_curve_kw": [
+    0.25,
+    0.25
+  ],
+  "constant_profile_by_history_precision": {
+    "0.0": {
+      "distance_squared": 0.0,
+      "offset": 0.25,
+      "future_residual": [
+        0.0,
+        0.0
+      ],
+      "historical_penalty": 0.0,
+      "closed_form": 0.0
+    },
+    "1.0": {
+      "distance_squared": 0.04166666666666667,
+      "offset": 0.16666666666666666,
+      "future_residual": [
+        0.08333333333333334,
+        0.08333333333333334
+      ],
+      "historical_penalty": 0.027777777777777776,
+      "closed_form": 0.04166666666666667
+    },
+    "4.0": {
+      "distance_squared": 0.08333333333333334,
+      "offset": 0.08333333333333333,
+      "future_residual": [
+        0.16666666666666669,
+        0.16666666666666669
+      ],
+      "historical_penalty": 0.027777777777777776,
+      "closed_form": 0.08333333333333334
+    }
+  },
+  "one_way_signed_LP_audit": [
+    {
+      "sign": -1.0,
+      "status": 0,
+      "success": true,
+      "amplitude": 0.5000000000000002,
+      "net_power_kw": [
+        0.0,
+        0.5000000000000002
+      ]
+    },
+    {
+      "sign": 1.0,
+      "status": 0,
+      "success": true,
+      "amplitude": 0.5000000000000002,
+      "net_power_kw": [
+        0.5000000000000002,
+        0.0
+      ]
+    }
+  ],
+  "independent_small_grid_audit": {
+    "points": 51,
+    "full_curve_library_used_by_selector": false,
+    "role": "independent_one_dimensional_toy_audit_only",
+    "maximum_distance_squared": 0.125
+  },
+  "lin_distflow_pure_P_information": [
+    [
+      0.6666666666666667,
+      0.0
+    ],
+    [
+      0.0,
+      0.0
+    ]
+  ],
+  "lin_distflow_fixed_power_factor_information": [
+    [
+      0.6666666666666667,
+      0.2666666666666667
+    ],
+    [
+      0.2666666666666667,
+      0.10666666666666669
+    ]
+  ],
+  "zero_gradient_constant": {
+    "curve": [
+      0.25,
+      0.25
+    ],
+    "gradient": [
+      0.0,
+      0.0
+    ],
+    "distance_squared": 0.0,
+    "optimized_distance_squared": 0.1250000000000001,
+    "interpretation": "a stay-on-tie affine-price iteration can stall at constant"
+  },
+  "environment": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "source_sha256": {
+    "ev_flexibility_analytic.py": "7eac3edc38e173a0c01f7132fdc4009e1cda1b1497816c1610f59d1c17aced87",
+    "test_ev_flexibility_analytic.py": "6f5ccc07408986d2a3fccb0d33fefe19c5d6c09db05b53198378c809f7ddc645",
+    "ev_flexibility_math.md": "0d89517ba47adf25716c87e054a65a6ab9cc2d0df648345517c3b9ed03822f2c"
+  }
+}

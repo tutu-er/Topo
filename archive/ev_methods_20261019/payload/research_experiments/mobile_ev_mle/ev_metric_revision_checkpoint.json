@@ -1,0 +1,55 @@
+{
+  "stage": "EV metric review and executable baseline guard",
+  "date": "2026-10-13",
+  "base_commit": "d4e7936",
+  "branch": "research/ev-history-t-design",
+  "scope": "New opt-in research modules; frozen C/D and old evidence unchanged",
+  "stage_status": "validated_partial_research",
+  "completed": [
+    "Audited current selector: time-expanded MILP and continuous power; no complete action library",
+    "Identified baseline initial_us vectors were not executable incumbent plans",
+    "Implemented operation-MILP baseline realization and same-proxy interval guard",
+    "Identified omitted future terminal P/Q compensation in old frozen AC proxy",
+    "Derived directional historical-plus-full-future profile distance and same-domain historical offset",
+    "Derived squared-offset MILP lower/upper directions and multi-center offset rule",
+    "Verified MILP metric ranking reversal, shared line history penalty and multiple reference centers",
+    "Integrated 72 tests including 33 new tests"
+  ],
+  "validation": {
+    "new_tests": 33,
+    "integration_tests": 72,
+    "passed": 72,
+    "failed": 0,
+    "pytest_seconds": 1.38,
+    "command": "python -B -m pytest research_experiments/mobile_ev_mle/test_ev_baseline_guard.py research_experiments/mobile_ev_mle/test_future_power_metric_check.py research_experiments/mobile_ev_mle/test_ev_information_milp.py research_experiments/mobile_ev_mle/test_ev_operations_milp.py -q -p no:cacheprovider",
+    "actual_stdout": "........................................................................ [100%]\n72 passed in 1.38s\n",
+    "threads": "OPENBLAS_NUM_THREADS=OMP_NUM_THREADS=MKL_NUM_THREADS=1",
+    "full_new_suite_run": false,
+    "python": "D:/apps/miniconda3/envs/Topo/python.exe",
+    "log": "evidence/ev_metric_revision/integration_tests.txt"
+  },
+  "evidence": "evidence/ev_metric_revision/future_power_metric_check.json",
+  "enumeration_policy": "Main selectors are MILP; analytical solutions and tiny enumeration only audit/baseline",
+  "bounds_scope": "Frozen affine proxy with engineering floating-point tolerances",
+  "not_yet_implemented": [
+    "Directional full-future-P/Q AC proxy builder",
+    "Squared-offset MILP adapter with same-domain history min over competing centers",
+    "Insertion of executable baseline into legacy adaptive_search internal incumbent",
+    "Loss-corrected DistFlow historical-fit initialization and speed benchmark",
+    "Complete nonlinear AC competitive reoptimization of predicted data for new metric",
+    "New independent historical calibration/evaluation and rolling strategy"
+  ],
+  "next_acceptance": [
+    "Verify full future P/Q/V/master Jacobian and absolute total-power bounds independent of EV control",
+    "Verify history offset and future parameter domain use one shared line parameter vector",
+    "Verify offset MILP lower <= independent tiny optimum <= upper",
+    "Compare three-terminal AC scoring and optimization failures at equal data/compute budget",
+    "Freeze new policy and calibrate/evaluate on new independent histories"
+  ],
+  "preserved_preexisting_tracked_changes": [
+    "docs/mobile_ev_probing_report_v2.pdf",
+    "pyproject.toml"
+  ],
+  "report_status": "New math saved in research directory; original TeX/PDF update deferred to AC integration",
+  "commit_subject": "research: audit EV metric compensation and guard optimized plans against constant charging"
+}

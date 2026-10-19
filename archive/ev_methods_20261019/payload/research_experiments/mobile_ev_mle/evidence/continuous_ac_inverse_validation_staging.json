@@ -1,0 +1,250 @@
+{
+  "seed": 1310301,
+  "runtime": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "actual_future_or_evaluation_truth_used": false,
+  "prior_model": "declared nominal synthetic continuous prior",
+  "proof_status": "uniform high-voltage existence, prior image inclusion and rectangular inverse injectivity proved",
+  "proof_source": "independent derivation in continuous_ac_inverse_math.md",
+  "proof_constants": {
+    "forward_W_upper": 0.041,
+    "existence_ball_radius": 0.05,
+    "master_P_upper": 0.867,
+    "master_Q_upper": 0.204,
+    "inverse_junction_tau_lower": 0.94,
+    "inverse_Gprime_lower": 0.9991,
+    "inverse_terminal_V_lower": 0.949,
+    "inverse_J_minus_identity_inf_upper": 0.019
+  },
+  "finite_tests_are_global_proof": false,
+  "regression_pytest": {
+    "passed": 20,
+    "command": "python -m pytest test_continuous_ac_inverse.py -q -p no:cacheprovider"
+  },
+  "comparison_records": [
+    {
+      "family": [],
+      "case": "strong",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 7.771561172376096e-16,
+      "inverse_source_error": 3.885780586188048e-16,
+      "forward_voltage_error": 1.1102230246251565e-16,
+      "forward_master_error": 2.7755575615628914e-17,
+      "jacobian_central_difference_error": 5.2032156361292436e-11,
+      "jacobian_forward_reciprocal_error": 3.9159009368461284e-11,
+      "determinant_min": 0.9904664140183924,
+      "vmin": 0.9790593057296153,
+      "shared_residual_max": 0.0
+    },
+    {
+      "family": [],
+      "case": "weak",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 3.3306690738754696e-16,
+      "inverse_source_error": 2.498001805406602e-16,
+      "forward_voltage_error": 0.0,
+      "forward_master_error": 0.0,
+      "jacobian_central_difference_error": 7.933598222820137e-11,
+      "jacobian_forward_reciprocal_error": 5.176048478716666e-11,
+      "determinant_min": 0.9922198563705876,
+      "vmin": 0.9808014972002131,
+      "shared_residual_max": 0.0
+    },
+    {
+      "family": [
+        [
+          0,
+          1
+        ]
+      ],
+      "case": "strong",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 9.070522111187529e-14,
+      "inverse_source_error": 2.4702462297909733e-15,
+      "forward_voltage_error": 0.0,
+      "forward_master_error": 2.7755575615628914e-17,
+      "jacobian_central_difference_error": 8.064704459798122e-11,
+      "jacobian_forward_reciprocal_error": 5.813481748946636e-11,
+      "determinant_min": 0.9909562167697872,
+      "vmin": 0.9735871217361431,
+      "shared_residual_max": 1.7930101847696278e-13
+    },
+    {
+      "family": [
+        [
+          0,
+          1
+        ]
+      ],
+      "case": "weak",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 4.440892098500626e-16,
+      "inverse_source_error": 2.220446049250313e-16,
+      "forward_voltage_error": 0.0,
+      "forward_master_error": 0.0,
+      "jacobian_central_difference_error": 6.036171562584514e-11,
+      "jacobian_forward_reciprocal_error": 4.7749078128933586e-11,
+      "determinant_min": 0.9910661231439984,
+      "vmin": 0.9812715165526047,
+      "shared_residual_max": 1.1102230246251565e-16
+    },
+    {
+      "family": [
+        [
+          0,
+          2
+        ]
+      ],
+      "case": "strong",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 9.936496070395151e-14,
+      "inverse_source_error": 4.996003610813204e-16,
+      "forward_voltage_error": 0.0,
+      "forward_master_error": 5.551115123125783e-17,
+      "jacobian_central_difference_error": 6.493039439448012e-11,
+      "jacobian_forward_reciprocal_error": 6.021014524633383e-11,
+      "determinant_min": 0.9906725434894764,
+      "vmin": 0.9723121455755386,
+      "shared_residual_max": 1.963984530561902e-13
+    },
+    {
+      "family": [
+        [
+          0,
+          2
+        ]
+      ],
+      "case": "weak",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 3.3306690738754696e-16,
+      "inverse_source_error": 1.6653345369377348e-16,
+      "forward_voltage_error": 1.1102230246251565e-16,
+      "forward_master_error": 1.1102230246251565e-16,
+      "jacobian_central_difference_error": 6.58882948201267e-11,
+      "jacobian_forward_reciprocal_error": 5.098510502676845e-11,
+      "determinant_min": 0.9911300188304809,
+      "vmin": 0.9832395040354523,
+      "shared_residual_max": 1.1102230246251565e-16
+    },
+    {
+      "family": [
+        [
+          1,
+          2
+        ]
+      ],
+      "case": "strong",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 9.281464485866309e-14,
+      "inverse_source_error": 2.1649348980190553e-15,
+      "forward_voltage_error": 0.0,
+      "forward_master_error": 0.0,
+      "jacobian_central_difference_error": 6.819366057085607e-11,
+      "jacobian_forward_reciprocal_error": 5.865985475139723e-11,
+      "determinant_min": 0.9909000419048972,
+      "vmin": 0.9743070920589328,
+      "shared_residual_max": 1.836308882730009e-13
+    },
+    {
+      "family": [
+        [
+          1,
+          2
+        ]
+      ],
+      "case": "weak",
+      "states": 37,
+      "all_valid": true,
+      "all_high_branch": true,
+      "all_certified": true,
+      "inverse_voltage_error": 3.3306690738754696e-16,
+      "inverse_source_error": 1.942890293094024e-16,
+      "forward_voltage_error": 1.1102230246251565e-16,
+      "forward_master_error": 2.7755575615628914e-17,
+      "jacobian_central_difference_error": 6.161959831274544e-11,
+      "jacobian_forward_reciprocal_error": 7.28039965553623e-11,
+      "determinant_min": 0.9913123135789867,
+      "vmin": 0.9816839054133735,
+      "shared_residual_max": 1.1102230246251565e-16
+    }
+  ],
+  "normalization_sanity": [
+    {
+      "family": [],
+      "midpoint_grid": 400,
+      "mass": 1.0011100846723697,
+      "absolute_error": 0.0011100846723697266,
+      "all_valid": true,
+      "source_support_captured_by_uniform_forward_loss_bounds": true
+    },
+    {
+      "family": [],
+      "midpoint_grid": 800,
+      "mass": 1.0002783658960037,
+      "absolute_error": 0.0002783658960037183,
+      "all_valid": true,
+      "source_support_captured_by_uniform_forward_loss_bounds": true
+    },
+    {
+      "family": [
+        [
+          0,
+          1
+        ]
+      ],
+      "midpoint_grid": 400,
+      "mass": 1.0014102485589385,
+      "absolute_error": 0.001410248558938454,
+      "all_valid": true,
+      "source_support_captured_by_uniform_forward_loss_bounds": true
+    },
+    {
+      "family": [
+        [
+          0,
+          1
+        ]
+      ],
+      "midpoint_grid": 800,
+      "mass": 1.0001006158651442,
+      "absolute_error": 0.00010061586514420462,
+      "all_valid": true,
+      "source_support_captured_by_uniform_forward_loss_bounds": true
+    }
+  ],
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\continuous_ac_inverse.py": "978dcc07fd8b3b83923ed5943a773e071bce7ebf520cbcb770f056d7e1799b84",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\continuous_ac_inverse_math.md": "74769e8eb2911eb19a3ba50720b896b217f51511651798b944ca44a038829b04",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\test_continuous_ac_inverse.py": "b7ff9a50fe32ba93b9f912bed055f5a5461f61af8a8b5f2a9075e95f03551b56",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\12\\01a12f41-23b1-78f0-82e3-ef34242d980a\\ev_milp_20261013\\validate_continuous_ac_inverse.py": "c3f1ec81d1d3d66e5e4ed372fd393079cc20ef4fae91124f06548949cf92cc48",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\likelihood.py": "bf5c5672167bff629eb17c5e41849f0d93137de140359e6324a2b9d125ab830a",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\simulation.py": "8f77791cecd319828af1c7dcd21c4da1072dcfca22b092431d9e76bbe27fecfc",
+    "C:\\Users\\23761\\.codex\\worktrees\\36a1\\Topo\\research_experiments\\mobile_ev_mle\\continuous_predictive_eig_protocol.md": "d262edf9cd8986707d9353052bb3fc7422b9dbe12e5f82a25edddaecd6b389a4"
+  },
+  "seconds": 3.357505299965851,
+  "all_comparisons_pass": true
+}

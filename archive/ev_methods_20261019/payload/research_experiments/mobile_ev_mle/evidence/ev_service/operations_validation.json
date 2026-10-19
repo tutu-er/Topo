@@ -1,0 +1,1393 @@
+{
+  "timestamp_utc": "2026-10-14T05:03:26.656413+00:00",
+  "exit_code": 0,
+  "command": [
+    "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+    "-m",
+    "pytest",
+    "research_experiments/mobile_ev_mle/test_ev_service_milp.py",
+    "research_experiments/mobile_ev_mle/test_single_site_milp.py",
+    "research_experiments/mobile_ev_mle/test_gradient_price_search.py",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "stdout_file": "operations_tests_stdout.txt",
+  "stdout": "........................................................................ [ 90%]\n........                                                                 [100%]\n80 passed in 1.47s\n",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "source_sha256": {
+    "research_experiments/mobile_ev_mle/ev_service_milp.py": "7a7e9d8a7cd2549356456bab02bb9ded62904310992b204c1bdbd2b9cc707086",
+    "research_experiments/mobile_ev_mle/test_ev_service_milp.py": "4de93d846f2d6c94d5c1fb311cd208547eb78330d5036bf0c51ee9ca3db37691",
+    "research_experiments/mobile_ev_mle/single_site_milp.py": "9a97e5a74a21fd9f6926086e0da78ddb7ad653a652cc09757bdd782ce74c3caf",
+    "research_experiments/mobile_ev_mle/gradient_price_search.py": "d991f0112d714b52cc5ac40ef45ac85233e4ad3272fd62a507e9ccc16d2eee1a"
+  },
+  "scope": "Fixed-site continuous-power operational solver and evaluator adapter; no joint worker routing; pilot setup0 is declared ideal/prepared access. Test cases also cover actual setup1 short-window restrictions.",
+  "objective_bounds": "Reported numerical LP primal/dual and MILP solver bounds apply only to frozen affine operational subproblem.",
+  "service": "Same pre-return absolute terminal battery energy initial_soc*C+.1425pu-h; at 20kVA this is +2.85kWh battery, corresponding to old 3kWh charge-only grid task.",
+  "independent_checks": [
+    "Net-power SOC and energy conservation",
+    "Terminal service and post-return reserve",
+    "Contiguous worker setup after vehicle arrival; worker need not remain",
+    "Hand-computed LP/max-min optimum and V2G export budget",
+    "Retained infeasibility and solver failures",
+    "Only tiny discrete curve audit as independent comparator"
+  ],
+  "records": [
+    {
+      "success": true,
+      "status": "optimal",
+      "incumbent": 0.0,
+      "best_bound": -0.0,
+      "absolute_gap": -0.0,
+      "relative_gap": -0.0,
+      "termination": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "validation": {
+        "feasible": true,
+        "issues": [],
+        "grid_charge_pu_hours": 0.1499999999999998,
+        "grid_discharge_pu_hours": 0.0,
+        "grid_net_pu_hours": 0.1499999999999998,
+        "efficiency_loss_pu_hours": 0.007499999999999996,
+        "throughput_pu_hours": 0.1499999999999998,
+        "travel_energy_pu_hours": 0.0,
+        "return_energy_pu_hours": 0.0,
+        "initial_battery_energy": 1.2000000000000002,
+        "post_drive_energy": 1.2000000000000002,
+        "terminal_battery_energy": 1.3424999999999998,
+        "post_return_battery_energy": 1.3424999999999998,
+        "service_battery_gain": 0.14249999999999985,
+        "battery_net_charging_gain": 0.1424999999999998,
+        "accounting_error": -2.220446049250313e-16,
+        "ready_slot": 0,
+        "arrival_slot": 0,
+        "setup_start": 0,
+        "setup_slots": 0,
+        "departure_slot": 4,
+        "recomputed_soc": [
+          0.4,
+          0.42375,
+          0.42375,
+          0.44749999999999995,
+          0.44749999999999995
+        ]
+      },
+      "solver_status": 0,
+      "solver_success": true,
+      "solve_seconds": 0.01590779999969527,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "mip_node_count": null,
+      "mip_gap": null,
+      "binary_modes": false,
+      "variable_count": 14,
+      "constraint_count": 7,
+      "objective_scope": "frozen affine LP",
+      "solver_kind": "LP",
+      "lp_dual_objective": 0.0,
+      "lp_dual_stationarity_inf": 0.0,
+      "lp_dual_sign_error": 0.0,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 0,
+      "ready_slot": 0,
+      "arrival_slot": 0,
+      "split_charge_pu": [
+        0.3,
+        0.0,
+        0.2999999999999992,
+        0.0
+      ],
+      "split_discharge_pu": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_incumbent": -0.0,
+      "raw_best_bound": -0.0,
+      "affine_value": 0.0,
+      "objective_eta": -0.0,
+      "trust_ok": true,
+      "objective_eta_ok": true,
+      "bound_consistent": true,
+      "dual_evidence_ok": true,
+      "name": "charge_fixed",
+      "site": 0,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.0,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": null,
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 0,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "plan": {
+        "site": 0,
+        "p": [
+          [
+            0.3
+          ],
+          [
+            0.0
+          ],
+          [
+            0.2999999999999992
+          ],
+          [
+            0.0
+          ]
+        ],
+        "q": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "sites": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "soc": [
+          0.4000000000000001,
+          0.42375000000000007,
+          0.42375000000000007,
+          0.4475,
+          0.4475
+        ],
+        "solver": {
+          "solver_status": 0,
+          "solver_success": true,
+          "solve_seconds": 0.01590779999969527,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "mip_node_count": null,
+          "mip_gap": null,
+          "binary_modes": false,
+          "variable_count": 14,
+          "constraint_count": 7,
+          "objective_scope": "frozen affine LP",
+          "solver_kind": "LP",
+          "lp_dual_objective": 0.0,
+          "lp_dual_stationarity_inf": 0.0,
+          "lp_dual_sign_error": 0.0,
+          "terminal_energy_pu_hours": 1.3425,
+          "setup_start": 0,
+          "ready_slot": 0,
+          "arrival_slot": 0,
+          "split_charge_pu": [
+            0.3,
+            0.0,
+            0.2999999999999992,
+            0.0
+          ],
+          "split_discharge_pu": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "raw_incumbent": -0.0,
+          "raw_best_bound": -0.0,
+          "affine_value": 0.0,
+          "objective_eta": -0.0,
+          "trust_ok": true,
+          "objective_eta_ok": true,
+          "bound_consistent": true,
+          "dual_evidence_ok": true
+        }
+      }
+    },
+    {
+      "success": true,
+      "status": "optimal",
+      "incumbent": 0.2707500000000007,
+      "best_bound": 0.2707500000000007,
+      "absolute_gap": 0.0,
+      "relative_gap": 0.0,
+      "termination": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "validation": {
+        "feasible": true,
+        "issues": [],
+        "grid_charge_pu_hours": 0.22499999999999998,
+        "grid_discharge_pu_hours": 0.06768750000000018,
+        "grid_net_pu_hours": 0.1573124999999998,
+        "efficiency_loss_pu_hours": 0.014812500000000013,
+        "throughput_pu_hours": 0.29268750000000016,
+        "travel_energy_pu_hours": 0.0,
+        "return_energy_pu_hours": 0.0,
+        "initial_battery_energy": 1.2000000000000002,
+        "post_drive_energy": 1.2000000000000002,
+        "terminal_battery_energy": 1.3424999999999998,
+        "post_return_battery_energy": 1.3424999999999998,
+        "service_battery_gain": 0.14249999999999985,
+        "battery_net_charging_gain": 0.1424999999999998,
+        "accounting_error": -2.220446049250313e-16,
+        "ready_slot": 0,
+        "arrival_slot": 0,
+        "setup_start": 0,
+        "setup_slots": 0,
+        "departure_slot": 4,
+        "recomputed_soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.44749999999999995
+        ]
+      },
+      "solver_status": 0,
+      "solver_success": true,
+      "solve_seconds": 0.009375800000270829,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "mip_node_count": 1,
+      "mip_gap": 0.0,
+      "binary_modes": true,
+      "variable_count": 18,
+      "constraint_count": 15,
+      "objective_scope": "frozen affine MILP",
+      "solver_kind": "MILP",
+      "lp_dual_objective": null,
+      "lp_dual_stationarity_inf": null,
+      "lp_dual_sign_error": null,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 0,
+      "ready_slot": 0,
+      "arrival_slot": 0,
+      "split_charge_pu": [
+        0.3,
+        0.3,
+        0.3,
+        0.0
+      ],
+      "split_discharge_pu": [
+        0.0,
+        0.0,
+        0.0,
+        0.2707500000000007
+      ],
+      "raw_incumbent": 0.2707500000000007,
+      "raw_best_bound": 0.2707500000000007,
+      "affine_value": 0.2707500000000007,
+      "objective_eta": 0.2707500000000007,
+      "trust_ok": true,
+      "objective_eta_ok": true,
+      "bound_consistent": true,
+      "dual_evidence_ok": true,
+      "name": "v2g_fixed_max_export",
+      "site": 0,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.3,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": null,
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 0,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "plan": {
+        "site": 0,
+        "p": [
+          [
+            0.3
+          ],
+          [
+            0.3
+          ],
+          [
+            0.3
+          ],
+          [
+            -0.2707500000000007
+          ]
+        ],
+        "q": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            -0.0
+          ]
+        ],
+        "sites": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "soc": [
+          0.4000000000000001,
+          0.42375000000000007,
+          0.44750000000000006,
+          0.47125000000000006,
+          0.4475
+        ],
+        "solver": {
+          "solver_status": 0,
+          "solver_success": true,
+          "solve_seconds": 0.009375800000270829,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "mip_node_count": 1,
+          "mip_gap": 0.0,
+          "binary_modes": true,
+          "variable_count": 18,
+          "constraint_count": 15,
+          "objective_scope": "frozen affine MILP",
+          "solver_kind": "MILP",
+          "lp_dual_objective": null,
+          "lp_dual_stationarity_inf": null,
+          "lp_dual_sign_error": null,
+          "terminal_energy_pu_hours": 1.3425,
+          "setup_start": 0,
+          "ready_slot": 0,
+          "arrival_slot": 0,
+          "split_charge_pu": [
+            0.3,
+            0.3,
+            0.3,
+            0.0
+          ],
+          "split_discharge_pu": [
+            0.0,
+            0.0,
+            0.0,
+            0.2707500000000007
+          ],
+          "raw_incumbent": 0.2707500000000007,
+          "raw_best_bound": 0.2707500000000007,
+          "affine_value": 0.2707500000000007,
+          "objective_eta": 0.2707500000000007,
+          "trust_ok": true,
+          "objective_eta_ok": true,
+          "bound_consistent": true,
+          "dual_evidence_ok": true
+        }
+      }
+    },
+    {
+      "success": true,
+      "status": "optimal",
+      "incumbent": -0.042105263157894306,
+      "best_bound": -0.042105263157894535,
+      "absolute_gap": -2.2898349882893854e-16,
+      "relative_gap": -2.2898349882893854e-16,
+      "termination": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "validation": {
+        "feasible": true,
+        "issues": [],
+        "grid_charge_pu_hours": 0.16052631578947357,
+        "grid_discharge_pu_hours": 0.0,
+        "grid_net_pu_hours": 0.16052631578947357,
+        "efficiency_loss_pu_hours": 0.008026315789473685,
+        "throughput_pu_hours": 0.16052631578947357,
+        "travel_energy_pu_hours": 0.01,
+        "return_energy_pu_hours": 0.0,
+        "initial_battery_energy": 1.2000000000000002,
+        "post_drive_energy": 1.1900000000000002,
+        "terminal_battery_energy": 1.3424999999999998,
+        "post_return_battery_energy": 1.3424999999999998,
+        "service_battery_gain": 0.14249999999999985,
+        "battery_net_charging_gain": 0.15249999999999989,
+        "accounting_error": -2.220446049250313e-16,
+        "ready_slot": 1,
+        "arrival_slot": 1,
+        "setup_start": 1,
+        "setup_slots": 0,
+        "departure_slot": 4,
+        "recomputed_soc": [
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.44749999999999995
+        ]
+      },
+      "solver_status": 0,
+      "solver_success": true,
+      "solve_seconds": 0.003513399999064859,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "mip_node_count": null,
+      "mip_gap": null,
+      "binary_modes": false,
+      "variable_count": 14,
+      "constraint_count": 7,
+      "objective_scope": "frozen affine LP",
+      "solver_kind": "LP",
+      "lp_dual_objective": 0.042105263157894535,
+      "lp_dual_stationarity_inf": 0.0,
+      "lp_dual_sign_error": 0.0,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 1,
+      "ready_slot": 1,
+      "arrival_slot": 1,
+      "split_charge_pu": [
+        0.0,
+        0.3,
+        0.3,
+        0.042105263157894306
+      ],
+      "split_discharge_pu": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_incumbent": -0.042105263157894306,
+      "raw_best_bound": -0.042105263157894535,
+      "affine_value": -0.042105263157894306,
+      "objective_eta": -0.042105263157894306,
+      "trust_ok": true,
+      "objective_eta_ok": true,
+      "bound_consistent": true,
+      "dual_evidence_ok": true,
+      "name": "charge_mobile",
+      "site": 1,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.0,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": null,
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 0,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "plan": {
+        "site": 1,
+        "p": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.042105263157894306
+          ]
+        ],
+        "q": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "sites": [
+          -1,
+          1,
+          1,
+          1
+        ],
+        "soc": [
+          0.3966666666666667,
+          0.3966666666666667,
+          0.4204166666666667,
+          0.4441666666666667,
+          0.4475
+        ],
+        "solver": {
+          "solver_status": 0,
+          "solver_success": true,
+          "solve_seconds": 0.003513399999064859,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "mip_node_count": null,
+          "mip_gap": null,
+          "binary_modes": false,
+          "variable_count": 14,
+          "constraint_count": 7,
+          "objective_scope": "frozen affine LP",
+          "solver_kind": "LP",
+          "lp_dual_objective": 0.042105263157894535,
+          "lp_dual_stationarity_inf": 0.0,
+          "lp_dual_sign_error": 0.0,
+          "terminal_energy_pu_hours": 1.3425,
+          "setup_start": 1,
+          "ready_slot": 1,
+          "arrival_slot": 1,
+          "split_charge_pu": [
+            0.0,
+            0.3,
+            0.3,
+            0.042105263157894306
+          ],
+          "split_discharge_pu": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "raw_incumbent": -0.042105263157894306,
+          "raw_best_bound": -0.042105263157894535,
+          "affine_value": -0.042105263157894306,
+          "objective_eta": -0.042105263157894306,
+          "trust_ok": true,
+          "objective_eta_ok": true,
+          "bound_consistent": true,
+          "dual_evidence_ok": true
+        }
+      }
+    },
+    {
+      "success": true,
+      "status": "optimal",
+      "incumbent": -0.04210526315789422,
+      "best_bound": -0.04210526315789422,
+      "absolute_gap": 0.0,
+      "relative_gap": 0.0,
+      "termination": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "validation": {
+        "feasible": true,
+        "issues": [],
+        "grid_charge_pu_hours": 0.16052631578947354,
+        "grid_discharge_pu_hours": 0.0,
+        "grid_net_pu_hours": 0.16052631578947354,
+        "efficiency_loss_pu_hours": 0.008026315789473685,
+        "throughput_pu_hours": 0.16052631578947354,
+        "travel_energy_pu_hours": 0.01,
+        "return_energy_pu_hours": 0.0,
+        "initial_battery_energy": 1.2000000000000002,
+        "post_drive_energy": 1.1900000000000002,
+        "terminal_battery_energy": 1.3424999999999998,
+        "post_return_battery_energy": 1.3424999999999998,
+        "service_battery_gain": 0.14249999999999985,
+        "battery_net_charging_gain": 0.15249999999999986,
+        "accounting_error": -2.220446049250313e-16,
+        "ready_slot": 1,
+        "arrival_slot": 1,
+        "setup_start": 1,
+        "setup_slots": 0,
+        "departure_slot": 4,
+        "recomputed_soc": [
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.44749999999999995
+        ]
+      },
+      "solver_status": 0,
+      "solver_success": true,
+      "solve_seconds": 0.0014416000012715813,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "mip_node_count": 0,
+      "mip_gap": 0.0,
+      "binary_modes": true,
+      "variable_count": 18,
+      "constraint_count": 15,
+      "objective_scope": "frozen affine MILP",
+      "solver_kind": "MILP",
+      "lp_dual_objective": null,
+      "lp_dual_stationarity_inf": null,
+      "lp_dual_sign_error": null,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 1,
+      "ready_slot": 1,
+      "arrival_slot": 1,
+      "split_charge_pu": [
+        0.0,
+        0.3,
+        0.3,
+        0.04210526315789422
+      ],
+      "split_discharge_pu": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_incumbent": -0.04210526315789422,
+      "raw_best_bound": -0.04210526315789422,
+      "affine_value": -0.04210526315789422,
+      "objective_eta": -0.04210526315789422,
+      "trust_ok": true,
+      "objective_eta_ok": true,
+      "bound_consistent": true,
+      "dual_evidence_ok": true,
+      "name": "v2g_mobile_max_export",
+      "site": 1,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.3,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": null,
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 0,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "plan": {
+        "site": 1,
+        "p": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.04210526315789422
+          ]
+        ],
+        "q": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "sites": [
+          -1,
+          1,
+          1,
+          1
+        ],
+        "soc": [
+          0.3966666666666667,
+          0.3966666666666667,
+          0.4204166666666667,
+          0.4441666666666667,
+          0.4475
+        ],
+        "solver": {
+          "solver_status": 0,
+          "solver_success": true,
+          "solve_seconds": 0.0014416000012715813,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "mip_node_count": 0,
+          "mip_gap": 0.0,
+          "binary_modes": true,
+          "variable_count": 18,
+          "constraint_count": 15,
+          "objective_scope": "frozen affine MILP",
+          "solver_kind": "MILP",
+          "lp_dual_objective": null,
+          "lp_dual_stationarity_inf": null,
+          "lp_dual_sign_error": null,
+          "terminal_energy_pu_hours": 1.3425,
+          "setup_start": 1,
+          "ready_slot": 1,
+          "arrival_slot": 1,
+          "split_charge_pu": [
+            0.0,
+            0.3,
+            0.3,
+            0.04210526315789422
+          ],
+          "split_discharge_pu": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "raw_incumbent": -0.04210526315789422,
+          "raw_best_bound": -0.04210526315789422,
+          "affine_value": -0.04210526315789422,
+          "objective_eta": -0.04210526315789422,
+          "trust_ok": true,
+          "objective_eta_ok": true,
+          "bound_consistent": true,
+          "dual_evidence_ok": true
+        }
+      }
+    },
+    {
+      "success": false,
+      "status": "infeasible",
+      "incumbent": null,
+      "best_bound": null,
+      "absolute_gap": null,
+      "relative_gap": null,
+      "termination": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "solver_status": 2,
+      "solver_success": false,
+      "solve_seconds": 0.0020696999999927357,
+      "solver_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "mip_node_count": null,
+      "mip_gap": null,
+      "binary_modes": false,
+      "variable_count": 14,
+      "constraint_count": 7,
+      "objective_scope": "frozen affine LP",
+      "solver_kind": "LP",
+      "lp_dual_objective": null,
+      "lp_dual_stationarity_inf": null,
+      "lp_dual_sign_error": null,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 1,
+      "ready_slot": 1,
+      "arrival_slot": 1,
+      "name": "staff_limited_mobile",
+      "site": 2,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.0,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": [
+          [
+            true,
+            true,
+            false
+          ],
+          [
+            true,
+            true,
+            false
+          ],
+          [
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true
+          ]
+        ],
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 0,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "plan": null
+    },
+    {
+      "success": true,
+      "status": "optimal",
+      "incumbent": 0.6,
+      "best_bound": 0.6,
+      "absolute_gap": 0.0,
+      "relative_gap": 0.0,
+      "termination": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "validation": {
+        "feasible": true,
+        "issues": [],
+        "grid_charge_pu_hours": 0.16052631578947357,
+        "grid_discharge_pu_hours": 0.0,
+        "grid_net_pu_hours": 0.16052631578947357,
+        "efficiency_loss_pu_hours": 0.008026315789473685,
+        "throughput_pu_hours": 0.16052631578947357,
+        "travel_energy_pu_hours": 0.01,
+        "return_energy_pu_hours": 0.0,
+        "initial_battery_energy": 1.2000000000000002,
+        "post_drive_energy": 1.1900000000000002,
+        "terminal_battery_energy": 1.3424999999999998,
+        "post_return_battery_energy": 1.3424999999999998,
+        "service_battery_gain": 0.14249999999999985,
+        "battery_net_charging_gain": 0.15249999999999989,
+        "accounting_error": -2.220446049250313e-16,
+        "ready_slot": 1,
+        "arrival_slot": 1,
+        "setup_start": 1,
+        "setup_slots": 0,
+        "departure_slot": 4,
+        "recomputed_soc": [
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39999999999999997,
+          0.42374999999999996,
+          0.44749999999999995
+        ]
+      },
+      "solver_status": 0,
+      "solver_success": true,
+      "solve_seconds": 0.0025883000016619917,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "mip_node_count": null,
+      "mip_gap": null,
+      "binary_modes": false,
+      "variable_count": 14,
+      "constraint_count": 7,
+      "objective_scope": "frozen affine LP",
+      "solver_kind": "LP",
+      "lp_dual_objective": -0.6,
+      "lp_dual_stationarity_inf": 0.0,
+      "lp_dual_sign_error": 0.0,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 1,
+      "ready_slot": 1,
+      "arrival_slot": 1,
+      "split_charge_pu": [
+        0.0,
+        0.042105263157894306,
+        0.3,
+        0.3
+      ],
+      "split_discharge_pu": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_incumbent": 0.6,
+      "raw_best_bound": 0.6,
+      "affine_value": 0.6,
+      "objective_eta": 0.6,
+      "trust_ok": true,
+      "objective_eta_ok": true,
+      "bound_consistent": true,
+      "dual_evidence_ok": true,
+      "name": "staff_cooperative_mobile",
+      "site": 2,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.0,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": [
+          [
+            true,
+            true,
+            false
+          ],
+          [
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true
+          ],
+          [
+            true,
+            true,
+            true
+          ]
+        ],
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 0,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "plan": {
+        "site": 2,
+        "p": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.042105263157894306
+          ],
+          [
+            0.0,
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.0,
+            0.3
+          ]
+        ],
+        "q": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "sites": [
+          -1,
+          2,
+          2,
+          2
+        ],
+        "soc": [
+          0.3966666666666667,
+          0.3966666666666667,
+          0.4,
+          0.42375,
+          0.4475
+        ],
+        "solver": {
+          "solver_status": 0,
+          "solver_success": true,
+          "solve_seconds": 0.0025883000016619917,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "mip_node_count": null,
+          "mip_gap": null,
+          "binary_modes": false,
+          "variable_count": 14,
+          "constraint_count": 7,
+          "objective_scope": "frozen affine LP",
+          "solver_kind": "LP",
+          "lp_dual_objective": -0.6,
+          "lp_dual_stationarity_inf": 0.0,
+          "lp_dual_sign_error": 0.0,
+          "terminal_energy_pu_hours": 1.3425,
+          "setup_start": 1,
+          "ready_slot": 1,
+          "arrival_slot": 1,
+          "split_charge_pu": [
+            0.0,
+            0.042105263157894306,
+            0.3,
+            0.3
+          ],
+          "split_discharge_pu": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "raw_incumbent": 0.6,
+          "raw_best_bound": 0.6,
+          "affine_value": 0.6,
+          "objective_eta": 0.6,
+          "trust_ok": true,
+          "objective_eta_ok": true,
+          "bound_consistent": true,
+          "dual_evidence_ok": true
+        }
+      }
+    },
+    {
+      "success": true,
+      "status": "optimal",
+      "incumbent": 0.0,
+      "best_bound": -0.0,
+      "absolute_gap": -0.0,
+      "relative_gap": -0.0,
+      "termination": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "validation": {
+        "feasible": true,
+        "issues": [],
+        "grid_charge_pu_hours": 0.15,
+        "grid_discharge_pu_hours": 0.0,
+        "grid_net_pu_hours": 0.15,
+        "efficiency_loss_pu_hours": 0.007500000000000007,
+        "throughput_pu_hours": 0.15,
+        "travel_energy_pu_hours": 0.0,
+        "return_energy_pu_hours": 0.0,
+        "initial_battery_energy": 1.2000000000000002,
+        "post_drive_energy": 1.2000000000000002,
+        "terminal_battery_energy": 1.3425,
+        "post_return_battery_energy": 1.3425,
+        "service_battery_gain": 0.14249999999999985,
+        "battery_net_charging_gain": 0.1425,
+        "accounting_error": 0.0,
+        "ready_slot": 1,
+        "arrival_slot": 0,
+        "setup_start": 0,
+        "setup_slots": 1,
+        "departure_slot": 4,
+        "recomputed_soc": [
+          0.4,
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475
+        ]
+      },
+      "solver_status": 0,
+      "solver_success": true,
+      "solve_seconds": 0.0025323000008938834,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "mip_node_count": null,
+      "mip_gap": null,
+      "binary_modes": false,
+      "variable_count": 14,
+      "constraint_count": 7,
+      "objective_scope": "frozen affine LP",
+      "solver_kind": "LP",
+      "lp_dual_objective": 0.0,
+      "lp_dual_stationarity_inf": 0.0,
+      "lp_dual_sign_error": 0.0,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 0,
+      "ready_slot": 1,
+      "arrival_slot": 0,
+      "split_charge_pu": [
+        0.0,
+        0.3,
+        0.3,
+        0.0
+      ],
+      "split_discharge_pu": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "raw_incumbent": -0.0,
+      "raw_best_bound": -0.0,
+      "affine_value": 0.0,
+      "objective_eta": -0.0,
+      "trust_ok": true,
+      "objective_eta_ok": true,
+      "bound_consistent": true,
+      "dual_evidence_ok": true,
+      "name": "staff_one_setup_fixed",
+      "site": 0,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.0,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": null,
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": [
+          [
+            true
+          ],
+          [
+            false
+          ],
+          [
+            false
+          ],
+          [
+            false
+          ]
+        ],
+        "setup_slots": 1,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "plan": {
+        "site": 0,
+        "p": [
+          [
+            0.0
+          ],
+          [
+            0.3
+          ],
+          [
+            0.3
+          ],
+          [
+            0.0
+          ]
+        ],
+        "q": [
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ],
+          [
+            0.0
+          ]
+        ],
+        "sites": [
+          -1,
+          0,
+          0,
+          0
+        ],
+        "soc": [
+          0.4000000000000001,
+          0.4000000000000001,
+          0.42375000000000007,
+          0.4475,
+          0.4475
+        ],
+        "solver": {
+          "solver_status": 0,
+          "solver_success": true,
+          "solve_seconds": 0.0025323000008938834,
+          "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "mip_node_count": null,
+          "mip_gap": null,
+          "binary_modes": false,
+          "variable_count": 14,
+          "constraint_count": 7,
+          "objective_scope": "frozen affine LP",
+          "solver_kind": "LP",
+          "lp_dual_objective": 0.0,
+          "lp_dual_stationarity_inf": 0.0,
+          "lp_dual_sign_error": 0.0,
+          "terminal_energy_pu_hours": 1.3425,
+          "setup_start": 0,
+          "ready_slot": 1,
+          "arrival_slot": 0,
+          "split_charge_pu": [
+            0.0,
+            0.3,
+            0.3,
+            0.0
+          ],
+          "split_discharge_pu": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "raw_incumbent": -0.0,
+          "raw_best_bound": -0.0,
+          "affine_value": 0.0,
+          "objective_eta": -0.0,
+          "trust_ok": true,
+          "objective_eta_ok": true,
+          "bound_consistent": true,
+          "dual_evidence_ok": true
+        }
+      }
+    },
+    {
+      "success": false,
+      "status": "infeasible",
+      "incumbent": null,
+      "best_bound": null,
+      "absolute_gap": null,
+      "relative_gap": null,
+      "termination": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "solver_status": 2,
+      "solver_success": false,
+      "solve_seconds": 0.0020192999982100446,
+      "solver_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "mip_node_count": null,
+      "mip_gap": null,
+      "binary_modes": false,
+      "variable_count": 14,
+      "constraint_count": 7,
+      "objective_scope": "frozen affine LP",
+      "solver_kind": "LP",
+      "lp_dual_objective": null,
+      "lp_dual_stationarity_inf": null,
+      "lp_dual_sign_error": null,
+      "terminal_energy_pu_hours": 1.3425,
+      "setup_start": 1,
+      "ready_slot": 2,
+      "arrival_slot": 1,
+      "name": "staff_one_setup_mobile",
+      "site": 1,
+      "constraints": {
+        "terminal_energy": 1.3425,
+        "dt_hours": 0.25,
+        "p_charge_max": 0.3,
+        "p_discharge_max": 0.0,
+        "battery_capacity": 3.0,
+        "initial_soc": 0.4,
+        "soc_min": 0.1,
+        "soc_max": 0.9,
+        "eta_charge": 0.95,
+        "eta_discharge": 0.95,
+        "q_over_p": 0.0,
+        "availability": null,
+        "travel_slots": null,
+        "travel_energy": null,
+        "initial_site": 0,
+        "worker_setup_available": null,
+        "setup_slots": 1,
+        "departure_slot": null,
+        "return_energy": 0.0,
+        "departure_reserve": 0.0
+      },
+      "affine_prices": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "plan": null
+    }
+  ],
+  "new_module_targeted_tests": 35,
+  "including_frozen_compatibility_tests": 80,
+  "canonical_domain_adapter": "Preserves net power bitwise, regenerates new-domain metadata and SOC, independently checks fixed terminal service; no relaxed path checker or new optimization."
+}

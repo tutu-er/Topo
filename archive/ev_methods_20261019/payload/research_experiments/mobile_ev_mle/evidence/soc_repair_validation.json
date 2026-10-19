@@ -1,0 +1,684 @@
+{
+  "validation_date": "2026-10-12",
+  "purpose": "Post-batch correction checks battery SOC at arrival before charging can compensate driving energy.",
+  "frozen_formal_source_commit": "434b2d3",
+  "design_sha256_before": "7ef3519c1dd4e6ac6e49fa0d5e372e72685989a10506e2626aa2ef5bd561de55",
+  "design_sha256_after": "8efc25f45bdee4e66c41c546a56c7e143f0da49cbe4cf7bf51614fb4ee17aeaa",
+  "outputs_recomputed_or_modified": false,
+  "toy": {
+    "n_slots": 8,
+    "n_sites": 2,
+    "initial_site": 0,
+    "sites": [
+      -1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "charging_slots": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "charging_site": 1,
+    "p_pu": 0.3,
+    "initial_soc": 0.4,
+    "soc_min": 0.4,
+    "battery_capacity_pu_hours": 3,
+    "move_energy_pu_hours": 0.01,
+    "actual_arrival_soc_before_charge": 0.39666666666666667,
+    "before": {
+      "feasible": true,
+      "issues": [],
+      "soc": [
+        0.4,
+        0.4,
+        0.42041666666666666,
+        0.4441666666666667,
+        0.46791666666666665,
+        0.4916666666666667,
+        0.4916666666666667,
+        0.4916666666666667,
+        0.4916666666666667
+      ],
+      "energy_pu_hours": 0.3,
+      "movement_energy_pu_hours": 0.01
+    },
+    "after": {
+      "feasible": false,
+      "issues": [
+        "soc"
+      ],
+      "soc": [
+        0.4,
+        0.4,
+        0.42041666666666666,
+        0.4441666666666667,
+        0.46791666666666665,
+        0.4916666666666667,
+        0.4916666666666667,
+        0.4916666666666667,
+        0.4916666666666667
+      ],
+      "soc_before_charge": [
+        0.4,
+        0.39666666666666667,
+        0.42041666666666666,
+        0.4441666666666667,
+        0.46791666666666665,
+        0.4916666666666667,
+        0.4916666666666667,
+        0.4916666666666667
+      ],
+      "energy_pu_hours": 0.3,
+      "movement_energy_pu_hours": 0.01
+    },
+    "old_false_acceptance": true
+  },
+  "frozen_domain": {
+    "n_slots": 8,
+    "n_sites": 3,
+    "max_actions": 11,
+    "initial_site": 0,
+    "initial_soc": 0.4,
+    "soc_min": 0.1,
+    "soc_max": 0.9,
+    "dt_hours": 0.25,
+    "p_max_pu": 0.3,
+    "energy_pu_hours": 0.3,
+    "base_kw": 20,
+    "efficiency": 0.95,
+    "battery_capacity_pu_hours": 3,
+    "unavailable_slots_last_terminal": [
+      0,
+      1
+    ],
+    "off_diagonal_travel_slots": 1,
+    "off_diagonal_movement_energy_pu_hours": 0.01,
+    "maximum_moves_per_proposed_route": 2,
+    "conservative_soc_lower_bound": 0.39333333333333337,
+    "conservative_soc_upper_bound": 0.495,
+    "proof": "For every route prefix, charging P >= 0 and cumulative movement energy <= 2*0.01 pu-hours. Hence arrival SOC >= 0.4-0.02/3=0.3933333333 > 0.1. Total charging energy is 0.3 pu-hours, so SOC <= 0.4+0.95*0.3/3=0.495 < 0.9. Both checks therefore pass for every frozen feasible charging schedule; the added arrival check cannot change feasibility in this declared domain.",
+    "candidate_library_unchanged": true,
+    "all_eleven_actions_feasible_before_and_after": true,
+    "library_rejections_unchanged": true,
+    "selector_equivalence": "The selector receives identical action names, powers, routes and feasibility booleans; its likelihood, forecasts, candidate set, seeds and score computations are unchanged. Only diagnostic SOC fields gain the pre-charge array. This establishes action/selection invariance for the frozen constraints without recomputing statistical outputs."
+  },
+  "actions": [
+    {
+      "name": "constant_site_0",
+      "family": "constant",
+      "power_route_sha256_before": "0e8d18f9e9cadadb7ae90a8f1e5ffd22b3af776206d96e1d7b5ca96c3708c26f",
+      "power_route_sha256_after": "0e8d18f9e9cadadb7ae90a8f1e5ffd22b3af776206d96e1d7b5ca96c3708c26f",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.41187500000000005,
+          0.42375,
+          0.43562500000000004,
+          0.4475,
+          0.45937500000000003,
+          0.47125,
+          0.483125,
+          0.495
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.41187500000000005,
+          0.42375,
+          0.43562500000000004,
+          0.4475,
+          0.45937500000000003,
+          0.47125,
+          0.483125,
+          0.495
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.41187500000000005,
+          0.42375,
+          0.43562500000000004,
+          0.4475,
+          0.45937500000000003,
+          0.47125,
+          0.483125
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0
+      }
+    },
+    {
+      "name": "constant_site_1",
+      "family": "constant",
+      "power_route_sha256_before": "c24c76669529ce475294622e3ff81a75bdda9efbb63b57032b76a752b84303bd",
+      "power_route_sha256_after": "c24c76669529ce475294622e3ff81a75bdda9efbb63b57032b76a752b84303bd",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.41023809523809524,
+          0.4238095238095238,
+          0.4373809523809524,
+          0.450952380952381,
+          0.46452380952380956,
+          0.47809523809523813,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.41023809523809524,
+          0.4238095238095238,
+          0.4373809523809524,
+          0.450952380952381,
+          0.46452380952380956,
+          0.47809523809523813,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.41023809523809524,
+          0.4238095238095238,
+          0.4373809523809524,
+          0.450952380952381,
+          0.46452380952380956,
+          0.47809523809523813
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "constant_site_2",
+      "family": "constant",
+      "power_route_sha256_before": "35e15945696d6d3ff61752c649bb8414dc94d02f0806bf24aad80829b248667b",
+      "power_route_sha256_after": "35e15945696d6d3ff61752c649bb8414dc94d02f0806bf24aad80829b248667b",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.41250000000000003,
+          0.42833333333333334,
+          0.4441666666666667,
+          0.46,
+          0.47583333333333333,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.41250000000000003,
+          0.42833333333333334,
+          0.4441666666666667,
+          0.46,
+          0.47583333333333333,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.41250000000000003,
+          0.42833333333333334,
+          0.4441666666666667,
+          0.46,
+          0.47583333333333333
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "early_site_0",
+      "family": "fixed_pulse",
+      "power_route_sha256_before": "0f9b72c37e02f5af99e51a0cc58a404560491bec3e6f6d31f61332d319f15226",
+      "power_route_sha256_after": "0f9b72c37e02f5af99e51a0cc58a404560491bec3e6f6d31f61332d319f15226",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495,
+          0.495,
+          0.495,
+          0.495,
+          0.495
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495,
+          0.495,
+          0.495,
+          0.495,
+          0.495
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495,
+          0.495,
+          0.495,
+          0.495
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0
+      }
+    },
+    {
+      "name": "late_site_0",
+      "family": "fixed_pulse",
+      "power_route_sha256_before": "fe14fee1353fe8eba1cb8d515644d5f9c25dc7411fe5ee2302ee9e8e49e0edee",
+      "power_route_sha256_after": "fe14fee1353fe8eba1cb8d515644d5f9c25dc7411fe5ee2302ee9e8e49e0edee",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125,
+          0.495
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.4,
+          0.42375,
+          0.4475,
+          0.47125
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0
+      }
+    },
+    {
+      "name": "early_site_1",
+      "family": "fixed_pulse",
+      "power_route_sha256_before": "a4b07f09996b239905436d07ab42d0b2e981f6967cdc343419bf82941b74db7d",
+      "power_route_sha256_after": "a4b07f09996b239905436d07ab42d0b2e981f6967cdc343419bf82941b74db7d",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "late_site_1",
+      "family": "fixed_pulse",
+      "power_route_sha256_before": "15f36a316f100c7e4222d31a7416af89be75f9c2d1512c1e1e30635cc93353f6",
+      "power_route_sha256_after": "15f36a316f100c7e4222d31a7416af89be75f9c2d1512c1e1e30635cc93353f6",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.29999999999999993,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665
+        ],
+        "energy_pu_hours": 0.29999999999999993,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "early_site_2",
+      "family": "fixed_pulse",
+      "power_route_sha256_before": "06b297f0710f57f6721f60fe12bc7dd70d962089b00d39aae090ca92b8ab514d",
+      "power_route_sha256_after": "06b297f0710f57f6721f60fe12bc7dd70d962089b00d39aae090ca92b8ab514d",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.4441666666666667,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "late_site_2",
+      "family": "fixed_pulse",
+      "power_route_sha256_before": "2d8aa0e445388bfd96d14341947c17d1b0d78d2a8b8ab7be35971873d47d8ca6",
+      "power_route_sha256_after": "2d8aa0e445388bfd96d14341947c17d1b0d78d2a8b8ab7be35971873d47d8ca6",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.39666666666666667,
+          0.42041666666666666,
+          0.44416666666666665,
+          0.46791666666666665
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "mobile_0_1",
+      "family": "mobile",
+      "power_route_sha256_before": "c811306c3b810a7e30ac90111c3f538f939c82b30f47537a018a99de571b77a1",
+      "power_route_sha256_after": "c811306c3b810a7e30ac90111c3f538f939c82b30f47537a018a99de571b77a1",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    },
+    {
+      "name": "mobile_0_2",
+      "family": "mobile",
+      "power_route_sha256_before": "12a294f7d39042fc84ad866af7395942e0d2c0fd9b8b8f159e931e3ccda2c8d1",
+      "power_route_sha256_after": "12a294f7d39042fc84ad866af7395942e0d2c0fd9b8b8f159e931e3ccda2c8d1",
+      "power_route_unchanged": true,
+      "before": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      },
+      "after": {
+        "feasible": true,
+        "issues": [],
+        "soc": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.46791666666666665,
+          0.4916666666666667,
+          0.4916666666666667
+        ],
+        "soc_before_charge": [
+          0.4,
+          0.42375,
+          0.4475,
+          0.4475,
+          0.4475,
+          0.44416666666666665,
+          0.46791666666666665,
+          0.4916666666666667
+        ],
+        "energy_pu_hours": 0.3,
+        "movement_energy_pu_hours": 0.01
+      }
+    }
+  ],
+  "tests": {
+    "command": "python -m pytest research_experiments/mobile_ev_mle/test_design.py -q -p no:cacheprovider",
+    "result": "10 passed",
+    "seconds": 0.86,
+    "new_regressions": [
+      "test_arrival_soc_is_checked_before_same_slot_charging",
+      "test_formal_library_still_has_same_eleven_feasible_actions"
+    ]
+  }
+}
