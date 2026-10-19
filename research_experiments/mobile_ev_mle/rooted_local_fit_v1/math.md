@@ -25,12 +25,12 @@ AC方程写成F(y,c)=0，其中y是复电压实/虚部，c是待更新量；在�
 M_{je}=1表示边e位于原根到表计j的路径。线性平方电压响应为
 
 \[
- b_t^2\mathbf1-v_t^2\simeq H_k x_t,
- \quad x_t=(p_t,q_t),\quad
+ b_t^2\mathbf1-v_t^2\simeq H_k s_t,
+ \quad s_t=(p_t,q_t),\quad
  H_k=2[ M\operatorname{diag}(r)M^T,\ M\operatorname{diag}(x)M^T].
 \]
 
-符号x_t是拼接的功率向量，未加时间下标的x仍为线路电抗。为避免混淆，程序内部分别命名powers和reactance。
+这里s_t是拼接的功率向量，x仍只表示线路电抗。
 
 先校正平方高斯噪声均值：\(y_t=(\tilde b_t^2-\sigma_b^2)\mathbf1-(\tilde v_t^2-\sigma_v^2)\)。在预声明v_ref=1处冻结平方噪声方差，
 
@@ -42,15 +42,15 @@ M_{je}=1表示边e位于原根到表计j的路径。线性平方电压响应为
 共同根表产生非对角项，不能把各压降当独立量测。CUT改用正交对比矩阵D，D1=0，将未知切口平方电压消去；对应H=−2D[Mdiag(r)M^T,Mdiag(x)M^T]和\(S_y=D\operatorname{diag}(4\sigma_v^2+2\sigma_v^4)D^T\)。
 
 设\(S_p=\operatorname{diag}(\sigma_p^2,\sigma_q^2)\)。解析最小化
-\(\|\tilde x_t-x_t\|_{S_p^{-1}}^2+\|y_t-Hx_t\|_{S_y^{-1}}^2\)，得到
+\(\|\tilde s_t-s_t\|_{S_p^{-1}}^2+\|y_t-Hs_t\|_{S_y^{-1}}^2\)，得到
 
 \[
  Q(H)=\sum_t e_t^T\Omega_t^{-1}e_t,\quad
- e_t=y_t-H\tilde x_t,\quad \Omega_t=S_y+HS_pH^T,
+ e_t=y_t-H\tilde s_t,\quad \Omega_t=S_y+HS_pH^T,
 \]
 \[
- x_t^*=\tilde x_t+S_pH^T\Omega_t^{-1}e_t,
- \qquad \nabla_HQ=-2\sum_t(\Omega_t^{-1}e_t)(x_t^*)^T.
+ s_t^*=\tilde s_t+S_pH^T\Omega_t^{-1}e_t,
+ \qquad \nabla_HQ=-2\sum_t(\Omega_t^{-1}e_t)(s_t^*)^T.
 \]
 
 证明可由严格凸的逐时最小二乘一阶条件代回得到；梯度也可对原目标用包络定理求得，已包含传播协方差变化。这里优化隐含P/Q，不把它们积分成随机先验，因此没有logdet项。平方噪声分布并非高斯、物理响应也有损耗余项；RESP是明确的快速近似，不是原始完整AC似然。
