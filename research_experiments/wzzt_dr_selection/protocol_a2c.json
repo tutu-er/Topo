@@ -1,0 +1,65 @@
+{
+  "version": "a2c-completion-v2",
+  "date": "2026-10-27",
+  "base_commit": "f8759d42",
+  "stage": "A2, fixed-history completion audit before any new price design",
+  "cases": [
+    "omitted_lines",
+    "weak_line",
+    "common_mode",
+    "forecast_mismatch",
+    "weak_after_prefix_0",
+    "weak_after_prefix_1",
+    "weak_after_prefix_2",
+    "identity_sanity",
+    "balanced_partial_4",
+    "nested_partial_4",
+    "zero_complete_4",
+    "weak_complete_4",
+    "pq_R_only",
+    "pq_sum",
+    "x_R_only",
+    "x_sum",
+    "incompatible_observations"
+  ],
+  "planned_datasets": 17,
+  "planned_nontrivial_block_checks": 96,
+  "exact_support_fit_count": 312,
+  "observation_error_budget": 0,
+  "numerical_comparison_tolerance": 1e-07,
+  "scope": "nonnegative laminar R/X model, observed-root linear response; independent small reference, not production WZZT",
+  "candidate_rule": "all non-singleton WZZT dictionary blocks; tentative greedy blocks only determine ordering, never restrict full completions",
+  "greedy_rule": "run observed data to stopping before screening; preserve errors and zero-effective labels without truth-based deletion",
+  "exact_reference": "fit each complete laminar family once per dataset, then take min over families not containing C; optimize all nonnegative weights including zero",
+  "relaxation": "symmetric nonnegative R and X; each diagonal >= corresponding off-diagonal; no row-sum dominance or upper bounds",
+  "lower_bound": "max over anchors j of min over all inside i and outside k branch dual objectives; full block compares with known zero root",
+  "coefficient": "R-only for P-only datasets; paired R-only and R+X diagnostics for P/Q confounding and X-only cases",
+  "confirmed_feedback": false,
+  "confirmed_warning": "conditional equality constraints are not applied in the main batch; separate wrong-confirmed negative example only",
+  "branch_cache": "per dataset, reuse identical order/coefficient/confirmed branches; canonicalize symmetric root comparisons; report cache hits and actual LP calls",
+  "failure_policy": "retain all failed family and branch results; no incomplete reference or empty compatible set used to claim necessity",
+  "truth_boundary": "analysis function receives only historical P,Q,Y,initial B and declared coefficient; true positive blocks enter post-analysis labels only",
+  "four_node_models": {
+    "balanced_partial_4": {
+      "R": "I+0.4 J_all+0.3 J_01+0.15 J_23",
+      "P": "two common snapshots plus node0 two-slot prefix"
+    },
+    "nested_partial_4": {
+      "R": "I+0.4 J_all+0.3 J_012+0.15 J_01",
+      "P": "two common snapshots plus node3 two-slot prefix"
+    },
+    "zero_complete_4": {
+      "R": "I+0.4 J_all+0 J_01+0.2 J_23",
+      "P": "[ones,I]"
+    },
+    "weak_complete_4": {
+      "R": "I+0.4 J_all+1e-6 J_01+0.2 J_23",
+      "P": "[ones,I]"
+    }
+  },
+  "prices_designed": 0,
+  "next_gate": "first verify lower<=complete omission optimum, nonempty-model checks, zero/X-only/root cases, and actual runtime; then construct price-reachable contrast diagnostics without truth labels",
+  "reproducibility": "deterministic inputs; freeze source/config hashes and environment; per-case results and failure preservation; source snapshots in archive",
+  "invalid_bound_guard": "Any matrix lower bound above a feasible complete-omission upper bound is invalid and cannot imply necessity",
+  "posthoc_diagnostic": "After the 17 locked cases, separately check X-only coefficient (0,1) on the existing X-only history; report its four blocks separately, never merge the 96-case denominator"
+}

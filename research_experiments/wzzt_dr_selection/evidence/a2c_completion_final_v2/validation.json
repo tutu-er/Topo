@@ -1,0 +1,54 @@
+{
+  "stage": "A2c complete; no price design",
+  "final_run": "outputs/a2c_completion_final_v2",
+  "datasets": 17,
+  "locked_block_checks": 96,
+  "classifications": {
+    "legal_alternative_found": 69,
+    "necessary_by_matrix": 18,
+    "necessary_but_relaxation_unresolved": 5,
+    "model_budget_incompatible": 4
+  },
+  "incomplete_failure_timeout_count": 0,
+  "lower_above_legal_upper_plus_1e_7": 0,
+  "false_necessities_among_18": 0,
+  "not_an_independent_statistical_sample": true,
+  "lp_calls": {
+    "greedy": 203,
+    "complete_family_reference": 312,
+    "matrix_base": 17,
+    "matrix_branches": 418,
+    "branch_cache_hits": 255
+  },
+  "seconds_this_run": {
+    "greedy": 0.24040479987161234,
+    "complete_family_reference": 0.36117129994090647,
+    "matrix_branch_solves": 0.5112758005852811,
+    "matrix_screen_with_cache": 0.5748675000504591
+  },
+  "posthoc_X_direction": {
+    "block_checks_separate_from_96": 4,
+    "new_branch_lps": 18,
+    "reused_family_fits": 8,
+    "new_family_fits": 0
+  },
+  "unit_tests": {
+    "command": "python -B -m unittest discover -s research_experiments/wzzt_dr_selection/tests -q",
+    "passed": 61,
+    "failed": 0,
+    "reported_seconds": 2.936
+  },
+  "source_hashes_verified": 8,
+  "raw_archive_files_verified": 38,
+  "raw_household_data_included": false,
+  "strict_arithmetic_or_statistical_certificate": false,
+  "initial_run_preserved": "outputs/a2c_completion_v1; same inputs, not additional samples",
+  "test_source_hashes": {
+    "test_completion_audit.py": "5096e76fa6b8187b2c7b294bc8b9c642f60f464606a7a8353f70b9c54930c50b",
+    "test_completion_bounds.py": "4bd469c032bf995126dd1d5ed99599d09f7b79388965816d6cd963270aad4ea0",
+    "test_core.py": "d6ae88b11936059ffcb1b21b9e82ba134184b8a9c665482234b1c57f4c1188dc",
+    "test_face_price_audit.py": "e0eec03c62499b0224fad901ee9b9b4ee317508da45fea9513c18fb7e20363b5",
+    "test_optimal_face.py": "12ad67ad85b53c5aeb8c52ce92485a42ec752c56c465d23f60dadb8645f68b46",
+    "test_protocol.py": "69ab3e3f69be7ff636a54016b7fccf632b3a06c86a65f095b0d6747010ad28b3"
+  }
+}
