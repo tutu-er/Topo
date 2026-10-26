@@ -1,5 +1,7 @@
 # WZZT 逐块辨识与随机需求响应：第一轮结果
 
+Latest continuation: [A2B_REPORT.md](A2B_REPORT.md). This page preserves the original A1/A2 evidence; A2b adds complete-recovery counterexamples.
+
 2026-10-27。**差异化价格有实际选线收益，但目前没有 WZZT 专属指标优于 D-opt 的证据；冻结单个历史解的便宜分数已经出现错误排序，应否定其作为可靠筛价依据。**
 
 本目录是独立小系统数学参照，未修改或声称复现生产 WZZT 主流程。

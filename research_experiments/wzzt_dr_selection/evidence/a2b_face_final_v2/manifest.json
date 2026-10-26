@@ -1,0 +1,65 @@
+{
+  "protocol": {
+    "version": "a2b-face-v2",
+    "created": "2026-10-27",
+    "scope": "Bounded mathematical audit; no promotion to B1; independent WZZT L1 reference",
+    "base_commit": "01f9399c",
+    "cases": [
+      "omitted_lines",
+      "weak_line",
+      "common_mode",
+      "forecast_mismatch",
+      "weak_after_prefix_0",
+      "weak_after_prefix_1",
+      "weak_after_prefix_2"
+    ],
+    "prefix_rule": "For each of the three single-node early patterns, append one fixed observed batch and update B only by the observed WZZT proposal. Include every prefix, even if no new data are needed.",
+    "menus": 6,
+    "response_patterns": 8,
+    "response_integration": "Exact finite distribution; no new Monte Carlo sample or statistical confidence claim",
+    "primary_future_loss_weight": 1,
+    "diagnostic_future_loss_weights": [
+      0.05,
+      0.25,
+      1,
+      4
+    ],
+    "lambda_interpretation": "Weight on the same future observations, not physical load amplitude or an optimized policy parameter; compare only within the same lambda",
+    "hypothesis_scope": "Original complete support enumeration and one deduplicated historical LP representative per family; not all compatible parameters",
+    "methods": [
+      "frozen",
+      "optimal_face",
+      "exact_refit",
+      "dual_lower_score",
+      "d_opt",
+      "no_reward"
+    ],
+    "stop_tolerance": 1e-08,
+    "tie_tolerance": 1e-07,
+    "history_face_added_slack": 0,
+    "parameter_bounds": "Nonnegative only, zero allowed, no added upper bounds",
+    "actual_evaluation": "After locking all designs, evaluate one next proposal and continue greedy selection until data-based stop; count remaining true positive blocks and full effective support recovery. True support never enters design.",
+    "no_new_data_baseline": true,
+    "parameter_face_dual_diagnostic": "Record alpha and lambda*alpha<=1, direct dual-vector feasibility, candidate loss intervals, any strictly separated numerical winner, and comparison with exact refit. Floating-point diagnostics, not topology certificates.",
+    "failure_policy": "Retain failed cases and pattern rows; do not drop weights or silently use fallback scores",
+    "planned_price_problems": 28,
+    "planned_actual_pattern_evaluations": 224,
+    "gate": "Reject finite-batch proxy if candidate/menu ranking reverses. Do not promote without actual target-block or runtime advantage versus D-opt and no-new-data.",
+    "reproducibility": "Freeze source/config hashes and environment; exclusive lock, immutable design before evaluation, per-phase case checkpoints; new directory after source change"
+  },
+  "sources": {
+    "face_price_audit.py": "8c11c308752636dad33ca67bd1b03323a7d66a070009e26b16f7465251909b27",
+    "protocol_a2b.json": "e6a43445fdb385b34780da12221dd6215e25ff25905aa21f401fbac62af72aff",
+    "core.py": "fb4813541492d30a2abb9d83482f0a18fed0b0e177952c5d88b165b7bfc9a320",
+    "experiment.py": "c0dec8e91477675af286cd0e292d845098137751b59f528f1e312f1730b90f0a",
+    "exact_patterns.py": "b096217c270548e3429ba574f1dcd45d7e6bcc40cf188b8dfdc27ee99c0c87b9",
+    "optimal_face.py": "6d3a6731d508ed5314b5e4abd478ee76cac59a953bc6fc4868a22382048a1337"
+  },
+  "environment": {
+    "python": "3.13.12",
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "fingerprint": "d9b5f9612f9f5398a2c5f250e9f08c905679eb77171680c4f74281b66d7e5d39"
+}
