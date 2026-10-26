@@ -1,0 +1,86 @@
+{
+  "fingerprint": "4d4634f51bcb3c8ec1cee121216f0da0c27df6a37eefc4d2c5fa464bf3620b14",
+  "sources": {
+    "core.py": "fb4813541492d30a2abb9d83482f0a18fed0b0e177952c5d88b165b7bfc9a320",
+    "experiment.py": "c0dec8e91477675af286cd0e292d845098137751b59f528f1e312f1730b90f0a",
+    "protocol.json": "251f455cc28b3f606e8e8acfcf8fbd41bb414b9b4f12a04b82e17ffd5a909105"
+  },
+  "config": {
+    "version": "a1-a2-v4",
+    "created": "2026-10-27",
+    "implementation": "independent exhaustive small-system L1 reference; not production WZZT",
+    "base_commit": "cda4231dedb158d1dadc2b232db52e2bf8e49a60",
+    "a1": {
+      "scope": [
+        "omitted_lines",
+        "zero_weak_weight",
+        "common_mode",
+        "pq_confounding",
+        "random_response_refit_order"
+      ],
+      "tolerance": 1e-07
+    },
+    "a2": {
+      "states": [
+        "omitted_lines",
+        "weak_line",
+        "common_mode",
+        "forecast_mismatch"
+      ],
+      "menus": 6,
+      "menu_names": [
+        "no_reward",
+        "uniform_early",
+        "node0_early",
+        "node1_early",
+        "node2_early",
+        "uniform_late"
+      ],
+      "nodes": 3,
+      "historical_snapshots": 2,
+      "future_slots": 2,
+      "background_power_per_node": 0.2,
+      "price_units": "normalized synthetic rebate, 0.1 per unit in preferred slot; no currency calibration",
+      "pathwise_payment_cap": 0.3,
+      "rewarded_choice_probability": 0.9,
+      "design_draws": 32,
+      "test_draws": 32,
+      "seed_design": 20261027,
+      "seed_test": 72016102,
+      "test_updates_budget": 768,
+      "response_model": "synthetic feasible two-slot energy shift; not iFlex-calibrated",
+      "per_node_energy": 1.0,
+      "per_node_power_cap": 1.0,
+      "measurement_noise_std": 0.0,
+      "stop_tolerance": 1e-08,
+      "tie_tolerance": 1e-07,
+      "parameter_bound_policy": "nonnegative; zero allowed; no positive floor or added upper bound",
+      "hypotheses": "all complete laminar supports compatible with historical loss threshold; one LP representative plus explicit nonuniqueness audit; NOT a covering parameter ensemble",
+      "weights": "uniform over deduplicated fitted prediction models; design weights, NOT topology posterior",
+      "primary_output": "price ranking versus independently realized correct single-block selection",
+      "inference": "no confidence or line-reliability claim"
+    },
+    "promotion": {
+      "A1_to_A2": "all deterministic reference checks pass; retain contrary results as evidence",
+      "A2_to_B1": "no oracle leakage, plausible rankings improve actual selection beyond matched-resource random/D-opt baselines; investigate candidate-pool and optimal-face limitations first",
+      "B1": "40 independent episodes, 5 policies, 4 batches; only after A2 review",
+      "B2": "freeze model and test size using B1 variance; 300 independent complete episodes is a possible fixed-size low-error audit, not an automatic launch",
+      "C": "AC 33-bus and one public LV case after small closed-loop benefit and runtime are established"
+    },
+    "hard_stops": [
+      "false certificate in a noiseless counterexample",
+      "test truth or future observations used to design prices",
+      "score improves but selection does not",
+      "surrogate ranks prices differently without adequate correction",
+      "benefit requires stronger perturbations or higher cost",
+      "discarding weak/zero cases to obtain positive results"
+    ],
+    "resume": "validate config and source hashes; append only missing rows; retain failed rows; never silently reuse a run with changed sources"
+  },
+  "environment": {
+    "python": "3.13.12",
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "platform": "Windows-11-10.0.26200-SP0"
+  }
+}
