@@ -1,0 +1,22 @@
+{
+  "protocol_id": "paper15_short_root_branches_v1_cheap_control_addendum",
+  "parent_protocol_sha256": "d5946c5c85244cfcbfb47b7abc8355d616969203c0fa4dc3edfc72b7f3346f42",
+  "status": "locked_before_any_noisy_root_case_run",
+  "reason": "The root-difficulty example targets a fixed RNJ tolerance. A cheaper RNJ tolerance choice may already fix it and must be compared before claiming WZZT-specific value.",
+  "preserve_parent_primary_comparison": true,
+  "additional_rnj_tolerance_factors": [
+    0.04,
+    0.08,
+    0.16
+  ],
+  "data_scope": "same training observations, one fitted R/X pair reused; validation only for model choice; frozen independent test only for final evaluation",
+  "weights": "each algorithm-generated RNJ family plus singletons fitted by the same nonnegative fixed-support L1, with same bounds as WZZT",
+  "selection": "all declared RNJ variants and WZZT path points use the same held-out block MAE/SE and common one-SE rule; original fixed-0.16 RNJ and WZZT-only outcomes retained",
+  "truth_usage": "post-selection recovery counts only, never choose tolerance by test truth",
+  "report_failure_denominators": true,
+  "additional_rnj_geometry_count_per_condition": 2,
+  "additional_lp_count_per_condition": 2,
+  "extra_milp_calls": 0,
+  "execution": "not run in this batch",
+  "claim_boundary": "If tolerance selection fixes the same root errors with comparable validation/test performance, report the cheaper explanation and do not claim WZZT is indispensable on this example."
+}

@@ -68,5 +68,5 @@ B1 八节点闭环、B2 锁定测试和工程网络 C：未开始。iFlex 只有
 - 报告：`baseline_alignment/SELECTION_REPORT.md`；规则：`pooled_selection.py`；正常观测入口：`mainline_adapter.py`、`run_observed_baseline.py`；正常CLI包装：`run_default_cli.py`。原WZZT与新最终结果分别保存，不覆盖。
 - 已完成复算：`replay_pooled_selection.py`，26候选/2条件，结果 `evidence/baseline_selection_v2/pooled_selection.json`。新最终恢复2/2，全部来自RNJ；原WZZT0/2。
 - 错误诊断：`wrong_block_diagnosis.py`及`WRONG_BLOCK_DIAGNOSIS.md`；19/19固定支撑LP，不重跑。证据含执行前协议、原输入/源码hash、独立损失核验和loader版本边界。
-- 根部难例：`root_case_protocol.json`、`ROOT_CASE_DESIGN.md`、`root_geometry_audit.json`。3个长度比例的精确几何检查已完成；带噪声观测及实际WZZT未运行。保存原协议hash，不把几何结果当带噪声效果。
+- 根部难例：`root_case_protocol.json`、`ROOT_CASE_DESIGN.md`、`root_geometry_audit.json`。3个长度比例的精确几何检查已完成；带噪声观测及实际WZZT未运行。保存原协议hash，不把几何结果当带噪声效果。`root_case_controls.json`另锁定简单RNJ容差对照，未运行新数据。
 - 39项相关测试通过；无未完成求解进程，无DR新比较，无自动化。
