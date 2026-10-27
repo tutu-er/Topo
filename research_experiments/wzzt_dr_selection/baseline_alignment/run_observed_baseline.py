@@ -43,15 +43,22 @@ def main(argv=None):
             'root_label':1,'training_time_rows':sum(len(s['P_terminal']) for s in train),
             'validation_time_rows':sum(len(s['P_terminal']) for s in valid),
             'data_difference_preserved':'96/24 hourly residential observations, not original reference288/288 mixed-resource observations',
-            'explicit_algorithm_overrides':{},'truth_to_estimator':False})
+            'explicit_algorithm_overrides':{},'truth_to_estimator':False,
+            'final_selection':'complete RNJ fixed-family fit plus original WZZT path; common one-SE validation rule; original WZZT outcome retained'})
         result=fit_mainline_observed(train,valid,1,output)
         evaluation=observed.evaluate_effective_supports(result,truth)
-        observed._write_json(output/'evaluation.json',evaluation)
-        summary={'stage':'N1','strategy':'no_reward','fit':observed.summarize_fit(result),'recovery':evaluation,
+        final_view = {**result, 'selected':result.get('final_selected', result.get('selected'))}
+        final_evaluation=observed.evaluate_effective_supports(final_view,truth)
+        observed._write_json(output/'evaluation.json', {
+            'wzzt_path_only':evaluation, 'final_pooled_model':final_evaluation})
+        summary={'stage':'N1','strategy':'no_reward','wzzt_fit':observed.summarize_fit(result),
+                 'wzzt_recovery':evaluation,'final_selection':result.get('final_summary'),
+                 'final_recovery':final_evaluation,
                  'rnj':result.get('rnj'),'source_input_hashes_unchanged':all(sha(Path(p))==h for p,h in input_hashes.items())}
         observed._write_json(output/'summary.json',summary)
         print(json.dumps({'status':result['status'],'has_model':result['has_model'],
-            'nontrivial_recovery':evaluation.get('nontrivial_supports')},indent=2))
+            'final_nontrivial_recovery':final_evaluation.get('nontrivial_supports'),
+            'wzzt_nontrivial_recovery':evaluation.get('nontrivial_supports')},indent=2))
         return 0 if result['status']=='complete' else 2
 
 if __name__=='__main__':raise SystemExit(main())

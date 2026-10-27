@@ -2,8 +2,10 @@
 
 The CLI pipeline generates synthetic data internally. This research adapter
 replaces only that data preparation: RNJ selection calls the production stage,
-and MILP arguments match ``pipeline._fit_milp_variants``. It never accepts a
-physical network or topology truth. Its outputs retain the v1 fit schema.
+and MILP arguments match ``pipeline._fit_milp_variants``. A complete RNJ
+fixed-family fit is then compared with every WZZT path point by the same
+validation rule. WZZT-only outputs remain separate from the final selection.
+It never accepts a physical network or topology truth.
 """
 from __future__ import annotations
 
@@ -17,6 +19,7 @@ import pandas as pd
 
 from research_experiments.wzzt_dr_selection.end_to_end import wzzt_adapter as observed
 from rnj_wzzt import pipeline
+from .pooled_selection import fit_complete_rnj_candidate, select_with_complete_rnj
 
 core = observed.core
 _CORE_DEFAULTS = {k:p.default for k,p in inspect.signature(core.fit_laminar_l1_sensitivity).parameters.items()
@@ -102,6 +105,7 @@ def fit_mainline_observed(training, validation, root_label, output_dir, override
     output.mkdir(parents=True,exist_ok=True)
     started = perf_counter()
     source_files = [Path(__file__).resolve(), Path(observed.__file__).resolve(),
+                    Path(inspect.getfile(select_with_complete_rnj)).resolve(),
                     *Path(pipeline.__file__).parent.rglob('*.py')]
     effective_core = {**_CORE_DEFAULTS,
         'r_upper_bound':effective['coefficient_bound'],'x_upper_bound':effective['coefficient_bound'],
@@ -116,6 +120,8 @@ def fit_mainline_observed(training, validation, root_label, output_dir, override
         'production_default_pipeline_called':False,'production_rnj_wzzt_stages_called':True,
         'external_observations_replace_synthetic_data_preparation':True,
         'truth_input_allowed':False,'global_tree_optimality_claim':False,
+        'final_model_rule':'complete RNJ fixed-family L1 fit plus original WZZT path; common production one-SE rule',
+        'selected_and_summary_scope':'original WZZT path only; final_selected and final_summary are the pooled result',
         'support_search_mode':'unrestricted', 'terminal_labels':labels.tolist(),'root_label':root_label,
         'training_scenarios':[s['name'] for s in train], 'validation_scenarios':[s['name'] for s in valid],
         'training_time_rows':sum(len(s['P_terminal']) for s in train),
@@ -175,6 +181,34 @@ def fit_mainline_observed(training, validation, root_label, output_dir, override
                 'validation_se_pu2':valid_se,'validation_block_means_pu2':valid_blocks.tolist()},
             'validation_rule':'production one-standard-error rule on stored path; no truth input',
             'topology_recovery_evaluated':False}
+        # Keep the unrestricted search and its failures visible. Adding an RNJ
+        # candidate changes final model selection, not the WZZT search path.
+        rnj_point = None
+        rnj_failure = None
+        try:
+            rnj_point = fit_complete_rnj_candidate(train, valid, selection.full_clades,
+                r_upper_bound=fitted.r_upper_bound, x_upper_bound=fitted.x_upper_bound,
+                time_limit=effective['time_limit'], solver=effective['milp_solver'],
+                validation_blocks=effective_core['validation_blocks'])
+        except Exception as exc:
+            rnj_failure = {'type':type(exc).__name__, 'message':str(exc)}
+        pooled = select_with_complete_rnj(fitted.path, rnj_point, rnj_failure=rnj_failure)
+        final = pooled['selected']
+        result['final_selection'] = {k:v for k,v in pooled.items() if k != 'selected'}
+        result['complete_rnj_candidate'] = None if rnj_point is None else observed._path(rnj_point)
+        result['final_selected'] = final
+        result['final_summary'] = {
+            'selection_status':pooled['status'], 'selected_origin':pooled['selected_origin'],
+            'wzzt_search_status':result['status'], 'wzzt_stop_reason':fitted.stop_reason,
+            'selected_wzzt_path_index':pooled['selected_path_index'],
+            'stored_support_count':len(final['support_indices']),
+            'train_mae_pu2':final['train_mae'], 'validation_mae_pu2':final['validation_mae'],
+            'validation_se_pu2':final['validation_se'], 'threshold_pu2':pooled.get('threshold_pu2'),
+            'candidate_count':pooled['candidate_count']}
+        result['elapsed_seconds'] = perf_counter()-started
+        observed._write_json(output/'final_selection.json', {
+            'selection':result['final_selection'], 'summary':result['final_summary'],
+            'selected':final, 'complete_rnj_candidate':result['complete_rnj_candidate']})
     except Exception as exc:
         result={**receipt,**last_snapshot,'status':'failed','has_model':False,
             'exception_type':type(exc).__name__,'exception':str(exc),

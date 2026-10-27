@@ -1,0 +1,168 @@
+{
+  "protocol_id": "paper15_short_root_branches_v1",
+  "date": "2026-10-27",
+  "status": "design_locked_geometry_audit_only",
+  "question": "Can current WZZT recover shallow but nonzero root branches that default RNJ omits under its global grouping tolerance?",
+  "scope": {
+    "physical_network": "paper15/reference",
+    "demand_response_comparison": false,
+    "new_observation_or_MILP_runs_this_turn": 0,
+    "geometry_conditions": 3,
+    "geometry_truth_use": "explicit oracle mechanism diagnostic, not an observed-data result"
+  },
+  "conditions": [
+    {
+      "id": "R0",
+      "root_branch_length_multiplier": 1.0,
+      "root_branch_lengths_m": [
+        92.0,
+        74.0,
+        88.0
+      ]
+    },
+    {
+      "id": "R1",
+      "root_branch_length_multiplier": 0.25,
+      "root_branch_lengths_m": [
+        23.0,
+        18.5,
+        22.0
+      ]
+    },
+    {
+      "id": "R2",
+      "root_branch_length_multiplier": 0.1,
+      "root_branch_lengths_m": [
+        9.2,
+        7.4,
+        8.8
+      ]
+    }
+  ],
+  "physical_change": {
+    "edges": [
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "fields": "multiply length_m, r_ohm and x_ohm by the declared root-only multiplier after reference impedance scale=1 conversion",
+    "unchanged": [
+      "topological adjacency",
+      "all other line lengths and impedance per km",
+      "terminal load and DER assignments",
+      "P/Q processes",
+      "physical root voltage",
+      "terminal and root meter error law",
+      "measurement counts and split rules",
+      "algorithm tolerance and bounds"
+    ]
+  },
+  "geometry_stage": {
+    "generation": "physical line sums give exact squared-voltage R/X; production sensitivity_geometry and rooted_neighbor_joining only",
+    "group_tolerance_factor": 0.16,
+    "optimizers_allowed": false,
+    "report": [
+      "root-branch shared-path score",
+      "0.16*median(root_depths)",
+      "root-score-to-tolerance ratios",
+      "missing and extra RNJ clades",
+      "peripheral true cherry survival",
+      "compatibility of each missing root clade with retained peripheral clades"
+    ],
+    "source_hashes_required": true
+  },
+  "future_observed_stage": {
+    "execution_status": "not_started_not_automatically_authorized_by_this_protocol",
+    "first_batch_condition_count": 3,
+    "paired_replicates": {
+      "train": 2,
+      "validation": 3,
+      "test": 4
+    },
+    "scenario_seeds": [
+      42,
+      7,
+      21
+    ],
+    "profile_seed_formula": "scenario_seed + 100003*replicate",
+    "root_meter_seed_formula": "70000019 + 100003*replicate + scenario_index",
+    "bootstrap_seed": 20260905,
+    "scenarios": [
+      "default",
+      "cloudy_variable_pv",
+      "evening_peak_high_load"
+    ],
+    "rows_per_split": 288,
+    "grid_minutes": 15,
+    "root_sigma": 0.003,
+    "root_mean": 1.02,
+    "pq_noise_rel": 0.005,
+    "terminal_voltage_noise_rel": 0.0002,
+    "root_meter_noise_rel": 0.0002,
+    "train_validation_test_independent": true,
+    "pairing": "same base load, physical-root and meter innovations across R0/R1/R2; AC regenerated for each physical network",
+    "no_truth_in_algorithm_inputs": true
+  },
+  "future_algorithms": {
+    "rnj": "unchanged ordered R/X QP, RX75 and tolerance0.16",
+    "wzzt": "unchanged current joint-refit greedy path initialized by data-selected bootstrap peripheral clades; 100 bootstrap, length4, threshold0.75, max2",
+    "full_rnj_lp": "fit weights on the algorithm-generated full RNJ family plus singletons",
+    "pooled_final_selection": "same independent validation blocks and common one-SE rule for RNJ candidate and all WZZT path points",
+    "core_solver": "HiGHS",
+    "per_solve_limit_seconds": 1800,
+    "coefficient_bound_initial": 2,
+    "bound_expansion": "unchanged default; never introduce a positive parameter lower bound",
+    "truth_is_for_post_run_evaluation_only": true
+  },
+  "evaluation": {
+    "primary": [
+      "root-clade true/missing/extra counts out of3",
+      "peripheral-clade true/missing/extra counts out of3",
+      "full effective family exact recovery",
+      "WZZT-only selected result separately from pooled selected result",
+      "where a missing root clade entered the actual path",
+      "all solver incomplete/timeout/failure counts"
+    ],
+    "secondary": [
+      "same-rule validation MAE and SE",
+      "frozen-selection independent test MAE",
+      "physical voltage and AC convergence",
+      "algorithm-selected initial-block compatibility (post hoc truth audit only)"
+    ],
+    "wzzt_correction_success": "RNJ has a root-level error, actual WZZT-selected path corrects it while retaining all peripheral true clades and introducing no false clade; pooled selection must select that WZZT-derived model to claim deployed correction",
+    "not_success": [
+      "pooled model only falls back to RNJ",
+      "oracle correct-support fit succeeds but WZZT fails",
+      "best truth-picked path point succeeds but validation-selected point fails",
+      "only training loss decreases"
+    ]
+  },
+  "stop_rules": [
+    "Report all three declared ratios; do not choose successful ratios or seeds after observing results",
+    "If RNJ errors are not root-localized, report that condition as failing the intended mechanism rather than deleting it",
+    "If selected initial clades cross true root clades, record the structural incompatibility; do not silently remove them",
+    "If WZZT cannot correct in-domain missing roots, retain failure and diagnose its search; do not add favorable load variation or lower noise",
+    "Keep original N0/N1 baseline results as the normal references; this is a separate physical-parameter sensitivity case",
+    "No new price comparison or larger MILP batch until the normal baseline diagnosis is complete"
+  ],
+  "alternative_not_selected": {
+    "root_meter_outliers": "would mix RNJ front-end squared-loss and WZZT absolute-loss robustness; must include matched-variance Gaussian control if ever studied, and cannot be presented as the main structural advantage case",
+    "weak_root_suite": "changes physical root-voltage sigma only; observed-root squared-voltage subtraction removes its direct common contribution, so it does not directly create a weak root branch",
+    "low_samples_or_correlated_loads": "can reduce information for both methods and disturb peripheral blocks; not selected for this first root-localized mechanism test"
+  },
+  "limits": [
+    "Known synthetic physical lengths define the test case only, not candidate selection",
+    "No claim that these lengths are empirically calibrated",
+    "RNJ tolerance loss does not imply information-theoretic non-identifiability",
+    "WZZT admissibility only creates an opportunity; actual greedy recovery and independent validation remain unverified"
+  ]
+}

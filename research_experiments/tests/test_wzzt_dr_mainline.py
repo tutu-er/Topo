@@ -143,3 +143,62 @@ def test_actual_four_terminal_full_chain_with_declared_small_budget(tmp_path):
     assert result['mainline_options']['milp_solver']=='highs'
     evaluation=adapter.observed.evaluate_effective_supports(result,[[101],[102],[103],[104],[101,102]])
     assert evaluation['full_effective_family_recovered']
+
+
+def test_final_rnj_choice_keeps_unresolved_wzzt_visible(monkeypatch, tmp_path):
+    monkeypatch.setattr(pipeline, '_select_case_rnj', lambda *a, **k: selection())
+    def unresolved(s, **kw):
+        return fitted(s, kw['validation_scenarios'], [(0,), (1,), (2,)],
+                      stop='extension_not_proven_optimal')
+    monkeypatch.setattr(pipeline, 'fit_laminar_l1_sensitivity', unresolved)
+    result = adapter.fit_mainline_observed([scenario('train', 1)], [scenario('valid', 2)], 1, tmp_path)
+    assert result['status'] == 'incomplete'
+    assert result['final_summary']['wzzt_search_status'] == 'incomplete'
+    assert result['final_summary']['selected_origin'] == 'complete_rnj'
+    assert len(result['selected']['support_indices']) == 3
+    assert len(result['final_selected']['support_indices']) == 4
+    assert result['summary']['stop_reason'] == 'extension_not_proven_optimal'
+    saved = json.loads((tmp_path/'final_selection.json').read_text())
+    assert saved['summary']['selected_origin'] == 'complete_rnj'
+    assert saved['selected']['validation_mae'] < result['selected']['validation_mae']
+
+
+def test_failed_rnj_lp_retains_wzzt_and_failure_record(monkeypatch, tmp_path):
+    monkeypatch.setattr(pipeline, '_select_case_rnj', lambda *a, **k: selection())
+    def fit(s, **kw):
+        return fitted(s, kw['validation_scenarios'], kw['initial_supports'])
+    def failed(*a, **kw):
+        raise RuntimeError('controlled RNJ candidate failure')
+    monkeypatch.setattr(pipeline, 'fit_laminar_l1_sensitivity', fit)
+    monkeypatch.setattr(adapter, 'fit_complete_rnj_candidate', failed)
+    result = adapter.fit_mainline_observed([scenario('train', 1)], [scenario('valid', 2)], 1, tmp_path)
+    assert result['status'] == 'complete'
+    assert result['final_summary']['selected_origin'] == 'wzzt_path'
+    assert result['final_summary']['selection_status'] == 'rnj_candidate_unavailable'
+    assert result['final_selection']['rnj_failure']['message'] == 'controlled RNJ candidate failure'
+    assert result['final_selected']['support_indices'] == result['selected']['support_indices']
+
+
+def test_normal_cli_wrapper_saves_final_comparison_without_overwriting_search(monkeypatch, tmp_path):
+    import sys
+    from research_experiments.wzzt_dr_selection.baseline_alignment import run_default_cli
+    train, valid = [scenario('train', 1)], [scenario('valid', 2)]
+    monkeypatch.setattr(pipeline, '_select_case_rnj', lambda *a, **k: selection())
+    def fit(s, **kw):
+        return fitted(s, kw['validation_scenarios'], [(0,), (1,), (2,)])
+    monkeypatch.setattr(pipeline, 'fit_laminar_l1_sensitivity', fit)
+    def cli(*a, **kw):
+        pipeline._select_case_rnj(None)
+        pipeline.fit_laminar_l1_sensitivity(train, validation_scenarios=valid,
+            initial_supports=[(0,), (1,), (2,)], r_upper_bound=2., x_upper_bound=2.,
+            time_limit=10., solver='highs')
+    monkeypatch.setattr(run_default_cli.runpy, 'run_path', cli)
+    monkeypatch.setattr(sys, 'argv', ['audit', '--repo', str(Path(__file__).resolve().parents[2]),
+                                    '--output', str(tmp_path)])
+    run_default_cli.main()
+    raw = json.loads((tmp_path/'fit.json').read_text())
+    final = json.loads((tmp_path/'final_selection.json').read_text())
+    assert len(raw['support_indices']) == 3
+    assert final['selection']['selected_origin'] == 'complete_rnj'
+    assert len(final['selection']['selected']['support_indices']) == 4
+    assert not (tmp_path/'runner.lock').exists()
