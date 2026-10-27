@@ -53,6 +53,14 @@ def indices(total):
     return np.arange(0, 96, 96 // (total // 3), dtype=int)
 
 
+def effective_directory(output,job,*,first_attempt_only=False):
+    root=Path(output)
+    repaired=root/"repairs"/job
+    if not first_attempt_only and any((repaired/n).exists() for n in ("result.json","error.json","hard_timeout.json")):
+        return repaired
+    return root/"jobs"/job
+
+
 def observed(path, total=None):
     import numpy as np
     import pandas as pd
@@ -104,6 +112,18 @@ def linear_loss(obs, r, x):
     target = root.to_numpy()[:, None]**2-v.to_numpy()**2
     error = p.to_numpy()@np.asarray(r).T+q.to_numpy()@np.asarray(x).T-target
     return dict(mae=float(np.mean(abs(error))), rmse=float(np.sqrt(np.mean(error**2))))
+
+
+def checked_point(labels,supports,r,x,obs,solver_upper):
+    import numpy as np
+    rr,xx=matrices(len(labels),supports,r,x)
+    metric=linear_loss(obs,rr,xx)
+    # An interrupted feasible epigraph point can have excess residual slack.
+    if metric["mae"]>solver_upper+1e-8:
+        raise RuntimeError("decoded physical loss exceeds the solver upper bound")
+    return dict(supports=[list(s) for s in supports],r=np.asarray(r).tolist(),x=np.asarray(x).tolist(),
+                search_objective=metric["mae"],solver_objective_upper=float(solver_upper),
+                epigraph_slack=float(solver_upper-metric["mae"]),linear_train=metric)
 
 
 def ac_diagnostic(labels, supports, r, x, obs, *, refit):

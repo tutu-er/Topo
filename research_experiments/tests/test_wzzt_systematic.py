@@ -4,10 +4,23 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from research_experiments.wzzt_systematic.common import indices, scenes_from_observed
+from research_experiments.wzzt_systematic.common import checked_point, indices, scenes_from_observed
 
 
 class SamplingProtocolTests(unittest.TestCase):
+    def test_interrupted_epigraph_incumbent_is_a_loss_upper_bound(self):
+        # y=.002 and .1*.02=.002 give zero physical residual; an interrupted
+        # incumbent can retain t=1e-6 while still satisfying t>=|residual|.
+        p=pd.DataFrame({7:[.1]})
+        q=pd.DataFrame({7:[0.]})
+        v=pd.DataFrame({7:[np.sqrt(.998)]})
+        obs=(p,q,v,pd.Series([1.]))
+        candidate=checked_point([7],[(0,)],[.02],[0.],obs,1e-6)
+        self.assertLess(candidate["search_objective"],1e-14)
+        self.assertGreater(candidate["epigraph_slack"],.99e-6)
+        with self.assertRaises(RuntimeError):
+            checked_point([7],[(0,)],[.04],[0.],obs,0.)
+
     def test_nested_physical_sampling_preserves_daily_extent(self):
         # More samples must reveal the same physical days rather than change
         # the dynamics, meter RNG draw or train/test trajectory seed.

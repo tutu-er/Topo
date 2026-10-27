@@ -6,7 +6,7 @@ import csv
 from pathlib import Path
 import sys
 
-from .common import (ac_diagnostic, indices, linear_loss, matrices, observed, read, sha, write)
+from .common import (ac_diagnostic, effective_directory, indices, linear_loss, matrices, observed, read, sha, write)
 
 
 def audit_data(output):
@@ -18,6 +18,11 @@ def audit_data(output):
         checks.append(dict(check=name, passed=bool(condition)))
     manifest=read(output/"frozen_manifest.json")
     require("all frozen source and data hashes", all(sha(output/p)==h for p,h in manifest.items()))
+    if (output/"repair_source_manifest.json").exists():
+        repair_manifest=read(output/"repair_source_manifest.json")
+        require("frozen repair source hashes",all(sha(output/"repair_source"/p)==h for p,h in repair_manifest.items()))
+        for job in read(output/"repair_protocol.json")["jobs"]:
+            require(job+" identical repaired payload",sha(output/"jobs"/job/"payload.json")==sha(output/"repairs"/job/"payload.json"))
     require("240 unique planned jobs",len(protocol["jobs"])==len(set(protocol["jobs"]))==240)
     require("nested samples",all(set(indices(a))<set(indices(b)) for a,b in zip(protocol["sample_sizes"][:-1],protocol["sample_sizes"][1:])))
     for job in protocol["jobs"]:
@@ -55,7 +60,7 @@ def audit_data(output):
     return dict(passed=all(c["passed"] for c in checks),checks=checks,check_count=len(checks))
 
 
-def evaluate(output, destination, *, partial=False):
+def evaluate(output, destination, *, partial=False, first_attempt_only=False):
     import numpy as np
     import pandas as pd
     output=Path(output).resolve()
@@ -73,15 +78,20 @@ def evaluate(output, destination, *, partial=False):
     checks=[]
     path_checks=[]
     test_cache=output/"postfit_test"
+    if first_attempt_only:
+        test_cache=output/"postfit_test_first"
     test_cache.mkdir(exist_ok=True)
     for job in protocol["jobs"]:
-        directory=output/"jobs"/job
+        first_directory=output/"jobs"/job
+        directory=effective_directory(output,job,first_attempt_only=first_attempt_only)
         payload=read(directory/"payload.json")
         ended=any((directory/name).exists() for name in ("result.json","error.json","hard_timeout.json"))
         if partial and not ended:
             continue
         row=dict(job_id=job,case=payload["case"],condition=payload["condition"],N=payload["N"],method=payload["method"],
-                 returned=(directory/"result.json").exists(),status="missing", model_available=False)
+                 returned=(directory/"result.json").exists(),status="missing", model_available=False,
+                 first_attempt_program_error=(first_directory/"error.json").exists(),
+                 repaired=directory!=first_directory)
         model=read(directory/"result.json") if row["returned"] else (read(directory/"checkpoint.json") if (directory/"checkpoint.json").exists() else None)
         if not row["returned"]:
             row["status"]="hard_timeout" if (directory/"hard_timeout.json").exists() else "failed" if (directory/"error.json").exists() else "missing"
@@ -207,7 +217,8 @@ def evaluate(output, destination, *, partial=False):
         statuses=frame.status.value_counts().to_dict(),
         data_audit_passed=data_audit["passed"],raw_attempts=len(checks),
         raw_audit_passed=all(c["passed"] for c in checks),path_points=len(path_checks),
-        path_audit_passed=all(c["passed"] for c in path_checks),scope=protocol["scope"])
+        path_audit_passed=all(c["passed"] for c in path_checks),repaired=int(frame.repaired.sum()),
+        first_attempt_program_errors=int(frame.first_attempt_program_error.sum()),scope=protocol["scope"])
     write(destination/"overview.json",overview)
     write(destination/"solver_audit.json",dict(passed=all(c["passed"] for c in checks),checks=checks,check_count=len(checks)))
     write(destination/"path_audit.json",dict(passed=all(c["passed"] for c in path_checks),checks=path_checks,check_count=len(path_checks)))
@@ -220,5 +231,6 @@ if __name__=="__main__":
     parser.add_argument("output",type=Path)
     parser.add_argument("destination",type=Path)
     parser.add_argument("--partial",action="store_true")
+    parser.add_argument("--first-attempt-only",action="store_true")
     args=parser.parse_args()
-    evaluate(args.output,args.destination,partial=args.partial)
+    evaluate(args.output,args.destination,partial=args.partial,first_attempt_only=args.first_attempt_only)

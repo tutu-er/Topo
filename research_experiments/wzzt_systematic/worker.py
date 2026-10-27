@@ -6,7 +6,7 @@ import sys
 from time import perf_counter
 import traceback
 
-from .common import (ac_diagnostic, linear_loss, matrices, observed, raw_model, read,
+from .common import (ac_diagnostic, checked_point, linear_loss, observed, raw_model, read,
                      scenes_from_observed, write)
 
 
@@ -56,12 +56,7 @@ def fit(payload_path):
         write(output/"checkpoint.json", result)
 
     def point(supports, r, x, objective):
-        rr, xx = matrices(n, supports, r, x)
-        metric = linear_loss(obs, rr, xx)
-        if abs(metric["mae"]-objective) > 1e-8:
-            raise RuntimeError("decoded physical objective disagrees with solver objective")
-        return dict(supports=[list(s) for s in supports], r=np.asarray(r).tolist(), x=np.asarray(x).tolist(),
-                    search_objective=float(objective), linear_train=metric)
+        return checked_point(labels,supports,r,x,obs,objective)
 
     def fixed(supports, epoch, purpose):
         remaining = settings["search_wall_seconds"]-(perf_counter()-started)
@@ -146,7 +141,7 @@ def fit(payload_path):
                                  if s in initial or max(rr,xx)>settings["zero_prune_tolerance"])
                     if len(kept) < len(extended):
                         reduced = fixed(kept, epoch, "verify_zero_pruning")
-                        if reduced.objective <= info["objective"]+1e-10:
+                        if reduced.objective <= candidate["search_objective"]+1e-10:
                             extended = kept
                             candidate = point(kept, reduced.r_values, reduced.x_values, reduced.objective)
                     family = tuple(extended)
