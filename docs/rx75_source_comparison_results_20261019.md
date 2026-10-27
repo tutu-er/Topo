@@ -85,9 +85,9 @@ NJ/RNJ的R/X来自前置ordered/FWL dense回归，WZZT来自结构化L1原子拟
 
 原始pengwah18无源联合路径首次F1=1后，继续增加8个短伪簇，最后F1=0.6364；按固定NJ校准的既有尺度收缩并实际重拟合后，F1=1，R/X误差5.74%/18.23%→4.25%/13.65%，独立193项检查通过。它是单独的后处理实验，原始结果保留。详见[路径、上界和重拟合诊断](/D:/0-github_workspace/Topo/docs/rx75_pengwah18_diagnosis_20261018.md)。
 
-截至本报告，原16项长时限批次已终结11项：9 complete、2 incomplete；另2项运行、3项未启动。常值源及间歇源联合方法均在6000秒扩展求解时限后未获最优认证，gap分别36.63%、50.37%，保留最后认证星形模型和未接受incumbent的raw NPZ。两项分别925项独立检查通过。它们属于超时，与无源已认证路径过细化分开统计。[当前11项快照](/D:/0-github_workspace/Topo/outputs/source_ac288_benchmark_20261018/reports_checkpoint_11/README.md)。
+原报告写作时保存了[11项中途快照](/D:/0-github_workspace/Topo/outputs/source_ac288_benchmark_20261018/reports_checkpoint_11/README.md)。2026-10-27重新核对落盘终结记录：16/16项均已返回，9 complete、7 incomplete；独立审计10093/10093通过。[最终16项表](/D:/0-github_workspace/Topo/outputs/source_ac288_benchmark_20261018/reports_final/README.md)保留全部超时模型。常值源及间歇源联合方法的6000秒扩展未获认证，原保存gap分别36.63%、50.37%；最后认证星形模型及未接受incumbent的raw NPZ仍保留。这类超时与无源已认证路径过细化分别统计。
 
-原批次保持运行，已接上一段只读收尾流程：收到完整16项结束标记后自动执行完整审计、汇总到`reports_final`并递归保存raw SHA；不重试估计器或修改方法。当前[收尾状态](/D:/0-github_workspace/Topo/tmp/finalize_source_ac288_state_20261019/state.json)仍为等待原批次。尚未完成的5项未算作完成结果。
+原批次已完成收尾，最终审计和汇总保存在`reports_final`；[最终审计](/D:/0-github_workspace/Topo/outputs/source_ac288_benchmark_20261018/reports_final/independent_ac288_audit.json)与`execution_complete.json`是当前状态依据。跨批次分母、算法版本和后续处理顺序见[统一结果总览](wzzt_case_results_20261027/README.md)。
 
 ## 文件和复现
 

@@ -2,7 +2,7 @@
 
 截至2026-10-19 11:48（UTC+8），64项新计算均已结束。原始状态为59 complete、4 incomplete、1记录器PermissionError；该I/O失败有单独合规补跑。采用补跑后的64项为60 complete、4 incomplete；加32项原NJ/RNJ复用基线，共96行，92 complete、4 incomplete。
 
-以下已独立重算物理指标，1152/1152核对通过；全批原始MILP约束、目标与数值证书审计正在后台进行。本报告先给统计，不把它写成最终求解审计已经完成。
+2026-10-27核对最终落盘记录：物理指标快照为1152/1152通过；全批原始MILP约束、目标与数值证书审计也已结束，[原批审计](../outputs/rnj_blocks96_20261019/audits/final/original.json)360958/360958通过，[I/O补跑子集审计](../outputs/rnj_blocks96_20261019/audits/final/recording_recovery.json)4202/4202通过。两份审计包含重复的历史基线检查，分别列出；原始失败与4项incomplete仍保留。统一结果台账见[2026-10-27总览](wzzt_case_results_20261027/README.md)。
 
 数据、噪声和信息均沿用原设置：四网络、无源/常值/间歇/平滑源，每条件原96点全部拟合，电压相对噪声0.02%，Source P/Q时序已知、接入位置未知。没有验证集或独立测试集。主F1按固定RX75分辨率对完整物理真簇评分；R/X误差是响应矩阵的相对Frobenius误差。
 
@@ -66,4 +66,4 @@
 - 全部产物SHA、恢复资格及1152项物理指标核对：`snapshot_manifest.json`。末端块及初始交叉诊断：`block_and_initial_domain_posthoc_v2.json`。
 - 统计入口：`python -B -m research_experiments.rnj.summarize_rnj_blocks96_partial --output-dir <全新输出目录>`，只读保存结果，不调用估计器或求解器。
 
-全批求解约束审计和阶段诊断仍由恢复监督器继续执行；最终审计报告与本统计快照分开保存。
+全批求解约束审计已落盘，见文首最终状态；本统计快照及原始尝试、补跑记录分别保存。

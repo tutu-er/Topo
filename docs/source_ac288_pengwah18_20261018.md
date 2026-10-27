@@ -1,5 +1,7 @@
 # Pengwah18：288点全量拟合，有源与无源对照
 
+最终状态（2026-10-27核对保存记录）：16/16项已返回，9 complete、7 incomplete；独立审计10093/10093通过。全部逐项结果及未完成项见[最终报告](../outputs/source_ac288_benchmark_20261018/reports_final/README.md)，与其他版本的关系见[WZZT算例总览](wzzt_case_results_20261027/README.md)。本次更新只核对现存文件。
+
 本轮按用户要求测试pengwah18的无源、常值源、间歇源和平滑源，分别比较NJ、RNJ、WZZT、RNJ+WZZT，共16项。每项使用三个96点场景的全部288点，不划分验证集或测试集。WZZT按原核心无验证分支返回最后认证路径点，不使用one-SE，不按真实F1选择中间模型。
 
 ## 数据与方法

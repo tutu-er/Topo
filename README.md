@@ -52,6 +52,8 @@ python -m experiments.run_mainline --cases paper15 flynn16
 
 ## 目录导航
 
+WZZT 算例设置、逐项结果、未完成分母与后续处理顺序统一见 [算例结果总览（2026-10-27）](docs/wzzt_case_results_20261027/README.md)。其中保留五组不同版本的结果边界及原始证据路径。
+
 | 目录 | 用途 |
 |---|---|
 | `rnj_wzzt_core/` | 独立安装和运行的 RNJ＋MILP 权威实现，内含核心测试、文档及旧入口的兼容转发 |
