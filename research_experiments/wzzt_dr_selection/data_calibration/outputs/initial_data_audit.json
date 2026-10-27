@@ -1,0 +1,339 @@
+{
+  "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:05:56) [MSC v.1942 64 bit (AMD64)]",
+  "pandas": "3.0.3",
+  "pyreadr": "0.5.8",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "objects": {
+    "data_hourly": {
+      "rows": 13515600,
+      "columns": [
+        "ID",
+        "From",
+        "Date",
+        "Hour",
+        "Participation_Phase",
+        "Demand_kWh",
+        "Price_signal",
+        "Experiment_price_NOK_kWh",
+        "Temperature",
+        "Temperature24",
+        "Temperature48",
+        "Temperature72"
+      ],
+      "dtypes": {
+        "ID": "str",
+        "From": "datetime64[s]",
+        "Date": "object",
+        "Hour": "category",
+        "Participation_Phase": "category",
+        "Demand_kWh": "float64",
+        "Price_signal": "category",
+        "Experiment_price_NOK_kWh": "float64",
+        "Temperature": "float64",
+        "Temperature24": "float64",
+        "Temperature48": "float64",
+        "Temperature72": "float64"
+      }
+    },
+    "participants": {
+      "rows": 7410,
+      "columns": [
+        "ID",
+        "Participation_Experiment",
+        "Recruitment_organisation",
+        "Municipality",
+        "Region",
+        "Survey1_answered",
+        "Survey2_answered",
+        "Survey3_answered",
+        "Participation_Phase",
+        "Control_Price_Phase1",
+        "Control_Price_Phase2",
+        "Group_Phase1",
+        "Group_Phase2",
+        "Participation_status_Phase1",
+        "Participation_status_Phase2"
+      ],
+      "dtypes": {
+        "ID": "str",
+        "Participation_Experiment": "category",
+        "Recruitment_organisation": "category",
+        "Municipality": "category",
+        "Region": "category",
+        "Survey1_answered": "category",
+        "Survey2_answered": "category",
+        "Survey3_answered": "category",
+        "Participation_Phase": "category",
+        "Control_Price_Phase1": "category",
+        "Control_Price_Phase2": "category",
+        "Group_Phase1": "category",
+        "Group_Phase2": "category",
+        "Participation_status_Phase1": "category",
+        "Participation_status_Phase2": "category"
+      },
+      "csv_cell_equivalence": {
+        "ID": true,
+        "Participation_Experiment": true,
+        "Recruitment_organisation": true,
+        "Municipality": true,
+        "Region": true,
+        "Survey1_answered": false,
+        "Survey2_answered": false,
+        "Survey3_answered": false,
+        "Participation_Phase": true,
+        "Control_Price_Phase1": false,
+        "Control_Price_Phase2": false,
+        "Group_Phase1": false,
+        "Group_Phase2": false,
+        "Participation_status_Phase1": false,
+        "Participation_status_Phase2": false
+      },
+      "csv_equivalence_after_explicit_NA_and_Ok_normalization": {
+        "ID": true,
+        "Participation_Experiment": true,
+        "Recruitment_organisation": true,
+        "Municipality": true,
+        "Region": true,
+        "Survey1_answered": true,
+        "Survey2_answered": true,
+        "Survey3_answered": true,
+        "Participation_Phase": true,
+        "Control_Price_Phase1": true,
+        "Control_Price_Phase2": true,
+        "Group_Phase1": true,
+        "Group_Phase2": true,
+        "Participation_status_Phase1": true,
+        "Participation_status_Phase2": true
+      }
+    },
+    "price_signals": {
+      "rows": 336,
+      "columns": [
+        "Price_signal",
+        "Price_profile",
+        "Price_level",
+        "Hour",
+        "Experiment_price_NOK_kWh"
+      ],
+      "dtypes": {
+        "Price_signal": "category",
+        "Price_profile": "category",
+        "Price_level": "category",
+        "Hour": "category",
+        "Experiment_price_NOK_kWh": "float64"
+      },
+      "csv_cell_equivalence": {
+        "Price_signal": true,
+        "Price_profile": true,
+        "Price_level": true,
+        "Hour": true,
+        "Experiment_price_NOK_kWh": true
+      },
+      "csv_equivalence_after_explicit_NA_and_Ok_normalization": {
+        "Price_signal": true,
+        "Price_profile": true,
+        "Price_level": true,
+        "Hour": true,
+        "Experiment_price_NOK_kWh": true
+      }
+    },
+    "experiment_days": {
+      "rows": 267,
+      "columns": [
+        "Participation_Phase",
+        "Price_signal",
+        "Date",
+        "Group"
+      ],
+      "dtypes": {
+        "Participation_Phase": "category",
+        "Price_signal": "category",
+        "Date": "object",
+        "Group": "category"
+      },
+      "csv_cell_equivalence": {
+        "Participation_Phase": true,
+        "Price_signal": true,
+        "Date": true,
+        "Group": true
+      },
+      "csv_equivalence_after_explicit_NA_and_Ok_normalization": {
+        "Participation_Phase": true,
+        "Price_signal": true,
+        "Date": true,
+        "Group": true
+      }
+    }
+  },
+  "hourly_all": {
+    "ids": 4429,
+    "date_min": "2020-01-06",
+    "date_max": "2021-03-26",
+    "phase_counts": {
+      "Phase_2": 12180000,
+      "Phase_1": 1335600
+    },
+    "demand_missing": 0,
+    "demand_negative": 0
+  },
+  "selected": {
+    "index_households": 684,
+    "rows": 2213856,
+    "ids": 684,
+    "phase_counts": {
+      "Phase_2": 1904256,
+      "Phase_1": 309600
+    },
+    "date_min": "2020-01-06",
+    "date_max": "2021-03-26",
+    "price_counts": {
+      "": 1866792,
+      "P_10": 100392,
+      "P_2": 88440,
+      "P_5": 80280,
+      "P_15": 77952,
+      "A_5": 0,
+      "A_10": 0,
+      "B_2": 0,
+      "B_5": 0,
+      "B_10": 0,
+      "B_15": 0,
+      "C": 0,
+      "P0_2": 0,
+      "P0_10": 0,
+      "P0_30": 0
+    },
+    "time_examples": [
+      {
+        "From": "2020-02-01 00:00:00",
+        "Date": "2020-02-01",
+        "Hour": "1"
+      },
+      {
+        "From": "2020-02-01 01:00:00",
+        "Date": "2020-02-01",
+        "Hour": "2"
+      },
+      {
+        "From": "2020-02-01 02:00:00",
+        "Date": "2020-02-01",
+        "Hour": "3"
+      },
+      {
+        "From": "2020-02-01 03:00:00",
+        "Date": "2020-02-01",
+        "Hour": "4"
+      },
+      {
+        "From": "2020-02-01 04:00:00",
+        "Date": "2020-02-01",
+        "Hour": "5"
+      },
+      {
+        "From": "2020-02-01 05:00:00",
+        "Date": "2020-02-01",
+        "Hour": "6"
+      },
+      {
+        "From": "2020-02-01 06:00:00",
+        "Date": "2020-02-01",
+        "Hour": "7"
+      },
+      {
+        "From": "2020-02-01 07:00:00",
+        "Date": "2020-02-01",
+        "Hour": "8"
+      },
+      {
+        "From": "2020-02-01 08:00:00",
+        "Date": "2020-02-01",
+        "Hour": "9"
+      },
+      {
+        "From": "2020-02-01 09:00:00",
+        "Date": "2020-02-01",
+        "Hour": "10"
+      },
+      {
+        "From": "2020-02-01 10:00:00",
+        "Date": "2020-02-01",
+        "Hour": "11"
+      },
+      {
+        "From": "2020-02-01 11:00:00",
+        "Date": "2020-02-01",
+        "Hour": "12"
+      },
+      {
+        "From": "2020-02-01 12:00:00",
+        "Date": "2020-02-01",
+        "Hour": "13"
+      },
+      {
+        "From": "2020-02-01 13:00:00",
+        "Date": "2020-02-01",
+        "Hour": "14"
+      },
+      {
+        "From": "2020-02-01 14:00:00",
+        "Date": "2020-02-01",
+        "Hour": "15"
+      },
+      {
+        "From": "2020-02-01 15:00:00",
+        "Date": "2020-02-01",
+        "Hour": "16"
+      },
+      {
+        "From": "2020-02-01 16:00:00",
+        "Date": "2020-02-01",
+        "Hour": "17"
+      },
+      {
+        "From": "2020-02-01 17:00:00",
+        "Date": "2020-02-01",
+        "Hour": "18"
+      },
+      {
+        "From": "2020-02-01 18:00:00",
+        "Date": "2020-02-01",
+        "Hour": "19"
+      },
+      {
+        "From": "2020-02-01 19:00:00",
+        "Date": "2020-02-01",
+        "Hour": "20"
+      },
+      {
+        "From": "2020-02-01 20:00:00",
+        "Date": "2020-02-01",
+        "Hour": "21"
+      },
+      {
+        "From": "2020-02-01 21:00:00",
+        "Date": "2020-02-01",
+        "Hour": "22"
+      },
+      {
+        "From": "2020-02-01 22:00:00",
+        "Date": "2020-02-01",
+        "Hour": "23"
+      },
+      {
+        "From": "2020-02-01 23:00:00",
+        "Date": "2020-02-01",
+        "Hour": "24"
+      },
+      {
+        "From": "2020-02-02 00:00:00",
+        "Date": "2020-02-02",
+        "Hour": "1"
+      },
+      {
+        "From": "2020-02-02 01:00:00",
+        "Date": "2020-02-02",
+        "Hour": "2"
+      }
+    ]
+  }
+}

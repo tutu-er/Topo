@@ -1,0 +1,192 @@
+"""A single predeclared, training-only contemporaneous-control diagnostic."""
+from __future__ import annotations
+import datetime, hashlib, json, pathlib, platform, sys, os
+import numpy as np
+import pandas as pd
+
+ROOT = pathlib.Path(__file__).resolve().parent
+DATA = pathlib.Path(os.environ.get('WZZT_DR_DATA_DIR', str(ROOT)))
+sys.path.insert(0, str(DATA / 'deps'))
+import pyreadr
+OUT = ROOT / 'outputs'
+CFG = json.loads((ROOT / 'protocol_control_training.json').read_text(encoding='utf-8'))
+START = pd.Timestamp(CFG['training_start_inclusive'])
+END = pd.Timestamp(CFG['training_end_exclusive'])
+
+def digest(p):
+    h = hashlib.sha256()
+    with pathlib.Path(p).open('rb') as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+def dump(name, data):
+    (OUT / name).write_text(json.dumps(data, indent=2, ensure_ascii=False, allow_nan=False), encoding='utf-8')
+
+manifest = {
+    'status': 'started', 'started_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'protocol_sha256': digest(ROOT / 'protocol_control_training.json'),
+    'code_sha256': digest(__file__), 'rdata_sha256': digest(DATA / 'raw' / 'iFlex dataset.RData'),
+    'selected_hourly_sha256': digest(DATA / 'raw' / 'selected_hourly.pkl'),
+    'python': sys.version, 'numpy': np.__version__, 'pandas': pd.__version__,
+    'pyreadr': pyreadr.__version__, 'platform': platform.platform(),
+    'heldout_evaluations': 0, 'topology_runs': 0, 'random_seed': None,
+}
+dump('control_training_run.json', manifest)
+try:
+    parts = pd.read_csv(DATA / 'raw' / 'participants.csv', keep_default_na=False)
+    ok = parts.Participation_status_Phase2.astype(str).str.upper().eq('OK')
+    treatment = parts[ok & parts.Group_Phase2.isin(CFG['treatment_groups'])].copy()
+    controls = parts[ok & parts.Group_Phase2.isin(list(CFG['control_group_map'].values()))].copy()
+    assert treatment.ID.is_unique and controls.ID.is_unique
+    assert not set(treatment.ID).intersection(controls.ID)
+    assert controls.Control_Price_Phase2.eq('Control group').all()
+    td = pd.read_pickle(DATA / 'raw' / 'selected_hourly.pkl')
+    td['Date'] = pd.to_datetime(td.Date)
+    td = td[td.Participation_Phase.eq(CFG['phase']) & td.Date.ge(START) & td.Date.lt(END)].copy()
+    # The RData object is decoded once; all held-out rows are removed before any analysis.
+    full = pyreadr.read_r(str(DATA / 'raw' / 'iFlex dataset.RData'), use_objects=['data_hourly'])['data_hourly']
+    cd = full[full.ID.isin(controls.ID) & full.Participation_Phase.eq(CFG['phase'])].copy()
+    del full
+    cd['Date'] = pd.to_datetime(cd.Date)
+    cd = cd[cd.Date.ge(START) & cd.Date.lt(END)].copy()
+    for frame in [td, cd]:
+        frame['Hour'] = frame.Hour.astype(int)
+        assert frame.Date.lt(END).all() and frame.Date.ge(START).all()
+        assert not frame.duplicated(['ID', 'Date', 'Hour']).any()
+        assert frame.Hour.between(1, 24).all()
+    ev = pd.read_csv(DATA / 'raw' / 'experiment_days.csv', keep_default_na=False)
+    ev['Date'] = pd.to_datetime(ev.Date)
+    ev = ev[ev.Participation_Phase.eq(CFG['phase']) & ev.Group.isin(CFG['treatment_groups']) & ev.Date.ge(START) & ev.Date.lt(END)].copy()
+    assert not ev.duplicated(['Group', 'Date']).any()
+    lookup = ev.set_index(['Group', 'Date']).Price_signal
+    dates = pd.date_range(START, END - pd.Timedelta(days=1), freq='D')
+    holidays = pd.to_datetime(CFG['history']['holidays_excluded'])
+    bands = {k: np.arange(v[0] - 1, v[1]) for k, v in CFG['bands_by_original_hour'].items()}
+    ordinary_weekday = (dates.dayofweek < 5) & ~dates.isin(holidays)
+    strata, rows, excluded = [], [], []
+
+    def cube(frame, ids):
+        selected = frame[frame.ID.isin(ids)]
+        ix = pd.MultiIndex.from_product([dates, ids, range(1, 25)], names=['Date', 'ID', 'Hour'])
+        return selected.set_index(['Date', 'ID', 'Hour']).Demand_kWh.reindex(ix).to_numpy().reshape(len(dates), len(ids), 24)
+
+    for (group, region), membership in treatment.groupby(['Group_Phase2', 'Region'], sort=True):
+        tids = sorted(membership.ID.tolist())
+        cids = sorted(controls.loc[controls.Group_Phase2.eq(CFG['control_group_map'][group]) & controls.Region.eq(region), 'ID'].tolist())
+        assert tids and cids, (group, region)
+        sname = group + '|' + region
+        tvals, cvals = cube(td, tids), cube(cd, cids)
+        complete = (np.isfinite(tvals) & (tvals >= 0)).all(axis=(1, 2)) & (np.isfinite(cvals) & (cvals >= 0)).all(axis=(1, 2))
+        menus = np.array([lookup.get((group, d), '') for d in dates], dtype=object)
+        eligible = complete & ordinary_weekday & (menus == '')
+        stratum = {'stratum': sname, 'group': group, 'region': region, 'control_group': CFG['control_group_map'][group],
+                   'treatment_households': len(tids), 'control_households': len(cids),
+                   'training_calendar_days': len(dates), 'complete_paired_days': int(complete.sum()),
+                   'incomplete_or_invalid_days': int((~complete).sum()),
+                   'invalid_treatment_cells': int((~np.isfinite(tvals) | (tvals < 0)).sum()),
+                   'invalid_control_cells': int((~np.isfinite(cvals) | (cvals < 0)).sum())}
+        strata.append(stratum)
+        for j, day in enumerate(dates):
+            if not complete[j]:
+                excluded.append({'stratum': sname, 'date': str(day.date()), 'menu': str(menus[j]), 'reason': 'incomplete_or_invalid_paired_day'})
+                continue
+            prior = np.flatnonzero(eligible & (dates <= day - pd.Timedelta(days=CFG['history']['lag_days_min'])))[-CFG['history']['last_days']:]
+            if len(prior) < CFG['history']['minimum_days']:
+                excluded.append({'stratum': sname, 'date': str(day.date()), 'menu': str(menus[j]), 'reason': 'insufficient_history', 'prior_days': len(prior)})
+                continue
+            tb, cb = tvals[prior].mean(axis=0), cvals[prior].mean(axis=0)
+            for band, h in bands.items():
+                ta, ca = float(tvals[j][:, h].mean()), float(cvals[j][:, h].mean())
+                tp, cp = float(tb[:, h].mean()), float(cb[:, h].mean())
+                assert min(tp, cp, ca) > 0
+                rt, rc = ta / tp, ca / cp
+                rows.append({'stratum': sname, 'group': group, 'region': region, 'date': day, 'menu': str(menus[j]), 'band': band,
+                             'treatment_households': len(tids), 'control_households': len(cids), 'treatment_actual_kw_per_home': ta,
+                             'control_actual_kw_per_home': ca, 'treatment_history_kw_per_home': tp, 'control_history_kw_per_home': cp,
+                             'treatment_ratio': rt, 'control_ratio': rc, 'raw_ratio': rt / rc,
+                             'ordinary_weekday': bool(ordinary_weekday[j]), 'history_days': len(prior),
+                             'latest_history_date': str(dates[prior[-1]].date())})
+    r = pd.DataFrame(rows)
+    normal = r[r.menu.eq('') & r.ordinary_weekday].copy()
+    assert len(normal) > 0
+    n_strata = pd.DataFrame(strata).groupby('group').size().to_dict()
+    norms = normal.groupby(['stratum', 'band']).raw_ratio.mean()
+
+    def grouped_events(norm):
+        e = r[r.menu.isin(CFG['menus'])].copy()
+        e['normal_factor'] = pd.MultiIndex.from_frame(e[['stratum', 'band']]).map(norm).to_numpy()
+        e['factor'] = e.raw_ratio / e.normal_factor
+        assert np.isfinite(e.factor).all()
+        out = []
+        for (group, day, menu, band), z in e.groupby(['group', 'date', 'menu', 'band'], sort=True):
+            if z.stratum.nunique() != n_strata[group]:
+                continue
+            out.append({'group': group, 'date': day, 'menu': menu, 'band': band,
+                        'treatment_households': int(z.treatment_households.sum()),
+                        'matched_control_households': int(z.control_households.sum()),
+                        'strata': len(z), 'factor': float(np.average(z.factor, weights=z.treatment_households))})
+        return pd.DataFrame(out), e
+
+    grouped, stratum_events = grouped_events(norms)
+    assert len(grouped) > 0
+    held_dates = sorted(grouped.date.unique())
+    loo_rows, loo_factors, unresolved = [], [], []
+    for hold in held_dates:
+        nn = normal[normal.date != hold].groupby(['stratum', 'band']).raw_ratio.mean()
+        gg, _ = grouped_events(nn)
+        train, valid = gg[gg.date != hold], gg[gg.date == hold]
+        common = train.groupby('band').factor.mean()
+        by_menu = train.groupby(['menu', 'band']).factor.mean()
+        for (menu, band), value in by_menu.items():
+            loo_factors.append({'held_date': str(pd.Timestamp(hold).date()), 'menu': menu, 'band': band, 'factor': float(value)})
+        for row in valid.itertuples(index=False):
+            if (row.menu, row.band) not in by_menu or row.band not in common:
+                unresolved.append({'held_date': str(pd.Timestamp(hold).date()), 'group': row.group, 'menu': row.menu, 'band': row.band, 'reason': 'missing_training_menu_or_band'})
+                continue
+            for model, forecast in [('common_event_mean', common[row.band]), ('menu_mean', by_menu[(row.menu, row.band)])]:
+                error = float(forecast - row.factor)
+                loo_rows.append({'held_date': str(pd.Timestamp(hold).date()), 'group': row.group, 'menu': row.menu, 'band': row.band,
+                                 'model': model, 'observed_normalized_factor': float(row.factor), 'predicted_factor': float(forecast),
+                                 'error': error, 'absolute_error': abs(error), 'squared_error': error * error})
+    lf = pd.DataFrame(loo_factors)
+    coefs = []
+    for (menu, band), z in grouped.groupby(['menu', 'band']):
+        zz = lf[lf.menu.eq(menu) & lf.band.eq(band)]
+        coefs.append({'menu': menu, 'band': band, 'factor': float(z.factor.mean()),
+                      'change_percent': float((z.factor.mean() - 1) * 100), 'original_group_days': len(z), 'dates': int(z.date.nunique()),
+                      'treatment_household_days': int(z.treatment_households.sum()),
+                      'leave_one_date_out_min': float(zz.factor.min()), 'leave_one_date_out_max': float(zz.factor.max()), 'leave_one_date_fits': len(zz)})
+    cv = pd.DataFrame(loo_rows)
+    cv_summary = []
+    for (band, model), z in cv.groupby(['band', 'model']):
+        cv_summary.append({'band': band, 'model': model, 'original_group_days': len(z), 'dates': int(z.held_date.nunique()),
+                           'mae_normalized_factor': float(z.absolute_error.mean()), 'mse_normalized_factor': float(z.squared_error.mean()), 'bias_normalized_factor': float(z.error.mean())})
+    pd.DataFrame(strata).to_csv(OUT / 'control_training_strata.csv', index=False)
+    normal.groupby(['stratum', 'band']).agg(normal_factor=('raw_ratio', 'mean'), non_event_dates=('date', 'nunique')).reset_index().to_csv(OUT / 'control_training_normal_factors.csv', index=False)
+    r.to_csv(OUT / 'control_training_stratum_day.csv', index=False)
+    grouped.to_csv(OUT / 'control_training_group_day.csv', index=False)
+    pd.DataFrame(coefs).to_csv(OUT / 'control_training_menu_factors.csv', index=False)
+    lf.to_csv(OUT / 'control_training_loo_factors.csv', index=False)
+    cv.to_csv(OUT / 'control_training_loo_results.csv', index=False)
+    pd.DataFrame(cv_summary).to_csv(OUT / 'control_training_loo_summary.csv', index=False)
+    summary = {'scope': CFG['scope'], 'treatment_households': int(treatment.ID.nunique()), 'matched_control_households': int(controls.ID.nunique()),
+               'training_start_inclusive': str(START.date()), 'training_end_exclusive': str(END.date()),
+               'treatment_rows_analyzed': len(td), 'control_rows_analyzed': len(cd),
+               'original_event_group_days_planned': len(ev), 'original_event_dates_planned': int(ev.Date.nunique()),
+               'original_event_group_days_analyzed': int(grouped[['group', 'date']].drop_duplicates().shape[0]),
+               'event_dates_analyzed': int(grouped.date.nunique()), 'bands': list(bands), 'excluded_stratum_days': excluded,
+               'unresolved_loo_records': unresolved, 'coefficients': coefs, 'loo_summary': cv_summary,
+               'heldout_evaluations': 0, 'future_forecast_validated': False, 'causal_elasticity_claim': False,
+               'whole_day_bank_read': False, 'monotonicity_imposed': False}
+    dump('control_training_summary.json', summary)
+    manifest.update({'status': 'complete', 'finished_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                     'deterministic_passes': 1, 'date_folds': len(held_dates), 'unresolved_loo_records': len(unresolved)})
+    dump('control_training_run.json', manifest)
+    print(json.dumps({'coefficients': coefs, 'loo_summary': cv_summary, 'strata': strata,
+                      'event_group_days': summary['original_event_group_days_analyzed'], 'event_dates': summary['event_dates_analyzed'],
+                      'unresolved': len(unresolved)}, indent=2, ensure_ascii=True), flush=True)
+except Exception as exc:
+    manifest.update({'status': 'failed', 'finished_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'exception': repr(exc)})
+    dump('control_training_run.json', manifest)
+    raise

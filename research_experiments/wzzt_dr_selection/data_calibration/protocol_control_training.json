@@ -1,0 +1,18 @@
+{
+  "version": "iflex_control_training_v1",
+  "scope": "One deterministic training-only ratio-of-ratios diagnostic after fixed mean-model v1 failed. No held-out model search, no WZZT, no future forecasting validation or causal elasticity claim.",
+  "freeze_before_fit": true,
+  "training_start_inclusive": "2020-12-01",
+  "training_end_exclusive": "2021-02-08",
+  "phase": "Phase_2",
+  "treatment_groups": ["H2", "Os_2", "Trom_2"],
+  "menus": ["P_2", "P_5", "P_10", "P_15"],
+  "control_group_map": {"H2": "Control", "Os_2": "Os_Control", "Trom_2": "Trom_Control"},
+  "matching": "Match within identical Region. H2 is split into regions, then recombined by fixed eligible treatment household counts. OK status only after uppercase normalization, preserve all eligible IDs.",
+  "bands_by_original_hour": {"before": [1,16], "event": [17,18], "after": [19,24]},
+  "history": {"lag_days_min": 2, "last_days": 10, "minimum_days": 5, "weekdays_only": true, "holidays_excluded": ["2020-12-24", "2020-12-25", "2020-12-26", "2020-12-31", "2021-01-01"], "shared_dates": "Treatment and its matched controls use the same eligible prior dates; these have no assigned experiment for that treatment group, of any menu type.", "missingness": "A stratum day is eligible only if every selected treatment and matched-control household has all 24 distinct finite nonnegative hours. Preserve excluded-day counts and reasons; do not silently drop households or interpolate."},
+  "model": {"raw_ratio": "(mean treatment actual / mean treatment historical prediction) / (mean control actual / mean control historical prediction), for each stratum, date and band", "normalization": "Divide raw ratio by stratum-band mean raw ratio on training non-event weekdays excluding declared holidays, with valid history.", "group_pool": "Fixed treatment-household shares across all strata; require every stratum available that group-day.", "menu_pool": "Arithmetic mean of normalized original-group-day factors, each original group-day equally weighted.", "constraints": "No monotonicity, sign constraint, household elasticity, or participation probability. No realized weather covariate."},
+  "validation": {"type": "Leave one whole training date out, all groups together; refit non-event normalization without that date and fit menu-blind common event band mean and menu-specific band means on the remaining event dates.", "outcomes": "Normalized group-day ratio residual MAE and MSE; menu/band factor range across omitted dates; no held-out primary or late-test evaluation.", "history_in_loo": "Historical loads from an omitted training date remain available to later dates if they occurred before that prediction deadline; this is date-level coefficient cross-validation, not a wholly unseen trajectory test."},
+  "randomness": "None; one deterministic pass.",
+  "boundary": "Same-day controls are for training adjustment only and must never become future forecast features. Original v1 failure remains unchanged. Subsequent existing-test evaluation would be post-failure diagnostic, not a fresh untouched confirmation."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-27",
+  "scope": "Data confirmation and bounded mean-response calibration, not topology performance",
+  "preparation_issues": [
+    {"stage": "acquire", "result": "4 raw files downloaded and verified; first object inspection failed because narwhals was absent", "resolution": "installed narwhals in isolated cache; no raw files replaced"},
+    {"stage": "inspect", "result": "initial uppercase-only status filter returned zero selected households", "resolution": "audited RData/CSV encoding; explicit Ok to OK and NA normalization gives 684; no model fit on empty selection"}
+  ],
+  "data_quality": {"status": "pass", "raw_files_verified": 4, "selected_phase2_household_hours": 1904256, "event_group_days": 59, "excluded_event_group_days": 0},
+  "mean_model_v1": {"planned_models": 2, "completed_models": 2, "computational_failures": 0, "timeouts": 0, "substantive_price_model_acceptance": "failed", "post_fit_maintenance": "cache path override and metadata field clarification; rerun gave same coefficients and metrics"},
+  "control_training_diagnostic": {"fit_passes": 1, "original_event_group_days": 33, "date_folds": 16, "evaluation_records": 198, "unresolved": 0, "heldout_evaluations": 0, "process_exit": 1, "cause": "console Unicode encoding after all outputs were saved", "retained_receipt": "control_training_console_failure.json", "recovered_status": "complete_with_console_encoding_error", "fit_reruns": 0, "substantive_menu_increment": "not demonstrated"},
+  "topology_data": {"status": "confirmed", "wzzt_adapter": "pending", "power_flow_runs": 0, "wzzt_runs": 0},
+  "random_response_draws": 0,
+  "historical_A2_reruns": 0
+}

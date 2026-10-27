@@ -1,0 +1,22 @@
+{
+  "version": "iflex_mean_calibration_v1",
+  "scope": "Verify fixed raw files and calibrate simple price-conditional mean forecasts; no WZZT run, no optimized-menu effect claim",
+  "dataset": {"record": 8248802, "primary_format": "RData", "phase": "Phase_2", "groups": ["H2", "Os_2", "Trom_2"], "status": "OK after explicit case normalization", "menus": ["P_2", "P_5", "P_10", "P_15"]},
+  "split": {"training_end_exclusive": "2021-02-08", "primary_test_start": "2021-02-09", "primary_test_end_inclusive": "2021-02-22", "late_test_start": "2021-03-05", "late_test_end_inclusive": "2021-03-22", "gap_reason": "coefficients available before first day-ahead offer; last complete training day Feb7"},
+  "eligibility": {"complete_day_hours": 24, "minimum_prior_non_event_weekdays": 5, "trailing_non_event_weekdays": 10, "holidays_excluded_from_baseline": ["2020-12-24", "2020-12-25", "2020-12-26", "2020-12-31", "2021-01-01"], "non_event_means": "no experiment-day assignment to this group; all menu types excluded", "outlier_policy": "retain all finite nonnegative consumption, flag zero days and high values; no winsorization"},
+  "model": {
+    "bands_by_original_hour": {"before": [1,16], "event": [17,18], "after": [19,24]},
+    "history_mean": "per household/hour mean of last 10 eligible complete non-event weekdays no later than event date minus 2 days; previous day may still be incomplete at day-ahead offer time",
+    "price_free": "history_mean times group/band mean of training non-event group-day observed/predicted load ratios",
+    "price_conditional": "price_free times menu/band mean of training event group-day observed/price_free load ratios, each group-day equally weighted",
+    "coefficient_constraints": "no ordering by price; ratios may exceed one; no household-specific elasticity or participation model",
+    "weather": "no realized future temperature; no external day-ahead forecast archive available",
+    "test_update": "rolling historical baseline may use already observed prior test days, never current/future data; fitted coefficients frozen",
+    "selection": "fixed model, no tuning based on test or topology results"
+  },
+  "validation": ["all raw hashes and schemas", "time-axis and unique household-hour", "exact full menu and group-day joins", "complete denominators before/after filtering", "household-hour MAE and group-day-equal MAE", "aggregate group-load MAE", "event and after bias", "daily energy error", "per-menu and per-date results", "leave-one-training-date-out coefficient range", "whole-day residual moments and serial/cross-household correlation"],
+  "acceptance": "Raw data are accepted if checksum/schema/time and menu joins pass. Mean model usefulness is provisional only if held-out event and daily errors improve over price-free baseline; report contrary metrics and menu-specific failures. No topology or policy benefit inferred.",
+  "randomness": {"fit": "deterministic", "future_sampling_seed_reserved": 20261027, "sampling_not_executed": true},
+  "counterfactual": "Unobserved menus require a separately declared response simulator; raw data contain only the observed menu response.",
+  "topology": {"proposed": "SimBench 1-LV-rural1--0-sw", "gate": "verify switches and internal observed-load compatibility; do not add artificial service impedances"}
+}
