@@ -1,0 +1,62 @@
+{
+  "version": "a2d-presence-width-v2-reporting",
+  "date": "2026-10-27",
+  "base_commit": "28992078",
+  "stage": "A2, one bounded presence and price-width audit; no B1",
+  "input_run": "outputs/a2c_completion_final_v2",
+  "presence": {
+    "datasets": 17,
+    "block_checks": 96,
+    "channels": [
+      "r_C",
+      "x_C",
+      "r_C+x_C"
+    ],
+    "history_error_budget": 0,
+    "family_scope": "all compatible laminar families and all continuous nonnegative parameters; reuse saved minimum-loss fits",
+    "compression": "keep inclusion-maximal compatible supports; every removed support has a kept superset, with zero extension",
+    "omission_definition": "shared block absent iff both r_C and x_C absent/zero",
+    "candidate_rule": "all non-singleton blocks; no truth labels and no hard-locking greedy blocks",
+    "observable_effect": "P-only future DR: report maximum r_C separately from x_C and sum. This is a possibility filter, not a price score.",
+    "unbounded": "verify a feasible base point and a nonnegative recession direction; never cap coefficients"
+  },
+  "width": {
+    "histories": [
+      "weak_line",
+      "weak_after_prefix_2"
+    ],
+    "future_error_budget": 0,
+    "history_error_budget": 0,
+    "targets": "all candidates with a compatible omission and positive feasible r_C; no true block labels",
+    "definition": "max absolute r_C-r'_C over two complete history-compatible models with equal future predictions; absent C has r_C=0",
+    "aggregation": "per response take maximum remaining target width; menu minimizes its predicted expectation; no width normalization or parameter prior",
+    "patterns": "all 8 binary three-terminal two-slot responses",
+    "menus": [
+      "no_reward",
+      "uniform_early",
+      "node0_early",
+      "node1_early",
+      "node2_early",
+      "uniform_late"
+    ],
+    "response": "predicted independent whole-session Bernoulli at existing q values; each session energy 1, peak 1, background .2, reward .1, paid-menu expectation .27",
+    "decision": "no new data if there is no positive P-effect unresolved target; otherwise retain all tied best menus and use fixed menu order for a single recommendation",
+    "comparison": "existing D-opt feature determinant, uniformly random paid menu and no reward; same initial state and stopping rule",
+    "boundaries": "R-channel width only, not confidence or shared-block absence; X remains free and shares supports",
+    "acceptance": "must distinguish existing 0.82 versus 0.18 full-recovery menus and report all-tie sensitivity/cost; if not, reject price score. Passing this diagnostic alone does not pass B1",
+    "no_claim": "R-channel width and actual synthetic full_recovery are not shared R/X topology identification. Unobserved X-only blocks remain allowed."
+  },
+  "evaluation": {
+    "locked_design_before_evaluation": true,
+    "actual_outcomes": "reuse prior A2b weight=1 independent actual-pattern outcomes after design lock; no rerun of completed records",
+    "additional_weak_truths": "weak_line only: three equal-history models with common block .4, one pair block .03 on 01/02/12, and singleton weights preserving observed row sums. Pair01 reuses its 8 existing A2b records; only pair02/12 add 16 evaluations.",
+    "forecast_mismatch": "not expanded here; retained existing failure",
+    "report": "full effective-block recovery, target weak-block recovery, no-new-data, costs, all successes/failures/timeouts/unresolved",
+    "new_actual_pattern_evaluations": 16,
+    "same_history_model_patterns": 24
+  },
+  "numerical_tolerance": 1e-07,
+  "reproducibility": "deterministic enumeration; no new RNG draws. Protocol, source/input hashes, environment and per-case checkpoints preserved. Solver failure cannot become zero width. No silent rerun. No line-weight floors/ceilings.",
+  "stop_gate": "No engineering expansion. If width just repeats D-opt or pays more without gain, retain diagnostic only or reject it.",
+  "reporting_revision": "Rename the 24 total same-history model patterns; new actual evaluations remain 16. No experimental setting or score changed."
+}

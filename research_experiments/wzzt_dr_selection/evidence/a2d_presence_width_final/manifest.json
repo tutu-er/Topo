@@ -1,0 +1,185 @@
+{
+  "scope": "reporting correction only; four empty-domain channel states changed to incompatible, no optimization or actual evaluation repeated",
+  "previous_run_manifest": "ec13d79bd5ee81fdca667fb5a0a508ac09a2fbbe2e34af3e4e15996207b6da96",
+  "previous_run_sources": {
+    "presence_width_audit.py": "3f6d0aa70160ab9c65ab01609be4688e349bd23e181089be3daa43ea7d47d17a",
+    "compatible_functionals.py": "d9fe933de6d82262fdd3c92c5242e77af818a0f7dabae31500a42a7d06ccc1e5",
+    "protocol_a2d.json": "06df6df2fd7a0a6430018522146f35c820e6cd1e17f09e9fb079fd0452b66b43",
+    "core.py": "fb4813541492d30a2abb9d83482f0a18fed0b0e177952c5d88b165b7bfc9a320",
+    "experiment.py": "c0dec8e91477675af286cd0e292d845098137751b59f528f1e312f1730b90f0a",
+    "face_price_audit.py": "8c11c308752636dad33ca67bd1b03323a7d66a070009e26b16f7465251909b27",
+    "exact_patterns.py": "b096217c270548e3429ba574f1dcd45d7e6bcc40cf188b8dfdc27ee99c0c87b9",
+    "optimal_face.py": "6d3a6731d508ed5314b5e4abd478ee76cac59a953bc6fc4868a22382048a1337"
+  },
+  "current_sources": {
+    "presence_width_audit.py": "7ac7f8abb25eb11bd2b17f57e2e32f56dff3a52bf78dcf90dce003c35eddfb6d",
+    "compatible_functionals.py": "d9fe933de6d82262fdd3c92c5242e77af818a0f7dabae31500a42a7d06ccc1e5",
+    "protocol_a2d.json": "6a8a185ed0d2886c2f2e1fd9a0e5094796681bb850ebbbb391ad569e452c01c2",
+    "core.py": "fb4813541492d30a2abb9d83482f0a18fed0b0e177952c5d88b165b7bfc9a320",
+    "experiment.py": "c0dec8e91477675af286cd0e292d845098137751b59f528f1e312f1730b90f0a",
+    "face_price_audit.py": "8c11c308752636dad33ca67bd1b03323a7d66a070009e26b16f7465251909b27",
+    "exact_patterns.py": "b096217c270548e3429ba574f1dcd45d7e6bcc40cf188b8dfdc27ee99c0c87b9",
+    "optimal_face.py": "6d3a6731d508ed5314b5e4abd478ee76cac59a953bc6fc4868a22382048a1337"
+  },
+  "protocol": {
+    "version": "a2d-presence-width-v1",
+    "date": "2026-10-27",
+    "base_commit": "28992078",
+    "stage": "A2, one bounded presence and price-width audit; no B1",
+    "input_run": "outputs/a2c_completion_final_v2",
+    "presence": {
+      "datasets": 17,
+      "block_checks": 96,
+      "channels": [
+        "r_C",
+        "x_C",
+        "r_C+x_C"
+      ],
+      "history_error_budget": 0,
+      "family_scope": "all compatible laminar families and all continuous nonnegative parameters; reuse saved minimum-loss fits",
+      "compression": "keep inclusion-maximal compatible supports; every removed support has a kept superset, with zero extension",
+      "omission_definition": "shared block absent iff both r_C and x_C absent/zero",
+      "candidate_rule": "all non-singleton blocks; no truth labels and no hard-locking greedy blocks",
+      "observable_effect": "P-only future DR: report maximum r_C separately from x_C and sum. This is a possibility filter, not a price score.",
+      "unbounded": "verify a feasible base point and a nonnegative recession direction; never cap coefficients"
+    },
+    "width": {
+      "histories": [
+        "weak_line",
+        "weak_after_prefix_2"
+      ],
+      "future_error_budget": 0,
+      "history_error_budget": 0,
+      "targets": "all candidates with a compatible omission and positive feasible r_C; no true block labels",
+      "definition": "max absolute r_C-r'_C over two complete history-compatible models with equal future predictions; absent C has r_C=0",
+      "aggregation": "per response take maximum remaining target width; menu minimizes its predicted expectation; no width normalization or parameter prior",
+      "patterns": "all 8 binary three-terminal two-slot responses",
+      "menus": [
+        "no_reward",
+        "uniform_early",
+        "node0_early",
+        "node1_early",
+        "node2_early",
+        "uniform_late"
+      ],
+      "response": "predicted independent whole-session Bernoulli at existing q values; each session energy 1, peak 1, background .2, reward .1, paid-menu expectation .27",
+      "decision": "no new data if there is no positive P-effect unresolved target; otherwise retain all tied best menus and use fixed menu order for a single recommendation",
+      "comparison": "existing D-opt feature determinant, uniformly random paid menu and no reward; same initial state and stopping rule",
+      "boundaries": "R-channel width only, not confidence or shared-block absence; X remains free and shares supports",
+      "acceptance": "must distinguish existing 0.82 versus 0.18 full-recovery menus and report all-tie sensitivity/cost; if not, reject price score. Passing this diagnostic alone does not pass B1",
+      "no_claim": "R-channel width and actual synthetic full_recovery are not shared R/X topology identification. Unobserved X-only blocks remain allowed."
+    },
+    "evaluation": {
+      "locked_design_before_evaluation": true,
+      "actual_outcomes": "reuse prior A2b weight=1 independent actual-pattern outcomes after design lock; no rerun of completed records",
+      "additional_weak_truths": "weak_line only: three equal-history models with common block .4, one pair block .03 on 01/02/12, and singleton weights preserving observed row sums. Pair01 reuses its 8 existing A2b records; only pair02/12 add 16 evaluations.",
+      "additional_actual_patterns": 24,
+      "forecast_mismatch": "not expanded here; retained existing failure",
+      "report": "full effective-block recovery, target weak-block recovery, no-new-data, costs, all successes/failures/timeouts/unresolved",
+      "new_actual_pattern_evaluations": 16
+    },
+    "numerical_tolerance": 1e-07,
+    "reproducibility": "deterministic enumeration; no new RNG draws. Protocol, source/input hashes, environment and per-case checkpoints preserved. Solver failure cannot become zero width. No silent rerun. No line-weight floors/ceilings.",
+    "stop_gate": "No engineering expansion. If width just repeats D-opt or pays more without gain, retain diagnostic only or reject it."
+  },
+  "current_protocol": {
+    "version": "a2d-presence-width-v2-reporting",
+    "date": "2026-10-27",
+    "base_commit": "28992078",
+    "stage": "A2, one bounded presence and price-width audit; no B1",
+    "input_run": "outputs/a2c_completion_final_v2",
+    "presence": {
+      "datasets": 17,
+      "block_checks": 96,
+      "channels": [
+        "r_C",
+        "x_C",
+        "r_C+x_C"
+      ],
+      "history_error_budget": 0,
+      "family_scope": "all compatible laminar families and all continuous nonnegative parameters; reuse saved minimum-loss fits",
+      "compression": "keep inclusion-maximal compatible supports; every removed support has a kept superset, with zero extension",
+      "omission_definition": "shared block absent iff both r_C and x_C absent/zero",
+      "candidate_rule": "all non-singleton blocks; no truth labels and no hard-locking greedy blocks",
+      "observable_effect": "P-only future DR: report maximum r_C separately from x_C and sum. This is a possibility filter, not a price score.",
+      "unbounded": "verify a feasible base point and a nonnegative recession direction; never cap coefficients"
+    },
+    "width": {
+      "histories": [
+        "weak_line",
+        "weak_after_prefix_2"
+      ],
+      "future_error_budget": 0,
+      "history_error_budget": 0,
+      "targets": "all candidates with a compatible omission and positive feasible r_C; no true block labels",
+      "definition": "max absolute r_C-r'_C over two complete history-compatible models with equal future predictions; absent C has r_C=0",
+      "aggregation": "per response take maximum remaining target width; menu minimizes its predicted expectation; no width normalization or parameter prior",
+      "patterns": "all 8 binary three-terminal two-slot responses",
+      "menus": [
+        "no_reward",
+        "uniform_early",
+        "node0_early",
+        "node1_early",
+        "node2_early",
+        "uniform_late"
+      ],
+      "response": "predicted independent whole-session Bernoulli at existing q values; each session energy 1, peak 1, background .2, reward .1, paid-menu expectation .27",
+      "decision": "no new data if there is no positive P-effect unresolved target; otherwise retain all tied best menus and use fixed menu order for a single recommendation",
+      "comparison": "existing D-opt feature determinant, uniformly random paid menu and no reward; same initial state and stopping rule",
+      "boundaries": "R-channel width only, not confidence or shared-block absence; X remains free and shares supports",
+      "acceptance": "must distinguish existing 0.82 versus 0.18 full-recovery menus and report all-tie sensitivity/cost; if not, reject price score. Passing this diagnostic alone does not pass B1",
+      "no_claim": "R-channel width and actual synthetic full_recovery are not shared R/X topology identification. Unobserved X-only blocks remain allowed."
+    },
+    "evaluation": {
+      "locked_design_before_evaluation": true,
+      "actual_outcomes": "reuse prior A2b weight=1 independent actual-pattern outcomes after design lock; no rerun of completed records",
+      "additional_weak_truths": "weak_line only: three equal-history models with common block .4, one pair block .03 on 01/02/12, and singleton weights preserving observed row sums. Pair01 reuses its 8 existing A2b records; only pair02/12 add 16 evaluations.",
+      "forecast_mismatch": "not expanded here; retained existing failure",
+      "report": "full effective-block recovery, target weak-block recovery, no-new-data, costs, all successes/failures/timeouts/unresolved",
+      "new_actual_pattern_evaluations": 16,
+      "same_history_model_patterns": 24
+    },
+    "numerical_tolerance": 1e-07,
+    "reproducibility": "deterministic enumeration; no new RNG draws. Protocol, source/input hashes, environment and per-case checkpoints preserved. Solver failure cannot become zero width. No silent rerun. No line-weight floors/ceilings.",
+    "stop_gate": "No engineering expansion. If width just repeats D-opt or pays more without gain, retain diagnostic only or reject it.",
+    "reporting_revision": "Rename the 24 total same-history model patterns; new actual evaluations remain 16. No experimental setting or score changed."
+  },
+  "changes_after_original_run": [
+    "empty-domain channel fields corrected",
+    "no-target return structure tested",
+    "24-pattern total field renamed"
+  ],
+  "new_lp_calls": 0,
+  "new_actual_evaluations": 0,
+  "carried_records": {
+    "outputs\\a2d_presence_width_v1\\design_lock.json": "04912956b16a8185bf71d064725177d7b07fc9e054236fa591a63d0f634ff288",
+    "outputs\\a2d_presence_width_v1\\design_weak_after_prefix_2.json": "5f16f850433501014a3ef1dbfc63cd2375ff01fb06532d712ce492e7471cd803",
+    "outputs\\a2d_presence_width_v1\\design_weak_line.json": "abf407c5de5a120f13358b7dd7902a7615b2b75bdc1345fe97717f0f648fd536",
+    "outputs\\a2d_presence_width_v1\\evaluation.json": "bcee81839f7a2cfe809d6f1cbb650e23957ee68ca6a6c621f5363c44fe9a453f",
+    "outputs\\a2d_presence_width_v1\\manifest.json": "ec13d79bd5ee81fdca667fb5a0a508ac09a2fbbe2e34af3e4e15996207b6da96",
+    "outputs\\a2d_presence_width_v1\\presence_balanced_partial_4.json": "de9b16aa974da0d59bcba4e7c45aa809784f2d0f69ad81bff7b3fa00a17547ba",
+    "outputs\\a2d_presence_width_v1\\presence_common_mode.json": "0c002f71efa8d6c5371a52ee64e23947034966e79ce8a708167d65a6bb2fa0c1",
+    "outputs\\a2d_presence_width_v1\\presence_forecast_mismatch.json": "48ad9b60d61f74b121a48d8b55e36e5de458d7d6900c5ff7819152d5474618ae",
+    "outputs\\a2d_presence_width_v1\\presence_identity_sanity.json": "70275000772cf0466b18be9f629335c206c62b9f50936cbe9b173f003356c929",
+    "outputs\\a2d_presence_width_v1\\presence_incompatible_observations.json": "b422053e87eca9c4e4b8e18ff54d5630afc233813a15764be87aa3a7b565cf75",
+    "outputs\\a2d_presence_width_v1\\presence_nested_partial_4.json": "76e246d23f690244de2f1b34f529f9426acb893c7676e6c105c8588e799770a9",
+    "outputs\\a2d_presence_width_v1\\presence_omitted_lines.json": "013fc19f0899cb8cf832c00cbe55ee48c326161f0ad8761f79792ef6051acd29",
+    "outputs\\a2d_presence_width_v1\\presence_pq_R_only.json": "2d9af098e17e658a329276d6f9e1c09d539b18b9f841866761be09cb99830333",
+    "outputs\\a2d_presence_width_v1\\presence_pq_sum.json": "d934ab0c218c64c738720448419f48768124104e2b9172a8c9d54404d40c10aa",
+    "outputs\\a2d_presence_width_v1\\presence_weak_after_prefix_0.json": "58fc1ca99c9456bd3ab77a865a434f6626c7644e6041842780b57f0eaaacbbbd",
+    "outputs\\a2d_presence_width_v1\\presence_weak_after_prefix_1.json": "e3d4159e93914c0b7700197f1925ac677c9e5404cc01f4891099ad361ed8566a",
+    "outputs\\a2d_presence_width_v1\\presence_weak_after_prefix_2.json": "177d5626bfbe5047ba9a8f24abb7da8ca189eebe41793bd4f489311b955f2eb8",
+    "outputs\\a2d_presence_width_v1\\presence_weak_complete_4.json": "c7f8ee02b3b4fd16b83cd057d44bba7070fe84cbe227bdfb1aaeeea9f90de30f",
+    "outputs\\a2d_presence_width_v1\\presence_weak_line.json": "3133763639ca44770ca2b7660168b41edfc678b44e805746bb972836a437ea7b",
+    "outputs\\a2d_presence_width_v1\\presence_x_R_only.json": "8c7b42295d5cde28c3e73e1108e8f974c6149e85bf68004fea9e2518b9d09feb",
+    "outputs\\a2d_presence_width_v1\\presence_x_sum.json": "8493e567c23913f6b341b38f757f98286d5850a3ffd4a03e703e0291ef81bdfe",
+    "outputs\\a2d_presence_width_v1\\presence_zero_complete_4.json": "364e189bcf54355e6431ca1c2809951a9a519f2c1d567bb6f91b39d6bad3bcdb",
+    "outputs\\a2d_presence_width_v1\\summary.json": "f6d45cabba92796270d3ee0a196cb33cd512560f7838e4b115963bb3865ee600"
+  },
+  "environment": {
+    "python": "3.13.12",
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "platform": "Windows-11-10.0.26200-SP0"
+  }
+}

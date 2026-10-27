@@ -1,0 +1,635 @@
+{
+  "presence_datasets": 17,
+  "presence_block_checks": 96,
+  "classifications": {
+    "P_effect_possible_unresolved": 20,
+    "no_P_effect_within_tolerance": 49,
+    "shared_block_necessary": 23,
+    "model_budget_incompatible": 4
+  },
+  "channel_statuses": {
+    "R": {
+      "optimal": 88,
+      "unbounded_verified": 4,
+      "model_budget_incompatible": 4
+    },
+    "X": {
+      "unbounded_verified": 48,
+      "optimal": 44,
+      "model_budget_incompatible": 4
+    },
+    "sum": {
+      "unbounded_verified": 52,
+      "optimal": 40,
+      "model_budget_incompatible": 4
+    }
+  },
+  "presence_lp_calls": 522,
+  "presence_seconds": 0.5430790000827983,
+  "width_lp_calls": 189,
+  "width_seconds": 0.24870880000526085,
+  "designs": {
+    "weak_line": {
+      "targets": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "no_new_data": false,
+      "menus": [
+        {
+          "menu": "no_reward",
+          "remaining_width": 1.115,
+          "d_opt": 13.349119895529514,
+          "cost": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "remaining_width": 1.1246,
+          "d_opt": 12.916737948442147,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node0_early",
+          "remaining_width": 1.1054000000000002,
+          "d_opt": 13.493247211225311,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node1_early",
+          "remaining_width": 1.1054000000000002,
+          "d_opt": 13.493247211225302,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node2_early",
+          "remaining_width": 1.1246,
+          "d_opt": 13.493247211225295,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "uniform_late",
+          "remaining_width": 1.1246,
+          "d_opt": 12.91673794844215,
+          "cost": 0.2700000000000001
+        }
+      ],
+      "choices": {
+        "remaining_width": {
+          "menu": "node0_early",
+          "ties": [
+            "node0_early",
+            "node1_early"
+          ]
+        },
+        "d_opt": {
+          "menu": "node0_early",
+          "ties": [
+            "node0_early",
+            "node1_early",
+            "node2_early"
+          ]
+        }
+      },
+      "new_lp_calls": 162
+    },
+    "weak_after_prefix_2": {
+      "targets": [
+        [
+          0,
+          1
+        ]
+      ],
+      "no_new_data": false,
+      "menus": [
+        {
+          "menu": "no_reward",
+          "remaining_width": 0.2650000000000001,
+          "d_opt": 14.723613244394352,
+          "cost": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "remaining_width": 0.4346000000000002,
+          "d_opt": 14.393280940875723,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node0_early",
+          "remaining_width": 0.09540000000000005,
+          "d_opt": 14.88443710477727,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node1_early",
+          "remaining_width": 0.09540000000000005,
+          "d_opt": 14.88443710477727,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node2_early",
+          "remaining_width": 0.4346000000000002,
+          "d_opt": 14.732297827147153,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "uniform_late",
+          "remaining_width": 0.43460000000000026,
+          "d_opt": 14.393280940875723,
+          "cost": 0.2700000000000001
+        }
+      ],
+      "choices": {
+        "remaining_width": {
+          "menu": "node0_early",
+          "ties": [
+            "node0_early",
+            "node1_early"
+          ]
+        },
+        "d_opt": {
+          "menu": "node0_early",
+          "ties": [
+            "node0_early",
+            "node1_early"
+          ]
+        }
+      },
+      "new_lp_calls": 27
+    }
+  },
+  "actual": {
+    "weak_line": {
+      "menus": [
+        {
+          "menu": "no_reward",
+          "next_correct": 0.75,
+          "full_recovery": 0.5,
+          "target_recovery_fraction": 0.625,
+          "cost": 0.0,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "next_correct": 0.26999999999999996,
+          "full_recovery": 0.17999999999999997,
+          "target_recovery_fraction": 0.22499999999999995,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "node0_early",
+          "next_correct": 0.9100000000000001,
+          "full_recovery": 0.8200000000000001,
+          "target_recovery_fraction": 0.8650000000000001,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "node1_early",
+          "next_correct": 0.9100000000000001,
+          "full_recovery": 0.8200000000000001,
+          "target_recovery_fraction": 0.8650000000000001,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "node2_early",
+          "next_correct": 0.9100000000000001,
+          "full_recovery": 0.18000000000000002,
+          "target_recovery_fraction": 0.545,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "uniform_late",
+          "next_correct": 0.2700000000000001,
+          "full_recovery": 0.18000000000000005,
+          "target_recovery_fraction": 0.22500000000000003,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        }
+      ],
+      "no_new_data": {
+        "outcome": "stopped",
+        "next_correct": false,
+        "trace": [],
+        "final_effective_blocks": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "target_blocks": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "recovered_target_blocks": [],
+        "target_total": 2,
+        "target_recovery_fraction": 0.0,
+        "full_recovery": false,
+        "final_loss": 0.0
+      }
+    },
+    "weak_after_prefix_2": {
+      "menus": [
+        {
+          "menu": "no_reward",
+          "next_correct": 0.5,
+          "full_recovery": 0.5,
+          "target_recovery_fraction": 0.5,
+          "cost": 0.0,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "next_correct": 0.17999999999999997,
+          "full_recovery": 0.17999999999999997,
+          "target_recovery_fraction": 0.17999999999999997,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "node0_early",
+          "next_correct": 0.8200000000000001,
+          "full_recovery": 0.8200000000000001,
+          "target_recovery_fraction": 0.8200000000000001,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "node1_early",
+          "next_correct": 0.8200000000000001,
+          "full_recovery": 0.8200000000000001,
+          "target_recovery_fraction": 0.8200000000000001,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "node2_early",
+          "next_correct": 0.18000000000000002,
+          "full_recovery": 0.18000000000000002,
+          "target_recovery_fraction": 0.18000000000000002,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        },
+        {
+          "menu": "uniform_late",
+          "next_correct": 0.18000000000000005,
+          "full_recovery": 0.18000000000000005,
+          "target_recovery_fraction": 0.18000000000000005,
+          "cost": 0.2700000000000001,
+          "failed_probability": 0.0
+        }
+      ],
+      "no_new_data": {
+        "outcome": "stopped",
+        "next_correct": false,
+        "trace": [],
+        "final_effective_blocks": [
+          [
+            0
+          ],
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "target_blocks": [
+          [
+            0,
+            1
+          ]
+        ],
+        "recovered_target_blocks": [],
+        "target_total": 1,
+        "target_recovery_fraction": 0.0,
+        "full_recovery": false,
+        "final_loss": 1.7763568394002505e-15
+      }
+    }
+  },
+  "same_history_models": {
+    "(0, 1)": {
+      "menus": [
+        {
+          "menu": "no_reward",
+          "full_recovery": 0.5,
+          "weak_block_recovery": 0.5,
+          "failed_probability": 0.0,
+          "cost": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "full_recovery": 0.17999999999999997,
+          "weak_block_recovery": 0.17999999999999997,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node0_early",
+          "full_recovery": 0.8200000000000001,
+          "weak_block_recovery": 0.8200000000000001,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node1_early",
+          "full_recovery": 0.8200000000000001,
+          "weak_block_recovery": 0.8200000000000001,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node2_early",
+          "full_recovery": 0.18000000000000002,
+          "weak_block_recovery": 0.18000000000000002,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "uniform_late",
+          "full_recovery": 0.18000000000000005,
+          "weak_block_recovery": 0.18000000000000005,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        }
+      ],
+      "no_new_data": {
+        "outcome": "stopped",
+        "next_correct": false,
+        "trace": [],
+        "final_effective_blocks": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "target_blocks": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "recovered_target_blocks": [],
+        "target_total": 2,
+        "target_recovery_fraction": 0.0,
+        "full_recovery": false,
+        "final_loss": 0.0
+      },
+      "R": [
+        [
+          1.4299999999999997,
+          0.43000000000000005,
+          0.4
+        ],
+        [
+          0.43000000000000005,
+          1.4299999999999997,
+          0.4
+        ],
+        [
+          0.4,
+          0.4,
+          1.4
+        ]
+      ]
+    },
+    "(0, 2)": {
+      "menus": [
+        {
+          "menu": "no_reward",
+          "full_recovery": 0.5,
+          "weak_block_recovery": 0.5,
+          "failed_probability": 0.0,
+          "cost": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "full_recovery": 0.17999999999999997,
+          "weak_block_recovery": 0.17999999999999997,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node0_early",
+          "full_recovery": 0.8200000000000001,
+          "weak_block_recovery": 0.8200000000000001,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node1_early",
+          "full_recovery": 0.18000000000000002,
+          "weak_block_recovery": 0.18000000000000002,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node2_early",
+          "full_recovery": 0.8200000000000001,
+          "weak_block_recovery": 0.8200000000000001,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "uniform_late",
+          "full_recovery": 0.18000000000000005,
+          "weak_block_recovery": 0.18000000000000005,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        }
+      ],
+      "no_new_data": {
+        "outcome": "stopped",
+        "next_correct": false,
+        "trace": [],
+        "final_effective_blocks": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "target_blocks": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "recovered_target_blocks": [],
+        "target_total": 2,
+        "target_recovery_fraction": 0.0,
+        "full_recovery": false,
+        "final_loss": 0.0
+      },
+      "R": [
+        [
+          1.4299999999999997,
+          0.4,
+          0.43000000000000005
+        ],
+        [
+          0.4,
+          1.4599999999999995,
+          0.4
+        ],
+        [
+          0.43000000000000005,
+          0.4,
+          1.37
+        ]
+      ]
+    },
+    "(1, 2)": {
+      "menus": [
+        {
+          "menu": "no_reward",
+          "full_recovery": 0.5,
+          "weak_block_recovery": 0.5,
+          "failed_probability": 0.0,
+          "cost": 0.0
+        },
+        {
+          "menu": "uniform_early",
+          "full_recovery": 0.17999999999999997,
+          "weak_block_recovery": 0.17999999999999997,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node0_early",
+          "full_recovery": 0.18000000000000002,
+          "weak_block_recovery": 0.18000000000000002,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node1_early",
+          "full_recovery": 0.8200000000000001,
+          "weak_block_recovery": 0.8200000000000001,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "node2_early",
+          "full_recovery": 0.8200000000000001,
+          "weak_block_recovery": 0.8200000000000001,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        },
+        {
+          "menu": "uniform_late",
+          "full_recovery": 0.18000000000000005,
+          "weak_block_recovery": 0.18000000000000005,
+          "failed_probability": 0.0,
+          "cost": 0.2700000000000001
+        }
+      ],
+      "no_new_data": {
+        "outcome": "stopped",
+        "next_correct": false,
+        "trace": [],
+        "final_effective_blocks": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "target_blocks": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "recovered_target_blocks": [],
+        "target_total": 2,
+        "target_recovery_fraction": 0.0,
+        "full_recovery": false,
+        "final_loss": 0.0
+      },
+      "R": [
+        [
+          1.4599999999999995,
+          0.4,
+          0.4
+        ],
+        [
+          0.4,
+          1.4299999999999997,
+          0.43000000000000005
+        ],
+        [
+          0.4,
+          0.43000000000000005,
+          1.37
+        ]
+      ]
+    }
+  },
+  "new_actual_patterns": 16,
+  "reused_actual_patterns": 16,
+  "scope": "deterministic small-model audit, no statistical confidence or calibrated behavior"
+}

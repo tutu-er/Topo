@@ -1,6 +1,6 @@
 # WZZT 逐块辨识与随机需求响应：第一轮结果
 
-Latest continuation: [A2C_REPORT.md](A2C_REPORT.md). A2c checks complete omission bounds and observable R/X channels; no new price method is validated. This page preserves the original A1/A2 evidence; [A2B_REPORT.md](A2B_REPORT.md) records complete-recovery counterexamples.
+Latest continuation: [A2D_REPORT.md](A2D_REPORT.md). Full-parameter width distinguishes the original menus but fails the equal-history recovery control; numerical expansion is stopped pending contribution review. This page preserves A1/A2; [A2B_REPORT.md](A2B_REPORT.md) and [A2C_REPORT.md](A2C_REPORT.md) preserve intermediate audits.
 
 2026-10-27。**差异化价格有实际选线收益，但目前没有 WZZT 专属指标优于 D-opt 的证据；冻结单个历史解的便宜分数已经出现错误排序，应否定其作为可靠筛价依据。**
 
