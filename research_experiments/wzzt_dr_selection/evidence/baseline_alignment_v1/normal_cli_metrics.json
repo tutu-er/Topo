@@ -1,0 +1,169 @@
+{
+  "config": {
+    "cases": [
+      "paper15"
+    ],
+    "scenario_count": 3,
+    "samples_per_scenario": 96,
+    "training_replicate": 0,
+    "validation_replicate": 1,
+    "pq_noise_rel": 0.005,
+    "voltage_noise_rel": 0.0002,
+    "preprocessing": "raw",
+    "constraint_mode": "ordered",
+    "distance_mode": "RX_75R_25X",
+    "tolerance_factor": 0.16,
+    "bootstrap_replicates": 100,
+    "bootstrap_kind": "circular_moving_block",
+    "block_length": 4,
+    "confidence_threshold": 0.75,
+    "maximum_candidate_count": 2,
+    "selection_only": false,
+    "run_baseline": false,
+    "support_search_mode": "unrestricted",
+    "time_limit_seconds_per_extension": 1800.0,
+    "milp_solver": "highs",
+    "coefficient_bound": 2.0,
+    "truth_used_for_candidate_generation": false,
+    "scenario_settings": {
+      "scenario_suite": "reference",
+      "profiles": [
+        "default",
+        "cloudy_variable_pv",
+        "evening_peak_high_load"
+      ],
+      "seeds": [
+        42,
+        7,
+        21
+      ],
+      "root_mean": 1.02,
+      "root_sigma": 0.003,
+      "root_process": "correlated",
+      "root_observation": "noisy",
+      "root_meter_noise_rel": 0.0002,
+      "impedance_scale": 1.0,
+      "physical_sample_count": 96,
+      "day_hours": 24.0,
+      "daily_fraction": 0.65,
+      "ou_tau_hours": 1.0,
+      "tap_step_amplitude": 0.0,
+      "tap_start_hour": 12.0,
+      "tap_end_hour": 18.0,
+      "tap_step_demeaned": true,
+      "voltage_clipping": false
+    }
+  },
+  "scenarios": [
+    {
+      "case": "paper15",
+      "split": "training",
+      "name": "oneday_96pts_default_seed42_reference_rep0",
+      "impedance_scale": 1.0,
+      "root_observation": "noisy",
+      "samples": 96
+    },
+    {
+      "case": "paper15",
+      "split": "training",
+      "name": "oneday_96pts_cloudy_variable_pv_seed7_reference_rep0",
+      "impedance_scale": 1.0,
+      "root_observation": "noisy",
+      "samples": 96
+    },
+    {
+      "case": "paper15",
+      "split": "training",
+      "name": "oneday_96pts_evening_peak_high_load_seed21_reference_rep0",
+      "impedance_scale": 1.0,
+      "root_observation": "noisy",
+      "samples": 96
+    },
+    {
+      "case": "paper15",
+      "split": "validation",
+      "name": "oneday_96pts_default_seed42_reference_rep1",
+      "impedance_scale": 1.0,
+      "root_observation": "noisy",
+      "samples": 96
+    },
+    {
+      "case": "paper15",
+      "split": "validation",
+      "name": "oneday_96pts_cloudy_variable_pv_seed7_reference_rep1",
+      "impedance_scale": 1.0,
+      "root_observation": "noisy",
+      "samples": 96
+    },
+    {
+      "case": "paper15",
+      "split": "validation",
+      "name": "oneday_96pts_evening_peak_high_load_seed21_reference_rep1",
+      "impedance_scale": 1.0,
+      "root_observation": "noisy",
+      "samples": 96
+    }
+  ],
+  "rnj": [
+    {
+      "case": "paper15",
+      "scenario_count": 3,
+      "samples_per_scenario": 96,
+      "total_training_rows": 288,
+      "fit_r2": 0.9824272449353234,
+      "condition_number": 3910.811430030865,
+      "selection_seconds": 10.077664199983701,
+      "full_rnj_clade_precision": 1.0,
+      "full_rnj_clade_recall": 1.0,
+      "full_rnj_clade_f1": 1.0,
+      "full_rnj_cherry_precision": 1.0,
+      "full_rnj_cherry_recall": 1.0,
+      "full_rnj_cherry_f1": 1.0,
+      "selected_count": 2,
+      "selected_supports": "103,104,105;113,114,115",
+      "selected_confidences": "1;1",
+      "selected_precision_against_truth": 1.0,
+      "selected_recall_against_truth_cherries": 0.6666666666666666,
+      "true_cherries": "103,104,105;108,109,110;113,114,115"
+    }
+  ],
+  "milp": [
+    {
+      "case": "paper15",
+      "initializer": "rx75_rnj_plus_milp",
+      "milp_solver": "highs",
+      "rnj_initial_supports": "103,104,105;113,114,115",
+      "frozen_support_count": 17,
+      "frozen_leaf_singleton_count": 15,
+      "frozen_rnj_block_count": 2,
+      "support_search_mode": "unrestricted",
+      "milp_terminal_count": 15,
+      "elapsed_seconds": 876.6992906999658,
+      "support_count": 23,
+      "nontrivial_support_count": 8,
+      "clade_precision": 0.625,
+      "clade_recall": 0.8333333333333334,
+      "clade_f1": 0.7142857142857143,
+      "train_mae": 0.0005369966698500057,
+      "validation_mae": 0.0005544913791478323,
+      "stop_reason": "no_significant_one_atom_gain",
+      "attempt_count": 12,
+      "selected_path_index": 6,
+      "path_length": 12,
+      "path_support_counts": "17;18;19;20;21;22;23;24;25;26;27;28",
+      "path_validation_mae": "0.00192061634417;0.000981453374799;0.000848806860699;0.000779311512735;0.0007163553494;0.000590001176157;0.000554491379148;0.000553755706603;0.000553863759426;0.000554259909437;0.000554364024182;0.000554621274192",
+      "attempt_statuses": "0;0;0;0;0;0;0;0;0;0;0;0",
+      "attempt_raw_statuses": ";;;;;;;;;;;",
+      "attempts_proven_optimal": 12,
+      "attempt_runtimes": "282.456;127.661;117.391;56.5015;48.6243;42.9878;36.6305;35.3054;29.8352;35.8653;33.8815;26.7367",
+      "attempt_objectives": "0.000915125410245;0.00078632727726;0.000716561048965;0.00066113249988;0.000564751171475;0.000536996282803;0.00053561183262;0.000535309508433;0.000534917140277;0.000534770835338;0.00053469361073;0.000534693620834",
+      "attempt_dual_bounds": "0.000915125410245;0.00078632727726;0.000716561048965;0.00066113249988;0.000564751171475;0.000536996282803;0.00053561183262;0.000535309508433;0.000534917140277;0.000534770835338;0.00053469361073;0.000534693620834",
+      "attempt_mip_gaps": "0;0;0;0;0;0;0;0;0;0;0;0",
+      "attempt_messages": "Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "predicted_clades": "103,104,105;108,109,110;113,114,115;101,103,104,105;106,107,108,109,110;111,112,113,114,115;102,111,112,113,114,115;102,106,107,108,109,110,111,112,113,114,115",
+      "true_clades": "103,104,105;108,109,110;113,114,115;101,102,103,104,105;106,107,108,109,110;111,112,113,114,115",
+      "missing_clades": "101,102,103,104,105",
+      "extra_clades": "101,103,104,105;102,111,112,113,114,115;102,106,107,108,109,110,111,112,113,114,115"
+    }
+  ]
+}

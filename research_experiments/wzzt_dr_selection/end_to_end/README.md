@@ -1,5 +1,8 @@
 # paper15 需求响应—WZZT 环境验收
 
+> 后续纠正：本目录是v1纯WZZT对照的冻结复现入口，不代表现行默认RNJ→WZZT。完整默认调用与实际基线结果见[baseline_alignment/README.md](../baseline_alignment/README.md)和[核验报告](../baseline_alignment/REPORT.md)。需求响应效果比较暂停。
+
+
 当前目标是检查“历史预测 → 价格规划 → 随机需求响应 → AC 运行校验 → 实际 WZZT 拟合”是否按同一数据和预算约定运行。本批为一个配对实现、三个策略的环境验收；价格收益、完整恢复概率和方法创新均不由这一批证明。
 
 代码入口为 `research_experiments.wzzt_dr_selection.end_to_end`，配置为本目录 `config.json`。已有的 WZZT 核心直接调用，不在价格搜索内部反复调用 WZZT。

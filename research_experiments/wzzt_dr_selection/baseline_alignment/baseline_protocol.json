@@ -1,0 +1,69 @@
+{
+  "protocol_id": "paper15_default_alignment_v1",
+  "created_date": "2026-10-27",
+  "purpose": "Verify the current normal paper15 RNJ-to-WZZT baseline before any demand-response effect comparison",
+  "scope": {"new_conditions": 2, "case_names": ["paper15"], "price_comparison_enabled": false, "production_core_modification_allowed": false, "automatic_budget_expansion_allowed": false, "truth_for_initialization_or_tuning_allowed": false},
+  "default_authority": {"file": "rnj_wzzt_core/rnj_wzzt/pipeline.py", "callable": "run", "signature_lines": [359,383], "entry_chain": ["rnj_wzzt_core/run.py", "rnj_wzzt.cli.main", "rnj_wzzt.pipeline.run"], "values_to_be_saved_from_runtime_signature": true},
+  "current_defaults_snapshot": {
+    "scenario_count": 3, "samples_per_scenario": 96, "training_replicate": 0, "validation_replicate": 1,
+    "pq_noise_rel": 0.005, "voltage_noise_rel": 0.0002, "tolerance_factor": 0.16,
+    "bootstrap_replicates": 100, "block_length": 4, "confidence_threshold": 0.75, "maximum_candidate_count": 2,
+    "selection_only": false, "run_baseline": false, "time_limit": 1800.0, "coefficient_bound": 2.0,
+    "scenario_suite": "reference", "milp_solver": "highs", "bootstrap_seed": 20260903,
+    "root_observation_effective": "noisy", "root_meter_noise_rel_effective": 0.0002, "root_sigma_effective": 0.003, "impedance_scale_effective": 1.0,
+    "preprocessing": "raw", "fit_intercept": false, "constraint_mode": "ordered", "distance_mode": "RX_75R_25X",
+    "support_search_mode": "unrestricted", "initializer": "all_terminal_singletons_plus_selected_RNJ_boundary_blocks"
+  },
+  "core_defaults_snapshot": {"max_atoms_rule": "2*n-1", "n_terminals":15, "effective_max_atoms":29, "bound_expansion_factor":2.0, "max_bound_expansions":4, "bound_active_fraction":0.995, "improvement_abs_tol":1e-10, "improvement_rel_tol":1e-8, "zero_tolerance":1e-9, "validation_blocks":4, "mip_rel_gap":0.0, "presolve":true, "disp":false, "selection_rule":"minimum support count, then earliest point, within minimum validation MAE plus its SE"},
+  "existing_v1": {
+    "commit": "2c8db744", "config_path": "research_experiments/wzzt_dr_selection/end_to_end/config.json",
+    "evidence_path": "research_experiments/wzzt_dr_selection/evidence/end_to_end_v1",
+    "run_fingerprint": "9fe25491d21327d76e4cce42f79dc5b263c2c569e73eaedeb675dd5d65469d65",
+    "run_directory": "C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_data_calibration/flow_runs/paper15_iflex_v1",
+    "initializer":"milp_only_terminal_singletons", "rnj_stage_called":false, "solver":"gurobi", "time_limit_seconds":30.0,
+    "training_rows":96, "validation_rows":24, "training_scenarios":4, "validation_scenarios":1, "interval_hours":1.0,
+    "no_reward_result":{"search_status":"complete","stop_reason":"laminar_family_limit","nontrivial_true_supports_matched":1,"nontrivial_true_supports_total":6},
+    "fixed_price_result":{"search_status":"incomplete","stop_reason":"extension_not_proven_optimal","first_step_mip_gap":0.30322776808749874},
+    "planned_price_result":{"search_status":"incomplete","stop_reason":"extension_not_proven_optimal","first_step_mip_gap":0.20553903642207946},
+    "retention_policy":"Immutable prior evidence; no overwriting or relabeling as normal default"
+  },
+  "stages": [
+    {
+      "id":"N0", "name":"normal_default_reference", "condition_count":1,
+      "entrypoint":"current run.py CLI", "explicit_cli_overrides":["--cases paper15","--output <new isolated output directory>"],
+      "algorithm_options":"all current pipeline.run defaults; no --run-baseline, --selection-only, --time-limit or --milp-solver override",
+      "data":"unmodified production reference synthetic case preparation",
+      "training_rows":288, "validation_rows":288, "training_scenarios":3, "validation_scenarios":3, "interval_hours":0.25,
+      "training_replicate":0, "validation_replicate":1,
+      "profiles":["default","cloudy_variable_pv","evening_peak_high_load"],
+      "instrumentation":"delegating wrappers may save data, RNJ selection, fitted path and progress; no decision changes",
+      "run_directory_relative_to_scratch":"runs/N0_default_reference",
+      "purpose":"Check the actual normal algorithm and data configuration, without iFlex or prices"
+    },
+    {
+      "id":"N1", "name":"fixed_iflex_no_reward_mainline", "condition_count":1,
+      "entrypoint":"external observed-data adapter delegates production _select_case_rnj and fit_laminar_l1_sensitivity",
+      "algorithm_options":"same current algorithm defaults as N0, including HiGHS1800 and100 bootstrap",
+      "source_strategy":"no_reward", "data_reuse":"byte/semantic-identical saved v1 P/Q/V/root observations; no AC regeneration, no new meter draw, no price planning",
+      "training_history_dates":["2021-02-03","2021-02-04","2021-02-05"], "training_action_date":"2021-02-09", "validation_date":"2021-02-10",
+      "training_rows":96, "validation_rows":24, "training_scenarios":4, "validation_scenarios":1, "interval_hours":1.0,
+      "observed_root_label":1, "truth_passed_to_fit":false,
+      "save_input_hashes":true, "physical_trajectory_changes_allowed":false,
+      "purpose":"Separate the invocation/default-algorithm discrepancy from the already fixed empirical-load test; this is not288/288 normal data",
+      "cautions":["Relative to v1, RNJ initialization, solver backend and time limit all change together; do not assign all differences to RNJ alone", "Bootstrap block_length4 means4hours here versus1hour inN0; preserve and disclose the data-grid difference"]
+    }
+  ],
+  "required_records":["actual effective options", "source and input hashes", "all RNJ clades and selected boundary blocks", "bootstrap frequencies labeled as frequencies", "R/X fit diagnostics", "initial support family", "per-extension objective, dual bound, gap, status and runtime", "entire accepted path and validation MAE/SE", "selected path index", "effective true/missing/extra internal supports", "all failed, timed-out and unresolved stages"],
+  "acceptance_and_stop_rules":[
+    "Verify actual normal entry and effective parameters before interpreting recovery",
+    "Any failed or unproved extension remains failed or unresolved; a returned model is not proof of a completed search",
+    "Exact-support recovery and solver completion are separate outcome columns",
+    "No price superiority comparison until normal baseline behavior and remaining failure location are explained",
+    "Do not enlarge networks, increase budgets, reduce noise, increase impedance, or restore historical support whitelists to manufacture success",
+    "A poor N0 or N1 result triggers a bounded diagnostic decision, not automatic new runs"
+  ],
+  "historical_evidence_not_current_baseline":[
+    {"directory":"D:/0-github_workspace/Topo/outputs/mainline", "files":["report.md","metrics.json","rnj_summary.csv","milp_results.csv"], "paper15_reported_f1":1.0, "paper15_milp_seconds":94.92157129998668, "settings":{"preprocessing":"daily_demean","contract_blocks":true,"deembedding_weight":0.5,"candidate_pool_mode":"rnj","initializer":"rx75_rnj_contracted_plus_milp","milp_terminal_count":11,"candidate_pool_count":4}, "reason":"historical contracted finite-pool algorithm, unlike current raw unrestricted algorithm"},
+    {"directory":"D:/0-github_workspace/Topo/outputs/core_refactor_20260927_095726/baseline_rnj_default", "files":["metrics.json","milp_results.csv"], "settings":{"scenario_count":1,"samples_per_scenario":4,"training_replicate":7,"validation_replicate":8,"bootstrap_replicates":1,"block_length":2,"maximum_candidate_count":1,"time_limit_seconds":30,"preprocessing":"daily_demean","support_search_mode":"rnj"}, "reason":"historical tiny refactor smoke run despite directory name; not a normal current baseline"}
+  ]
+}
