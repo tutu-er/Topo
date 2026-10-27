@@ -47,6 +47,11 @@ def audit_data(output):
             require(case+" low X/R injection isolated "+key,np.array_equal(low[key],reference[key]))
         branches=pd.read_csv(base/"low_xr/truth_network/branches.csv")
         original=pd.read_csv(base/"reference/truth_network/branches.csv")
+        services=branches[branches.branch_type.eq("service")]
+        require(case+" exactly one service edge per observed terminal",
+                len(services)==len(reference["labels"]) and set(services.to_bus)==set(reference["labels"]))
+        require(case+" positive physical R/X and backbone present",
+                bool((branches.r_ohm>0).all() and (branches.x_ohm>0).all() and branches.branch_type.eq("backbone").any()))
         require(case+" low X/R unchanged resistance",np.array_equal(branches.r_ohm,original.r_ohm))
         target=np.where(branches.branch_type.str.contains("service",case=False),.06,.30)
         require(case+" low X/R specified reactance",np.allclose(branches.x_ohm,branches.r_ohm*target,rtol=1e-14))

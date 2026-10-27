@@ -80,6 +80,7 @@ def diagnose(output,destination):
         ac_selected_earlier=int((frame.selected_index<frame.path_points-1).sum()),
         ac_selection_improved_f1=int((frame.AC_selection_f1_change>1e-12).sum()),
         ac_selection_reduced_f1=int((frame.AC_selection_f1_change< -1e-12).sum()),
+        mean_ac_selection_f1_change=float(frame.AC_selection_f1_change.mean()),
         incomplete=int((frame.status!="complete").sum()))
     write(destination/"mechanism_summary.json",summary)
     print(summary,flush=True)
