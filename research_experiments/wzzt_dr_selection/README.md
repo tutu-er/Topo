@@ -1,6 +1,6 @@
 # WZZT 逐块辨识与随机需求响应：第一轮结果
 
-Latest continuation: [A2D_REPORT.md](A2D_REPORT.md). Full-parameter width distinguishes the original menus but fails the equal-history recovery control; numerical expansion is stopped pending contribution review. This page preserves A1/A2; [A2B_REPORT.md](A2B_REPORT.md) and [A2C_REPORT.md](A2C_REPORT.md) preserve intermediate audits.
+Latest status: [LITERATURE_CLOSURE.md](LITERATURE_CLOSURE.md). The bounded full-text contribution review is complete. The current proxy/width-price method route is closed and automation wzzt has been deleted. Recovery: [RECOVERY_INDEX.md](RECOVERY_INDEX.md). This page preserves historical A1/A2 results; later reports and STATUS.md supersede its continuation plans.
 
 2026-10-27。**差异化价格有实际选线收益，但目前没有 WZZT 专属指标优于 D-opt 的证据；冻结单个历史解的便宜分数已经出现错误排序，应否定其作为可靠筛价依据。**
 
@@ -93,7 +93,7 @@ v'(0+)=\min_{\beta\in\arg\min L_h}L_f(\beta).
 
 这个修正只解决固定候选拟合中的非唯一性，仍需小LP，不解决完整真模型参数集合覆盖，也未证明价格排序优越性。
 
-## 接续任务及门槛
+## 接续任务及门槛 (historical plan; superseded by closure review)
 
 当前留在A2。先在预先锁定的新小系统中检验最优面修正、完整参数解释敏感性和有限批量排序；评价目标未决块的恢复，而非只选容易的根块。报告D-opt、无奖励和同预算随机菜单的配对结果、支出、LP数量与设计时间。
 
