@@ -1,13 +1,33 @@
 """Data amount, leakage and paired physical counterfactual checks."""
 import unittest
+from unittest.mock import patch
+from pathlib import Path
+import tempfile
 
 import numpy as np
 import pandas as pd
 
-from research_experiments.wzzt_systematic.common import checked_point, indices, scenes_from_observed
+from research_experiments.wzzt_systematic.common import checked_point, indices, read, scenes_from_observed, write
 
 
 class SamplingProtocolTests(unittest.TestCase):
+    def test_transient_windows_reader_lock_preserves_the_checkpoint(self):
+        original=Path.replace
+        attempts=[]
+        def replace_after_reader_closes(source,target):
+            attempts.append(target)
+            if len(attempts)<=2:
+                raise PermissionError("simulated live reader")
+            return original(source,target)
+        task_tmp=Path(__file__).resolve().parents[2]/"tmp"
+        with tempfile.TemporaryDirectory(dir=task_tmp) as folder:
+            self.assertTrue(Path(folder).resolve().is_relative_to(task_tmp.resolve()))
+            path=Path(folder)/"checkpoint.json"
+            with patch.object(Path,"replace",replace_after_reader_closes):
+                write(path,{"completed":167})
+            self.assertEqual(read(path),{"completed":167})
+            self.assertFalse(path.with_suffix(".json.tmp").exists())
+
     def test_interrupted_epigraph_incumbent_is_a_loss_upper_bound(self):
         # y=.002 and .1*.02=.002 give zero physical residual; an interrupted
         # incumbent can retain t=1e-6 while still satisfying t>=|residual|.

@@ -45,6 +45,7 @@ def report(output, destination):
     for (size,method),group in frame.groupby(["N","method"],sort=True):
         by_size.append(dict(N=size,method=method,planned=len(group),returned=int(group.returned.sum()),
             complete=int((group.status=="complete").sum()),F1_all_planned=float(group.clade_f1.fillna(0).mean()),
+            exact_clade_recoveries=int((group.clade_f1>=1.-1e-12).sum()),
             F1_complete=float(group.loc[group.status=="complete","clade_f1"].mean()),
             test_ac_rmse=float(group.test_ac_rmse.mean()),elapsed_seconds=float(group.elapsed_seconds.mean())))
     by_size=pd.DataFrame(by_size)
@@ -105,6 +106,16 @@ def report(output, destination):
     if (output/"first_attempt_audit/overview.json").exists():
         shutil.copy2(output/"first_attempt_audit/overview.json",destination/"first_attempt_overview.json")
         shutil.copy2(output/"first_attempt_audit/per_job.csv",destination/"first_attempt_per_job.csv")
+        if (output/"repair_protocol.json").exists():
+            repaired=set(read(output/"repair_protocol.json")["jobs"])
+            original=read(output/"first_attempt_audit/solver_audit.json")
+            old_checks=[c for c in original["checks"] if c["job_id"] in repaired]
+            write(destination/"first_failed_attempt_solver_audit.json",dict(passed=all(c["passed"] for c in old_checks),
+                check_count=len(old_checks),checks=old_checks))
+    recovery_count=0
+    if (output/"controller_recovery.json").exists():
+        shutil.copy2(output/"controller_recovery.json",destination/"controller_recovery.json")
+        recovery_count=len(read(output/"controller_recovery.json")["unfinished_attempts"])
     shutil.copy2(output/"protocol.json",destination/"protocol.json")
     shutil.copy2(output/"frozen_manifest.json",destination/"frozen_manifest.json")
     # Physical input envelope, including actual rather than prescribed drops.
@@ -147,7 +158,7 @@ def report(output, destination):
         "", "AC 测试误差为训练选定模型和训练拟合阻抗在独立三个测试日上的相对电压 RMSE。NJ 额外采用固定树 L1 及相同 AC 拟合，以统一物理预测参数口径，原 NJ 拓扑与稠密矩阵指标保持独立记录。物理输入误差使用测试真实 P/Q、根电压及末端电压，量测输入误差使用对应带噪数据。",
         "", "## 数据量与结构精度", "", "![不同数据量下的平均 F1](f1_by_sample_size.png)", "",
         "下表对四个网络与五个条件等权平均，每档每方法 20 项。未完成任务采用已有模型计分，缺失模型记零。该比较反映本轮预算下实际返回的效果；仅三种方法都完成的配对比较另存 common_complete_comparison.csv。",
-        "", table(by_size,["N","method","planned","returned","complete","F1_all_planned","test_ac_rmse","elapsed_seconds"]), "",
+        "", table(by_size,["N","method","planned","returned","complete","F1_all_planned","exact_clade_recoveries","test_ac_rmse","elapsed_seconds"]), "",
         table(aggregate,["condition","N","method","planned","returned","complete","clade_f1_all_planned","test_ac_rmse","elapsed_seconds"]),
         "", "## 参考条件逐算例结果", "", table(ref_table,["case","N","NJ","WZZT","RNJ+WZZT"]),
         "", "## 三类机制诊断", "",
@@ -157,6 +168,7 @@ def report(output, destination):
         f"数据核验通过：{overview['data_audit_passed']}。求解原始约束、整数性、目标值和判据重算：{overview['raw_audit_passed']}，共 {overview['raw_attempts']} 次扩展求解。逐路径物理目标、层状兼容与损失单调性核验：{overview['path_audit_passed']}，共 {overview['path_points']} 个路径点。所有失败、超时和未完成任务保留在 per_job.csv 的计划分母中。未完成模型按停止时已有路径评分，状态列同时保留。",
         "", "首轮冻结的生产者有一处日志字段名冲突：系数上界覆盖了保存的 bound 键。求解回调与决策在覆盖前已完成；独立评价器从原路径当前损失与保留的 gain_possible 恢复实际求解下界，并重算判据。solver_audit.json 逐项记录恢复值；原始 source 和日志保留，后续驱动已采用不同字段名。",
         "", "首轮还出现提前中断解的残差辅助变量有余量、从而触发目标相等校验的程序异常。对最小化绝对残差模型，可行辅助变量目标给出实际解码 L1 的上界；修复为核查实际 L1 不超过该上界，并将实际 L1 用于后续搜索。所有程序异常项在原任务结束后统一补跑，训练观测、参数和预算保持一致；求解未决项不补跑。修复源及补跑清单单独冻结。",
+        "", f"控制器曾因 Windows 进度文件并发读写退出，随控制器退出的 {recovery_count} 项工作进程，其中间记录归档于 interrupted_attempts，随后按相同输入和预算重跑。控制器写入已加入短重试。该基础设施中断与求解未决、程序校验异常分别记录；表中时间为返回结果对应的有效尝试，重跑开销见 controller_recovery.json。",
         "", "本轮 normal complete 只表示声明的前向搜索规则完成；优化界覆盖当前有界单步问题。AC 低误差和 bootstrap 稳定度作为诊断使用。四个网络是仓库构建的文献启发合成网络；工程数据、额外源及多随机种子重复另行测试。",
         "", "## 交付与复现", "",
         "逐项结果见 per_job.csv，完整条件汇总见 aggregate.csv，物理电压和实际压降见 physical_envelope.csv，原始扩展求解核验见 solver_audit.json，冻结输入清单见 frozen_manifest.json。producer_source.zip 保留真正运行的源代码闭包。",

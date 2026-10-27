@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import time
 
 for _name in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
     os.environ[_name] = "1"
@@ -39,7 +40,16 @@ def write(path, value):
     path = Path(path)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(clean(value), ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    # Windows readers can briefly prevent atomic replacement. A monitor must
+    # not abort the controller or an otherwise valid model checkpoint.
+    for attempt in range(80):
+        try:
+            temporary.replace(path)
+            break
+        except PermissionError:
+            if attempt==79:
+                raise
+            time.sleep(.025)
 
 
 def sha(path):

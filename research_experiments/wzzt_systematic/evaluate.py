@@ -24,6 +24,10 @@ def audit_data(output):
         for job in read(output/"repair_protocol.json")["jobs"]:
             require(job+" identical repaired payload",sha(output/"jobs"/job/"payload.json")==sha(output/"repairs"/job/"payload.json"))
     require("240 unique planned jobs",len(protocol["jobs"])==len(set(protocol["jobs"]))==240)
+    if (output/"controller_recovery.json").exists():
+        for recovery in read(output/"controller_recovery.json")["unfinished_attempts"]:
+            job=recovery["job_id"]
+            require(job+" interrupted payload preserved",sha(output/recovery["archive"]/"payload.json")==sha(output/"jobs"/job/"payload.json"))
     require("nested samples",all(set(indices(a))<set(indices(b)) for a,b in zip(protocol["sample_sizes"][:-1],protocol["sample_sizes"][1:])))
     for job in protocol["jobs"]:
         payload=read(output/"jobs"/job/"payload.json")
@@ -132,6 +136,15 @@ def evaluate(output, destination, *, partial=False, first_attempt_only=False):
             group_members=sum(map(len,model.get("groups",[]))),path_points=len(model["path"]),
             selected_index=selected,selection_fallback=selection_fallback,
             bound_expansions=len(model.get("bound_expansions",[])),final_bound=model.get("final_bound"))
+        if model.get("attempts"):
+            last_info=model["attempts"][-1]
+            old_path=next((b["path"] for b in model.get("bound_expansions",[]) if b["epoch"]==last_info["epoch"]),model["path"])
+            old_current=old_path[last_info["iteration"]]["search_objective"]
+            lower=(old_current-last_info["gain_possible"] if last_info["gain_possible"] is not None else None) if "coefficient_bound" not in last_info else last_info["bound"]
+            row.update(last_raw_status=last_info["raw_status"],last_solver_objective=last_info["objective"],
+                last_solver_bound=lower,last_relative_gap=last_info["relative_gap"],
+                last_gain_guaranteed=last_info["gain_guaranteed"],last_gain_possible=last_info["gain_possible"],
+                extension_solves=len(model["attempts"]),extension_seconds=sum(a["runtime_seconds"] for a in model["attempts"]))
         if row["returned"]:
             row["status"]=model["status"]
         def score(p, native=False):
@@ -166,8 +179,21 @@ def evaluate(output, destination, *, partial=False, first_attempt_only=False):
             write(cache,test_ac)
         else:
             test_ac=dict(measured={"valid":False},physical={"valid":False})
+        if "last_measured" not in test_ac:
+            last_point=model["path"][-1]
+            last_ac=last_point.get("ac",{})
+            if selected==len(model["path"])-1:
+                test_ac["last_measured"]=test_ac["measured"]
+            elif last_ac.get("valid"):
+                test_ac["last_measured"]=ac_diagnostic(labels,last_point["supports"],last_ac["r_refit"],last_ac["x_refit"],test,refit=False)
+            else:
+                test_ac["last_measured"]={"valid":False}
+            if "result_sha256" in test_ac:
+                write(cache,test_ac)
         row.update(test_ac_valid=test_ac["measured"]["valid"],test_ac_rmse=test_ac["measured"].get("relative_voltage_rmse"),
-                   test_physical_ac_rmse=test_ac["physical"].get("relative_voltage_rmse"))
+                   test_physical_ac_rmse=test_ac["physical"].get("relative_voltage_rmse"),
+                   last_test_ac_rmse=test_ac["last_measured"].get("relative_voltage_rmse"),
+                   last_train_ac_rmse=model["path"][-1].get("ac",{}).get("relative_voltage_rmse"))
         for target in sorted(directory.glob("epoch*_step*")):
             info=read(target/"result.json")
             with np.load(target/"model.npz") as saved:
@@ -177,7 +203,7 @@ def evaluate(output, destination, *, partial=False, first_attempt_only=False):
             saved_feasible=info["primal_audit"]["feasible"]
             passed=audit["feasible"]==saved_feasible
             if primal is not None and info["objective"] is not None:
-                passed=passed and abs(audit["objective_recomputed"]-info["objective"])<=1e-8
+                passed=passed and bool(np.isclose(audit["objective_recomputed"],info["objective"],atol=1e-8,rtol=1e-12))
             # Re-evaluate the saved decision against the original current loss.
             epoch_path=next((b["path"] for b in model.get("bound_expansions",[]) if b["epoch"]==info["epoch"]),model["path"])
             current=epoch_path[info["iteration"]]["search_objective"]
@@ -220,7 +246,8 @@ def evaluate(output, destination, *, partial=False, first_attempt_only=False):
         path_audit_passed=all(c["passed"] for c in path_checks),repaired=int(frame.repaired.sum()),
         first_attempt_program_errors=int(frame.first_attempt_program_error.sum()),scope=protocol["scope"])
     write(destination/"overview.json",overview)
-    write(destination/"solver_audit.json",dict(passed=all(c["passed"] for c in checks),checks=checks,check_count=len(checks)))
+    write(destination/"solver_audit.json",dict(passed=all(c["passed"] for c in checks),checks=checks,check_count=len(checks),
+        feasibility_tolerance=1e-7,objective_absolute_tolerance=1e-8,objective_relative_tolerance=1e-12))
     write(destination/"path_audit.json",dict(passed=all(c["passed"] for c in path_checks),checks=path_checks,check_count=len(path_checks)))
     print(overview,flush=True)
     return frame

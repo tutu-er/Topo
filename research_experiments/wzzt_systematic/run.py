@@ -7,11 +7,12 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import shutil
 
 from .common import read, sha, write
 
 
-def run(output, *, only=None, workers=None):
+def run(output, *, only=None, workers=None, recover_interrupted=False):
     output=Path(output).resolve()
     protocol=read(output/"protocol.json")
     manifest=read(output/"frozen_manifest.json")
@@ -20,6 +21,25 @@ def run(output, *, only=None, workers=None):
             raise ValueError(f"frozen input changed: {relative}")
     jobs=[job for job in protocol["jobs"] if only is None or any(word in job for word in only)]
     pending=[job for job in jobs if not any((output/"jobs"/job/name).exists() for name in ("result.json","error.json","hard_timeout.json"))]
+    recovered=[]
+    for job in pending:
+        directory=output/"jobs"/job
+        if (directory/"checkpoint.json").exists() or list(directory.glob("epoch*_step*")):
+            if not recover_interrupted:
+                raise RuntimeError("unfinished worker files exist; confirm workers ended, then use --recover-interrupted")
+            archive=output/"interrupted_attempts"/job/"attempt1"
+            if not directory.resolve().is_relative_to(output) or not archive.resolve().is_relative_to(output):
+                raise ValueError("recovery paths escaped this run")
+            archive.parent.mkdir(parents=True,exist_ok=True)
+            if archive.exists():
+                raise ValueError("interrupted attempt archive already exists; inspect before another recovery")
+            directory.rename(archive)
+            directory.mkdir()
+            shutil.copy2(archive/"payload.json",directory/"payload.json")
+            recovered.append(dict(job_id=job,archive=archive.relative_to(output).as_posix()))
+    if recovered:
+        write(output/"controller_recovery.json",dict(reason="Windows progress-file replacement conflict; child process group ended with controller",
+            unfinished_attempts=recovered,training_data_and_parameters_changed=False))
     active={}
     environment=os.environ.copy()
     environment["PYTHONPATH"]=str(output/"source")
@@ -59,5 +79,6 @@ if __name__=="__main__":
     parser.add_argument("output",type=Path)
     parser.add_argument("--only",nargs="+")
     parser.add_argument("--workers",type=int)
+    parser.add_argument("--recover-interrupted",action="store_true")
     args=parser.parse_args()
-    run(args.output,only=args.only,workers=args.workers)
+    run(args.output,only=args.only,workers=args.workers,recover_interrupted=args.recover_interrupted)
