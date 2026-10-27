@@ -47,3 +47,10 @@ A2d 归档同时保存原运行源码与最终汇总来源。复现旧数值用�
 B1 八节点闭环、B2 锁定测试和工程网络 C：未开始。iFlex 只有全文、元数据及3个小CSV核验；完整家庭负荷未读取，价格行为未实证校准。没有上传家庭原始负荷、订阅论文全文或浏览器认证信息。
 
 重新启动须先满足收口报告的数学／方法证据条件。当前没有待自动执行的实验。
+
+## 2026-10-27：paper15需求响应环境
+
+- 阅读end_to_end/README.md和REPORT.md；锁定config.json。主批private目录为visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_data_calibration/flow_runs/paper15_iflex_v1。
+- evidence/end_to_end_v1包含3策略完整分母、16次扩展求解记录、运行检查及源码哈希；无奖励完成，两个有奖策略首步未决，不重跑以修改收益。
+- CLI提供prepare/run/resume，实际resume已核验。正常tests路径为research_experiments/tests/test_wzzt_dr_*.py；原始负荷不入Git。
+- 原A2宽度路线和自动化继续关闭。本阶段仅建立可用的环境与生产WZZT数据接口。

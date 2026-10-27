@@ -1,0 +1,25 @@
+{
+  "version": "paper15_iflex_flow_v1",
+  "purpose": "End-to-end configuration and execution acceptance, not a price-policy superiority experiment",
+  "case_key": "paper15",
+  "action_date": "2021-02-09",
+  "validation_date": "2021-02-10",
+  "source": {"group": "Os_Control", "region": "Oslo", "households_per_terminal": 3, "mapping_seed": 20261027, "forecast_days": 10, "history_fit_days": 3, "calibration_end_exclusive": "2021-02-08", "response_bank_start": "2021-02-09", "response_bank_end": "2021-02-22"},
+  "planning": {"objective": "d_opt", "budget_nok": 1000.0, "ridge": 0.000001, "power_limits_kw": 45.0, "max_daily_energy_change_fraction": 0.30},
+  "physical": {"pq_noise_rel": 0.005, "v_noise_rel": 0.0002, "root_meter_noise_rel": 0.0002, "root_sigma": 0.003, "voltage_min_pu": 0.9, "voltage_max_pu": 1.1},
+  "seeds": {"history": 41000, "action": 42000, "validation": 43000, "response_action": 44000, "response_validation": 45000},
+  "wzzt": {"solver": "gurobi", "time_limit_seconds": 30.0, "coefficient_bound": 2.0, "max_atoms": null, "max_bound_expansions": 4, "validation_blocks": 4},
+  "boundaries": [
+    "paper15 is the repository's synthetic terminal-only reference feeder, not an original published field feeder",
+    "Residential consumption replaces original mixed DER profiles; original graph and reference impedance scale1 retained",
+    "Three measured control households per terminal; no outcome-dependent mapping or magnitude rescaling",
+    "Planning uses mean forecast and provisional training-only response factors; D-opt is an ordinary comparison baseline, not a new WZZT score",
+    "Held-out aggregate treatment/control trajectories form a semi-synthetic response simulator, not measured individual counterfactuals",
+    "One joint full-day factor per menu is common across offered nodes; individual node differences come from actual loads and assigned prices",
+    "Q follows synthetic residential power factor; no empirical Q/V measurements claimed",
+    "Budget is1000NOK per24-hour terminal-aggregator settlement; repeat validation session uses same assignment and its own identical cap",
+    "45kW is a declared terminal contract capacity, not a verified line thermal rating",
+    "Validation day selects WZZT path, so validation voltage error is not an untouched predictive-test result",
+    "All failures, physical violations, and incomplete solver statuses retained; no clipping or increased retry budget"
+  ]
+}
