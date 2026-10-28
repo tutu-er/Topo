@@ -1,0 +1,44 @@
+\documentclass[UTF8,11pt,fontset=windows]{ctexart}
+\usepackage[a4paper,left=24mm,right=24mm,top=23mm,bottom=24mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,tabularx,array,enumitem,microtype,xcolor,needspace}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{fancyhdr}
+\hypersetup{pdftitle={WZZT 的结构、对偶筛选与块必要性},pdfauthor={数学研究稿}}
+\setlength{\headheight}{15pt}\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small WZZT：结构与可复用证书}\fancyhead[R]{\small 2026-10-28}
+\fancyfoot[C]{\thepage}
+\setlength{\parskip}{0.25em}\setlength{\emergencystretch}{1.5em}
+\setlist{nosep,leftmargin=2em,topsep=3pt,itemsep=2pt}
+\renewcommand{\arraystretch}{1.18}\Urlmuskip=0mu plus 1mu
+\numberwithin{equation}{section}
+\newtheorem{definition}{定义}[section]
+\newtheorem{lemma}[definition]{引理}
+\newtheorem{proposition}[definition]{命题}
+\newtheorem{theorem}[definition]{定理}
+\newtheorem{corollary}[definition]{推论}
+\theoremstyle{remark}\newtheorem{remark}[definition]{说明}
+\newtheorem{example}[definition]{例}\renewcommand{\proofname}{证明}
+\newcommand{\RR}{\mathbb R}\newcommand{\one}{\bm 1}
+\newcommand{\diag}{\operatorname{diag}}\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\pos}[1]{\left(#1\right)_{+}}
+\newcommand{\nn}[1]{\left\lVert#1\right\rVert}
+\newcommand{\ip}[2]{\left\langle#1,#2\right\rangle}
+\newcommand{\calF}{\mathcal F}\newcommand{\calD}{\mathcal D}
+\newcommand{\calM}{\mathcal M}\newcommand{\calU}{\mathcal U}
+\newcommand{\sav}[1]{\left\lVert#1\right\rVert_{\mathrm{sum},1}}
+\title{WZZT 的结构、对偶筛选与块必要性\\[3pt]\large 当前模型、完整推导与可拓展边界}
+\author{数学研究稿}\date{2026年10月28日}
+\begin{document}
+\maketitle
+\begin{abstract}
+本文将当前 WZZT 的实际求解结构与两条可拓展方向对齐：固定支撑 L1 线性规划的安全候选筛选，以及允许其他线路补全、替换后的块必要性检查。先定义共同 R/X 树模型，推导盒约束 LP 对偶与可复用筛选界；再给出完整结构域的参考 MILP、共同三点约束及禁块条件，区分精确模型与安全外松弛。三终端算例贯通 NJ、非最优旧对偶的筛选价值和禁块证书；反例明确秩、正对偶内积及交叉分解的判断边界。本文包含源码静态核对和已有算式的精确算术复核，不包含新优化实验或加速结果。
+\end{abstract}
+\input{sections/model_dual}
+\input{sections/necessity}
+\input{sections/example_extension}
+\begingroup\small\raggedright\setlength{\bibsep}{2pt}
+\bibliographystyle{unsrtnat}\bibliography{references}
+\endgroup
+\end{document}

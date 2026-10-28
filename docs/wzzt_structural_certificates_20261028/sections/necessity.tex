@@ -1,0 +1,165 @@
+\section{完整结构域中的块必要性}
+\label{sec:necessity}
+\subsection{目标域与上下界判定}
+令 $\calD$ 为 L 的全部非空子集。给定相同、预先声明的支路上界 $M_R,M_X$，定义 $\calM_{\rm atom}$ 为式~\eqref{eq:model} 中所有层状族及其非负盒内权重产生的共同核。它允许所有遗漏块补全，并允许替换未经确认的旧块，不限于当前贪心路径前缀。
+\begin{equation}
+ J_{\neg C}=\min_{(R,X)\in\calM_{\rm atom},\ C\text{ 非有效块}}L(R,X).
+ \label{eq:omit}
+\end{equation}
+有限支撑族和有限参数盒保证最小值可以取得。设 $L_{\neg C}\le J_{\neg C}\le U_{\neg C}$，且已有合法模型满足 $J_{\rm ref}\le\varepsilon$，则
+\begin{equation}
+ \begin{array}{ll}
+ L_{\neg C}>\varepsilon &\Rightarrow C\text{ 在预算内必要},\\
+ U_{\neg C}\le\varepsilon &\Rightarrow\text{存在不含 C 的合法解释},\\
+ L_{\neg C}\le\varepsilon<U_{\neg C}&\Rightarrow\text{未决}.
+ \end{array}
+ \label{eq:classification}
+\end{equation}
+尚无模型满足预算时，应先报告模型失配或可行性未明，避免空集上的“必要性”。这是指定域内的确定性结论。若改用近最优性，$L_{\neg C}>J_{\rm ref}+\delta$ 可保守排除全部距全域最优值不超过 $\delta$ 的省略解释；其含义应与噪声预算分开。
+
+\subsection{与支路盒完全对齐的有限参考 MILP}
+对每个 $S\in\calD$ 引入 $s_S\in\{0,1\}$，置
+\begin{equation}
+ \begin{gathered}
+ R=\sum_{S\in\calD}r_Sz_Sz_S^\top,\qquad
+ X=\sum_{S\in\calD}x_Sz_Sz_S^\top,\\
+ 0\le r_S\le M_Rs_S,\quad0\le x_S\le M_Xs_S,\\
+ s_S+s_D\le1\quad(S,D\text{ 交叉}),\qquad s_C=0.
+ \end{gathered}
+ \label{eq:dictionarymip}
+\end{equation}
+交叉指非空相交且互不包含。加上量测绝对残差约束后，这是与原支路盒一致的完整禁块 MILP。零权重块可以删除，故 $s_C=0$ 精确覆盖 C 非有效的全部模型。全部非空子集是数学参考域，不是截断白名单；指数规模限制其直接用途。层状族最多含 $2n-1$ 个不同非空成员，无须另设更小上限来制造分离。
+
+\subsection{共同三点条件为何完整}
+\begin{lemma}[单核层状表示]
+对称 K 可表示为非负层状原子之和，当且仅当其元素非负、$K_{ii}\ge K_{ij}$，且对所有不同的 $i,j,k$ 有
+\begin{equation}
+ K_{ij}\ge\min\{K_{ik},K_{jk}\}.
+ \label{eq:ultra}
+\end{equation}
+\end{lemma}
+\begin{proof}
+必要性来自共同祖先关系：三个非对角共享深度的最小值至少重复两次，终端自身深度不小于共享深度。
+反之，对每个 $t>0$，在 $I_t=\{i:K_{ii}\ge t\}$ 上定义 $i\sim_tj$ 当且仅当 $K_{ij}\ge t$。式~\eqref{eq:ultra} 保证传递性，得到随 t 增大而细分的等价类，所有类形成层状族。有限矩阵只有有限个元素值；以每个类持续存在的 t 区间长度为权重，恒等式
+\[
+ K_{ij}=\int_0^\infty\one\{i,j\text{ 在同一 }t\text{ 类中}\}\,dt
+\]
+给出有限层状分解。对角由单元素类的持续区间恢复。
+\end{proof}
+树形协方差的相同表示已有文献基础\citep[Theorem~2, \S2.3]{bravo2009}。这里讨论共享路径矩阵，允许不同对角深度，并未要求叶间距离来自等深树。
+
+\begin{theorem}[共同 R/X 层状结构]
+R、X 有共同非负层状分解，当且仅当二者分别对称、非负、有序，并且每个三元组共用以下三个情形中的一个：
+\begin{equation}
+ \begin{array}{c|c}
+ R_{ij}\ge R_{ik}=R_{jk}&X_{ij}\ge X_{ik}=X_{jk}\\
+ R_{ik}\ge R_{ij}=R_{jk}&X_{ik}\ge X_{ij}=X_{jk}\\
+ R_{jk}\ge R_{ij}=R_{ik}&X_{jk}\ge X_{ij}=X_{ik}
+ \end{array}
+ \label{eq:commontriple}
+\end{equation}
+\end{theorem}
+\begin{proof}
+共同层状树决定三终端祖先关系；各通道非负增量只能保留或压平它，因此满足共同选择。
+反之，分别取引理保证的 R、X 有效层状分解。若 R 中有效块 A 与 X 中有效块 B 交叉，取 $i\in A\setminus B$、$j\in A\cap B$、$k\in B\setminus A$。A 的正增量使 $R_{ij}>R_{ik}=R_{jk}$，B 的正增量使 $X_{jk}>X_{ij}=X_{ik}$，要求两个不同的严格情形，与式~\eqref{eq:commontriple} 矛盾。故两个有效族并集层状；对各自缺少的块补零权重即可。
+\end{proof}
+分别约束 R、X 为树核还不够。例如 $R=I+J_{12}$、$X=I+J_{13}$ 各自合法，却要求交叉的共同块。共用分支选择会排除它们。这里及下文 $J_S=z_Sz_S^\top$。
+
+\subsection{三点 MILP 与参数域对齐}
+设有有效核矩阵界 $0\le R_{ij}\le B_R$、$0\le X_{ij}\le B_X$。每个三元组引入三个二元变量 $\rho^{(1:3)}$，其和为 1。第一种情形在 R 上例如写成
+\begin{equation}
+ \begin{aligned}
+ R_{ik}-R_{ij}&\le B_R(1-\rho^{(1)}),\\
+ R_{ik}-R_{jk}&\le B_R(1-\rho^{(1)}),\\
+ R_{jk}-R_{ik}&\le B_R(1-\rho^{(1)}).
+ \end{aligned}
+ \label{eq:triplemip}
+\end{equation}
+另两种情形循环置换；X 使用同一组 $\rho$ 和自己的 $B_X$。加上量测残差后，得到 $O(n^3)$ 个分支选择的完整树\emph{结构}模型。单矩阵三点 MILP 已见\citet[Table~1]{bravo2009}；此处共同使用选择变量，并保留原始 P/Q 预测方程。
+
+\textbf{结构完整不等于参数盒相同。} 沿终端的不同支撑链最多有 n 个成员，故每支路界推出 $R_{ij}\le nM_R$、$X_{ij}\le nM_X$。反向不成立：只满足核界时，恢复出的某条支路增量仍可能超过 $M_R$ 或 $M_X$。所以，用这些外界的三点模型包含 $\calM_{\rm atom}$，其禁块最优值可作安全下界；整数解仍须恢复共同树的增量并检查原支路盒，才能作上界。式~\eqref{eq:dictionarymip} 是小规模精确参照。
+
+若加预算截断 $L\le\varepsilon$ 且 P/Q 均非负，则每项预测非负，$R_{ij}p_{jt}\le Y_{it}+\varepsilon$；任一 $p_{jt}>0$ 可导出核界，Q 同理。这只是预算内的有效界。存在正负注入抵消时推导失效；不能证明有限界时，应保留参数域未覆盖的结论，而不是任意截断。
+
+\Needspace{12\baselineskip}
+\subsection{禁块条件及其线性化}
+令 $K=R+X$，补入根行列 $K_{0i}=K_{i0}=0$。共同族的零总增量块收缩后，K 的有效族就是两通道有效族的并集。
+\begin{theorem}[列分层与块不存在]
+对任意非空终端集合 C，固定任意 $j\in C$，在合法共同树核上有
+\begin{equation}
+ C\text{ 有效}\ \Longleftrightarrow\
+ \min_{i\in C}K_{ij}>\max_{k\in(\{0\}\cup L)\setminus C}K_{kj}.
+ \label{eq:clade}
+\end{equation}
+等价地，
+\begin{equation}
+ C\text{ 无效}\ \Longleftrightarrow\
+ \exists i\in C,\ k\in(\{0\}\cup L)\setminus C:
+ K_{ij}\le K_{kj}.
+ \label{eq:omission}
+\end{equation}
+\end{theorem}
+\begin{proof}
+C 的入口总增量若为 $w_C=r_C+x_C>0$，块内 i 与 j 的共同路径至少到入口之后，块外 k 与 j 的共同路径最多到入口之前，间隔至少为 $w_C$。
+反之，在严格间隔中选阈值 t，使块内列值均大于 t，块外均小于 t。K 的 t 等价类包含 j 且恰为 C；它在正长度阈值区间持续存在，因此有效。根参与比较，使全集共同干线和 singleton 的零增量边界也得到覆盖。否定严格不等式即得式~\eqref{eq:omission}。
+\end{proof}
+令 $B_K=B_R+B_X$，对见证对引入 $\beta_{ik}\in\{0,1\}$：
+\begin{equation}
+ \sum_{i\in C,\ k\notin C}\beta_{ik}=1,\qquad
+ K_{ij}-K_{kj}\le B_K(1-\beta_{ik}).
+ \label{eq:omitmip}
+\end{equation}
+k 包含根，其核值为已知零。共同三点模型加此式覆盖完整省略域，不锁定贪心旧族。若只保留有序非负矩阵约束，则是连续外松弛：各见证分支下界取\emph{最小}才覆盖析取并集；分别对不同锚点取得完整域下界后，可以取\emph{最大}加强。未检查的见证分支不能直接略去。
+
+\section{对偶如何连接当前扩展与全域必要性}
+\label{sec:bridge}
+\begin{proposition}[不依赖权重上界的完整省略域证书]
+设 $u\in\calU$，对所有非空 $S\ne C$ 均有
+\begin{equation}
+ (a_S^P)^\top u\le0,\qquad(a_S^Q)^\top u\le0.
+ \label{eq:globaldual}
+\end{equation}
+则对全部非负权重、合法共同树、C 无效的模型，有
+\begin{equation}
+ J_{\neg C}\ge b^\top u.
+ \label{eq:globalbound}
+\end{equation}
+\end{proposition}
+\begin{proof}
+删除零权重 C 后，每个模型只使用 $S\ne C$ 的原子。非负权重给出 $u^\top A\theta\le0$，从而
+\[
+ \nn{b-A\theta}_1\ge u^\top(b-A\theta)\ge b^\top u.
+\]
+对全部合法省略模型取最小即可。该条件还覆盖允许交叉原子的更大模型，因此是充分证书而非必要证书。
+\end{proof}
+可分别求解
+\begin{equation}
+ \max_{z\in\{0,1\}^n,\ z\ne0,\ z\ne z_C}z^\top H_P(u)z
+ \label{eq:globalprice}
+\end{equation}
+和 Q 通道验证此条件。\textbf{此时不能加入未经确认的旧块相容限制}。它复用 $zz^\top$ 提升，却没有权重乘积和逐时残差；需用最大化的有效上界确认没有违反列。条件失败只说明该充分证书不足。
+
+有限盒下可允许正内积。令
+\[
+ W_S(u)=M_R\pos{(a_S^P)^\top u}+M_X\pos{(a_S^Q)^\top u}.
+\]
+若 $\Gamma(u)$ 是所有合法省略族上 $\sum_SW_S(u)$ 的\emph{上界}，则 $J_{\neg C}\ge b^\top u-\Gamma(u)$。这连接候选筛选与全域补全，但计算 $\Gamma$ 本身可能困难；只计少量已见候选不保证得到上界。
+
+\subsection{连续证书可能必然不足}
+\begin{example}[交叉分解使禁块连续松弛为零]
+取四终端、$P=I,Q=0,Y=R_\star$，目标 $C=\{123\}$：
+\begin{equation}
+ R_\star=2I+J_{1234}+J_{123}
+ =\diag(1,1,1,2)+J_{1234}+J_{12}+J_{13}+J_{23}.
+ \label{eq:crossing}
+\end{equation}
+右端没有 C，权重都非负，但二元块交叉，不是合法树。故允许交叉的禁块连续问题最优值为零，其任何对偶都不能给正下界。
+
+合法省略树却必须有正损失。固定 $j=1$，对 $i=2,3$、$k=4$，真实列值相差 $2-1=1$，对称核总 L1 修改至少为 2；$i=1,k=4$ 的间隔为 3，修改代价至少为 3；根见证更大。因此 $J_{\neg C}\ge2$。保留共同块和 $\{12\}$、用 singleton 匹配对角，可达到损失 4，故
+\begin{equation}
+ 2\le J_{\neg C}\le4.
+ \label{eq:fourbounds}
+\end{equation}
+这里仅声称手推上下界，未声称禁块最优值已精确求出。
+\end{example}
+此例说明全原子连续松弛与列分层松弛可以互补。若缺口来自放松树结构，增加同一松弛的对偶数量也无法补上它。

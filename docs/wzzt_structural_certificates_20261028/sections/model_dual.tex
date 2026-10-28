@@ -1,0 +1,150 @@
+\section{当前结构与本文要解决的问题}
+\label{sec:current}
+\subsection{量测、树响应与识别对象}
+令终端集合为 $L=\{1,\ldots,n\}$，已观测根为 $0$。在 $T$ 个同步时刻定义
+\begin{equation}
+ P=[p_1,\ldots,p_T],\quad Q=[q_1,\ldots,q_T],\quad
+ Y_{it}=V_0(t)^2-V_i(t)^2,\qquad P,Q,Y\in\RR^{n\times T}.
+ \label{eq:data}
+\end{equation}
+采用负荷为正的一阶平方电压模型，内部注入为零或已计入模型：
+\begin{equation}
+ Y=RP+XQ+E,\qquad
+ R=\sum_{C\in\calF}r_Cz_Cz_C^\top,\quad
+ X=\sum_{C\in\calF}x_Cz_Cz_C^\top.
+ \label{eq:model}
+\end{equation}
+其中 $z_C\in\{0,1\}^n$ 是非空下游集合 C 的指示向量，$r_C,x_C\ge0$。平方电压响应权重吸收系数 2，结合标幺基准才能换算为物理阻抗。支撑族 $\calF$ 必须层状：任意两个成员相交时，一方包含另一方。R 与 X 使用相同支撑族，各自权重可以不同、可以为零。
+
+本文使用逐元素绝对值之和
+\begin{equation}
+ L(R,X)=\sav{Y-RP-XQ}:=\sum_{i,t}|Y_{it}-(RP+XQ)_{it}|.
+ \label{eq:loss}
+\end{equation}
+代码目标为 $L/N$，$N=nT$，多场景时为全部标量观测数。证明与阈值必须采用同一归一化。本文把观测 P/Q 固定为回归输入，不含未知源或潜在 P/Q 的联合优化。结论首先属于式~\eqref{eq:model} 的识别域；AC 失配和量测不确定性应由误差预算或另行扩大的模型处理。
+
+\begin{definition}[有效块与约化树]
+$r_C+x_C>0$ 的块称为有效块；两通道权重均为零的辅助块不计为存在。同支撑的串联线路合并，零增量隐藏层收缩。识别对象是由根和终端确定的约化树，不区分产生相同端口核的隐藏二度串联细节。
+\end{definition}
+
+\subsection{当前实现的优化顺序}
+权威实现为 \path{rnj_wzzt_core/rnj_wzzt}。当前主线为观测根平方电压差、约束 R/X 回归、RX75--RNJ 与块重采样筛选初始块、层状 L1 单块扩展，再在独立验证上用 one-SE 规则回选路径点。one-SE 指在最小验证误差的一个标准误范围内选较简单的路径模型。
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}p{0.21\linewidth}XX@{}}
+\toprule
+层次 & 当前优化对象 & 证书覆盖范围\\
+\midrule
+固定支撑重估 & 已有全部 R/X 权重的有界 L1 LP & 指定数据、支撑族及参数界\\
+单次扩展 & 一个新块；全部权重共同重估 & 固定旧族下的有界单块扩展\\
+完整前向路径 & 依次接受扩展；零权重重解无损时剪除非保护块 & 贪心路径，不是全树联合最优\\
+初始块与验证 & 初始块固定保留；路径中回选 & 不提供替换旧分支的搜索\\
+\bottomrule
+\end{tabularx}
+\caption{当前实现与证书对象。源码位置见附录~\ref{app:source}。}
+\end{table}
+
+当前 MILP 用 $z_i$ 表示新块成员，用 $h_{ij}=z_i z_j$、$v^R_{ij}=r_+h_{ij}$ 和 $v^X_{ij}=x_+h_{ij}$ 提升乘积。整数解处，$v^R,v^X$ 是新支路的核矩阵贡献；LP 松弛通常不对应真实支路。旧权重已共同重估，仍缺少正权重错误块的主动替换和完整替代树域审查。数值上界扩大时，前向算法从初始族重启。
+
+\subsection{与 NJ 的差异及两条拓展方向}
+任一单通道核可转换为
+\begin{equation}
+ d_{ij}=R_{ii}+R_{jj}-2R_{ij}
+ =\sum_Cr_C|z_{C,i}-z_{C,j}|,\qquad d_{0i}=R_{ii}.
+ \label{eq:kernelmetric}
+\end{equation}
+反向有 $R_{ij}=(d_{0i}+d_{0j}-d_{ij})/2$。完整精确的根锚定距离下，二者描述相同约化树。含噪时，WZZT 按量测拟合，NJ 按距离组合递归合并；四节点 NJ 与四点判据等价\citep[\S3, Proposition~6]{mihaescu2007}。
+
+以仅有功的平方损失为例，若 $PP^\top$ 可逆，令 $\widehat R=YP^\top(PP^\top)^{-1}$，则
+\begin{equation}
+ \nn{Y-RP}_F^2=\nn{Y-\widehat RP}_F^2+
+ \operatorname{tr}\!\left[(R-\widehat R)PP^\top(R-\widehat R)^\top\right].
+ \label{eq:inputmetric}
+\end{equation}
+展开平方并用 $(Y-\widehat RP)P^\top=0$ 即可证明。直接拟合按输入确定的尺度比较核误差；保留 $\widehat R$ 和 $PP^\top$ 的后处理也能使用同一准则，因此这不是不可转移的信息优势。
+
+\textbf{方向 A} 保留当前扩展域，用 LP 对偶减少候选求解；\textbf{方向 B} 允许其他块完整补全和替换，用有效下界判断目标块是否必要。A 的局部无增益不能替代 B 的全域必要性。
+
+\section{固定支撑 LP 的对偶与安全候选筛选}
+\label{sec:dual}
+\subsection{统一特征与对偶推导}
+取与源码等价的固定向量化顺序，令
+\begin{equation}
+ b=\vecop(Y),\quad
+ a_C^P=\vecop(z_Cz_C^\top P),\quad
+ a_C^Q=\vecop(z_Cz_C^\top Q).
+ \label{eq:features}
+\end{equation}
+堆叠旧族 B 的两通道列为 $A_B$，对应权重为 $\theta$，正的有限上界为 $M_B$：
+\begin{equation}
+ J_B=\min_{0\le\theta\le M_B}\nn{b-A_B\theta}_1.
+ \label{eq:fixed}
+\end{equation}
+\begin{proposition}[盒约束 L1 LP 对偶]
+定义 $\calU=\{u:\nn{u}_\infty\le1\}$，则
+\begin{equation}
+ J_B=\max_{u\in\calU}D_B(u),\qquad
+ D_B(u)=b^\top u-\sum_{k\in B}M_k\pos{a_k^\top u}.
+ \label{eq:dual}
+\end{equation}
+求和包含每块的 P/Q 两列。
+\end{proposition}
+\begin{proof}
+引入自由残差 e 和约束 $A_B\theta+e=b$。以 u 乘 $b-A_B\theta-e$，拉格朗日函数为 $\nn e_1+u^\top(b-A_B\theta-e)$。对 e 取下确界，$\nn u_\infty\le1$ 时结果为零，否则为 $-\infty$。再对 $\theta_k\in[0,M_k]$ 最小化，得到 $-M_k\pos{a_k^\top u}$。原 LP 总可行且最优值有限，强对偶给出等式。
+\end{proof}
+移除有限上界时，对偶改为 $\max b^\top u$，约束 $\nn u_\infty\le1$、$A_B^\top u\le0$。有界模型中任意盒内 u 均可通过惩罚项产生合法下界；无界模型不能省略列可行性检查。
+
+残差非零处 $u_\ell=\operatorname{sign}(e_\ell)$，零残差处可取 $[-1,1]$ 内的值。$0<\theta_k<M_k$ 时有 $a_k^\top u=0$。u 是最优拟合损失对量测的次梯度，权重边界乘子是放宽参数域的损失敏感度；它们通常不是电价、物理电流或线路存在概率。整数 MILP 本身也没有这一 LP 影子价格解释。
+
+\subsection{安全界、并列结构与证书复用}
+\begin{theorem}[允许旧权重共同重估的筛选界]
+对任意 $u\in\calU$ 和合法新块 C，
+\begin{equation}
+ J_{B\cup C}\ge\ell_C(u):=D_B(u)
+ -M_C^P\pos{(a_C^P)^\top u}
+ -M_C^Q\pos{(a_C^Q)^\top u}.
+ \label{eq:screen}
+\end{equation}
+\end{theorem}
+\begin{proof}
+新增两列后，对偶仍由同一个 $\calU$ 参数化，目标恰为右端。弱对偶即得结论；推导未固定任何旧权重。
+\end{proof}
+保存证书库 $\{u^{(1)},\ldots,u^{(H)}\}\subset\calU$ 后，可以取
+\begin{equation}
+ \ell_C^{\rm bank}=\max\{0,\ell_C(u^{(1)}),\ldots,\ell_C(u^{(H)})\}
+ \le J_{B\cup C}.
+ \label{eq:bank}
+\end{equation}
+设 $U_{\rm best}$ 是同一扩展域内的合法可行目标。严格大于上界时可排除 C；相等时若只求一个最优解可以不再求它，但若保留全部并列或容差内解释，就须保留。下界不足只表示未排除。
+
+\begin{corollary}[无增益与零权重不同]
+若 u 是旧问题最优对偶，且新增两列的内积均不大于零，则 $J_{B\cup C}=J_B$。若两内积严格为负且上界为正，则两个新权重在全部扩展最优解中均为零。
+\end{corollary}
+\begin{proof}
+前一结论由筛选界和新权重取零的可行上界夹逼得到。后一结论中，新列的上界乘子可取零，下界乘子为 $-a_k^\top u>0$；任意原始/对偶最优解的互补条件迫使相应权重为零。
+\end{proof}
+结论只针对固定 B 的本轮扩展；加入其他块后应重新计算，不能永久删除一个物理块。
+
+\subsection{不能替代安全界的两个判据}
+\begin{example}[正内积仍可无增益]
+旧模型无变量，$b=(1,0)^\top$，最优值为 1。新增 $a=(1,1)^\top$、$0\le t\le1$ 后，目标 $|1-t|+|t|=1$。旧最优对偶可取 $(1,1)^\top$，新列内积为 2，仍无增益。取 $(1,-1)^\top$ 可证无增益，但正的新权重仍可属于并列最优解。
+\end{example}
+\begin{example}[秩不增加仍可改善]
+一次输入 $p=(1,1)^\top$，旧族为两个 singleton，权重均在 $[0,1]$，量测为 $(2,2)^\top$。旧特征张成 $\RR^2$，可行预测却只在 $[0,1]^2$，最小损失为 2。新增共同块列 $(2,2)^\top$ 后，权重取 1 即精确拟合。秩未描述非负和上界所确定的预测集。
+\end{example}
+经典 Gap Safe 的球形区域利用 Lasso 平方损失的对偶曲率\citep[\S1--3]{fercoq2015}。这里的对偶分段线性且可能不唯一，不能直接移植半径公式。当前最优对偶也未必给最强候选界，第~\ref{sec:example} 节给出严格例子。
+
+\subsection{块定价与数值证书}
+将 u 还原为 $U\in\RR^{n\times T}$，则
+\begin{equation}
+ (a_C^P)^\top u=\sum_t(z_C^\top p_t)(z_C^\top u_t)
+ =z_C^\top H_P(u)z_C,\quad
+ H_P(u)=\frac{PU^\top+UP^\top}{2}.
+ \label{eq:quadratic}
+\end{equation}
+Q 通道相同。每个证书可压缩为两个 $n\times n$ 矩阵；若候选为完整子块之并，设子块指示矩阵为 W，还可压缩为 $W^\top H_PW$。这均为精确恒等式。
+
+对候选区域内最大内积或惩罚项，可复用 $h_{ij}=z_i z_j$ 的整数提升，省去逐时绝对残差变量。最大化的\textbf{全局上界}才能证明没有遗漏的大内积；可行候选仅提供下界。定价仍有组合代价，尚无总时间收益结论。
+
+数值证书应先使 u 满足盒约束，再重算 $D_B$ 和全部惩罚。采用内积区间时，取 $b^\top u$ 下端和 $a_k^\top u$ 上端得到保守下界。不能用未证明相等的原始目标替代 $D_B$。参数界变化后须按新界重算。平均损失的对偶盒为 $|u_\ell|\le1/N$；追加量测时，旧平均损失证书须乘 $N_{\rm old}/N_{\rm new}$ 并对新行补零，不能原值直接复用。
