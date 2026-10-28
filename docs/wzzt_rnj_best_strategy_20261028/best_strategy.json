@@ -1,0 +1,318 @@
+{
+  "schema_version": 1,
+  "strategy_id": "multistart_original_rule",
+  "reference_date": "2026-10-28",
+  "scope": "highest mean clade F1 among tested versions on the existing 80-input benchmark",
+  "configuration_role": "machine-readable strategy specification; not consumed by an existing --config CLI",
+  "workspace": "D:\\0-github_workspace\\Topo",
+  "python_executable": "D:/apps/miniconda3/envs/Topo/python.exe",
+  "reference_code_commit": "a5f8f1ec",
+  "reference_branch": "codex/source-ac96-benchmark-20261018",
+  "inputs": {
+    "columns": "shared ordered terminal labels; root excluded",
+    "root_label": 1,
+    "channels": [
+      "P",
+      "Q",
+      "V",
+      "root"
+    ],
+    "target": "y[t,i] = root[t]**2 - V[t,i]**2",
+    "fit_preprocess": "raw",
+    "fit_intercept": false,
+    "external_hidden_source": false,
+    "truth_used_by_estimator": false,
+    "prior_benchmark_truth_tuning": true,
+    "truth_retuned_in_latest_patch_comparison": false
+  },
+  "candidate_pool": {
+    "preprocesses": [
+      "raw",
+      "demean"
+    ],
+    "demean_blocks": 3,
+    "tree_algorithms": [
+      "NJ",
+      "RNJ"
+    ],
+    "geometries": [
+      "R",
+      "RX75",
+      "X"
+    ],
+    "tree_threshold_factors": [
+      0,
+      0.04,
+      0.08,
+      0.16,
+      0.24
+    ],
+    "add_singletons": true,
+    "add_full_terminal_support": true,
+    "nominal_tree_count": 60,
+    "order": [
+      "support_size",
+      "terminal_index_tuple"
+    ],
+    "deduplicate": true,
+    "outside_pool_discovery": false
+  },
+  "dense_front": {
+    "function": "rnj_wzzt.estimation.multiscenario.fit_projected_sensitivity",
+    "constraint_mode": "ordered",
+    "alpha": 0.0,
+    "diagonal_margin_ratio": 1e-06,
+    "max_iterations": 5000
+  },
+  "geometry_calibration": {
+    "function": "research_experiments.rnj.rx75_edge_floor.calibrate_rx75_floor",
+    "source": "pre-tree raw dense R/X for final calibration; each branch has its own dense geometry for pool construction",
+    "channel_scale": "mean of all strictly positive M_ii + M_jj - 2*M_ij; fallback 1; floor 1e-12",
+    "a": "0.75 / mu_r",
+    "b": "0.25 / mu_x",
+    "median_root_depth": "median(diag(a * R_dense + b * X_dense))",
+    "recalibrate_from_path": false,
+    "fixed_r_x_ratio": false
+  },
+  "fixed_family_fit": {
+    "class": "research_experiments.wzzt_retune.engine.PoolLP",
+    "loss": "mean absolute squared-voltage-drop residual",
+    "coefficient_L1_penalty": false,
+    "r_bounds": [
+      0,
+      2
+    ],
+    "x_bounds": [
+      0,
+      2
+    ],
+    "prune_nonleaf_if_max_r_x_at_most": 1e-09,
+    "keep_singletons_at_zero": true,
+    "solver": "gurobi",
+    "solver_parameters": {
+      "Threads": 1,
+      "Method": 1,
+      "TimeLimit": 15.0,
+      "FeasibilityTol": 1e-09,
+      "OptimalityTol": 1e-09
+    },
+    "required_native_status": 2,
+    "mip_rel_gap": null,
+    "mip_rel_gap_reason": "continuous fixed-family LP plus finite candidate enumeration"
+  },
+  "rnj_bank": {
+    "preprocess": "raw",
+    "count_before_family_deduplication": 15,
+    "geometry_order": [
+      "R",
+      "RX75",
+      "X"
+    ],
+    "threshold_order": [
+      0,
+      0.04,
+      0.08,
+      0.16,
+      0.24
+    ],
+    "initial_family": "full ordinary RNJ native family plus all singleton leaves",
+    "hard_frozen_internal_supports": false
+  },
+  "search": {
+    "function": "research_experiments.wzzt_retune.engine.search",
+    "repair": true,
+    "primary_source": "raw_RX75_0.16 native_family",
+    "primary_seconds": 25.0,
+    "maximum_extra_starts": 2,
+    "per_extra_start_seconds": 25.0,
+    "maximum_declared_search_seconds": 75.0,
+    "maximum_steps": "3*n per path",
+    "relative_gain_threshold": 0.001,
+    "absolute_gain_threshold": 1e-10,
+    "candidate_objective_tie_tolerance": 1e-12,
+    "move": "retain compatible old supports, remove all crossing old supports, add one pool support, jointly refit",
+    "keep_initial_and_all_accepted_path_points": true,
+    "stop_reasons": [
+      "pool_local_optimum",
+      "pool_wall_limit",
+      "step_limit"
+    ],
+    "budget_scope": "path-local wall-clock caps; excludes bank, start preparation and AC; current batch shares LP caches",
+    "deadline_check": "before each candidate; may overrun by the current LP call",
+    "experiment_worker_hard_seconds": 300
+  },
+  "extra_start_preparation": {
+    "source": "15 raw RNJ bank fits",
+    "contract_before_ranking": true,
+    "contract_factor": 0.16,
+    "joint_training_refit_after_contraction": true,
+    "ranking": [
+      "validation_mae_of_refit",
+      "support_count_of_refit",
+      "original_RNJ_bank_index"
+    ],
+    "deduplicate_by": "complete canonical support family",
+    "preseed_seen_with": "primary native_family"
+  },
+  "final_selection": {
+    "function": "research_experiments.wzzt_retune.selection.select",
+    "selection": "validation_simple_3pct",
+    "candidate_order": [
+      "parent raw RNJ_WZZT list: 15 bank fits then original 25s path",
+      "extra start 0 entire path",
+      "extra start 1 entire path"
+    ],
+    "score_stage": "before final output contraction; extra starts may already have undergone their own preparation contraction/refit",
+    "validation_metric": "mean absolute squared-voltage-drop residual",
+    "relative_tolerance": 0.03,
+    "absolute_tolerance": 1e-12,
+    "eligible_rule": "validation_mae <= (1 + 0.03) * minimum_validation_mae + 1e-12",
+    "eligible_order": [
+      "support_count_before_final_contraction",
+      "validation_mae",
+      "candidate_list_index"
+    ],
+    "expand_to_all_contracted_refitted_bank_candidates": false
+  },
+  "final_output": {
+    "contract_after_selection": true,
+    "resolution_factor": 0.16,
+    "strength": "a*r + b*x",
+    "keep_nonleaf_rule": "strength + 1e-10 >= 0.16 * raw_median_root_depth",
+    "absolute_tolerance": 1e-10,
+    "keep_all_singletons": true,
+    "refit_after_final_contraction": false,
+    "reselect_after_final_contraction": false
+  },
+  "AC": {
+    "used_to_select_topology": false,
+    "used_as_additional_evaluation": true,
+    "training_local_max_nfev": 12,
+    "test_parameter_refit": false,
+    "gate_enabled": false
+  },
+  "benchmark": {
+    "cases": {
+      "paper15": 15,
+      "soumalas11": 11,
+      "flynn16": 16,
+      "pengwah18": 18
+    },
+    "conditions": {
+      "ideal_ac": {
+        "pq_noise": 0.0,
+        "v_noise": 0.0,
+        "load_factor": 1.0,
+        "low_xr": false
+      },
+      "reference": {
+        "pq_noise": 0.005,
+        "v_noise": 0.0002,
+        "load_factor": 1.0,
+        "low_xr": false
+      },
+      "high_voltage_noise": {
+        "pq_noise": 0.005,
+        "v_noise": 0.001,
+        "load_factor": 1.0,
+        "low_xr": false
+      },
+      "higher_load": {
+        "pq_noise": 0.005,
+        "v_noise": 0.0002,
+        "load_factor": 1.5,
+        "low_xr": false
+      },
+      "low_xr": {
+        "pq_noise": 0.005,
+        "v_noise": 0.0002,
+        "load_factor": 1.0,
+        "low_xr": true
+      }
+    },
+    "N": [
+      24,
+      48,
+      96,
+      288
+    ],
+    "physical_days": 3,
+    "original_samples_per_day": 96,
+    "train_replicate": 0,
+    "validation_replicate": 2,
+    "test_replicate": 1,
+    "validation_rows": 288,
+    "test_rows": 288,
+    "groups": 80,
+    "selected_records_all_versions": 560,
+    "clade_f1_support_sizes": "2 through n-1; singletons/full terminal support excluded",
+    "mean_F1": 0.9252397561588739,
+    "baseline_mean_F1": 0.9194371947496947,
+    "wins": 5,
+    "ties": 72,
+    "losses": 3,
+    "exact_recoveries": 65,
+    "R_relative_Frobenius_error": 0.12058784062251801,
+    "X_relative_Frobenius_error": 0.394586487990752,
+    "test_AC_relative_voltage_RMSE": 0.0004672212999463795,
+    "selected_origins": {
+      "tree_bank": 50,
+      "multistart_0": 24,
+      "multistart_1": 5,
+      "tree_initialized_correction": 1
+    },
+    "regressions": [
+      {
+        "case": "paper15",
+        "condition": "high_voltage_noise",
+        "N": 48,
+        "baseline_F1": 0.8333333333333334,
+        "enhanced_F1": 0.7692307692307692
+      },
+      {
+        "case": "flynn16",
+        "condition": "high_voltage_noise",
+        "N": 48,
+        "baseline_F1": 0.5,
+        "enhanced_F1": 0.16666666666666666
+      },
+      {
+        "case": "pengwah18",
+        "condition": "high_voltage_noise",
+        "N": 48,
+        "baseline_F1": 0.375,
+        "enhanced_F1": 0.3529411764705882
+      }
+    ],
+    "new_random_repeats": false
+  },
+  "artifacts": {
+    "catalog": "D:\\0-github_workspace\\Topo\\docs\\wzzt_rnj_budget_20261028\\catalog.sqlite",
+    "selected_models": "D:\\0-github_workspace\\Topo\\docs\\wzzt_rnj_budget_20261028\\selected_models.json",
+    "report": "D:\\0-github_workspace\\Topo\\docs\\wzzt_rnj_budget_20261028\\README.md",
+    "full_output": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_rnj_budget_20261028_full",
+    "parent_output": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_retune_20261028_round2",
+    "original_data_root": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_systematic_20261027_round1\\data"
+  },
+  "interfaces": {
+    "find": "research_experiments.wzzt_budget.records.find",
+    "load": "research_experiments.wzzt_budget.records.load",
+    "load_trace": "research_experiments.wzzt_budget.records.load_trace",
+    "derive_best_from_saved_paths": "research_experiments.wzzt_budget.variants.multistart_original_rule"
+  },
+  "implementation_status": {
+    "existing_records_reusable": true,
+    "saved_path_best_variant_assembly_verified": true,
+    "best_variant_key_present_in_original_result_models": false,
+    "standalone_arbitrary_observation_inference_wrapper": false,
+    "independent_best_method_end_to_end_timing_verified": false
+  },
+  "reporting": {
+    "retain_baseline": true,
+    "retain_all_failure_denominators": true,
+    "retain_selected_origin_and_search_stop": true,
+    "catalog_validation_mae_stage": "actual final contracted model, measured again for reporting; differs from ranking score",
+    "diagnostic_json_contains_posthoc_truth": true,
+    "certificate_scope": "fixed-family LP optimality and local finite-pool neighborhood; topology/global tree claims separately evaluated"
+  }
+}
