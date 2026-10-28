@@ -81,3 +81,13 @@ A2d 归档同时保存原运行源码与最终汇总来源。复现旧数值用�
 - 本轮46项相关测试通过；没有上传家庭原始负荷。N0输入继续使用此前私有完整基线目录，哈希记于协议中。
 
 - 本轮补充5/5 RNJ-only首步无上界LP，同样排除cap2解释，结果rnj_only_bound_results.json；与原7LP分开。原默认作为下一步三波动条件的固定初始化，仍未执行该控制。
+
+
+## 2026-10-28 DR有限候选池完整矩阵
+
+- 主报告：dr_pool_v2/REPORT.md；运行和数据入口：dr_pool_v2/README.md。
+- 已完成48格、42unique；全部结束。不要重跑prepare或重新求解；--resume仅用于核对已完成任务复用。
+- 代码提交a58cf7ea；完整结果、协议、逐格结构、配对评价和独立复算：evidence/dr_pool_v2/。
+- 私有根：C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_pool_v2。physical_v1含新观测；identification_v1含42fit_cache与48任务；audit含首批和全量只读回执。家庭原始数据不上传。
+- 恢复历史原始来源：同scratch下wzzt_data_calibration/flow_runs/paper15_iflex_v1。
+- 本批DR无恢复收益；多初值搜索在高噪N24改善内部块但叶零权仍保留。继续方向是预声明跨日期/映射/同菜单位置对照，不恢复旧A2宽度代理。
