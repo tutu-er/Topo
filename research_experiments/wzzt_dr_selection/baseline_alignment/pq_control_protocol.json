@@ -1,0 +1,111 @@
+{
+  "protocol_id": "paper15_input_dependence_control_v1",
+  "date": "2026-10-28",
+  "status": "planned_not_executed",
+  "purpose": "After fixed-observation bound and initialization diagnosis, separate node-relative variation from P/Q innovation dependence without changing the physical graph or amplifying load.",
+  "gates": [
+    "Complete fixed N0 candidate LP bound audit.",
+    "Resolve the reported parameter domain and freeze one initialization policy using stage2 evidence.",
+    "Do not start input controls to hide an unresolved initialization or bound issue."
+  ],
+  "historical_source": {
+    "file": "experiments\\run_laminar_l1_milp.py",
+    "sha256": "d0b3c725ad8320963c62b3566158818e828d51df2bbbffd870e90af237c75f70",
+    "function": "_continuous_pq",
+    "original_use": "synthetic algorithm validation with exact linear R/X response; not empirical AC demand"
+  },
+  "network": {
+    "case": "paper15/reference",
+    "impedance_scale": 1.0,
+    "root_branch_shortening": false,
+    "same_graph_all_conditions": true,
+    "true_parameters_use": "response generation and post-run scoring only"
+  },
+  "input_law": {
+    "P": "P0_i * max(0.15, 1 + 0.22*cP + 0.24*uP_i + 0.10*sP_i)",
+    "Q": "Q0_i * max(0.15, 1 + 0.18*cQ + 0.28*uQ_i + 0.12*sQ_i)",
+    "rho_P": 0.78,
+    "rho_Q": 0.72,
+    "local_standardization": "same historical per-column mean removal and standard deviation normalization",
+    "deterministic_curves": "historical common and terminal-phase functions, unchanged across conditions",
+    "marginal_boundary": "same univariate generating law and local component amplitude; finite realized total variances are reported, not falsely asserted identical or rescaled after observing outcomes"
+  },
+  "conditions": [
+    {
+      "id": "C0",
+      "name": "common_local_coupled_pq",
+      "p_innovations": "broadcast first column of the locked P innovation array to every node",
+      "q_innovations": "same common innovations as P, filtered with rho_Q",
+      "interpretation": "relative variation still exists in deterministic terminal phases; stochastic local mode is common"
+    },
+    {
+      "id": "C1",
+      "name": "node_local_coupled_pq",
+      "p_innovations": "locked independent-per-node P innovation array",
+      "q_innovations": "same per-node innovations as P, filtered with rho_Q",
+      "interpretation": "C0 vs C1 changes stochastic spatial dependence; P/Q are driven by common innovations, not asserted exactly proportional"
+    },
+    {
+      "id": "C2",
+      "name": "node_local_independent_pq",
+      "p_innovations": "identical to C1",
+      "q_innovations": "separate locked independent Q innovation array",
+      "interpretation": "C1 vs C2 changes P/Q innovation dependence; C2 reproduces the historical generator law"
+    }
+  ],
+  "random_streams": {
+    "per_split_scenario": "instantiate original seed RNG; draw complete P innovations then Q innovations once; retain both for all conditions; no outcome-dependent redraw",
+    "train_replicate": 2,
+    "validation_replicate": 3,
+    "test_replicate": 4,
+    "base_scenario_seeds": [
+      42,
+      7,
+      21
+    ],
+    "seed_formula": "base_seed + 100003*replicate",
+    "scenario_count_per_split": 3,
+    "rows_per_scenario": 96
+  },
+  "first_response_domain": {
+    "model": "exact linear Y=P R_true.T + Q X_true.T",
+    "noise": "none in first mechanism control; all3 conditions use the same rule",
+    "objective": "same raw average absolute error, no intercept, no centering",
+    "claim_scope": "algorithm mechanism only; no AC/field or demand-response effectiveness claim"
+  },
+  "initialization": {
+    "policy": "choose once after fixed-N0 initialization audit, before generating control outcomes, and use exactly the same initial family in all3 conditions",
+    "if_RNJ_prior_used": "only original frozen N0 algorithm-selected boundary supports; no truth-derived blocks",
+    "rnj_can_be_scored_separately": "recomputed RNJ, if used for a separate comparator, must not silently alter the fixed-family WZZT mechanism comparison"
+  },
+  "solver": {
+    "parameter_domain": "must be declared after bound audit; a selected-candidate-only non-touching check is insufficient for domain coverage",
+    "backend": "HiGHS",
+    "per_solve_limit_seconds": 1800,
+    "new_experiments_this_turn": 0,
+    "first_planned_scope": "first4 accepted extensions per condition, with explicit prefix truncation; no full-family claim",
+    "no_relaxed_optimality_acceptance": true,
+    "data_bound_transfer": "A data-derived bound from N0 does not automatically apply to a new P/Q control dataset. Recheck the domain for every condition before calling it an unrestricted-model comparison.",
+    "rank_deficient_control": "If a control has unbounded indistinguishable parameter directions, retain that status. A common predeclared finite box permits only a bounded-algorithm comparison; it is not a proof that the box covers the original unbounded model."
+  },
+  "evaluation": [
+    "all3 conditions and all failed/timeout/bound-limited attempts retained",
+    "first4 support choices and whether root clades enter, using truth only after choice",
+    "training loss, validation loss, candidate coefficient bounds and actual active constraints",
+    "effective family recovery only on a completed final path; never infer it from a successful prefix",
+    "nodewise means/std/clipping fractions, P/Q correlation and spatial correlation as descriptive checks only"
+  ],
+  "future_AC_check": "Only after the same algorithm/settings have been frozen, replay the same generated P/Q trajectories through the unchanged AC and meter models for all3 conditions. This is a separate paired domain check, not pooled with the noiseless linear control.",
+  "exclusions": [
+    "no DR price comparison",
+    "no root-line shortening",
+    "no impedance x5 restoration",
+    "no reduced measurement noise selected to improve outcomes",
+    "no post-outcome seed/variance tuning",
+    "no extra proxy indicator"
+  ],
+  "interpretation_boundaries": {
+    "common_profile": "If P_t=a_t*p0, Q_t=a_t*q0, p0>0 and v=R*p0+X*q0>=0, the unrestricted nonnegative leaf-only model diag(v_i/p0_i), X=0 fits exactly. Greater common amplitude alone does not distinguish roots.",
+    "proportional_pq": "For Q=kappa*P with kappa>0, R/X are confounded but K=R+kappa*X retains nonnegative common block supports. With informative P, topology need not be unidentifiable. Independent Q is not assumed to improve topology."
+  }
+}

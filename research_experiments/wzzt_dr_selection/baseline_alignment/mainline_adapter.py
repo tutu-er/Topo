@@ -1,8 +1,9 @@
-"""Observed-data RNJ -> WZZT adapter using the current production defaults.
+"""Observed-data RNJ -> WZZT adapter with explicit initialization control.
 
 The CLI pipeline generates synthetic data internally. This research adapter
 replaces only that data preparation: RNJ selection calls the production stage,
-and MILP arguments match ``pipeline._fit_milp_variants``. A complete RNJ
+and default MILP arguments match ``pipeline._fit_milp_variants``. The explicit
+``rnj_only`` mode omits preloaded leaf atoms without aggregating observations. A complete RNJ
 fixed-family fit is then compared with every WZZT path point by the same
 validation rule. WZZT-only outputs remain separate from the final selection.
 It never accepts a physical network or topology truth.
@@ -81,13 +82,19 @@ def _input_hash(scenarios):
     return digest.hexdigest()
 
 
-def fit_mainline_observed(training, validation, root_label, output_dir, overrides=None):
+def fit_mainline_observed(training, validation, root_label, output_dir, overrides=None,
+                          *, initialization_mode="leaf_plus_rnj"):
     """Fit the complete production selection/search sequence to observed inputs.
 
     All exposed overrides use ``pipeline.run`` names. Defaults come from that
     entrypoint; other core parameters are left unpassed, exactly as in the
-    production hybrid call. The root label is an observed-label convention.
+    production hybrid call. Explicit ``rnj_only`` changes only the initial
+    support list; the historical default ``leaf_plus_rnj`` remains available.
+    Both modes preserve all terminal observations and joint weight fitting.
+    The root label is an observed-label convention.
     """
+    if initialization_mode not in ('leaf_plus_rnj', 'rnj_only'):
+        raise ValueError('initialization_mode must be leaf_plus_rnj or rnj_only')
     effective, supplied = _options(overrides)
     train = observed._normalize_observed(training, 'training')
     valid = observed._normalize_observed(validation, 'validation')
@@ -117,6 +124,7 @@ def fit_mainline_observed(training, validation, root_label, output_dir, override
     receipt = {'status':'running','stage':'rnj','has_model':False,
         'entrypoint':'production _select_case_rnj -> fit_laminar_l1_sensitivity',
         'initializer':'rx75_rnj_plus_milp','rnj_stage_called':True,
+        'initialization_mode':initialization_mode, 'terminal_aggregation':False,
         'production_default_pipeline_called':False,'production_rnj_wzzt_stages_called':True,
         'external_observations_replace_synthetic_data_preparation':True,
         'truth_input_allowed':False,'global_tree_optimality_claim':False,
@@ -156,8 +164,10 @@ def fit_mainline_observed(training, validation, root_label, output_dir, override
         receipt['rnj'] = _selection_record(selection)
         observed._write_json(output/'rnj.json',receipt['rnj'])
         positions = {label:index for index,label in enumerate(labels)}
-        supports = [*pipeline._leaf_singletons(len(labels)),
-                    *(tuple(positions[label] for label in sorted(clade)) for clade in selection.selected)]
+        selected_supports = [tuple(sorted(positions[label] for label in clade))
+                             for clade in selection.selected]
+        supports = (selected_supports if initialization_mode == 'rnj_only' else
+                    [*pipeline._leaf_singletons(len(labels)), *selected_supports])
         receipt.update({'stage':'wzzt','initial_support_indices':supports})
         observed._write_json(checkpoint,receipt)
         fitted = pipeline.fit_laminar_l1_sensitivity(

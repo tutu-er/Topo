@@ -202,3 +202,32 @@ def test_normal_cli_wrapper_saves_final_comparison_without_overwriting_search(mo
     assert final['selection']['selected_origin'] == 'complete_rnj'
     assert len(final['selection']['selected']['support_indices']) == 4
     assert not (tmp_path/'runner.lock').exists()
+
+
+def test_rnj_only_mode_changes_only_supports_without_aggregating_observations(monkeypatch, tmp_path):
+    train, valid = [scenario('train', 1)], [scenario('valid', 2)]
+    monkeypatch.setattr(pipeline, '_select_case_rnj', lambda *a, **k: selection())
+    seen = {}
+    def fit(s, **kw):
+        seen.update(kw)
+        assert s[0]['P_terminal'].shape == (32, 3)
+        assert s[0]['P_terminal'].columns.tolist() == [101, 102, 103]
+        assert kw['validation_scenarios'][0]['P_terminal'].shape == (32, 3)
+        assert kw['initial_supports'] == [(0, 1)]
+        return fitted(s, kw['validation_scenarios'], kw['initial_supports'])
+    monkeypatch.setattr(pipeline, 'fit_laminar_l1_sensitivity', fit)
+    result = adapter.fit_mainline_observed(train, valid, 1, tmp_path, initialization_mode='rnj_only')
+    assert result['status'] == 'complete'
+    assert result['initialization_mode'] == 'rnj_only'
+    assert not result['terminal_aggregation']
+    assert result['initial_support_indices'] == [[0, 1]]
+    assert seen['r_upper_bound'] == seen['x_upper_bound'] == 2.
+    assert seen['solver'] == 'highs' and seen['time_limit'] == 1800.
+    assert len(result['selected']['support_indices']) == 1
+
+
+def test_unknown_initialization_mode_rejected_before_creating_output(tmp_path):
+    with pytest.raises(ValueError, match='initialization_mode'):
+        adapter.fit_mainline_observed([scenario('train', 1)], [scenario('valid', 2)],
+                                      1, tmp_path, initialization_mode='truth_blocks')
+    assert not (tmp_path/'wzzt.json').exists()

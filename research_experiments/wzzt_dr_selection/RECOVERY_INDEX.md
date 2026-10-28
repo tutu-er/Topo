@@ -1,6 +1,6 @@
 # WZZT-DR 恢复索引
 
-2026-10-27。当前路线已收口，自动续跑结束；恢复材料用于查证或另行授权的新任务，不作为重启原批次的指令。
+2026-10-28。原A2价格指标路线已收口，自动化已删除。用户随后授权的数据环境与正常WZZT基线审查按下方新增记录接续；以STATUS.md最上方为当前状态，不重启原批次。
 
 工作树：C:\Users\23761\.codex\worktrees\wzzt-dr-selection\Topo
 分支：codex/wzzt-dr-selection-20261027
@@ -44,7 +44,7 @@ A2d 归档同时保存原运行源码与最终汇总来源。复现旧数值用�
 
 ## 未开始与数据边界
 
-B1 八节点闭环、B2 锁定测试和工程网络 C：未开始。iFlex 只有全文、元数据及3个小CSV核验；完整家庭负荷未读取，价格行为未实证校准。没有上传家庭原始负荷、订阅论文全文或浏览器认证信息。
+原A2收口时：B1 八节点闭环、B2 锁定测试和工程网络 C未开始，iFlex仅全文与小CSV已核验。后续已完成完整负荷校准及正常接口，详见STATUS.md与data_calibration/REPORT.md；原A2的未完成范围不能当成后续环境现状。没有上传家庭原始负荷、订阅论文全文或浏览器认证信息。
 
 重新启动须先满足收口报告的数学／方法证据条件。当前没有待自动执行的实验。
 
@@ -70,3 +70,12 @@ B1 八节点闭环、B2 锁定测试和工程网络 C：未开始。iFlex 只有
 - 错误诊断：`wrong_block_diagnosis.py`及`WRONG_BLOCK_DIAGNOSIS.md`；19/19固定支撑LP，不重跑。证据含执行前协议、原输入/源码hash、独立损失核验和loader版本边界。
 - 根部难例：`root_case_protocol.json`、`ROOT_CASE_DESIGN.md`、`root_geometry_audit.json`。3个长度比例的精确几何检查已完成；带噪声观测及实际WZZT未运行。保存原协议hash，不把几何结果当带噪声效果。`root_case_controls.json`另锁定简单RNJ容差对照，未运行新数据。
 - 39项相关测试通过；无未完成求解进程，无DR新比较，无自动化。
+
+
+## 2026-10-28：固定观测、上界与初始化
+
+- 先读 `baseline_alignment/BOUNDS_INITIALIZATION_REPORT.md`。证据目录 `evidence/baseline_bounds_init_v3/`：7/7无上界固定族LP已核验；原四个合法单真块仍均输给已知错误候选。
+- `initialization_audit.py` 只新跑RNJ-only前4次接受扩展，旧模式直接复用。当前执行记录 `initialization.json` 和PID锁不可覆盖；先读状态并核验进程，禁止重复启动。前缀不是完整恢复试验。
+- 正常研究入口的 `initialization_mode` 明确支持 `leaf_plus_rnj`（旧默认）及 `rnj_only`。连续权重不锁定、原始终端与残差不聚合，完整RNJ最终选模仍与WZZT搜索单列。
+- `PQ_CONTROL_PLAN.md` / `pq_control_protocol.json` 是尚未执行的三种输入依赖关系对照。根馈线缩短与需求响应比较暂停。
+- 本轮46项相关测试通过；没有上传家庭原始负荷。N0输入继续使用此前私有完整基线目录，哈希记于协议中。
