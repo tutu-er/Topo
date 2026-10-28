@@ -76,3 +76,12 @@ def test_warm_started_free_solve_retains_an_auditable_improved_model():
             data=read(record)
             if data["accepted"]:assert data["selected_primal_audit"]["feasible"]
         lp.close()
+
+
+def test_common_parameter_tuning_does_not_mix_per_instance_oracles():
+    from research_experiments.wzzt_retune.evaluate import choose_index
+    scores=np.array([[1.,.75],[0.,.75]])
+    selected=choose_index(scores)
+    assert selected==1
+    assert scores[:,selected].mean()==.75
+    assert scores.max(axis=1).mean()==.875

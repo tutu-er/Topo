@@ -12,7 +12,7 @@ def configurations(method):
     return [dict(preprocess=p,resolution=t,selection=s,repair=r)
             for p,t,s,r in product(("raw","demean"),(0.,.04,.08,.12,.16,.24),
                 ("last","validation_min","validation_simple_1pct","validation_simple_3pct"),
-                (False,True) if method=="WZZT_pool" else (False,))]
+                (False,True) if method=="WZZT_pool" else (True,) if method=="RNJ_WZZT" else (False,))]
 
 
 def select(result,method,config):
@@ -49,6 +49,15 @@ def score(result,method,config,truth):
     labels=result["labels"]
     clades=[{labels[i] for i in s} for s in point["supports"]]
     metrics=clade_metrics(clades,truth["clades"],labels)
+    raw_cfg=dict(config)
+    if method!="NJ":raw_cfg["resolution"]=0.
+    raw_point=select(result,method,raw_cfg)
+    raw_family=[{labels[i] for i in s} for s in raw_point["supports"]]
+    active=[{labels[i] for i in s} for s,r,x in zip(raw_point["supports"],raw_point["r"],raw_point["x"],strict=True) if max(r,x)>1e-9]
+    proposal=[{labels[i] for i in s} for s in raw_point.get("native_family",raw_point["supports"])]
+    metrics.update(family_f1_before_resolution=clade_metrics(raw_family,truth["clades"],labels)["clade_f1"],
+        active_f1_before_resolution=clade_metrics(active,truth["clades"],labels)["clade_f1"],
+        proposal_family_f1=clade_metrics(proposal,truth["clades"],labels)["clade_f1"])
     r,x=matrices(len(labels),point["supports"],point["r"],point["x"])
     if method=="NJ":
         r=np.asarray(result["fronts"][config["preprocess"]]["R"])
