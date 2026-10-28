@@ -1,0 +1,43 @@
+{
+  "strategy_id": "ridge_pool",
+  "scope": "highest mean F1 in the fixed 80-input comparison",
+  "base_strategy": "multistart_original_rule",
+  "implemented": [
+    "backward",
+    "ridge_pool",
+    "two_step"
+  ],
+  "default_enabled": [
+    "ridge_pool"
+  ],
+  "optional_diagnostics": [
+    "backward",
+    "two_step",
+    "combined"
+  ],
+  "parameters": {
+    "backward_max_deletions": 2,
+    "ridge_strengths": [
+      0.001,
+      0.01
+    ],
+    "ridge_alpha": "lambda * trace(D.T D)/(2*n), D=[P Q]",
+    "beam_width": 3,
+    "beam_depth": 2,
+    "beam_first_phase_fraction": 0.4,
+    "training_gain_absolute": 1e-10,
+    "training_gain_relative": 0.001
+  },
+  "selection": {
+    "preprocess": "raw",
+    "resolution": 0.16,
+    "rule": "validation_simple_3pct",
+    "refit_after_final_contraction": false
+  },
+  "information_scope": "estimator reads training/validation observations and prior observation-derived banks only",
+  "new_truth_tuning": false,
+  "mean_F1": 0.9319361847303024,
+  "catalog": "D:\\0-github_workspace\\Topo\\docs\\wzzt_refine_20261028\\catalog.sqlite",
+  "code_entry": "research_experiments.wzzt_refine.worker.refine_bank",
+  "standalone_scope": "refines an existing observation-derived RNJ/WZZT candidate bank; returns all four ablations"
+}
