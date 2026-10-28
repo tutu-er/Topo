@@ -1,0 +1,25 @@
+{
+  "parent_configuration_frozen": true,
+  "new_truth_tuning": false,
+  "variants": {
+    "baseline25": "published full-RNJ combination",
+    "long75": "same full-RNJ start and original selection; search cap 25 to 75s",
+    "final_score": "score actual contracted models",
+    "post_refit": "add joint refits after contraction",
+    "multistart75": "two extra contracted/refitted validation-ranked starts, with final-model scoring/refits",
+    "multistart_original_rule": "same extra search trajectories but original selection and contraction rule",
+    "multistart_ac_gate": "adopt original-rule multistart only if validation AC RMSE decreases more than 3 percent"
+  },
+  "AC_gate": {
+    "fraction": 0.03,
+    "fit": "training only, max12 local evaluations",
+    "rank": "independent validation",
+    "test": "original test, frozen training AC parameters"
+  },
+  "derived_variant_scope": "last two variants use saved trajectories only; no new structure search; separated after observing bundled scoring patches can degrade topology",
+  "pilot_failures_preserved": [
+    "outputs/wzzt_rnj_budget_20261028_pilot",
+    "outputs/wzzt_rnj_budget_20261028_pilot2"
+  ],
+  "successful_pilot": "outputs/wzzt_rnj_budget_20261028_pilot3"
+}

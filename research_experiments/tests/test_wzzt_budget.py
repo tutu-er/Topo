@@ -30,3 +30,30 @@ def test_post_contraction_joint_refit_recovers_training_response():
     assert fitted['objective']<1e-12
     assert fitted['objective']<measured(cut,obs,obs)['objective']
     lp.close()
+
+
+def test_ac_gate_requires_heldout_physical_gain_and_keeps_invalid_alternative_out():
+    from research_experiments.wzzt_budget.variants import ac_gate
+    old=dict(validation=dict(valid=True,relative_voltage_rmse=.001))
+    assert not ac_gate(old,dict(validation=dict(valid=True,relative_voltage_rmse=.00098)))
+    assert ac_gate(old,dict(validation=dict(valid=True,relative_voltage_rmse=.0009)))
+    assert not ac_gate(old,dict(validation=dict(valid=False,relative_voltage_rmse=0)))
+
+
+def test_catalog_load_uses_exact_case_condition_size_variant():
+    import sqlite3,json,tempfile
+    from research_experiments.wzzt_budget.records import find,load
+    root=Path(__file__).resolve().parents[2]/'tmp'
+    with tempfile.TemporaryDirectory(dir=root) as directory:
+        assert Path(directory).resolve().is_relative_to(root.resolve())
+        database=Path(directory)/'catalog.sqlite'
+        with sqlite3.connect(database) as connection:
+            connection.execute('CREATE TABLE datasets(job_id TEXT,case_name TEXT,condition_name TEXT,N INTEGER,labels_json TEXT)')
+            connection.execute('CREATE TABLE selected_models(job_id TEXT,variant TEXT,supports_json TEXT,r_json TEXT,x_json TEXT,clade_f1 REAL)')
+            connection.execute('INSERT INTO datasets VALUES(?,?,?,?,?)',('one','paper15','reference',24,json.dumps([10,11])))
+            connection.execute('INSERT INTO selected_models VALUES(?,?,?,?,?,?)',('one','test',json.dumps([[0],[1],[0,1]]),json.dumps([1,2,3]),json.dumps([0,0,0]),1.))
+        connection.close()
+        assert find(database,case='paper15',N=48)==[]
+        model=load(database,case='paper15',condition='reference',N=24,variant='test')
+        assert model['support_labels']==[[10],[11],[10,11]]
+        assert np.array_equal(model['R'],[[4,3],[3,5]])

@@ -17,7 +17,9 @@ def find(catalog,*,case=None,condition=None,N=None,variant=None):
     query+=" ORDER BY case_name,condition_name,N,variant"
     with sqlite3.connect(catalog) as connection:
         connection.row_factory=sqlite3.Row
-        return [dict(row) for row in connection.execute(query,values)]
+        rows=[dict(row) for row in connection.execute(query,values)]
+    connection.close()
+    return rows
 
 
 def load(catalog,*,case,condition,N,variant,with_observations=False,verify=True):
@@ -34,6 +36,14 @@ def load(catalog,*,case,condition,N,variant,with_observations=False,verify=True)
             if verify and sha(file)!=row[name+"_sha256"]:raise ValueError("data hash changed: "+str(file))
             result[name]=observed(file,N if name=="train" else None)
     return result
+
+
+def load_trace(catalog,*,case,condition,N,verify=True):
+    rows=find(catalog,case=case,condition=condition,N=N)
+    if not rows:raise ValueError("input group not found")
+    row=rows[0];file=Path(row["result_path"])
+    if verify and sha(file)!=row["result_sha256"]:raise ValueError("search trace hash changed: "+str(file))
+    return json.loads(file.read_text(encoding="utf-8"))
 
 
 if __name__=="__main__":
