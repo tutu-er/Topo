@@ -1,0 +1,197 @@
+{
+  "created_utc": "2026-10-28T07:51:43.240557+00:00",
+  "baseline": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_systematic_20261027_round1",
+  "data_policy": "byte-identical training/test observations from round 1",
+  "cases": [
+    "paper15",
+    "soumalas11",
+    "flynn16",
+    "pengwah18"
+  ],
+  "conditions": {
+    "ideal_ac": {
+      "pq_noise": 0.0,
+      "v_noise": 0.0,
+      "load_factor": 1.0,
+      "low_xr": false
+    },
+    "reference": {
+      "pq_noise": 0.005,
+      "v_noise": 0.0002,
+      "load_factor": 1.0,
+      "low_xr": false
+    },
+    "high_voltage_noise": {
+      "pq_noise": 0.005,
+      "v_noise": 0.001,
+      "load_factor": 1.0,
+      "low_xr": false
+    },
+    "higher_load": {
+      "pq_noise": 0.005,
+      "v_noise": 0.0002,
+      "load_factor": 1.5,
+      "low_xr": false
+    },
+    "low_xr": {
+      "pq_noise": 0.005,
+      "v_noise": 0.0002,
+      "load_factor": 1.0,
+      "low_xr": true
+    }
+  },
+  "sizes": [
+    24,
+    48,
+    96,
+    288
+  ],
+  "methods": [
+    "NJ",
+    "WZZT_free",
+    "WZZT_pool",
+    "RNJ_WZZT"
+  ],
+  "methods_scope": {
+    "NJ": "common outcome-tuned NJ geometry/preprocessing/collapse",
+    "WZZT_free": "singleton free-domain MILP, legal LP warm start, feasible-gain fallback, no online floor",
+    "WZZT_pool": "finite data-derived pool, singleton init, exact fixed-family LP enumeration; correction on/off grid",
+    "RNJ_WZZT": "full ordinary RNJ families, joint L1 fit, deletable supports and crossing-support replacement; finite pool"
+  },
+  "tuning": {
+    "uses_benchmark_topology_truth": true,
+    "primary": "one global configuration per method across all 80 conditions",
+    "secondary": "casewise common configuration across 20 conditions; exploratory",
+    "preprocess": [
+      "raw",
+      "demean"
+    ],
+    "geometry": [
+      "R",
+      "RX75",
+      "X"
+    ],
+    "nj_collapse": [
+      0.0,
+      0.04,
+      0.08,
+      0.16,
+      0.24
+    ],
+    "resolution": [
+      0.0,
+      0.04,
+      0.08,
+      0.12,
+      0.16,
+      0.24
+    ],
+    "selection": [
+      "last",
+      "validation_min",
+      "validation_simple_1pct",
+      "validation_simple_3pct"
+    ]
+  },
+  "budgets": {
+    "pool_search_seconds": 25,
+    "free_search_seconds_per_preprocess": 40,
+    "free_extension_seconds": 5,
+    "fixed_LP_seconds": 15,
+    "worker_hard_seconds": 420,
+    "workers": 4
+  },
+  "validation_replicate": 2,
+  "test_replicate": 1,
+  "train_replicate": 0,
+  "differences_from_baseline": [
+    "validation data added; training/test unchanged",
+    "retained paths and useful incumbents on timeout",
+    "warm starts satisfy original free-domain constraints",
+    "initial singleton coefficient touch does not restart the path",
+    "two preprocessing variants; no online RX75 binary floor; post-fit resolution tuned",
+    "finite pool and full RNJ initialization are explicitly separate algorithm variants"
+  ],
+  "jobs": [
+    "paper15__ideal_ac__N24",
+    "paper15__ideal_ac__N48",
+    "paper15__ideal_ac__N96",
+    "paper15__ideal_ac__N288",
+    "paper15__reference__N24",
+    "paper15__reference__N48",
+    "paper15__reference__N96",
+    "paper15__reference__N288",
+    "paper15__high_voltage_noise__N24",
+    "paper15__high_voltage_noise__N48",
+    "paper15__high_voltage_noise__N96",
+    "paper15__high_voltage_noise__N288",
+    "paper15__higher_load__N24",
+    "paper15__higher_load__N48",
+    "paper15__higher_load__N96",
+    "paper15__higher_load__N288",
+    "paper15__low_xr__N24",
+    "paper15__low_xr__N48",
+    "paper15__low_xr__N96",
+    "paper15__low_xr__N288",
+    "soumalas11__ideal_ac__N24",
+    "soumalas11__ideal_ac__N48",
+    "soumalas11__ideal_ac__N96",
+    "soumalas11__ideal_ac__N288",
+    "soumalas11__reference__N24",
+    "soumalas11__reference__N48",
+    "soumalas11__reference__N96",
+    "soumalas11__reference__N288",
+    "soumalas11__high_voltage_noise__N24",
+    "soumalas11__high_voltage_noise__N48",
+    "soumalas11__high_voltage_noise__N96",
+    "soumalas11__high_voltage_noise__N288",
+    "soumalas11__higher_load__N24",
+    "soumalas11__higher_load__N48",
+    "soumalas11__higher_load__N96",
+    "soumalas11__higher_load__N288",
+    "soumalas11__low_xr__N24",
+    "soumalas11__low_xr__N48",
+    "soumalas11__low_xr__N96",
+    "soumalas11__low_xr__N288",
+    "flynn16__ideal_ac__N24",
+    "flynn16__ideal_ac__N48",
+    "flynn16__ideal_ac__N96",
+    "flynn16__ideal_ac__N288",
+    "flynn16__reference__N24",
+    "flynn16__reference__N48",
+    "flynn16__reference__N96",
+    "flynn16__reference__N288",
+    "flynn16__high_voltage_noise__N24",
+    "flynn16__high_voltage_noise__N48",
+    "flynn16__high_voltage_noise__N96",
+    "flynn16__high_voltage_noise__N288",
+    "flynn16__higher_load__N24",
+    "flynn16__higher_load__N48",
+    "flynn16__higher_load__N96",
+    "flynn16__higher_load__N288",
+    "flynn16__low_xr__N24",
+    "flynn16__low_xr__N48",
+    "flynn16__low_xr__N96",
+    "flynn16__low_xr__N288",
+    "pengwah18__ideal_ac__N24",
+    "pengwah18__ideal_ac__N48",
+    "pengwah18__ideal_ac__N96",
+    "pengwah18__ideal_ac__N288",
+    "pengwah18__reference__N24",
+    "pengwah18__reference__N48",
+    "pengwah18__reference__N96",
+    "pengwah18__reference__N288",
+    "pengwah18__high_voltage_noise__N24",
+    "pengwah18__high_voltage_noise__N48",
+    "pengwah18__high_voltage_noise__N96",
+    "pengwah18__high_voltage_noise__N288",
+    "pengwah18__higher_load__N24",
+    "pengwah18__higher_load__N48",
+    "pengwah18__higher_load__N96",
+    "pengwah18__higher_load__N288",
+    "pengwah18__low_xr__N24",
+    "pengwah18__low_xr__N48",
+    "pengwah18__low_xr__N96",
+    "pengwah18__low_xr__N288"
+  ]
+}

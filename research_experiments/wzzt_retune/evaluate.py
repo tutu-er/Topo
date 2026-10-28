@@ -4,6 +4,7 @@ from concurrent.futures import ProcessPoolExecutor,as_completed
 import argparse
 import hashlib
 import json
+import shutil
 import sys
 import numpy as np
 import pandas as pd
@@ -42,7 +43,9 @@ def ac_task(task):
 def evaluate(output,destination,*,partial=False,skip_ac=False):
     output=Path(output).resolve();destination=Path(destination).resolve();destination.mkdir(parents=True,exist_ok=True)
     protocol=read(output/"protocol.json");base=Path(protocol["baseline"])
-    sys.path.insert(0,str(output/"source"))
+    # Parent scoring imports no rnj_wzzt code. Pin the runtime only inside AC
+    # children; otherwise Windows spawn can import the older frozen research
+    # package before this later analysis module is available.
     from research_experiments.rnj.audit_source_ac96_benchmark import physical_truth
     jobs=[];results={};truths={}
     for job in protocol["jobs"]:
@@ -134,8 +137,19 @@ def evaluate(output,destination,*,partial=False,skip_ac=False):
             digest=hashlib.sha256(json.dumps(task["point"],sort_keys=True).encode()).hexdigest()
             task["model_sha256"]=digest
             path=acdir/(task["key"]+".json")
-            if path.exists() and read(path).get("model_sha256")==digest:cache[task["key"]]=read(path)
-            else:tasks.append(task)
+            previous=read(path) if path.exists() else None
+            if previous is not None and previous.get("model_sha256")==digest and "error" not in previous:
+                cache[task["key"]]=previous
+            else:
+                if previous is not None and "error" in previous:
+                    archive=output/"ac_infrastructure_failed"
+                    archive.mkdir(exist_ok=True)
+                    if not (archive/path.name).exists():shutil.copy2(path,archive/path.name)
+                tasks.append(task)
+        if (output/"ac_infrastructure_failed").exists():
+            write(output/"ac_recovery.json",dict(reason="Windows spawn analysis import was shadowed by older frozen package",
+                preserved_records=len(list((output/"ac_infrastructure_failed").glob("*.json"))),
+                structure_search_repeated=False,hyperparameters_changed=False))
         with ProcessPoolExecutor(max_workers=4) as executor:
             futures={executor.submit(ac_task,task):task for task in tasks}
             for future in as_completed(futures):

@@ -85,3 +85,16 @@ def test_common_parameter_tuning_does_not_mix_per_instance_oracles():
     assert selected==1
     assert scores[:,selected].mean()==.75
     assert scores.max(axis=1).mean()==.875
+
+
+def test_ablation_matches_actual_correction_initialization_not_selected_bank_neighbor():
+    from research_experiments.wzzt_retune.ablation import source_point, resolved
+    wrong=dict(origin="tree_bank",config="raw_R_0",supports=[[0],[1],[0,1]],r=[0,0,1],x=[0,0,0])
+    initial=dict(origin="tree_bank",config="raw_RX75_0.16",supports=[[0],[1],[0,1]],r=[0,0,.01],x=[0,0,0])
+    correction=dict(origin="tree_initialized_correction",selection_index=2)
+    result=dict(methods={"raw":{"RNJ_WZZT":[wrong,initial,correction]}})
+    config=dict(preprocess="raw")
+    assert source_point(result,config,correction) is initial
+    assert source_point(result,config,dict(initial,selection_index=1)) is initial
+    # Even zero-weight terminal edges remain in the contracted physical model.
+    assert resolved(initial,dict(median_root_depth=1,a=1,b=0),.16)==[[0],[1]]

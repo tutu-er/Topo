@@ -1,0 +1,49 @@
+{
+  "NJ": {
+    "config": {
+      "preprocess": "raw",
+      "geometry": "RX75",
+      "collapse": 0.16
+    },
+    "mean_F1": 0.8524402741865977,
+    "config_count": 30,
+    "tuning_used_topology_truth": true,
+    "scope": "one shared configuration across all planned input groups"
+  },
+  "WZZT_free": {
+    "config": {
+      "preprocess": "demean",
+      "resolution": 0.24,
+      "selection": "validation_min",
+      "repair": false
+    },
+    "mean_F1": 0.8528677572427572,
+    "config_count": 48,
+    "tuning_used_topology_truth": true,
+    "scope": "one shared configuration across all planned input groups"
+  },
+  "WZZT_pool": {
+    "config": {
+      "preprocess": "demean",
+      "resolution": 0.16,
+      "selection": "validation_simple_1pct",
+      "repair": true
+    },
+    "mean_F1": 0.847021658896659,
+    "config_count": 96,
+    "tuning_used_topology_truth": true,
+    "scope": "one shared configuration across all planned input groups"
+  },
+  "RNJ_WZZT": {
+    "config": {
+      "preprocess": "raw",
+      "resolution": 0.16,
+      "selection": "validation_simple_3pct",
+      "repair": true
+    },
+    "mean_F1": 0.9194371947496947,
+    "config_count": 48,
+    "tuning_used_topology_truth": true,
+    "scope": "one shared configuration across all planned input groups"
+  }
+}
