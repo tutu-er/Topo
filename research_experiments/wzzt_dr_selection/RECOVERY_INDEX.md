@@ -75,7 +75,9 @@ A2d 归档同时保存原运行源码与最终汇总来源。复现旧数值用�
 ## 2026-10-28：固定观测、上界与初始化
 
 - 先读 `baseline_alignment/BOUNDS_INITIALIZATION_REPORT.md`。证据目录 `evidence/baseline_bounds_init_v3/`：7/7无上界固定族LP已核验；原四个合法单真块仍均输给已知错误候选。
-- `initialization_audit.py` 只新跑RNJ-only前4次接受扩展，旧模式直接复用。当前执行记录 `initialization.json` 和PID锁不可覆盖；先读状态并核验进程，禁止重复启动。前缀不是完整恢复试验。
+- `initialization_audit.py` 只新跑RNJ-only前4次接受扩展，旧模式直接复用。已完成记录 `initialization.json` 不可覆盖；4/4次新扩展最优，新增1真3错，锁已移除，无待续跑进程。独立复算见initialization_verification.json。前缀不是完整恢复试验。
 - 正常研究入口的 `initialization_mode` 明确支持 `leaf_plus_rnj`（旧默认）及 `rnj_only`。连续权重不锁定、原始终端与残差不聚合，完整RNJ最终选模仍与WZZT搜索单列。
 - `PQ_CONTROL_PLAN.md` / `pq_control_protocol.json` 是尚未执行的三种输入依赖关系对照。根馈线缩短与需求响应比较暂停。
 - 本轮46项相关测试通过；没有上传家庭原始负荷。N0输入继续使用此前私有完整基线目录，哈希记于协议中。
+
+- 本轮补充5/5 RNJ-only首步无上界LP，同样排除cap2解释，结果rnj_only_bound_results.json；与原7LP分开。原默认作为下一步三波动条件的固定初始化，仍未执行该控制。

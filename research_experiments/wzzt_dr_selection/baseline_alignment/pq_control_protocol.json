@@ -74,19 +74,40 @@
     "claim_scope": "algorithm mechanism only; no AC/field or demand-response effectiveness claim"
   },
   "initialization": {
-    "policy": "choose once after fixed-N0 initialization audit, before generating control outcomes, and use exactly the same initial family in all3 conditions",
+    "policy": "leaf_plus_rnj frozen after fixed-N0 prefix audit; original15 leaf supports plus original2 N0 algorithm-selected RNJ blocks, identical across all3 conditions",
     "if_RNJ_prior_used": "only original frozen N0 algorithm-selected boundary supports; no truth-derived blocks",
-    "rnj_can_be_scored_separately": "recomputed RNJ, if used for a separate comparator, must not silently alter the fixed-family WZZT mechanism comparison"
+    "rnj_can_be_scored_separately": "recomputed RNJ, if used for a separate comparator, must not silently alter the fixed-family WZZT mechanism comparison",
+    "selected_rnj_labels": [
+      [
+        103,
+        104,
+        105
+      ],
+      [
+        113,
+        114,
+        115
+      ]
+    ],
+    "selection_reason": "RNJ-only prefix did not improve root-first ordering; preserve historical mainline as mechanism comparator, not a claim of globally superior initialization",
+    "pipeline_scope": "fixed historical RNJ prior followed by production WZZT; do not claim RNJ was rerun on control observations"
   },
   "solver": {
-    "parameter_domain": "must be declared after bound audit; a selected-candidate-only non-touching check is insufficient for domain coverage",
+    "parameter_domain": "Same predeclared nonnegative finite box [0,2] for all3 controls; results describe configured bounded WZZT, not equivalence to the unrestricted model",
     "backend": "HiGHS",
     "per_solve_limit_seconds": 1800,
     "new_experiments_this_turn": 0,
     "first_planned_scope": "first4 accepted extensions per condition, with explicit prefix truncation; no full-family claim",
     "no_relaxed_optimality_acceptance": true,
     "data_bound_transfer": "A data-derived bound from N0 does not automatically apply to a new P/Q control dataset. Recheck the domain for every condition before calling it an unrestricted-model comparison.",
-    "rank_deficient_control": "If a control has unbounded indistinguishable parameter directions, retain that status. A common predeclared finite box permits only a bounded-algorithm comparison; it is not a proof that the box covers the original unbounded model."
+    "rank_deficient_control": "If a control has unbounded indistinguishable parameter directions, retain that status. A common predeclared finite box permits only a bounded-algorithm comparison; it is not a proof that the box covers the original unbounded model.",
+    "r_upper_bound": 2.0,
+    "x_upper_bound": 2.0,
+    "max_bound_expansions": 0,
+    "max_atoms": 21,
+    "max_atoms_interpretation": "17 frozen initial supports plus4 accepted extensions; diagnostic prefix only",
+    "boundary_policy": "Keep boundary-limited or unproved attempts unresolved, without tuning bounds from outcome",
+    "attribution_boundary": "Comparisons within C0/C1/C2 hold output model and domain fixed. Difference from original AC N0 cannot be attributed solely to input variation."
   },
   "evaluation": [
     "all3 conditions and all failed/timeout/bound-limited attempts retained",

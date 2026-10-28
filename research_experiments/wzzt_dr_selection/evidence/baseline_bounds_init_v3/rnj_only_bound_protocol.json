@@ -1,0 +1,323 @@
+{
+  "created_utc": "2026-10-28T08:29:40.812384+00:00",
+  "question": "Under the two-RNJ predecessor, does removing cap2 allow any of the four previously named true additions to beat the actual first winner?",
+  "scope": "fixed-support post hoc diagnosis; no global unbounded support search",
+  "planned_new_lp_count": 5,
+  "previous_seven_lp_count": 7,
+  "combine_denominators": false,
+  "new_milp_calls": 0,
+  "new_observations": 0,
+  "new_random_realizations": 0,
+  "truth_use": "Four previously listed true alternatives are diagnostic only, never estimator targets",
+  "solver": "scipy.optimize.linprog/highs",
+  "objective": "raw mean absolute residual; all terminal rows; no intercept",
+  "weight_bounds": [
+    0,
+    null
+  ],
+  "per_lp_limit_seconds": 1800.0,
+  "validation": "same frozen observations; evaluation only",
+  "first_point_extraction_utc": "2026-10-28T08:29:40.812384+00:00",
+  "growing_initialization_file": "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\evidence\\baseline_bounds_init_v3\\initialization.json",
+  "initialization_sha256_at_extraction": "43b4e6eb028940412b994a443748758fb725dac8f2ea4d93ad621506c0b99148",
+  "frozen_first_point": {
+    "iteration": 3,
+    "support_labels": [
+      [
+        103,
+        104,
+        105
+      ],
+      [
+        113,
+        114,
+        115
+      ],
+      [
+        101,
+        102,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115
+      ]
+    ],
+    "r_values": [
+      0.2614793964513565,
+      0.020725972764311394,
+      0.04189589699659385
+    ],
+    "x_values": [
+      0.09208531624115135,
+      0.12589195003741538,
+      0.048839676644283396
+    ],
+    "train_mae": 0.0027073899144634157,
+    "validation_mae": 0.002730436561565238,
+    "validation_se": 0.00018642859153446544,
+    "accepted_gain": 0.009530909461283599,
+    "solver": {
+      "status": 0,
+      "success": true,
+      "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "objective": 0.0027073897630104037,
+      "dual_bound": 0.0027073897630104037,
+      "mip_gap": 0.0,
+      "node_count": 109,
+      "runtime_seconds": 1035.0600811000004,
+      "variable_count": 4707,
+      "binary_variable_count": 21,
+      "constraint_count": 9731,
+      "solver": "highs",
+      "raw_status": null,
+      "numerical_optimum_certified": true
+    }
+  },
+  "frozen_first_point_sha256": "e2ea36ce5cdf27a2a54ab8e6138c431e446adc7b41fa0dd354d976c9b46d0f06",
+  "growing_file_verification": "Check the extracted first-point content after solving, not whole-file immutability",
+  "initial_supports": [
+    [
+      103,
+      104,
+      105
+    ],
+    [
+      113,
+      114,
+      115
+    ]
+  ],
+  "tasks": [
+    {
+      "id": "rnj_only_actual_first_winner",
+      "supports": [
+        [
+          103,
+          104,
+          105
+        ],
+        [
+          113,
+          114,
+          115
+        ],
+        [
+          101,
+          102,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115
+        ]
+      ],
+      "saved_bounded2_first": {
+        "iteration": 3,
+        "support_labels": [
+          [
+            103,
+            104,
+            105
+          ],
+          [
+            113,
+            114,
+            115
+          ],
+          [
+            101,
+            102,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            115
+          ]
+        ],
+        "r_values": [
+          0.2614793964513565,
+          0.020725972764311394,
+          0.04189589699659385
+        ],
+        "x_values": [
+          0.09208531624115135,
+          0.12589195003741538,
+          0.048839676644283396
+        ],
+        "train_mae": 0.0027073899144634157,
+        "validation_mae": 0.002730436561565238,
+        "validation_se": 0.00018642859153446544,
+        "accepted_gain": 0.009530909461283599,
+        "solver": {
+          "status": 0,
+          "success": true,
+          "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+          "objective": 0.0027073897630104037,
+          "dual_bound": 0.0027073897630104037,
+          "mip_gap": 0.0,
+          "node_count": 109,
+          "runtime_seconds": 1035.0600811000004,
+          "variable_count": 4707,
+          "binary_variable_count": 21,
+          "constraint_count": 9731,
+          "solver": "highs",
+          "raw_status": null,
+          "numerical_optimum_certified": true
+        }
+      }
+    },
+    {
+      "id": "rnj_only_N0_01_first_cross_true_alternative",
+      "supports": [
+        [
+          103,
+          104,
+          105
+        ],
+        [
+          113,
+          114,
+          115
+        ],
+        [
+          108,
+          109,
+          110
+        ]
+      ],
+      "post_hoc_true_alternative": [
+        108,
+        109,
+        110
+      ],
+      "saved_bounded2_first": null
+    },
+    {
+      "id": "rnj_only_N0_02_first_cross_true_alternative",
+      "supports": [
+        [
+          103,
+          104,
+          105
+        ],
+        [
+          113,
+          114,
+          115
+        ],
+        [
+          101,
+          102,
+          103,
+          104,
+          105
+        ]
+      ],
+      "post_hoc_true_alternative": [
+        101,
+        102,
+        103,
+        104,
+        105
+      ],
+      "saved_bounded2_first": null
+    },
+    {
+      "id": "rnj_only_N0_03_first_cross_true_alternative",
+      "supports": [
+        [
+          103,
+          104,
+          105
+        ],
+        [
+          113,
+          114,
+          115
+        ],
+        [
+          106,
+          107,
+          108,
+          109,
+          110
+        ]
+      ],
+      "post_hoc_true_alternative": [
+        106,
+        107,
+        108,
+        109,
+        110
+      ],
+      "saved_bounded2_first": null
+    },
+    {
+      "id": "rnj_only_N0_04_first_cross_true_alternative",
+      "supports": [
+        [
+          103,
+          104,
+          105
+        ],
+        [
+          113,
+          114,
+          115
+        ],
+        [
+          111,
+          112,
+          113,
+          114,
+          115
+        ]
+      ],
+      "post_hoc_true_alternative": [
+        111,
+        112,
+        113,
+        114,
+        115
+      ],
+      "saved_bounded2_first": null
+    }
+  ],
+  "saved_first_independent_recomputation": {
+    "train_mae": 0.0027073899144634157,
+    "validation_mae": 0.002730436561565238,
+    "max_weight": 0.2614793964513565
+  },
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\baseline_alignment\\rnj_only_bound_dependence.py": "4ce7f2b5cffdc2cdf5970d738d52cb99a4e0b3fcf6c23726c1e06ca9a6426fbb",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\baseline_alignment\\bound_dependence.py": "15dfbe6fbc3dc4fd6f51de3d634166214fa7e7523dac7a9eb3963731f613faf0"
+  },
+  "input_sha256": {
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\evidence\\baseline_bounds_init_v3\\bounds_protocol.json": "dbb1b8950818c05c715373d0e8c8092d125977e0dc9fd7f11b66e50b023d65b7",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\evidence\\baseline_bounds_init_v3\\bounds_results.json": "47ac8874190f26d4fa7b0b5631c48243f798c557403938bcc7d5bf9c1c7a771e",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_baseline_alignment\\runs\\N0_default_reference\\prepared_case.pkl": "8957ef877dc520c111299ff587c37d9b5f7b1d85ffcbd646c74cf4be83c28bb4"
+  },
+  "original_solver_tests": "Reuse existing test_wzzt_bound_dependence.py result: 3 passed; no new unit-test solves",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "platform": "Windows-10-10.0.26200-SP0"
+  }
+}
