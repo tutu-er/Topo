@@ -62,6 +62,8 @@ def verify(output,destination):
     check('all planned method groups, including failures, present',all(set(f[f.job_id==j['job_id']].variant)==set(j['methods']) for j in expected))
     check('main 640 inputs and ten independent bundles',len(f[(f.panel=='main')&(f.variant=='ridge_union')])==640 and set(f[f.panel=='main'].bundle)==set(range(10)))
     check('stress400 topology144 and case33 20',all(int(((f.panel==panel)&(f.variant=='ridge_union')).sum())==n for panel,n in [('stress',400),('topology',144),('case33',20)]))
+    data_diagnostics=pd.read_csv(destination/'data_diagnostics.csv')
+    check('all 442 physical/noise regimes retain nine daily data diagnostics',len(data_diagnostics)==3978 and data_diagnostics.groupby(['case','condition','bundle','voltage_sigma']).size().eq(9).all() and data_diagnostics.converged.eq(96).all())
     index={(r['job_id'],r['variant']):r for r in rows};line_count=0;signatures=True
     with (destination/'selected_models.jsonl').open(encoding='utf-8') as stream:
         for line in stream:
@@ -83,6 +85,15 @@ def verify(output,destination):
     check('predeclared AC scope and 876-row denominator',len(planned)==p['planned_AC_rows']==876 and set(planned.variant)==set(AC_METHODS) and not f[~f.ac_planned].ac_evaluated.any())
     check('all predeclared AC evaluations attempted',int(f.ac_evaluated.sum())==int((planned.model_available).sum()))
     check('AC cache binding count',len(list((output/'ac').glob('*.json')))==ac['unique_records'])
+    counts={j['job_id']:j['N'] for j in expected};ac_rows=True;ac_bindings=True
+    for file in (output/'ac').glob('*.json'):
+        a=read(file);job,model_signature=a['key'].rsplit('__',1)
+        ac_bindings&=model_signature==a['model_signature'] and ((f.job_id==job)&(f.model_signature==model_signature)&f.ac_planned).any()
+        if a.get('fitting',{}).get('valid'):ac_rows&=a['fitting']['ac_converged_points']==counts[job]
+        for part in ('testing','physical'):
+            if a.get(part,{}).get('valid'):ac_rows&=a[part]['ac_converged_points']==288
+    check('AC cached model signatures match planned model selections',ac_bindings)
+    check('actual AC training rows equal N and both testing targets use 288 rows',ac_rows)
     for N in (24,288):
         m=load(destination/'catalog.sqlite',case='flynn16',panel='main',condition='reference',voltage_sigma=.001,bundle=3,N=N,variant='ridge_union',with_observations=True)
         check(f'precise bundle, condition and N={N} observation lookup',len(m['train'][0])==N and len(m['test'][0])==len(m['validation'][0])==288 and m['record']['bundle']==3)
@@ -123,6 +134,8 @@ def verify(output,destination):
     retry_ac_receipt=read(destination/'lp60_ac_freeze_receipt.json')
     check('recovered AC scope frozen before its results',retry_ac_receipt['existing_AC_results']==0 and retry_ac_receipt['expected_model_rows']==6 and
         retry_ac_receipt['protocol_sha256']==sha(destination/'LP_RETRY_PROTOCOL.md'))
+    case33_coverage=pd.read_csv(destination/'case33_recovered_coverage.csv')
+    check('separate mixed-budget case33 coverage has 20 unique inputs for each of twelve models',len(case33_coverage)==240 and not case33_coverage.duplicated(['job_id','variant']).any() and case33_coverage.groupby('variant').job_id.nunique().eq(20).all())
     retry_binding=True
     for job in retry_protocol['jobs']:
         result=read(output/'lp60_retry'/job/'result.json')
@@ -135,13 +148,15 @@ def verify(output,destination):
     joint=read(destination/'joint_extension_verification.json')
     check('secondary two-step extension retains 160 inputs and 480 rows over ten bundles',joint['planned_inputs']==160 and joint['rows']==480 and joint['independent_blocks']==10)
     check('available secondary joint-extension evidence passed',joint['available_evidence_passed'])
+    joint_diagnostics=pd.read_csv(destination/'joint_selected_diagnostics.csv')
+    check('each available joint proposal selection has a separate mechanism record',len(joint_diagnostics)==joint['available_models']//3 and not joint_diagnostics.job_id.duplicated().any())
     joint_receipt=read(destination/'joint_extension_freeze_receipt.json');joint_protocol=read(output/'joint_extension/protocol.json')
     check('joint extension uses its frozen secondary protocol and worker source',joint_receipt['protocol_sha256']==sha(destination/'JOINT_EXTENSION_PROTOCOL.md') and
         joint_receipt['worker_source_sha256']==joint_protocol['source_sha256']==sha(output/'joint_extension/worker_source.py'))
     free=read(destination/'free_domain_verification.json')
     check('80-input free-support supplement fully retained and audited',free['inputs']==80 and free['rows']==160 and free['all_passed'])
     mip=audit_mip_arrays(output,destination)
-    check('saved free-domain MILP primals independently satisfy original arrays',bool(mip) and all(r['passed'] for r in mip))
+    check('all required feasible free-domain MILP primals satisfy original arrays; rejected native primals remain separate',bool(mip) and all(r['passed'] for r in mip))
     overview=read(destination/'overview.json')
     check('all 1204 inputs reached a retained terminal state',overview['completed_inputs']==1204)
     summary=dict(all_passed=all(c['passed'] for c in checks),checks=checks,planned_inputs=1204,model_rows=len(rows),available_models=available,

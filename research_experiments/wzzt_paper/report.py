@@ -15,9 +15,16 @@ LARGE=('per_job.csv','catalog.sqlite','selected_models.jsonl','datasets.json','u
 
 def physical_regimes(output,destination):
     """Describe actual noiseless AC data once per physical bundle, before N sampling."""
-    seen=set();rows=[]
+    seen=set();rows=[];regimes_seen=set();diagnostics=[]
     for job in read(output/'protocol.json')['jobs']:
         p=read(output/'jobs'/job/'payload.json');key=(p['case'],p['condition'],p['bundle'])
+        regime=(*key,p['voltage_sigma'])
+        if regime not in regimes_seen and not p['data_error']:
+            regimes_seen.add(regime);file=Path(p['train_truth']).parent/'diagnostics.json'
+            for r in read(file)['records']:
+                row={k:p[k] for k in ('case','condition','bundle','voltage_sigma')}
+                row.update({k:v for k,v in r.items() if k!='relative_noise_std'},diagnostic_grid_per_day=96,source_sha256=sha(file))
+                row.update({'realized_relative_std_'+k:v for k,v in r['relative_noise_std'].items()});diagnostics.append(row)
         if key in seen or p['data_error']:continue
         seen.add(key);voltage=[];drop=[];snapshots=0
         for split in ('train','validation','test'):
@@ -29,6 +36,7 @@ def physical_regimes(output,destination):
             drop_p05_pct=float(np.quantile(delta,.05)),drop_median_pct=float(np.median(delta)),drop_p95_pct=float(np.quantile(delta,.95)),
             scope='noiseless balanced AC; all nine days; root-minus-terminal voltage in percentage points of nominal pu'))
     frame=pd.DataFrame(rows);frame.to_csv(destination/'physical_regimes.csv',index=False)
+    pd.DataFrame(diagnostics).to_csv(destination/'data_diagnostics.csv',index=False)
     return frame[frame.condition=='reference'].groupby('case').agg(physical_bundles=('bundle','count'),
         minimum_V_pu=('minimum_V_pu','min'),maximum_V_pu=('maximum_V_pu','max'),
         mean_drop_median_pct=('drop_median_pct','mean'),mean_drop_p95_pct=('drop_p95_pct','mean')).reset_index()
@@ -126,8 +134,43 @@ def report(output,destination):
     postguard=pd.read_csv(destination/'postfilter_guard_summary.csv')
     guard_holdout=pd.read_csv(destination/'postfilter_guard_holdout_summary.csv')
     free=pd.read_csv(destination/'free_domain_comparisons.csv');free_check=read(destination/'free_domain_verification.json')
+    mip_events=pd.read_csv(destination/'free_domain_MIP_events.csv')
+    mip_summary=mip_events.groupby(['raw_status','decision'],dropna=False).agg(calls=('job_id','size'),
+        median_native_gap=('relative_gap','median'),maximum_native_gap=('relative_gap','max')).reset_index()
+    mip_summary.to_csv(destination/'free_domain_termination_summary.csv',index=False)
     retry=pd.read_csv(destination/'lp60_retry.csv');retry_check=read(destination/'lp60_retry_verification.json')
+    case33_ids=set(f[f.panel=='case33'].job_id);recovered_ids=case33_ids & set(retry.job_id)
+    original=f[(f.panel=='case33')&~f.job_id.isin(recovered_ids)].rename(columns={'linear_test_mae':'test_mae'}).copy()
+    original['fixed_LP_seconds']=15;original['record_source']='original_LP15'
+    original_guard=pd.read_csv(destination/'postfilter_guard.csv');original_guard=original_guard[(original_guard.panel=='case33')&~original_guard.job_id.isin(recovered_ids)].copy()
+    original_guard['variant']='ridge_postfilter_guard';original_guard['fixed_LP_seconds']=15;original_guard['record_source']='original_LP15_exploratory_filter'
+    recovered=retry[retry.job_id.isin(case33_ids)].copy();recovered['record_source']='separate_LP60_retry'
+    columns=['job_id','variant','fixed_LP_seconds','clade_f1','validation_mae','test_mae','record_source']
+    coverage=pd.concat([d[columns] for d in (original,original_guard,recovered)],ignore_index=True)
+    metadata=f[f.panel=='case33'][['job_id','bundle','N','voltage_sigma']].drop_duplicates()
+    coverage=coverage.merge(metadata,on='job_id',validate='many_to_one');coverage.to_csv(destination/'case33_recovered_coverage.csv',index=False)
+    coverage_summary=coverage.groupby(['N','fixed_LP_seconds','variant']).agg(inputs=('job_id','size'),F1=('clade_f1','mean'),test_mae=('test_mae','mean')).reset_index()
+    coverage_summary=coverage_summary[coverage_summary.variant.isin(['NJ','multistart','ridge_union','ridge_postfilter_guard'])]
     joint=pd.read_csv(destination/'joint_extension_comparisons.csv');joint_check=read(destination/'joint_extension_verification.json')
+    joint_models=pd.read_csv(destination/'joint_extension_models.csv');joint_delete=joint_models[joint_models.variant=='joint_width5_delete']
+    deletion_reference=f[f.variant=='ridge_guard0'].set_index('job_id').clade_f1
+    incremental=joint_delete.clade_f1-joint_delete.job_id.map(deletion_reference)
+    joint=pd.concat([joint,pd.DataFrame([dict(variant='joint_width5_delete',reference='ridge_guard0',inputs=len(joint_delete),F1=joint_delete.clade_f1.mean(),
+        **interval(incremental.groupby(joint_delete.bundle).mean()),wins=int((incremental>1e-10).sum()),ties=int((abs(incremental)<=1e-10).sum()),losses=int((incremental<-1e-10).sum()))])],ignore_index=True)
+    joint.loc[joint['mean'].abs()<1e-12,['mean','lower','upper']]=0.
+    joint.to_csv(destination/'joint_extension_paper_comparisons.csv',index=False)
+    joint_selected=[];reference=f[f.variant=='ridge_union'].set_index('job_id').clade_f1
+    for row in joint_models[joint_models.variant=='joint_width5'].to_dict('records'):
+        if not row['model_available']:continue
+        r=read(output/'joint_extension'/row['job_id']/'result.json');point=r['models']['joint_width5'];current=r['paths']['joint_width5']['current_objective']
+        added=point.get('added',[]);selected={tuple(s) for s in point['supports']};first=point.get('first_objective')
+        pair=len(added)==2 and all(tuple(s) in selected for s in added)
+        joint_selected.append({**{k:row[k] for k in ('job_id','case','bundle','N','voltage_sigma','clade_f1')},
+            'delta_vs_ridge':row['clade_f1']-reference[row['job_id']],'selected_origin':point.get('origin'),
+            'selected_pair_retained':pair,'current_training_loss':current,'first_training_loss':first,
+            'first_below_acceptance_threshold':pair and first is not None and current-first<=1e-10+.001*current,
+            'added_supports_json':json.dumps(added)})
+    pd.DataFrame(joint_selected).to_csv(destination/'joint_selected_diagnostics.csv',index=False)
     events=pd.read_csv(destination/'greedy_events.csv');mechanisms=[]
     for panel,d in ridge.groupby('panel'):
         available=d[d.model_available];e=events[events.panel==panel]
@@ -142,7 +185,7 @@ def report(output,destination):
     origins=f[(f.panel=='main')&f.variant.isin(['multistart','ridge_union'])].groupby(['variant','selected_origin']).size().reset_index(name='inputs')
     effect=primary.set_index('contrast').loc['ridge_union vs multistart']
     ridge_main=main.set_index('variant').loc['ridge_union'];multi_main=main.set_index('variant').loc['multistart']
-    text=['# RNJ+WZZT 论文证据：完整独立测试','',
+    text=['# RNJ+WZZT 论文证据：全面测试','',
         f"计划 {overview['planned_inputs']} 输入，已结束 {overview['completed_inputs']}，正常返回 {overview['returned_inputs']}；{overview['error_inputs']} 错误、{overview['timeout_inputs']} 工作进程触时。模型记录 {overview['model_rows']}/{overview['planned_model_rows']}，可用模型 {overview['available_models']}。所有失败进入原分母。",
         '',f"主结论：四固定网络独立主面板中，扩池平均F1为{ridge_main['F1']:.6f}，多初值为{multi_main['F1']:.6f}；配对增量{effect['mean']:.6f}，95%区间[{effect['lower']:.6f},{effect['upper']:.6f}]。相同640输入中改善{int(effect['wins'])}、持平{int(effect['ties'])}、退化{int(effect['losses'])}组。结果支持该模拟域的平均改善；新树、case33及弱激励的失败另外保留，未以旧网络总体均值概括泛化。",
         '', '## 测试方案与当前流程','',
@@ -151,6 +194,7 @@ def report(output,destination):
         '', '指标为非平凡根向末端簇集合的F1，去掉叶簇和全末端簇；exact为该集合完全一致。R/X误差是平方压降响应矩阵的相对Frobenius误差，不用作逐条线路阻抗准确率。四旧网络和新随机树均为合成网络，负荷/DER曲线也由代码生成，没有导入实测曲线。case33使用本地参数表的hybrid-leaf改造，内部额定负荷移到服务端点；33行额定P/Q和32条骨干欧姆参数已与[MATPOWER官方表](https://matpower.org/docs/ref/matpower6.0/case33bw.html)逐项核对，结果见case33_provenance.json。添加28条服务边后得到32个端点；动态曲线仍由共同合成模型生成，不是原始IEEE33恒负荷工况。本地MVA基准10与该官方版本100的差异只改变标幺换算。',
         '', '物理电压与压降范围如下。每个物理bundle合并训练/验证/测试九日共864时刻，在加入计量噪声与N采样前计算；drop为根电压减端点电压，以额定标幺电压的百分点表示。表内中位数/P95再对bundle取均值，完整场景记录见physical_regimes.csv。压降尺度与拓扑可辨识性分别评价。','',
         table(regimes,['case','physical_bundles','minimum_V_pu','maximum_V_pu','mean_drop_median_pct','mean_drop_p95_pct']),
+        '', 'data_diagnostics.csv逐物理日记录实际噪声尺度、动态平方压降信号/噪声RMS、中心化P/Q设计的秩与条件数及AC收敛数。设计诊断使用每天96点，训练N子集另由catalog的索引定位；不把满秩或信噪比转换为拓扑恢复保证。',
         '', '## 独立主面板','',table(main,['variant','rows','available','F1','exact','wins','ties','losses','R_error','X_error']),
         '', 'wins/ties/losses以多初值为参照；叶初值仅路径和加完整RNJ库的两行分别报告，完整候选保留与实际搜索修正不混为一个机制。selected_origins.csv 与逐条搜索终止状态保留最终模型来源。',
         '',table(origins,['variant','selected_origin','inputs']),
@@ -163,14 +207,19 @@ def report(output,destination):
         '新树为固定随机生成器的12棵未调参拓扑，端点8/16/24/32各三棵；拓扑区间按树分块，并以共享的三个数据bundle为条件。case33仅一棵改造网络，五数据重复不能替代五棵网络。按条件/网络/数据量/噪声的完整表见 by_condition.csv、by_case.csv、by_noise_N.csv。',
         '', '## 组件与预算消融','',table(ablation[ablation.panel=='main'],['variant','reference','inputs','F1','mean','lower','upper','independent_blocks','wins','ties','losses']),
         '', '每行与其自身输入子集上的reference配对，不能用不同子集总体F1相减。单lambda子面板有3个独立bundle；100秒子面板有5个；两步子面板只有1个bundle，保留结果但不据此给出稳定性结论。联合删除是实际从扩池选中模型继续执行的一轮保护删除。',
+        '', 'lambda=.001/.01表示无量纲strength，实际前置QP的alpha按相应raw/demean设计矩阵的Gram尺度计算；实际数值与尺度均保存在fronts，公式见HANDOFF.md。',
         '', table(main_effects,['variant','mean','lower','upper','independent_blocks','wins','losses']),
         '', '单bundle两步消融之后，按JOINT_EXTENSION_PROTOCOL.md追加十bundle的组件测试。固定已有扩池收缩前模型库与初值，分别用新LP执行25秒单步追加修正和25秒宽度5两步提案；另报两步后追加15秒删除。它复用原主面板数据，属于观察初轮结果后的次要扩展，区间用于描述，不增加预定三个主检验。',
-        '',table(joint,['variant','reference','inputs','F1','mean','lower','upper','independent_blocks','wins','ties','losses']),
+        '',table(joint,['variant','reference','inputs','F1','mean','lower','upper','independent_blocks','positive_blocks','negative_blocks','sign_p','wins','ties','losses']),
         '', f"追加组件测试返回{joint_check['returned_inputs']}/{joint_check['planned_inputs']}输入，模型{joint_check['available_models']}/{joint_check['rows']}可用；数值/结构核验{joint_check['available_evidence_passed']}。单步与两步LP不共享缓存或基。全部失败仍进入该补充分母。",
+        '', '次要符号检验未作多重比较校正，逐bundle正负分布同时列出。均值区间与符号检验针对的目标不同，不能只取其中较有利的一项。两步单独改善集中于0.1%噪声、N48的少数soumalas11/pengwah18输入；joint_selected_diagnostics.csv记录最终来源、实际保留的成对提案及第一步是否低于原接受阈值。两步增加了可供验证选择的联合候选，不将所有收益归为跨越非改善第一步。',
         '', '## 自由支持MILP补充对照','',
         'FREE_DOMAIN_PROTOCOL.md说明额外80个匹配输入上的自由支持单步MILP：使用有限池可行暖启动，100秒路径预算、每次MILP10秒、MIPGap=1%，叶初始化；统一原验证/收缩规则。路径单独与保留完整RNJ库分别报告。它补齐自由域和有限池的实际比较，主检验保持原样。',
+        '', '该自由域基线按与当前家族兼容的簇追加；有限池修正允许先删除交叉旧簇。两者的提案机制和路径预算也有差异，因此表中差值比较完整策略，不能归因于候选域大小这一单独因素。',
         '',table(free,['variant','reference','inputs','F1','mean','lower','upper','independent_blocks','wins','ties','losses']),
         '', f"补充模型 {free_check['available_models']}/{free_check['rows']} 可用，实际MILP调用 {free_check['MIP_attempts']} 次，零次MILP调用的输入 {free_check['inputs_without_MIP_attempt']} 项；数值核验 {free_check['all_passed']}。free_domain_MIP_events.csv保留native状态、incumbent、bound、gap及可行性。复用训练前置估计的成本未计入，表中路径预算不能解释成独立部署总耗时。该实现是项目的自由支持逐步策略及本轮统一选模，不称为原作者软件逐设置复现。",
+        '',table(mip_summary,['raw_status','decision','calls','median_native_gap','maximum_native_gap']),
+        '', '表中gap为单次原生MILP的相对gap，decision还考虑了已核验可行暖启动和上下界；未决和触时原样保留。这些数值不作为整条路径或全树的最优性界。',
         '', '## 失败、目标偏好与终止机制','',
         'unidentified.csv 保留所有未完整恢复项；failure_modes.csv 区分候选池漏真簇、最终交叉错误簇。greedy_events.csv 记录错误正权簇被接受时的训练损失、最佳已测试真簇提案损失及是否全扫：只有完整有限池扫描且错误端点严格更优的事件，才支持该一步目标偏好诊断；最终交叉关系本身不作为早期阻挡的因果证明。',
         '',table(mechanisms,['panel','inputs','available','pool_missing','final_crossing','false_accept_events','full_sweep_with_true','strict_false_preference','strict_preference_inputs']),
@@ -178,17 +227,20 @@ def report(output,destination):
         '', 'termination_counts.csv 保留每方法每面板的局部停止与触时。固定家族LP最优状态不扩展成全树最优性；900秒工作进程上限与25/100秒搜索路径预算分别记录。',
         '', f"原批次固定LP触时输入{overview['fixed_LP_time_limit_inputs']}组，另有LP_RETRY_PROTOCOL.md规定的60秒补充重试：{retry_check['returned_inputs']}/{retry_check['planned_inputs']}返回。原共享阶段未生成的模型保持不可用标记及零分分母，不能将它们解释成所有算法各自失败。扩展预算结果单列如下，保留原始15秒数据。",'',
         table(retry[retry.variant.isin(['NJ','multistart','ridge_union','ridge_postfilter_guard'])],['job_id','variant','returned','clade_f1','longest_LP_seconds','worker_seconds']),
-        '', f"LP60恢复模型中，沿用原预定AC条件补评{retry_check['AC_evaluated']}/{retry_check['AC_planned']}行（物理预测可行{retry_check['AC_valid']}行，去重{retry_check['AC_unique']}组，基础设施异常{retry_check['AC_infrastructure_errors']}组）；该补充单列于lp60_retry.csv，不改原AC分母。其他重试与过滤保护模型未追加AC。",
+        '', f"LP60恢复模型中，沿用原预定AC条件补评{retry_check['AC_evaluated']}/{retry_check['AC_planned']}行（潮流计算有效{retry_check['AC_valid']}行，去重{retry_check['AC_unique']}组，基础设施异常{retry_check['AC_infrastructure_errors']}组）；该补充单列于lp60_retry.csv，不改原AC分母。其他重试与过滤保护模型未追加AC。",
+        '', 'case33恢复覆盖表仅为补充：未触时N48取原LP15记录，原触时N288整体取独立LP60重试，另列探索性过滤输出。它提供全部二十输入的模型检索，同时保留原始失败表；由于N档使用不同LP上限，不把此表解释成严格相同计算预算的数据量效应。逐条来源见case33_recovered_coverage.csv。','',
+        table(coverage_summary,['N','fixed_LP_seconds','variant','inputs','F1','test_mae']),
         '', 'resolution_diagnostic.csv 另记录物理线路响应系数经过本轮数据所得校准与0.16滤波时损失的真簇，用于检查分辨率设置是否会主动删掉弱边。该诊断固定物理系数，不作为允许重新拟合参数后的结构恢复上界，也不参与估计器选模。',
         '', '补充探索性后处理敏感性见EXPLORATORY_DIAGNOSTICS.md：固定原先选中的收缩前扩池模型及其参数，只改变最终过滤阈值，不重新搜索或拟合。五个阈值全部保留，未用真簇选取部署阈值。','',table(postfilter,['panel','floor','rows','F1','exact','validation_mae','test_mae']),
         '', '探索性验证保护只在0/0.04/0.08/0.16间按验证误差和原3%简洁规则选输出；保证相同预选模型的验证误差不增，独立测试和F1仍单独评价。该规则在观察预检与主面板诊断后提出，以下为补充证据，不替换原固定0.16主结果。','',table(postguard,['panel','rows','F1','exact','delta_vs_ridge_union','wins','ties','losses','test_mae']),
         '', 'guard_freeze_receipt.json确认规则在正式新拓扑/case33结果产生前确定。独立补充检查排除动机预检所用random32_t0整棵树和case33的bundle0；剩余132个新树输入按11棵树分块，16个case33输入按四数据组分块。主面板不重复当作新规则的确认数据。','',table(guard_holdout,['panel','inputs','F1','mean','lower','upper','independent_blocks','wins','ties','losses']),
         '', '## AC与独立预测','',table(summary[summary.variant.isin(AC_METHODS)],['panel','variant','AC_planned','AC_evaluated','AC_valid','test_ac_rmse']),
-        '', f"预定AC {acinfo['planned_rows']}行，实际评价{acinfo['evaluated_rows']}行、可行{acinfo['valid_rows']}行；去重{acinfo['unique_records']}个输入/参数组合，其中局部重估收敛{acinfo['locally_converged_unique']}个。局部least_squares(max_nfev=12)只用训练日，参数冻结后评价独立测试日；未收敛、物理不可行与基础设施异常分开保留。RMSE均值以可返回的物理预测为条件，并同时列出有效分母。",
+        '', f"预定AC {acinfo['planned_rows']}行，实际评价{acinfo['evaluated_rows']}行、潮流计算有效{acinfo['valid_rows']}行；去重{acinfo['unique_records']}个输入/参数组合，其中局部重估收敛{acinfo['locally_converged_unique']}个。局部least_squares(max_nfev=12)只用训练日，参数冻结后评价独立测试日；局部重估未收敛、潮流计算失败与基础设施异常分开保留。RMSE均值以可返回的物理预测为条件，并同时列出有效分母。AC_valid指全部测试点潮流求解成功，本轮未配置线路热限或运行电压限值。",
         '', 'test_mae是平方压降MAE，单位p.u.^2；test_ac_rmse是电压幅值的相对RMSE，两者分别解释。探索性收缩保护本轮记录线性预测，未追加AC重估，不能将原三方法的AC结果移作它的证据。',
         '', '## 独立运行成本','',table(timing_summary,['variant','replays','median_seconds','p90_seconds','median_process_seconds','equal_structures']),
         '', '四旧网络、bundle0、中低/高噪声、N48/288的16输入各重放四方法，共64次，全批估计结束后顺序运行。各方法使用新进程且不共享前置矩阵、LP或搜索缓存；estimator_seconds不含输入读取/进程导入，process_wall_seconds包含进程启动，结构一致数另列。多初值/扩池计时为当前研究入口，其基本库仍生成固定基线。主批shared_worker_seconds包含额外对照，不能作为单方法部署耗时；大网络仅报告该批成本及路径预算，不从小网络计时外推。',
         '', '独立计时为拓扑估计，不含AC后处理。AC运行耗时另存于原始AC记录；其训练重估和冻结测试是独立评价阶段。',
+        '', 'AC的max_nfev=12约束最小二乘主迭代的函数评价计数；数值Jacobian需要的额外潮流调用不计入该值。实际运行成本以AC记录的seconds为准。',
         '', '硬件与求解环境见hardware.json及protocol.json：Intel Core i9-14900HX、32逻辑处理器，操作系统可见物理内存31.64GiB；主批使用四工作进程，每个Gurobi模型一线程。',
         '', '## 论文主张与证据边界','',table(pd.DataFrame(claims),['claim','status','evidence','scope']),
         '', '这批数据覆盖已声明的平衡径向、隐藏零注入、同步计量模拟域。对比结论使用预定配对差值及区间；记录数、局部求解状态、AC拟合误差和bootstrap区间各自承担相应证据，不互换成拓扑正确概率或全域保证。',
