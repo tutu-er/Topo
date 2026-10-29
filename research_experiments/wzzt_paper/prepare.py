@@ -9,6 +9,7 @@ import platform
 import shutil
 import sys
 import traceback
+import zipfile
 import numpy as np
 from research_experiments.wzzt_systematic.common import read,write,sha
 from .common import jobs,MAIN,AC_METHODS,noise_errors,indices
@@ -42,13 +43,25 @@ def measurements(sim,context,base,p,q,v,config):
     return result
 
 
-def prepare(output,only=None):
+def prepare(output,only=None,source_archive=None):
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=False)
-    frozen=read(PARENT/'manifest.json')
-    for name,h in frozen.items():
-        if name.startswith('source/') and sha(PARENT/name)!=h:raise ValueError('parent producer changed: '+name)
-    shutil.copytree(PARENT/'source',output/'source',ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
-    shutil.copytree(Path(__file__).parent,output/'source/research_experiments/wzzt_paper',ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
+    if source_archive is not None or not (PARENT/'manifest.json').exists():
+        archive=Path(source_archive) if source_archive else ROOT/'docs/wzzt_paper_20261029/producer_source.zip'
+        receipt=read(archive.parent/'delivery_manifest.json')
+        if sha(archive)!=receipt[archive.name]:raise ValueError('source archive hash changed')
+        root=(output/'source').resolve();root.mkdir()
+        with zipfile.ZipFile(archive) as z:
+            for name in z.namelist():
+                path=(root/name).resolve()
+                if not path.is_relative_to(root):raise ValueError('source member outside source directory')
+                if name.endswith('/'):path.mkdir(parents=True,exist_ok=True)
+                else:path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(z.read(name))
+    else:
+        frozen=read(PARENT/'manifest.json')
+        for name,h in frozen.items():
+            if name.startswith('source/') and sha(PARENT/name)!=h:raise ValueError('parent producer changed: '+name)
+        shutil.copytree(PARENT/'source',output/'source',ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
+    shutil.copytree(Path(__file__).parent,output/'source/research_experiments/wzzt_paper',dirs_exist_ok=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
     for p in (ROOT/'terminal_case33').rglob('*.py'):
         to=output/'source'/p.relative_to(ROOT);to.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,to)
     sys.path.insert(0,str(output/'source'))
@@ -155,4 +168,4 @@ def prepare(output,only=None):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('output');p.add_argument('--only',nargs='+');a=p.parse_args();prepare(a.output,a.only)
+    p=argparse.ArgumentParser();p.add_argument('output');p.add_argument('--only',nargs='+');p.add_argument('--source-archive');a=p.parse_args();prepare(a.output,a.only,a.source_archive)

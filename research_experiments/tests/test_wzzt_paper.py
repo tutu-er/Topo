@@ -37,3 +37,28 @@ def test_case33_resource_assignment_preserves_original_load_locations_and_totals
     assert set(a.bus_id)==set(terminals.original_bus_id)
     assert abs(terminals.pd_kw.sum()-n.metadata['original_total_pd_kw'])<1e-8
     assert len(a)==32 and a.bus_id.is_unique
+
+
+def test_paired_block_interval_preserves_zero_effect_and_symmetric_counterexample():
+    from research_experiments.wzzt_paper.statistics import interval
+    zero=interval(np.zeros(10));assert zero['mean']==zero['lower']==zero['upper']==0 and zero['sign_p']==1
+    balanced=interval(np.arange(10)-4.5)
+    assert balanced['mean']==0 and balanced['lower']<0<balanced['upper'] and balanced['sign_p']==1
+    assert balanced['independent_blocks']==10
+
+
+def test_record_archive_restore_checks_bytes_and_preserves_changed_local_file():
+    import hashlib,json,zipfile,pytest,tempfile
+    from pathlib import Path
+    from research_experiments.wzzt_paper.records import restore
+    scratch=Path(__file__).resolve().parents[2]/'tmp';scratch.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+        tmp_path=Path(temporary);assert tmp_path.resolve().is_relative_to(scratch.resolve())
+        data=b'fixture record bytes';archive=tmp_path/'records.zip'
+        with zipfile.ZipFile(archive,'w') as z:z.writestr('catalog.sqlite',data)
+        manifest={'records.zip':hashlib.sha256(archive.read_bytes()).hexdigest(),'catalog.sqlite':hashlib.sha256(data).hexdigest()}
+        (tmp_path/'delivery_manifest.json').write_text(json.dumps(manifest),encoding='utf-8')
+        restore(tmp_path);assert (tmp_path/'catalog.sqlite').read_bytes()==data
+        (tmp_path/'catalog.sqlite').write_bytes(b'local modification')
+        with pytest.raises(ValueError,match='existing local record changed'):restore(tmp_path)
+        assert (tmp_path/'catalog.sqlite').read_bytes()==b'local modification'
