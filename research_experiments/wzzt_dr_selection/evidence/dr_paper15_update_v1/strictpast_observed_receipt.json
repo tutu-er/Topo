@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "base_kv": 0.4,
+    "base_mva": 0.2,
+    "base_kw": 200.0,
+    "node_capacity_kw": 45.0,
+    "baseline_P": "measured aggregate of3controlhouseholds",
+    "baseline_Q": "heterogeneous synthetic residentialPF",
+    "current_DR_increment": {
+      "delta_p_kw": 0.2,
+      "delta_q_kvar": 0.07,
+      "delta_q_over_delta_p": 0.35
+    },
+    "current_price_budget_generic_currency": 1.6,
+    "units": {
+      "P_terminal": "pu",
+      "Q_terminal": "pu",
+      "V_terminal": "pu",
+      "V_root_observed": "pu"
+    },
+    "training_dates": [
+      "2021-02-03",
+      "2021-02-04"
+    ],
+    "validation_dates": [
+      "2021-02-05"
+    ],
+    "forecast_history_dates": [
+      "2021-01-25",
+      "2021-01-26",
+      "2021-01-27",
+      "2021-01-28",
+      "2021-01-29",
+      "2021-02-01",
+      "2021-02-02",
+      "2021-02-03",
+      "2021-02-04",
+      "2021-02-05"
+    ],
+    "source_role": "datedpastobservationsonly; no truth/future channels"
+  },
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-01-25.pkl": "3d8de548678e95aeb94e16178027a963f1440ba47a96c7e6df1f2e4cafc32f24",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-01-26.pkl": "8db454dc72f193aba6e7e6324669ffdbc8aa6b840e55aa5669875fe71c617757",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-01-27.pkl": "8b41e10b53cdf70cb584622ec0c2b55cc74a80100a415662964c56d0894c1332",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-01-28.pkl": "7b6a3d34aef7786a94de4514f55ad10a2f8155da4458f2e5b6484e2edad2fe8c",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-01-29.pkl": "4298079bb0bb92e0ee87b424619a20c8532d60b1a7710079f4269782727d1c88",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-02-01.pkl": "8b807804f1c94176918aef903127d13aaf14396405840aae8df4fe912c71526b",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-02-02.pkl": "e990249b7b4bf07e6402ac560a485d85d3c383b688d0c252fd4eb90b0037e8e4",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-02-03.pkl": "b7d8b653b216c5bcc6ed5a0653de8616760e764c2c0b68c7ccd907c94d071b56",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-02-04.pkl": "a667d8667af3ab7f95c9452abf4074f5622094f64cef2ea63e94b4ba9fc128ff",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_data_calibration\\flow_runs\\paper15_iflex_v1\\history\\2021-02-05.pkl": "d41d24bc7811cf8d75136cd2f89980353a35b938bb7635e6a213d6a11acb5c86"
+  },
+  "script_sha256": "eea54036bc4f2288dac3939ff8f8b2036f3d4371053d8b3ce38b981fdd61e27c",
+  "output_sha256": {
+    "strictpast_observed.pkl": "4c6e2ee8eede9f77e29f6801081dea23c2821a0fb5c2cc764ec2d447dd7f0ac1",
+    "historical_forecast.pkl": "3f52af3fda7efaa302d1bccfd5679aea8a61718b61af49367b04e5510e080118"
+  },
+  "rows": {
+    "training": 48,
+    "validation": 24,
+    "forecast_source": 240
+  },
+  "forecast_checks": {
+    "reduction_hour": 19,
+    "rebound_hour": 20,
+    "P_nonnegative": true,
+    "Q_nonnegative": true,
+    "P_capacity": true,
+    "feasible_labels": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115
+    ],
+    "forecast_only": true,
+    "future_values_accessed": false
+  },
+  "export": "private cache only; do not commit aggregated trajectories",
+  "full_phase_scope": "no actual_days, heldoutresponsebanks, Source or truth fields accessed"
+}

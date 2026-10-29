@@ -1,5 +1,12 @@
 # WZZT-DR 恢复索引
 
+## 当前接续：paper15算法更新（进行中）
+
+用户授权持续自主研究；先读STATUS顶部、dr_paper15_update/README.md和私有development_protocol.json。固定5个开发输入已锁定，首个referenceN24完成，不能重跑。检查私有根wzzt_dr_paper15_update_v1/update.run.lock及实际进程、development_summary.json、development/*/case_result.json。linear.json或ac.json部分状态不自动重启，先审查缺口。
+
+源代码和历史聚合证据位于dr_paper15_update及evidence/dr_paper15_update_v1；私有strictpast_observed.pkl/historical_forecast.pkl只在同级dr_paper15_update_build，绝不提交家庭轨迹。新日期与新价格尚未运行。当前目标未完成，不把首个AC验证误差下降写成参数精度或DR恢复收益。
+
+
 ## 最新完成阶段：历史竞争审查与随机并列探索（2026-10-29）
 
 先读STATUS.md顶部、dr_history_competition/REPORT.md和AC_INTERFACE_AUDIT.md。210/210格（192主+18控制）、104不同拟合全部完成；另历史实际12 LP、完整补全114 LP，均已结束。私有目录C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_history_competition_v1；summary complete、audit_final all_passed，无run.lock。不要重跑。
