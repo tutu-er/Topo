@@ -31,6 +31,8 @@ def evaluate(output,destination,*,partial=False,skip_ac=False):
         ended=any((folder/n).exists() for n in ('result.json','error.json','timeout.json'))
         if partial and not ended:continue
         p=read(folder/'payload.json');returned=(folder/'result.json').exists()
+        error=read(folder/'error.json').get('error','') if (folder/'error.json').exists() else ''
+        failure_kind='fixed_family_LP_time_limit' if 'fixed-family LP status 9' in error else 'worker_hard_limit' if (folder/'timeout.json').exists() else 'worker_error' if error else None
         result=read(folder/'result.json') if returned else read(folder/'checkpoint.json') if (folder/'checkpoint.json').exists() else {}
         if not returned:incomplete.append(job)
         labels=[];truth=None;noise={}
@@ -41,7 +43,7 @@ def evaluate(output,destination,*,partial=False,skip_ac=False):
             truth=truths[p['truth_network']]
             for name,a,b in zip(('P','Q','V','root'),train,true_train):noise[name+'_realized_relative_std']=float(np.std((a.to_numpy()-b.to_numpy())/np.maximum(abs(b.to_numpy()),1e-12)))
         ds={k:p[k] for k in ('job_id','panel','case','condition','bundle','N','voltage_sigma','pq_sigma','truth_network','data_error')}
-        ds.update(labels_json=json.dumps(labels),train_indices_json=json.dumps(indices(p['N']).tolist()),noise_stats_json=json.dumps(noise))
+        ds.update(labels_json=json.dumps(labels),train_indices_json=json.dumps(indices(p['N']).tolist()),noise_stats_json=json.dumps(noise),failure_kind=failure_kind,failure_message=error)
         for split in ('train','validation','test'):
             ds[split+'_path']=p[split];ds[split+'_truth_path']=p[split+'_truth'];ds[split+'_sha256']=sha(p[split]) if Path(p[split]).exists() else None
         file=next((folder/n for n in ('result.json','checkpoint.json','error.json','timeout.json') if (folder/n).exists()),None)
@@ -50,7 +52,7 @@ def evaluate(output,destination,*,partial=False,skip_ac=False):
             row={k:p[k] for k in ('job_id','panel','case','condition','bundle','N','voltage_sigma','pq_sigma')}
             row.update(variant=method,method_group='main' if method in MAIN else 'ablation',worker_returned=returned,
                 model_available=method in result.get('models',{}),physical_data_valid=not bool(p['data_error']),clade_f1=0.,
-                ac_planned=p['ac_planned'] and method in AC_METHODS,**noise)
+                ac_planned=p['ac_planned'] and method in AC_METHODS,worker_failure_kind=failure_kind,**noise)
             if row['model_available'] and truth is not None:
                 point=result['models'][method];R,X=matrices(len(labels),point['supports'],point['r'],point['x'])
                 predicted={frozenset(labels[i] for i in s) for s in point['supports'] if 2<=len(s)<len(labels)}
@@ -133,6 +135,7 @@ def evaluate(output,destination,*,partial=False,skip_ac=False):
     overview['completed_inputs']=sum(any((output/'jobs'/d['job_id']/n).exists() for n in ('result.json','error.json','timeout.json')) for d in datasets)
     overview['error_inputs']=sum((output/'jobs'/d['job_id']/'error.json').exists() for d in datasets)
     overview['timeout_inputs']=sum((output/'jobs'/d['job_id']/'timeout.json').exists() for d in datasets)
+    overview['fixed_LP_time_limit_inputs']=sum(d['failure_kind']=='fixed_family_LP_time_limit' for d in datasets)
     write(destination/'overview.json',overview);print(overview,flush=True)
 
 

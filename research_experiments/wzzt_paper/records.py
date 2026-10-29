@@ -77,3 +77,27 @@ def load_guard(catalog,*,case,panel,condition,voltage_sigma,bundle,N,with_observ
     if with_observations:
         for split in ('train','validation','test'):out[split]=base[split]
     return out
+
+
+def load_retry(catalog,*,case,panel,condition,voltage_sigma,bundle,N,variant='ridge_union',with_observations=False):
+    """Read the explicit LP60 supplement, preserving the original LP15 record."""
+    import pandas as pd
+    rows=find(catalog,case=case,panel=panel,condition=condition,voltage_sigma=voltage_sigma,bundle=bundle,N=N,variant='ridge_union')
+    if len(rows)!=1:raise ValueError('expected exactly one matched input')
+    original=rows[0];job=original['job_id'];directory=Path(catalog).parent;model=None
+    with (directory/'lp60_models.jsonl').open(encoding='utf-8') as stream:
+        for line in stream:
+            candidate=json.loads(line)
+            if candidate['job_id']==job and candidate['variant']==variant:model=candidate;break
+    if model is None:raise ValueError('no completed LP60 model for this input and method')
+    metrics=pd.read_csv(directory/'lp60_retry.csv');metrics=metrics[(metrics.job_id==job)&(metrics.variant==variant)]
+    if len(metrics)!=1:raise ValueError('supplement metrics missing')
+    p=model['point'];R,X=matrices(len(model['labels']),p['supports'],p['r'],p['x'])
+    out=dict(labels=model['labels'],supports=p['supports'],r=p['r'],x=p['x'],R=R,X=X,
+        record=dict(metrics.iloc[0].to_dict(),evidence_scope='LP60 supplementary retry'),original_record=original)
+    if with_observations:
+        for split in ('train','validation','test'):
+            path=Path(original[split+'_path'])
+            if sha(path)!=original[split+'_sha256']:raise ValueError('input bytes changed')
+            out[split]=observed(path,N if split=='train' else None)
+    return out

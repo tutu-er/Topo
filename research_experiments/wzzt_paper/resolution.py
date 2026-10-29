@@ -29,12 +29,13 @@ def analyze(output,destination):
     output=Path(output).resolve();destination=Path(destination);records=[];truths={};guarded=[];guard_models=[]
     main=pd.read_csv(destination/'per_job.csv');original=main[main.variant=='ridge_union'].set_index('job_id').clade_f1
     for job in read(output/'protocol.json')['jobs']:
-        folder=output/'jobs'/job;p=read(folder/'payload.json');file=folder/'result.json'
+        folder=output/'jobs'/job;p=read(folder/'payload.json');file=folder/'result.json' if (folder/'result.json').exists() else folder/'checkpoint.json'
         header={k:p[k] for k in ('job_id','panel','case','condition','bundle','N','voltage_sigma')}
-        if not file.exists():
+        r=read(file) if file.exists() else {}
+        if 'ridge_union' not in r.get('models',{}):
             records.extend(dict(header,floor=f,model_available=False,clade_f1=0.) for f in (0.,.04,.08,.16,.24))
-            guarded.append(dict(header,model_available=False,clade_f1=0.));continue
-        r=read(file);points=r['base_points']+r['candidates']['ridge_union'];point=points[r['models']['ridge_union']['selection_index']]
+            guarded.append(dict(header,model_available=False,clade_f1=0.,delta_vs_ridge_union=-original[job]));continue
+        points=r['base_points']+r['candidates']['ridge_union'];point=points[r['models']['ridge_union']['selection_index']]
         labels=r['labels'];cal=r['calibration'];train=observed(p['train'],p['N']);validation=observed(p['validation']);test=observed(p['test'])
         if p['truth_network'] not in truths:truths[p['truth_network']]=physical_truth(p['truth_network'],labels)['clades']
         for floor in (0.,.04,.08,.16,.24):

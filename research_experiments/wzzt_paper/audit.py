@@ -116,7 +116,7 @@ def audit(output,destination):
         models.append(dict(job_id=job,unique_models=len(seen),max_score_error=max_error,passed=bool(legal and max_error<1e-8)))
         for front in r['augmentation']['fronts']:
             P,Q,_=arrays(train,front['preprocess']);alpha,scale=ridge_alpha(P,Q,front['strength'])
-            check(job+f" ridge {front['preprocess']} {front['strength']}",abs(alpha-front['alpha'])<1e-12 and abs(scale-front['gram_scale'])<1e-12 and front['diagnostics']['success'])
+            check(job+f" ridge {front['preprocess']} {front['strength']}",abs(alpha-front['alpha'])<1e-12 and abs(scale-front['gram_scale'])<1e-12 and front['diagnostics'].get('success',False))
         sample=payload['bundle']==0 and payload['voltage_sigma']==.001 and payload['N']==48 and (payload['panel'] in ('main','case33') or (payload['panel']=='topology' and payload['case'].startswith('random8_')))
         if sample:
             for method in ('multistart','ridge_union'):
@@ -129,6 +129,7 @@ def audit(output,destination):
     summary=dict(all_passed=all(x['passed'] for group in (checks,LP,models,independent) for x in group),checks=len(checks),
         LP_solves=sum(x['solves'] for x in LP),physical_models=sum(x['unique_models'] for x in models),independent_LP_checks=len(independent),
         returned_inputs=len(models),planned_inputs=p['planned'],failed_checks=[x['check'] for x in checks if not x['passed']])
+    summary['available_evidence_passed']=all(x['passed'] for group in (LP,models,independent) for x in group) and all(x['passed'] for x in checks if not x['check'].endswith(' returned'))
     write(destination/'audit_summary.json',summary);write(destination/'audit_checks.json',checks);write(destination/'independent_LP.json',independent)
     pd.DataFrame(LP).to_csv(destination/'LP_checks.csv',index=False);pd.DataFrame(models).to_csv(destination/'physical_checks.csv',index=False)
     pd.DataFrame(events).to_csv(destination/'greedy_events.csv',index=False)
