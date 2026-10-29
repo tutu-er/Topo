@@ -1,0 +1,267 @@
+table,column,dtype,missing,description,unit
+model_results,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+model_results,panel,str,0,main/stress/topology/case33,category
+model_results,case,str,0,网络名称,category
+model_results,condition,str,0,物理、激励或计量场景,category
+model_results,bundle,int64,0,独立数据组编号；多条件共享同组随机路径,integer
+model_results,N,int64,0,训练三物理日的总快照数，嵌套采样；验证和测试各288点,snapshots
+model_results,voltage_sigma,float64,0,端点电压计量相对高斯标准差；根电压设置见configuration_json,relative SD
+model_results,pq_sigma,float64,0,P/Q计量相对标准差,relative SD
+model_results,variant,str,0,方法代码，见methods.csv,category
+model_results,method_group,str,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,worker_returned,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,model_available,int64,0,是否存在可用的保存模型；原缺失记录仍保留,boolean
+model_results,physical_data_valid,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,clade_f1,float64,0,非平凡末端簇F1；排除叶簇与全末端簇,0..1
+model_results,ac_planned,float64,1844,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,worker_failure_kind,str,15357,原共享进程异常类别，区分固定LP触时与其他错误,category
+model_results,P_realized_relative_std,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,Q_realized_relative_std,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,V_realized_relative_std,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,root_realized_relative_std,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,precision,float64,142,正确预测非平凡簇/预测簇数,0..1
+model_results,recall,float64,142,正确预测非平凡簇/真簇数,0..1
+model_results,predicted_clades,float64,142,预测非平凡簇数,count
+model_results,true_clades,float64,142,真实非平凡簇数,count
+model_results,matched_clades,float64,142,匹配真簇数,count
+model_results,R_error,float64,2129,R平方压降响应矩阵的相对Frobenius误差,ratio
+model_results,X_error,float64,2129,X平方压降响应矩阵的相对Frobenius误差,ratio
+model_results,train_mae,float64,1969,训练平方压降MAE,pu^2
+model_results,validation_mae,float64,142,验证平方压降MAE,pu^2
+model_results,test_mae,float64,142,独立测试平方压降MAE,pu^2
+model_results,ranking_validation_mae,float64,4515,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,support_count,float64,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,selected_origin,str,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,model_signature,str,142,与parameters.point_signature关联,SHA-256
+model_results,shared_worker_seconds,float64,2134,原主批共享进程耗时，不作单方法计时,seconds
+model_results,base_pipeline_seconds,float64,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,pool_size,float64,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,candidate_pool_true_recall,float64,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,selected_new_true_clades,float64,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,diagnostic_json,str,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,wzzt_search_status,str,2129,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,search_seconds,float64,1969,实际路径耗时；检查预算可能被单次LP越过,seconds
+model_results,ac_evaluated,float64,1844,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,ac_valid,float64,14624,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,test_ac_rmse,float64,14624,训练后冻结参数的独立测试相对电压幅值RMSE,relative voltage
+model_results,physical_test_ac_rmse,float64,14630,冻结AC参数在无噪声测试物理路径上的相对电压RMSE,relative voltage
+model_results,ac_refit_success,float64,14630,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,delta_vs_NJ,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,delta_vs_baseline25,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,delta_vs_multistart,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,delta_vs_restart_control,float64,2000,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,delta_vs_ridge_union,float64,796,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,cohort,str,0,original/free_domain/joint_extension/lp60_retry/postfilter_guard；不同来源分别查询,category
+model_results,record_id,str,0,cohort::job_id::variant；每条模型结果的唯一键,identifier
+model_results,score_policy,str,0,标记可用模型评分或缺失保留为零分的统计口径,category
+model_results,exact_clades,int64,0,可用模型的非平凡簇集合完全一致,boolean
+model_results,fixed_LP_seconds,int64,0,固定家族LP时间上限；不等于整条路径或工作进程上限,seconds
+model_results,evidence_role,str,0,预定主/组件或次要扩展、探索性分析,category
+model_results,prospective_filter_holdout,int64,0,是否属于过滤规则冻结后的148输入补充检查；与主数据复用关系见原报告,boolean
+model_results,source_table,str,0,原指标表文件名,path
+model_results,source_table_sha256,str,0,实际读入指标表哈希,SHA-256
+model_results,search_stop,str,15340,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,MIP_attempts,float64,15340,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,worker_seconds,float64,14864,整共享进程耗时，不是单方法独立部署耗时,seconds
+model_results,returned,float64,15344,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,longest_LP_seconds,float64,15344,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,final_floor,float64,14309,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,rule_uses_truth,float64,14309,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,analysis_type,str,14309,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+model_results,ac_key,str,14624,cohort命名空间内去重的AC输入/参数键,identifier
+parameters,record_id,str,0,cohort::job_id::variant；每条模型结果的唯一键,identifier
+parameters,labels_json,str,0,端点位置到实际bus ID的映射,JSON
+parameters,point_json,str,0,完整保存模型；supports为端点位置集合，r/x为平方压降响应系数,JSON
+parameters,point_signature,str,0,沿用原signature函数的结构/参数指纹,SHA-256
+parameters,source_result,str,0,原始结果或checkpoint路径；探索性后处理的完整点另保存在本索引,path
+parameters,source_result_sha256,str,0,原始结果/前置结果文件哈希,SHA-256
+inputs,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+inputs,panel,str,0,main/stress/topology/case33,category
+inputs,case,str,0,网络名称,category
+inputs,condition,str,0,物理、激励或计量场景,category
+inputs,bundle,int64,0,独立数据组编号；多条件共享同组随机路径,integer
+inputs,N,int64,0,训练三物理日的总快照数，嵌套采样；验证和测试各288点,snapshots
+inputs,voltage_sigma,float64,0,端点电压计量相对高斯标准差；根电压设置见configuration_json,relative SD
+inputs,pq_sigma,float64,0,P/Q计量相对标准差,relative SD
+inputs,truth_network,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,data_error,object,1204,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,labels_json,str,0,端点位置到实际bus ID的映射,JSON
+inputs,train_indices_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,noise_stats_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,failure_kind,str,1191,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,failure_message,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,train_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,train_truth_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,train_sha256,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,validation_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,validation_truth_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,validation_sha256,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,test_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,test_truth_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,test_sha256,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,result_path,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,result_sha256,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,configuration_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+inputs,planned_methods_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+ac_fits,ac_key,str,0,cohort命名空间内去重的AC输入/参数键,identifier
+ac_fits,cohort,str,0,original/free_domain/joint_extension/lp60_retry/postfilter_guard；不同来源分别查询,category
+ac_fits,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+ac_fits,model_signature,str,0,与parameters.point_signature关联,SHA-256
+ac_fits,fitting_valid,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+ac_fits,testing_valid,int64,0,全部测试点潮流计算成功；本轮未配运行电压/热限约束,boolean
+ac_fits,physical_valid,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+ac_fits,locally_converged,int64,0,least_squares报告的局部重估收敛标记,boolean
+ac_fits,nfev,int64,0,least_squares函数评价计数；不含数值Jacobian额外潮流调用,count
+ac_fits,fit_status,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+ac_fits,train_rows,int64,0,AC训练时实际潮流行数，应等于N,snapshots
+ac_fits,test_rows,int64,0,AC测试实际行数，当前为288,snapshots
+ac_fits,train_initial_rmse,float64,0,AC重估前的训练相对电压RMSE,relative voltage
+ac_fits,train_rmse,float64,0,AC重估后的训练相对电压RMSE,relative voltage
+ac_fits,test_rmse,float64,0,冻结AC参数的独立测试相对电压RMSE,relative voltage
+ac_fits,physical_test_rmse,float64,0,冻结AC参数在无噪声物理测试目标上的相对电压RMSE,relative voltage
+ac_fits,fitting_seconds,float64,0,AC训练重估实际时间，含数值Jacobian潮流调用,seconds
+ac_fits,testing_seconds,float64,0,AC固定参数观测测试耗时,seconds
+ac_fits,physical_seconds,float64,0,AC固定参数无噪声目标测试耗时,seconds
+ac_fits,r_refit_json,str,0,AC重估后的R响应系数，物理标幺阻抗为其一半,JSON
+ac_fits,x_refit_json,str,0,AC重估后的X响应系数，物理标幺阻抗为其一半,JSON
+ac_fits,source_path,str,0,具体AC结果文件路径,path
+ac_fits,source_sha256,str,0,来源文件哈希,SHA-256
+ac_fits,infrastructure_error,object,584,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,case,str,0,网络名称,category
+daily_diagnostics,condition,str,0,物理、激励或计量场景,category
+daily_diagnostics,bundle,int64,0,独立数据组编号；多条件共享同组随机路径,integer
+daily_diagnostics,voltage_sigma,float64,0,端点电压计量相对高斯标准差；根电压设置见configuration_json,relative SD
+daily_diagnostics,split,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,day,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,replicate,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,seed,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,profile,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,converged,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,voltage_min,float64,0,逐物理日电压最小值,pu voltage
+daily_diagnostics,voltage_max,float64,0,逐物理日电压最大值,pu voltage
+daily_diagnostics,mean_drop,float64,0,逐物理日根电压减端点电压的均值,pu voltage
+daily_diagnostics,max_drop,float64,0,逐物理日最大根到端点压降,pu voltage
+daily_diagnostics,min_drop,float64,0,逐物理日最小根到端点压降,pu voltage
+daily_diagnostics,design_rank,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,design_columns,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,condition_number,float64,0,"每天96点中心化[P,Q]设计矩阵条件数",ratio
+daily_diagnostics,dynamic_signal_rms,float64,0,真动态平方压降信号RMS,pu^2
+daily_diagnostics,dynamic_noise_rms,float64,0,平方压降计量误差RMS,pu^2
+daily_diagnostics,diagnostic_grid_per_day,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,source_sha256,str,0,来源文件哈希,SHA-256
+daily_diagnostics,realized_relative_std_P,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,realized_relative_std_Q,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,realized_relative_std_V,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+daily_diagnostics,realized_relative_std_root,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+physical_regimes,case,str,0,网络名称,category
+physical_regimes,condition,str,0,物理、激励或计量场景,category
+physical_regimes,bundle,int64,0,独立数据组编号；多条件共享同组随机路径,integer
+physical_regimes,physical_snapshots,int64,0,合并九日的物理时刻数；不是独立数据bundle数,snapshots
+physical_regimes,minimum_V_pu,float64,0,九日端点电压最小值,pu voltage
+physical_regimes,maximum_V_pu,float64,0,九日端点电压最大值,pu voltage
+physical_regimes,drop_p05_pct,float64,0,九日根到端点压降的5%分位数,nominal-pu percentage points
+physical_regimes,drop_median_pct,float64,0,九物理日根电压减端点电压的中位数,nominal-pu percentage points
+physical_regimes,drop_p95_pct,float64,0,九日根到端点压降的95%分位数,nominal-pu percentage points
+physical_regimes,scope,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+greedy_events,panel,str,0,main/stress/topology/case33,category
+greedy_events,search,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,iteration,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,false_positive_additions,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,new_false_count,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,endpoint_loss,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,best_tested_true_loss,float64,7458,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,true_candidates_tested,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,full_sweep,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,loss_margin_vs_best_true,float64,7458,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,strictly_better_than_tested_true,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+greedy_events,truth_used_only_posthoc,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+mip_events,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+mip_events,step,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+mip_events,raw_status,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+mip_events,bound,float64,1,原生MILP下界，对应单步平方压降MAE,pu^2
+mip_events,incumbent,float64,0,原生MILP可行目标值,pu^2
+mip_events,selected_upper,float64,0,最终采用的已核验可行解目标上界,pu^2
+mip_events,relative_gap,float64,1,单次原生MILP相对gap；不是全路径/全树最优性gap,ratio
+mip_events,primal_feasible,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+mip_events,selected_feasible,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+mip_events,decision,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+timing,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+timing,variant,str,0,方法代码，见methods.csv,category
+timing,estimator_seconds,float64,0,新进程中单个研究入口的估计耗时，排除导入/读取,seconds
+timing,structure_equal_to_shared,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+timing,worker_code_sha256,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+timing,source,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+timing,process_wall_seconds,float64,0,包括新进程启动的端到端重放耗时,seconds
+joint_diagnostics,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+joint_diagnostics,case,str,0,网络名称,category
+joint_diagnostics,bundle,int64,0,独立数据组编号；多条件共享同组随机路径,integer
+joint_diagnostics,N,int64,0,训练三物理日的总快照数，嵌套采样；验证和测试各288点,snapshots
+joint_diagnostics,voltage_sigma,float64,0,端点电压计量相对高斯标准差；根电压设置见configuration_json,relative SD
+joint_diagnostics,clade_f1,float64,0,非平凡末端簇F1；排除叶簇与全末端簇,0..1
+joint_diagnostics,delta_vs_ridge,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+joint_diagnostics,selected_origin,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+joint_diagnostics,selected_pair_retained,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+joint_diagnostics,current_training_loss,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+joint_diagnostics,first_training_loss,float64,155,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+joint_diagnostics,first_below_acceptance_threshold,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+joint_diagnostics,added_supports_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+filter_sensitivity,job_id,str,0,原1204输入条件唯一键；补充处理仍复用同一输入键,identifier
+filter_sensitivity,panel,str,0,main/stress/topology/case33,category
+filter_sensitivity,case,str,0,网络名称,category
+filter_sensitivity,condition,str,0,物理、激励或计量场景,category
+filter_sensitivity,bundle,int64,0,独立数据组编号；多条件共享同组随机路径,integer
+filter_sensitivity,N,int64,0,训练三物理日的总快照数，嵌套采样；验证和测试各288点,snapshots
+filter_sensitivity,voltage_sigma,float64,0,端点电压计量相对高斯标准差；根电压设置见configuration_json,relative SD
+filter_sensitivity,floor,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+filter_sensitivity,model_available,int64,0,是否存在可用的保存模型；原缺失记录仍保留,boolean
+filter_sensitivity,clade_f1,float64,0,非平凡末端簇F1；排除叶簇与全末端簇,0..1
+filter_sensitivity,precision,float64,65,正确预测非平凡簇/预测簇数,0..1
+filter_sensitivity,recall,float64,65,正确预测非平凡簇/真簇数,0..1
+filter_sensitivity,predicted_clades,float64,65,预测非平凡簇数,count
+filter_sensitivity,true_clades,float64,65,真实非平凡簇数,count
+filter_sensitivity,matched_clades,float64,65,匹配真簇数,count
+filter_sensitivity,validation_mae,float64,65,验证平方压降MAE,pu^2
+filter_sensitivity,test_mae,float64,65,独立测试平方压降MAE,pu^2
+filter_sensitivity,supports,float64,65,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+filter_sensitivity,fixed_preselected_model,float64,65,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+filter_sensitivity,truth_used_only_posthoc,float64,65,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+methods,variant,str,0,方法代码，见methods.csv,category
+methods,label_en,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+methods,color,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+methods,marker,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,settings_id,str,0,cohort::variant，算法配置与预算的键,identifier
+method_settings,cohort,str,0,original/free_domain/joint_extension/lp60_retry/postfilter_guard；不同来源分别查询,category
+method_settings,variant,str,0,方法代码，见methods.csv,category
+method_settings,actual_input_records,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,initial_family,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,uses_frozen_parent_precomputation,bool,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,nominal_stage_budgets_json,str,0,分阶段名义预算；实际可能因单次LP越过检查点，不能当独立部署总耗时,JSON seconds
+method_settings,parent_base_start_limit,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,fixed_LP_limit_seconds,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,worker_hard_seconds,float64,2,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,threads_per_solver,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,fixed_LP_method,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,fixed_LP_feasibility_tolerance,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,LP_optimality_tolerance,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,response_coefficient_lower,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,response_coefficient_upper,float64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,MILP_relative_gap,float64,33,自由域单步MILP的原生相对gap目标；其他方法为空,ratio
+method_settings,MILP_per_solve_seconds,float64,33,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,greedy_absolute_gain_threshold,float64,7,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,greedy_relative_gain_threshold,float64,7,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,candidate_ridge_strengths_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,ridge_alpha_formula,str,21,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,front_preprocessing_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,geometry_grid_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,geometry_threshold_grid_json,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,native_geometry,str,31,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,native_geometry_threshold,float64,31,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,validation_rule,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,final_strength_filter,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,max_backward_deletions,int64,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,deletion_admission_validation_slack,float64,29,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,joint_width,float64,31,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,joint_first_sweep_budget_fraction,float64,31,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,actual_selected_floor_field,str,33,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
+method_settings,timing_interpretation,str,0,保留原表同名字段；来源、指标口径见原实验HANDOFF及本目录README,source-defined
