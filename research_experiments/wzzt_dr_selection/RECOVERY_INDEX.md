@@ -1,3 +1,11 @@
+## 最终恢复：输出guard核验与自动路线关闭，2026-10-30
+
+- 先读STATUS与dr_output_guard/REPORT.md、README.md。2项确定性输出检查通过；15开发记录/7不同输入无结构改善、2退化、13不变，完整恢复不变，错漏16→19。不能作为DR或结构方法推广。
+- 私有根scratch/wzzt_dr_output_guard_v1：protocol.json、summary.json、各mechanism/case记录、audit.json、provenance.json、tests_receipt.json、automation_closure.json。均已完成，无run.lock/运行进程，不重跑或偷偷扩大。
+- evidence/dr_output_guard_v1/bounded_output_guard.zip含49文件源闭包、配置、逐条结果和独立审计算法，manifest读回通过；私有原观测按协议hash恢复，家庭/聚合轨迹不上传。生产默认没改，guard仅隔离原型。
+- `wzzt-dr`自动化已删除成功，main_DR_objective_achieved=false。当前固定paper15停止策略已0错漏/0新增支付，不能在相同后验case求更低结构错漏；本自动路线结束而非DR普遍无效。线程不归档，记录可恢复。
+- 新任务应先明确真实可用信息/数据采集时序和独立数据或明确问题变更，不默认复活旧批次、截窗、增加预算或调弱线/噪声。当前没有待自动运行事项。
+
 ## 最新恢复：有界数学审查与输出层缺陷，2026-10-30
 
 - 先读dr_decision_audit/METHOD_REVIEW.md、OUTPUT_GUARD_PLAN.md、STATUS。evidence/dr_method_review_v1保存数学稿、相关冻结源码和既有评价引用；本轮新solver/AC/tests/价格批量均0，无实际未来。
