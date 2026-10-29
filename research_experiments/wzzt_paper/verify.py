@@ -119,6 +119,10 @@ def verify(output,destination):
     check('prospective filter denominators 132 new-tree plus16 case33',len(holdout)==148 and (holdout.panel=='topology').sum()==132 and (holdout.panel=='case33').sum()==16)
     retry=read(destination/'lp60_retry_verification.json');retry_protocol=read(output/'lp60_retry/protocol.json')
     check('all thirteen fixed-LP retries returned and passed numerical checks',retry['planned_inputs']==retry['returned_inputs']==13 and retry['available_evidence_passed'])
+    check('six originally planned AC rows also attempted on LP60 recovered models',retry['AC_planned']==retry['AC_evaluated']==6)
+    retry_ac_receipt=read(destination/'lp60_ac_freeze_receipt.json')
+    check('recovered AC scope frozen before its results',retry_ac_receipt['existing_AC_results']==0 and retry_ac_receipt['expected_model_rows']==6 and
+        retry_ac_receipt['protocol_sha256']==sha(destination/'LP_RETRY_PROTOCOL.md'))
     retry_binding=True
     for job in retry_protocol['jobs']:
         result=read(output/'lp60_retry'/job/'result.json')

@@ -73,7 +73,11 @@ def evaluate(output,destination):
     from research_experiments.wzzt_paper.resolution import guard_filter
     from research_experiments.wzzt_systematic.common import matrices,linear_loss
     from research_experiments.rnj.audit_source_ac96_benchmark import physical_truth,clade_metrics
-    output=Path(output).resolve();destination=Path(destination);folder=output/'lp60_retry';rows=[];checks=[];saved=[]
+    from research_experiments.wzzt_paper.common import AC_METHODS
+    from research_experiments.wzzt_paper.evaluate import ac_task
+    from research_experiments.wzzt_fine.evaluate import signature
+    output=Path(output).resolve();destination=Path(destination);folder=output/'lp60_retry';rows=[];checks=[];saved=[];ac_cache={}
+    ac_folder=folder/'ac';ac_folder.mkdir(exist_ok=True)
     for job in read(folder/'protocol.json')['jobs']:
         p=read(folder/job/'payload.json');file=folder/job/'result.json';r=read(file) if file.exists() else {}
         if not r:
@@ -91,11 +95,28 @@ def evaluate(output,destination):
                 longest_LP_seconds=longest,worker_seconds=r['seconds'],fixed_LP_seconds=60))
             saved.append(dict(job_id=job,variant=method,labels=labels,point=point,source_result=str(file),source_result_sha256=sha(file)))
             checks.append(abs(linear_loss(train,R,X)['mae']-point['objective'])<1e-8)
+            planned=p['ac_planned'] and method in AC_METHODS
+            rows[-1].update(ac_planned=planned,ac_evaluated=False,ac_valid=None,test_ac_rmse=None)
+            if planned:
+                key=job+'__'+signature(point);ac_file=ac_folder/(key+'.json')
+                if key not in ac_cache:
+                    if ac_file.exists():a=read(ac_file)
+                    else:
+                        task=dict(key=key,point=point,model_signature=signature(point),labels=labels,N=p['N'],train=p['train'],
+                            test=p['test'],test_truth=p['test_truth'],source=str(output/'source'))
+                        try:a=ac_task(task)
+                        except Exception as e:a=dict(key=key,error=str(e),fitting={'valid':False},testing={'valid':False})
+                        write(ac_file,a)
+                    ac_cache[key]=a
+                a=ac_cache[key];rows[-1].update(ac_evaluated=True,ac_valid=a.get('testing',{}).get('valid',False),
+                    test_ac_rmse=a.get('testing',{}).get('relative_voltage_rmse'))
     pd.DataFrame(rows).to_csv(destination/'lp60_retry.csv',index=False)
     with (destination/'lp60_models.jsonl').open('w',encoding='utf-8') as stream:
         for row in saved:stream.write(json.dumps(row)+'\n')
     write(destination/'lp60_retry_verification.json',dict(available_evidence_passed=bool(checks) and all(checks),
         planned_inputs=read(folder/'protocol.json')['inputs'],returned_inputs=read(folder/'completion.json')['returned'],
+        AC_planned=sum(r.get('ac_planned',False) for r in rows),AC_evaluated=sum(r.get('ac_evaluated',False) for r in rows),
+        AC_valid=sum(r.get('ac_valid') is True for r in rows),AC_unique=len(ac_cache),AC_infrastructure_errors=sum('error' in a for a in ac_cache.values()),
         original_15s_results_unchanged=True))
 
 

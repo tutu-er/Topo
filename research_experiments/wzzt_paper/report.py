@@ -140,8 +140,11 @@ def report(output,destination):
             strict_preference_inputs=eligible[eligible.strictly_better_than_tested_true].job_id.nunique()))
     mechanisms=pd.DataFrame(mechanisms);mechanisms.to_csv(destination/'mechanism_summary.csv',index=False)
     origins=f[(f.panel=='main')&f.variant.isin(['multistart','ridge_union'])].groupby(['variant','selected_origin']).size().reset_index(name='inputs')
+    effect=primary.set_index('contrast').loc['ridge_union vs multistart']
+    ridge_main=main.set_index('variant').loc['ridge_union'];multi_main=main.set_index('variant').loc['multistart']
     text=['# RNJ+WZZT 论文证据：完整独立测试','',
         f"计划 {overview['planned_inputs']} 输入，已结束 {overview['completed_inputs']}，正常返回 {overview['returned_inputs']}；{overview['error_inputs']} 错误、{overview['timeout_inputs']} 工作进程触时。模型记录 {overview['model_rows']}/{overview['planned_model_rows']}，可用模型 {overview['available_models']}。所有失败进入原分母。",
+        '',f"主结论：四固定网络独立主面板中，扩池平均F1为{ridge_main['F1']:.6f}，多初值为{multi_main['F1']:.6f}；配对增量{effect['mean']:.6f}，95%区间[{effect['lower']:.6f},{effect['upper']:.6f}]。相同640输入中改善{int(effect['wins'])}、持平{int(effect['ties'])}、退化{int(effect['losses'])}组。结果支持该模拟域的平均改善；新树、case33及弱激励的失败另外保留，未以旧网络总体均值概括泛化。",
         '', '## 测试方案与当前流程','',
         '结果前冻结的设计见 [PROTOCOL.md](PROTOCOL.md)。流程沿用上一轮：训练平方压降 → 前置有序 R/X、NJ/RNJ 候选池 → 完整 RNJ 联合 L1 库 → 三初值局部修正 → 两档正则化扩池追加修正 → 原 3% 验证简洁规则 → 0.16 最终收缩。AC 为独立训练后处理，未参与拓扑选择。严格保护删簇、两步及100秒分支作为预定对照，不按本轮真拓扑选择部署阈值。',
         '', '四旧网络主面板为640输入、10个独立bundle；400场景输入、12棵新随机树144输入、端点化case33的20输入分别报告。训练N=24/48/96/288对应相同三个物理日的不同采样密度；验证和测试各288点。主面板V=0仍有P/Q噪声0.5%，ideal_ac场景才去除全部计量噪声。',
@@ -175,6 +178,7 @@ def report(output,destination):
         '', 'termination_counts.csv 保留每方法每面板的局部停止与触时。固定家族LP最优状态不扩展成全树最优性；900秒工作进程上限与25/100秒搜索路径预算分别记录。',
         '', f"原批次固定LP触时输入{overview['fixed_LP_time_limit_inputs']}组，另有LP_RETRY_PROTOCOL.md规定的60秒补充重试：{retry_check['returned_inputs']}/{retry_check['planned_inputs']}返回。原共享阶段未生成的模型保持不可用标记及零分分母，不能将它们解释成所有算法各自失败。扩展预算结果单列如下，保留原始15秒数据。",'',
         table(retry[retry.variant.isin(['NJ','multistart','ridge_union','ridge_postfilter_guard'])],['job_id','variant','returned','clade_f1','longest_LP_seconds','worker_seconds']),
+        '', f"LP60恢复模型中，沿用原预定AC条件补评{retry_check['AC_evaluated']}/{retry_check['AC_planned']}行（物理预测可行{retry_check['AC_valid']}行，去重{retry_check['AC_unique']}组，基础设施异常{retry_check['AC_infrastructure_errors']}组）；该补充单列于lp60_retry.csv，不改原AC分母。其他重试与过滤保护模型未追加AC。",
         '', 'resolution_diagnostic.csv 另记录物理线路响应系数经过本轮数据所得校准与0.16滤波时损失的真簇，用于检查分辨率设置是否会主动删掉弱边。该诊断固定物理系数，不作为允许重新拟合参数后的结构恢复上界，也不参与估计器选模。',
         '', '补充探索性后处理敏感性见EXPLORATORY_DIAGNOSTICS.md：固定原先选中的收缩前扩池模型及其参数，只改变最终过滤阈值，不重新搜索或拟合。五个阈值全部保留，未用真簇选取部署阈值。','',table(postfilter,['panel','floor','rows','F1','exact','validation_mae','test_mae']),
         '', '探索性验证保护只在0/0.04/0.08/0.16间按验证误差和原3%简洁规则选输出；保证相同预选模型的验证误差不增，独立测试和F1仍单独评价。该规则在观察预检与主面板诊断后提出，以下为补充证据，不替换原固定0.16主结果。','',table(postguard,['panel','rows','F1','exact','delta_vs_ridge_union','wins','ties','losses','test_mae']),
