@@ -1,3 +1,11 @@
+## 最新恢复：全历史基线与DR自预测分支审查，2026-10-30
+
+- 阅读dr_decision_audit/REPORT.md、CONTRACT_BRIDGE.md与STATUS最上方。已完成216训练/24验证正常调用1/1、41pool/83LP，三模型同RNJ21块，事后完整恢复。没有新DR或未来实际数据读取。
+- 私有根scratch/wzzt_dr_decision_v1：protocol_history.json、history_fit/result.json、history_summary.json、audit_history.json、predesign_findings.json、audit_report.json；allpast_observed.pkl是私有轨迹，不上传。全部原始过去文件hash见协议。先查result/fit.lock/进程，不重跑完成记录。
+- evidence/dr_decision_audit_v1/completed_history_and_review.zip保存冻结源码、结果、独立审计脚本与数学检查；manifest逐文件读回通过。原始损失重放需要私有packet，公开归档没有家庭或聚合轨迹。
+- 静态结论：5个合格raw族嵌套且收缩后同21支持；精确self预测不能将停止状态的原拒绝改接受。scope仅原固定候选/同域/L1与精确生成，不能外推为真实DR无信息或全MILP覆盖。当前尚无可执行并验证的WZZT价格新算法。
+- 继续时先审目标：只有实际历史未决、可达响应和最终输出有可检验差别，才新冻结条件测试及无奖励新增数据对照。不要回48截窗制造空间、扩大EIV或再跑self预测LP。新日期Feb11/12、Feb16/17实际仍未读取。
+
 ## 最新恢复补充：AC误差诊断结束，2026-10-30
 
 - 先读STATUS与dr_paper15_update/EIV_REPORT.md、NEXT_DR_PLAN.md。原尺度4/4与Jacobian尺度4/4均训练未决、无异常/超时，共23696次训练AC；不重跑、不加迭代批量。

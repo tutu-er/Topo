@@ -1,0 +1,381 @@
+{
+  "status": "passed",
+  "scope": "observed-only history coverage, stored-point raw-L1 and finite-pool decision/selection arithmetic",
+  "no_solver_or_AC_or_truth_read": true,
+  "optimizer_calls": 0,
+  "AC_calls": 0,
+  "training_dates": [
+    "2021-01-25",
+    "2021-01-26",
+    "2021-01-27",
+    "2021-01-28",
+    "2021-01-29",
+    "2021-02-01",
+    "2021-02-02",
+    "2021-02-03",
+    "2021-02-04"
+  ],
+  "validation_dates": [
+    "2021-02-05"
+  ],
+  "training_rows": 216,
+  "validation_rows": 24,
+  "future_values_accessed": false,
+  "normalized_input_sha256": {
+    "training": "f32a6cb120638d2c95955e8dc794eacd4eb136250253b6e13740cc28a88102c5",
+    "validation": "90c8bbb4cc1de85d33a72facd2be4a3b1f90cd0d8de50a8db020821d77e62171"
+  },
+  "source_files_verified": 43,
+  "input_files_verified": 11,
+  "LP_receipts_checked": 83,
+  "point_objectives_replayed": 21,
+  "selection": [
+    {
+      "method": "rnj_bank",
+      "index": 2,
+      "eligible": 10,
+      "best_validation": 0.0004927230659590292,
+      "threshold": 0.0005075047589378001,
+      "selected_origin": "tree_bank",
+      "selected_config": "raw_R_0.08",
+      "before_supports": 21,
+      "after_supports": 21,
+      "post_contraction_validation": 0.0004927230659590292
+    },
+    {
+      "method": "baseline25",
+      "index": 2,
+      "eligible": 11,
+      "best_validation": 0.0004927230659590292,
+      "threshold": 0.0005075047589378001,
+      "selected_origin": "tree_bank",
+      "selected_config": "raw_R_0.08",
+      "before_supports": 21,
+      "after_supports": 21,
+      "post_contraction_validation": 0.0004927230659590292
+    },
+    {
+      "method": "multistart_original_rule",
+      "index": 2,
+      "eligible": 13,
+      "best_validation": 0.0004927230659590292,
+      "threshold": 0.0005075047589378001,
+      "selected_origin": "tree_bank",
+      "selected_config": "raw_R_0.08",
+      "before_supports": 21,
+      "after_supports": 21,
+      "post_contraction_validation": 0.0004927230659590292
+    }
+  ],
+  "paths": [
+    {
+      "name": "primary",
+      "path_points": 1,
+      "accepted": 0,
+      "crossing_acceptances": 0,
+      "reason": "pool_local_optimum",
+      "decisions": [
+        {
+          "iteration": 0,
+          "current": 0.00044756696008592373,
+          "best_candidate": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "removed": [],
+          "gain": 2.997050817197264e-07,
+          "threshold": 4.4766696008592373e-07,
+          "accepted": false,
+          "candidate_count": 20
+        }
+      ]
+    },
+    {
+      "name": "multistart_0",
+      "path_points": 2,
+      "accepted": 1,
+      "crossing_acceptances": 0,
+      "reason": "pool_local_optimum",
+      "decisions": [
+        {
+          "iteration": 0,
+          "current": 0.0005658091114547153,
+          "best_candidate": [
+            12,
+            13,
+            14
+          ],
+          "removed": [],
+          "gain": 0.0001183955651404475,
+          "threshold": 5.659091114547153e-07,
+          "accepted": true,
+          "candidate_count": 20
+        },
+        {
+          "iteration": 1,
+          "current": 0.00044741354631426777,
+          "best_candidate": [
+            2,
+            4
+          ],
+          "removed": [],
+          "gain": 2.83543271068225e-07,
+          "threshold": 4.4751354631426777e-07,
+          "accepted": false,
+          "candidate_count": 19
+        }
+      ]
+    },
+    {
+      "name": "multistart_1",
+      "path_points": 3,
+      "accepted": 2,
+      "crossing_acceptances": 0,
+      "reason": "pool_local_optimum",
+      "decisions": [
+        {
+          "iteration": 0,
+          "current": 0.0007680513065770572,
+          "best_candidate": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "removed": [],
+          "gain": 0.00020224219512234194,
+          "threshold": 7.681513065770573e-07,
+          "accepted": true,
+          "candidate_count": 20
+        },
+        {
+          "iteration": 1,
+          "current": 0.0005658091114547153,
+          "best_candidate": [
+            12,
+            13,
+            14
+          ],
+          "removed": [],
+          "gain": 0.0001183955651404475,
+          "threshold": 5.659091114547153e-07,
+          "accepted": true,
+          "candidate_count": 20
+        },
+        {
+          "iteration": 2,
+          "current": 0.00044741354631426777,
+          "best_candidate": [
+            2,
+            4
+          ],
+          "removed": [],
+          "gain": 2.83543271068225e-07,
+          "threshold": 4.4751354631426777e-07,
+          "accepted": false,
+          "candidate_count": 19
+        }
+      ]
+    }
+  ],
+  "point_records": [
+    {
+      "index": 0,
+      "origin": "tree_bank",
+      "config": "raw_R_0",
+      "path_index": null,
+      "supports": 22,
+      "training_mae": 0.00044726725500420406,
+      "validation_mae": 0.0004947238515200341
+    },
+    {
+      "index": 1,
+      "origin": "tree_bank",
+      "config": "raw_R_0.04",
+      "path_index": null,
+      "supports": 22,
+      "training_mae": 0.00044726725500420406,
+      "validation_mae": 0.0004947238515200341
+    },
+    {
+      "index": 2,
+      "origin": "tree_bank",
+      "config": "raw_R_0.08",
+      "path_index": null,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 3,
+      "origin": "tree_bank",
+      "config": "raw_R_0.16",
+      "path_index": null,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 4,
+      "origin": "tree_bank",
+      "config": "raw_R_0.24",
+      "path_index": null,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 5,
+      "origin": "tree_bank",
+      "config": "raw_RX75_0",
+      "path_index": null,
+      "supports": 24,
+      "training_mae": 0.00044702812133282945,
+      "validation_mae": 0.0004944723131649685
+    },
+    {
+      "index": 6,
+      "origin": "tree_bank",
+      "config": "raw_RX75_0.04",
+      "path_index": null,
+      "supports": 22,
+      "training_mae": 0.00044728341681485556,
+      "validation_mae": 0.0004933755836868703
+    },
+    {
+      "index": 7,
+      "origin": "tree_bank",
+      "config": "raw_RX75_0.08",
+      "path_index": null,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 8,
+      "origin": "tree_bank",
+      "config": "raw_RX75_0.16",
+      "path_index": null,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 9,
+      "origin": "tree_bank",
+      "config": "raw_RX75_0.24",
+      "path_index": null,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 10,
+      "origin": "tree_bank",
+      "config": "raw_X_0",
+      "path_index": null,
+      "supports": 24,
+      "training_mae": 0.0005442371662971572,
+      "validation_mae": 0.0005899216559913119
+    },
+    {
+      "index": 11,
+      "origin": "tree_bank",
+      "config": "raw_X_0.04",
+      "path_index": null,
+      "supports": 24,
+      "training_mae": 0.0005442371662971572,
+      "validation_mae": 0.0005899216559913119
+    },
+    {
+      "index": 12,
+      "origin": "tree_bank",
+      "config": "raw_X_0.08",
+      "path_index": null,
+      "supports": 24,
+      "training_mae": 0.0005442371662971572,
+      "validation_mae": 0.0005899216559913119
+    },
+    {
+      "index": 13,
+      "origin": "tree_bank",
+      "config": "raw_X_0.16",
+      "path_index": null,
+      "supports": 23,
+      "training_mae": 0.0005462214939565813,
+      "validation_mae": 0.0005883906880645734
+    },
+    {
+      "index": 14,
+      "origin": "tree_bank",
+      "config": "raw_X_0.24",
+      "path_index": null,
+      "supports": 23,
+      "training_mae": 0.0007484636890789235,
+      "validation_mae": 0.0007467849145641276
+    },
+    {
+      "index": 15,
+      "origin": "tree_initialized_correction",
+      "config": null,
+      "path_index": 0,
+      "supports": 21,
+      "training_mae": 0.00044756696008592373,
+      "validation_mae": 0.0004927230659590292
+    },
+    {
+      "index": 16,
+      "origin": "multistart_0",
+      "config": null,
+      "path_index": 0,
+      "supports": 21,
+      "training_mae": 0.0005658091114547153,
+      "validation_mae": 0.0006004504417635858
+    },
+    {
+      "index": 17,
+      "origin": "multistart_0",
+      "config": null,
+      "path_index": 1,
+      "supports": 22,
+      "training_mae": 0.0004474135463142677,
+      "validation_mae": 0.0004943250789281047
+    },
+    {
+      "index": 18,
+      "origin": "multistart_1",
+      "config": null,
+      "path_index": 0,
+      "supports": 21,
+      "training_mae": 0.0007680513065770572,
+      "validation_mae": 0.0007588446682631401
+    },
+    {
+      "index": 19,
+      "origin": "multistart_1",
+      "config": null,
+      "path_index": 1,
+      "supports": 21,
+      "training_mae": 0.0005658091114547153,
+      "validation_mae": 0.0006004504417635858
+    },
+    {
+      "index": 20,
+      "origin": "multistart_1",
+      "config": null,
+      "path_index": 2,
+      "supports": 22,
+      "training_mae": 0.0004474135463142677,
+      "validation_mae": 0.0004943250789281047
+    }
+  ],
+  "limitations": [
+    "Candidate LP objectives without saved coefficient vectors checked against stored solver receipts, not independently re-solved.",
+    "Finite training-generated pool, not all supports or globally optimal topology.",
+    "No assessment of physical truth or new DR efficacy."
+  ],
+  "audit_source_sha256": "682f1b9786bdd5d2b49faa65fd8528c25af814ff908ab3c81246bd20c4df098a"
+}
