@@ -1,3 +1,10 @@
+## 最新恢复：有界数学审查与输出层缺陷，2026-10-30
+
+- 先读dr_decision_audit/METHOD_REVIEW.md、OUTPUT_GUARD_PLAN.md、STATUS。evidence/dr_method_review_v1保存数学稿、相关冻结源码和既有评价引用；本轮新solver/AC/tests/价格批量均0，无实际未来。
+- 当前固定case停止已0错漏/0新增支付，价格扩批收口；此为后验当前case评价，不是所有DR无效或可部署oracle。嵌套正加块仍可有益，不能误用删除单调性否定全部DR。
+- 实际contract有精确正弱块反例，独立输入已可唯一确定R/X却在输出被删。原代码未改。下一轮仅做2项输出单元检查＋15个旧线性raw/contract对的有限计划，正式protocol需先冻结，不追加拟合、AC或未来。不能把输出修复当DR主收益。
+- 原全历史1/1、83LP和全部旧批结果继续保留，不重跑。当前没有研究进程运行；自动接续需更新为新最小核验而非重复原case价格搜索。
+
 ## 最新恢复：全历史基线与DR自预测分支审查，2026-10-30
 
 - 阅读dr_decision_audit/REPORT.md、CONTRACT_BRIDGE.md与STATUS最上方。已完成216训练/24验证正常调用1/1、41pool/83LP，三模型同RNJ21块，事后完整恢复。没有新DR或未来实际数据读取。

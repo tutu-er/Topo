@@ -1,0 +1,71 @@
+{
+  "stage": "bounded method review only; not a numerical experiment",
+  "archive_sha256": "9f2836597c75c5bb47086f98b2d2a77be310894da9fb3411f7c38943e8f4eb57",
+  "files_sha256": {
+    "notes/METHOD_REVIEW.md": "ec35fe5d369047197b380d97a5815022669413cd554b0db839a282a30ec46127",
+    "notes/OUTPUT_GUARD_PLAN.md": "d314d84c36da05f16311dc1240bc159b0261a50d553332e5cf2616dafff89860",
+    "independent_notes/NONSELF_AND_STOP_MATH.md": "792c652e81c8f93688659521936bbb9848a01e02fc672c2edc23adf7b3c55c02",
+    "independent_notes/WEAK_OUTPUT_GATE_MATH.md": "e28f9228e0ea4588b1f0ad76f0b98dde71542e5b0ea3b754acd8e33fe58406c4",
+    "prior_evidence/history_evaluation.json": "a53a46d6eb5a2884c851f4592fee229e7e3785ac8c0e5ded510bf2ddb3705fd5",
+    "prior_evidence/history_summary.json": "bd3683395af95287238cb54f27c198f16b5d7f9e6488bf81b9d7b6e66298388a",
+    "prior_evidence/audit_history.json": "52f4879eb901d0994e1328df44317ef9f44ceb9883b9ff7c56a2121342fdebe7",
+    "prior_evidence/predesign_findings.json": "baec0b9ce6d0b9608e5ab41f9ef69b189ae86603b58b8fffcec3111c402d67de",
+    "prior_evidence/audit_report.json": "ecd9c62300097947a030904baef24127355e095ef2097361e927ae57492ae100",
+    "source/research_experiments/wzzt_dr_selection/dr_pool_v2/selection.py": "43cd2d14984808861caed734f185a600c74b0071119a363b431119efe6cb743d",
+    "source/research_experiments/wzzt_dr_selection/dr_pool_v2/engine.py": "9b3c5f332002927e26ea9cd81a93d235d00d2a823120793f2e1c3918b6b243bf",
+    "source/research_experiments/wzzt_dr_selection/dr_pool_v2/adapter.py": "ede744ed556afeae2c5c70df89b18a788a3dfb48a7f3eafef63d362b4bd96f92",
+    "source/research_experiments/rnj/rx75_edge_floor.py": "4d17e7a2b15a112fb7b0d55db191e385449f4b2408c01ec9a9657936085988d1",
+    "source/research_experiments/wzzt_dr_selection/end_to_end/physical_case.py": "5239e5357885273d32ce28326d350858517e052081cbd8836001b932dea41f79"
+  },
+  "readback_verified": true,
+  "new_solver_calls": 0,
+  "new_AC_calls": 0,
+  "new_tests": 0,
+  "new_price_batches": 0,
+  "new_actual_future_read": false,
+  "cached_postfit_truth_evaluation_reused_for_case_ceiling": true,
+  "truth_used_to_design_price": false,
+  "new_main_method_or_DR_benefit": false,
+  "private_trajectories_exported": false,
+  "findings": [
+    "nestedness does not block strict positive-add evidence; only pure-loss preference for deletion is ruled out",
+    "current fixed-case stop action already has zero structural loss and incremental payment",
+    "fixed output contraction can delete uniquely identified positive weak blocks"
+  ],
+  "exact_examples": [
+    {
+      "terminals": 2,
+      "leaf_r": 0.1,
+      "leaf_x": 0.1,
+      "common_r": 0.01,
+      "common_x": 0.01,
+      "mu_r": 0.2,
+      "mu_x": 0.2,
+      "a": 3.75,
+      "b": 1.25,
+      "median_depth": 0.55,
+      "output_threshold": 0.088,
+      "weak_block_strength": 0.05
+    },
+    {
+      "terminals": 3,
+      "internal_support": [
+        0,
+        1
+      ],
+      "leaf_r": 0.1,
+      "leaf_x": 0.1,
+      "internal_r": 0.01,
+      "internal_x": 0.01,
+      "mu_r": "31/150",
+      "mu_x": "31/150",
+      "a": "225/62",
+      "b": "75/62",
+      "median_depth": "33/62",
+      "output_threshold": "66/775",
+      "weak_block_strength": "3/62"
+    }
+  ],
+  "example_scope": "hand-derived linear response examples, not actual paper15 or AC/DR observations",
+  "next_plan": "OUTPUT_GUARD_PLAN.md, not executed or preregistered as numeric experiment in this review"
+}
