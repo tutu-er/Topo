@@ -26,3 +26,12 @@ python -B -m research_experiments.wzzt_dr_selection.dr_paper15_update.study --ro
 ```
 
 stage结果与锁记录必须先检查；不重启已有部分AC候选任务或悄悄增加迭代。状态与恢复索引以研究根STATUS.md为准。
+
+
+## 2026-10-30：阶段结果与继续入口
+
+开发网格5/5与984族已完成，见REPORT.md：完整恢复3/5→4/5，但RNJ同样受益；AC父族真实核误差4/5恶化，删除扩展更差，不推广删除。
+
+现有fit_ac_pqv接口另行完成两版共8任务诊断，均训练未决，见EIV_REPORT.md；目标水平有限界见EIV_LEVELSET.md。当前eiv_diagnostic.py是带Jacobian尺度对照/私有latent回放的新版本，旧v1必须使用其归档源码，不能绕过哈希。两版8项相同接口测试不重复计数。
+
+下一步NEXT_DR_PLAN.md要求先检查原预算响应是否改变实际WZZT决策，尚无已验证的新价格算法。不要继续扩大EIV、重跑已完成格或在没有价格规则时直接读取新日期。

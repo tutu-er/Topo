@@ -1,0 +1,332 @@
+{
+  "created_at": "2026-10-29T18:25:25.110875+00:00",
+  "no_new_optimization": true,
+  "no_new_fitting": true,
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\dr_paper15_update_build\\audit_eiv_preflight.py": "8ea97662733a9b8f6cb71f9d402995541f434fd3a311b74648a4822001835aa0",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\dr_paper15_update_build\\audit_first_case.py": "37546108570378b26ffbcb0a2bce3b7ad0f9932a3a20c793fcc7259febfb5887"
+  },
+  "protocol_sha256": "18074d79741c6c7bad1f2ed4b0165f60da7d8ee87938f3bb248a268425e7855a",
+  "frozen_sources_checked_in_archive": [
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_paper15_update\\eiv_diagnostic.py"
+  ],
+  "archive_sha256": "258a9148747acf73b578b3a1f233986d7591182361b3f8f05916c897a149cc42",
+  "limitations": [
+    "Level-set bounds preserve optimization incumbents under stated passive radial series-network assumptions; not physical parameter priors or truth coverage.",
+    "Frozen sigmas use observed amplitudes as a declared approximation to relative measurement noise; not an exact generative likelihood.",
+    "Latent fitted P/Q/root and standardized residual arrays were not stored. EIV training/profile losses cannot be independently reconstructed from impedance parameters alone.",
+    "Direct AC metrics hold observed inputs fixed; they are different from latent-input validation profiles.",
+    "Every returned NLP point is explicitly unresolved; posthoc reference-kernel and structural metrics are diagnostic only and do not promote a result or select an initial point.",
+    "Manager checks frozen files at run start; v1 worker does not recheck them. Frozen v1 sources match live files or the verified v1 archive; input hashes match. Normal subprocess exit codes are omitted if result.json exists; timeout status is explicit and subprocess.run kills the worker on timeout."
+  ],
+  "status": "unresolved_diagnostic_only",
+  "records": [
+    {
+      "case": "reference__N24",
+      "candidate": 0,
+      "origins": [
+        "original_RNJ",
+        "original_WZZT"
+      ],
+      "status": "training_unresolved_posthoc_only",
+      "training_success": false,
+      "nfev": 20,
+      "message": "The maximum number of function evaluations is exceeded.",
+      "returned_training_profile_loss": 279.2763500576747,
+      "initial_training_profile_loss": 972.4945371067512,
+      "validation_profile_was_not_run": true,
+      "metrics": {
+        "initial": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 0,
+          "internal_missing": 0,
+          "internal_f1": 1.0,
+          "internal_exact": true,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": true,
+          "stored_support_count": 21,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 0,
+          "kernel_relative_RMSE": 0.14185737673374244,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.0005311365475010888,
+          "AC_validation_mae": 0.0006144426956519144
+        },
+        "EIV_unresolved": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 0,
+          "internal_missing": 0,
+          "internal_f1": 1.0,
+          "internal_exact": true,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": true,
+          "stored_support_count": 21,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 0,
+          "kernel_relative_RMSE": 0.147883429192342,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.000403152860183523,
+          "AC_validation_mae": 0.0004996401307276793
+        }
+      },
+      "delta_true_kernel_relative_RMSE": 0.006026052458599551,
+      "delta_direct_AC_training_MAE": -0.00012798368731756584,
+      "delta_direct_AC_validation_MAE": -0.00011480256492423511,
+      "delta_effective_block_errors": 0,
+      "source_training_fit_sha256": "55d0949d80aea602daeaea62054ec1584dee8967a0e494baab3c2deb7f395690"
+    },
+    {
+      "case": "reference__N24",
+      "candidate": 1,
+      "origins": [
+        "AC_parent_RNJ",
+        "AC_parent_WZZT"
+      ],
+      "status": "training_unresolved_posthoc_only",
+      "training_success": false,
+      "nfev": 20,
+      "message": "The maximum number of function evaluations is exceeded.",
+      "returned_training_profile_loss": 280.92995960174795,
+      "initial_training_profile_loss": 564.7085646113084,
+      "validation_profile_was_not_run": true,
+      "metrics": {
+        "initial": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 0,
+          "internal_missing": 0,
+          "internal_f1": 1.0,
+          "internal_exact": true,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": true,
+          "stored_support_count": 21,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 0,
+          "kernel_relative_RMSE": 0.1503411007515593,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.00038443735457227075,
+          "AC_validation_mae": 0.0005174541845315584
+        },
+        "EIV_unresolved": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 0,
+          "internal_missing": 0,
+          "internal_f1": 1.0,
+          "internal_exact": true,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": true,
+          "stored_support_count": 21,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 0,
+          "kernel_relative_RMSE": 0.16026556962400929,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.00040259886937153743,
+          "AC_validation_mae": 0.0005038893262113523
+        }
+      },
+      "delta_true_kernel_relative_RMSE": 0.009924468872449993,
+      "delta_direct_AC_training_MAE": 1.8161514799266683e-05,
+      "delta_direct_AC_validation_MAE": -1.3564858320206123e-05,
+      "delta_effective_block_errors": 0,
+      "source_training_fit_sha256": "2c87c39fdad34c3871b5b2f6bc641db886af12b0cb3cee360529eeedf1a03690"
+    },
+    {
+      "case": "high_voltage_noise__N96",
+      "candidate": 0,
+      "origins": [
+        "original_RNJ",
+        "original_WZZT"
+      ],
+      "status": "training_unresolved_posthoc_only",
+      "training_success": false,
+      "nfev": 20,
+      "message": "The maximum number of function evaluations is exceeded.",
+      "returned_training_profile_loss": 576.3270579380744,
+      "initial_training_profile_loss": 647.8390655387386,
+      "validation_profile_was_not_run": true,
+      "metrics": {
+        "initial": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 1,
+          "internal_missing": 0,
+          "internal_f1": 0.9230769230769231,
+          "internal_exact": false,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": false,
+          "stored_support_count": 22,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [
+            [
+              114
+            ]
+          ],
+          "extra_effective_supports": [
+            [
+              104,
+              105
+            ]
+          ],
+          "missing_effective_supports": [
+            [
+              114
+            ]
+          ],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 2,
+          "kernel_relative_RMSE": 0.46369437372505967,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.002142977057146582,
+          "AC_validation_mae": 0.0024765448987637013
+        },
+        "EIV_unresolved": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 1,
+          "internal_missing": 0,
+          "internal_f1": 0.9230769230769231,
+          "internal_exact": false,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": false,
+          "stored_support_count": 22,
+          "effective_support_count": 22,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [
+            [
+              104,
+              105
+            ]
+          ],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 1,
+          "kernel_relative_RMSE": 0.46298639607431125,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.0021183408158254487,
+          "AC_validation_mae": 0.002447960592793362
+        }
+      },
+      "delta_true_kernel_relative_RMSE": -0.0007079776507484259,
+      "delta_direct_AC_training_MAE": -2.4636241321133404e-05,
+      "delta_direct_AC_validation_MAE": -2.8584305970339244e-05,
+      "delta_effective_block_errors": -1,
+      "source_training_fit_sha256": "d5a75bdff6dafb910f64bc7624a6dd2cff0d565a4d3d076c7f6d769f00fd3b7e"
+    },
+    {
+      "case": "high_voltage_noise__N96",
+      "candidate": 1,
+      "origins": [
+        "AC_parent_RNJ",
+        "AC_parent_WZZT"
+      ],
+      "status": "training_unresolved_posthoc_only",
+      "training_success": false,
+      "nfev": 20,
+      "message": "The maximum number of function evaluations is exceeded.",
+      "returned_training_profile_loss": 581.7272174064478,
+      "initial_training_profile_loss": 721.6453974477522,
+      "validation_profile_was_not_run": true,
+      "metrics": {
+        "initial": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 0,
+          "internal_missing": 0,
+          "internal_f1": 1.0,
+          "internal_exact": true,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": true,
+          "stored_support_count": 21,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 0,
+          "kernel_relative_RMSE": 0.47301114757007834,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.0022457208887283636,
+          "AC_validation_mae": 0.00263307630722615
+        },
+        "EIV_unresolved": {
+          "internal_true_count": 6,
+          "internal_matched": 6,
+          "internal_false": 0,
+          "internal_missing": 0,
+          "internal_f1": 1.0,
+          "internal_exact": true,
+          "root_true_count": 3,
+          "root_matched": 3,
+          "complete_effective_family": true,
+          "stored_support_count": 21,
+          "effective_support_count": 21,
+          "zero_weight_retained_supports": [],
+          "extra_effective_supports": [],
+          "missing_effective_supports": [],
+          "truth_role": "postfit evaluation only; not used for candidates, parameters or selection",
+          "zero_tolerance": 1e-09,
+          "all_block_errors": 0,
+          "kernel_relative_RMSE": 0.4774267223962444,
+          "validation_mae": null,
+          "train_mae": null,
+          "AC_training_mae": 0.0021185732579334063,
+          "AC_validation_mae": 0.0024557520615249503
+        }
+      },
+      "delta_true_kernel_relative_RMSE": 0.004415574826166058,
+      "delta_direct_AC_training_MAE": -0.00012714763079495726,
+      "delta_direct_AC_validation_MAE": -0.0001773242457011998,
+      "delta_effective_block_errors": 0,
+      "source_training_fit_sha256": "cc4956ee4bddeaabd2245deff5bf8809d318a66a8b2295b88ec93dfbed91b75b"
+    }
+  ],
+  "independent_development_cases": 2,
+  "returned_unresolved_points": 4,
+  "counts": {
+    "kernel_improved": 1,
+    "kernel_worsened": 3,
+    "direct_validation_improved": 4,
+    "structure_improved": 1,
+    "structure_worsened": 0
+  }
+}

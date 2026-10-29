@@ -1,3 +1,18 @@
+## 最新恢复补充：AC误差诊断结束，2026-10-30
+
+- 先读STATUS与dr_paper15_update/EIV_REPORT.md、NEXT_DR_PLAN.md。原尺度4/4与Jacobian尺度4/4均训练未决、无异常/超时，共23696次训练AC；不重跑、不加迭代批量。
+- 两私有根wzzt_dr_paper15_eiv_v1、wzzt_dr_paper15_eiv_scale_v2都完成。公开各evidence目录有协议/结果/冻结源码zip/读回manifest；v1源码必须从其归档恢复，当前eiv_diagnostic.py对应新版本，旧source guard预期会拒绝直接重放。
+- v1 preflight与未决末点诊断4/4完成，没有latent所以没有EIV损失独立重放。v2私有latent hash和物理残差4/4回放通过，latent pickle不上传。回放/AC收敛不等于NLP收敛。
+- 后续回到DR实际决策审查；当前没有运行中的拟合。每小时automation wzzt-dr仍ACTIVE，先查进程/锁、跳过完成记录。新价格规则尚需依据历史竞争明确，不把未决EIV末点用于价格或统计结论。
+
+## 最新恢复：2026-10-30 paper15算法更新与AC误差诊断
+
+- 当前入口STATUS.md、dr_paper15_update/REPORT.md与README.md。开发5/5、984族均完成，勿重跑；evidence/dr_paper15_update_v1/completed_grid.zip含结果/协议/冻结源码/独立审计，manifest逐文件读回哈希通过，无家庭轨迹。
+- 私有开发根：visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_paper15_update_v1。完整观测只在该scratch及dr_paper15_update_build内，不入Git。已有严格过去packet和forecast留私有，依据receipt校验。
+- 下一有界阶段：同scratch/wzzt_dr_paper15_eiv_v1/protocol.json；eiv_diagnostic.py --parent <开发根> --root <EIV根> --helper <eiv_levelset.py> --max-workers 1。共4去重任务，600秒/任务/max_nfev20。先查进程、run.lock和每worker结果；已完成/失败/超时保留，部分worker不隐式重启。
+- EIV只在两个已见开发输入上诊断，不取新日期、真值或真实sigma设计。RNJ同处理。profile验证与直接预测分开；目标水平界从初值和数据推导，非正包络则不可用，不补人为阻抗界。持续接续automation id wzzt-dr，每小时只推进一个有界批次，实质变化才通知。
+- 当前未取得独立DR/WZZT主收益，不能把开发AC恢复或电压拟合下降写为论文主结果。更新细节、参数退化和中间trial复核边界见报告。新DR仍以原1.6预算及未看日期为界，零/弱权重/失败完整保留。
+
 # WZZT-DR 恢复索引
 
 ## 当前接续：paper15算法更新（进行中）
