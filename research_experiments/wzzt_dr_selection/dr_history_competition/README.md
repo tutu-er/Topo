@@ -14,6 +14,8 @@
 
 ## 入口
 
+本次使用`D:/apps/miniconda3/envs/Topo/python.exe`。运行前将工作树根和`rnj_wzzt_core`加入本进程PYTHONPATH，使用`-B`与`PYTHONDONTWRITEBYTECODE=1`。命令中的python应指向该Topo环境。
+
 ```powershell
 python -B -m research_experiments.wzzt_dr_selection.dr_history_competition.history_audit --help
 python -B -m research_experiments.wzzt_dr_selection.dr_history_competition.experiment --output <私有运行根> --prepare-only
@@ -21,3 +23,14 @@ python -B -m research_experiments.wzzt_dr_selection.dr_history_competition.exper
 ```
 
 AC接口单独核验见AC_INTERFACE_AUDIT.md。当前线性无噪机制测试不自动接AC校正；未来AC观测、量测标准差及物理参数先验须明确后才能比较AC增强。接口可用与当前DR实际已调用分开报告。
+
+## 完成结果
+
+历史105/105无上界连续补全均可拟合，另105/105严格正完成；实际历史12 LP与候选无上界重调114 LP分列。随机对照210/210完成（192主+18控制）、104不同输入、575实际LP，0失败/时间上限。两轮训练二元响应的五节点轨迹碰撞已手算证明并逐条核验。详细结论见REPORT.md，接口见AC_INTERFACE_AUDIT.md；证据在../evidence/dr_history_competition_v1/。已结束，无待续跑批次。
+
+```powershell
+python -B -m research_experiments.wzzt_dr_selection.dr_history_competition.analyze --root <私有运行根>
+python -B -m research_experiments.wzzt_dr_selection.dr_history_competition.audit_followup --run-root <私有运行根> --repo-root <工作树根> --receipt <新的只读审计回执>
+```
+
+压缩包run/保存全部合成记录、输入、拟合与断点，frozen_source/与postprocess_source/保存实际版本，AC_interface_source/保存75项测试的源文件。异机使用须显式映射旧绝对路径；不要改原回执使其假装在新位置运行。外层证据用局部.gitattributes保持字节哈希；AC测试原回执hash对应LF文本，manifest同时保存CRLF日志原字节hash。

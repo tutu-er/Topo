@@ -1,6 +1,15 @@
 # WZZT-DR 恢复索引
 
-## 最新完成阶段：随机DR多块机制测试（2026-10-29）
+## 最新完成阶段：历史竞争审查与随机并列探索（2026-10-29）
+
+先读STATUS.md顶部、dr_history_competition/REPORT.md和AC_INTERFACE_AUDIT.md。210/210格（192主+18控制）、104不同拟合全部完成；另历史实际12 LP、完整补全114 LP，均已结束。私有目录C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_history_competition_v1；summary complete、audit_final all_passed，无run.lock。不要重跑。
+
+evidence/dr_history_competition_v1保存105族/正权见证、历史/规划协议、全部210记录与104输入、结果、断点、冻结源以及AC75测试源/回执。manifest包含ZIP与全部文件字节哈希；局部.gitattributes保持字节。AC日志原回执是LF文本hash，另记录原CRLF字节hash。
+
+本批未得到WZZT专属价格方法：历史全族相容，随机并列探索排名反转，最终额外结构收益0/104。两轮训练二元签名限制是模型范围内的必要障碍，不是四轮全部信息不可辨的结论。若续研究，先查paper15异质历史，不自动开启更多同步玩具批次。两个AC接口可用但当前DR未调用；实际gain D联合估计未实现。下方旧阶段的“下一步”均按历史保留。
+
+
+## 前阶段：随机DR多块机制测试（2026-10-29）
 
 先读STATUS.md和dr_multiblock/REPORT.md。713/713格（704随机+9控制）、98不同拟合已完成；不重跑。evidence/dr_multiblock_v1含全部合成输入、记录、结果、断点、源码及哈希归档；私有根为C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_multiblock_v1。summary complete；最终审计为audit_final_corrected.json，原audit_final.json仅有已解释的缓存合同误报，不能据其重启求解。原文件保持未改。
 
