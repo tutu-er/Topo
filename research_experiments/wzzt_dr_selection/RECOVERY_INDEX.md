@@ -1,5 +1,9 @@
 # WZZT-DR 恢复索引
 
+## 最新完成阶段：P15全部位置检查（2026-10-29）
+
+先读STATUS.md顶部和dr_location_probe/REPORT.md。128/128格、124不同拟合已经完成，不重跑；evidence/dr_location_probe_v1保存聚合证据。私有目录为C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_location_probe_v1。该目录summary complete、audit_final all_passed、运行锁已移除。103的局部收益来自起点收缩及重拟合；未增加完整族恢复，尚无WZZT交叉删除价格算法。下一步为历史候选竞争审查，尚未启动最优面LP或原跨日期扩展；没有恢复自动化。下方较早阶段的下一步保留作历史，不覆盖本状态。
+
 2026-10-28。原A2价格指标路线已收口，自动化已删除。用户随后授权的数据环境与正常WZZT基线审查按下方新增记录接续；以STATUS.md最上方为当前状态，不重启原批次。
 
 工作树：C:\Users\23761\.codex\worktrees\wzzt-dr-selection\Topo
