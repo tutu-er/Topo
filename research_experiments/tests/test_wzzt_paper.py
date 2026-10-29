@@ -62,3 +62,14 @@ def test_record_archive_restore_checks_bytes_and_preserves_changed_local_file():
         (tmp_path/'catalog.sqlite').write_bytes(b'local modification')
         with pytest.raises(ValueError,match='existing local record changed'):restore(tmp_path)
         assert (tmp_path/'catalog.sqlite').read_bytes()==b'local modification'
+
+
+def test_validation_filter_guard_retains_weak_predictive_branch_without_truth_input():
+    import pandas as pd
+    from research_experiments.wzzt_paper.resolution import guard_filter
+    p=pd.DataFrame(np.array([[.1,0,.1],[0,.1,.1],[.1,.1,0]]),columns=[101,102,103]);q=p*0
+    R=np.eye(3)*.01;R[:2,:2]+=.1
+    v=pd.DataFrame(np.sqrt(1-p.to_numpy()@R.T),columns=p.columns);obs=(p,q,v,pd.Series(np.ones(3)))
+    point=dict(supports=[[0],[1],[2],[0,1]],r=[.01,.01,.01,.1],x=[0.,0.,0.,0.])
+    m=guard_filter(point,dict(a=1.,b=0.,median_root_depth=1.),obs,obs)
+    assert [0,1] in m['supports'] and m['validation_mae']<1e-12

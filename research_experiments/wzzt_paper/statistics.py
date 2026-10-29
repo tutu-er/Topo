@@ -36,10 +36,16 @@ def statistics(destination):
             effects.append(dict(panel=panel,variant=method,block=block,**interval(d.groupby(block).delta_vs_multistart.mean()),
                 inputs=len(d),wins=int((d.delta_vs_multistart>1e-10).sum()),losses=int((d.delta_vs_multistart < -1e-10).sum())))
     pd.DataFrame(effects).to_csv(destination/'panel_effect_intervals.csv',index=False)
-    cells=[]
+    cells=[];cell_effects=[]
     for (sigma,N,method),g in main.groupby(['voltage_sigma','N','variant']):
         cells.append(dict(voltage_sigma=sigma,N=N,variant=method,**interval(g.groupby('bundle').clade_f1.mean())))
+        cell_effects.append(dict(voltage_sigma=sigma,N=N,variant=method,**interval(g.groupby('bundle').delta_vs_multistart.mean())))
     pd.DataFrame(cells).to_csv(destination/'main_cell_intervals.csv',index=False)
+    pd.DataFrame(cell_effects).to_csv(destination/'main_cell_effect_intervals.csv',index=False)
+    condition_effects=[]
+    for (condition,method),g in f[f.panel=='stress'].groupby(['condition','variant']):
+        condition_effects.append(dict(condition=condition,variant=method,**interval(g.groupby('bundle').delta_vs_multistart.mean())))
+    pd.DataFrame(condition_effects).to_csv(destination/'stress_effect_intervals.csv',index=False)
     g=f[f.variant=='ridge_union'].copy();g['unidentified']=g.clade_f1<1-1e-12
     g['pool_missing']=g.unidentified&(g.candidate_pool_true_recall<1-1e-12)
     import json

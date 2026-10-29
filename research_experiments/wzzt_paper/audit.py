@@ -3,7 +3,7 @@ import argparse
 import json
 import numpy as np
 import pandas as pd
-from research_experiments.wzzt_systematic.common import read,write,sha
+from research_experiments.wzzt_systematic.common import read,write,sha,matrices
 from research_experiments.wzzt_retune.engine import compatible,arrays
 from research_experiments.wzzt_refine.core import ridge_alpha
 from research_experiments.wzzt_budget.audit import independent_lp
@@ -11,8 +11,24 @@ from research_experiments.rnj.audit_source_ac96_benchmark import physical_truth
 from .common import observed
 
 
+def physical_atoms(directory,labels):
+    import networkx as nx
+    directory=Path(directory);meta=read(directory/'metadata.json');edges=pd.read_csv(directory/'branches.csv');g=nx.Graph()
+    for e in edges.to_dict('records'):
+        if str(e['is_true_closed']).lower() not in ('true','1'):continue
+        g.add_edge(int(e['from_bus']),int(e['to_bus']),r=float(e['r_ohm']),x=float(e['x_ohm']))
+    root=int(meta['root_bus']);order=list(nx.bfs_tree(g,root));parent=dict(nx.bfs_predecessors(g,root));positions={v:i for i,v in enumerate(labels)}
+    descendants={v:({positions[v]} if v in positions else set()) for v in order};atoms={};zbase=meta['base_kv']**2/meta['base_mva']
+    for v in reversed(order[1:]):
+        u=parent[v];support=tuple(sorted(descendants[v]));descendants[u]|=descendants[v]
+        if support:
+            old=atoms.setdefault(support,[0.,0.]);old[0]+=2*g[u][v]['r']/zbase;old[1]+=2*g[u][v]['x']/zbase
+    family=sorted(atoms,key=lambda s:(len(s),s))
+    return family,[atoms[s][0] for s in family],[atoms[s][1] for s in family]
+
+
 def audit(output,destination):
-    output=Path(output).resolve();destination=Path(destination).resolve();p=read(output/'protocol.json');checks=[];LP=[];models=[];independent=[];events=[];truths={}
+    output=Path(output).resolve();destination=Path(destination).resolve();p=read(output/'protocol.json');checks=[];LP=[];models=[];independent=[];events=[];truths={};atoms={};resolution=[]
     def check(name,passed):checks.append(dict(check=name,passed=bool(passed)))
     check('all frozen producer, input, configuration and physical bytes',all(sha(output/f)==h for f,h in read(output/'manifest.json').items()))
     check('no physical-generation failures',not read(output/'data_errors.json'))
@@ -53,6 +69,16 @@ def audit(output,destination):
         check(job+' matched control original domain',base=={tuple(s) for s in r['domains']['restart_control']})
         train=observed(payload['train'],payload['N']);validation=observed(payload['validation'])
         if payload['truth_network'] not in truths:truths[payload['truth_network']]=physical_truth(Path(payload['truth_network']),r['labels'])['clades']
+        if payload['truth_network'] not in atoms:
+            atoms[payload['truth_network']]=physical_atoms(payload['truth_network'],r['labels'])
+            S,Rv,Xv=atoms[payload['truth_network']];R,X=matrices(len(r['labels']),S,Rv,Xv);physical=physical_truth(Path(payload['truth_network']),r['labels'])
+            check(payload['truth_network']+' independent physical atom response',np.allclose(R,physical['R'],atol=1e-12,rtol=1e-12) and np.allclose(X,physical['X'],atol=1e-12,rtol=1e-12))
+        S,Rv,Xv=atoms[payload['truth_network']];cal=r['calibration']
+        strength=np.asarray(Rv)*cal['a']+np.asarray(Xv)*cal['b'];nontrivial=np.array([2<=len(s)<len(r['labels']) for s in S]);kept=strength+1e-10>=.16*cal['median_root_depth']
+        resolution.append(dict(job_id=job,panel=payload['panel'],case=payload['case'],condition=payload['condition'],N=payload['N'],voltage_sigma=payload['voltage_sigma'],
+            true_clades=int(nontrivial.sum()),physical_coefficient_clades_dropped=int((nontrivial&~kept).sum()),
+            physical_coefficient_clade_recall=float(kept[nontrivial].mean()),minimum_edge_to_depth=float((strength[nontrivial]/cal['median_root_depth']).min()),
+            truth_used_only_posthoc=True,scope='filter diagnostic at physical coefficients with observed calibration; not an upper bound over refitted models'))
         positions={v:i for i,v in enumerate(r['labels'])}
         true_indices={tuple(sorted(positions[v] for v in s)) for s in truths[payload['truth_network']]}
         for name,trajectory in r['searches'].items():
@@ -106,6 +132,7 @@ def audit(output,destination):
     write(destination/'audit_summary.json',summary);write(destination/'audit_checks.json',checks);write(destination/'independent_LP.json',independent)
     pd.DataFrame(LP).to_csv(destination/'LP_checks.csv',index=False);pd.DataFrame(models).to_csv(destination/'physical_checks.csv',index=False)
     pd.DataFrame(events).to_csv(destination/'greedy_events.csv',index=False)
+    pd.DataFrame(resolution).to_csv(destination/'resolution_diagnostic.csv',index=False)
     print(summary,flush=True)
 
 

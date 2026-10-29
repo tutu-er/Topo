@@ -55,3 +55,25 @@ def load_trace(catalog,**filters):
     row=rows[0];path=Path(row['result_path'])
     if sha(path)!=row['result_sha256']:raise ValueError('raw result bytes changed')
     return json.loads(path.read_text(encoding='utf-8'))
+
+
+def load_guard(catalog,*,case,panel,condition,voltage_sigma,bundle,N,with_observations=False):
+    """Load the separate exploratory validation-filter output, not a primary row."""
+    import pandas as pd
+    base=load(catalog,case=case,panel=panel,condition=condition,voltage_sigma=voltage_sigma,bundle=bundle,N=N,variant='ridge_union',with_observations=with_observations)
+    directory=Path(catalog).parent;path=directory/'postfilter_guard_models.jsonl'
+    if not path.exists():restore(directory,names=[path.name])
+    job=base['record']['job_id'];model=None
+    with path.open(encoding='utf-8') as stream:
+        for line in stream:
+            row=json.loads(line)
+            if row['job_id']==job:model=row;break
+    if model is None:raise ValueError('exploratory output unavailable for this input')
+    metrics=pd.read_csv(directory/'postfilter_guard.csv');metrics=metrics[metrics.job_id==job]
+    if len(metrics)!=1:raise ValueError('exploratory metrics missing')
+    point=model['point'];R,X=matrices(len(model['labels']),point['supports'],point['r'],point['x'])
+    out=dict(labels=model['labels'],supports=point['supports'],r=point['r'],x=point['x'],R=R,X=X,
+        record=dict(metrics.iloc[0].to_dict(),variant='ridge_postfilter_guard',evidence_scope='exploratory secondary analysis'),original_record=base['record'])
+    if with_observations:
+        for split in ('train','validation','test'):out[split]=base[split]
+    return out
