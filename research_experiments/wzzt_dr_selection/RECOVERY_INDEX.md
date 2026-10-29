@@ -1,6 +1,13 @@
 # WZZT-DR 恢复索引
 
-## 最新完成阶段：P15全部位置检查（2026-10-29）
+## 最新完成阶段：随机DR多块机制测试（2026-10-29）
+
+先读STATUS.md和dr_multiblock/REPORT.md。713/713格（704随机+9控制）、98不同拟合已完成；不重跑。evidence/dr_multiblock_v1含全部合成输入、记录、结果、断点、源码及哈希归档；私有根为C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_multiblock_v1。summary complete；最终审计为audit_final_corrected.json，原audit_final.json仅有已解释的缓存合同误报，不能据其重启求解。原文件保持未改。
+
+主指标未赢最好固定单点，2/8完整恢复在RNJ阶段已取得，WZZT额外最终收益0/98；0交叉删除。规划为普通期望D-opt，不是已完成的新WZZT价格算法。下一步仅有历史竞争静态审查建议，尚未启动新的具体数值批次；无自动化。
+
+
+## 前阶段：P15全部位置检查（2026-10-29）
 
 先读STATUS.md顶部和dr_location_probe/REPORT.md。128/128格、124不同拟合已经完成，不重跑；evidence/dr_location_probe_v1保存聚合证据。私有目录为C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_location_probe_v1。该目录summary complete、audit_final all_passed、运行锁已移除。103的局部收益来自起点收缩及重拟合；未增加完整族恢复，尚无WZZT交叉删除价格算法。下一步为历史候选竞争审查，尚未启动最优面LP或原跨日期扩展；没有恢复自动化。下方较早阶段的下一步保留作历史，不覆盖本状态。
 

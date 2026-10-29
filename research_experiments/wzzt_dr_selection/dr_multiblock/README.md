@@ -1,6 +1,6 @@
 # 随机DR与多块辨识：冻结的小机制测试
 
-2026-10-29。目的：在相同边际响应概率、总预算、事件轮次和观测长度下，检验不同空间相关性及分轮投放是否形成有用输入差异，并由当前实际RNJ/WZZT转化为最终选线改善。此处的“鲁棒”是随机性进入规划；不是最坏情形优化。
+2026-10-29。目的：在相同边际响应概率、总预算、事件轮次和观测长度下，检验不同空间相关性及分轮投放是否形成有用输入差异，并由当前实际RNJ/WZZT转化为最终选线改善。按用户对“鲁棒”的解释，本批明确采用考虑随机响应的规划；目标为期望值，尚未测试最坏情形或响应规律失配。
 
 ## 冻结模型
 
@@ -40,4 +40,16 @@ python -B -m research_experiments.wzzt_dr_selection.dr_multiblock.experiment --o
 python -B -m research_experiments.wzzt_dr_selection.dr_multiblock.experiment --output <同一运行根> --max-new-fits 8
 ```
 
-先锁协议、全部规划结果、测试随机流与源码哈希，再执行首批；独立核验接口、预算、概率、目标、结果后按原协议续完。冻结规则不因首批收益正负改变。失败/超时保留，已完成任务不重跑；没有自动扩大网络或样本的许可。
+先锁协议、全部规划结果、测试随机流与源码哈希，再执行首批；独立核验接口、预算、概率、目标、结果后按原协议续完。冻结规则不因首批收益正负改变。失败/超时保留，已完成任务不重跑；本协议不自动扩大网络或样本。
+
+## 已完成结果与只读复核
+
+713/713格完成（704随机＋9控制）、98不同输入、0失败/路径超时。见[REPORT.md](REPORT.md)。独立核验713格、891价格计划及568条LP数值记录全部通过；原审计合同缓存误报与更正回执同时保留。无待续跑实验。
+
+```powershell
+python -B -m research_experiments.wzzt_dr_selection.dr_multiblock.analyze_results --root <私有运行根>
+python -B -m research_experiments.wzzt_dr_selection.dr_multiblock.mechanism_diagnosis --root <私有运行根>
+python -B -m research_experiments.wzzt_dr_selection.dr_multiblock.audit --run-root <私有运行根> --repo-root <工作树根> --receipt <新的只读审计回执路径>
+```
+
+证据在`../evidence/dr_multiblock_v1/`。压缩包中的`run/`可恢复713记录、98输入和98完整拟合/断点；`frozen_source/`与`postprocess_source/`保留源码版本。协议含原绝对路径，异机恢复时先核对manifest并显式映射源码位置，勿修改原回执使其假装在新路径运行。重新计算分析仅作只读回放，不应重启已完成的求解。

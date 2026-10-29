@@ -151,6 +151,16 @@ def main(args):
             for path in range(8):expected_tasks[f'{law}__{p["name"]}__path{path}']={'phase':'main','case':'normal','law':law,'policy':p['name'],'path':path,'plan':p['plan'],'policy_class':p['class']}
     ck(len(expected_tasks)==713,'task grid enumeration')
     records=[read(p) for p in sorted((root/'records').glob('*.json'))];seen=set();unique={};input_hashes={};physical_max=0.
+    # Observation cache deliberately excludes offered prices. Its embedded
+    # physical_audit belongs to the first plan producing those observations;
+    # later plans can have the same Z/PQV but different payment reservations.
+    owners={}
+    for row in records:
+        if not row['cache_reused']:
+            ck(row['observation_key'] not in owners,'multiple first owners for one observation cache')
+            owners[row['observation_key']]=row
+    contract_fields={'payment','event_payments','payment_currency','budget_bound','upper_payment_currency'}
+    contract_differences=Counter();contract_difference_cells=[]
     for row in records:
         co={'key':row['key'],'issues':[]};out['cells'].append(co)
         try:
@@ -178,7 +188,17 @@ def main(args):
                 ck(d['date']==date,'date '+str(j),co)
                 for name,val in [('p_kw',p),('q_kvar',.35*p),('p_pu',pu),('q_pu',qu),('drop_pu2',y),('v_pu',voltage),('root_pu',np.ones(6))]:ck(close(d[name],val,2e-14),'physical '+name+'/'+str(j),co)
                 physical_max=max(physical_max,float(np.max(abs(1-np.asarray(d['v_pu'])**2-y))));allp.extend(p.ravel());allv.extend(voltage.ravel())
-            ph=row['physical'];ck(ph==data['physical_audit'],'row physical receipt',co)
+            ph=row['physical'];cached_ph=data['physical_audit']
+            ck(row['observation_key'] in owners,'missing observation-cache first owner',co)
+            if row['observation_key'] in owners:
+                ck(cached_ph==owners[row['observation_key']]['physical'],'cached receipt differs from original owner',co)
+            changed_fields={k for k in ph if ph[k]!=cached_ph.get(k)}
+            ck(changed_fields<=contract_fields,'observation-invariant physical receipt differs',co)
+            if changed_fields:
+                contract_differences.update(changed_fields)
+                contract_difference_cells.append(row['key'])
+            # Every task's payment and budget are checked from its own price
+            # vector below; they must not be copied from the cached owner.
             for key,val in [('payment',sum(payments)),('payment_currency',sum(payments)),('event_payments',payments),('budget_bound',.4*prices.sum()),('upper_payment_currency',.4*prices.sum()),('budget_limit',1.6),('per_event_net_energy_kwh',energies),('power_min_kw',min(allp)),('power_max_kw',max(allp)),('voltage_min_pu',min(allv)),('voltage_max_pu',max(allv))]:ck(close(ph[key],val),'physical receipt '+key,co)
             ck(ph['valid'] and ph['budget_pass'] and ph['energy_pass'] and ph['power_pass'] and ph['voltage_screen_pass'] and not ph['AC_run'],'physical check classifications',co)
             ck(sum(payments)<=1.6+1e-12 and np.max(np.abs(energies))<1e-12 and min(allp)>=0 and max(allp)<=1.5 and min(allv)>=.9 and max(allv)<=1.1,'independent physical checks',co)
@@ -244,6 +264,10 @@ def main(args):
     ck(summary['evaluated']==sum(r['status']=='evaluated' for r in records) and summary['failures']==sum(r['status']!='evaluated' for r in records),'summary failure accounting')
     ck(summary['status']==('complete' if len(seen)==713 else 'partial'),'completion status')
     out.update(planned_cells=713,recorded_cells=len(records),pending_cells=713-len(seen),main_cells=sum(r['phase']=='main' for r in records),control_cells=sum(r['phase']=='control' for r in records),unique_fits=len(unique),LP_records_checked=sum(f['LP_count'] for f in out['fits']),physical_max_reconstruction_error=physical_max,input_sha256=input_hashes,failed_cells=sum(r['status']!='evaluated' for r in records),wall_limited_cells=sum(r.get('evaluation',{}).get('search_wall_limited',False) for r in records),no_solves=True)
+    out['cache_contract_metadata']={'first_owners_checked':len(owners),'different_contract_cells':len(contract_difference_cells),'different_contract_fields':dict(contract_differences),'scope':'Cache identity is observation-only. Stored input receipt belongs to first owner; each row payment and bound are independently reconstructed from its own offered prices.'}
+    original=root/'audit_final.json'
+    if original.exists() and args.receipt.resolve()!=original.resolve():
+        out['corrects_previous_audit']={'path':str(original),'sha256':sha(original),'reason':'Removed invalid equality between cached first-owner contract receipt and a different-price task with identical observations; no experiment or data modification.'}
     out['all_passed']=not out['global_issues'] and all(not i['issues'] for i in out['cells']+out['fits'])
     out['ready_for_unchanged_bounded_resume']=out['all_passed'] and out['failed_cells']==0 and not (root/'run.lock').exists()
     out['scope']='Arithmetic/input/probability/selection consistency. LP statuses and residual receipts checked; no independent optimization or global topology certificate.'
