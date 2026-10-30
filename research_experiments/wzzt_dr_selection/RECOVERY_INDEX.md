@@ -1,3 +1,12 @@
+## 当前接续：既有AMI场景与完整候选库审查，2026-10-30
+
+- 用户否定新遥测投运设定，已取消原96记录计划；先读SCENARIO_PROGRESS.md、SCENARIO_REVIEW.md及STATUS最上方。原自动任务仍关闭。
+- 私有scratch/wzzt_dr_scenario_review_v1：protocol/arithmetic、training_validation_note、source_inventory、candidate_protocol/candidate_audit、crossing_support_audit、candidate_parameter_check、audit_independent。均已完成，无solver/AC/NPZ/新未来；不要重跑已有记录。
+- 全量160个既有主面板N288条件，160结果hash及原3%/.16选择复核通过；83多输出、31跨候选交叉、21 RNJ/多初值不同。均为有限历史竞争，非DR收益。2493合格点最大1.59669、触1.99条件0；全参数/扩界尚未审查。
+- 来源D:/0-github_workspace/Topo/docs/wzzt_paper_20261029与outputs/wzzt_paper_20261029_full，全程只读。4网×10bundle×4原噪声，合成负荷/拓扑；三日288点×独立train/validation/test，非真实日历顺序、非新的独立确认。全部原始观测存在，仅检查is_file，内容hash/shape待复验。
+- 下一最小任务：完整过去观测与时序/单位桥接，历史支持的候选竞争是否能由同预算价格改变实际最终选择。价格新规则尚未实现，不直接开160价批，不把中间损失/输入概率或31交叉当成功；正常.0002无该交叉机制照实保留。
+- 公开evidence/scenario_review_v1与源码scenario_*可恢复。本轮不上传家庭/聚合轨迹，生产默认未改，旧case零错漏对照保留。
+
 ## 最终恢复：输出guard核验与自动路线关闭，2026-10-30
 
 - 先读STATUS与dr_output_guard/REPORT.md、README.md。2项确定性输出检查通过；15开发记录/7不同输入无结构改善、2退化、13不变，完整恢复不变，错漏16→19。不能作为DR或结构方法推广。
