@@ -1,3 +1,9 @@
+# 当前有效下一步：历史基线完成，接通局部DR并锁小比较
+
+历史/单位/合成设备资格与原完整联合基线已经完成；不要重跑qualify_local_history.py或原214LP。先读FLYNN_QUALIFICATION_REPORT.md和STATUS顶部。现有history loader已支持带元数据绑定的flynn16；physical/coded未来生成器、worker和controller尚需最小case/metadata/逐轮pair参数化。复用原fit_observed和完整观测缓存，不复制辨识器。价格目标使用最终完整错漏的明确条件风险，参考分布/生成点边界须先声明；给定状态按原联合流程求值，50报价只改变状态概率。先锁同价同参与的局部same/opposed及无奖励/单点/轮换/同区重复小比较，原幅度、噪声、预算不变，未决风险质量保留。原精确同步机制不能直接套实际含噪历史。完成资格不等于DR收益。
+
+---
+
 # 当前有效下一步：RNJ＋WZZT联合B来源资格
 
 本文件下方488映射/W-only新runner计划已由用户最新方向纠正取代，取消执行，旧资料保留。当前只读JOINT_B_REVIEW.md并先核验正常.0002来源main__flynn16__b7__reference__v0002__N288的历史/单位/设备双向备用带。主算法复用fit_observed的multistart_original_rule原3%/.16，不用strict替代主版本。旧三节点wrapper与paper15/200kW桥不可直接用于16终端。此资格核验不重跑308/70、不读测试未来/真树；通过后另锁同预算同节点同参与的同向/反向与单点/轮换/无奖励小比较。详见JOINT_B_REVIEW.md及STATUS顶部。

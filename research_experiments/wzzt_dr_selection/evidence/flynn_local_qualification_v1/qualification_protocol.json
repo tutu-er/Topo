@@ -1,0 +1,119 @@
+{
+  "id": "flynn_local_history_qualification_v1",
+  "created_utc": "2026-10-30T19:32:50.210755+00:00",
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_balanced_design\\qualify_local_history.py": "5af26750fba31fa44fee0176d48aae3354a0000cb05b2436dc98c241e5cfb741",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_competition_bridge\\physical_bridge.py": "9f0f89c104e6d3a9a3eb8e572df5622436c8378c289799eadb3f075d9aeab8cf",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_coded_selection\\coded_physical.py": "5ee1c5668486d6ae584a7e79b3686f01244f563dd84145978f5cfcbb5f0168d4",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_competition_bridge\\pricing_tables.py": "adf6f8cc3ffda00a2a490b48a10dc5a469c0da93ff105bb52f969fa12f438009"
+  },
+  "inventory_path": "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\evidence\\scenario_review_v1\\source_inventory.json",
+  "inventory_sha256": "640bf4c7ae9878086331fb1a3c0c9044f31a71fbc34005e1c12d2adda314b5e9",
+  "job_id": "main__flynn16__b7__reference__v0002__N288",
+  "source_metadata": {
+    "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\flynn16\\reference\\metadata.json",
+    "sha256": "37344b520c0277b9052e1901789b99c7287e3cd061cfb21999fcbf0e811d8432",
+    "case_name": "flynn_balanced_lv_16"
+  },
+  "inputs": {
+    "train": {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b7\\reference\\v0002\\train_observed.npz",
+      "catalog_sha256": "c7b96b7e32bddeb010a160c39c0ac2a6fc2ee7d849429494b1313198caa18d53"
+    },
+    "validation": {
+      "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b7\\reference\\v0002\\validation_observed.npz",
+      "catalog_sha256": "0cfdb833eda9dcb4968eefab7de9759562d9db64625137e71e5707f107c465df"
+    }
+  },
+  "expected_case": "flynn16",
+  "expected_labels": [
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216
+  ],
+  "expected_root": 1,
+  "base_kw": 200.0,
+  "expected_base_kv": 0.4,
+  "expected_base_mva": 0.2,
+  "regions": {
+    "left": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      213,
+      215
+    ],
+    "right": [
+      207,
+      208,
+      209,
+      210,
+      211,
+      212,
+      214,
+      216
+    ]
+  },
+  "disputed_triples": {
+    "left": [
+      201,
+      202,
+      203
+    ],
+    "right": [
+      207,
+      208,
+      209
+    ]
+  },
+  "anchors": {
+    "left": 201,
+    "right": 209
+  },
+  "device": {
+    "baseline_kw": 0.2,
+    "baseline_kvar": 0.07,
+    "power_upper_kw": 0.4,
+    "energy_terminal_kWh": 0.4,
+    "interval_hours": 0.25,
+    "efficiency": 1.0,
+    "empirical_calibration": false
+  },
+  "qualification_rule": "both task signs pass forecast and all6 historical device windows; no replacement of failed anchors",
+  "endpoint_rule": "list all qualified anchor/outside-triple pairs within each declared historical region; no endpoint or price selected",
+  "allowed_reads": [
+    "locked source metadata",
+    "catalog metadata",
+    "train_observed.npz",
+    "validation_observed.npz"
+  ],
+  "forbidden_reads": [
+    "test_observed.npz",
+    "true_network",
+    "diagnostics.json",
+    "actual future"
+  ],
+  "limits": {
+    "real_observed_NPZ": 2,
+    "LP_calls": 0,
+    "identifier_calls": 0,
+    "AC_calls": 0
+  },
+  "status": "frozen_before_reading_observed_values"
+}

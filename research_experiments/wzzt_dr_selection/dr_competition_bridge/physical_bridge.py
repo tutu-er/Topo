@@ -68,24 +68,65 @@ def _source_entry(row, role):
     return Path(row[role+'_path']), row[role+'_sha256']
 
 
-def load_history(index_row, *, expected_case='paper15', base_kw=200.):
+def history_source_metadata(index_row, *, expected_case='paper15', base_kw=200., source_metadata=None):
+    """Bind non-legacy history to explicit metadata, without reading a graph.
+
+    source_metadata requires path, sha256 and case_name. Only source.case_name,
+    root_bus, base_kv and base_mva are used; no network or diagnostics is read.
+    The legacy paper15/200kW call keeps its original behavior.
+    """
+    if index_row['case'] != expected_case:
+        raise ValueError('historical case does not match the declared case')
+    if source_metadata is None:
+        if expected_case != 'paper15' or base_kw != 200.:
+            raise ValueError('non-legacy history requires explicit source metadata')
+        return dict(root_label=1, base_kv=.4, base_mva=.2,
+                    source_binding='legacy paper15/200kW declared defaults')
+    if not isinstance(source_metadata, dict) or any(
+            k not in source_metadata for k in ('path', 'sha256', 'case_name')):
+        raise ValueError('source metadata path, sha256 and case_name required')
+    path = Path(source_metadata['path']).resolve()
+    if (path.name != 'metadata.json' or path.parent.name != index_row['condition']
+            or path.parent.parent.name != expected_case):
+        raise ValueError('metadata path does not match case and condition')
+    if sha(path) != source_metadata['sha256']:
+        raise RuntimeError('source metadata hash mismatch')
+    metadata = json.loads(path.read_text(encoding='utf-8'))
+    if metadata.get('source', {}).get('case_name') != source_metadata['case_name']:
+        raise ValueError('source metadata case_name mismatch')
+    root, kv, mva = metadata['root_bus'], float(metadata['base_kv']), float(metadata['base_mva'])
+    if isinstance(root, bool) or not isinstance(root, int):
+        raise ValueError('integer metadata root required')
+    if not np.isfinite([kv, mva, base_kw]).all() or min(kv, mva, base_kw) <= 0:
+        raise ValueError('positive finite source bases required')
+    if not np.isclose(float(base_kw), mva*1000., rtol=0., atol=1e-12):
+        raise ValueError('power base does not match locked source metadata')
+    return dict(root_label=int(root), base_kv=kv, base_mva=mva,
+                source_binding='explicit metadata, observed history only',
+                source_metadata_path=str(path), source_metadata_sha256=source_metadata['sha256'],
+                source_case_name=source_metadata['case_name'],
+                metadata_fields_used=['root_bus', 'base_kv', 'base_mva', 'source.case_name'])
+
+
+def load_history(index_row, *, expected_case='paper15', base_kw=200., source_metadata=None):
     """Read complete old train+validation NPZ after checking catalog hashes.
 
     index_row accepts either the raw datasets.json row or the public
     scenario_review_v1/source_inventory.json row. N must be exactly 288;
     no sample subsampling or outcome-dependent record filtering occurs here.
     """
-    if expected_case != 'paper15' or base_kw != 200.:
-        raise ValueError('this first bridge is only validated for paper15 at 200kW base')
+    metadata = history_source_metadata(index_row, expected_case=expected_case,
+        base_kw=base_kw, source_metadata=source_metadata)
     if index_row['N'] != 288 or index_row['case'] != expected_case:
         raise ValueError('outside the declared complete-history case')
     if index_row.get('condition') != 'reference':
         raise ValueError('reference source only; no silent stress substitution')
-    result = dict(training=[], validation=[], labels=None, base_kw=float(base_kw))
+    result = dict(training=[], validation=[], labels=None, base_kw=float(base_kw), **metadata)
     receipt = dict(job_id=index_row['job_id'], source_hashes={}, rows={},
                    NPZ_test_loaded=False, truth_loaded=False,
                    units='P/Q pu, voltage pu, squared drop pu2',
-                   dates='synthetic ordering labels; source splits are independent replicates')
+                   dates='synthetic ordering labels; source splits are independent replicates',
+                   source_metadata=metadata)
     for role, destination, offset in (('train', 'training', 0), ('validation', 'validation', 3)):
         path, expected = _source_entry(index_row, role)
         if path.name != role+'_observed.npz':
@@ -100,6 +141,8 @@ def load_history(index_row, *, expected_case='paper15', base_kw=200.):
             arrays = {k:np.asarray(archive[k], dtype=float) for k in ('P','Q','V','root')}
         if len(labels) != len(set(labels)) or (result['labels'] is not None and labels != result['labels']):
             raise ValueError('terminal order changed or duplicated')
+        if metadata['root_label'] in labels:
+            raise ValueError('metadata root cannot be a terminal')
         result['labels'] = labels
         if any(arrays[k].shape != (3,96,len(labels)) for k in ('P','Q','V')) or arrays['root'].shape != (3,96):
             raise ValueError('old split is not exactly three complete 96-point days')

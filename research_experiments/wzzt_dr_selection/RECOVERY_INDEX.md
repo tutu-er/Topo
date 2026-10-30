@@ -1,3 +1,11 @@
+## 最新恢复：flynn16完整历史与原联合基线已跑通
+
+- 先读dr_balanced_design/FLYNN_QUALIFICATION_REPORT.md、qualify_local_history.py与evidence/flynn_local_qualification_v1。主multistart原3%/.16不变；只改旧history loader来源绑定，6测试过。
+- private scratch/wzzt_flynn_local_qualification_v1/run_v1：qualification_protocol/result/ended、history_and_forecast.pkl；baseline_protocol/ended、baseline_cache/request（1call214LP，17.306s，3路径完整）；audit_local248核验、audit_baseline1660核验与rank诊断；source_snapshot.zip47代码文件sha44b0a67a20c97a28bdf47543ede59d386c6621ae3420e7be3a0816b72f50050c。当前无待续基线，不重跑。
+- .2MVA/.4kV/root1已绑定，288/288/16终端全留。双方向合成任务15/16历史预测均过，仅203失败；左右锚点201209及各5伙伴通过，无实际设备/容量保证。
+- 原联合选native raw_R_0.24，raw/final22块；15合格点/10raw族/3最终族保留同两区域争议，未读真树或未来，无新DR恢复结果。秩只是适用性诊断，非价格指标。
+- 下一阶段参数化现有physical/coded/controller来源与逐轮局部对，价格/方向/源/种子冻结后才生成独立实际未来；复用完整fit_observed。先锁有界相位对照和最终风险规则，不先开大价表或改预算。旧local_replay不是完整未来W。公开仅白名单汇总与源码，观测私有，push仍待明确授权。
+
 ## 最新恢复：RNJ＋WZZT联合B机制与历史资格，旧488映射取消
 
 - 读dr_balanced_design/JOINT_B_REVIEW.md和evidence/joint_b_mechanism_v1。主版本multistart_original_rule原3%/.16；旧W-only/strict488条件计算门被用户方向纠正取代，未执行，不启动旧NEXT残留runner。
