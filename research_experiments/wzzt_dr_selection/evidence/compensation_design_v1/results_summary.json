@@ -1,0 +1,55 @@
+{
+  "status": "all_methods_complete",
+  "method_advantage_passed": false,
+  "mapped_policy_case_records": 70,
+  "distinct_observed_fits": 47,
+  "distinct_method_outputs": 141,
+  "mapped_method_outputs": 210,
+  "LP_calls": 2335,
+  "historical_profile_and_planning_LP_calls": 1825,
+  "actual_identification_LP_calls": 510,
+  "elapsed_seconds": 592.6366049,
+  "failed_or_unresolved_outputs": 0,
+  "incomplete_searches": 0,
+  "cases_per_policy": 14,
+  "independent_future_behavior_measurement_streams": 2,
+  "shared_historical_observation_sets": 1,
+  "shared_natural_future_trajectories": 1,
+  "planning": {
+    "finite_model_representatives": 5,
+    "candidate_families": 3,
+    "conditional_training_states": 121,
+    "menus": 16,
+    "chosen_menu": "pair_1_2_p1",
+    "chosen_terminal_labels": [102, 103],
+    "price_per_node_per_event": 1,
+    "expected_payment": 0.8,
+    "predicted_mean_final_errors_zero": 0.4,
+    "predicted_mean_final_errors_chosen": 0.025,
+    "expected_acceptance_all_menus": 0.4,
+    "interpretation": "finite-model heuristic scores, not topology probabilities"
+  },
+  "results": [
+    {"policy": "guided", "W_raw_errors": 18, "W_final_errors": 22, "W_final_full": 0, "RNJ_errors": 22, "RNJ_optional_root_errors": 14, "RNJ_optional_root_full": 3, "actual_payment_by_stream": [1.0, 1.2]},
+    {"policy": "zero", "W_raw_errors": 29, "W_final_errors": 29, "W_final_full": 0, "RNJ_errors": 29, "RNJ_optional_root_errors": 29, "RNJ_optional_root_full": 1, "actual_payment_by_stream": [0.0, 0.0]},
+    {"policy": "single2", "W_raw_errors": 22, "W_final_errors": 22, "W_final_full": 0, "RNJ_errors": 23, "RNJ_optional_root_errors": 15, "RNJ_optional_root_full": 3, "actual_payment_by_stream": [1.6, 1.6]},
+    {"policy": "rotation", "W_raw_errors": 21, "W_final_errors": 21, "W_final_full": 0, "RNJ_errors": 21, "RNJ_optional_root_errors": 14, "RNJ_optional_root_full": 3, "actual_payment_by_stream": [1.2, 1.2]},
+    {"policy": "pair1", "W_raw_errors": 15, "W_final_errors": 19, "W_final_full": 1, "RNJ_errors": 25, "RNJ_optional_root_errors": 14, "RNJ_optional_root_full": 3, "actual_payment_by_stream": [1.0, 1.2]}
+  ],
+  "guided_W_pairs": {
+    "versus_zero": {"improved": 7, "same": 6, "worse": 1},
+    "versus_rotation": {"improved": 0, "same": 13, "worse": 1},
+    "versus_pair1": {"improved": 1, "same": 9, "worse": 4}
+  },
+  "mechanism": {
+    "guided_records_with_a_fully_correct_saved_candidate": 10,
+    "these_correct_candidates_inside_validation_band": 10,
+    "simpler_family_selected_instead": 9,
+    "guided_raw_full": 1,
+    "guided_final_full": 0,
+    "contraction_additional_missing_true_root_blocks": 4,
+    "contraction_false_block_removal_benefit": 0,
+    "second_stream_guided_and_pair1_identical_records": 7
+  },
+  "data_scope": "aggregate counts, declared synthetic settings and per-policy costs only; no observed or derived P/Q/V trajectories"
+}

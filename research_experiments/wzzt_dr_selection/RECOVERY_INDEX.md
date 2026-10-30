@@ -1,3 +1,14 @@
+## 最新恢复：补偿价格规则已测试，未优于简单探索
+
+- 先读dr_compensation_design/REPORT.md、METHOD.md及evidence/compensation_design_v1三份aggregate-only JSON。实现0c5c8714；原生产/旧实验源码不改，26纯测通过。F=历史最终未收缩族，参数面保留零及全权重重估；5有限预测解释、16菜单、一步近似与历史cal，不是全参数覆盖或完整未来W。
+- private WZZT_RESEARCH_CACHE/wzzt_dr_compensation_v1：protocol/source_snapshot、planning历史W/参数面/605训练state缓存、price_design、actual_actions_frozen、actual_generation_started、70evaluation、47records/current_state、execution_receipts和private_observations。全批完成2335LP/592.64s，0失败/未决/partial，不原地重跑。协议SHA86f3993d47f71287718c3444e2895427f6924306b5075a18715637bc4c72b25f；actions SHA5bf1dcc45700eec43cea5a8a8bfbb032cc23a18393f659576ea944c5cf41b198。
+- 已实际冻结2条新行为/测量流914031/914131与914032/914132，natural884001不变。两流×零1/弱3/强3×五策略=70映射、141不同方法输出、210方法映射；不是独立样本。未来观测已看过，只能作本版开发/失败记录。
+- guide选102/103各价1、两轮同轮相反移峰；W最终22错/0完整，zero29/0、single22/0、rotation21/0、pair19/1（各14格）。正式RNJ+root guide/rotation/pair均14错/3完整，逐格同。guide和pair实付两流均1/1.2，pair表现更好；r1七格guide与pair同菜单复用。该规则未通过，不靠更多种子/网络/预算包装。
+- raw18→final22均新增漏真根；10格有正确saved点，9被3%优简舍弃、1被contract删根。旧历史point16 root+23原本满足双cap，却被selected leaf-F一步表达漏掉；这是下一步仅数学修正的明确问题，不是继续搜价格的理由。
+- private wzzt_dr_compensation_audit_v1：audit_receipt_v1(12176 checks)、bindings_and_selection(230)、public_summary_verification和源；dr_compensation_method_audit_v1：face/menu/conclusion独立重放；dr_compensation_price_audit_stage：第二价格/费用重放。所有无新solver核验通过。
+- 完整私有ZIP入库的尝试被自动审批拒绝，未执行；安全替代只提交三份人工白名单摘要与文字报告，完整运行数据/逐时观测/原源快照不上传。不要调用scratch中未获准的宽泛publish_evidence草稿；恢复用私有根和Git源码。
+- 本批没有新AC/实证行为校准，也未执行相关参与性能矩阵。所有旧已完成批次继续不重跑，自动任务仍关闭。下一步若修订，先明确完整历史路径族与全部参数的规划表达，再另锁新版本；不混用当前失败流作独立验证。
+
 ## 最新恢复：0.02%参考噪声三组已完成，正式补根基线与输出等价性反例
 
 - 新增DEDUPLICATED_RESULTS.md与独立deduplicated_summary.json按真R/X同模型核去重；每组10模型，原12命名全部保留。正式补根combined完整2/10→2/10但错漏16→8，不把c0重复变成额外成功。原235文件zip不改，manifest另列补充源/数据hash，0新拟合。
