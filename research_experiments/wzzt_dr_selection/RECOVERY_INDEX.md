@@ -1,3 +1,9 @@
+## 接续：相反移峰首门代码已核验，尚待运行
+
+- 先读dr_coded_selection/EXPERIMENT.md、README.md及STATUS顶部。13纯测试、12数组对照通过，尚无新LP/AC收益；不要把代码可用当恢复结果。
+- 首门b8/.001、raw17/10、节点109/113。规划三模板总900s/6000LP，私有根预定scratch/wzzt_dr_coded_planning_v1；完成价格表后才prepare实际根wzzt_dr_coded_actual_v1。
+- early/final32记录的时序、预算和费用规则已在EXPERIMENT固定；若未决就保留，不重复/延时重启。资格协议及120节点检查位于wzzt_dr_coded_qualification_v1。
+
 ## 最新恢复：响应表价格已实现、当前构造收口，2026-10-30
 
 - 先读dr_competition_bridge/REPORT.md、METHOD.md、NEXT_CODED_DR.md及STATUS顶部。主DR目标未达；当前两站固定波形50价无增量，不重跑。
