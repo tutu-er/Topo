@@ -14,7 +14,7 @@ sys.path[:0]=[str(REPO),str(REPO/'rnj_wzzt_core'),str(Path(__file__).resolve().p
 
 def now():return datetime.now(timezone.utc).isoformat()
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-def encode(value):return (json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False)+'\n').encode()
+def encode(value):return (json.dumps(plain(value),ensure_ascii=False,indent=2,allow_nan=False)+'\n').encode()
 def write(path,value):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(encode(value))
 def read(path):return json.loads(Path(path).read_text(encoding='utf-8'))
@@ -31,6 +31,8 @@ def prepare(root):
     source={str(p):sha(p) for p in Path(__file__).parent.glob('*.py')}
     from research_experiments.wzzt_dr_selection.dr_pool_v2.adapter import source_hashes
     source.update(source_hashes())
+    bridge=REPO/'research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py'
+    source[str(bridge)]=sha(bridge)
     cfg=dict(status='frozen_before_data_or_solver',created_utc=now(),repo_root=str(REPO),
         model='linear y=Rp+Xq, converted to positive root/terminal voltages; not AC',n=3,labels=[101,102,103],
         base_kw=200.,kappa=.35,L=2.6,b=.4,c_levels=[0.,.02,.6],true_pairs=[[0,1],[0,2],[1,2]],

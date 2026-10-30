@@ -1,3 +1,12 @@
+## 最新恢复：随机执行候选门结束，保留DR正例并否定增候选收益
+
+- 先读dr_random_observation_gate/REPORT.md和EXPERIMENT.md。无噪常规真pair三格DR使W0/3到3/3；原RNJ缺省公共根，允许可选根共同重估即复现33/33无噪W输出。不能作为W不可替代价格创新；扩池新增0/28、51/51与原当前W/简单全族相同。原噪声九格无改善，弱块raw恢复但contract删除保留分母。
+- 私有scratch/wzzt_dr_random_observation_generation_v1为JSON序列化失败、0LP/QP/AC，source_failed/partial及receipt原样保留；v2只修序列化，21命名单元/17不同模型噪声/51映射/28future输入，全部使用原288/288历史。未来/设计全合成线性机制例，没有新读旧留出、家庭或AC。
+- scratch/wzzt_dr_random_observation_execution_v1已28/28完成、759LP、134路径全扫、65.776s，无运行锁/待续项；198complete+26no_direct映射为359+49=408。预算900s/3000LP未用完，不因此补种子/扩n4；实际价格与随机流已锁，禁止按真pair选端点。
+- scratch/evaluation_v1有逐条结构、L1、费用、simple_root_counterfactual；根增强反事实51错漏43/W53/原RNJ87，噪声差异仅事后审查。scratch/dr_random_protocol_audit_stage有独立1458核验；执行根另有独立151hash/L1/结构/rank诊断，均0新增求解。
+- evidence/random_observation_gate_v1/manifest.json及metadata_fits_and_audits.zip已217文件逐项hash读回(sha acd9867de169b620ae32c606ca1a083b168341600167ee4d8cccc4d58c8ca4d2)，仅元数据/拟合/控制声明/源码/审计，无P/Q/V或家庭轨迹。23唯一纯测试最终通过，旧19重复不累加。
+- 当前分支无新价格优化器或自动任务。此候选扩展收口，主DR创新目标未达；新工作必须有当前噪声、原接受/验证/输出下能改变最终错漏的具体机制，并对照简单补根RNJ/轮换/同信息简单拟合；不靠阈值、预算、弱块删分母或新case包装。本门源与协议冻结，旧路径不重跑。
+
 ## 最新恢复：相反移峰首门收口，主收益未达
 
 - 先读dr_coded_selection/REPORT.md、EXPERIMENT.md及STATUS顶部；公开evidence/coded_dr_v1有manifest。实际28/28完成、17不同拟合、另4价法未决；early均1/final均0，无奖励相同，WZZT无新增恢复。6记录/3fit未全扫，保留分母。

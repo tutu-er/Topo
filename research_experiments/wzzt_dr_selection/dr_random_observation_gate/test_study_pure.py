@@ -8,6 +8,11 @@ def cfg():
         seeds=dict(natural=884001,measurement=884002,acceptance_and_independent_code=884003))
 
 class StudyTests(unittest.TestCase):
+    def test_discovery_json_identity_handles_numpy_support_indices(self):
+        import json
+        value=[{'candidate_supports':[(np.int64(0),np.int64(1))],'weight':np.float64(.25)}]
+        self.assertEqual(json.loads(study.encode(value)),[{'candidate_supports':[[0,1]],'weight':.25}])
+
     def test_matched_history_all_pairs_zero_weak_strong_and_zero_root(self):
         conf=cfg();reg=dict(pq_relative=.005,voltage_relative=.001);p,q,_=study.natural_day(0,conf)
         expected=None
