@@ -1,3 +1,11 @@
+## 最新恢复：B条件风险计算性门已审查，尚未执行
+
+- 读dr_balanced_design/REGRET_GATE_REVIEW.md、NEXT.md及evidence/balanced_regret_review_v1。private wzzt_b_regret_review_v1有REVIEW.md、conditional_gate_spec.json、review_receipt、audit_existing.py/input_bindings/balance_aggregate；只有既有记录归因汇总，0新LP/AC/实际未来。
+- 当前正例r0/strong02新pair训练未出现成对平衡，验证随机单点影响最终回选；不能归因祖先抵消。44控制每个7模型复用已核；不同pair训练同时两轮平衡1/12，重复pair0/6，均非独立成功概率。
+- 计划2合法历史见证F与joint point16，4菜单zero/single_2_p2/single_0_p2/rotation_0_2_p2，488 exact discrete mappings；自然预测by-quarter old mean，未来量测噪声暂置0，只算Rplan不真实R。尚无runner/执行协议，下一轮先实现并核验W-only完整调用和complete-observation cache，再冻结<=4000LP/600s一次门槛。不用旧一步规划，不因validation cache节约而改变初值/LP非唯一解。
+- 原308/70全批已结束，不重跑旧root、不新seed救结果，不额外加正权重下界。有限hypothesis/comparator最大额外错漏只支持同规划律固定菜单的全域下界，不可称稳健最优。未完成模式风险质量不归一化，L∈[0,10]区间。
+- 自动接续wzzt-b仍有具体下一项；Git远端push保持阻断等待用户明确允许仓库和任务分支，勿换路径绕过。
+
 ## 最新恢复：B面板已补齐、选模修正已确认，价格设计仍未解决
 
 - 入口dr_balanced_design/REPAIR_REPORT.md、NEXT.md、REGRET_REVIEW.md及evidence/balanced_design_repair_v1。实现01e20e89和2cb5da79。原v1的3000LP收口保留不变，另批completion_v1仅91未完1234LP，合并308全完成/262观测，原217记录未改；总4234LP。

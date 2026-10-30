@@ -1,0 +1,79 @@
+{
+  "status": "passed_read_only",
+  "new_LP_calls": 0,
+  "new_AC_calls": 0,
+  "new_actual_future_generated": false,
+  "original_maps": 308,
+  "distinct_control_trajectories": 44,
+  "models_per_control": 7,
+  "counts": [
+    {
+      "kind": "pair_rotation",
+      "role": "training",
+      "deployments": 12,
+      "at_least_one_balanced": 5,
+      "two_balanced": 1,
+      "no_balanced": 7,
+      "event_counts": {
+        "single": 16,
+        "no_response": 2,
+        "nonzero_balanced": 6
+      }
+    },
+    {
+      "kind": "pair_rotation",
+      "role": "validation",
+      "deployments": 12,
+      "at_least_one_balanced": 8,
+      "two_balanced": 2,
+      "no_balanced": 4,
+      "event_counts": {
+        "single": 12,
+        "no_response": 2,
+        "nonzero_balanced": 10
+      }
+    },
+    {
+      "kind": "pair1",
+      "role": "training",
+      "deployments": 6,
+      "at_least_one_balanced": 3,
+      "two_balanced": 0,
+      "no_balanced": 3,
+      "event_counts": {
+        "single": 8,
+        "nonzero_balanced": 3,
+        "no_response": 1
+      }
+    },
+    {
+      "kind": "pair1",
+      "role": "validation",
+      "deployments": 6,
+      "at_least_one_balanced": 4,
+      "two_balanced": 1,
+      "no_balanced": 2,
+      "event_counts": {
+        "nonzero_balanced": 5,
+        "single": 6,
+        "no_response": 1
+      }
+    }
+  ],
+  "positive_example": [
+    {
+      "policy": "pair1",
+      "fit_id": "s_7c9257cf5d850985398b",
+      "nonzero_balanced_training_rounds": 0,
+      "strict_W_errors": 3
+    },
+    {
+      "policy": "pair_rotation",
+      "fit_id": "s_85189c115687b46aa8eb",
+      "nonzero_balanced_training_rounds": 0,
+      "strict_W_errors": 0
+    }
+  ],
+  "scope": "two shared behavior streams across menus; realized counts are not independent trials or risk probabilities",
+  "audit_source_sha256": "52d05d06addef1246ea215e3a5c5ef7b83d3efc0a9ca6cd5d7d783acd8ad4dfb"
+}

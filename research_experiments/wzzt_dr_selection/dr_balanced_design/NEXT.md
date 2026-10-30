@@ -1,3 +1,32 @@
+# Current next action: finite conditional decision-risk gate
+
+The bounded review is complete; see REGRET_GATE_REVIEW.md. No solver or actual
+future was run in that review. Implement and inspect the minimal runner first,
+then freeze a new execution protocol and source hashes. Do not just repeat the
+review or use the old one-step prediction cache.
+
+Use the reviewed two historical generation witnesses and four existing menus
+(zero, repeat-inside, repeat-outside, outside-to-inside rotation). The inside
+choice is frozen by seed944231; the saved joint witness is point16 by the
+training-loss/max-family rule, not a test-topology choice. Retain zero weights.
+
+Exact independent training/validation DR-state integration gives488 mappings.
+The proposed cap is4000 LP calls/600 seconds, one attempt. All actual W/shared
+preprocessing and strict output operations are required. Validation affects
+starts and LP order; cache complete observed inputs only. Preserve unresolved
+probability mass and risk intervals; do not renormalize successful outcomes.
+
+This is a no-new-future-measurement-noise planning-law computability screen.
+It is not actual-noise risk, continuous-domain optimality or a new price
+effectiveness confirmation. Finite results give only pointwise lower bounds
+under the SAME planning law. Include repeat-inside as a fair simple baseline.
+If the gate is flat, incomplete or merely duplicates ordinary exploration,
+record that result and do not broaden it to get a positive result.
+
+Git pushes are still blocked pending explicit destination approval.
+
+---
+
 # Next after completion and the selector confirmation
 
 Read REPAIR_REPORT.md first. The original308-map panel is now fully completed
