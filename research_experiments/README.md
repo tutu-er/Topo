@@ -8,6 +8,7 @@ WZZT 已有算例的统一入口见 [结果总览与处理清单](../docs/wzzt_c
 
 | 目录或模块 | 内容 |
 |---|---|
+| [`local_rebuild/`](local_rebuild/) | 可撤销的块级层级 MILP、相同候选域修正对照与小规模纠错/AC 验证；见[评价和结果](../docs/local_tree_rebuild_20261030/README.md) |
 | [`ev/`](ev/README.md) | EV封存入口：当前实现、算例结果、文件作用与归档恢复（2026-10-19；源码和证据位于独立EV工作树） |
 | `rnj/rooted_aggregation.py` | RNJ 子树聚合、伪终端、去嵌入及标签展开 |
 | `rnj/graph_adapters.py` | 从 clade 建树、从终端距离反推共享路径的研究适配 |
