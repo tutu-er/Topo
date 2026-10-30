@@ -35,3 +35,31 @@ def test_large_polytomy_has_legal_bounded_regions():
     assert result and all(len(b)<=4 for _,b,_ in result)
     assert any(virtual for _,_,virtual in result)
     assert any_extension(family,8,()) is not None
+
+
+def test_scoring_uses_labelled_clades_and_original_units():
+    from research_experiments.rebuild_benchmark.analyze import score
+    z=np.array([0.,1.,1.]);R=np.eye(3)+np.outer(z,z);X=.1*np.eye(3)
+    data=core._prepare_scenarios([dict(P_terminal=np.eye(3),Q_terminal=np.zeros((3,3)),drop_target=R)])
+    point=dict(supports=[(0,),(1,),(2,),(1,2)],r=[1.,1.,1.,1.],x=[.1,.1,.1,0.],objective=0.)
+    truth=dict(R=R,X=X,clades={frozenset((11,12))})
+    result=score(point,dict(train=data,validation=data,test=data),truth,[10,11,12],[(1,2)])
+    assert result['clade_f1']==1. and result['exact']
+    assert result['test_mae']==pytest.approx(0.)
+    assert result['R_relative']==pytest.approx(0.) and result['X_relative']==pytest.approx(0.)
+    assert score(None,{},truth,[10,11,12],[])['clade_f1']==0.
+
+
+def test_full_pool_warm_start_reaches_a_candidate_after_the_first_four():
+    from itertools import combinations
+    p=np.eye(5);z=np.array([0.,0.,0.,1.,1.]);y=p+np.outer(z,z)
+    data=core._prepare_scenarios([dict(P_terminal=p,Q_terminal=p*0,drop_target=y)])
+    leaves=tuple((i,) for i in range(5));pool=[*leaves,*combinations(range(5),2)]
+    bank=Bank(data,pool)
+    try:
+        result=search(bank,leaves,np.eye(5),kind='forward',seconds=3.,per_MIP=.1,warm_limit=None)
+        first=result['attempts'][0]
+        assert first['warm_start']['valid']
+        assert first['warm_start']['objective']==pytest.approx(0.,abs=1e-9)
+        assert first['accepted'] and result['point']['objective']==pytest.approx(0.,abs=1e-9)
+    finally:bank.close()

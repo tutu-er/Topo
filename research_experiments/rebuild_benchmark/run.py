@@ -103,6 +103,8 @@ def prepare_worker(payload):
     from research_experiments.wzzt_refine.core import regularized_pool
     from .engine import Bank,prepare,canonical
     p=read(payload);destination=Path(p['destination']);then=perf_counter()
+    from . import engine
+    engine.LP_SECONDS=float(p.get('LP_seconds',5.))
     assert sha(p['train'])==p['train_sha256'] and sha(p['validation'])==p['validation_sha256']
     obs=observed(p['train'],p['N']);data=prepare(obs)
     bank,pool,fronts,calibrations=build_bank(obs);aug=regularized_pool(obs,pool)
@@ -143,6 +145,8 @@ def search_worker(payload):
     from research_experiments.wzzt_paper.common import observed
     from .engine import Bank,prepare,search,pool_repair,canonical,loss
     p=read(payload);common=read(p['common']);then=perf_counter()
+    from . import engine
+    engine.LP_SECONDS=float(p.get('LP_seconds',5.))
     train=prepare(observed(p['train'],p['N']));validation=prepare(observed(p['validation']))
     bank=Bank(train,common['pool']);initialized=perf_counter()-then
     try:
@@ -154,7 +158,8 @@ def search_worker(payload):
         search_seconds=float(p.get('search_seconds',20.));per_MIP=float(p.get('per_MIP_seconds',2.))
         if kind=='pool':trajectory=pool_repair(bank,initial,seconds=search_seconds,relative=config['relative_gain'])
         else:trajectory=search(bank,initial,np.asarray(common['kernel']),kind=kind,b=config['b'],
-                              relative=config['relative_gain'],seconds=search_seconds,per_MIP=per_MIP)
+                              relative=config['relative_gain'],seconds=search_seconds,per_MIP=per_MIP,
+                              warm_limit=p.get('warm_candidates',4))
         select_start=perf_counter()
         # All methods receive the same RNJ bank at final selection. A path-only
         # view is retained to separate initialization from search effects.
@@ -199,11 +204,13 @@ def dispatch(output,phase,tasks,*,snapshot=None):
             active[str(target)]=(proc,log,perf_counter(),p)
         for key,(proc,log,start,p) in list(active.items()):
             target=Path(p['result'])
-            if proc.poll() is None and perf_counter()-start>protocol['worker_hard_seconds']:
-                proc.kill();proc.wait();write(target.with_name('timeout.json'),dict(reason='180s worker hard limit'))
+            hard=p.get('worker_hard_seconds',protocol['worker_hard_seconds'])
+            if proc.poll() is None and perf_counter()-start>hard:
+                proc.kill();proc.wait();write(target.with_name('timeout.json'),dict(reason=f'{hard}s worker hard limit'))
             if proc.poll() is not None:
                 log.close()
-                if not target.exists():write(target.with_name('error.json'),dict(exit_code=proc.returncode,job=p['job']))
+                if not target.exists() and not target.with_name('error.json').exists():
+                    write(target.with_name('error.json'),dict(exit_code=proc.returncode,job=p['job']))
                 done+=1;del active[key]
                 print(phase,done,'/',len(tasks),p['job'],p.get('method',''),target.exists(),flush=True)
         write(output/(phase+'_progress.json'),dict(planned=len(tasks),finished=done,active=[p['job'] for _,_,_,p in active.values()],
@@ -356,8 +363,59 @@ def supplements(output,kind):
     dispatch(output,kind,tasks,snapshot=snapshot)
 
 
+def recovery(output):
+    output=Path(output).resolve();protocol=read(output/'protocol.json');frozen=read(output/'frozen_parameters.json')
+    jobs=[job for job in protocol['evaluation'] if not (output/'common'/job/'result.json').exists()]
+    snapshot=output/'source_recovery'
+    if snapshot.exists():raise FileExistsError('recovery already started; keep original failures')
+    shutil.copytree(output/'source',snapshot)
+    for name in ('run.py','engine.py'):
+        target=snapshot/'research_experiments/rebuild_benchmark'/name;target.write_bytes(Path(__file__).with_name(name).read_bytes())
+    write(output/'recovery_protocol.json',dict(jobs=jobs,LP_seconds=60.,worker_hard_seconds=900.,
+        search_seconds=20.,per_MIP_seconds=2.,parameters_sha256=sha(output/'frozen_method_parameters.json'),
+        source_hashes={n:sha(snapshot/'research_experiments/rebuild_benchmark'/n) for n in ('run.py','engine.py')},
+        reason='uniform recovery of every shared frontend failure; primary denominators and files unchanged; supplementary resource envelope'))
+    tasks=[]
+    for job in jobs:
+        source=read(output/'common'/job/'payload.json');target=output/'recovery_common'/job
+        tasks.append(dict(source,destination=str(target),result=str(target/'result.json'),LP_seconds=60.,worker_hard_seconds=900.))
+    dispatch(output,'prepare_recovery',tasks,snapshot=snapshot)
+    tasks=[]
+    for job in jobs:
+        source=read(output/'common'/job/'payload.json')
+        for method in METHODS:
+            tasks.append(dict(source,phase='evaluation',method=method,config=frozen['parameters'],
+                common=str(output/'recovery_common'/job/'result.json'),result=str(output/'recovery'/job/method/'result.json'),
+                LP_seconds=60.,worker_hard_seconds=900.,frozen_sha256=sha(output/'frozen_parameters.json'),
+                frozen_method_sha256=sha(output/'frozen_method_parameters.json')))
+    dispatch(output,'recovery',tasks,snapshot=snapshot)
+
+
+def fullwarm(output):
+    output=Path(output).resolve();protocol=read(output/'protocol.json');frozen=read(output/'frozen_parameters.json')
+    snapshot=output/'source_fullwarm'
+    if snapshot.exists():raise FileExistsError('full-pool warm-start audit already started')
+    shutil.copytree(output/'source',snapshot)
+    for name in ('run.py','engine.py'):
+        target=snapshot/'research_experiments/rebuild_benchmark'/name;target.write_bytes(Path(__file__).with_name(name).read_bytes())
+    write(output/'fullwarm_protocol.json',dict(jobs=protocol['evaluation'],warm_candidates=None,
+        search_seconds=20.,per_MIP_seconds=2.,LP_seconds=5.,
+        frozen_parameters_sha256=sha(output/'frozen_method_parameters.json'),
+        source_hashes={n:sha(snapshot/'research_experiments/rebuild_benchmark'/n) for n in ('run.py','engine.py')},
+        declared_after_primary_scoring=True,
+        purpose='stronger original-model baseline: scan every compatible pool warm candidate within the same 20s cap; no parameter retuning'))
+    tasks=[]
+    for job in protocol['evaluation']:
+        source=read(output/'common'/job/'payload.json')
+        tasks.append(dict(source,phase='evaluation',method='original_leaf',config=frozen['parameters'],
+            common=str(output/'common'/job/'result.json'),result=str(output/'fullwarm'/job/'original_leaf'/'result.json'),
+            warm_candidates=None,frozen_sha256=sha(output/'frozen_parameters.json'),
+            frozen_method_sha256=sha(output/'frozen_method_parameters.json')))
+    dispatch(output,'fullwarm',tasks,snapshot=snapshot)
+
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','prepare','development','select','controls','select_methods','evaluation','budget','augmented_pool','worker'))
+    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','prepare','development','select','controls','select_methods','evaluation','budget','augmented_pool','recovery','fullwarm','worker'))
     parser.add_argument('output');parser.add_argument('extra',nargs='?');a=parser.parse_args()
     if a.command=='freeze':freeze(a.output)
     elif a.command=='prepare':prepare_phase(a.output,a.extra or 'development')
@@ -367,6 +425,8 @@ def main():
     elif a.command=='select_methods':freeze_method_parameters(a.output)
     elif a.command=='evaluation':run_evaluation(a.output)
     elif a.command in ('budget','augmented_pool'):supplements(a.output,a.command)
+    elif a.command=='recovery':recovery(a.output)
+    elif a.command=='fullwarm':fullwarm(a.output)
     else:
         payload=a.extra
         try:(prepare_worker if a.output=='prepare' else search_worker)(payload)

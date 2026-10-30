@@ -17,6 +17,7 @@ from research_experiments.local_rebuild.model import build_model, canonical, com
 from research_experiments.wzzt_retune.engine import PoolLP, extension_start
 
 SCALE=1000.
+LP_SECONDS=5.
 
 
 def loss(data, point):
@@ -36,7 +37,7 @@ class Bank:
         self.scaled=core._PreparedScenarios(data.labels,tuple(p*SCALE for p in data.p),
             tuple(q*SCALE for q in data.q),tuple(y*SCALE for y in data.target))
         self.lp=PoolLP(None,pool,'raw',bound=2.,data=(self.scaled.p[0],self.scaled.q[0],self.scaled.target[0]))
-        self.lp.model.Params.TimeLimit=5.
+        self.lp.model.Params.TimeLimit=LP_SECONDS
         self.failures=[]
 
     def extend(self,supports):
@@ -45,7 +46,7 @@ class Bank:
         cache,solves=self.lp.cache,self.lp.solves
         other=PoolLP(None,[*self.lp.pool,*missing],'raw',bound=2.,data=(self.lp.p,self.lp.q,self.lp.y))
         self.lp.close();self.lp=other
-        self.lp.model.Params.TimeLimit=5.
+        self.lp.model.Params.TimeLimit=LP_SECONDS
         self.lp.cache.update(cache);self.lp.solves=solves
 
     def fit(self,family,*,preserve=False):
@@ -166,7 +167,7 @@ def reconstruction_start(bank,model,meta,point):
     return values
 
 
-def search(bank,initial,kernel,*,kind,b=5,relative=.001,seconds=20.,per_MIP=2.):
+def search(bank,initial,kernel,*,kind,b=5,relative=.001,seconds=20.,per_MIP=2.,warm_limit=4):
     then=perf_counter();preserve=kind=='forward'
     current=bank.fit(initial,preserve=preserve);path=[current];attempts=[];tried=set();reason='wall_limit'
     for iteration in range(3*bank.data.n):
@@ -177,10 +178,11 @@ def search(bank,initial,kernel,*,kind,b=5,relative=.001,seconds=20.,per_MIP=2.):
             if new is None:reason='structurally_complete';break
             model=core.build_extension_model(bank.scaled,family,r_upper_bound=2.,x_upper_bound=2.)
             warm=current
-            # Up to four fixed-family training LPs provide legal stronger
-            # starts. They never shrink the unrestricted binary support domain.
+            # Fixed-family training LPs provide legal stronger starts. None
+            # scans the whole pool, subject to the same search wall budget.
+            # These starts never shrink the unrestricted support domain.
             possible=[c for c in bank.lp.pool if c not in family and all(compatible(c,s) for s in family)]
-            for c in possible[:4]:
+            for c in possible[:warm_limit]:
                 if seconds-(perf_counter()-then)<per_MIP+.1:break
                 q=bank.fit([*family,c],preserve=True)
                 if q['objective']<warm['objective']-1e-12:warm,new=q,c
