@@ -248,6 +248,8 @@ def additional(output,destination):
         for name,digest in protocol['source_hashes'].items():
             assert sha(output/f'source_{phase}'/'research_experiments/rebuild_benchmark'/name)==digest
         methods=METHODS if phase=='recovery' else ('original_leaf',)
+        completion=read(output/f'{phase}_completion.json')
+        assert completion['planned']==len(protocol['jobs'])*len(methods)
         for job in protocol['jobs']:
             p=meta[job];commonfile=output/('recovery_common' if phase=='recovery' else 'common')/job/'result.json'
             common=read(commonfile) if commonfile.exists() else None
@@ -257,25 +259,33 @@ def additional(output,destination):
             for method in methods:
                 directory=output/phase/job/method;file=directory/'result.json';r=read(file) if file.exists() else None
                 if r:
+                    payload=read(directory/'payload.json')
+                    assert payload['frozen_sha256']==sha(output/'frozen_parameters.json')
+                    assert payload['frozen_method_sha256']==sha(output/'frozen_method_parameters.json')
                     assert not r['truth_used'] and not r['test_opened'] and sha(commonfile)==r['common_sha256']
-                    assert r['input_hashes']==common['source_input_hashes'];checks+=4
+                    assert r['input_hashes']==common['source_input_hashes']
+                    assert sha(p['train'])==r['input_hashes']['train'] and sha(p['validation'])==r['input_hashes']['validation'];checks+=7
                     previous=None
                     for point in r['trajectory']['path']:
                         value=independent_loss(data['train'].p[0],data['train'].q[0],data['train'].target[0],point)
                         assert abs(value-point['objective'])<=1e-8
-                        if previous is not None:assert value<previous['objective']-1e-10
+                        if previous is not None:
+                            assert value<previous['objective']-1e-10
+                            if method.startswith('original'):assert set(map(tuple,previous['supports']))<=set(map(tuple,point['supports']))
                         previous=point;checks+=1
                     for e in r['trajectory']['attempts']:
                         if 'status' not in e:continue
                         assert e['warm_start']['valid'] and e['bound_consistent_with_known_upper']
                         assert e['dual_bound'] is None or e['decoded_objective'] is None or e['dual_bound']<=e['decoded_objective']+1e-8
                         events.append(dict(phase=phase,job=job,method=method,status=e['status'],accepted=e['accepted'],
-                            gap=e['relative_gap'],incumbent_valid=e['audit']['valid']));checks+=2
+                            gap=e['relative_gap'],incumbent_valid=e['audit']['valid'],seconds=e['seconds'],
+                            binaries=e['binary_count'],constraints=e['constraint_count'],
+                            max_violation=e['audit'].get('maximum_violation')));checks+=2
                     for q in r['LP']:
                         assert q['status']==2 and max(q['max_constraint_violation'],q['max_bound_violation'])<=1e-7;checks+=1
                     choices=views(r,params['methods'][method],shared)
                 else:
-                    choices={'tuned_bank':None,'tuned_path':None}
+                    choices={view:None for view in ('tuned_bank','tuned_path','shared_bank','default_bank','legacy_bank','raw_endpoint')}
                     failure=dict(phase=phase,job=job,method=method,shared_preprocessing_failure=common is None)
                     if (directory/'error.json').exists():failure.update(read(directory/'error.json'))
                     failures.append(failure)
@@ -283,7 +293,9 @@ def additional(output,destination):
                     row=dict(phase=phase,job=job,method=method,view=view,panel=p['panel'],N=p['N'],voltage_sigma=p['voltage_sigma'],
                         **score(point,data,truth,labels,pool))
                     if r:row.update(search_seconds=r['trajectory']['seconds'],elapsed_seconds=r['elapsed_seconds'],
-                        stop_reason=r['trajectory']['stop_reason'],MIP_timeouts=sum(a.get('status')==9 for a in r['trajectory']['attempts']))
+                        common_seconds=r['common_seconds'],standalone_estimate_seconds=r['elapsed_seconds']+r['common_seconds'],
+                        stop_reason=r['trajectory']['stop_reason'],MIP_count=sum('status' in a for a in r['trajectory']['attempts']),
+                        MIP_timeouts=sum(a.get('status')==9 for a in r['trajectory']['attempts']))
                     records.append(row)
     frame=pd.DataFrame(records);frame.to_csv(destination/'additional_per_model.csv',index=False)
     frame.groupby(['phase','panel','view','method']).agg(inputs=('job','count'),available=('model_available','sum'),
