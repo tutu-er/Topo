@@ -1,3 +1,12 @@
+## 最新恢复：RNJ＋WZZT联合B机制与历史资格，旧488映射取消
+
+- 读dr_balanced_design/JOINT_B_REVIEW.md和evidence/joint_b_mechanism_v1。主版本multistart_original_rule原3%/.16；旧W-only/strict488条件计算门被用户方向纠正取代，未执行，不启动旧NEXT残留runner。
+- 私有根scratch/wzzt_b_joint_mechanism_v1：exact_algebra_audit.py/protocol/result（29有理数检查）；historical_qualification v1/schema失败回执、v2/160行全表；output_support_diagnostic及独立复核。全0LP/identifier/AC/NPZ/future。
+- 原正常.0002层40历史有5最终族分歧，其中1有双区域proper争议：main__flynn16__b7__reference__v0002__N288，3输出族。raw资格40/40过宽；主来源只依历史分类，未取真值/未来。完整160层计数及源hash见aggregate_summary。保留零弱及其他合法树替代，不称最终恢复/全域分离。
+- B配置须在左右各自共同粗区域内平衡，不是跨两区平衡；局部角色为左201对三节点块外点、右209对三节点块外点，设备/并列未核。不把两个局部对均完整的1/16当重复同对9/16。
+- 下一步仅这一个原来源的历史/标幺基准/设备双向能力资格核验；现有fit_observed/evaluate_fit通用n，原三节点执行器和paper15/200kW物理桥不能直接套用。输入接通后另冻一个同预算小比较，不重写识别器，不自动全价/全网络批。
+- 旧308/70和所有旧物理批均结束，不重跑。远端外发仍阻断待明确授权，保留本地提交。公开只白名单元数据与源，不含P/Q/V轨迹。
+
 ## 最新恢复：B条件风险计算性门已审查，尚未执行
 
 - 读dr_balanced_design/REGRET_GATE_REVIEW.md、NEXT.md及evidence/balanced_regret_review_v1。private wzzt_b_regret_review_v1有REVIEW.md、conditional_gate_spec.json、review_receipt、audit_existing.py/input_bindings/balance_aggregate；只有既有记录归因汇总，0新LP/AC/实际未来。

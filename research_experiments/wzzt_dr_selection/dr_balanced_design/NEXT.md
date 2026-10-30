@@ -1,3 +1,9 @@
+# 当前有效下一步：RNJ＋WZZT联合B来源资格
+
+本文件下方488映射/W-only新runner计划已由用户最新方向纠正取代，取消执行，旧资料保留。当前只读JOINT_B_REVIEW.md并先核验正常.0002来源main__flynn16__b7__reference__v0002__N288的历史/单位/设备双向备用带。主算法复用fit_observed的multistart_original_rule原3%/.16，不用strict替代主版本。旧三节点wrapper与paper15/200kW桥不可直接用于16终端。此资格核验不重跑308/70、不读测试未来/真树；通过后另锁同预算同节点同参与的同向/反向与单点/轮换/无奖励小比较。详见JOINT_B_REVIEW.md及STATUS顶部。
+
+---
+
 # Current next action: finite conditional decision-risk gate
 
 The bounded review is complete; see REGRET_GATE_REVIEW.md. No solver or actual
