@@ -8,6 +8,7 @@ WZZT 已有算例的统一入口见 [结果总览与处理清单](../docs/wzzt_c
 
 | 目录或模块 | 内容 |
 |---|---|
+| [`lp_rebuild/`](lp_rebuild/) | 合法层级 LP 枚举、全集响应域修复、响应下界/连接数惩罚和新留出校准；见[机制与结果](../docs/lp_rebuild_regularization_20261031/README.md) |
 | [`rebuild_benchmark/`](rebuild_benchmark/) | 局部重构的开发集选参、140 输入留出对照、完整池暖启动原始 MILP 与失败恢复；见[结论与分析](../docs/rebuild_tuned_benchmark_20261030/README.md) |
 | [`local_rebuild/`](local_rebuild/) | 可撤销的块级层级 MILP、相同候选域修正对照与小规模纠错/AC 验证；见[评价和结果](../docs/local_tree_rebuild_20261030/README.md) |
 | `local_rebuild/{matched,followup,diagnose,enumerate_regions,scaling_recheck,verify_followup}.py` | 同域同门槛对照、RNJ 配合、收缩后重拟合及完整局部域交叉核验；见[后续结论](../docs/local_tree_rebuild_followup_20261030/README.md) |
