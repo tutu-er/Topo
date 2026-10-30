@@ -3,7 +3,7 @@ import pytest
 
 gp=pytest.importorskip('gurobipy')
 from rnj_wzzt.estimation import laminar_l1_milp as core
-from research_experiments.lp_rebuild.engine import FloorBank,local_families,criterion,signal_coefficients,select_output,enumerate_search,InfeasibleFamily
+from research_experiments.lp_rebuild.engine import FloorBank,local_families,criterion,signal_coefficients,select_output,enumerate_search,InfeasibleFamily,native_root_search
 from research_experiments.local_rebuild.model import build_model
 from research_experiments.rebuild_benchmark.engine import solve,reconstruction_start
 
@@ -17,7 +17,7 @@ def test_four_block_lp_enumeration_matches_joint_milp_with_floor_and_sparsity():
     rng=np.random.default_rng(31);p=rng.uniform(.1,1.,(14,4));q=rng.uniform(.1,.6,(14,4))
     z=np.array([1.,1.,0.,0.]);R=.2*np.eye(4)+.12*np.outer(z,z);X=.1*np.eye(4)+.07*np.outer(z,z)
     data=prepared(p,q,p@R.T+q@X.T+rng.normal(0,.001,(14,4)))
-    family=tuple((i,) for i in range(4));blocks=family;bank=FloorBank(data,family,CAL,floor=.08)
+    blocks=tuple((i,) for i in range(4));family=(*blocks,tuple(range(4)));bank=FloorBank(data,family,CAL,floor=.08)
     try:
         families,_=local_families(bank,family,tuple(range(4)),blocks,False)
         assert len(families)==26
@@ -82,3 +82,16 @@ def test_sparsity_grid_uses_positive_activation_floors():
     from research_experiments.lp_rebuild.run import configs
     assert len(configs())==11
     assert all(c['floor']>0 for c in configs().values() if c['sparsity']>0)
+
+
+def test_zero_cleanup_must_not_remove_the_full_set_response_domain():
+    p=np.eye(4);data=prepared(p,p*0,p+.25*np.ones((4,4)));leaves=[(i,) for i in range(4)]
+    bank=FloorBank(data,leaves,CAL)
+    try:
+        enum=enumerate_search(bank,leaves,np.eye(4),seconds=3.)
+        native=native_root_search(bank,leaves,np.eye(4),seconds=3.)
+        assert enum['point']['objective']==pytest.approx(0.,abs=1e-9)
+        assert native['point']['objective']==pytest.approx(0.,abs=1e-9)
+        assert tuple(range(4)) in enum['point']['supports']
+        assert tuple(range(4)) in native['point']['supports']
+    finally:bank.close()

@@ -104,7 +104,10 @@ def local_families(bank,family,region,blocks,virtual):
     """26 families for four blocks, optionally times two for a new region edge."""
     augmented=canonical([*family,region]) if virtual and region not in family else family
     _,meta=build_model(bank.scaled,augmented,region,blocks,bound=2.,cuts='subset')
-    keep=meta['keep'];optional=virtual and region not in family and len(region)<bank.data.n
+    # The full-set response is always an allowed global coefficient, even
+    # after zero cleanup. It is compatible with every hierarchy and is not
+    # counted as a proper internal support.
+    keep=canonical([*meta['keep'],tuple(range(bank.data.n))]);optional=virtual and region not in family and len(region)<bank.data.n
     if optional:keep=canonical(s for s in keep if s!=region)
     families=[]
     for h in hierarchy_choices(len(blocks)):
@@ -151,6 +154,9 @@ def enumerate_search(bank,initial,kernel,*,seconds=20.,relative=.001,penalty=0.,
         if not todo:reason='neighborhood_scan_complete';break
         region,blocks,virtual=todo[0];tried.add((family,todo[0]))
         candidates,meta=local_families(bank,family,region,blocks,virtual)
+        # One feature-bank rebuild per region, rather than rebuilding for
+        # successive individual families as new union columns appear.
+        bank.extend([*meta['all_supports'],tuple(range(bank.data.n))])
         best=(criterion(current,bank.data.n,penalty),internal(current,bank.data.n),canonical(current['supports'])),current
         complete=True;before=len(bank.lp.solves);checked=0
         for proposed in candidates:
@@ -168,6 +174,39 @@ def enumerate_search(bank,initial,kernel,*,seconds=20.,relative=.001,penalty=0.,
             lower_bound=best[0][0] if complete else None,scope='enumerated local family domain'))
         if accepted:current=best[1];path.append(current)
         if not complete:reason='wall_limit';break
+    else:reason='step_limit'
+    return dict(path=path,point=current,attempts=events,seconds=perf_counter()-then,stop_reason=reason)
+
+
+def native_root_search(bank,initial,kernel,*,seconds=20.,relative=.001,b=4):
+    """Same repaired domain as LP enumeration, solved by a binary local MILP."""
+    from research_experiments.rebuild_benchmark.engine import solve,reconstruction_start
+    from rnj_wzzt.estimation import laminar_l1_milp as core
+    then=perf_counter();current=bank.fit(initial);path=[current];events=[];tried=set();reason='wall_limit'
+    for iteration in range(3*bank.data.n):
+        if perf_counter()-then>=seconds:break
+        family=canonical(current['supports']);todo=[q for q in regions(family,bank.data.n,b,kernel) if (family,q) not in tried]
+        if not todo:reason='neighborhood_scan_complete';break
+        region,blocks,virtual=todo[0];tried.add((family,todo[0]))
+        augmented=canonical([*family,tuple(range(bank.data.n)),*([region] if virtual else [])])
+        model,meta=build_model(bank.scaled,augmented,region,blocks,bound=2.,cuts='subset')
+        start=reconstruction_start(bank,model,meta,current);remaining=seconds-(perf_counter()-then)
+        if remaining<=.05:break
+        values,event=solve(bank,model,start,seconds=min(2.,remaining));point=None
+        if values is not None:
+            chosen=values[meta['selection']]>.5
+            active=list(range(len(meta['keep'])))+[len(meta['keep'])+k for k,a in enumerate(chosen) if a]
+            r,x=values[model.r].clip(0,2),values[model.x].clip(0,2)
+            active=[k for k in active if len(meta['all_supports'][k])==1 or max(r[k],x[k])>1e-9]
+            supports=[meta['all_supports'][k] for k in active]
+            assert core.is_laminar_family(supports)
+            point=bank.fit(supports)
+        gain=0. if point is None else current['objective']-point['objective'];threshold=1e-10+relative*current['objective']
+        accepted=point is not None and gain>threshold
+        event.update(kind='native_root_rebuild',region=region,blocks=blocks,gain=gain,threshold=threshold,accepted=accepted,
+                     decoded_objective=None if point is None else point['objective'])
+        events.append(event)
+        if accepted:current=point;path.append(current)
     else:reason='step_limit'
     return dict(path=path,point=current,attempts=events,seconds=perf_counter()-then,stop_reason=reason)
 

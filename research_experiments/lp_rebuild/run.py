@@ -56,6 +56,8 @@ def freeze(output):
         tuning_truth_used=False,tuning_test_used=False,development_frontend_reused=reused,
         evaluation_scope='16 existing AC simulations from bundles 5/6, untouched by prior local-rebuild tuning/evaluation; not new field data or globally unseen historical simulations',
         model='26 legal four-block hierarchies; a virtual proper region edge is enumerated absent/present; each family refits every R/X weight',
+        root_correction='full-set response is available in every enumerated neighborhood, even when its old weight was zero; native_root control uses the same corrected domain',
+        feature_prefetch='one batch feature-bank extension per region before enumerating fixed families',
         floor_depth='(a*r+b*x)/median_root_depth >= delta for active proper internal supports, including final refits',
         floor_signal='fixed centered-response projection >= delta*unconstrained_initial_MAE; projection is a true lower bound on this support response RMS, not on unique evidence after nuisance refitting',
         sparsity='raw training MAE + sparsity*unconstrained_initial_MAE*active proper internal count',
@@ -72,7 +74,7 @@ def worker(payload):
     if p['kind']=='prepare':prepare_worker(payload);return
     from research_experiments.wzzt_paper.common import observed
     from research_experiments.rebuild_benchmark.engine import prepare,Bank,search,loss,pool_repair
-    from .engine import FloorBank,InfeasibleFamily,enumerate_search,select_output,criterion
+    from .engine import FloorBank,InfeasibleFamily,enumerate_search,select_output,criterion,native_root_search
     common=read(p['common']);then=perf_counter();config=p['config']
     assert sha(p['train'])==common['source_input_hashes']['train'] and sha(p['validation'])==common['source_input_hashes']['validation']
     train=prepare(observed(p['train'],p['N']));validation=prepare(observed(p['validation']))
@@ -86,6 +88,7 @@ def worker(payload):
         try:bank.fit(initial)
         except InfeasibleFamily:initial=[(i,) for i in range(train.n)];fallback=True
         if p['config_id']=='pool':trajectory=pool_repair(bank,initial,seconds=20.,relative=.001)
+        elif p['config_id']=='native_root':trajectory=native_root_search(bank,initial,np.asarray(common['kernel']),seconds=20.)
         elif p['config_id'] in ('native','original_fullwarm'):
             initial=common['initial'] if p['config_id']=='native' else [(i,) for i in range(train.n)]
             trajectory=search(bank,initial,np.asarray(common['kernel']),kind='rebuild' if p['config_id']=='native' else 'forward',
@@ -160,8 +163,8 @@ def select(output):
     selected=dict(best_joint=pick(lambda c:c['strategy']=='joint'),best_floor=pick(lambda c:c['strategy']=='joint' and c['floor']>0),
                   best_hybrid=pick(lambda c:c['strategy']=='pool_joint'))
     methods={name:q['config_id'] for name,q in selected.items()}
-    methods.update(enum_control='depth_0',pool='pool',native_joint='native',original_fullwarm='original_fullwarm')
-    configs=dict(protocol['configurations']);configs['native']=configs['original_fullwarm']=dict(strategy='baseline',mode='depth',floor=0.,sparsity=0.)
+    methods.update(enum_control='depth_0',pool='pool',native_joint='native',native_corrected='native_root',original_fullwarm='original_fullwarm')
+    configs=dict(protocol['configurations']);configs['native']=configs['native_root']=configs['original_fullwarm']=dict(strategy='baseline',mode='depth',floor=0.,sparsity=0.)
     file=output/'frozen.json'
     if file.exists():raise FileExistsError('parameters already frozen')
     write(file,dict(created_utc=datetime.now(timezone.utc).isoformat(),selected=selected,grid=rows,methods=methods,
