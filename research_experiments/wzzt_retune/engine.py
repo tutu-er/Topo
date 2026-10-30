@@ -233,7 +233,9 @@ def free_search(lp,output,*,seconds=40.,per_solve=5.):
         if primal is not None:
             np.savez_compressed(target/"primal.npz",primal=primal)
         if primal is not None and info["primal_audit"]["feasible"]:
-            support=core._round_and_validate_support(model.expand_z_values(primal[model.z]),family,lp.n)
+            z_values=primal[model.z]
+            if hasattr(model,'expand_z_values'):z_values=model.expand_z_values(z_values)
+            support=core._round_and_validate_support(z_values,family,lp.n)
             lp.add_support(support)
             lp2=lp.fit([*family,support])
             if best is None or lp2["objective"]<best["objective"]:best=lp2;selected_new=support
