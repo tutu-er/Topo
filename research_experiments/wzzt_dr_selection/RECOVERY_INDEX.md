@@ -1,3 +1,13 @@
+## 最新恢复：0.02%参考噪声三组已完成，正式补根基线与输出等价性反例
+
+- 先读dr_reference_noise/REPORT、EXPERIMENT、METER_AND_IMPEDANCE。三组V-only/PQ-only/combined，原负荷、行为流、预算1.6及[0,2]/gain/3%/.16不变；主阻抗倍率1。正式RNJ+可选root为事前锁定的真实独立LP，非旧全8结果的事后复用。
+- private scratch/wzzt_dr_reference_noise_generation_v1：36命名/30不同model-noise、72maps、33snapshots；原288/288全留、最终480/480。c0重复命名/同CRN不作概率。execution_v1：33/33、1222LP、204.904s，208路径全扫/局部停、264完整输出+33无直接族，全部结束不原地重跑。旧exact/high批不混入新分母。
+- W错漏三组18→14、12→3、24→8，正式补根18→12、12→3、18→8；W-vs补根DR的PQ/both逐例同，V-only各有胜负。原RNJ缺根不再作为W独有价值。常规c.6联合噪声虽错漏减少，W/补根仍0/3完整，不能只用全组平均包装。
+- scratch/dr_reference_noise_audit_stage：audit_v1.json/5536checks、3838含复用raw记录、mechanism_summary、RESULTS；原3%和收缩会丢真块也会删假根，不统一调阈。root独立run/structure审计在execution根，全L1差0、175hash通过。
+- scratch/dr_reference_noise_decomposition_audit：receipt_v2.json/audit.py/README/arrays_v2为同预测不同contract的严格非负单例；v1微负端点舍入源/receipt/数组保留。r/x=(.2082623,0)或(0,.5950352)，组合/预测同而一删一留，0新solver。数组仍私有，public只保留receipt/source/hash。
+- evidence/reference_noise_v1/manifest及metadata_fits_and_audits.zip已235文件hash读回，sha63274dd852927e7c2afc05c10c941facd1f777ce660f98843df8bd1a63035c25，900719字节，无原始或推导轨迹数组。8项新纯测通过，不叠加旧重复测试。公开官方表计/线参依据和阅读范围见METER_AND_IMPEDANCE。
+- 不把.02%/.5%σ叫真实仪表准确级；工程线R/X需相制/基准/线型/长度。原toy综合阻抗并非明显太小，全体倍率还会出原参数域，故本轮不调阻抗找收益。后续先做输出对同预测分解的一致性/3%信息保留审查，在补根RNJ、W、简单族同处理，再锁工程新case。未形成新价格优化器，生产默认不改、旧留出不读、自动化仍关闭。
+
 ## 最新恢复：随机执行候选门结束，保留DR正例并否定增候选收益
 
 - 先读dr_random_observation_gate/REPORT.md和EXPERIMENT.md。无噪常规真pair三格DR使W0/3到3/3；原RNJ缺省公共根，允许可选根共同重估即复现33/33无噪W输出。不能作为W不可替代价格创新；扩池新增0/28、51/51与原当前W/简单全族相同。原噪声九格无改善，弱块raw恢复但contract删除保留分母。
