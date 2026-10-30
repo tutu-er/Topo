@@ -218,6 +218,10 @@ def search(bank,initial,kernel,*,kind,b=5,relative=.001,seconds=20.,per_MIP=2.):
                 point['objective']=loss(bank.data,point)
             event.update(kind='local_rebuild',iteration=iteration,region=v,blocks=blocks,virtual_region=virtual)
         else:raise ValueError(kind)
+        if point is not None:
+            # Close the continuous refit at every accepted integer family,
+            # including when the MIP stops with a feasible heuristic incumbent.
+            point=bank.fit(point['supports'],preserve=preserve)
         if primal is not None and point is not None and event['objective'] is not None and point['objective']>event['objective']+1e-8:
             # A different LP warm start may be better than the solver incumbent;
             # its objective can be lower but never exceeds its own epigraph UB.

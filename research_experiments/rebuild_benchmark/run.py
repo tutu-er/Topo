@@ -159,13 +159,14 @@ def search_worker(payload):
         # view is retained to separate initialization from search effects.
         points=[*common['bank'],*trajectory['path']]
         bank.extend(s for q in points for s in q['supports'])
-        resolutions=(.08,.16,.24) if p['phase']=='development' else sorted({.16,config['resolution']})
-        fractions=(0.,.01,.03) if p['phase']=='development' else sorted({.03,config['validation_fraction']})
-        selected={}
+        resolutions=(.08,.16,.24)
+        fractions=(0.,.01,.03)
+        selected={};selected_path={}
         for resolution in resolutions:
             candidates=validation_candidates(bank,points,validation,common['calibration'],resolution)
             for fraction in fractions:
                 selected[f'{resolution:g}_{fraction:g}']=choose(candidates,fraction)
+                selected_path[f'{resolution:g}_{fraction:g}']=choose(candidates[len(common['bank']):],fraction)
         initial_point=bank.fit(common['initial'])
         legacy_scores=[loss(validation,q) for q in points]
         oldbest=min(legacy_scores);oldeligible=[i for i,v in enumerate(legacy_scores) if v<=oldbest*1.03+1e-12]
@@ -175,7 +176,7 @@ def search_worker(payload):
         legacy=dict(supports=[q['supports'][i] for i in active],r=[q['r'][i] for i in active],x=[q['x'][i] for i in active])
         legacy['objective']=loss(train,legacy)
         write(p['result'],dict(job=p['job'],method=p['method'],phase=p['phase'],config=config,
-            trajectory=trajectory,selected=selected,legacy=legacy,initial=initial_point,
+            trajectory=trajectory,selected=selected,selected_path=selected_path,legacy=legacy,initial=initial_point,
             initial_validation=loss(validation,initial_point),selection_seconds=perf_counter()-select_start,
             initialized_seconds=initialized,elapsed_seconds=perf_counter()-then,common_seconds=common['seconds'],
             LP=bank.lp.solves,LP_failures=bank.failures,status='completed',truth_used=False,test_opened=False,
@@ -271,22 +272,66 @@ def freeze_parameters(output):
 
 def run_evaluation(output):
     output=Path(output).resolve();protocol=read(output/'protocol.json');frozen=read(output/'frozen_parameters.json');tasks=[]
+    if not (output/'frozen_method_parameters.json').is_file():
+        raise RuntimeError('freeze every baseline output policy before evaluation')
     for job in protocol['evaluation']:
         source=read(output/'common'/job/'payload.json')
         for method in METHODS:
             result=output/'evaluation'/job/method/'result.json'
             tasks.append(dict(source,phase='evaluation',method=method,config=frozen['parameters'],
-                common=str(output/'common'/job/'result.json'),result=str(result),frozen_sha256=sha(output/'frozen_parameters.json')))
+                common=str(output/'common'/job/'result.json'),result=str(result),frozen_sha256=sha(output/'frozen_parameters.json'),
+                frozen_method_sha256=sha(output/'frozen_method_parameters.json')))
     dispatch(output,'evaluation',tasks)
 
 
+def controls_development(output):
+    output=Path(output).resolve();protocol=read(output/'protocol.json');frozen=read(output/'frozen_parameters.json');tasks=[]
+    for job in protocol['development']:
+        source=read(output/'common'/job/'payload.json')
+        for method in METHODS[:-1]:
+            result=output/'development_controls'/job/method/'result.json'
+            tasks.append(dict(source,phase='development',method=method,config=frozen['parameters'],
+                common=str(output/'common'/job/'result.json'),result=str(result)))
+    dispatch(output,'development_controls',tasks)
+
+
+def freeze_method_parameters(output):
+    output=Path(output).resolve();protocol=read(output/'protocol.json');frozen=read(output/'frozen_parameters.json')
+    search_config={k:frozen['parameters'][k] for k in ('b','relative_gain')}
+    config_id=frozen['selected']['config_id'];methods={}
+    for method in METHODS:
+        methods[method]={}
+        for view in ('selected','selected_path'):
+            records=[]
+            for resolution in (.08,.16,.24):
+                for fraction in (0.,.01,.03):
+                    values=[];internal=[]
+                    for job in protocol['development']:
+                        file=(output/'development'/job/f'c{config_id}'/'result.json') if method=='rebuild_RNJ' else output/'development_controls'/job/method/'result.json'
+                        if not file.exists():raise RuntimeError('incomplete baseline tuning: '+str(file))
+                        r=read(file);choice=r[view][f'{resolution:g}_{fraction:g}']
+                        values.append(np.log(choice['validation']/max(r['initial_validation'],1e-12)));internal.append(choice['internal'])
+                    records.append(dict(resolution=resolution,validation_fraction=fraction,mean_log_validation_ratio=float(np.mean(values)),mean_internal=float(np.mean(internal))))
+            best=min(r['mean_log_validation_ratio'] for r in records)
+            eligible=[r for r in records if r['mean_log_validation_ratio']<=best+np.log(1.001)]
+            selected=min(eligible,key=lambda r:(r['mean_internal'],r['mean_log_validation_ratio'],r['resolution'],r['validation_fraction']))
+            methods[method][view]=dict(parameters={**search_config,**{k:selected[k] for k in ('resolution','validation_fraction')}},grid=records,selected=selected)
+    file=output/'frozen_method_parameters.json'
+    if file.exists():raise FileExistsError('method parameters already frozen')
+    write(file,dict(created_utc=datetime.now(timezone.utc).isoformat(),methods=methods,search_config=search_config,
+        development_only=True,test_opened=False,topology_truth_used=False,source_hyperparameters_sha256=sha(output/'frozen_parameters.json')))
+    print('BASELINE AND REBUILD OUTPUT PARAMETERS FROZEN', {k:v['selected']['parameters'] for k,v in methods.items()},flush=True)
+
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','prepare','development','select','evaluation','worker'))
+    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','prepare','development','select','controls','select_methods','evaluation','worker'))
     parser.add_argument('output');parser.add_argument('extra',nargs='?');a=parser.parse_args()
     if a.command=='freeze':freeze(a.output)
     elif a.command=='prepare':prepare_phase(a.output,a.extra or 'development')
     elif a.command=='development':run_development(a.output)
     elif a.command=='select':freeze_parameters(a.output)
+    elif a.command=='controls':controls_development(a.output)
+    elif a.command=='select_methods':freeze_method_parameters(a.output)
     elif a.command=='evaluation':run_evaluation(a.output)
     else:
         payload=a.extra
