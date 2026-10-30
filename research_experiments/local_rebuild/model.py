@@ -119,7 +119,7 @@ def _violation(values, lower, upper):
 
 
 def solve_rebuild(scenarios, family, region, blocks, *, hard=(), bound=2.,
-                  cuts="subset", seconds=3., relax=False):
+                  cuts="subset", seconds=3., relax=False, presolve=True, incumbent=None):
     """Keep the raw solver certificate and independently audit every incumbent.
 
     A time-limited feasible solution may be useful but has no local-optimum
@@ -129,16 +129,44 @@ def solve_rebuild(scenarios, family, region, blocks, *, hard=(), bound=2.,
     seconds = core._require_positive_finite("seconds", seconds)
     started = perf_counter()
     model, meta = build_model(prepared, family, region, blocks, hard=hard, bound=bound, cuts=cuts)
+    witness = None
+    if incumbent is not None:
+        # Verify the supplied upper bound in this exact MILP, including every
+        # binary and cardinality row. SciPy does not use it as a MIP start.
+        lookup = {tuple(s): (float(r), float(x)) for s, r, x in
+                  zip(incumbent["supports"], incumbent["r"], incumbent["x"], strict=True)}
+        if not set(lookup) <= set(meta["all_supports"]):
+            raise ValueError("incumbent is outside this reconstruction domain")
+        values = np.zeros(model.variables.size)
+        for k, s in enumerate(meta["all_supports"]):
+            values[model.r.start + k], values[model.x.start + k] = lookup.get(s, (0., 0.))
+        for k, s in enumerate(meta["candidates"]):
+            values[meta["selection"].start + k] = float(s in lookup)
+        R, X = core.build_matrices_from_atoms(prepared.n, incumbent["supports"],
+                                             incumbent["r"], incumbent["x"])
+        values[model.absolute] = np.concatenate([abs(y - p @ R.T - q @ X.T).ravel()
+            for p, q, y in zip(prepared.p, prepared.q, prepared.target)])
+        constraints = model.rows.build(model.variables.size)
+        error = max(_violation(constraints.A @ values, constraints.lb, constraints.ub),
+                    _violation(values, model.variables.lower, model.variables.upper))
+        if not np.isfinite(values).all() or error > 1e-7:
+            raise ValueError("supplied incumbent is not feasible in this MILP")
+        witness = dict(objective=float(np.asarray(model.variables.objective) @ values),
+                       maximum_violation=error, solver_MIP_start=False)
     original_integrality = np.asarray(model.variables.integrality, dtype=bool)
     if relax:
         model.variables.integrality = [0] * model.variables.size
     result, diagnostics = core._run_milp(model.variables, model.rows, time_limit=seconds,
-                                        mip_rel_gap=0., presolve=True, disp=False)
+                                        mip_rel_gap=0., presolve=presolve, disp=False)
     record = {k: v for k, v in meta.items() if k not in ("selection", "all_supports")}
     record.update(diagnostics=diagnostics.to_dict(),
                   certified=core.solver_diagnostics_prove_optimality(diagnostics),
                   wall_seconds=perf_counter() - started, relaxation=relax,
                   audit={"valid": False, "has_incumbent": result.x is not None}, point=None)
+    record.update(presolve=presolve, known_feasible_witness=witness)
+    if witness is not None and diagnostics.dual_bound is not None and diagnostics.dual_bound > witness["objective"] + 1e-8:
+        record["certified"] = False
+        record["certificate_error"] = "dual_bound_exceeds_verified_feasible_objective"
     if result.x is None or result.fun is None:
         return record
     values = np.asarray(result.x)
