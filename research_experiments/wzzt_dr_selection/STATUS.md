@@ -7,6 +7,7 @@
 - 入口dr_reference_noise/REPORT.md、EXPERIMENT.md、METER_AND_IMPEDANCE.md及evidence/reference_noise_v1。三组onlyV(PQ0,V.0002)、onlyPQ(PQ.005,V0)、combined(PQ.005,V.0002)，根及末端同V率。原负荷/δ/价格/参与及方向seed/预算1.6/原288训练288验证全部保持，最终480/480，阻抗倍率1。旧无噪/高噪批未重跑。
 - 原b.4/c0,.02,.6三pair及b0/c.6三pair全部保留：每组12命名/10不同生成模型，共36命名/30不同模型-噪声、72条件策略映射、33不同观测。仅原zero_sham/pair_random主对照，一个共享自然/测量/行为流，c0三名重复不作独立成功率；DR实付1.2、zero0。
 - 正式current_root_augmented_rnj事前锁定，当前native15逐族允许lb0/ub2公共根并独立PoolLP，原current RNJ/W/全8同观测cal。原gain/3%/.16及r/x域不变。一次33/33完成，1222LP全status2、204.904秒；208路径全扫且局部停，无失败/超时；264完整method输出+33no_direct，映射648=576complete+72no_direct，未决不填0。
+- 去重补充见dr_reference_noise/DEDUPLICATED_RESULTS.md：每组10个不同生成模型。正式补根三组完整0→3/10、1→7/10、2→2/10，错漏16→10、12→3、16→8；W完整0→2/10、1→7/10、1→2/10，错漏16→10、12→3、20→8。原72映射完整保留；combined补根2/12→4/12不能当增加两例独立成功。仅补统计、0新求解/数据。
 - 最终错漏W：onlyV18→14、onlyPQ12→3、combined24→8；正式补根法18→12、12→3、18→8。对应补根法完整0→3/12、3→9/12、2→4/12。W paid-vs-zero36映射21改善/3退化/12同；补根法20改善/2退化/14同，不只报告正结果。DR同观测W-vs补根法onlyPQ/both逐例同，onlyV 2更好/6同/4更差，未证明W独有收益。
 - 常规b.4/c.6三不同真pair单列：onlyV W及补根均0→1/3；onlyPQ两者0→3/3；combined W0→0/3、补根1→0/3，虽错漏7→3/4→3也未完整恢复。整体改善不能替代常规完整树恢复，c0重复/零根/弱块仍保留。
 - 机制：onlyV+DR补根raw8/12→final3/12，删8真块(7root含c0重复3、1强pair)；onlyPQ相同规则raw6/12→final9/12，因删3个假root，不能统一降阈。W仅V缺11真块中5因3%优简、3因合格同规模竞争(c0同模型重复)、2只在其他点正、1被contract；combined缺8中6因3%优简。均为保存点/路径归因，不是全参数证书。

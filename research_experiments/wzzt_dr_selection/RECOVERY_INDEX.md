@@ -1,5 +1,6 @@
 ## 最新恢复：0.02%参考噪声三组已完成，正式补根基线与输出等价性反例
 
+- 新增DEDUPLICATED_RESULTS.md与独立deduplicated_summary.json按真R/X同模型核去重；每组10模型，原12命名全部保留。正式补根combined完整2/10→2/10但错漏16→8，不把c0重复变成额外成功。原235文件zip不改，manifest另列补充源/数据hash，0新拟合。
 - 先读dr_reference_noise/REPORT、EXPERIMENT、METER_AND_IMPEDANCE。三组V-only/PQ-only/combined，原负荷、行为流、预算1.6及[0,2]/gain/3%/.16不变；主阻抗倍率1。正式RNJ+可选root为事前锁定的真实独立LP，非旧全8结果的事后复用。
 - private scratch/wzzt_dr_reference_noise_generation_v1：36命名/30不同model-noise、72maps、33snapshots；原288/288全留、最终480/480。c0重复命名/同CRN不作概率。execution_v1：33/33、1222LP、204.904s，208路径全扫/局部停、264完整输出+33无直接族，全部结束不原地重跑。旧exact/high批不混入新分母。
 - W错漏三组18→14、12→3、24→8，正式补根18→12、12→3、18→8；W-vs补根DR的PQ/both逐例同，V-only各有胜负。原RNJ缺根不再作为W独有价值。常规c.6联合噪声虽错漏减少，W/补根仍0/3完整，不能只用全组平均包装。
