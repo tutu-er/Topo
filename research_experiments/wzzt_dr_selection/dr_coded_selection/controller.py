@@ -140,6 +140,35 @@ def payment_account(receipt, checkpoint, price_rows):
 def _row(case):
     return case.get('history_row',case.get('source_row',case.get('row',case)))
 
+def select_prepared_case(cases, pilot_job=None):
+    """Explicit job selection precedes the retained legacy pilot defaults."""
+    if pilot_job is not None:
+        selected = [c for c in cases if c.get('job_id', _row(c).get('job_id')) == pilot_job]
+        if len(selected) != 1:
+            raise ValueError('exactly one explicitly selected pilot job required')
+        return selected[0]
+    selected = [c for c in cases if _row(c).get('bundle') == 8 and
+        float(c.get('voltage_sigma', _row(c).get('voltage_sigma', -1))) == .001]
+    if len(selected) != 1:
+        raise ValueError('exactly one frozen b8/.001 case required for the default pilot')
+    return selected[0]
+
+
+def history_loader_kwargs(case):
+    """Freeze explicit non-legacy source binding; do not infer a case by size."""
+    row = _row(case)
+    case_name = row.get('case', 'paper15')
+    if case_name != 'paper15' and ('base_kw' not in case or 'source_metadata' not in case):
+        raise ValueError('non-legacy case requires explicit base_kw and source_metadata')
+    return dict(expected_case=case_name, base_kw=float(case.get('base_kw', 200.)),
+                source_metadata=case.get('source_metadata'))
+
+
+def configured_history(cfg):
+    from research_experiments.wzzt_dr_selection.dr_competition_bridge.physical_bridge import load_history
+    return load_history(cfg['history_row'], **cfg.get('history_loader_kwargs', {}))
+
+
 def prepare(root, case_plans, physical_worker, physical_module, *, pilot_job=None,
             physical_source_root=None, replicate_base=20000, participation_seed=90410000):
     """Freeze32 records, or explicitly28 controls with unresolved-price evidence."""
@@ -162,13 +191,14 @@ def prepare(root, case_plans, physical_worker, physical_module, *, pilot_job=Non
         original_result=read(reference['result']['path'])
         if original_result.get('status') not in ('unresolved','partial','incomplete','planning_unresolved','price_unresolved','timeout'):
             raise ValueError('controls-only requires an explicitly unresolved original full-price result')
-    cases = [c for c in plan_summary['cases'] if _row(c).get('bundle')==8 and
-        float(c.get('voltage_sigma',_row(c).get('voltage_sigma',-1)))==.001]
-    if pilot_job: cases = [c for c in cases if c.get('job_id',_row(c).get('job_id'))==pilot_job]
-    if len(cases)!=1: raise ValueError('exactly one frozen b8/.001 case required')
-    case = cases[0]; row = _row(case)
-    if set(case['locks'])!={'local','common'}: raise ValueError('two response laws required')
+    case = select_prepared_case(plan_summary['cases'], pilot_job=pilot_job)
+    row = dict(_row(case))
+    row.setdefault('case', 'paper15')
+    loader_kwargs = history_loader_kwargs(case)
     sys.path[:0] = [str(REPO),str(REPO/'rnj_wzzt_core')]
+    from research_experiments.wzzt_dr_selection.dr_competition_bridge.physical_bridge import history_source_metadata
+    metadata = history_source_metadata(row, **loader_kwargs)
+    if set(case['locks'])!={'local','common'}: raise ValueError('two response laws required')
     from research_experiments.wzzt_dr_selection.dr_pool_v2.adapter import source_hashes
     sources = source_hashes()
     dependencies = {Path(__file__),Path(physical_worker),Path(physical_module),
@@ -184,6 +214,9 @@ def prepare(root, case_plans, physical_worker, physical_module, *, pilot_job=Non
         if sha(p)!=ref['sha256']: raise ValueError('price lock hash mismatch')
         lock = read(p)
         if lock.get('status')!='frozen': raise ValueError('unfrozen price lock')
+        if loader_kwargs['expected_case'] != 'paper15':
+            if lock.get('case') != loader_kwargs['expected_case'] or lock.get('source_metadata') != loader_kwargs['source_metadata']:
+                raise ValueError('non-legacy price lock source binding mismatch')
         names = list(lock['plans'])
         if policies is None: policies = names
         expected_count=7 if controls_only else 8
@@ -193,6 +226,9 @@ def prepare(root, case_plans, physical_worker, physical_module, *, pilot_job=Non
         for plan in lock['plans'].values(): payment_account({},'final',plan)
         locks[law] = dict(path=str(p),sha256=sha(p))
     inputs = {str(case_plans):sha(case_plans),**unresolved_inputs}
+    if loader_kwargs['source_metadata'] is not None:
+        meta_path = str(Path(loader_kwargs['source_metadata']['path']).resolve())
+        inputs[meta_path] = loader_kwargs['source_metadata']['sha256']
     for role in ('train','validation'):
         ref = row[role]; p = Path(ref['path']).resolve()
         expected = ref.get('catalog_sha256',ref.get('sha256'))
@@ -203,6 +239,7 @@ def prepare(root, case_plans, physical_worker, physical_module, *, pilot_job=Non
         archived = {str(p.resolve()):sha(p) for p in sorted(Path(physical_source_root).rglob('*.py'))}
         if not archived: raise ValueError('physical source closure missing')
     cfg = dict(status='frozen_before_actual_future',created_utc=now(),case=case,history_row=row,
+        history_loader_kwargs=loader_kwargs, source_metadata_binding=metadata, root_label=metadata['root_label'],
         locks=locks,policies=policies,checkpoints=list(CHECKPOINTS),planned_records=4*len(policies),shared_natural_paths=1,
         controls_only=controls_only,full_comparison_planned_records=32,
         missing_method_records=([dict(policy='wzzt_best',dependence=law,checkpoint=checkpoint,status='price_unresolved')
@@ -240,14 +277,13 @@ def verify(root):
 def fit_worker(root, packet_path, checkpoint, out):
     cfg = verify(root)
     sys.path[:0] = [str(REPO),str(REPO/'rnj_wzzt_core')]
-    from research_experiments.wzzt_dr_selection.dr_competition_bridge.physical_bridge import load_history
     from research_experiments.wzzt_dr_selection.dr_pool_v2.adapter import fit_observed
-    history = load_history(cfg['history_row'])
+    history = configured_history(cfg)
     packet = pickle.loads(Path(packet_path).read_bytes())
     if checkpoint=='early' and packet.get('metadata',{}).get('precut') is not True:
         raise ValueError('worker rejects full/future packet at early checkpoint')
     train,val = checkpoint_observations(history,packet,checkpoint)
-    return fit_observed(train,val,out,search_seconds=cfg['fit_path_seconds'])
+    return fit_observed(train,val,out,root_label=cfg.get('root_label',1),search_seconds=cfg['fit_path_seconds'])
 
 def _supports(point, labels):
     sets = point.get('support_labels')
@@ -300,9 +336,8 @@ def run(root,max_records=32):
 
 def _run_locked(root,cfg,max_records):
     sys.path[:0] = [str(REPO),str(REPO/'rnj_wzzt_core')]
-    from research_experiments.wzzt_dr_selection.dr_competition_bridge.physical_bridge import load_history
     from research_experiments.wzzt_dr_selection.dr_pool_v2.observations import normalize,input_hash
-    history=load_history(cfg['history_row']); rp=root/'actual_records.json'
+    history=configured_history(cfg); rp=root/'actual_records.json'
     records=read(rp) if rp.exists() else []; seen={r['record_id'] for r in records}
     cache={r['observed_fingerprint']:r for r in records if r.get('fit_attempted')}
     env=os.environ.copy(); env['PYTHONPATH']=os.pathsep.join([str(REPO),str(REPO/'rnj_wzzt_core')])
@@ -317,7 +352,8 @@ def _run_locked(root,cfg,max_records):
                 if physical.exists(): raise RuntimeError('partial physical directory retained: '+str(physical))
                 command=[sys.executable,cfg['physical_worker'],'--plan-lock',ref['path'],
                     '--expected-lock-sha',ref['sha256'],'--policy',policy,'--path','0','--dependence',law,
-                    '--sigma',str(cfg['case'].get('voltage_sigma',.001)),'--output',str(physical),
+                    '--sigma',str(cfg['case'].get('voltage_sigma',cfg['history_row'].get('voltage_sigma',.001))),
+                    '--case',cfg['history_row'].get('case','paper15'),'--output',str(physical),
                     '--repo-root',str(REPO),'--replicate-base',str(cfg['replicate_base']),
                     '--participation-seed',str(cfg['participation_seed']),'--event-profiles',*map(str,cfg['event_profiles'])]
                 if cfg['physical_source_root']: command += ['--source-root',cfg['physical_source_root']]

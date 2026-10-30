@@ -243,6 +243,30 @@ def _frozen_plan(lock_path, expected_sha256, policy):
     return validate_plan(record['plans'][policy]), record
 
 
+def frozen_source_metadata(lock, case):
+    """Validate the frozen case/base binding before loading physical producer code."""
+    if lock.get('case', 'paper15') != case:
+        raise ValueError('requested case differs from frozen lock case')
+    metadata = history_source_metadata(dict(case=case, condition='reference'),
+        expected_case=case, base_kw=float(lock.get('base_kw', 200.)),
+        source_metadata=lock.get('source_metadata'))
+    if 'root_label' in lock and lock['root_label'] != metadata['root_label']:
+        raise ValueError('frozen root differs from source metadata')
+    return dict(metadata, base_kw=float(metadata['base_mva']*1000.))
+
+
+def validate_context_metadata(context, metadata, labels=None):
+    """Post-gate producer checks; no profile is generated until these agree."""
+    if context.net.root_bus != metadata['root_label']:
+        raise ValueError('physical producer root differs from source metadata')
+    if not np.isclose(context.net.base_kv, metadata['base_kv'], rtol=0., atol=1e-12):
+        raise ValueError('physical producer voltage base differs from source metadata')
+    if not np.isclose(context.net.base_mva, metadata['base_mva'], rtol=0., atol=1e-12):
+        raise ValueError('physical producer power base differs from source metadata')
+    if labels is not None and list(context.terminals) != list(labels):
+        raise ValueError('frozen terminal order differs from physical producer')
+
+
 def _simulation_runtime(source_root):
     """Use original physical producer code in a clean worker or exact same files."""
     source_root = Path(source_root).resolve()
@@ -292,8 +316,9 @@ def generate_actual_events(lock_path, expected_lock_sha256, policy, *, path,
     interpreted as infeasibility or silently retried; one record per event stays.
     """
     plan, lock = _frozen_plan(lock_path, expected_lock_sha256, policy)
-    if voltage_sigma not in (0.,.0002,.0005,.001) or case != 'paper15':
-        raise ValueError('first bridge uses original paper15 reference/noise grid')
+    metadata = frozen_source_metadata(lock, case)
+    if voltage_sigma not in (0.,.0002,.0005,.001):
+        raise ValueError('outside original reference noise grid')
     if len(event_profiles) != 4 or any(v not in (0,1,2) for v in event_profiles):
         raise ValueError('four predeclared source profile indices required')
     if replicate_base < 1000 or int(path) != path or path < 0:
@@ -304,6 +329,7 @@ def generate_actual_events(lock_path, expected_lock_sha256, policy, *, path,
     # Network and actual natural trajectories are first constructed after the gate.
     context = sim._prepare_case_context(case,96,scenario_suite='reference',
         root_observation='noisy',root_meter_noise_rel=voltage_sigma,root_sigma=.003,impedance_scale=1.)
+    validate_context_metadata(context, metadata, lock.get('labels'))
     validate_plan(plan, len(context.terminals))
     context.net.check_terminal_load_only(strict=True)
     base_kw = float(context.net.base_mva*1000.)
@@ -312,7 +338,9 @@ def generate_actual_events(lock_path, expected_lock_sha256, policy, *, path,
                   worst_payment=float(2*.2*plan.sum()), plan_lock_sha256=expected_lock_sha256,
                   policy=policy, path=int(path), dependence=dependence,
                   runtime_sha256=runtime_sha256, source='new synthetic source-generator replicates',
-                  old_test_or_truth_files_read=False, labels=list(context.terminals))
+                  old_test_or_truth_files_read=False, labels=list(context.terminals),
+                  base_kw=base_kw, base_kv=metadata['base_kv'], base_mva=metadata['base_mva'],
+                  root_label=metadata['root_label'], source_metadata_binding=metadata)
     for event in range(4):
         replicate = int(replicate_base)+10*int(path)+event
         z = draw_participation(plan,event,path,dependence,seed=participation_seed)

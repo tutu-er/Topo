@@ -31,6 +31,37 @@ def write_pickle(path, value):
     temporary.replace(path)
 
 
+def observation_metadata(actual, *, case, expected_lock_sha, policy, path, dependence):
+    """Observed packet bases come from the guarded producer, not a case guess."""
+    import math
+    keys = ('base_kw', 'base_kv', 'base_mva', 'root_label')
+    if not all(k in actual for k in keys):
+        if case != 'paper15' or any(k in actual for k in keys):
+            raise ValueError('non-legacy physical producer must return explicit bases and root')
+        # Preserve the already validated historical paper15 worker contract.
+        bases = dict(base_kw=200., base_kv=.4, base_mva=.2, root_label=1)
+    else:
+        bases = {k: actual[k] for k in keys}
+    for key in ('base_kw', 'base_kv', 'base_mva'):
+        bases[key] = float(bases[key])
+        if not math.isfinite(bases[key]) or bases[key] <= 0:
+            raise ValueError('positive finite observed packet bases required')
+    root = bases['root_label']
+    if isinstance(root, bool) or int(root) != root:
+        raise ValueError('integer physical producer root required')
+    bases['root_label'] = int(root)
+    if not math.isclose(bases['base_kw'], 1000.*bases['base_mva'], rel_tol=0., abs_tol=1e-12):
+        raise ValueError('physical producer power bases disagree')
+    if bases['root_label'] in actual['labels']:
+        raise ValueError('physical producer root cannot be a terminal')
+    return dict(terminal_labels=actual['labels'], **bases, case=case,
+        interval_hours=.25, synthetic_dates_are_order_labels=True,
+        observed_only=True, plan_lock_sha256=expected_lock_sha,
+        policy=policy, path=path, dependence=dependence,
+        status=actual['status'], training_event_ids=actual['training_event_ids'],
+        validation_event_ids=actual['validation_event_ids'])
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser()
     parser.add_argument('--plan-lock',type=Path,required=True)
@@ -39,6 +70,7 @@ def main(argv=None):
     parser.add_argument('--path',type=int,required=True)
     parser.add_argument('--dependence',choices=('local','common'),required=True)
     parser.add_argument('--sigma',type=float,required=True)
+    parser.add_argument('--case',default='paper15')
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--repo-root',type=Path,default=Path.cwd())
     parser.add_argument('--source-root',type=Path,
@@ -58,7 +90,7 @@ def main(argv=None):
     sys.path.insert(0,str(args.source_root.resolve()))
     sys.path.insert(0,str(Path(__file__).resolve().parent))
     receipt=dict(status='started',started_utc=datetime.now(timezone.utc).isoformat(),
-        policy=args.policy,path=args.path,dependence=args.dependence,voltage_sigma=args.sigma,
+        policy=args.policy,path=args.path,dependence=args.dependence,voltage_sigma=args.sigma,case=args.case,
         plan_lock_sha256_expected=args.expected_lock_sha,
         source_sha256={str(Path(__file__).resolve()):sha(__file__)},
         physical_events_expected=4,physical_event_rows_expected=96,
@@ -70,19 +102,15 @@ def main(argv=None):
         import coded_physical
         receipt['source_sha256'][str(Path(coded_physical.__file__).resolve())]=sha(coded_physical.__file__)
         actual=generate_actual_events(args.plan_lock,args.expected_lock_sha,args.policy,
-            path=args.path,dependence=args.dependence,voltage_sigma=args.sigma,
+            path=args.path,dependence=args.dependence,voltage_sigma=args.sigma,case=args.case,
             source_root=args.source_root,replicate_base=args.replicate_base,
             event_profiles=tuple(args.event_profiles),participation_seed=args.participation_seed,
             repo_root=args.repo_root)
         # Identifier packet is strictly observed. It intentionally omits truth,
         # actual participants, the network object, and source profile parameters.
-        packet=dict(training=actual['training'],validation=actual['validation'],metadata=dict(
-            terminal_labels=actual['labels'],base_kw=200.,base_kv=.4,base_mva=.2,
-            interval_hours=.25,synthetic_dates_are_order_labels=True,
-            observed_only=True,plan_lock_sha256=args.expected_lock_sha,
-            policy=args.policy,path=args.path,dependence=args.dependence,
-            status=actual['status'],training_event_ids=actual['training_event_ids'],
-            validation_event_ids=actual['validation_event_ids']))
+        packet=dict(training=actual['training'],validation=actual['validation'],
+            metadata=observation_metadata(actual,case=args.case,expected_lock_sha=args.expected_lock_sha,
+                policy=args.policy,path=args.path,dependence=args.dependence))
         write_pickle(out/'packet.pkl',packet)
         empty_evaluation=evaluate_supports([],actual['physical_network'])
         truth_evaluation=dict(true_supports=empty_evaluation['missed_blocks'],

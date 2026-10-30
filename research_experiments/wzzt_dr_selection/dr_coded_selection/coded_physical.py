@@ -141,8 +141,32 @@ def _lock(lock_path,expected_sha,policy,legacy):
     if np.any((plan>0)&~np.isin(directions,[-1,1])):raise ValueError('offered node requires an explicit signed direction')
     template=lock['templates'][policy]
     if template not in ('same','opposed','alternating_opposed'):raise ValueError('bad declared template')
-    active=[labels.index(int(v)) for v in lock['active_labels']]
-    if len(active)!=2 or len(set(active))!=2:raise ValueError('exactly two distinct active positions required')
+    if 'active_labels_by_row' in lock:
+        mapping=lock['active_labels_by_row']
+        if not isinstance(mapping,dict) or policy not in mapping:
+            raise ValueError('policy requires explicit row-wise local pairs')
+        rows=mapping[policy]
+        if not isinstance(rows,list) or len(rows)!=2 or any(not isinstance(row,list) or len(row)!=2 for row in rows):
+            raise ValueError('two rows of two active labels required')
+        if any(isinstance(v,bool) or not isinstance(v,int) for row in rows for v in row):
+            raise ValueError('integer active labels required')
+        active=[[labels.index(v) for v in row] for row in rows]
+        if any(len(set(row))!=2 for row in active):
+            raise ValueError('two distinct active labels required in each row')
+        for e,pair in enumerate(active):
+            offered=set(np.flatnonzero(plan[e]>0))
+            if not offered<=set(pair):
+                raise ValueError('priced node outside declared row pair')
+            if len(offered)==2:
+                sign=int(directions[e,pair[0]]*directions[e,pair[1]])
+                expected=1 if template=='same' else -1
+                if sign!=expected:raise ValueError('directions disagree with declared pair phase')
+    else:
+        pair=[labels.index(int(v)) for v in lock['active_labels']]
+        if len(pair)!=2 or len(set(pair))!=2:raise ValueError('exactly two distinct active positions required')
+        # Legacy global tasks can offer other terminals; this pair only locates
+        # the old alternating waveform. New local pilots always declare rows.
+        active=[list(pair),list(pair)]
     return plan,directions,template,active,labels,lock
 
 
@@ -153,7 +177,11 @@ def generate_actual_events(lock_path,expected_lock_sha256,policy,*,path,dependen
     repo_root=Path.cwd() if repo_root is None else Path(repo_root)
     legacy=_legacy(repo_root)
     plan,directions,template,active,labels,lock=_lock(lock_path,expected_lock_sha256,policy,legacy)
-    if case!='paper15' or voltage_sigma not in (0.,.0002,.0005,.001):raise ValueError('outside original paper15/noise domain')
+    metadata=legacy.frozen_source_metadata(lock,case)
+    if voltage_sigma not in (0.,.0002,.0005,.001):raise ValueError('outside original reference noise domain')
+    orientations=np.asarray(lock.get('orientations_by_event',[1,1,1,1]))
+    if orientations.shape!=(4,) or orientations.dtype.kind not in 'iu' or not np.isin(orientations,[-1,1]).all():
+        raise ValueError('four explicit whole-event orientations required')
     if replicate_base<20000 or path<0 or int(path)!=path:raise ValueError('new actual replicate stream required')
     if len(event_profiles)!=4 or any(v not in (0,1,2) for v in event_profiles):raise ValueError('bad event profiles')
     sim,runtime=legacy._simulation_runtime(source_root)
@@ -161,21 +189,27 @@ def generate_actual_events(lock_path,expected_lock_sha256,policy,*,path,dependen
     runtime[str(checks_source)]=sha(checks_source);runtime[str(Path(legacy.__file__).resolve())]=sha(legacy.__file__)
     context=sim._prepare_case_context(case,96,scenario_suite='reference',root_observation='noisy',
         root_meter_noise_rel=voltage_sigma,root_sigma=.003,impedance_scale=1.)
-    if context.terminals!=labels:raise ValueError('frozen lock terminal order differs')
+    legacy.validate_context_metadata(context,metadata,labels)
     context.net.check_terminal_load_only(strict=True)
     output=dict(status='complete',training=[],validation=[],training_event_ids=[],validation_event_ids=[],
         truth=[],event_records=[],physical_network=context.net,labels=labels,runtime_sha256=runtime,
         committed_payment=0.,known_actual_payment=0.,actual_payment=0.,unknown_payment_events=0,
         worst_payment=float(.4*plan.sum()),plan_lock_sha256=expected_lock_sha256,
         policy=policy,path=int(path),dependence=dependence,template=template,
-        directions=directions.tolist(),device_declaration=dict(DEVICE),old_test_or_truth_files_read=False)
+        directions=directions.tolist(),orientations_by_event=orientations.tolist(),
+        base_kw=metadata['base_kw'],base_kv=metadata['base_kv'],base_mva=metadata['base_mva'],
+        root_label=metadata['root_label'],source_metadata_binding=metadata,
+        device_declaration=dict(DEVICE),old_test_or_truth_files_read=False)
     for event in range(4):
         replicate=int(replicate_base)+10*int(path)+event
         z=legacy.draw_participation(plan,event,path,dependence,seed=participation_seed)
         committed=.2*float(plan[event%2]@z)
+        event_directions=directions[event%2]*int(orientations[event])
         record=dict(event=event,role='training' if event<2 else 'validation',status='started',
             replicate=replicate,profile_index=int(event_profiles[event]),price_row=plan[event%2].tolist(),
-            directions=directions[event%2].tolist(),template=template,participants=z.astype(int).tolist(),
+            directions=event_directions.tolist(),orientation=int(orientations[event]),
+            active_labels=[labels[i] for i in active[event%2]],
+            template=template,participants=z.astype(int).tolist(),
             accepted_participants=z.astype(int).tolist(),actual_payment=None,committed_payment=committed,
             contracted_reduction_kWh=(.2*z).tolist(),contracted_rebound_kWh=(.2*z).tolist(),
             delivery_status='not_yet_verified',checks=dict(energy_return_pass=False))
@@ -183,7 +217,7 @@ def generate_actual_events(lock_path,expected_lock_sha256,policy,*,path,dependen
         try:
             base=sim._build_base_trajectory(context,int(event_profiles[event]),replicate)
             p,q,checks=apply_coded_response(base.p_base.to_numpy(),base.q_base.to_numpy(),
-                plan[event%2],z,directions[event%2],template,active,base_kw=200.)
+                plan[event%2],z,event_directions,template,active[event%2],base_kw=metadata['base_kw'])
             record['checks']=checks;record['profile_seed']=int(base.shifted_seed);record['profile']=str(base.profile)
             if checks['status']!='complete':
                 record.update(status=checks['status'],delivery_status='not_delivered_or_unresolved',
