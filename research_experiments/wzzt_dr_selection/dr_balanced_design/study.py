@@ -143,7 +143,7 @@ def evaluate_method(m,target):
         correct_eligible_count=len(eligible),final=sorted(effective(final)),raw=sorted(effective(raw)),
         target=sorted(target),origin=s.get('selected_origin'),all_scans_complete=m.get('all_scans_complete',True),
         raw_to_final_missing=sorted(effective(raw)-effective(final)),
-        path_count=len(m.get('searches',[])))
+        path_count=len(m.get('paths',[])))
 
 def summarize(root,rows,cfg,design,budget):
     groups=[]
@@ -178,7 +178,7 @@ def summarize(root,rows,cfg,design,budget):
                     d=v['final_errors']-x['final_errors'];delta+=d
                     counts['improved' if d<0 else 'worse' if d>0 else 'same']+=1
             paired.append(dict(method=method,baseline=kind,paid_vs_zero=dict(counts),paid_minus_zero_errors=delta))
-    complete=len(rows)==308 and all(r.get('evaluated',{}).get(m,{}).get('status')=='complete' for r in rows for m in execution.METHODS)
+    complete=len(rows)==308 and all(r.get('evaluated',{}).get(m,{}).get('status')=='complete' and r['evaluated'][m].get('all_scans_complete',True) for r in rows for m in execution.METHODS)
     result=dict(status='all_recorded_complete' if complete else 'bounded_finished_with_unresolved',planned_maps=308,recorded_maps=len(rows),
         unique_fits=len({r['fit_id'] for r in rows if 'fit_id' in r}),LP_calls=budget.calls,seconds=perf_counter()-budget.started,
         menu_count=22,price_design=design['status'],guided_menu='zero',menu_results=groups,policy_results=policies,paired=paired,

@@ -1,3 +1,12 @@
+## 最新恢复：B方向首批已收口，严格定价退化，持续方法审查
+
+- 先读dr_balanced_design/REPORT.md、NEXT.md和evidence/balanced_design_v1三份aggregate-only JSON。代码阶段d411f11a，13纯测；v1冻结源在private wzzt_b_design_v1/source_snapshot.zip，当前study仅修正输出元数据，不可直接用当前源验证原hash。
+- private wzzt_b_math_stage/run_v1：protocol先锁，804LP/2125检查全过；audit_readonly3134项过。该门非负无上界，与实际[0,2]分开。
+- private wzzt_b_design_v1：protocol SHA4a963f4b804dc2afd72e67b9e037cc7c4f4a2498e40df3745cfba4e0acf8f9e6；actions SHA4eff160b4eb822747232c748288db0bc9163165298e1a9c2e460ef4149e653f7。完整历史4族共享合法R/X点=>22分离0、guide选zero。actual308记录/218执行/217完整/90未执行/1方法未开始、187观测/186完整拟合；3000LP触限181.86s。不得重跑/加限额或将未决填0。
+- 原future/source/receipts/records/current_states/observed packets全部私有保存。run_ended明确bounded_finished_with_unresolved。两新行为/测量流共享原natural，不称308独立样本。W最终312错11完整，补根208错49完整（同217）；125正确saved均合格但114回选丢失。
+- private wzzt_b_audit_stage/run_v1：audit_result47459checks、mechanisms、structural_trace；12cross最终无贡献，14个W更好中4个accepted仅加root、8native、2path_start。private wzzt_b_controls_audit5504checks和44流菜单支付；wzzt_b_report_stage显式三摘要、metadata_correction651无拟合重放。
+- 当前无数值进程。automation wzzt-b ACTIVE，每2小时；下一项NEXT.md仅一次有界方法审查，不能因为方向有物理正例就继续价格扩批。没有具体新规则就关闭该目标与自动化。若有补全价值，先另存只处理原未完成清单的协议，保留原3000LP收口、不混成独立确认；不扩大网络、DR幅度/预算、阈值或换种子。
+
 ## 最新恢复：补偿价格规则已测试，未优于简单探索
 
 - 先读dr_compensation_design/REPORT.md、METHOD.md及evidence/compensation_design_v1三份aggregate-only JSON。实现0c5c8714；原生产/旧实验源码不改，26纯测通过。F=历史最终未收缩族，参数面保留零及全权重重估；5有限预测解释、16菜单、一步近似与历史cal，不是全参数覆盖或完整未来W。
