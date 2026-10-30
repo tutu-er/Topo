@@ -1,3 +1,11 @@
+## 最新恢复：flynn相位pilot结束，当前case无付费结构收益
+
+- 读dr_balanced_design/LOCAL_PHASE_PILOT_REPORT.md、PRICE_DESIGN_CONTRACT.md及evidence/flynn_local_phase_pilot_v1。8固定价策略/1流/480+480，8fits1680LP，32event3072AC，全部结束；不得重跑或补seed。历史stop0错/0支付，24最终输出均0错且native；当前case扩价表没有结构收益空间，仅事后边界。
+- private scratch/wzzt_flynn_coded_bridge_v1/pilot_v1含冻结protocol/plans、82代码source_snapshot、fits_frozen/ended、各policy physical/fit、fit_cache；audit_v1/receipt10596check、physical_v2/receipt936check、combined_summary。保留audit准备/序列化失败，只有审计回放没有重复实验。
+- 24路径14墙限10local、39accept10cross；same/opposed没有完整pair响应，训练B0/6、val1/6。不能说B已证实/无效或把接受当收益；也不能把候选分歧当真实性概率。代码桥接2aab282f兼容49测试通过，主算法原3%/.16不改。
+- 下一项仅有界审查原始问题与现有训练期资料：是否有真实相对输入不足/相关性及可辩护规划分布；先核data_calibration/REPORT与time split/manifest，iFlex旧均值价格预测未通过，不能冒充已校准。不要读测试残差设计、不新造强相关或新物理网求正；缺依据则结束该无效自动重复并留恢复索引。
+- 原214LP历史基线及所有旧308/70等批结束。只公开白名单配置/汇总/源，轨迹私有；Git外发仍待明确目的地授权。
+
 ## 最新恢复：flynn16完整历史与原联合基线已跑通
 
 - 先读dr_balanced_design/FLYNN_QUALIFICATION_REPORT.md、qualify_local_history.py与evidence/flynn_local_qualification_v1。主multistart原3%/.16不变；只改旧history loader来源绑定，6测试过。

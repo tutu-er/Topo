@@ -1,3 +1,9 @@
+# 当前有效下一步：本例数值支线关闭，只审查新依据
+
+flynn16/b7相位pilot已8/8完成：历史stop已0错/0支付，所有实际策略也0错，当前case不再扩50报价或刷seed。先读LOCAL_PHASE_PILOT_REPORT.md与PRICE_DESIGN_CONTRACT.md。下一轮只完成一次有界资料/问题审查：现有训练负荷是否支持实际相对输入不足/共同波动，规划结构/参数/响应分布能否合理建立。先核data_calibration/REPORT.md、协议和清单；原iFlex价格均值模型留出未通过，不能当后验或p(c)校准。不要使用测试残差、任意强相关、新网络或更大预算换正结果；若没有可计算可检验依据，说明缺口并结束无价值自动重复，保留恢复索引。旧case与旧批均不重跑。
+
+---
+
 # 当前有效下一步：历史基线完成，接通局部DR并锁小比较
 
 历史/单位/合成设备资格与原完整联合基线已经完成；不要重跑qualify_local_history.py或原214LP。先读FLYNN_QUALIFICATION_REPORT.md和STATUS顶部。现有history loader已支持带元数据绑定的flynn16；physical/coded未来生成器、worker和controller尚需最小case/metadata/逐轮pair参数化。复用原fit_observed和完整观测缓存，不复制辨识器。价格目标使用最终完整错漏的明确条件风险，参考分布/生成点边界须先声明；给定状态按原联合流程求值，50报价只改变状态概率。先锁同价同参与的局部same/opposed及无奖励/单点/轮换/同区重复小比较，原幅度、噪声、预算不变，未决风险质量保留。原精确同步机制不能直接套实际含噪历史。完成资格不等于DR收益。
