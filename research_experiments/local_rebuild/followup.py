@@ -226,6 +226,10 @@ def main():
             real_start="existing 3pct selected raw bank BEFORE contraction",
             penalty_grid=[0.,.001,.005,.01],selection="validation only, test evaluation afterwards"),
         command="python -m research_experiments.local_rebuild.followup "+" ".join(sys.argv[1:])))
+    snapshot=args.output/("source_phase1" if args.phase=="all" else "source_"+args.phase)
+    snapshot.mkdir(exist_ok=False)
+    for name in source_names:
+        (snapshot/name).write_bytes(Path(__file__).with_name(name).read_bytes())
     started=perf_counter()
     if args.phase in ("all","diagnosis"):
         destination=args.output/"diagnosis_refit";destination.mkdir(exist_ok=False)
