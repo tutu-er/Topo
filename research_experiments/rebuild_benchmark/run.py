@@ -151,9 +151,10 @@ def search_worker(payload):
         elif p['method']=='pool_RNJ':initial=common['initial'];kind='pool'
         else:initial=common['initial'];kind='rebuild'
         config=p['config']
-        if kind=='pool':trajectory=pool_repair(bank,initial,seconds=20.,relative=config['relative_gain'])
+        search_seconds=float(p.get('search_seconds',20.));per_MIP=float(p.get('per_MIP_seconds',2.))
+        if kind=='pool':trajectory=pool_repair(bank,initial,seconds=search_seconds,relative=config['relative_gain'])
         else:trajectory=search(bank,initial,np.asarray(common['kernel']),kind=kind,b=config['b'],
-                              relative=config['relative_gain'],seconds=20.,per_MIP=2.)
+                              relative=config['relative_gain'],seconds=search_seconds,per_MIP=per_MIP)
         select_start=perf_counter()
         # All methods receive the same RNJ bank at final selection. A path-only
         # view is retained to separate initialization from search effects.
@@ -184,8 +185,8 @@ def search_worker(payload):
     finally:bank.close()
 
 
-def dispatch(output,phase,tasks):
-    output=Path(output).resolve();protocol=read(output/'protocol.json');snapshot=output/'source'
+def dispatch(output,phase,tasks,*,snapshot=None):
+    output=Path(output).resolve();protocol=read(output/'protocol.json');snapshot=output/'source' if snapshot is None else Path(snapshot)
     env=os.environ.copy();env['PYTHONPATH']=str(snapshot)+os.pathsep+str(snapshot/'rnj_wzzt_core')
     pending=list(tasks);active={};done=0;started=perf_counter()
     while pending or active:
@@ -323,8 +324,40 @@ def freeze_method_parameters(output):
     print('BASELINE AND REBUILD OUTPUT PARAMETERS FROZEN', {k:v['selected']['parameters'] for k,v in methods.items()},flush=True)
 
 
+def supplements(output,kind):
+    output=Path(output).resolve();protocol=read(output/'protocol.json');frozen=read(output/'frozen_parameters.json')
+    extra=read(output/'analysis_addendum.json');snapshot=output/'source_supplement'
+    if not snapshot.exists():
+        shutil.copytree(output/'source',snapshot)
+        target=snapshot/'research_experiments/rebuild_benchmark/run.py'
+        target.write_bytes(Path(__file__).read_bytes())
+        write(output/'supplement_source.json',dict(source_sha256=sha(target),engine_sha256=sha(snapshot/'research_experiments/rebuild_benchmark/engine.py'),
+            differs_from_primary='worker reads predeclared search_seconds/per_MIP_seconds; mathematical model/search rules unchanged'))
+    tasks=[]
+    for job in extra['jobs']:
+        source=read(output/'common'/job/'payload.json')
+        if kind=='budget':
+            for method in ('original_leaf','rebuild_RNJ'):
+                tasks.append(dict(source,phase='evaluation',method=method,config=frozen['parameters'],
+                    common=str(output/'common'/job/'result.json'),result=str(output/'budget'/job/method/'result.json'),
+                    search_seconds=100.,per_MIP_seconds=10.))
+        else:
+            from research_experiments.local_rebuild.model import unions,canonical
+            common=read(output/'common'/job/'result.json');local=read(output/'evaluation'/job/'rebuild_RNJ'/'result.json')
+            pool=list(common['pool'])
+            for attempt in local['trajectory']['attempts']:
+                pool.extend(s for _,s in unions(attempt['blocks']))
+                if attempt['virtual_region']:pool.append(attempt['region'])
+            target=output/'augmented_pool'/job/'common.json'
+            write(target,dict(common,pool=canonical(pool),augmentation_truth_used=False,
+                discovery_result_sha256=sha(output/'evaluation'/job/'rebuild_RNJ'/'result.json')))
+            tasks.append(dict(source,phase='evaluation',method='pool_RNJ',config=frozen['parameters'],
+                common=str(target),result=str(output/'augmented_pool'/job/'pool_RNJ'/'result.json')))
+    dispatch(output,kind,tasks,snapshot=snapshot)
+
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','prepare','development','select','controls','select_methods','evaluation','worker'))
+    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','prepare','development','select','controls','select_methods','evaluation','budget','augmented_pool','worker'))
     parser.add_argument('output');parser.add_argument('extra',nargs='?');a=parser.parse_args()
     if a.command=='freeze':freeze(a.output)
     elif a.command=='prepare':prepare_phase(a.output,a.extra or 'development')
@@ -333,6 +366,7 @@ def main():
     elif a.command=='controls':controls_development(a.output)
     elif a.command=='select_methods':freeze_method_parameters(a.output)
     elif a.command=='evaluation':run_evaluation(a.output)
+    elif a.command in ('budget','augmented_pool'):supplements(a.output,a.command)
     else:
         payload=a.extra
         try:(prepare_worker if a.output=='prepare' else search_worker)(payload)
