@@ -1,3 +1,13 @@
+## 最新恢复：响应表价格已实现、当前构造收口，2026-10-30
+
+- 先读dr_competition_bridge/REPORT.md、METHOD.md、NEXT_CODED_DR.md及STATUS顶部。主DR目标未达；当前两站固定波形50价无增量，不重跑。
+- 私有根：scratch/wzzt_dr_competition_bridge_v1(v1_closure、source_snapshot_v1.zip，16complete/1unresolved)；v2完整planning48/48/720LP；wzzt_dr_competition_site_v3另48/48/720LP；wzzt_dr_competition_validation_noise_v4仅重评分；wzzt_dr_competition_actual_v2实际64/64、44fits、3246LP。均已完成，无运行锁；源变后旧guard拒绝是预期，先恢复对应源码。
+- 价格表local/common全4/3，验证噪声全5/3，均0价。实际RNJ/WZZT全0错漏，无奖励也恢复，不能把自然新增带来的改善算DR。只有一条共享四日自然路径，64不是独立样本。所有失败/成本/无收益分母保留。
+- dr_competition_bridge包含probability tables、local replay、actual bridge/runner、普通输入基线、独立诊断和coded_shapes原型。实际必须用actual_runner（含失败费用、未知费用、未全扫及同目标单点对照），旧study.actual接口不作为本轮推荐入口。
+- evidence/competition_response_tables_v1为不含轨迹的可恢复公开证据；原始observed/physical_truth pickle和旧NPZ都私有。actual独立audit及freeze bindings通过。
+- 下一机制只有同能量同峰值相反移峰+原候选顶层竞争资格。source inventory14/160候选顶层交叉，b8/b9全原噪声可预定义，不能读真值挑有利条件。先设备备用带与输出门检查；未实现新价格选择/新AC结果，勿把3个模板单测称方法成功。
+- 原自动任务仍关闭；本轮没有恢复新周期运行。不以求理想正结果无限加种子、网络或预算。
+
 ## 当前接续：既有AMI场景与完整候选库审查，2026-10-30
 
 - 用户否定新遥测投运设定，已取消原96记录计划；先读SCENARIO_PROGRESS.md、SCENARIO_REVIEW.md及STATUS最上方。原自动任务仍关闭。
