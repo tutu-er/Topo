@@ -1,3 +1,9 @@
+## 最新恢复：基础审查结束，当前方法未闭合
+
+- 入口dr_balanced_design/FOUNDATION_CLOSURE_REVIEW.md；PRICE_DESIGN_CONTRACT是数学定义/边界，不是已验证优化器。当前缺联合整段响应/支付依据及历史结构/参数参考ν_h；iFlex旧价格均值失败与日内形状相关不能补齐。
+- private scratch/wzzt_foundation_closure_v1有10来源review_source_snapshot.zip、review_receipt.json和automation_before_delete.toml。本轮只读既有资料，0新拟合/LP/AC/相关性计算/家庭或测试轨迹载入。
+- 自动化wzzt-b已按本轮结论删除，原生工具确认deleted。主研究目标未达，不重跑所有旧批。恢复需先明确联合响应模型、结构参考及确有信息缺口的场景，再锁独立小协议，复用已有联合入口；不靠人工下界或换数据/网络找正。
+
 ## 最新恢复：flynn相位pilot结束，当前case无付费结构收益
 
 - 读dr_balanced_design/LOCAL_PHASE_PILOT_REPORT.md、PRICE_DESIGN_CONTRACT.md及evidence/flynn_local_phase_pilot_v1。8固定价策略/1流/480+480，8fits1680LP，32event3072AC，全部结束；不得重跑或补seed。历史stop0错/0支付，24最终输出均0错且native；当前case扩价表没有结构收益空间，仅事后边界。

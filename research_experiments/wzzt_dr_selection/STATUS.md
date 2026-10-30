@@ -1,3 +1,10 @@
+## 当前：有界基础审查结束，主目标未达，自动续跑已关闭
+
+- 读dr_balanced_design/FOUNDATION_CLOSURE_REVIEW.md。现有资料没有锁定最终错漏风险的结构/参数参考ν_h或经过验证的反事实联合整段响应/支付规律。合成p(c)假设数学上有效，但不得冒充iFlex校准；当前没有新价格方法。
+- 本轮0新统计/拟合/LP/AC/物理/价格批，未载入家庭pickle、RData或测试轨迹。只读既有训练汇总和协议；时间相关不等于节点同步，日内残差形状相关不等于跨日节点误差协方差。单个新相关性数值无法补齐两项基础，故没有自动另算。
+- 同边际.5的独立/共同/互斥参与有不同成对执行概率，均值不足以确定B价值；3%候选带也不产生拓扑后验。需要明确联合响应与结构参考，或明确另立合成条件基准，不能再换代理/加正下界保留方案。
+- 本轮保存恢复索引后按既定门槛删除wzzt-b，原生工具已确认deleteStatus=deleted。主目标未达，代码/全部结果保留；不再自动扩大当前无依据的数值路线。此前flynn支线及所有旧批保持结束。
+
 ## 当前：flynn局部相位pilot已完成，本例结构DR支线收口，2026-10-31
 
 - 入口dr_balanced_design/LOCAL_PHASE_PILOT_REPORT.md、PRICE_DESIGN_CONTRACT.md和evidence/flynn_local_phase_pilot_v1。桥接2aab282f已提交，49项不同纯边界/legacy回归过；未改识别器。私有scratch/wzzt_flynn_coded_bridge_v1/pilot_v1已结束，勿重启。
