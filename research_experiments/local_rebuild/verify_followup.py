@@ -8,6 +8,8 @@ from pathlib import Path
 from .run import ROOT, from_observed, sha, write
 from .verify import independent_loss
 from .run import clade_score
+from .model import build_model
+import numpy as np
 
 
 def verify(directory):
@@ -18,6 +20,7 @@ def verify(directory):
     unscaled=read("numerical_recheck/real.json")
     checks=0
     first_bad, second_bad=0,0
+    embedded_violations=[]
     for record in exact:
         assert record["status"]=="completed" and record["enumerated"]==236
         assert abs(record["absolute_gap"])<=1e-8
@@ -31,6 +34,27 @@ def verify(directory):
         parent=ROOT/"outputs/wzzt_paper_20261029_full/jobs"/record["id"]
         payload=json.loads((parent/"payload.json").read_text(encoding="utf-8"))
         source=next(r for r in initial if r["case"]==record["case"])
+        search=source["searches"][record["region_index"]]
+        train=from_observed(payload["train"],48)
+        model,meta=build_model(train,search["single"]["point"]["supports"],search["region"],
+                               search["blocks"],hard=search["mandatory"])
+        exact_point=record["joint"]
+        lookup={tuple(s):(r,x) for s,r,x in zip(exact_point["supports"],exact_point["r"],exact_point["x"])}
+        values=np.zeros(model.variables.size)
+        prediction=np.zeros_like(train.target[0])
+        for k,s in enumerate(meta["all_supports"]):
+            values[model.r.start+k],values[model.x.start+k]=lookup.get(s,(0.,0.))
+        for k,s in enumerate(meta["candidates"]):values[meta["selection"].start+k]=float(s in lookup)
+        for s,(r,x) in lookup.items():
+            z=np.array([float(i in s) for i in range(train.n)])
+            prediction+=((train.p[0]@z)*r+(train.q[0]@z)*x)[:,None]*z
+        values[model.absolute]=abs(train.target[0]-prediction).ravel()
+        constraints=model.rows.build(model.variables.size);activity=constraints.A@values
+        violation=float(max(0.,np.max(activity-constraints.ub),np.max(constraints.lb-activity),
+                            np.max(-values),np.max(values-np.asarray(model.variables.upper))))
+        assert violation<=1e-8
+        assert abs(np.asarray(model.variables.objective)@values-record["global_upper_bound"])<=1e-8
+        embedded_violations.append(violation);checks+=1
         before=source["searches"][record["region_index"]]["joint"]["diagnostics"]["dual_bound"]
         after=next(r for r in unscaled if r["case"]==record["case"] and r["region_index"]==record["region_index"])["joint"]["diagnostics"]["dual_bound"]
         first_bad+=before is not None and before>record["global_upper_bound"]+1e-8
@@ -65,6 +89,8 @@ def verify(directory):
                  normalized_MILP_verified=len(normalized),
                  original_scale_false_lower_bounds=first_bad,
                  original_scale_no_presolve_false_lower_bounds=second_bad,
+                 enumerated_optima_embedded_in_full_MILPs=len(embedded_violations),
+                 maximum_embedding_violation=max(embedded_violations),
                  source_sha256=sha(__file__),
                  interpretation="final LP enumeration supersedes provisional unscaled MILP exclusion claims")
     write(directory/"final_verification.json",summary);print(summary)
