@@ -18,3 +18,5 @@
 只有case_plans.json完整且price locks已冻结，才可controller prepare/run。actual使用新replicate>=20000、参与seed90410000；只有一条共享四日自然路径，不将32检查点记录写成独立成功率。
 
 代码可运行与合同在给定模型内可行，均不代表真实设备已校准或DR已改善恢复；阶段结果见REPORT.md（完成后写入）及STATUS.md。
+
+本轮完整价门未决后，实际使用显式controls_only路径：fixed_controls.py绑定原未决协议/结果hash，冻结7个原已声明控制策略。controller按28条计数，另列原价格方法4条price_unresolved；它们没有zero价格回退。原规划源已先封存，接口修复后另冻actual源，无价表重跑。

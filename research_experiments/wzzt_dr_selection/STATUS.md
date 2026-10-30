@@ -1,14 +1,15 @@
 # WZZT 与随机需求响应：接续状态
 
-**当前继续测试同能量相反移峰，尚未取得新的DR收益。** 新代码13项纯检查通过、规划/物理12状态数组对照通过；即将按900秒/6000LP上限运行首门。旧b0负结果与完整分母保留，原自动任务仍关闭。
+**当前正在执行相反移峰的28条固定合同对照；尚无新的实际收益结论。** 三模板完整价格表在原900秒/2868LP预算下未完成，保留4条price_unresolved，不用zero替代。原自动任务仍关闭，生产默认未改。
 
-## 当前：相反移峰首门准备，2026-10-30
+## 当前：相反移峰价格门未决、固定合同实际测试，2026-10-30
 
-- 入口dr_coded_selection/README.md、EXPERIMENT.md；新包保持生产及旧实验不变。首门paper15 b8/.001，历史raw[17,10]、位置[109,113]由候选顶层竞争与事前种子选出，未读真实结构/新未来。b8/b9四原噪声8条件已列面板，余7项未启动。
-- same/opposed/alternating_opposed三模板共享.2kW峰值、.2kWh削减回补和1.6支付上限。固定模拟非V2G任务基线.2kW/.07kvar、P上限.4、19-21h能量0至.4kWh；不是设备实证校准。资格120均值分解通过、逐历史窗口112通过，8冲突均107；固定位置109/113无冲突、无重抽。
-- 13项不同纯测试和12模板/mask独立对照通过，未运行新LP/AC。规划所有3×50价菜单同权限，以最终条件完整错漏设计；900秒合并墙、6000LP、15秒扫描，未完不填zero。
-- 预锁实际首门8政策×2law×early/final=32配对记录、一条共享四日自然路径；early原288+84训练/原288验证，final480/480。价表针对final，early仅机制诊断。执行失败费用分开承诺与未知实际，不剪裁、不改Z；真值只作选后评价。
-- 新私有计划根预定scratch/wzzt_dr_coded_planning_v1、实际根wzzt_dr_coded_actual_v1；旧资格根wzzt_dr_coded_qualification_v1。先查protocol/run.lock与进程，不重复启动。当前尚未生成新实际未来或价格锁，代码阶段不等于方法收益。
+- 入口dr_coded_selection/EXPERIMENT.md、README.md。首门paper15 b8/.001、raw17/10、节点109/113由历史顶层竞争与事前种子选择，未用真值/未来；b8/b9×四原噪声面板仍8条件，余7未启动。固定模拟设备.2kW/.07kvar基线、P上限.4、19-21h能量0至.4kWh；不是设备实证。
+- 三模板合并预算900秒/6000LP/15秒扫描：实际900.026秒、2868LP；same32/32完成/1632LP，opposed26/32完成后下一LP到时/1236LP，alternating未启动。原96训练情景=58完成、1未决、37未启动。完整价格方法未决，不称150菜单最优。same已独立核验50价local/common全错漏5并选0；opposed未完成不能补0。
+- 按授权另锁7个固定/普通输入策略，共28配对检查记录；原wzzt_best四项单列price_unresolved、未运行。三模板、.2kW/.2kWh和1.6支付上限同权限。价法未决与物理机制测试分开，不能把控制测试当价格优化成功。
+- actual价格/源码已在新未来生成前冻结，一条新共享四日自然路径；early原288+84训练/原288验证，final480/480。early拟合进程仅收到84行prefix，无未来验证。16项当前不同纯测试通过，另12状态数组核验；初始13项被本版覆盖，不重复计数。
+- 实际启动前修复controller的units/drop_target与prefix输入，新增运行可行分母和动态physical_case源冻结。旧controller从未做实际拟合，原规划源码已封存source_snapshot_before_controller_fix.zip；旧协议不改、不重跑原价表。
+- 私有根：scratch/wzzt_dr_coded_qualification_v1、wzzt_dr_coded_planning_v1、wzzt_dr_coded_fixed_controls_v1、wzzt_dr_coded_actual_controls_v1。actual run.lock及逐条断点有效；有进程仅读新增证据。实际尚在运行，不把进行中结果算完成。
 
 ## 当前：响应表价格实现、失败机制与独立物理验证，2026-10-30
 

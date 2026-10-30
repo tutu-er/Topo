@@ -1,8 +1,10 @@
-## 接续：相反移峰首门代码已核验，尚待运行
+## 接续：相反移峰实际对照运行中，价格方法未决
 
-- 先读dr_coded_selection/EXPERIMENT.md、README.md及STATUS顶部。13纯测试、12数组对照通过，尚无新LP/AC收益；不要把代码可用当恢复结果。
-- 首门b8/.001、raw17/10、节点109/113。规划三模板总900s/6000LP，私有根预定scratch/wzzt_dr_coded_planning_v1；完成价格表后才prepare实际根wzzt_dr_coded_actual_v1。
-- early/final32记录的时序、预算和费用规则已在EXPERIMENT固定；若未决就保留，不重复/延时重启。资格协议及120节点检查位于wzzt_dr_coded_qualification_v1。
+- 先读dr_coded_selection/EXPERIMENT.md、README.md及STATUS顶部。16项纯测试与12数组核验通过；尚无新实际收益结论。
+- 原价格根scratch/wzzt_dr_coded_planning_v1已结束900s/2868LP，不重跑。same32complete/opposed26complete+1unresolved/其余37未启动；原109源zip保存controller修复前全过程。
+- 新fixed_controls仅冻结7策略：root wzzt_dr_coded_fixed_controls_v1；原WZZT全价法4条price_unresolved，不生成zero输出。
+- 新实际根wzzt_dr_coded_actual_controls_v1，28配对记录、一条共享四日轨迹，首事件21h和完整四日两检查点。先查实际进程/run.lock/actual_records与source hash，不重复启动。原预定wzzt_dr_coded_actual_v1未使用。
+- 修复controller只在原规划结束后应用，actual独立冻结；旧价协议会检测这两非规划组件漂移是预期，恢复旧源zip可读回，不能更改原协议hash。
 
 ## 最新恢复：响应表价格已实现、当前构造收口，2026-10-30
 
