@@ -1,3 +1,13 @@
+## 最新恢复：B面板已补齐、选模修正已确认，价格设计仍未解决
+
+- 入口dr_balanced_design/REPAIR_REPORT.md、NEXT.md、REGRET_REVIEW.md及evidence/balanced_design_repair_v1。实现01e20e89和2cb5da79。原v1的3000LP收口保留不变，另批completion_v1仅91未完1234LP，合并308全完成/262观测，原217记录未改；总4234LP。
+- private wzzt_b_completion_v1：protocol/source_snapshot/pending_original_rows/completion_rows/merged_evaluations/summary/run_ended；completion audit run_v2有23996检查，run_v1失败分母回执保留。旧已交付1例复用current_state，不重复preprocessing。
+- private wzzt_b_selection_stage：4预锁规则/7puretests/186缓存/217开发；selection_complete_stage保留原缓存、76新fit评分、308row比较和safe aggregate。W442→282错12→126完整，假块24→88；不是统计覆盖或价格收益。
+- private wzzt_b_confirm_v1：2新行为/测量流934031/32与934131/32，固定5探索、70/70、54观测、592LP；原自然不变，不当70独立路径。协议/动作先冻，原+strict双输出；W116→78错2→24完整；补根57→61错14→25完整。付费56/56 strict两方法同支撑。
+- private wzzt_b_confirm_audit：独立15221检查、592回执、mechanism/aggregate，首次格式失败zip保留；strict主要保根，proper错仍52、extra5→23。不同双点未胜简单轮换。所有运行已结束，不重启旧root或加seed。
+- 新public证据仅completion/selection/confirmation/audit四份明确汇总，无P/Q/V或设备逐时数据。auto wzzt-b ACTIVE每2小时；下一项NEXT仅先审实际最终额外错漏目标的可计算性与反例，不能把有限参数最大值冒充连续最坏界。当前没有新price optimizer。
+- 远端push尚未执行：上轮auto-review要求明确github.com/tutu-er/Topo任务分支的外发授权，异步问题尚无明确回答。保留本地commit，不换工具绕过拒绝；本地研究可继续。
+
 ## 最新恢复：B方向首批已收口，严格定价退化，持续方法审查
 
 - 先读dr_balanced_design/REPORT.md、NEXT.md和evidence/balanced_design_v1三份aggregate-only JSON。代码阶段d411f11a，13纯测；v1冻结源在private wzzt_b_design_v1/source_snapshot.zip，当前study仅修正输出元数据，不可直接用当前源验证原hash。

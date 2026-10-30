@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "completion": {
+    "status": "passed",
+    "checks": 23996,
+    "failures": [],
+    "largest_differences": {
+      "completion_delivery_replay": 5.551115123125783e-17,
+      "row_actual_payment": 0.0,
+      "merged_train": 0.0,
+      "merged_val": 0.0,
+      "completion_method": 0.0,
+      "completion_history_families": 0.0
+    },
+    "original_complete_maps": 217,
+    "completion_maps": 91,
+    "merged_complete_maps": 308,
+    "new_record_files": 76,
+    "original_LP_receipts": 3000,
+    "new_LP_receipts": 1234,
+    "cumulative_LP_receipts": 4234,
+    "original_root_byte_hashes_unchanged": true
+  },
+  "confirmation": {
+    "status": "passed",
+    "checks": 15221,
+    "planned_maps": 70,
+    "complete_maps": 70,
+    "unique_fits": 54,
+    "cache_reused_rows": 16,
+    "LP_receipts": 592,
+    "LP_status_counts": {
+      "2": 592
+    },
+    "raw_points_replayed": 2667,
+    "raw_and_contract_validation_replays": 5334,
+    "raw_validation_maxdiff": 0.0,
+    "raw_training_maxdiff": 0.0,
+    "accepted_path_steps": 125,
+    "stopped_path_steps": 112,
+    "control_deployments": 10,
+    "four_events_per_deployment": true
+  },
+  "new_audit_LP_calls": 0,
+  "new_audit_AC_calls": 0,
+  "distinct_pure_tests": {
+    "completion": 7,
+    "selection": 7,
+    "confirmation": 6
+  },
+  "audit_implementation_corrections": [
+    "completion first replay wrongly equated91 mappings with91 distinct fits; corrected to87, original failure retained",
+    "confirmation first replay compared tuples with JSON lists; normalized serialization, original failure retained"
+  ],
+  "source_sha256": {
+    "audit_completion.py": "fd9be6e180e13410ac61daa0f5b7c426bebbb2de19b160670fb527556b0503c8",
+    "audit_confirmation.py": "7ce0e507a431c80e493c02d8037a8f9c3c16c24becab03bb15da8f64fa206736"
+  },
+  "check_counts_are_not_statistical_samples": true
+}
