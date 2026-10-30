@@ -1,10 +1,12 @@
-## 接续：相反移峰实际对照运行中，价格方法未决
+## 最新恢复：相反移峰首门收口，主收益未达
 
-- 先读dr_coded_selection/EXPERIMENT.md、README.md及STATUS顶部。16项纯测试与12数组核验通过；尚无新实际收益结论。
-- 原价格根scratch/wzzt_dr_coded_planning_v1已结束900s/2868LP，不重跑。same32complete/opposed26complete+1unresolved/其余37未启动；原109源zip保存controller修复前全过程。
-- 新fixed_controls仅冻结7策略：root wzzt_dr_coded_fixed_controls_v1；原WZZT全价法4条price_unresolved，不生成zero输出。
-- 新实际根wzzt_dr_coded_actual_controls_v1，28配对记录、一条共享四日轨迹，首事件21h和完整四日两检查点。先查实际进程/run.lock/actual_records与source hash，不重复启动。原预定wzzt_dr_coded_actual_v1未使用。
-- 修复controller只在原规划结束后应用，actual独立冻结；旧价协议会检测这两非规划组件漂移是预期，恢复旧源zip可读回，不能更改原协议hash。
+- 先读dr_coded_selection/REPORT.md、EXPERIMENT.md及STATUS顶部；公开evidence/coded_dr_v1有manifest。实际28/28完成、17不同拟合、另4价法未决；early均1/final均0，无奖励相同，WZZT无新增恢复。6记录/3fit未全扫，保留分母。
+- 私有资格root wzzt_dr_coded_qualification_v1；价表root wzzt_dr_coded_planning_v1已900s结束、2868LP，same32完成/opposed26完成+1未决/余37未启动，不重跑或加时。
+- 原价109源zip(source_snapshot_before_controller_fix.zip，sha9694d311a2fbf5efb07b718e60bceb9ff14d71c843e28655e83d770142557cde)保存实际controller修复前全过程。旧protocol检测到controller/test事后漂移是预期，勿改原hash。
+- fixed_controls root wzzt_dr_coded_fixed_controls_v1只冻7策略，无W价法zero回退。实际root wzzt_dr_coded_actual_controls_v1已28/28结束(3669LP)，不重复拟合；原预定actual_v1根未使用。
+- 独立审计root wzzt_dr_coded_planning_audit_v1、dr_coded_independent_audit_stage，原初浮点index差、最终3132通过、费用11.8及prefix/物理/hash/真支持复核均保存。root stage保存aggregation/physical-effects/export源码与诊断；原观测/physical pickle仍私有。
+- 此轮只检验候选两侧相对激励；真实109/113无共同正有效祖先，未检验强祖先抵消、交集110的三节点互补或early优化价格。不能看真实缺块103后重新设计并当成独立成绩。
+- 8条件面板仅首门1条件实际运行、余7未启动；没有自动扩大/新调参/新周期任务。继续前须有能改变主目标判断的具体机制与协议，不把未决、波动或物理执行当选线收益。
 
 ## 最新恢复：响应表价格已实现、当前构造收口，2026-10-30
 

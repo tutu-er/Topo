@@ -1,15 +1,18 @@
 # WZZT 与随机需求响应：接续状态
 
-**当前正在执行相反移峰的28条固定合同对照；尚无新的实际收益结论。** 三模板完整价格表在原900秒/2868LP预算下未完成，保留4条price_unresolved，不用zero替代。原自动任务仍关闭，生产默认未改。
+**相反移峰首门已完成收口，未观察到付费DR选线收益。** 28控制记录early均1错漏、final均0，无奖励相同；完整价格法另4条未决。6条记录的WZZT未完成全扫描。未扩其余7条件，生产默认未改。
 
-## 当前：相反移峰价格门未决、固定合同实际测试，2026-10-30
+## 当前：相反移峰首门结果与独立核验，2026-10-30
 
-- 入口dr_coded_selection/EXPERIMENT.md、README.md。首门paper15 b8/.001、raw17/10、节点109/113由历史顶层竞争与事前种子选择，未用真值/未来；b8/b9×四原噪声面板仍8条件，余7未启动。固定模拟设备.2kW/.07kvar基线、P上限.4、19-21h能量0至.4kWh；不是设备实证。
-- 三模板合并预算900秒/6000LP/15秒扫描：实际900.026秒、2868LP；same32/32完成/1632LP，opposed26/32完成后下一LP到时/1236LP，alternating未启动。原96训练情景=58完成、1未决、37未启动。完整价格方法未决，不称150菜单最优。same已独立核验50价local/common全错漏5并选0；opposed未完成不能补0。
-- 按授权另锁7个固定/普通输入策略，共28配对检查记录；原wzzt_best四项单列price_unresolved、未运行。三模板、.2kW/.2kWh和1.6支付上限同权限。价法未决与物理机制测试分开，不能把控制测试当价格优化成功。
-- actual价格/源码已在新未来生成前冻结，一条新共享四日自然路径；early原288+84训练/原288验证，final480/480。early拟合进程仅收到84行prefix，无未来验证。16项当前不同纯测试通过，另12状态数组核验；初始13项被本版覆盖，不重复计数。
-- 实际启动前修复controller的units/drop_target与prefix输入，新增运行可行分母和动态physical_case源冻结。旧controller从未做实际拟合，原规划源码已封存source_snapshot_before_controller_fix.zip；旧协议不改、不重跑原价表。
-- 私有根：scratch/wzzt_dr_coded_qualification_v1、wzzt_dr_coded_planning_v1、wzzt_dr_coded_fixed_controls_v1、wzzt_dr_coded_actual_controls_v1。actual run.lock及逐条断点有效；有进程仅读新增证据。实际尚在运行，不把进行中结果算完成。
+- 入口dr_coded_selection/REPORT.md、EXPERIMENT.md及evidence/coded_dr_v1。首门paper15 b8/.001，全部旧288训练+288验证；历史raw17/10、节点109/113由顶层竞争和事前种子选择，未用真值或新未来。
+- 原96价表训练情景=58完成+1未决+37未启动，900.026s/2868LP；same32/32(1632LP)完整50价两law全条件错漏5并选0，opposed26/32后LP到时(1236LP)，alternating未启动。2867LP状态2、1状态9；完整三模板价格未产生，不zero回退、不延时重跑。
+- 另冻7个原预定控制/普通输入策略，28/28记录、14策略-law轨迹、17unique fits，一个共享四日自然路径。early372/288、final480/480；前缀子进程只收到event0前84行。14个early均RNJ/WZZT1错漏，14个final均0；24付费-vs零奖励配对0改善/0退化/24相同，28/28 RNJ与WZZT有效族相同。另4条完整价格项仍price_unresolved，未运行。
+- 全合同支付14轨迹共11.8，每条<=1.6；未知费用0，early/final不双计。28操作检查通过，0执行失败/超时/未决；51路径48局部停止、3墙停，6记录/3unique fit未全扫，不能称完整WZZT或全树最优。3669unique LP保存回执全2；本轮新增LP6537。
+- 固定模拟任务.2kW/.07kvar基线、P上限.4、19-21h能量0至.4kWh，非实证EV。资格120均值分解通过/112历史通过(冲突均107)，所选109/113无冲突、无重抽。40参与节点事件/31激励事件，实际波形执行；56事件5376保存AC时点守恒/能量/预算通过，电气最大残差3.27e-11。
+- early只缺{103}，所选raw已拟合r=x=0，并非.16删内部块；未依据真值重新选址。价表针对final、early只是预锁诊断，早期最优价格未检验。选后14真值均显示109/113无共同正有效块，不能把此轮当强祖先抵消正机制；交集110未报价，三节点两轮互补亦未测。
+- 16项当前不同纯测试、12状态数组核验通过；独立actual3132检查通过，全部L1重放差0。初次重复候选浮点index差原回执/源码保留，实际前向运算复核一致，无算法/数据/容差变动。planning独立L1至多8.67e-19，完整/部分分母均核对。
+- 原规划109源zip先封存，之后才修controller观测契约/prefix隔离/运行分母并另冻actual；旧价协议不改不重跑。公开8文件约3.84MB含元数据、17筛选拟合、源码/审计/hash；不含家庭或聚合P/Q/V、pickle、NPZ轨迹。
+- 私有根scratch/wzzt_dr_coded_qualification_v1、wzzt_dr_coded_planning_v1、wzzt_dr_coded_fixed_controls_v1、wzzt_dr_coded_actual_controls_v1及audit目录均已结束，无待续批。原b8/b9四噪声8条件面板余7项未启动，未自动扩批；当前局部路线未通过恢复收益验收，不将本批当论文主方法成功。
 
 ## 当前：响应表价格实现、失败机制与独立物理验证，2026-10-30
 
