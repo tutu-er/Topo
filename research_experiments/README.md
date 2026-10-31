@@ -8,6 +8,7 @@ WZZT 已有算例的统一入口见 [结果总览与处理清单](../docs/wzzt_c
 
 | 目录或模块 | 内容 |
 |---|---|
+| [`joint_five/`](joint_five/) | 五块以内一次联合选择MILP；RNJ预选/WZZT收尾2×2消融、大小块与阶段错误审计；见[协议](../docs/joint_five_rnj_wzzt_20261031/PROTOCOL.md) |
 | `lp_rebuild/paper_cases.py` | paper15/soumalas11/flynn16/pengwah18 的同矩阵冻结复测：108主输入+12压力输入；见[四算例结果](../docs/paper_cases_lp_rebuild_20261031/README.md) |
 | [`lp_rebuild/`](lp_rebuild/) | 合法层级 LP 枚举、全集响应域修复、响应下界/连接数惩罚和新留出校准；见[机制与结果](../docs/lp_rebuild_regularization_20261031/README.md) |
 | [`rebuild_benchmark/`](rebuild_benchmark/) | 局部重构的开发集选参、140 输入留出对照、完整池暖启动原始 MILP 与失败恢复；见[结论与分析](../docs/rebuild_tuned_benchmark_20261030/README.md) |
