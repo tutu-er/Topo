@@ -72,3 +72,10 @@ def test_rank_one_excitation_has_an_exact_distinct_topology_counterexample():
     assert example['P_rank']==1 and example['true_r']>0
     assert example['maximum_prediction_difference']<1e-12
     assert example['rich_excitation_prediction_difference']>.1
+
+
+def test_only_audited_roundoff_is_projected_to_physical_bounds():
+    from research_experiments.joint_exit.model import physical_weights
+    weights,violation=physical_weights([-1e-12,.2,2.+1e-12])
+    assert weights.tolist()==[0.,.2,2.] and violation<1e-7
+    with pytest.raises(ValueError):physical_weights([-.001])

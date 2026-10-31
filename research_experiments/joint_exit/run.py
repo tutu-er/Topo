@@ -185,7 +185,7 @@ def select(output):
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','ablation','development','evaluation','worker','select','analyze','information'))
+    parser=argparse.ArgumentParser();parser.add_argument('command',choices=('freeze','ablation','development','evaluation','worker','select','analyze','information','finalize'))
     parser.add_argument('path');a=parser.parse_args();path=Path(a.path).resolve()
     if a.command=='worker':
         try:worker(path)
@@ -197,6 +197,9 @@ def main():
     elif a.command=='information':
         from .information import run
         run(path)
+    elif a.command=='finalize':
+        from .analyze import deliver
+        deliver(path)
     else:
         from .analyze import analyze
         analyze(path)

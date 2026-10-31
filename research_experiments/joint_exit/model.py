@@ -12,6 +12,13 @@ from research_experiments.revocable.engine import clean_zero
 from research_experiments.rnj_count.engine import criterion
 
 
+def physical_weights(values):
+    values=np.asarray(values,dtype=float)
+    violation=float(max(np.max(-values,initial=0.),np.max(values-2.,initial=0.)))
+    if violation>1e-7:raise ValueError('coefficient projection exceeds audited numerical tolerance')
+    return np.clip(values,0.,2.),violation
+
+
 def candidate_pool(bank,initial,current,kernel,policy):
     keep,_=open_small(current['supports'],bank.data.n)
     _,old=build_joint(bank.scaled,keep)
@@ -129,7 +136,7 @@ def joint_exit(bank,initial,current,kernel,*,policy,coefficient,reference,prefix
         values=snapshot.pop('values');audit=audit_vector(model,values)
         if not audit['valid']:raise RuntimeError('invalid checkpoint incumbent')
         indices=[*range(len(meta['keep'])),*[len(meta['keep'])+k for k,a in enumerate(values[meta['selection']]) if a>.5]]
-        rr=values[model.r];xx=values[model.x]
+        rr,r_projection=physical_weights(values[model.r]);xx,x_projection=physical_weights(values[model.x])
         raw=dict(supports=[meta['all_supports'][i] for i in indices],r=rr[indices].tolist(),x=xx[indices].tolist())
         raw['objective']=loss(bank.data,raw)
         score=criterion(raw,bank.data.n,penalty);before=criterion(current,bank.data.n,penalty)
@@ -141,6 +148,7 @@ def joint_exit(bank,initial,current,kernel,*,policy,coefficient,reference,prefix
         if eligible:point,_=clean_zero(bank,point)
         outputs[f'{budget:g}']=dict(point=point,accepted=eligible,raw_point=raw,raw_score=score,before_score=before,
             score=criterion(point,bank.data.n,penalty),budget=budget,penalty=penalty,audit=audit,**snapshot,
+            coefficient_projection_max=max(r_projection,x_projection),
             bound_scope='same full candidate-selection domain; basis only mandatory',
             postprocessing_excluded_from_checkpoint=True)
     return outputs,dict(**domain,**record,construction_seconds=construction,coefficient=coefficient,penalty=penalty,

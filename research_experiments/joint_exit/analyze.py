@@ -18,6 +18,16 @@ from research_experiments.wzzt_paper.common import observed
 from research_experiments.rnj_count.engine import count,criterion
 
 
+def markdown(frame):
+    def cell(value):
+        if isinstance(value,(float,np.floating)):
+            return f'{value:.6g}' if np.isfinite(value) else 'unavailable'
+        return str(value).replace('|','\\|')
+    lines=['| '+' | '.join(map(str,frame.columns))+' |','|'+'---|'*len(frame.columns)]
+    lines.extend('| '+' | '.join(cell(v) for v in row)+' |' for row in frame.itertuples(index=False,name=None))
+    return '\n'.join(lines)
+
+
 def independent_profile(data,family):
     p,q,y=data.p[0],data.q[0],data.target[0];n=data.n
     z=np.array([[i in s for i in range(n)] for s in family],float)
@@ -103,6 +113,7 @@ def verify_job(args):
             for view_name,selection in (('matched','strict_0.16'),('tuned',choice)):
                 specs.append((method,view_name,q['choices'][selection],q['point'],None))
             events.append(dict(job=job,panel=meta['panel'],case=meta['case'],method=method,kind='pooled_exit',status=e.get('status'),
+                status_scope='final pooled solve; see checkpoint bound and incumbent_at',
                 seconds=e['seconds'],accepted=q['accepted'],candidate_count=e['pool_count'],bound=q['bound'],
                 raw_score=q['raw_score'],score=q['score'],before=q['before_score'],incumbent_at=q['incumbent_at']))
             states.append(dict(job=job,method=method,budget=budget,before=metrics(prefix['trajectory']['point'],truth,labels),
@@ -157,10 +168,29 @@ def analyze(output):
     pd.DataFrame(pairs).to_csv(dest/'paired.csv',index=False)
     write(dest/'verification.json',dict(passed=True,inputs=120,checks=checks,independent_LP=len(LP),failures=[],
         analysis_source_sha256=sha(Path(__file__)),information_completed=(output/'information_completion.json').exists()))
+    deliver(output)
+    print(summary[(summary.view=='bank')].to_string(index=False),flush=True)
+
+
+def deliver(output):
+    dest=output/'analysis';summary=pd.read_csv(dest/'summary.csv');frame=pd.read_csv(dest/'per_model.csv')
+    verification=read(dest/'verification.json');verification['report_source_sha256']=sha(Path(__file__))
+    write(dest/'verification.json',verification)
+    if (output/'information_completion.json').exists():
+        verification=read(dest/'verification.json');info=read(output/'information_completion.json')
+        verification.update(information_completed=True,information_inputs=info['returned'],information_failures=info['failures'])
+        if (dest/'information_run_audit.json').exists():
+            audit=read(dest/'information_run_audit.json')
+            verification.update(information_regions=audit['regions'],information_LP=audit['LP_solves'],
+                information_independent_LP=audit['independent_LP'],information_max_difference=audit['max_independent_difference'])
+        write(dest/'verification.json',verification)
     delivery=ROOT/'docs/joint_exit_20261031';delivery.mkdir(exist_ok=True)
     for f in dest.iterdir():
-        if f.suffix=='.csv' or f.name=='verification.json':shutil.copy2(f,delivery/f.name)
-    for name in ('protocol.json','frozen.json','tuning_grid.csv','input_audit.json','information_protocol.json','information_completion.json'):
+        # The 12 MB profile table is retained once inside records.zip.
+        if (f.suffix=='.csv' and f.name!='terminal_profiles.csv') or f.name in ('verification.json','information_run_audit.json','diagnostic_provenance.json'):
+            shutil.copy2(f,delivery/f.name)
+    for name in ('protocol.json','frozen.json','tuning_grid.csv','input_audit.json','information_protocol.json','information_completion.json',
+            'information_verification_protocol.json','numerical_repair.json','evaluation_first_attempt_completion.json','evaluation_completion.json'):
         if (output/name).exists():shutil.copy2(output/name,delivery/name)
     report(output,delivery,summary,frame)
     with zipfile.ZipFile(delivery/'records.zip','w',zipfile.ZIP_DEFLATED) as z:
@@ -169,38 +199,47 @@ def analyze(output):
                 if file.is_file() and file.suffix in ('.py','.json','.log'):z.write(file,file.relative_to(output))
         for file in dest.iterdir():
             if file.suffix in ('.json','.csv'):z.write(file,file.relative_to(output))
-        for name in ('protocol.json','frozen.json','catalog.json','information_protocol.json','information_completion.json'):
+        for name in ('protocol.json','frozen.json','catalog.json','information_protocol.json','information_completion.json',
+                'information_verification_protocol.json','numerical_repair.json','evaluation_first_attempt_completion.json','evaluation_completion.json',
+                'input_audit.json','tuning_grid.csv','tuning_records.csv'):
             if (output/name).exists():z.write(output/name,name)
         for file in Path(__file__).parent.glob('*.py'):z.write(file,'actual_driver/'+file.name)
-    print(summary[(summary.view=='bank')].to_string(index=False),flush=True)
+        repair=output/'repair_source/research_experiments/joint_exit/model.py'
+        if repair.exists():z.write(repair,repair.relative_to(output))
+        if (output/'analysis_executed.py').exists():z.write(output/'analysis_executed.py','actual_driver/analysis_executed.py')
 
 
 def report(output,dest,summary,frame):
     frozen=read(output/'frozen.json');verification=read(output/'analysis/verification.json')
     lines=['# 多区域联合加入退出机制及末端信息诊断','',
+        '结论、参数取舍和小块原因分析见 [ANALYSIS.md](ANALYSIS.md)。本页为程序生成的完整汇总。','',
         f"开发16输入、6种退出配置；冻结{frozen['config']}和{frozen['selection']}。正式120输入全部返回，独立重解{verification['independent_LP']}个家族，核查{verification['checks']}项。",'',
         '## 主面板及压力面板','',
         '| 面板 | 共同选模口径 | 方法 | F1 | 完整恢复 | 平均内部连接数 |','|---|---|---|---:|---:|---:|']
     for _,r in summary[summary.view=='bank'].iterrows():
         lines.append(f'| {r.panel} | {r.selection_view} | {r.method} | {r.F1:.4f} | {int(r.exact)}/{int(r.inputs)} | {r.internal:.3f} |')
     lines+=['','matched对所有方法统一使用严格最小验证MAE及0.16收缩。tuned对所有方法统一使用冻结选模规则和阈值，不能把仅改变后处理的收益算成退出搜索收益。历史行仅作同输入参照；新的baseline20和baseline40均重新运行。',
-        '','## 时间和扫描消融','',pd.read_csv(output/'analysis/budget_summary.csv').to_markdown(index=False),
+        '','## 时间和扫描消融','',markdown(pd.read_csv(output/'analysis/budget_summary.csv')),
         '','8个预设开发输入，同一lambda=0.003。regional40_2相对regional20_2改变总预算；regional40_5在同为40秒时改变单次MIP时间，允许求解深度与覆盖数量发生取舍。均使用严格0.16共同选模，没有根据这些F1重新调参。',
         '','## 退出模型与预算解释','',
-        '先运行上轮多区域联合20秒，再将临时内部支撑和候选池放入同一个MILP重选。候选池包含旧联合域与前缀解，全部响应系数联合重新拟合；单点和全集基础项保留，已核实物理先验才强制保留，本批无额外先验。未增加正阻抗下界。',
+        '先运行上轮多区域联合20秒，再将临时内部支撑和候选池放入同一个MILP重选。候选池包含终点处重建的旧联合域、初值、终点与原RNJ池；此前每个已完成前缀树另在最终选模库保留。它不保证包含所有历史轮次中未入选的联合候选。全部响应系数联合重新拟合；单点和全集基础项保留，已核实物理先验才强制保留，本批无额外先验。未增加正阻抗下界。',
         '20/40秒是同一次池MILP的壁钟检查点，只使用该时刻已经找到的可行结构及有效界。连续家族闭合重拟合与验证选模作为所有方法的共同后处理，不计为额外结构搜索，其效果单独核查。20秒前缀已用尽预算的输入，20秒增强版本保留前缀。原20秒算法可能有小幅软预算超出。40秒原方法使用新LP bank重新运行，没有读取退出候选。',
+        'solver_events的pooled_exit行中final_solver_status属于整个池求解结束时；20秒输出只按它自己的incumbent_at和bound解释，不把后来的最优状态用作较早时刻证明。',
         '前缀使用历史已冻结的lambda=0.003，退出阶段lambda由开发观测选择。只对退出阶段的同一个目标核查下降，不声称不同惩罚目标跨阶段单调。求解上下界只针对明确候选池，不覆盖所有可能树。旧单区域方法与新池选择的域也不等同。',
         '','## 末端信息','']
     path=output/'analysis/terminal_summary.csv'
-    if path.exists():
-        lines+=[pd.read_csv(path).to_markdown(index=False),'',
+    if path.exists() and (output/'information_completion.json').exists():
+        lines+=[markdown(pd.read_csv(path)),'',
             '诊断已知真实外部结构，完整枚举至多5终端内的全部局部层级，包含区域根边可有可无。它是oracle条件性诊断，不是部署结果，也没有参与开发选择。linear用干净P/Q与真实R/X合成精确线性响应；clean_ac用干净AC量测；noisy用实际带噪量测。',
-            'linear的错误家族近似零剖面间隙提示该设计下的区分不足；clean_ac相对linear的下降体现线性响应模型偏差；noisy进一步叠加量测噪声和有限样本影响。近零间隙按数值容差报告，不作为普遍不可辨识定理。投影后信号与残差比仅是几何诊断，不是显著性概率。',
+            '本批linear的420个区域全部恢复正确，错误有效家族无近零剖面间隙；这支持该oracle局部线性问题在本批输入上可区分。clean_ac相对linear的下降体现线性响应模型偏差；noisy进一步叠加量测噪声和有限样本影响。投影后信号与残差比仅是几何诊断，residual_RMS为真实物理R/X的原始预测误差，不是重拟合后的噪声标准差。',
+            '判断理想线性可辨识性看未正则的train剖面与错误家族间隙。regularized诊断沿用带噪初始RNJ的惩罚尺度，paired诊断也有简约偏好；它们在理想无噪声下舍弃弱边属于决策规则的偏好，不能算成信息不足。',
             '精确反例：P每列都是同一个时间序列，Q=0，R_true=0.1I+0.2 z_12 z_12^T；星形R_star=diag(0.5,0.5,0.1)。两者对该P产生完全相同的Y，且系数都在0至2内。改用P=I时两者响应不同。因此有条件性的固有信息不足，但不能据此断言本批所有末端线都不可辨识。']
     lines+=['','## 范围与复现','',
         '四个网络为仓库论文启发的合成算例；108主条件与12压力条件复用既有归档，不视作120个独立随机拓扑。正式矩阵未参与本次调参，但此前已分析过，不称新盲测。生产默认未修改。原单区域20秒的历史结果在上一报告中，本批时间消融仅覆盖预设8输入。',
         '', '```powershell','python -m research_experiments.joint_exit.run freeze outputs/joint_exit_NEW',
         'python -m research_experiments.joint_exit.run ablation outputs/joint_exit_NEW','python -m research_experiments.joint_exit.run development outputs/joint_exit_NEW',
         'python -m research_experiments.joint_exit.run select outputs/joint_exit_NEW','python -m research_experiments.joint_exit.run evaluation outputs/joint_exit_NEW',
-        'python -m research_experiments.joint_exit.run information outputs/joint_exit_NEW','python -m research_experiments.joint_exit.run analyze outputs/joint_exit_NEW','```','']
+        'python -m research_experiments.joint_exit.run information outputs/joint_exit_NEW','python -m research_experiments.joint_exit.run analyze outputs/joint_exit_NEW',
+        'python -m research_experiments.joint_exit.diagnostics outputs/joint_exit_NEW --verify-information',
+        'python -m research_experiments.joint_exit.run finalize outputs/joint_exit_NEW','```','']
     (dest/'README.md').write_text('\n'.join(lines),encoding='utf-8')

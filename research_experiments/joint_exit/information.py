@@ -86,8 +86,12 @@ def worker(payload):
                 a,b=coefficients[C];cal=common['calibration'];strength=(cal['a']*a+cal['b']*b)/cal['median_root_depth']
                 signals.append(dict(job=p['job'],case=meta['case'],N=meta['N'],voltage_sigma=meta['voltage_sigma'],regime=regime,
                     support=C,size=len(C),contrast_RMS=contrast,residual_RMS=noise,contrast_to_residual=contrast/noise if noise>1e-12 else None,
-                    physical_normalized_strength=float(strength),below_016=bool(strength<.16),below_008=bool(strength<.08)))
+                    physical_normalized_strength=float(strength),below_016=bool(strength<.16),below_008=bool(strength<.08),below_024=bool(strength<.24)))
             for V,families in region_families.items():
+                centered=pp[:,V]-pp[:,V].mean(axis=0)
+                singular=np.linalg.svd(centered,compute_uv=False)
+                design_rank=int(np.linalg.matrix_rank(centered))
+                singular_ratio=float(singular[-1]/singular[0]) if singular[0]>1e-15 else None
                 actual=canonical(s for s in true if set(s)<=set(V));outside=canonical(s for s in full if len(s)==1 or not set(s)<=set(V))
                 actual_profile=bank.fit([*outside,*actual],preserve=True);candidates={}
                 for h in families:
@@ -113,6 +117,7 @@ def worker(payload):
                         **local_score(q['effective'],actual),train_MAE=q['point']['objective'],validation_MAE=q['validation'],test_MAE=loss(test,q['point']),
                         true_profile_MAE=actual_profile['objective'],wrong_minus_true_profile=margin,comparison_tolerance=tol,
                         candidates=len(families),effective_candidates=len(items),
+                        P_rank=design_rank,P_singular_ratio=singular_ratio,
                         wrong_beats_true=margin is not None and margin < -tol,
                         near_zero_linear_gap=regime=='linear' and margin is not None and margin<=1e-9))
                 profiles.extend(dict(job=p['job'],case=meta['case'],regime=regime,region=V,effective=q['effective'],
