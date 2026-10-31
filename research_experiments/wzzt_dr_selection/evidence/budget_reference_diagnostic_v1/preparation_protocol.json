@@ -1,0 +1,122 @@
+{
+  "id": "budget_reference_diagnostic_preparation_v1",
+  "created_utc": "2026-10-31T02:14:13.647607+00:00",
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_budget_reference_diagnostic_v1\\source\\prepare_diagnostic.py": "2828098558bdd0a76d0ebe142cb7111a23bffe5d37706cc354f2cc5c517d6f5b",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\evidence\\scenario_review_v1\\source_inventory.json": "640bf4c7ae9878086331fb1a3c0c9044f31a71fbc34005e1c12d2adda314b5e9",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_dr_scenario_review_v1\\candidate_audit.json": "bd61782f89a0c4d1b639f281b4ebe87a43b0424306149b5925299d6a8087ab33",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_b_joint_mechanism_v1\\output_support_diagnostic.json": "bfc7a0d700be8f083af5bd4540d1daf67d00a23fe454eb111fb0d94fd4289664",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_competition_bridge\\physical_bridge.py": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_coded_selection\\coded_physical.py": "a75db59abda521e75daf05f1286e7097955afcc9c9e0e8712846a72b739f0c89"
+  },
+  "eligible_history_only_ids": [
+    "main__flynn16__b5__reference__v0002__N288",
+    "main__pengwah18__b2__reference__v0002__N288",
+    "main__pengwah18__b4__reference__v0002__N288",
+    "main__pengwah18__b5__reference__v0002__N288"
+  ],
+  "selected": [
+    {
+      "index_row": {
+        "job_id": "main__flynn16__b5__reference__v0002__N288",
+        "case": "flynn16",
+        "bundle": 5,
+        "N": 288,
+        "condition": "reference",
+        "voltage_sigma": 0.0002,
+        "pq_sigma": 0.005,
+        "terminal_count": 16,
+        "declared_data_error": null,
+        "train": {
+          "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b5\\reference\\v0002\\train_observed.npz",
+          "exists": true,
+          "catalog_sha256": "a0c8930bdc04cab3dcaa399740c3bc3fef2a6748e1d1461f6c0a07d34e5eede9",
+          "content_hash_verified": false,
+          "values_loaded": false
+        },
+        "validation": {
+          "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b5\\reference\\v0002\\validation_observed.npz",
+          "exists": true,
+          "catalog_sha256": "1390a121f27d444f00f9b233b078c816f40fbb950ca261b9bd09c854d562b21d",
+          "content_hash_verified": false,
+          "values_loaded": false
+        }
+      },
+      "source_metadata": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\flynn16\\reference\\metadata.json",
+        "sha256": "37344b520c0277b9052e1901789b99c7287e3cd061cfb21999fcbf0e811d8432",
+        "case_name": "flynn_balanced_lv_16"
+      }
+    },
+    {
+      "index_row": {
+        "job_id": "main__pengwah18__b5__reference__v0002__N288",
+        "case": "pengwah18",
+        "bundle": 5,
+        "N": 288,
+        "condition": "reference",
+        "voltage_sigma": 0.0002,
+        "pq_sigma": 0.005,
+        "terminal_count": 18,
+        "declared_data_error": null,
+        "train": {
+          "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b5\\reference\\v0002\\train_observed.npz",
+          "exists": true,
+          "catalog_sha256": "5f3ec194152d8e5166f893beb3819e0cb7e2a93526f83c765c0e54295b40a8ff",
+          "content_hash_verified": false,
+          "values_loaded": false
+        },
+        "validation": {
+          "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b5\\reference\\v0002\\validation_observed.npz",
+          "exists": true,
+          "catalog_sha256": "6f27783e44318a9d08a0c766b9d1942ea1a812f467d2175f5200f7f25b7ffc39",
+          "content_hash_verified": false,
+          "values_loaded": false
+        }
+      },
+      "source_metadata": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\pengwah18\\reference\\metadata.json",
+        "sha256": "744a2f2916d907608a6dcf1e741d9d6ab4de9c1211a4d19157d5729807f0360c",
+        "case_name": "pengwah_mixed_lv_18"
+      }
+    }
+  ],
+  "selection_seed": 9583107,
+  "partner_seed": 9583108,
+  "selection_rule": "one random historical-output-disagreement source per network; closed flynn b7 excluded; no truth-error screening",
+  "retain_unquotable_sources_no_replacement": true,
+  "expected_full_history_rows": [
+    288,
+    288
+  ],
+  "allowed_inputs": [
+    "source metadata",
+    "old historical candidate summaries",
+    "train/validation observed NPZ"
+  ],
+  "forbidden_inputs": [
+    "old test NPZ",
+    "old true_network",
+    "old diagnostics",
+    "actual future"
+  ],
+  "device": {
+    "model": "fixed_simulated_nonV2G_task",
+    "baseline_kw": 0.2,
+    "baseline_kvar": 0.07,
+    "power_lower_kw": 0.0,
+    "power_upper_kw": 0.4,
+    "window_start_hour": 19.0,
+    "deadline_hour": 21.0,
+    "initial_energy_kWh": 0.0,
+    "terminal_energy_kWh": 0.4,
+    "energy_lower_kWh": 0.0,
+    "energy_upper_kWh": 0.4,
+    "efficiency": 1.0,
+    "interval_hours": 0.25,
+    "Q_increment_over_P_increment": 0.35,
+    "empirically_calibrated": false,
+    "decomposition": "strict nonnegative residual P/Q in the device window"
+  },
+  "future_runs_in_preparation": 0
+}

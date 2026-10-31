@@ -1,3 +1,12 @@
+## 当前：预算内参照诊断已进入实际辨识，2026-10-31
+
+- 用户明确授权固定RNJ＋WZZT进行价格策略诊断，再以同批观察比较NJ/RNJ。读dr_balanced_design/BUDGET_REFERENCE_PLAN.md及evidence/budget_reference_diagnostic_v1。不是新的价格优化器，不再停留于接口检查。
+- 仅按历史分歧/设备资格/预锁随机选flynn16/b5与pengwah18/b5，保留完整288/288。两份实际历史基线完成，248/60LP、21.414/4.322s；3/2条搜索均local停止。真值未进入选源、选位或辨识器。
+- 冻结4菜单zero/single/rotation/opposed、各4规划路径＋4独立测试路径。未来保持480/480、原.0002/.005和上限1.6；同算例菜单共随机数，两算例流独立。先两规划完成再冻结参照菜单，之后测试。最多66拟合（含2基线）、256物理事件24576AC。
+- protocol hash ed29e9c44f8f18c8623674164bad7cde1011727de32f24bcf889a7a644b764a0；首次未来前的RNG修订留旧协议/快照，不改负荷或参与边际。当前planning进程已运行；不要重复启动或修改冻结源。
+- 参照以4规划路径平均最终完整错漏选菜单、并列比期望费用及预锁随机；是有限库SAA诊断而非精确最优/可部署规划。同观察报告联合主规则、rnj_bank、baseline25及几何NJ/RNJ，实际费用与失败完整保留。测试结果尚未得出。
+- 私有scratch/wzzt_budget_reference_diagnostic_v1/run_v1存完整协议、历史、物理和fit缓存；公开只白名单源码/协议/aggregate，轨迹不上传。
+
 ## 当前：模型已明确，历史参考材料提取及完整系数记录已核验，2026-10-31
 
 - 读dr_balanced_design/MATHEMATICAL_MODEL.md与HISTORY_REFERENCE_REPORT.md，evidence/history_reference_packet_v1。本轮0真实辨识/LP/AC/未来/PQV读取，旧flynn价格分支不重开。
