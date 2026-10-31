@@ -80,3 +80,13 @@ def test_optional_known_feasible_start_is_retained_and_labelled():
         assert q['raw_score']<=q['warm_score']+1e-8 and q['score']<=q['before_score']+1e-8
         assert q['audit']['valid']
     finally:bank.close()
+
+
+def test_long_budget_can_accept_an_incumbent_after_the_old_40_second_cutoff():
+    bank,_=bank_for(3,[((1,2),.4)]);initial=canonical([*((i,) for i in range(3)),(0,1),tuple(range(3))])
+    try:
+        current=bank.fit(initial,preserve=True)
+        q,event=exit_repair(bank,initial,current,np.eye(3),reference=current['objective'],prefix_seconds=41.,total_seconds=300.)
+        assert q['accepted'] and 40.<q['incumbent_at']<=300.
+        assert q['point']['objective']<1e-8
+    finally:bank.close()
