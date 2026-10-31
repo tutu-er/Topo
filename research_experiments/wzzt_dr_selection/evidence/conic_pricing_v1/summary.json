@@ -1,0 +1,512 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "runs": [
+    {
+      "run": "release_socp",
+      "mode": "socp",
+      "slots": 4,
+      "source": "explicit synthetic qualification",
+      "calibrated": false,
+      "amplitudes": [
+        0.3539821437012414,
+        0.0,
+        0.0,
+        0.34951653391626375
+      ],
+      "prices": [
+        1.769910718506207,
+        0.0,
+        0.0,
+        1.7475826695813186
+      ],
+      "positive_contract_ids": [
+        "node1_early",
+        "node2_late"
+      ],
+      "status": "optimal",
+      "primary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "maximize_reliable_benefit",
+        "objective_value": 0.2687312920704285,
+        "best_bound": 0.2687313073885286,
+        "absolute_gap": 1.5318100066163964e-08,
+        "relative_gap": 5.7001549570749026e-08,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.003000020980834961,
+        "work": 0.0009597068193548383,
+        "node_count": 0.0,
+        "barrier_iterations": 20.0,
+        "simplex_iterations": 0.0
+      },
+      "secondary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "minimize_sqrt_expected_fee",
+        "objective_value": 1.1123514857246584,
+        "best_bound": 1.11235146838076,
+        "absolute_gap": 1.7343898317534467e-08,
+        "relative_gap": 1.5592102442543617e-08,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.002000093460083008,
+        "work": 0.000981928010638298,
+        "node_count": 0.0,
+        "barrier_iterations": 20.0,
+        "simplex_iterations": 0.0,
+        "expected_fee_objective_value": 1.2373258277938548,
+        "expected_fee_lower_bound": 1.237325789208833
+      },
+      "reliable_benefit": 0.2687311656358162,
+      "benefit_means": [
+        0.35398214370124137,
+        0.3495165339162638
+      ],
+      "benefit_standard_deviations": [
+        0.01955791569606267,
+        0.018533434512493962
+      ],
+      "support_lower_bounds": [
+        0.29796446502008,
+        0.30106971518547476
+      ],
+      "expected_cost": 1.2373258277008254,
+      "hard_budget_bound": 1.385962004553849,
+      "exact_box_worst_cost": 1.310779989718253,
+      "budget": 1.6,
+      "maximum_device_violation": 0.0,
+      "model_size": {
+        "variables": 49,
+        "linear_constraints": 92,
+        "quadratic_constraints": 3,
+        "binary_variables": 0
+      },
+      "compilation": {
+        "skipped_zero_device_rows": 20,
+        "active_risk_factor_terms": 6,
+        "active_device_factor_terms": 36,
+        "standard_soc_count": 2,
+        "absolute_risk_norm_count": 0
+      },
+      "validation_samples": 20000,
+      "validation_seed": 41031,
+      "successes": 20000,
+      "failures": 0,
+      "budget_failures": 0,
+      "device_failures": 0,
+      "amplitude_failures": 0,
+      "no_dr_successes": 0,
+      "mean_actual_payment": 1.2375651077819187,
+      "maximum_actual_payment": 1.3091801333434998,
+      "confidence": 0.9,
+      "canonical_problem_sha256": "acf3aa1ef0e778b07f4befef77389a4245e90e0920c48492da464b82e9e62f4c",
+      "source_sha256": {
+        "__init__.py": "b34d9db2df69f3b9291684a8d2a7fc5fae38158714f6a590990bff67528ffa66",
+        "cli.py": "94fb153a692628c15b342e4dbbccce8e0ec63503df10e6db449ccda48c10fae7",
+        "examples.py": "3758f2c9f975d697f4ce37c828dafb90070f9cd3c76bc64972e6eec2c3dbfe27",
+        "identification.py": "637e9cf36229f3ec98c8185ed089b313a5e4df31325bc6c516d7990614a6d5d6",
+        "model.py": "bfe3febf98955d65e54f341388104f39493f464b2291a7354f840071f017b3ac",
+        "resources.py": "b2cbce5c116c8f4dcf3d8d10b779411c79e0abd65f908db680c051316fa3fee3",
+        "sampling.py": "4498a67622c4c48634da09d08b4652a6f355c3a872ef86666de7c34881bdbde8",
+        "solver.py": "d862e6ff1984872c1260718f1cce68322f9725ff910971d23d192e97e5489be0"
+      },
+      "environment": {
+        "python": "3.11.15",
+        "platform": "Windows",
+        "packages": {
+          "numpy": "2.4.6",
+          "scipy": "1.17.1",
+          "gurobipy": "13.0.3"
+        }
+      },
+      "optimization_sha256": "16e365fd1fabbd5b71161dea7e2149fff2a66b443af4096329b992cdfc997148",
+      "validation_sha256": "10b766ff4f60565cb8631c5cb643163fb7c2f43b5f690620edd70b717a8fb258"
+    },
+    {
+      "run": "release_misocp",
+      "mode": "misocp",
+      "slots": 4,
+      "source": "explicit synthetic qualification",
+      "calibrated": false,
+      "amplitudes": [
+        0.35398168662433066,
+        0.0,
+        0.0,
+        0.34951607920063604
+      ],
+      "prices": [
+        1.7699084331216532,
+        0.0,
+        0.0,
+        1.7475803960031802
+      ],
+      "positive_contract_ids": [
+        "node1_early",
+        "node2_late"
+      ],
+      "status": "optimal",
+      "primary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "maximize_reliable_benefit",
+        "objective_value": 0.2687312929340524,
+        "best_bound": 0.2687312929340524,
+        "absolute_gap": 0.0,
+        "relative_gap": 0.0,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.005000114440917969,
+        "work": 0.0006093749658673259,
+        "node_count": 1.0,
+        "barrier_iterations": 0.0,
+        "simplex_iterations": 42.0
+      },
+      "secondary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "minimize_sqrt_expected_fee",
+        "objective_value": 1.1123500442178382,
+        "best_bound": 1.1123500442178382,
+        "absolute_gap": 0.0,
+        "relative_gap": 0.0,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.004999876022338867,
+        "work": 0.001934955461120402,
+        "node_count": 1.0,
+        "barrier_iterations": 21.0,
+        "simplex_iterations": 0.0,
+        "expected_fee_objective_value": 1.2373226208714267,
+        "expected_fee_lower_bound": 1.2373226208714267
+      },
+      "reliable_benefit": 0.268730795290621,
+      "benefit_means": [
+        0.3539816866243306,
+        0.349516079200636
+      ],
+      "benefit_standard_deviations": [
+        0.01955789575881857,
+        0.018533415194157778
+      ],
+      "support_lower_bounds": [
+        0.2979640673631676,
+        0.301069310488566
+      ],
+      "expected_cost": 1.2373226204259555,
+      "hard_budget_bound": 1.3859584121193513,
+      "exact_box_worst_cost": 1.3107765914401077,
+      "budget": 1.6,
+      "maximum_device_violation": 0.0,
+      "model_size": {
+        "variables": 89,
+        "linear_constraints": 182,
+        "quadratic_constraints": 3,
+        "binary_variables": 4
+      },
+      "compilation": {
+        "skipped_zero_device_rows": 8,
+        "active_risk_factor_terms": 6,
+        "active_device_factor_terms": 72,
+        "standard_soc_count": 2,
+        "absolute_risk_norm_count": 0
+      },
+      "validation_samples": 20000,
+      "validation_seed": 41032,
+      "successes": 20000,
+      "failures": 0,
+      "budget_failures": 0,
+      "device_failures": 0,
+      "amplitude_failures": 0,
+      "no_dr_successes": 0,
+      "mean_actual_payment": 1.2373457751886328,
+      "maximum_actual_payment": 1.3088538074596618,
+      "confidence": 0.9,
+      "canonical_problem_sha256": "acf3aa1ef0e778b07f4befef77389a4245e90e0920c48492da464b82e9e62f4c",
+      "source_sha256": {
+        "__init__.py": "b34d9db2df69f3b9291684a8d2a7fc5fae38158714f6a590990bff67528ffa66",
+        "cli.py": "94fb153a692628c15b342e4dbbccce8e0ec63503df10e6db449ccda48c10fae7",
+        "examples.py": "3758f2c9f975d697f4ce37c828dafb90070f9cd3c76bc64972e6eec2c3dbfe27",
+        "identification.py": "637e9cf36229f3ec98c8185ed089b313a5e4df31325bc6c516d7990614a6d5d6",
+        "model.py": "bfe3febf98955d65e54f341388104f39493f464b2291a7354f840071f017b3ac",
+        "resources.py": "b2cbce5c116c8f4dcf3d8d10b779411c79e0abd65f908db680c051316fa3fee3",
+        "sampling.py": "4498a67622c4c48634da09d08b4652a6f355c3a872ef86666de7c34881bdbde8",
+        "solver.py": "d862e6ff1984872c1260718f1cce68322f9725ff910971d23d192e97e5489be0"
+      },
+      "environment": {
+        "python": "3.11.15",
+        "platform": "Windows",
+        "packages": {
+          "numpy": "2.4.6",
+          "scipy": "1.17.1",
+          "gurobipy": "13.0.3"
+        }
+      },
+      "optimization_sha256": "839445ed147fb9bf1b27f14da9eed9d9f3cca88d1c846e7e31175edf3928f7f2",
+      "validation_sha256": "097fa06e9f0008d94785b08457f0310e45cb0fd3615bdad77a3a3516f460eb8c"
+    },
+    {
+      "run": "release_socp_day",
+      "mode": "socp",
+      "slots": 96,
+      "source": "explicit synthetic qualification",
+      "calibrated": false,
+      "amplitudes": [
+        0.17699100788628547,
+        0.0,
+        0.0,
+        0.17352219266626112
+      ],
+      "prices": [
+        1.7699100788628546,
+        0.0,
+        0.0,
+        1.7352219266626112
+      ],
+      "positive_contract_ids": [
+        "shift_18_to_20",
+        "ev_late"
+      ],
+      "status": "optimal",
+      "primary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "maximize_reliable_benefit",
+        "objective_value": 0.1405545778101972,
+        "best_bound": 0.1405545811761216,
+        "absolute_gap": 3.3659244003114708e-09,
+        "relative_gap": 2.394745480902632e-08,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.1119999885559082,
+        "work": 0.11707144073713827,
+        "node_count": 0.0,
+        "barrier_iterations": 21.0,
+        "simplex_iterations": 0.0
+      },
+      "secondary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "minimize_sqrt_expected_fee",
+        "objective_value": 1.1084743408927231,
+        "best_bound": 1.1084743331144258,
+        "absolute_gap": 7.778297339555706e-09,
+        "relative_gap": 7.0171198850587386e-09,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.11500000953674316,
+        "work": 0.12147528914668095,
+        "node_count": 0.0,
+        "barrier_iterations": 22.0,
+        "simplex_iterations": 0.0,
+        "expected_fee_objective_value": 1.228715364417557,
+        "expected_fee_lower_bound": 1.2287153471734709
+      },
+      "reliable_benefit": 0.14055446394365678,
+      "benefit_means": [
+        0.17699100788628552,
+        0.173522192666261
+      ],
+      "benefit_standard_deviations": [
+        0.00835911644760825,
+        0.007563315678941844
+      ],
+      "support_lower_bounds": [
+        0.15277578631564864,
+        0.15505113893938538
+      ],
+      "expected_cost": 1.228715364406204,
+      "hard_budget_bound": 1.376404381239928,
+      "exact_box_worst_cost": 1.3012224207456802,
+      "budget": 1.6,
+      "maximum_device_violation": 0.0,
+      "model_size": {
+        "variables": 409,
+        "linear_constraints": 932,
+        "quadratic_constraints": 3,
+        "binary_variables": 0
+      },
+      "compilation": {
+        "skipped_zero_device_rows": 748,
+        "active_risk_factor_terms": 6,
+        "active_device_factor_terms": 396,
+        "standard_soc_count": 2,
+        "absolute_risk_norm_count": 0
+      },
+      "validation_samples": 2000,
+      "validation_seed": 41033,
+      "successes": 2000,
+      "failures": 0,
+      "budget_failures": 0,
+      "device_failures": 0,
+      "amplitude_failures": 0,
+      "no_dr_successes": 0,
+      "mean_actual_payment": 1.2286163141728736,
+      "maximum_actual_payment": 1.296627916311142,
+      "confidence": 0.9,
+      "canonical_problem_sha256": "c2a239eeb16c39da772b9302786cd396c6ef77c1fe44791f3dd393859898d9c3",
+      "source_sha256": {
+        "__init__.py": "b34d9db2df69f3b9291684a8d2a7fc5fae38158714f6a590990bff67528ffa66",
+        "cli.py": "94fb153a692628c15b342e4dbbccce8e0ec63503df10e6db449ccda48c10fae7",
+        "examples.py": "3758f2c9f975d697f4ce37c828dafb90070f9cd3c76bc64972e6eec2c3dbfe27",
+        "identification.py": "637e9cf36229f3ec98c8185ed089b313a5e4df31325bc6c516d7990614a6d5d6",
+        "model.py": "bfe3febf98955d65e54f341388104f39493f464b2291a7354f840071f017b3ac",
+        "resources.py": "b2cbce5c116c8f4dcf3d8d10b779411c79e0abd65f908db680c051316fa3fee3",
+        "sampling.py": "4498a67622c4c48634da09d08b4652a6f355c3a872ef86666de7c34881bdbde8",
+        "solver.py": "d862e6ff1984872c1260718f1cce68322f9725ff910971d23d192e97e5489be0"
+      },
+      "environment": {
+        "python": "3.11.15",
+        "platform": "Windows",
+        "packages": {
+          "numpy": "2.4.6",
+          "scipy": "1.17.1",
+          "gurobipy": "13.0.3"
+        }
+      },
+      "optimization_sha256": "dcfe0452245a78ea8e712aacf9254289d36dd0a4fa7ee531812854415244bc34",
+      "validation_sha256": "ee71426c6c587394f2623dbf7d0c71ddba77f0ec1c4da99277ed23ca4917e949"
+    },
+    {
+      "run": "release_misocp_day",
+      "mode": "misocp",
+      "slots": 96,
+      "source": "explicit synthetic qualification",
+      "calibrated": false,
+      "amplitudes": [
+        0.1769911504424779,
+        0.0,
+        0.0,
+        0.173522334571632
+      ],
+      "prices": [
+        1.7699115044247788,
+        0.0,
+        0.0,
+        1.7352233457163198
+      ],
+      "positive_contract_ids": [
+        "shift_18_to_20",
+        "ev_late"
+      ],
+      "status": "optimal",
+      "primary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "maximize_reliable_benefit",
+        "objective_value": 0.14055457864197365,
+        "best_bound": 0.14055457864197365,
+        "absolute_gap": 0.0,
+        "relative_gap": 0.0,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.009999990463256836,
+        "work": 0.009480897205253129,
+        "node_count": 1.0,
+        "barrier_iterations": 0.0,
+        "simplex_iterations": 402.0
+      },
+      "secondary": {
+        "status": "optimal",
+        "status_code": 2,
+        "objective_sense": "minimize_sqrt_expected_fee",
+        "objective_value": 1.1084752404103688,
+        "best_bound": 1.1084743459575908,
+        "absolute_gap": 8.944527780663236e-07,
+        "relative_gap": 8.069217475125453e-07,
+        "solver_reported_optimal": true,
+        "solution_count": 1,
+        "runtime": 0.14100003242492676,
+        "work": 0.14434940101833033,
+        "node_count": 1.0,
+        "barrier_iterations": 25.0,
+        "simplex_iterations": 0.0,
+        "expected_fee_objective_value": 1.228717358602825,
+        "expected_fee_lower_bound": 1.2287153756461087
+      },
+      "reliable_benefit": 0.14055457844381253,
+      "benefit_means": [
+        0.17699115044247804,
+        0.17352233457163196
+      ],
+      "benefit_standard_deviations": [
+        0.008359122859340101,
+        0.00756332196612941
+      ],
+      "support_lower_bounds": [
+        0.15277591033953614,
+        0.15505126523516555
+      ],
+      "expected_cost": 1.2287173586028248,
+      "hard_budget_bound": 1.3764066149831162,
+      "exact_box_worst_cost": 1.3012245333792318,
+      "budget": 1.6,
+      "maximum_device_violation": 5.551115123125783e-17,
+      "model_size": {
+        "variables": 677,
+        "linear_constraints": 1554,
+        "quadratic_constraints": 3,
+        "binary_variables": 4
+      },
+      "compilation": {
+        "skipped_zero_device_rows": 660,
+        "active_risk_factor_terms": 6,
+        "active_device_factor_terms": 660,
+        "standard_soc_count": 2,
+        "absolute_risk_norm_count": 0
+      },
+      "validation_samples": 2000,
+      "validation_seed": 41034,
+      "successes": 2000,
+      "failures": 0,
+      "budget_failures": 0,
+      "device_failures": 0,
+      "amplitude_failures": 0,
+      "no_dr_successes": 0,
+      "mean_actual_payment": 1.2289926436564842,
+      "maximum_actual_payment": 1.2981002934215264,
+      "confidence": 0.9,
+      "canonical_problem_sha256": "c2a239eeb16c39da772b9302786cd396c6ef77c1fe44791f3dd393859898d9c3",
+      "source_sha256": {
+        "__init__.py": "b34d9db2df69f3b9291684a8d2a7fc5fae38158714f6a590990bff67528ffa66",
+        "cli.py": "94fb153a692628c15b342e4dbbccce8e0ec63503df10e6db449ccda48c10fae7",
+        "examples.py": "3758f2c9f975d697f4ce37c828dafb90070f9cd3c76bc64972e6eec2c3dbfe27",
+        "identification.py": "637e9cf36229f3ec98c8185ed089b313a5e4df31325bc6c516d7990614a6d5d6",
+        "model.py": "bfe3febf98955d65e54f341388104f39493f464b2291a7354f840071f017b3ac",
+        "resources.py": "b2cbce5c116c8f4dcf3d8d10b779411c79e0abd65f908db680c051316fa3fee3",
+        "sampling.py": "4498a67622c4c48634da09d08b4652a6f355c3a872ef86666de7c34881bdbde8",
+        "solver.py": "d862e6ff1984872c1260718f1cce68322f9725ff910971d23d192e97e5489be0"
+      },
+      "environment": {
+        "python": "3.11.15",
+        "platform": "Windows",
+        "packages": {
+          "numpy": "2.4.6",
+          "scipy": "1.17.1",
+          "gurobipy": "13.0.3"
+        }
+      },
+      "optimization_sha256": "024a43973bbfabe5ccd60051f227f2c218e5f0043cf9effe675c35bc14a04c14",
+      "validation_sha256": "df9242b871dbbc86ac74a6e4aa3f8dcca8c820486e814be2074a614ae6f340a3"
+    }
+  ],
+  "qualification_runs": 4,
+  "new_tests": 56,
+  "existing_compatibility_tests": 25,
+  "final_test_total": 81,
+  "final_test_passed": 81,
+  "test_receipt_sha256": "5eed346ba2faff39133c9e21129da4f0d108ff839cd5681fdd9038b675f8a88c",
+  "tested_model_scope": "conservative reliable excitation, resource constraints and incentive budget",
+  "topology_identification_runs": 0,
+  "ac_runs": 0,
+  "measured_calibration": false,
+  "test_corrections": [
+    "Initial 36-test stage: 34 pass, two status13 cone failures; conic convergence setting documented and one-dimensional norm linearized.",
+    "Initial 54-test integration: 53 pass, one tiny useless fee residual; secondary objective changed to equivalent linear fee norm.",
+    "First compatibility CLI invocation had a malformed pytest report argument and ran zero tests; corrected invocation passed25.",
+    "Initial 96-slot MISOCP secondary reported optimal but failed unsquared benefit recomputation; retained primary. Three unchanged-model diagnostics checkedMIQCP0/NumericFocus1/NumericFocus2; finalNumericFocus2passes. All original receipts retained privately."
+  ],
+  "replicate_scope": "Earlier numerical/debug reruns reuse factor seeds and are not additional independent paths.",
+  "probability_scope": "excitation success under the declared law; never complete topology recovery"
+}

@@ -1,3 +1,15 @@
+## 最新恢复：连续DR SOCP/MISOCP实现已完成，无后台批次
+
+- 先读 `dr_conic_pricing/{README,MODEL,IMPLEMENTATION_REPORT}.md` 与 `evidence/conic_pricing_v1/{summary.json,audit_delivery.py}`。新主模型90%指激励达标；不使用Copula，不是90%完整恢复，也没有新增AC/W恢复试验。
+- 公共入口：`PriceProblem.from_dict`、`solve_price(...mode='socp'|'misocp')`；CLI `python -m research_experiments.wzzt_dr_selection.dr_conic_pricing.cli`。SOCP有互斥类型时必须显式allowed_contracts；MISOCP自动选择，无强制分散。参数和概率模型见完整JSON表。
+- 最终回归81/81（56新＋25兼容），MISOCP有全部9种固定类型SOCP参照。最终四正式run均两阶段最优/重算过，四时段各20000和96时段DR＋EV各2000抽样全达标/0设备预算违约；只属合成求解资格，不是实际拓扑收益。
+- 私有根 `C:\Users\23761\.codex\visualizations\2026\10\25\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\dr_conic_pricing_stage`：`release_socp`、`release_misocp`、`release_socp_day`、`release_misocp_day` 保存protocol/problem/optimization/validation/ended；`final_regression_v4.xml`为最终81项；`delivery_summary.json`为独立重算。
+- 源码zip `release_source_snapshot.zip` SHA256 `2ccb82e0eef33e67d8b0b767a4288370edda742fda735f2c21822435be5c2853`。旧同根socp_run_v1/*_final、integrated_tests_v1/v2、final_regression_v3及misocp_numeric_diagnosis_v1保留数值修复过程；不把旧随机流再验证算新增独立样本。
+- 无进程/锁/待续solver；每个CLI新目录独占，旧结果不覆盖。精确数据/源变更应另冻协议。Gurobi13.0.3，NumericFocus2、NonConvex0、BarQCPConvTol1e-8，硬科学约束未为数值修复放宽；独立未平方检查及失败回退必须保留。
+- `resources.py`复用原ResourceDay/DayModule，输出P后Q、各time-major。实际幅值可直接生成增量；只加一次资源增量，kW/kvar需显式标幺换算，电压仍由原AC/表计提供。`identification.fit_full_history`追加全部观测并调用原fit_observed，未重写辨识。
+- 下一项是锁定真实历史争议块对应g/β、预测共同因子与实际响应检验，再做独立最终错漏/费用比较。本次实现不能冒充已有新WZZT价格收益。所有旧价格/AC/W批已收口，勿据本文件重跑。
+
+
 ## 最新完成：目标漏块预计算与报价优化，独立选线收益未通过（2026-10-31）
 
 本节覆盖下方旧“当前运行”。入口dr_targeted_pricing/ACTUAL_TEST_REPORT.md、MATHEMATICAL_MODEL.md与evidence/targeted_pricing_v1。本轮没有新的待跑批次。
