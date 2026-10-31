@@ -1,3 +1,10 @@
+## 数值重放恢复：2/2已结束，不重跑
+
+- 入口dr_balanced_design/NUMERICAL_REPLAY_REPORT.md、numerical_full_replay.py；private run_v1/numerical_full_replay_v1的2fit/188LP均结束，score五方法0错。无新独立样本/AC/价格。
+- 协议adb7c4df...、source_snapshot_new_config.zip 45源码SHA a4db539944222007a551c26034e57625586ae9849e4a7880cfe114822da90b17；还原时以zip原字节为准，不将新hash硬套旧记录。
+- API default lp_method1仍保留，Method2仅两显式直接调用；原64批30失败、oracle及费用仍独立封存。公开evidence/numerical_lp_configuration_v1无轨迹/连续参数。
+- 下一项仅SharedFitter缓存方法身份修正与假函数检查，防止方法1/2混用cache；不新增DR或完整拟合。
+
 ## 最新恢复：原预算内参照批已全部结束
 
 - 先读dr_balanced_design/BUDGET_REFERENCE_REPORT.md与evidence/budget_reference_diagnostic_v1。原64未来＋2历史、66unique、3443LP均封存；未来34完成30首LP状态9。测试23/32未决；不要把缺失当0错，不重启旧price/seed。

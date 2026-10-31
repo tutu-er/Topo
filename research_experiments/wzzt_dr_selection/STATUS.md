@@ -1,3 +1,11 @@
+## 数值配置补充：两份原失败planning完整重放已完成
+
+- 读dr_balanced_design/NUMERICAL_REPLAY_REPORT.md与evidence/numerical_lp_configuration_v1。现有engine/adapter增加显式lp_method，默认1保留；全目标/权重域/接受/15秒LP/25秒W/3%/.16均未改。
+- 同single__path1、opposed__path1完整480/480，以Method2直接调用原fit_observed，2/2完成、92+96=188LP、92.867/96.803秒，五方法均0错、均tree_bank。新增独立样本/物理/价格选择均0；原30失败及冻结oracle不覆盖。
+- 6新不同检查与7既有adapter检查通过；新6项标准路径重复回归不当12项。空unittest发现0项不计入，已纠正pytest实际7项；默认Python环境失败保留。
+- direct fit_observed身份已区分方法；SharedFitter方法缓存绑定发现缺口，单列后续小修，不修改已冻结两重放源码。精确45源码zip留私有，SHA a4db539944222007a551c26034e57625586ae9849e4a7880cfe114822da90b17。
+- 数值完成改善不是DR创新。本两例付费结构收益仍未成立，不扩大价格/种子/预算找正结果。
+
 ## 当前：预算内参照诊断已完成，付费DR的恢复优势未成立，2026-10-31
 
 - 主报告dr_balanced_design/BUDGET_REFERENCE_REPORT.md，证据evidence/budget_reference_diagnostic_v1。原批32规划＋32独立测试全部实际尝试，另2历史基线，共66唯一输入3443LP；未来34完成30次首个固定族LP状态9，原失败不补成成功。256事件24576AC运行校验时点全部通过，完整288/288追加至480/480不变。

@@ -26,7 +26,9 @@ def canonical(family):return tuple(sorted(set(tuple(sorted(s)) for s in family),
 
 class PoolLP:
     """One reusable exact LP; inactive candidate coefficients have upper=0."""
-    def __init__(self,obs,pool,preprocess="raw",bound=2.,data=None):
+    def __init__(self,obs,pool,preprocess="raw",bound=2.,data=None,lp_method=1):
+        if isinstance(lp_method,(bool,np.bool_)) or not isinstance(lp_method,(int,np.integer)) or lp_method not in (0,1,2):
+            raise ValueError("lp_method must be an integer in {0, 1, 2}")
         import gurobipy as gp
         self.gp=gp
         self.p,self.q,self.y=arrays(obs,preprocess) if data is None else data
@@ -34,6 +36,7 @@ class PoolLP:
         self.pool=canonical(pool)
         self.lookup={s:i for i,s in enumerate(self.pool)}
         self.bound=bound
+        self.lp_method=int(lp_method)
         self.preprocess=preprocess
         self.cache={}
         z=np.zeros((len(self.pool),self.n))
@@ -45,7 +48,7 @@ class PoolLP:
         self.environment.setParam("OutputFlag",0)
         self.environment.start()
         self.model=gp.Model("candidate_family_l1",env=self.environment)
-        for key,value in dict(Threads=1,Method=1,FeasibilityTol=1e-9,OptimalityTol=1e-9,TimeLimit=15).items():
+        for key,value in dict(Threads=1,Method=self.lp_method,FeasibilityTol=1e-9,OptimalityTol=1e-9,TimeLimit=15).items():
             self.model.setParam(key,value)
         self.weights=self.model.addMVar(2*len(self.pool),lb=0,ub=0)
         self.t=self.model.addMVar(self.y.size,lb=0,obj=1/self.y.size)
@@ -67,7 +70,7 @@ class PoolLP:
         self.weights.UB=upper
         self.model.optimize()
         if self.model.Status!=self.gp.GRB.OPTIMAL:
-            self.solves.append(dict(family=family,status=int(self.model.Status),
+            self.solves.append(dict(family=family,status=int(self.model.Status),lp_method=int(self.model.Params.Method),
                 seconds=perf_counter()-then,accepted=False,solution_count=int(self.model.SolCount)))
             raise RuntimeError(f"fixed-family LP status {self.model.Status}")
         values=np.clip(self.weights.X,0.,self.bound)
@@ -84,7 +87,7 @@ class PoolLP:
                                  semantics="clipped coefficients before numerical support pruning; not physical zero or an optimal-face certificate"))
         audit=dict(family=family,objective=float(self.model.ObjVal),physical=physical,
                    max_constraint_violation=float(self.model.ConstrVio),max_bound_violation=float(self.model.BoundVio),
-                   status=int(self.model.Status),seconds=perf_counter()-then)
+                   status=int(self.model.Status),lp_method=int(self.model.Params.Method),seconds=perf_counter()-then)
         audit["accepted"] = True
         self.solves.append(audit)
         if audit["max_constraint_violation"] > 1e-7 or audit["max_bound_violation"] > 1e-7:
@@ -97,7 +100,7 @@ class PoolLP:
     def add_support(self,support):
         if tuple(support) in self.lookup:return
         cache,solves=self.cache,self.solves
-        expanded=PoolLP(None,[*self.pool,support],self.preprocess,self.bound,data=(self.p,self.q,self.y))
+        expanded=PoolLP(None,[*self.pool,support],self.preprocess,self.bound,data=(self.p,self.q,self.y),lp_method=self.lp_method)
         self.close()
         self.__dict__.update(expanded.__dict__)
         self.cache.update(cache);self.solves=solves

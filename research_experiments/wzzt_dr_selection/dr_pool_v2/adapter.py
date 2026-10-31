@@ -36,7 +36,7 @@ def source_hashes():
     return {str(p.resolve()):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(set(files))}
 
 
-def fit_observed(training, validation, output_dir, *, root_label=1, search_seconds=25., resume=False):
+def fit_observed(training, validation, output_dir, *, root_label=1, search_seconds=25., resume=False,lp_method=1):
     """Build a pool on observed training data and return three explicit models.
 
     Scenarios follow end_to_end.wzzt_adapter.make_observed_scenario. Daily
@@ -45,6 +45,9 @@ def fit_observed(training, validation, output_dir, *, root_label=1, search_secon
     Resume only reuses a completed exact-input/source match; unfinished search
     checkpoints are retained and never silently restarted with a new budget.
     """
+    if isinstance(lp_method,(bool,np.bool_)) or not isinstance(lp_method,(int,np.integer)) or lp_method not in (0,1,2):
+        raise ValueError("lp_method must be an integer in {0, 1, 2}")
+    lp_method=int(lp_method)
     train, days, counts = normalize(training, "training")
     valid, valid_days, valid_counts = normalize(validation, "validation")
     labels = train[0].columns.tolist()
@@ -62,7 +65,7 @@ def fit_observed(training, validation, output_dir, *, root_label=1, search_secon
     inputs = {"training":input_hash(train, days), "validation":input_hash(valid, valid_days)}
     sources = source_hashes()
     identity = {"input_sha256":inputs, "source_sha256":sources,
-                "root_label":int(root_label), "search_seconds":float(search_seconds)}
+                "root_label":int(root_label), "search_seconds":float(search_seconds),"lp_method":lp_method}
     fingerprint = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
     out = Path(output_dir)
     result_path, checkpoint = out/"result.json", out/"checkpoint.json"
@@ -86,7 +89,7 @@ def fit_observed(training, validation, output_dir, *, root_label=1, search_secon
         candidate_pool_policy="rebuild from observed training each batch; raw and physical-day demean",
         final_strategy="multistart_original_rule", models={}, searches={},
         settings=dict(coefficient_bound=2., lp_time_limit_seconds=15., lp_threads=1,
-            lp_method=1, feasibility_tolerance=1e-9, optimality_tolerance=1e-9,
+            lp_method=lp_method, feasibility_tolerance=1e-9, optimality_tolerance=1e-9,
             dense_qp_max_iterations=5000, per_path_seconds=float(search_seconds),
             max_extra_starts=2, max_steps=3*len(labels), relative_gain_threshold=.001,
             final_validation_fraction=.03, resolution_factor=.16,
@@ -109,7 +112,8 @@ def fit_observed(training, validation, output_dir, *, root_label=1, search_secon
                       pool_support_labels=[[labels[i] for i in s] for s in pool],
                       fronts=fronts, calibrations=calibrations,
                       generated_tree_count=len(bank), pool_size=len(pool))
-        lp = PoolLP(train, pool, "raw", bound=2.)
+        lp = PoolLP(train, pool, "raw", bound=2.,lp_method=lp_method)
+        result["settings"]["actual_lp_method"]=int(lp.model.Params.Method)
         result["environment"]["gurobi"] = list(lp.gp.gurobi.version())
         fitted_bank = []
         for tree in bank:

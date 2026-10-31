@@ -1,6 +1,6 @@
 # 独立需求响应观测接口
 
-`adapter.fit_observed(training, validation, output_dir, root_label=1, search_seconds=25.)` 接收现有 `end_to_end.wzzt_adapter.make_observed_scenario` 的场景列表。P/Q/V/root均为标幺值，各通道索引和末端顺序必须完全一致；真拓扑不是接口输入。
+`adapter.fit_observed(training, validation, output_dir, root_label=1, search_seconds=25., lp_method=1)` 接收现有 `end_to_end.wzzt_adapter.make_observed_scenario` 的场景列表。P/Q/V/root均为标幺值，各通道索引和末端顺序必须完全一致；真拓扑不是接口输入。
 
 ## 与已核验策略的对应
 
@@ -9,6 +9,13 @@
 `provenance.json`记录所复用主工作区算法文件的哈希。核心图算法及有序稠密回归来自本工作树，运行时哈希写入结果；QP明确传5000次迭代，与冻结producer的预算一致，不使用本工作树500次的默认值。`constrained_least_squares.py` 与冻结producer版本相同；没有外部Source输入。
 
 独立调用从冷的LP缓存开始，仅预先拟合本方法所需的15个RNJ家族。这与历史多版本批次复用父路径及预热缓存不同，因此同一墙钟上限下截断路径可能不同。75秒仍是三个局部路径名义预算；结果的elapsed_seconds涵盖本次完整调用。每次LP最多15秒，可能跨过局部路径截止时间。
+
+
+## LP数值方法（2026-10-31新增显式配置）
+
+fit_observed与PoolLP接收lp_method=0/1/2，默认仍为1。参数进入输入身份、结果settings及每次LP回执；增加支撑时保留原方法。0为primal simplex、1为dual simplex、2为barrier，均保持相同目标、非负权重、界、容差与15秒LP时限；该参数不改变W的接受、验证及收缩规则。
+
+此配置用于诊断预算内参照批的首个固定族LP状态9。四个单LP对照已在原15秒内最优，但不据此承诺完整路径速度或恢复优势。非唯一最优点、数值剪枝和墙限会使不同求解方法产生不同路径，因此新配置必须另存协议与结果，不能覆盖旧失败或复用旧源码缓存。完整联合重放另见dr_balanced_design/NUMERICAL_REPLAY_REPORT.md（完成后记录）。
 
 ## 对真实DR数据的必要接口修正
 

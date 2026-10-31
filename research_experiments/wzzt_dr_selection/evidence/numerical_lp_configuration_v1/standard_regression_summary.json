@@ -1,0 +1,16 @@
+{
+  "scope": "regression tests; no new physical observations or DR samples",
+  "new_method_tests": {
+    "command": "python -B -m unittest discover -s research_experiments/tests -p test_wzzt_dr_lp_method.py -v",
+    "passed": 6,
+    "test_sha256": "5331e6b2beb75322c29e4c130c9f5f9b84e477a65ce4e976073aae7aa2a79dd2",
+    "same_six_cases_as_private_receipt": true
+  },
+  "existing_adapter_tests": {
+    "command": "python -B -m pytest research_experiments/tests/test_wzzt_dr_pool_adapter.py -q -p no:cacheprovider",
+    "passed": 7
+  },
+  "empty_discovery_not_counted": "unittest discover on existing pytest-function module returned zero; corrected by pytest",
+  "earlier_wrong_runtime": "Private default-python attempt lacked gurobipy; retained as environment failure, not algorithm evidence",
+  "distinct_test_cases": 13
+}
