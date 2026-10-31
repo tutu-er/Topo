@@ -90,3 +90,20 @@ def test_long_budget_can_accept_an_incumbent_after_the_old_40_second_cutoff():
         assert q['accepted'] and 40.<q['incumbent_at']<=300.
         assert q['point']['objective']<1e-8
     finally:bank.close()
+
+
+def test_half_frontier_priority_can_exclude_every_true_root_merge():
+    bank,_=bank_for(9,[((0,1,2),.4),((3,4,5),.4),((6,7,8),.4)])
+    family=canonical([*((i,) for i in range(9)),tuple(range(9)),(0,1),(3,4)])
+    blocks=((0,1),(3,4),(2,),(5,),(6,),(7,),(8,));C=(0,1,2)
+    try:
+        point=bank.fit([*family,C],preserve=True)
+        original=core.build_extension_model(bank.scaled,family,r_upper_bound=2.,x_upper_bound=2.)
+        allowed=extension_start(original,family,C,point,bank.lp.p,bank.lp.q,bank.lp.y)
+        assert audit_vector(original,allowed)['valid']
+        coarse,a,lower=frontier_model(bank.scaled,family,tuple(range(9)),blocks,.001,large=True)
+        excluded=extension_start(coarse,family,C,point,bank.lp.p,bank.lp.q,bank.lp.y);excluded[a]=1.
+        assert not audit_vector(coarse,excluded)['valid']
+        for true in ((0,1,2),(3,4,5),(6,7,8)):
+            assert sum(set(B)<=set(true) for B in blocks)<lower
+    finally:bank.close()

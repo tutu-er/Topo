@@ -89,7 +89,7 @@ def forward(bank,current,*,penalty,deadline,per_mip=2.):
     return current,dict(kind='coarse_wzzt',accepted=False,trials=trials,seconds=perf_counter()-then,stop='no_gain_or_unresolved')
 
 
-def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.):
+def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.,strategy='coarse'):
     then=perf_counter();deadline=then+seconds;penalty=.003*reference
     current,seeding=seed_family(bank,initial,mode=mode,reference=reference,deadline=deadline)
     path=[current];events=[];reason='wall_limit';initial_max=remainder(current['supports'],bank.data.n)
@@ -101,12 +101,17 @@ def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.):
             e.update(released=released,iteration=iteration);events.append(e)
             if e['accepted']:path.append(current)
             reason='joint_tail_gap_met' if e.get('status')==2 else 'joint_tail_unresolved';break
-        current,e=forward(bank,current,penalty=penalty,deadline=deadline,per_mip=per_mip);e['iteration']=iteration;events.append(e)
+        if strategy=='original':
+            from research_experiments.rnj_count.engine import original_step
+            current,e=original_step(bank,current,penalty=penalty,deadline=deadline,per_mip=per_mip)
+        elif strategy=='coarse':current,e=forward(bank,current,penalty=penalty,deadline=deadline,per_mip=per_mip)
+        else:raise ValueError(strategy)
+        e['iteration']=iteration;events.append(e)
         if e['accepted']:path.append(current)
         else:reason='coarse_no_gain_or_unresolved';break
     return dict(point=current,path=path,attempts=events,seeding=seeding,seconds=perf_counter()-then,stop_reason=reason,
         initial_maximum_remainder=initial_max,maximum_remainder=remainder(current['supports'],bank.data.n),reference_MAE=reference,
-        coefficient=.003,penalty=penalty,tree_global_optimal=False)
+        coefficient=.003,penalty=penalty,tree_global_optimal=False,strategy=strategy)
 
 
 def repair_windows(initial,kernel,n):
