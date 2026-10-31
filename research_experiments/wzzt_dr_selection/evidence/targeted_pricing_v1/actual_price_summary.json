@@ -1,0 +1,9412 @@
+{
+  "global_result": {
+    "status": "optimal",
+    "module_ids": [
+      "targeted",
+      "rotation"
+    ],
+    "state_order": [
+      "00",
+      "10",
+      "01",
+      "11"
+    ],
+    "paid_events": 2,
+    "price_vector_order": [
+      "train_i",
+      "train_j",
+      "validation_i",
+      "validation_j"
+    ],
+    "energy_per_paid_event_kwh": 0.4,
+    "hard_budget": 1.6,
+    "seed": 10311135,
+    "loss_table_exact": true,
+    "uncertain_cells": [],
+    "finite_domain_lower_bound": 0.25,
+    "finite_domain_gap_upper": 0.0,
+    "feasible_price_vectors_per_plan": 50,
+    "all_price_vectors_per_plan": 81,
+    "solver_receipts": [
+      {
+        "stage": "minimum_upper_risk",
+        "status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "solver_reported_optimal": true,
+        "objective": 0.25,
+        "mip_dual_bound": 0.25,
+        "mip_gap": 0.0,
+        "mip_node_count": 0.0,
+        "independent_primal_pass": true,
+        "primal_residuals": {
+          "lower_rows": 0.0,
+          "upper_rows": 0.0,
+          "variable_lower": 0.0,
+          "variable_upper": 0.0,
+          "integrality": 0.0,
+          "objective_recalculation": 0.0
+        }
+      },
+      {
+        "stage": "minimum_fee_among_upper_risk_ties",
+        "status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "solver_reported_optimal": true,
+        "objective": 0.6000000000000001,
+        "mip_dual_bound": 0.6000000000000001,
+        "mip_gap": 0.0,
+        "mip_node_count": 0.0,
+        "independent_primal_pass": true,
+        "primal_residuals": {
+          "lower_rows": 0.0,
+          "upper_rows": 0.0,
+          "variable_lower": 0.0,
+          "variable_upper": 0.0,
+          "integrality": 0.0,
+          "objective_recalculation": 0.0
+        }
+      }
+    ],
+    "variables": {
+      "binary_complete_plan_price_columns": 100
+    },
+    "scope": "declared finite restricted master; four offers are independent decisions; not continuous-space optimality",
+    "missing_semantics": "endpoints bound unknown final outcomes; no zero imputation",
+    "lookup_equivalence": true,
+    "AC_calls": 0,
+    "identifier_calls": 0,
+    "independent_upper_optimality_check": {
+      "value": 0.25,
+      "absolute_difference": 0.0,
+      "pass_check": true
+    },
+    "independent_lex_fee_check": {
+      "value": 0.6000000000000001,
+      "absolute_difference": 0.0,
+      "pass_check": true
+    },
+    "risk_table_exact": true,
+    "selection_basis": "complete finite risk table and independently verified lex MILP",
+    "selected": {
+      "index": 90,
+      "plan_index": 1,
+      "module_id": "rotation",
+      "price_indices": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "prices": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "resource_day_probabilities": [
+        [
+          0.75,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "training_pair_probabilities": [
+        0.25,
+        0.75,
+        0.0,
+        0.0
+      ],
+      "validation_pair_probabilities": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "risk_lower": 0.25,
+      "risk_upper": 0.25,
+      "expected_fee": 0.6000000000000001,
+      "worst_fee": 0.8,
+      "training_Gamma": {
+        "training_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "validation_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "training_loss_lower": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "training_loss_upper": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "training-pair Gamma after selected-price validation marginalization"
+      },
+      "validation_Gamma": {
+        "validation_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "training_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_loss_lower": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_loss_upper": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "validation-pair Gamma after selected-price training marginalization"
+      }
+    },
+    "upper_candidate": {
+      "index": 90,
+      "plan_index": 1,
+      "module_id": "rotation",
+      "price_indices": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "prices": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "resource_day_probabilities": [
+        [
+          0.75,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "training_pair_probabilities": [
+        0.25,
+        0.75,
+        0.0,
+        0.0
+      ],
+      "validation_pair_probabilities": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "risk_lower": 0.25,
+      "risk_upper": 0.25,
+      "expected_fee": 0.6000000000000001,
+      "worst_fee": 0.8,
+      "training_Gamma": {
+        "training_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "validation_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "training_loss_lower": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "training_loss_upper": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "training-pair Gamma after selected-price validation marginalization"
+      },
+      "validation_Gamma": {
+        "validation_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "training_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_loss_lower": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_loss_upper": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "validation-pair Gamma after selected-price training marginalization"
+      }
+    },
+    "feasible_columns": [
+      {
+        "index": 0,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.0,
+        "worst_fee": 0.0
+      },
+      {
+        "index": 1,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 2,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 3,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 4,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 5,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 6,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 7,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 8,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0,
+          2,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 9,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 10,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 11,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 12,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 13,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 14,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 15,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 16,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 17,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 18,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 19,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 20,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 21,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 22,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 23,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 24,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 25,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 26,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 27,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 28,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 29,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 30,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 31,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 32,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 33,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 34,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 35,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 36,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 37,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 38,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          2,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 39,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          2,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 40,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 41,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 42,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 43,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 44,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 45,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 46,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 47,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 48,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 49,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 50,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.0,
+        "worst_fee": 0.0
+      },
+      {
+        "index": 51,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 52,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 53,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 54,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 55,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 56,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 57,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 58,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          2,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 59,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 60,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 61,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 62,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 63,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 64,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 65,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 66,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 67,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 68,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 69,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 70,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 71,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 72,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 73,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 74,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 75,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 76,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 77,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 78,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 79,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 80,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 81,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 82,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 83,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 84,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 85,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 86,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 87,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 88,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          2,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 89,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          2,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 90,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 91,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 92,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 93,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 94,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 95,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 96,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 97,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 98,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 99,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "all_exact_lex_ties": [
+      {
+        "index": 90,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      }
+    ],
+    "possible_risk_optimal_columns": [
+      {
+        "index": 90,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 91,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 92,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 93,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 94,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 95,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 96,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 97,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 98,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 99,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "upper_risk_lex_ties": [
+      {
+        "index": 90,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      }
+    ]
+  },
+  "rotation_result": {
+    "status": "optimal",
+    "module_ids": [
+      "rotation"
+    ],
+    "state_order": [
+      "00",
+      "10",
+      "01",
+      "11"
+    ],
+    "paid_events": 2,
+    "price_vector_order": [
+      "train_i",
+      "train_j",
+      "validation_i",
+      "validation_j"
+    ],
+    "energy_per_paid_event_kwh": 0.4,
+    "hard_budget": 1.6,
+    "seed": 10311136,
+    "loss_table_exact": true,
+    "uncertain_cells": [],
+    "finite_domain_lower_bound": 0.25,
+    "finite_domain_gap_upper": 0.0,
+    "feasible_price_vectors_per_plan": 50,
+    "all_price_vectors_per_plan": 81,
+    "solver_receipts": [
+      {
+        "stage": "minimum_upper_risk",
+        "status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "solver_reported_optimal": true,
+        "objective": 0.25,
+        "mip_dual_bound": 0.25,
+        "mip_gap": 0.0,
+        "mip_node_count": 0.0,
+        "independent_primal_pass": true,
+        "primal_residuals": {
+          "lower_rows": 0.0,
+          "upper_rows": 0.0,
+          "variable_lower": 0.0,
+          "variable_upper": 0.0,
+          "integrality": 0.0,
+          "objective_recalculation": 0.0
+        }
+      },
+      {
+        "stage": "minimum_fee_among_upper_risk_ties",
+        "status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "solver_reported_optimal": true,
+        "objective": 0.6000000000000001,
+        "mip_dual_bound": 0.6000000000000001,
+        "mip_gap": 0.0,
+        "mip_node_count": 0.0,
+        "independent_primal_pass": true,
+        "primal_residuals": {
+          "lower_rows": 0.0,
+          "upper_rows": 0.0,
+          "variable_lower": 0.0,
+          "variable_upper": 0.0,
+          "integrality": 0.0,
+          "objective_recalculation": 0.0
+        }
+      }
+    ],
+    "variables": {
+      "binary_complete_plan_price_columns": 50
+    },
+    "scope": "declared finite restricted master; four offers are independent decisions; not continuous-space optimality",
+    "missing_semantics": "endpoints bound unknown final outcomes; no zero imputation",
+    "lookup_equivalence": true,
+    "AC_calls": 0,
+    "identifier_calls": 0,
+    "independent_upper_optimality_check": {
+      "value": 0.25,
+      "absolute_difference": 0.0,
+      "pass_check": true
+    },
+    "independent_lex_fee_check": {
+      "value": 0.6000000000000001,
+      "absolute_difference": 0.0,
+      "pass_check": true
+    },
+    "risk_table_exact": true,
+    "selection_basis": "complete finite risk table and independently verified lex MILP",
+    "selected": {
+      "index": 40,
+      "plan_index": 0,
+      "module_id": "rotation",
+      "price_indices": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "prices": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "resource_day_probabilities": [
+        [
+          0.75,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "training_pair_probabilities": [
+        0.25,
+        0.75,
+        0.0,
+        0.0
+      ],
+      "validation_pair_probabilities": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "risk_lower": 0.25,
+      "risk_upper": 0.25,
+      "expected_fee": 0.6000000000000001,
+      "worst_fee": 0.8,
+      "training_Gamma": {
+        "training_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "validation_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "training_loss_lower": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "training_loss_upper": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "training-pair Gamma after selected-price validation marginalization"
+      },
+      "validation_Gamma": {
+        "validation_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "training_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_loss_lower": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_loss_upper": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "validation-pair Gamma after selected-price training marginalization"
+      }
+    },
+    "upper_candidate": {
+      "index": 40,
+      "plan_index": 0,
+      "module_id": "rotation",
+      "price_indices": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "prices": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "resource_day_probabilities": [
+        [
+          0.75,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "training_pair_probabilities": [
+        0.25,
+        0.75,
+        0.0,
+        0.0
+      ],
+      "validation_pair_probabilities": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "risk_lower": 0.25,
+      "risk_upper": 0.25,
+      "expected_fee": 0.6000000000000001,
+      "worst_fee": 0.8,
+      "training_Gamma": {
+        "training_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "validation_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "training_loss_lower": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "training_loss_upper": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "training-pair Gamma after selected-price validation marginalization"
+      },
+      "validation_Gamma": {
+        "validation_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "training_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_loss_lower": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_loss_upper": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "validation-pair Gamma after selected-price training marginalization"
+      }
+    },
+    "feasible_columns": [
+      {
+        "index": 0,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.0,
+        "worst_fee": 0.0
+      },
+      {
+        "index": 1,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 2,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 3,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 4,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 5,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 6,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 7,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 8,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0,
+          2,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.75,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 9,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 10,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 11,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 12,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 13,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 14,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 15,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 16,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 17,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 18,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 19,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 20,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 21,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 22,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.0,
+            0.75
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 23,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.2,
+        "worst_fee": 0.4
+      },
+      {
+        "index": 24,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 25,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 26,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 27,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 28,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          1,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 29,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 30,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0,
+          2,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.75,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 31,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 32,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 33,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 34,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 35,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 36,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 37,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 38,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          2,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 39,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          2,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.125,
+          0.375,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 40,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 41,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 42,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 43,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 44,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 45,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 46,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 47,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 48,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 49,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "all_exact_lex_ties": [
+      {
+        "index": 40,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      }
+    ],
+    "possible_risk_optimal_columns": [
+      {
+        "index": 40,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 41,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 42,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          2
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.75
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 43,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 44,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          1,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.5,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 45,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          2,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.75,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 46,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.8,
+        "worst_fee": 1.2000000000000002
+      },
+      {
+        "index": 47,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          0,
+          1
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.0,
+            0.5
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 48,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          1,
+          1,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.5
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.125,
+          0.375,
+          0.125,
+          0.375
+        ],
+        "validation_pair_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.0,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 49,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.0625,
+          0.1875,
+          0.1875,
+          0.5625
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "upper_risk_lex_ties": [
+      {
+        "index": 40,
+        "plan_index": 0,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0,
+          0,
+          0
+        ],
+        "prices": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "resource_day_probabilities": [
+          [
+            0.75,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "training_pair_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "validation_pair_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 0.6000000000000001,
+        "worst_fee": 0.8
+      }
+    ]
+  },
+  "tied_result": {
+    "status": "optimal",
+    "module_ids": [
+      "targeted",
+      "rotation"
+    ],
+    "state_order": [
+      "00",
+      "10",
+      "01",
+      "11"
+    ],
+    "paid_events": 2,
+    "energy_per_paid_event_kwh": 0.4,
+    "hard_budget": 1.6,
+    "seed": 10311137,
+    "loss_table_exact": true,
+    "uncertain_cells": [],
+    "finite_domain_lower_bound": 0.25,
+    "finite_domain_gap_upper": 0.0,
+    "solver_receipts": [
+      {
+        "stage": "minimum_upper_risk",
+        "status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "solver_reported_optimal": true,
+        "objective": 0.25,
+        "mip_dual_bound": 0.25,
+        "mip_gap": 0.0,
+        "mip_node_count": 1.0,
+        "independent_primal_pass": true,
+        "primal_residuals": {
+          "lower_rows": 0.0,
+          "upper_rows": 0.0,
+          "variable_lower": 0.0,
+          "variable_upper": 0.0,
+          "integrality": 0.0,
+          "objective_recalculation": 0.0
+        }
+      },
+      {
+        "stage": "minimum_fee_among_upper_risk_ties",
+        "status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "solver_reported_optimal": true,
+        "objective": 1.2000000000000002,
+        "mip_dual_bound": 1.2000000000000002,
+        "mip_gap": 0.0,
+        "mip_node_count": 0.0,
+        "independent_primal_pass": true,
+        "primal_residuals": {
+          "lower_rows": 0.0,
+          "upper_rows": 0.0,
+          "variable_lower": 0.0,
+          "variable_upper": 0.0,
+          "integrality": 0.0,
+          "objective_recalculation": 0.0
+        }
+      }
+    ],
+    "variables": {
+      "joint_plan": 2,
+      "price_onehot": 6,
+      "product": 18,
+      "total": 26
+    },
+    "scope": "declared finite joint-plan and repeated-quote domain; no full-parameter or statistical coverage",
+    "missing_semantics": "loss endpoints are bounds, not imputed outcomes",
+    "lookup_equivalence": true,
+    "AC_calls": 0,
+    "identifier_calls": 0,
+    "independent_upper_optimality_check": {
+      "value": 0.25,
+      "absolute_difference": 0.0,
+      "pass_check": true
+    },
+    "independent_lex_fee_check": {
+      "value": 1.2000000000000002,
+      "absolute_difference": 0.0,
+      "pass_check": true
+    },
+    "risk_table_exact": true,
+    "selection_basis": "complete finite-risk table and verified two-stage MILP",
+    "selected": {
+      "index": 15,
+      "plan_index": 1,
+      "module_id": "rotation",
+      "price_indices": [
+        2,
+        0
+      ],
+      "prices": [
+        2.0,
+        0.0
+      ],
+      "resource_probabilities": [
+        0.75,
+        0.0
+      ],
+      "pair_state_probabilities": [
+        0.25,
+        0.75,
+        0.0,
+        0.0
+      ],
+      "risk_lower": 0.25,
+      "risk_upper": 0.25,
+      "expected_fee": 1.2000000000000002,
+      "worst_fee": 1.6,
+      "training_Gamma": {
+        "training_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "validation_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "training_loss_lower": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "training_loss_upper": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "training-pair Gamma after selected-price validation marginalization"
+      }
+    },
+    "upper_candidate": {
+      "index": 15,
+      "plan_index": 1,
+      "module_id": "rotation",
+      "price_indices": [
+        2,
+        0
+      ],
+      "prices": [
+        2.0,
+        0.0
+      ],
+      "resource_probabilities": [
+        0.75,
+        0.0
+      ],
+      "pair_state_probabilities": [
+        0.25,
+        0.75,
+        0.0,
+        0.0
+      ],
+      "risk_lower": 0.25,
+      "risk_upper": 0.25,
+      "expected_fee": 1.2000000000000002,
+      "worst_fee": 1.6,
+      "training_Gamma": {
+        "training_state_order": [
+          "00",
+          "10",
+          "01",
+          "11"
+        ],
+        "validation_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "training_loss_lower": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "training_loss_upper": [
+          1.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "lower": 0.0,
+        "upper": 0.0,
+        "value": 0.0,
+        "scope": "training-pair Gamma after selected-price validation marginalization"
+      }
+    },
+    "feasible_columns": [
+      {
+        "index": 0,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          0
+        ],
+        "prices": [
+          0.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.0,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.0,
+        "worst_fee": 0.0
+      },
+      {
+        "index": 1,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          1
+        ],
+        "prices": [
+          0.0,
+          1.0
+        ],
+        "resource_probabilities": [
+          0.0,
+          0.5
+        ],
+        "pair_state_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 2,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          0,
+          2
+        ],
+        "prices": [
+          0.0,
+          2.0
+        ],
+        "resource_probabilities": [
+          0.0,
+          0.75
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 3,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          0
+        ],
+        "prices": [
+          1.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.5,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 4,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          1,
+          1
+        ],
+        "prices": [
+          1.0,
+          1.0
+        ],
+        "resource_probabilities": [
+          0.5,
+          0.5
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.8,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 6,
+        "plan_index": 0,
+        "module_id": "targeted",
+        "price_indices": [
+          2,
+          0
+        ],
+        "prices": [
+          2.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.75,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 9,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          0
+        ],
+        "prices": [
+          0.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.0,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.0,
+        "worst_fee": 0.0
+      },
+      {
+        "index": 10,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          1
+        ],
+        "prices": [
+          0.0,
+          1.0
+        ],
+        "resource_probabilities": [
+          0.0,
+          0.5
+        ],
+        "pair_state_probabilities": [
+          0.5,
+          0.0,
+          0.5,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 11,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          0,
+          2
+        ],
+        "prices": [
+          0.0,
+          2.0
+        ],
+        "resource_probabilities": [
+          0.0,
+          0.75
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.0,
+          0.75,
+          0.0
+        ],
+        "risk_lower": 1.0,
+        "risk_upper": 1.0,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 12,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          0
+        ],
+        "prices": [
+          1.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.5,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.5,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.4,
+        "worst_fee": 0.8
+      },
+      {
+        "index": 13,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          1,
+          1
+        ],
+        "prices": [
+          1.0,
+          1.0
+        ],
+        "resource_probabilities": [
+          0.5,
+          0.5
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "risk_lower": 0.5,
+        "risk_upper": 0.5,
+        "expected_fee": 0.8,
+        "worst_fee": 1.6
+      },
+      {
+        "index": 15,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0
+        ],
+        "prices": [
+          2.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.75,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "all_exact_lex_ties": [
+      {
+        "index": 15,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0
+        ],
+        "prices": [
+          2.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.75,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "possible_risk_optimal_columns": [
+      {
+        "index": 15,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0
+        ],
+        "prices": [
+          2.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.75,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ],
+    "upper_risk_lex_ties": [
+      {
+        "index": 15,
+        "plan_index": 1,
+        "module_id": "rotation",
+        "price_indices": [
+          2,
+          0
+        ],
+        "prices": [
+          2.0,
+          0.0
+        ],
+        "resource_probabilities": [
+          0.75,
+          0.0
+        ],
+        "pair_state_probabilities": [
+          0.25,
+          0.75,
+          0.0,
+          0.0
+        ],
+        "risk_lower": 0.25,
+        "risk_upper": 0.25,
+        "expected_fee": 1.2000000000000002,
+        "worst_fee": 1.6
+      }
+    ]
+  }
+}

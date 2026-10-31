@@ -1,0 +1,2745 @@
+{
+  "status": "saved_result_mechanism_audit_complete",
+  "created_utc": "2026-10-31T10:18:01.038651+00:00",
+  "script_sha256": "ce01d3bd1ac3ce2c68d8cf330451d5e26717574374499b8cbd78b69f6bd3c7f1",
+  "review_source_sha256": "0330ee11538eaf315ef4342b372e24b2df5f4e94341b7cd8565d2667da166752",
+  "scored_source_sha256": "57a4f07579091522edde97e1a0c853dafcb77cd41738fe13a42a972f549e37c0",
+  "source_identity_checks": {
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_pool_v2\\adapter.py": {
+      "recorded_sha256": "0d7dc1f60c98559bd12eae6960868756456619c7c6da7e8cb499cacdce354de7",
+      "current_sha256": "0d7dc1f60c98559bd12eae6960868756456619c7c6da7e8cb499cacdce354de7",
+      "match": true
+    },
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_pool_v2\\engine.py": {
+      "recorded_sha256": "d50c1307480dbd4a407b0a04f2da04cd68b867b11089bd168f2ab9936902054c",
+      "current_sha256": "d50c1307480dbd4a407b0a04f2da04cd68b867b11089bd168f2ab9936902054c",
+      "match": true
+    },
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_pool_v2\\selection.py": {
+      "recorded_sha256": "43cd2d14984808861caed734f185a600c74b0071119a363b431119efe6cb743d",
+      "current_sha256": "43cd2d14984808861caed734f185a600c74b0071119a363b431119efe6cb743d",
+      "match": true
+    }
+  },
+  "scope": "Only saved scalars, support sets and coefficients for replaying prior contraction; no P/Q/V arrays, solver or refits. Counterfactuals are final reselection on existing fitted/scored points, not alternative algorithm experiments.",
+  "independent_test_paths": [
+    100,
+    101,
+    102,
+    103
+  ],
+  "policy_summary": {
+    "zero": {
+      "independent_paths": 4,
+      "records": 4,
+      "full_recovery": 3,
+      "total_full_errors": 1,
+      "mean_full_errors": 0.25,
+      "mean_actual_payment": 0.0,
+      "per_path": [
+        {
+          "path": 100,
+          "states": [
+            0,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.0
+        },
+        {
+          "path": 101,
+          "states": [
+            0,
+            0
+          ],
+          "full_errors": 1,
+          "payment": 0.0
+        },
+        {
+          "path": 102,
+          "states": [
+            0,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.0
+        },
+        {
+          "path": 103,
+          "states": [
+            0,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.0
+        }
+      ]
+    },
+    "rotation_equal": {
+      "independent_paths": 4,
+      "records": 4,
+      "full_recovery": 3,
+      "total_full_errors": 1,
+      "mean_full_errors": 0.25,
+      "mean_actual_payment": 0.7000000000000001,
+      "per_path": [
+        {
+          "path": 100,
+          "states": [
+            0,
+            3
+          ],
+          "full_errors": 0,
+          "payment": 0.8
+        },
+        {
+          "path": 101,
+          "states": [
+            0,
+            3
+          ],
+          "full_errors": 1,
+          "payment": 0.8
+        },
+        {
+          "path": 102,
+          "states": [
+            1,
+            2
+          ],
+          "full_errors": 0,
+          "payment": 0.8
+        },
+        {
+          "path": 103,
+          "states": [
+            0,
+            2
+          ],
+          "full_errors": 0,
+          "payment": 0.4
+        }
+      ]
+    },
+    "rotation_optimized": {
+      "independent_paths": 4,
+      "records": 4,
+      "full_recovery": 2,
+      "total_full_errors": 2,
+      "mean_full_errors": 0.5,
+      "mean_actual_payment": 0.6000000000000001,
+      "per_path": [
+        {
+          "path": 100,
+          "states": [
+            1,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.8
+        },
+        {
+          "path": 101,
+          "states": [
+            0,
+            0
+          ],
+          "full_errors": 1,
+          "payment": 0.0
+        },
+        {
+          "path": 102,
+          "states": [
+            1,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.8
+        },
+        {
+          "path": 103,
+          "states": [
+            1,
+            0
+          ],
+          "full_errors": 1,
+          "payment": 0.8
+        }
+      ]
+    },
+    "optimized": {
+      "independent_paths": 4,
+      "records": 4,
+      "full_recovery": 2,
+      "total_full_errors": 2,
+      "mean_full_errors": 0.5,
+      "mean_actual_payment": 0.6000000000000001,
+      "per_path": [
+        {
+          "path": 100,
+          "states": [
+            1,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.8
+        },
+        {
+          "path": 101,
+          "states": [
+            0,
+            0
+          ],
+          "full_errors": 1,
+          "payment": 0.0
+        },
+        {
+          "path": 102,
+          "states": [
+            1,
+            0
+          ],
+          "full_errors": 0,
+          "payment": 0.8
+        },
+        {
+          "path": 103,
+          "states": [
+            1,
+            0
+          ],
+          "full_errors": 1,
+          "payment": 0.8
+        }
+      ]
+    },
+    "tied_optimized": {
+      "independent_paths": 4,
+      "records": 4,
+      "full_recovery": 2,
+      "total_full_errors": 2,
+      "mean_full_errors": 0.5,
+      "mean_actual_payment": 1.4,
+      "per_path": [
+        {
+          "path": 100,
+          "states": [
+            1,
+            1
+          ],
+          "full_errors": 0,
+          "payment": 1.6
+        },
+        {
+          "path": 101,
+          "states": [
+            0,
+            1
+          ],
+          "full_errors": 1,
+          "payment": 0.8
+        },
+        {
+          "path": 102,
+          "states": [
+            1,
+            1
+          ],
+          "full_errors": 0,
+          "payment": 1.6
+        },
+        {
+          "path": 103,
+          "states": [
+            1,
+            1
+          ],
+          "full_errors": 1,
+          "payment": 1.6
+        }
+      ]
+    }
+  },
+  "path103_mechanism": {
+    "zero__p103__t0v0": {
+      "record": "zero__p103__t0v0",
+      "result_sha256": "04895e3003d19f741f8430dc445c1d7de78778c3a16563df09d33cc54be3de67",
+      "extra_start_sources": [
+        0,
+        13
+      ],
+      "prep4_config": "raw_R_0.24",
+      "prep4_validation_rank": 5,
+      "prep4_validation_mae": 0.0012016015349983883,
+      "prep4_joint_chain": {
+        "bank_native": {
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": []
+        },
+        "bank_joint_fit": {
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": []
+        },
+        "contracted_bank_before_existing_refit": {
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": []
+        }
+      },
+      "actual_selected": {
+        "origin": "tree_bank",
+        "path_index": null,
+        "source_config": null,
+        "raw": {
+          "support_count": 22,
+          "target_present": true,
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "final": {
+          "support_count": 22,
+          "target_present": true,
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "training_objective": 0.0012039037655498747,
+        "validation_mae": 0.0012016015349983883
+      },
+      "best_actual_validation_mae": 0.001201010734057696,
+      "actual_3percent_threshold": 0.001237041057079427,
+      "other_method_final_errors": {
+        "multistart_original_rule": 0,
+        "rnj_bank": 0,
+        "baseline25": 0,
+        "geometric_RNJ_RX75_0.16": 2,
+        "geometric_NJ_RX75_0.16": 2
+      },
+      "paths": {
+        "primary": {
+          "reason": "pool_wall_limit",
+          "seconds": 25.620217000017874,
+          "points": [
+            {
+              "support_count": 24,
+              "full_errors": 2,
+              "target_present": true,
+              "missing": [],
+              "extra": [
+                [
+                  201,
+                  203
+                ],
+                [
+                  208,
+                  209
+                ]
+              ],
+              "training_mae": 0.001203634799102058,
+              "validation_mae": null
+            }
+          ],
+          "acceptance_decisions": [
+            {
+              "iteration": 0,
+              "current_mae": 0.001203634799102058,
+              "best_gain": 3.74769572298499e-07,
+              "actual_acceptance_threshold": 1.203734799102058e-06,
+              "accepted_by_saved_rule": false,
+              "full_sweep": false
+            }
+          ]
+        },
+        "multistart_0": {
+          "reason": "pool_wall_limit",
+          "seconds": 25.488986600015778,
+          "points": [
+            {
+              "support_count": 22,
+              "full_errors": 0,
+              "target_present": true,
+              "missing": [],
+              "extra": [],
+              "training_mae": 0.0012039037655498749,
+              "validation_mae": null
+            }
+          ],
+          "acceptance_decisions": [
+            {
+              "iteration": 0,
+              "current_mae": 0.0012039037655498749,
+              "best_gain": 3.7676273463137927e-07,
+              "actual_acceptance_threshold": 1.204003765549875e-06,
+              "accepted_by_saved_rule": false,
+              "full_sweep": false
+            }
+          ]
+        },
+        "multistart_1": {
+          "reason": "pool_wall_limit",
+          "seconds": 25.643864200043026,
+          "points": [
+            {
+              "support_count": 23,
+              "full_errors": 5,
+              "target_present": true,
+              "missing": [
+                [
+                  207,
+                  208,
+                  209
+                ],
+                [
+                  210,
+                  211,
+                  212,
+                  216
+                ]
+              ],
+              "extra": [
+                [
+                  207,
+                  208
+                ],
+                [
+                  209,
+                  211,
+                  212
+                ],
+                [
+                  210,
+                  216
+                ]
+              ],
+              "training_mae": 0.001237151299338779,
+              "validation_mae": null
+            },
+            {
+              "support_count": 22,
+              "full_errors": 4,
+              "target_present": true,
+              "missing": [
+                [
+                  207,
+                  208,
+                  209
+                ],
+                [
+                  210,
+                  211,
+                  212,
+                  216
+                ]
+              ],
+              "extra": [
+                [
+                  207,
+                  208
+                ],
+                [
+                  211,
+                  212,
+                  216
+                ]
+              ],
+              "training_mae": 0.0012205186961186736,
+              "validation_mae": null
+            }
+          ],
+          "acceptance_decisions": [
+            {
+              "iteration": 0,
+              "current_mae": 0.001237151299338779,
+              "best_gain": 1.6632603220105308e-05,
+              "actual_acceptance_threshold": 1.237251299338779e-06,
+              "accepted_by_saved_rule": true,
+              "full_sweep": false
+            }
+          ]
+        }
+      },
+      "selection_candidates_21_or_correct22": [
+        {
+          "candidate_index": 4,
+          "origin": "tree_bank",
+          "config": "raw_R_0.24",
+          "source_config": null,
+          "path_index": null,
+          "eligible": true,
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": [],
+          "training_mae": 0.0012039037655498747,
+          "validation_mae": 0.0012016015349983883
+        },
+        {
+          "candidate_index": 9,
+          "origin": "tree_bank",
+          "config": "raw_RX75_0.24",
+          "source_config": null,
+          "path_index": null,
+          "eligible": true,
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": [],
+          "training_mae": 0.0012039037655498747,
+          "validation_mae": 0.0012016015349983883
+        },
+        {
+          "candidate_index": 16,
+          "origin": "multistart_0",
+          "config": null,
+          "source_config": "raw_R_0",
+          "path_index": 0,
+          "eligible": true,
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": [],
+          "training_mae": 0.0012039037655498747,
+          "validation_mae": 0.0012016015349983883
+        }
+      ]
+    },
+    "optimized__p103__t1v0": {
+      "record": "optimized__p103__t1v0",
+      "result_sha256": "a0e4fc01762c1684acb936ca857894295852d09e002806a10a3226eb7cb11cda",
+      "extra_start_sources": [
+        0,
+        4
+      ],
+      "prep4_config": "raw_R_0.24",
+      "prep4_validation_rank": 10,
+      "prep4_validation_mae": 0.0012309648295564758,
+      "prep4_joint_chain": {
+        "bank_native": {
+          "support_count": 22,
+          "full_errors": 2,
+          "target_present": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              202,
+              203,
+              213
+            ]
+          ]
+        },
+        "bank_joint_fit": {
+          "support_count": 22,
+          "full_errors": 2,
+          "target_present": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              202,
+              203,
+              213
+            ]
+          ]
+        },
+        "contracted_bank_before_existing_refit": {
+          "support_count": 21,
+          "full_errors": 1,
+          "target_present": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": []
+        }
+      },
+      "actual_selected": {
+        "origin": "multistart_1",
+        "path_index": 0,
+        "source_config": "raw_R_0.24",
+        "raw": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "final": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "training_objective": 0.0012277894531930737,
+        "validation_mae": 0.0012309648295564758
+      },
+      "best_actual_validation_mae": 0.0012010363213584253,
+      "actual_3percent_threshold": 0.0012370674119991782,
+      "other_method_final_errors": {
+        "multistart_original_rule": 1,
+        "rnj_bank": 0,
+        "baseline25": 0,
+        "geometric_RNJ_RX75_0.16": 2,
+        "geometric_NJ_RX75_0.16": 2
+      },
+      "paths": {
+        "primary": {
+          "reason": "pool_wall_limit",
+          "seconds": 25.88039830001071,
+          "points": [
+            {
+              "support_count": 24,
+              "full_errors": 2,
+              "target_present": true,
+              "missing": [],
+              "extra": [
+                [
+                  201,
+                  203
+                ],
+                [
+                  208,
+                  209
+                ]
+              ],
+              "training_mae": 0.0012036326644969907,
+              "validation_mae": null
+            }
+          ],
+          "acceptance_decisions": [
+            {
+              "iteration": 0,
+              "current_mae": 0.0012036326644969907,
+              "best_gain": 3.730447208308979e-07,
+              "actual_acceptance_threshold": 1.2037326644969908e-06,
+              "accepted_by_saved_rule": false,
+              "full_sweep": false
+            }
+          ]
+        },
+        "multistart_0": {
+          "reason": "pool_wall_limit",
+          "seconds": 25.771920199971646,
+          "points": [
+            {
+              "support_count": 22,
+              "full_errors": 0,
+              "target_present": true,
+              "missing": [],
+              "extra": [],
+              "training_mae": 0.0012038993174530615,
+              "validation_mae": null
+            }
+          ],
+          "acceptance_decisions": [
+            {
+              "iteration": 0,
+              "current_mae": 0.0012038993174530615,
+              "best_gain": 3.7667472640719006e-07,
+              "actual_acceptance_threshold": 1.2039993174530616e-06,
+              "accepted_by_saved_rule": false,
+              "full_sweep": false
+            }
+          ]
+        },
+        "multistart_1": {
+          "reason": "pool_wall_limit",
+          "seconds": 26.03866369999014,
+          "points": [
+            {
+              "support_count": 21,
+              "full_errors": 1,
+              "target_present": false,
+              "missing": [
+                [
+                  201,
+                  202,
+                  203
+                ]
+              ],
+              "extra": [],
+              "training_mae": 0.0012277894531930737,
+              "validation_mae": null
+            },
+            {
+              "support_count": 22,
+              "full_errors": 0,
+              "target_present": true,
+              "missing": [],
+              "extra": [],
+              "training_mae": 0.0012038993174530615,
+              "validation_mae": null
+            }
+          ],
+          "acceptance_decisions": [
+            {
+              "iteration": 0,
+              "current_mae": 0.0012277894531930737,
+              "best_gain": 2.3890135740012265e-05,
+              "actual_acceptance_threshold": 1.2278894531930738e-06,
+              "accepted_by_saved_rule": true,
+              "full_sweep": false
+            }
+          ]
+        }
+      },
+      "selection_candidates_21_or_correct22": [
+        {
+          "candidate_index": 9,
+          "origin": "tree_bank",
+          "config": "raw_RX75_0.24",
+          "source_config": null,
+          "path_index": null,
+          "eligible": true,
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": [],
+          "training_mae": 0.0012038993174530615,
+          "validation_mae": 0.001201682511634678
+        },
+        {
+          "candidate_index": 16,
+          "origin": "multistart_0",
+          "config": null,
+          "source_config": "raw_R_0",
+          "path_index": 0,
+          "eligible": true,
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": [],
+          "training_mae": 0.0012038993174530615,
+          "validation_mae": 0.001201682511634678
+        },
+        {
+          "candidate_index": 17,
+          "origin": "multistart_1",
+          "config": null,
+          "source_config": "raw_R_0.24",
+          "path_index": 0,
+          "eligible": true,
+          "support_count": 21,
+          "full_errors": 1,
+          "target_present": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "training_mae": 0.0012277894531930737,
+          "validation_mae": 0.0012309648295564758
+        },
+        {
+          "candidate_index": 18,
+          "origin": "multistart_1",
+          "config": null,
+          "source_config": "raw_R_0.24",
+          "path_index": 1,
+          "eligible": true,
+          "support_count": 22,
+          "full_errors": 0,
+          "target_present": true,
+          "missing": [],
+          "extra": [],
+          "training_mae": 0.0012038993174530615,
+          "validation_mae": 0.001201682511634678
+        }
+      ]
+    }
+  },
+  "successful_zero_paths": [
+    100,
+    102,
+    103
+  ],
+  "successful_requests_counterfactuals": [
+    {
+      "record": "zero__p102__t0v0",
+      "path": 102,
+      "counterfactual": {
+        "scope": "post-hoc final selection on existing fitted/scored points only; no new fit/path/data and actual output unchanged",
+        "appended_preparation_source_index": 0,
+        "appended_source_config": "raw_R_0",
+        "appended_point": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "appended_validation_mae": 0.0012108005225499139,
+        "actual_global_validation_mae": 0.0011839362889741482,
+        "actual_global_threshold": 0.0012194543786433728,
+        "eligibility_margin": -8.653856093458886e-06,
+        "appended_point_was_in_actual_final_candidates": false,
+        "counterfactual_selected_appended_point": true,
+        "counterfactual_raw": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "counterfactual_after_existing_contraction": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "record": "rotation_equal__p102__t1v2",
+      "path": 102,
+      "counterfactual": {
+        "scope": "post-hoc final selection on existing fitted/scored points only; no new fit/path/data and actual output unchanged",
+        "appended_preparation_source_index": 0,
+        "appended_source_config": "raw_R_0",
+        "appended_point": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "appended_validation_mae": 0.0012108698487433567,
+        "actual_global_validation_mae": 0.0011838250793870656,
+        "actual_global_threshold": 0.0012193398327686776,
+        "eligibility_margin": -8.46998402532096e-06,
+        "appended_point_was_in_actual_final_candidates": false,
+        "counterfactual_selected_appended_point": true,
+        "counterfactual_raw": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "counterfactual_after_existing_contraction": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "record": "rotation_optimized__p102__t1v0",
+      "path": 102,
+      "counterfactual": {
+        "scope": "post-hoc final selection on existing fitted/scored points only; no new fit/path/data and actual output unchanged",
+        "appended_preparation_source_index": 0,
+        "appended_source_config": "raw_R_0",
+        "appended_point": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "appended_validation_mae": 0.001210880714679259,
+        "actual_global_validation_mae": 0.0011838220983697335,
+        "actual_global_threshold": 0.0012193367623208255,
+        "eligibility_margin": -8.456047641566475e-06,
+        "appended_point_was_in_actual_final_candidates": false,
+        "counterfactual_selected_appended_point": true,
+        "counterfactual_raw": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "counterfactual_after_existing_contraction": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "record": "optimized__p102__t1v0",
+      "path": 102,
+      "counterfactual": {
+        "scope": "post-hoc final selection on existing fitted/scored points only; no new fit/path/data and actual output unchanged",
+        "appended_preparation_source_index": 0,
+        "appended_source_config": "raw_R_0",
+        "appended_point": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "appended_validation_mae": 0.001210880714679259,
+        "actual_global_validation_mae": 0.0011838220983697335,
+        "actual_global_threshold": 0.0012193367623208255,
+        "eligibility_margin": -8.456047641566475e-06,
+        "appended_point_was_in_actual_final_candidates": false,
+        "counterfactual_selected_appended_point": true,
+        "counterfactual_raw": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "counterfactual_after_existing_contraction": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "record": "tied_optimized__p102__t1v1",
+      "path": 102,
+      "counterfactual": {
+        "scope": "post-hoc final selection on existing fitted/scored points only; no new fit/path/data and actual output unchanged",
+        "appended_preparation_source_index": 0,
+        "appended_source_config": "raw_R_0",
+        "appended_point": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "appended_validation_mae": 0.0012108545361458338,
+        "actual_global_validation_mae": 0.0011838250157250709,
+        "actual_global_threshold": 0.001219339767196823,
+        "eligibility_margin": -8.485231050989238e-06,
+        "appended_point_was_in_actual_final_candidates": false,
+        "counterfactual_selected_appended_point": true,
+        "counterfactual_raw": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        },
+        "counterfactual_after_existing_contraction": {
+          "support_count": 21,
+          "target_present": false,
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "support_labels": [
+            [
+              201
+            ],
+            [
+              202
+            ],
+            [
+              203
+            ],
+            [
+              204
+            ],
+            [
+              205
+            ],
+            [
+              206
+            ],
+            [
+              207
+            ],
+            [
+              208
+            ],
+            [
+              209
+            ],
+            [
+              210
+            ],
+            [
+              211
+            ],
+            [
+              212
+            ],
+            [
+              213
+            ],
+            [
+              214
+            ],
+            [
+              215
+            ],
+            [
+              216
+            ],
+            [
+              207,
+              208,
+              209
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              210,
+              211,
+              212,
+              216
+            ],
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              213,
+              215
+            ],
+            [
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              214,
+              216
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "verified_conclusions": [
+    "All optimized successes occur on paths 100 and 102, both recovered by no-reward natural append; no optimized path fixes a no-reward failure.",
+    "Path103 geometry changes raw_R_0.24 native support from correct22 to missing target plus false larger support; joint fit preserves both, contraction removes the false larger support and leaves coarse21. That distinct coarse family becomes the second admitted extra start.",
+    "W actually accepts target C from the coarse21 start on path103, reducing training L1 and producing correct22. Final 3percent simplest-family selection returns the eligible21-block path0; final contraction leaves it unchanged.",
+    "Path102 existing fitted/scored coarse21 preparation point remains 3percent eligible but is excluded from actual final candidates. Adding only that stored point would change each of five successful policy records to one missing target; this is a saved-point counterfactual only.",
+    "Four-path independent results do not validate a price improvement or W-specific price guidance. The planning loss table optimized finite admission effects rather than proving uniform removal of the coarse explanation."
+  ],
+  "zero_new_fits_LP_AC": true,
+  "no_raw_PQV_read": true
+}

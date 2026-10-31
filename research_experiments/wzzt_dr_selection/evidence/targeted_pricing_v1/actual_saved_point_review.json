@@ -1,0 +1,69 @@
+{
+  "status": "read_only_complete",
+  "new_identifier_LP_AC_calls": 0,
+  "planning": {
+    "source_sha256": "cf2d78ad474c8b726c40c6c36b19164f88a8091f4892b9a77fab6565efc7b24c",
+    "script_sha256": "2ea52f210b199dcdbea9b3d4a5b27e87b0181ef0b1b5e311c7324fc33c152234",
+    "success_summary": {
+      "successful_requests": 8,
+      "successful_validation_states": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "all_successes_include_inside_early_training_response": true,
+      "selected_actual_path_indices": {
+        "0": 8
+      },
+      "successful_saved_coarse_counterfactuals": 8,
+      "coarse_remains_3percent_eligible": 8,
+      "appended_coarse_would_win_by_current_rule": 8,
+      "counterfactual_after_contract_error_hist": {
+        "1": 8
+      }
+    },
+    "interpretation": [
+      "The actual fixed pipeline changes final error from1 to0 only when the inside resource executes its early training task; natural appended data and late targeted actions alone remain at1.",
+      "All successes select an already jointly refitted initial family at multistart_0 path_index0, not a newly accepted extension.",
+      "All 15 start-preparation families are already LP-fitted and validation-scored by the original adapter; unselected points are not hypothetical fits.",
+      "A correct22-block prepared point exists even without DR, but a selected21-block coarse point is eligible and wins the simplest-family rule.",
+      "Inside-early DR changes the raw native family and the seen-family/dedup admission of the two extra starts; the21-block coarse prepared family remains present but is not admitted to the final candidates.",
+      "The coarse explanation has NOT been excluded by the validation3percent threshold; appending its saved fitted/scored point would make the original final selector missC again.",
+      "The joint pipeline has observed benefit over the saved RNJ bank and geometric outputs for these planning observations; W-specific structural guidance or non-absorbable information separation is not established.",
+      "The targeted balanced module fails all16 planning states, while the winning column is the simple rotation module with only an inside early training reward; both per-round Gamma values are0 for this table.",
+      "This is a post-hoc mechanism audit of one planning background, not an independent performance claim or a new algorithm experiment."
+    ],
+    "source_basis": {
+      "adapter_file": "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_pool_v2\\adapter.py",
+      "adapter_sha256": "0d7dc1f60c98559bd12eae6960868756456619c7c6da7e8cb499cacdce354de7",
+      "preparation_sequence": "contract(bank point,calibration), lp.fit(contracted supports), measure(training,validation), rank/deduplicate, retain at most2 starts",
+      "no_continuous_parameters_or_PQV_published": true
+    }
+  },
+  "test": {
+    "source_sha256": "0330ee11538eaf315ef4342b372e24b2df5f4e94341b7cd8565d2667da166752",
+    "script_sha256": "8870e11cbd5a913204cdf6c1c874adfa97fff676c5d75b26d07f0c4845bd2de7",
+    "summary": {
+      "completed_requests": 20,
+      "skipped_requests": 0,
+      "successful_requests": 12,
+      "successful_unique_results": 10,
+      "successful_requests_with_target_pool": 12,
+      "successful_requests_with_target_accepted": 12,
+      "successful_selected_path_index_counts": {
+        "0": 10,
+        "None": 2
+      },
+      "successes_with_saved_exact_truth_minus_target_preparation": 5,
+      "saved_coarse_still_3percent_eligible": 5,
+      "saved_coarse_not_in_actual_candidates": 5,
+      "appending_saved_coarse_would_win": 5,
+      "counterfactual_after_contract_error_hist": {
+        "1": 5
+      }
+    },
+    "scope": "post-hoc selection audit on already fitted/scored preparation points; not a new fit, new path or alternative algorithm experiment",
+    "counterfactual_is_new_experiment": false
+  }
+}

@@ -1,25 +1,20 @@
-# 目标块：实际影响预计算与报价优化
+# 目标块DR：实际影响预计算、报价优化和独立核算
 
-本批先从既有最终失败筛选机制子集，保留原零收益控制。完整识别器仍fit_observed，不重写搜索/选模。
+本轮已全部完成；先读[ACTUAL_TEST_REPORT.md](ACTUAL_TEST_REPORT.md)和统一[MATHEMATICAL_MODEL.md](MATHEMATICAL_MODEL.md)。MODEL_AND_PLAN.md保留事前基础协议及四价补充。
 
-- MODEL_AND_PLAN.md：完整方案、执行状态、预算和严格有限模型；最上方独立训练/验证四价补充优先。
-- prepare_baseline.py：已完成paper15资格与flynn主例当前288/288复核，不重复。
-- run_precomputed.py：基础prepare/observe planning、复用fit/finish、目标机制跟踪及最终aggregate。
-- decision_layer.py：独立source绑定的四价扩展prepare/optimize/test；不增加基础执行状态或W调用。
-- optimizer.py：训练/验证重复两价的受限对照。
-- event_optimizer.py：四独立报价主模型，50价向量/方案、100可行联合列，先risk后费用。
+真实结果：无奖励自然新增与简单轮换各3/4完整恢复，优化报价2/4，未通过独立验证。planning32请求/31unique，test20请求/15unique，4871固定族LP，失败未决0。有限初值准入和3%最简回选是关键作用环节；不归因为末端收缩。
 
-主例flynn16/b4/v0005，C=201-203；现有bank和完整方法均漏C，主障碍在验证3%带。201/204执行，202/203被动。物理和参数保持原.0005/.005、288/288→480/480、预算1.6、25秒/3%/.16；明示合成参与规律不称现场EV校准。
+已有主识别器fit_observed未重写。完整历史288/288保留至480/480，原25秒/3%/.16、.0005/.005、预算1.6与零弱权重保持。当前主参照为已知错误块/已知生成模型，一个规划自然背景；合成参与律未校准。
 
-实际顺序（root为private wzzt_targeted_pricing_v1/flynn_run_v1）：
-1. 基线已完成；run_precomputed prepare/observe planning已完成；decision_layer prepare在读取影响损失前已完成。
-2. run_precomputed fit --phase planning --worker 0/1正在运行，检查锁/ended，勿重复。
-3. run_precomputed finish --phase planning，全fit冻结后评分；decision_layer optimize从真实16表取风险，冻结oracle。
-4. decision_layer test生成新实际观测；run_precomputed fit --phase test两worker；finish test；aggregate。
-5. 独立审计和最终白名单汇总，原轨迹/连续权重仅私有。
+文件：
+- prepare_baseline.py：paper15资格与flynn主例当前基线，已结束勿重跑。
+- run_precomputed.py：基础状态预计算、复用fit/finish/aggregate。
+- decision_layer.py / event_optimizer.py：四独立报价主模型，100可行列；全部16状态积分后优化并冻结，再生成独立test。
+- optimizer.py：训验重复两价的受限对照。
+- export_results.py：终态白名单导出；拒绝未冻结/运行中状态。
+- audit_results.py：独立评分、概率、报价、费用、接受和选模核验。--root PRIVATE --helper ../dr_day_modules/audit_day_trial.py --out NEW_FILE；输出文件须新路径，0新fit/AC。
+- review_terminal_mechanism.py：已存准备点与真实选择的只读机制核验，--root PRIVATE --phase planning或test --out NEW_FILE --allow-terminal-read；反事实不是新算法实验。
 
-不要调用run_precomputed的旧重复报价optimize/observe test入口。该入口仅保留基础源版本兼容，真实测试使用新的四价决策层/整数2×2报价。
+全部private artifact位于visualizations任务根的wzzt_targeted_pricing_v1/flynn_run_v1，base/decision协议、源zip、history、planning/test、oracle、summary、audit和机制报告齐全。evidence/targeted_pricing_v1仅含汇总/离散支持/检查/hash，不上传家庭、PQV/AC轨迹或连续拟合参数。
 
-四价扩展前的base protocol、32物理状态和source保持不可变；新decision_protocol与event_price_decision_lock绑定新层。执行状态完整，因此价格扩展只重新积分，不补造或重跑损失值。
-
-这是有限影响库的精确优化，不是全连续DR全局最优。影响表不可按孤立模块收益相加，多资源多轮的高阶交互需要完整联合状态或有验证误差的近似。
+不要重新运行32状态或20测试，不调用run_precomputed旧两价optimize/observe test入口。没有新可检验规则前，不扩大本例种子、噪声、预算或网络。
