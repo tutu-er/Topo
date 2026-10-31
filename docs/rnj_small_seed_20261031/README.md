@@ -1,5 +1,7 @@
 # RNJ少量小块 → WZZT骨架 → 联合末端 → 退出与收缩
 
+最终综合分析见[ANALYSIS.md](ANALYSIS.md)，300秒完整对照见[LONG_RESULTS.md](LONG_RESULTS.md)，保持原始基础WZZT的24输入检查见[ORIGINAL_BASE_RESULTS.md](ORIGINAL_BASE_RESULTS.md)。本页下方为保留的40秒阶段记录；small3在本页特指带额外“半数直属块优先”限制的变体。
+
 旧完整RNJ方案原样保留于 docs/joint_exit_20261031（a46691ed）；本报告不覆盖旧结果。模型和边界见 PLAN.md。
 
 冻结开发选择：small3，严格验证；共同收缩0.24，另报0.16。正式168次搜索，覆盖120主/压力输入及24输入上的两种机制对照。
