@@ -145,6 +145,12 @@ def analyze(output):
     totals['miss_rate'] = totals.FN/totals.truth.replace(0,np.nan); totals.to_csv(dest/'size_summary.csv',index=False)
     blocking_frame = pd.DataFrame(blockings); blocking_frame.to_csv(dest/'blocking_rows.csv',index=False)
     blocking_frame.groupby(['panel','method'])[['blocked','rnj_small','rnj_large','wzzt_small','wzzt_large']].sum().reset_index().to_csv(dest/'blocking_summary.csv',index=False)
+    small = blocking_frame.rnj_small | blocking_frame.wzzt_small
+    large = blocking_frame.rnj_large | blocking_frame.wzzt_large
+    blocking_frame['category'] = np.select(
+        [blocking_frame.present_structurally, small & ~large, large & ~small, small & large],
+        ['present', 'small_only', 'large_only', 'both_sizes'], default='compatible_but_missing')
+    blocking_frame.groupby(['panel','method','category']).size().rename('true_line_occurrences').reset_index().to_csv(dest/'blocking_exclusive.csv',index=False)
     pairs=[]
     for (panel,view), g in frame.groupby(['panel','view']):
         pivot=g.pivot(index='job',columns='method',values='clade_f1')
@@ -154,5 +160,5 @@ def analyze(output):
     pd.DataFrame(pairs).to_csv(dest/'paired.csv',index=False)
     write(dest/'events.json',events);write(dest/'first_errors.json',first)
     write(dest/'crosssolver.json',dict(passed=True,checks=len(cross),records=cross))
-    write(dest/'verification.json',dict(passed=True,checks=checks,planned=480,returned=read(output/'completion.json')['returned'],failures=failures,independent_LP=len(cross)))
+    write(dest/'verification.json',dict(passed=True,checks=checks,planned=480,returned=read(output/'completion.json')['returned'],failures=failures,independent_LP=len(cross),analysis_source_sha256=sha(__file__)))
     print(summary.to_string(index=False),flush=True); print('VERIFIED',checks,len(cross),'independent LPs',flush=True)

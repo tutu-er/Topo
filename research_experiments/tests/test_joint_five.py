@@ -121,3 +121,18 @@ def test_error_audit_separates_size_origin_and_zero_weight_structural_blocks():
         assert independent_lp(bank.data, bank.fit(family))['absolute_difference'] < 1e-9
     finally:
         bank.close()
+
+
+def test_five_block_joint_model_matches_all_236_hierarchy_lps():
+    p = np.eye(5); R = .2*p
+    for support, weight in [((0, 1), .1), ((0, 1, 2), .15), ((3, 4), .12)]:
+        z = np.array([i in support for i in range(5)], dtype=float); R += weight*np.outer(z,z)
+    family = [(i,) for i in range(5)]+[tuple(range(5))]
+    bank = bank_for(p, p*0, R, family)
+    try:
+        point, event = joint_fit(bank, bank.fit(family, preserve=True), family, seconds=5.)
+        exact = min(bank.fit([*family,*h])['objective'] for h in all_hierarchies(5))
+        assert point['objective'] == pytest.approx(exact, abs=1e-8)
+        assert event['status'] == 2 and event['dual_bound'] <= exact+1e-8
+    finally:
+        bank.close()
