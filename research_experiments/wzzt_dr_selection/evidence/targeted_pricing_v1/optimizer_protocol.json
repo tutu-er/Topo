@@ -1,0 +1,55 @@
+{
+  "id": "targeted_price_optimizer_pure_v1",
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_targeted_pricing\\__init__.py": "7aa74d1bd3ffb3756f38bf4a6b6150a73a028889db9cbaea1bbc6259f1e85a5a",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_targeted_pricing\\optimizer.py": "31890d7e76c99781318f7d7712a23db00e26679661e911d728c6c9aa27c24435",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\tests\\test_wzzt_dr_targeted_optimizer.py": "2d0a3598ce78ad9a5b3ea8ac64a8e9f74eb0a733075c7b59212b86bc00d1c6f4",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_targeted_price_optimizer_pure_v1\\run_checks.py": "e037f11f5cd04b335883254d37cf4640785d20bf4f5601c3a9ca5ff06a9dc2a4"
+  },
+  "expected_distinct_tests": 9,
+  "expected_pure_MILP_calls": 15,
+  "expected_statuses": {
+    "optimal": 14,
+    "preset_infeasible": 1
+  },
+  "seeds": [
+    11,
+    920,
+    10817,
+    9
+  ],
+  "losses": "synthetic numerical test tables; no experiment outputs",
+  "states": {
+    "training": [
+      "00",
+      "10",
+      "01",
+      "11"
+    ],
+    "validation": [
+      "00",
+      "10",
+      "01",
+      "11"
+    ],
+    "law": "independent pair and independent paid days"
+  },
+  "energy_per_paid_event_kwh": 0.4,
+  "paid_events": 2,
+  "hard_budget": 1.6,
+  "methods": {
+    "risk": "MILP upper expected loss",
+    "tie": "second MILP expected fee, all lex ties and seeded choice",
+    "independent": "Fraction exhaustive price/plan check"
+  },
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "executable": "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pytest": "9.1.1"
+  },
+  "no_WZZT_or_AC_calls": true,
+  "no_private_observations_or_future": true
+}

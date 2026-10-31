@@ -1,3 +1,13 @@
+## 当前运行：已知漏块的预计算—报价优化实际机制测试，2026-10-31
+
+- 用户授权从最终失败块定向DR，主模型见dr_targeted_pricing/MODEL_AND_PLAN.md。当前单例flynn16/b4/v0005/N288，原.0005/.005不变，当前Method2/原25秒复核157LP、85.963s，full/bank/单路径均漏201-203；几何RNJ4错/NJ3错。纸例paper15资格复核113LP仍full错1但免费bank0，因此在任何DR前改主例，原资格记录保留。
+- 实际目标是验证跨过3%最简带：正确22块含C候选已被W接受，强度为原阈值1.789倍；粗21块因val/min=1.0225118获选，距排除带8.91e-6。非末端收缩问题。
+- 两资源201/204，202/203被动，历史共享父201..206,213,215；同步反向与简单分时轮换两完整方案，同a=.2kW、Ered=.4kWh/资源付费日。四新日全部追加480/480，仅event0训练、event2验证发任务，另两日自然新增。基础两价在训验重复仅作受限对照；主层四独立价，预算.4sum(c)<=1.6，每方案50价向量，2方案100列，无强制分散。
+- 训练4×验证4共16执行状态/方案已实际AC生成，32请求/31完整观察，正在两个旧SharedFitter fit_worker按Method2跑31个完整RNJ＋WZZT，不重复旧31/41批。物理worker新显式源噪声绑定，旧默认.0002保留；本例根表和末端皆.0005，不能降噪换收益。
+- optimizer.py本地c1a18372，9纯检查/15微MILP通过（14最优1预设不可行），0W/AC；仅说明有限风险表优化正确，不算拓扑效果。风险表来自本批实际final，未知状态保留上下界。
+- private scratch/wzzt_targeted_pricing_v1/flynn_run_v1含baseline协议/完整history/评价、DR protocol/source_snapshot_targeted/plans/planning。当前planning两个worker在跑；检查锁/ended，勿重跑任何已完成记录。在影响表读取前已冻结decision_layer四价扩展（训练/验证报价独立，100可行列，不新增执行状态或W调用）。全fit冻结后score→risk表→四价MILP优化与oracle冻结→4条独立test路径。
+- 目标/已知模型参考为机制诊断，不声称部署后验或价格参与实证；原两个零收益控制仍保留，不以错误子集成绩推广总体。公开evidence/targeted_pricing_v1只有白名单协议/基线/优化单元汇总，轨迹及连续参数私有。
+
 ## 最新完成：全天模块实际AC/完整RNJ＋WZZT及独立测试，2026-10-31
 
 本节取代下方旧“当前/下一步”。首批实际小试已结束，读dr_day_modules/ACTUAL_TEST_REPORT.md及evidence/day_module_actual_v1；原flynn16/b5、pengwah18/b5零收益对照不覆盖。

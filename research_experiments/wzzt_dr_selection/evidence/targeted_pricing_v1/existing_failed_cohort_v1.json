@@ -1,0 +1,335 @@
+{
+  "scope": "read-only saved results and static topology; zero new fit/LP/AC/future observations",
+  "cohort": "all three existing main/N288/v0005 final multistart failures, not DR-outcome-selected",
+  "source_files": {
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\paper15\\reference\\metadata.json": "24fefa8965dd6d5c4cedeeee74f9c35d9446e3f338b9f8fecc08aff300da09cc",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\paper15\\reference\\buses.csv": "c6b52d86d3b3b0e3c32637dd14473b184558ba00a94a3f4cddfd2a3b1da632d0",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\paper15\\reference\\branches.csv": "0856600736e373cefd358864b646f4dc429f9c86b2879afadec30bb30c4f127f",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\flynn16\\reference\\metadata.json": "37344b520c0277b9052e1901789b99c7287e3cd061cfb21999fcbf0e811d8432",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\flynn16\\reference\\buses.csv": "315a55e5cb4ffb3f64da7022b528961999fcf3d1c60df6e8d4d701a75c79200b",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\flynn16\\reference\\branches.csv": "40e85eef274115ea39f652e136b0378301ff6b9d4f5ba60e6d2c8e681dac1a0a",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\pengwah18\\reference\\metadata.json": "744a2f2916d907608a6dcf1e741d9d6ab4de9c1211a4d19157d5729807f0360c",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\pengwah18\\reference\\buses.csv": "d277fee4c1f39075e6d1982d4233343b4ceb81d9f39f4935a088f23a93fedc41",
+    "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\networks\\pengwah18\\reference\\branches.csv": "f061ca61319f621306fb11d456aeb15ef35629b4e27ec516c443762d6ec53cb4"
+  },
+  "records": [
+    {
+      "job_id": "main__paper15__b2__reference__v0005__N288",
+      "case": "paper15",
+      "N": 288,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "result": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\jobs\\main__paper15__b2__reference__v0005__N288\\result.json",
+        "sha256": "f0351b2527840fb99fbd6c2c386ee7ce6684d8c6a03eb853992d0e32f53a7d5c"
+      },
+      "labels": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115
+      ],
+      "full_truth_blocks": 21,
+      "models": {
+        "NJ": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "RNJ_native": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "RNJ_L1_bank": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "multistart": {
+          "full_errors": 1,
+          "missing": [
+            [
+              103,
+              104,
+              105
+            ]
+          ],
+          "extra": [],
+          "origin": "extra0"
+        }
+      },
+      "source_semantics": "frozen paper panel 20261029",
+      "parameter_source": "frozen 20261028 settings",
+      "current_interface_revalidated": false,
+      "mechanism_classification": "multistart_selects_wrong_after_bank_and_single_path_already_correct",
+      "selection": {
+        "selected_index": 16,
+        "raw_count": 20,
+        "final_count": 20,
+        "selected_validation_ratio": 1.0256596493118482,
+        "distance_inside_3pct_band": 5.06799171299914e-06,
+        "search_stops": {
+          "primary25": "pool_local_optimum",
+          "extra0": "pool_local_optimum",
+          "extra1": "pool_local_optimum"
+        }
+      }
+    },
+    {
+      "job_id": "main__flynn16__b4__reference__v0005__N288",
+      "case": "flynn16",
+      "N": 288,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "result": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\jobs\\main__flynn16__b4__reference__v0005__N288\\result.json",
+        "sha256": "6c93b1e69d79a22ac405f565bd2d0807d123bae0987114a291fb96a76c9a7882"
+      },
+      "labels": [
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216
+      ],
+      "full_truth_blocks": 22,
+      "models": {
+        "NJ": {
+          "full_errors": 3,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [
+            [
+              208,
+              209
+            ]
+          ],
+          "origin": "tree_bank"
+        },
+        "RNJ_native": {
+          "full_errors": 3,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              202,
+              203,
+              204,
+              205,
+              206,
+              215
+            ],
+            [
+              202,
+              203,
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "origin": "tree_bank"
+        },
+        "RNJ_L1_bank": {
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "baseline25": {
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "multistart": {
+          "full_errors": 1,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "origin": "extra1"
+        }
+      },
+      "source_semantics": "frozen paper panel 20261029",
+      "parameter_source": "frozen 20261028 settings",
+      "current_interface_revalidated": false,
+      "mechanism_classification": "all_three_joint_versions_have_errors",
+      "selection": {
+        "selected_index": 19,
+        "raw_count": 21,
+        "final_count": 21,
+        "selected_validation_ratio": 1.022511826600369,
+        "distance_inside_3pct_band": 8.910808807029158e-06,
+        "search_stops": {
+          "primary25": "pool_local_optimum",
+          "extra0": "pool_local_optimum",
+          "extra1": "pool_local_optimum"
+        }
+      }
+    },
+    {
+      "job_id": "main__pengwah18__b5__reference__v0005__N288",
+      "case": "pengwah18",
+      "N": 288,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "result": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\wzzt_paper_20261029_full\\jobs\\main__pengwah18__b5__reference__v0005__N288\\result.json",
+        "sha256": "82b07a29fc63b286dae547a9c6ac098891486057a2042fdcd774b1a5434dc448"
+      },
+      "labels": [
+        301,
+        302,
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309,
+        310,
+        311,
+        312,
+        313,
+        314,
+        315,
+        316,
+        317,
+        318
+      ],
+      "full_truth_blocks": 25,
+      "models": {
+        "NJ": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "RNJ_native": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "RNJ_L1_bank": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "missing": [],
+          "extra": [],
+          "origin": "tree_bank"
+        },
+        "multistart": {
+          "full_errors": 3,
+          "missing": [
+            [
+              303,
+              304,
+              305
+            ],
+            [
+              315,
+              316,
+              317,
+              318
+            ]
+          ],
+          "extra": [
+            [
+              315,
+              316,
+              317
+            ]
+          ],
+          "origin": "extra0"
+        }
+      },
+      "source_semantics": "frozen paper panel 20261029",
+      "parameter_source": "frozen 20261028 settings",
+      "current_interface_revalidated": false,
+      "mechanism_classification": "multistart_selects_wrong_after_bank_and_single_path_already_correct",
+      "selection": {
+        "selected_index": 16,
+        "raw_count": 24,
+        "final_count": 24,
+        "selected_validation_ratio": 1.0296002670807491,
+        "distance_inside_3pct_band": 4.663665515798523e-07,
+        "search_stops": {
+          "primary25": "pool_local_optimum",
+          "extra0": "pool_local_optimum",
+          "extra1": "pool_local_optimum"
+        }
+      }
+    }
+  ]
+}

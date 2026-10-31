@@ -118,6 +118,19 @@ def _integer(value, name, *, minimum=0):
     return value
 
 
+def voltage_noise_binding(request, protocol):
+    """Keep original defaults, but inherit a new experiment's locked noise level."""
+    value = request.get('voltage_sigma', .0002)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError('voltage_sigma must be an explicit numeric source-grid value')
+    value = float(value)
+    if not math.isfinite(value) or value not in (0., .0002, .0005, .001):
+        raise ValueError('voltage_sigma outside the existing source grid')
+    if 'voltage_sigma' in protocol and protocol['voltage_sigma'] != value:
+        raise ValueError('future voltage/root noise differs from the locked source protocol')
+    return value
+
+
 def load_request(request_path, expected_sha):
     """Check all declared gates before unpickling plans or loading a producer."""
     request_path = Path(request_path).resolve()
@@ -153,7 +166,7 @@ def load_request(request_path, expected_sha):
     if not math.isfinite(budget) or not 0 <= budget <= 1.6:
         raise ValueError('one four-event incentive budget in [0,1.6] is required')
     request['incentive_budget'] = budget
-    if request.get('response_mode') not in ('independent_resource_day_MC', 'conditional_gamma_event0'):
+    if request.get('response_mode') not in ('independent_resource_day_MC', 'conditional_gamma_event0', 'exact_active_train_validation_states'):
         raise ValueError('explicit resource-day response_mode required')
     rho_by_event = request.get('rho_by_event')
     if not isinstance(rho_by_event, list) or len(rho_by_event) != 4:
@@ -170,6 +183,7 @@ def load_request(request_path, expected_sha):
     protocol = json.loads(protocol_path.read_text(encoding='utf-8'))
     if protocol.get('status') != 'frozen':
         raise ValueError('protocol must be frozen')
+    request['voltage_sigma'] = voltage_noise_binding(request, protocol)
     if request['phase'] == 'test':
         oracle_path = _reference(request.get('oracle'), parent, 'test oracle')
         oracle = json.loads(oracle_path.read_text(encoding='utf-8'))
@@ -324,7 +338,7 @@ def run(request, output, receipt):
     if metadata['root_label'] != request['root_label'] or abs(metadata['base_kw']-request['base_kw']) > 1e-12:
         raise ValueError('request root/base disagrees with source metadata')
     receipt.update(protocol_sha256=request['protocol']['sha256'], plan_packet_sha256=request['plan_packet']['sha256'],
-                   source_sha256=request['checked_source_sha256'], case=request['case'], phase=request['phase'],
+                   source_sha256=request['checked_source_sha256'], case=request['case'], phase=request['phase'], voltage_sigma=request['voltage_sigma'],
                    record_id=request['record_id'], path=request['path'],
                    base_kw=metadata['base_kw'], base_kv=metadata['base_kv'], base_mva=metadata['base_mva'],
                    root_label=metadata['root_label'], terminal_labels=request['labels'],
@@ -349,7 +363,7 @@ def run(request, output, receipt):
         raise RuntimeError('loaded physical checks differ from the prelocked source hash')
     runtime[str(checks_source)] = sha(checks_source)
     context = sim._prepare_case_context(request['case'], 96, scenario_suite='reference',
-        root_observation='noisy', root_meter_noise_rel=.0002, root_sigma=.003, impedance_scale=1.)
+        root_observation='noisy', root_meter_noise_rel=request['voltage_sigma'], root_sigma=.003, impedance_scale=1.)
     legacy.validate_context_metadata(context, metadata, request['labels'])
     context.net.check_terminal_load_only(strict=True)
     training, validation, truth = [], [], []
@@ -393,7 +407,7 @@ def run(request, output, receipt):
             private_event.update(V_pu=voltage.to_numpy(), ac=ac)
             equations = checks_function(context.net, pframe, qframe, ac, (.9, 1.1), 1e-8)
             measured = sim._observe_terminal_channels(context, base, pframe, qframe, voltage,
-                                                       pq_noise_rel=.005, v_noise_rel=.0002)
+                                                       pq_noise_rel=.005, v_noise_rel=request['voltage_sigma'])
             observed = legacy.scene(measured['p_measured'].to_numpy(), measured['q_measured'].to_numpy(),
                 measured['voltage_measured'].to_numpy(), measured['root_observed'].to_numpy(),
                 request['labels'], 'day_'+request['record_id']+'_e'+str(event), 6+event)
@@ -479,7 +493,7 @@ def main(argv=None):
         request = load_request(args.request, args.expected_sha)
         receipt.update(source_sha256=request['checked_source_sha256'],
             protocol_sha256=request['protocol']['sha256'], plan_packet_sha256=request['plan_packet']['sha256'],
-            case=request['case'], phase=request['phase'], record_id=request['record_id'], path=request['path'])
+            case=request['case'], phase=request['phase'], voltage_sigma=request['voltage_sigma'], record_id=request['record_id'], path=request['path'])
         write_json(output/'events_receipt.json', receipt)
         receipt = run(request, output, receipt)
     except Exception as error:

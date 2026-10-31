@@ -1,3 +1,11 @@
+## 当前恢复：targeted_pricing_v1/flynn_run_v1实际规划拟合进行中
+
+- 先读dr_targeted_pricing/MODEL_AND_PLAN.md。两个baseline已结束不重跑：paper15 run_v1免费bank已正确，仅资格；flynn_run_v1 full/bank均漏201-203，主机制例。
+- flynn_run_v1/protocol.json/source_snapshot_targeted.zip/32物理请求31jobs已冻结；planning两个fit worker正在执行，脚本run_precomputed.py，命令fit --phase planning --worker 0/1。使用旧run_day_trial的fit/finish，不改识别器。
+- 接下来run_precomputed finish planning→decision_layer optimize（四独立报价）→decision_layer test→run_precomputed fit test两个worker→finish test→aggregate→独立audit。不要修改冻结source以绕hash守卫。
+- baseline选择在DR前锁为三例既有.0005失败中唯一bank也错的flynn b4；标准噪声.0002原40例均正确。仅201/204资源，active events0/2，其他两新日自然，全部480/480；预算1.6、原3%/.16不变。
+- 源噪声继承worker已参数化，旧实验3ca版本在旧source zip，不能将新source当旧协议resume。当前actualdriver源码与risk模型全部入新protocol sourcehash。原physical basis收据价格1，test须用冻结quote的另plan_packet重算费用。
+
 ## 最新恢复：day_module_actual_v1全阶段已结束，不重跑
 
 - 入口dr_day_modules/ACTUAL_TEST_REPORT.md。48请求/41unique fit/9565LP/18432AC时点全结束，无失败未决；planning18、test30（23unique）。oracle正式zero、paid-only rotation_010，test先锁后开，raw/final全0。

@@ -1,0 +1,71 @@
+{
+  "id": "targeted_four_offer_optimizer_pure_v1",
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_targeted_pricing\\__init__.py": "7aa74d1bd3ffb3756f38bf4a6b6150a73a028889db9cbaea1bbc6259f1e85a5a",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_targeted_pricing\\optimizer.py": "31890d7e76c99781318f7d7712a23db00e26679661e911d728c6c9aa27c24435",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_targeted_pricing\\event_optimizer.py": "45e4ca76015582b25c9a669952c737f9119ee55892c817e8b7289d4bb27e4ba9",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\tests\\test_wzzt_dr_event_optimizer.py": "c5407533ff8caf261cc27f8efb6a1bad367f38204ccf25877d8c5d1d5dd7b8f5",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_targeted_event_price_optimizer_pure_v1\\run_checks.py": "2838c29655534a8720fe3dfedbbb48dcb5170655e03e709bc2074328fb5af6ea"
+  },
+  "expected_tests": 9,
+  "expected_pure_MILP_calls": 20,
+  "expected_solver_status_counts": {
+    "optimal": 20
+  },
+  "expected_preflight_empty_domain_cases": 1,
+  "seeds": [
+    31,
+    10823,
+    13,
+    103
+  ],
+  "loss_source": "synthetic numerical tables; no study result or future data",
+  "fixed_base_optimizer_sha256": "31890d7e76c99781318f7d7712a23db00e26679661e911d728c6c9aa27c24435",
+  "state_order": [
+    "00",
+    "10",
+    "01",
+    "11"
+  ],
+  "independent_price_vectors": [
+    "train_i",
+    "train_j",
+    "val_i",
+    "val_j"
+  ],
+  "price_menu": [
+    0,
+    1,
+    2
+  ],
+  "probabilities": [
+    0,
+    0.5,
+    0.75
+  ],
+  "E_per_paid_resource_day": 0.4,
+  "hard_whole_commitment": 1.6,
+  "expected_feasible_price_vectors_per_plan": 50,
+  "risk_law": "pi_train outer pi_validation; no across-day binding",
+  "checks": [
+    "Fraction exhaustive domain",
+    "same-quote subdomain",
+    "validation-only pricing",
+    "four-way interaction",
+    "budget",
+    "unknown intervals",
+    "complete lex ties",
+    "both price-specific Gammas"
+  ],
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "executable": "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pytest": "9.1.1"
+  },
+  "AC_calls": 0,
+  "WZZT_calls": 0,
+  "no_results_read": true
+}

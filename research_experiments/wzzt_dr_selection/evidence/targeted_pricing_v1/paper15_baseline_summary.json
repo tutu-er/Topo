@@ -1,0 +1,101 @@
+{
+  "case": "paper15",
+  "job_id": "main__paper15__b2__reference__v0005__N288",
+  "history_rows": [
+    288,
+    288
+  ],
+  "voltage_sigma": 0.0005,
+  "pq_sigma": 0.005,
+  "target": [
+    103,
+    104,
+    105
+  ],
+  "method2_actual_completed": true,
+  "baseline_protocol_sha256": "92cdc75176be8401cfbd3e738c643319ebf833f2a188382160571e0dc76a25a0",
+  "source_snapshot_sha256": "0fc42102b58f05096b91d1f41f58a368c3a0e00817216be868e31ae0177e9669",
+  "LP_calls": 113,
+  "elapsed_seconds": 50.679725599999074,
+  "scores": {
+    "multistart_original_rule": {
+      "full_errors": 1,
+      "full_recovery": false,
+      "missing": [
+        [
+          103,
+          104,
+          105
+        ]
+      ],
+      "extra": [],
+      "predicted_blocks": 20,
+      "truth_blocks": 21,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+      "selected_origin": "multistart_0",
+      "train_mae": 0.0011736088996343098,
+      "validation_mae": 0.0011976068181770876,
+      "before_contraction_errors": 1
+    },
+    "rnj_bank": {
+      "full_errors": 0,
+      "full_recovery": true,
+      "missing": [],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 21,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+      "selected_origin": "tree_bank",
+      "train_mae": 0.001137370667048975,
+      "validation_mae": 0.0011686662886433916,
+      "before_contraction_errors": 0
+    },
+    "baseline25": {
+      "full_errors": 0,
+      "full_recovery": true,
+      "missing": [],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 21,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+      "selected_origin": "tree_bank",
+      "train_mae": 0.001137370667048975,
+      "validation_mae": 0.0011686662886433916,
+      "before_contraction_errors": 0
+    },
+    "geometric_RNJ_RX75_0.16": {
+      "full_errors": 0,
+      "full_recovery": true,
+      "missing": [],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 21,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+    },
+    "geometric_NJ_RX75_0.16": {
+      "full_errors": 0,
+      "full_recovery": true,
+      "missing": [],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 21,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+    }
+  },
+  "selected_raw_index": 16,
+  "selected_raw_origin": "multistart_0",
+  "selected_validation_ratio": 1.0256596493118482,
+  "validation_band_remaining": 5.06799171299914e-06,
+  "search_stops": {
+    "primary": "pool_local_optimum",
+    "multistart_0": "pool_local_optimum",
+    "multistart_1": "pool_wall_limit"
+  },
+  "full_history_preserved": true,
+  "no_DR_or_AC": true
+}

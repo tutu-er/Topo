@@ -1,0 +1,154 @@
+{
+  "case": "flynn16",
+  "job_id": "main__flynn16__b4__reference__v0005__N288",
+  "history_rows": [
+    288,
+    288
+  ],
+  "voltage_sigma": 0.0005,
+  "pq_sigma": 0.005,
+  "target": [
+    201,
+    202,
+    203
+  ],
+  "method2_actual_completed": true,
+  "baseline_protocol_sha256": "4a2d06aa85a792e378e79facc64fa5a95edd294a8bd4feebd0f972c43069d0ce",
+  "source_snapshot_sha256": "5b1dce9abfc7852ded383bd65cff66b2bff341caf54b9c99d916667ed8ef3764",
+  "LP_calls": 157,
+  "elapsed_seconds": 85.96257720002905,
+  "scores": {
+    "multistart_original_rule": {
+      "full_errors": 1,
+      "full_recovery": false,
+      "missing": [
+        [
+          201,
+          202,
+          203
+        ]
+      ],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 22,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+      "selected_origin": "multistart_1",
+      "train_mae": 0.0012308639851387707,
+      "validation_mae": 0.001216772887190257,
+      "before_contraction_errors": 1
+    },
+    "rnj_bank": {
+      "full_errors": 1,
+      "full_recovery": false,
+      "missing": [
+        [
+          201,
+          202,
+          203
+        ]
+      ],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 22,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+      "selected_origin": "tree_bank",
+      "train_mae": 0.0024546475692218844,
+      "validation_mae": 0.0024458022392848857,
+      "before_contraction_errors": 2
+    },
+    "baseline25": {
+      "full_errors": 1,
+      "full_recovery": false,
+      "missing": [
+        [
+          201,
+          202,
+          203
+        ]
+      ],
+      "extra": [],
+      "predicted_blocks": 21,
+      "truth_blocks": 22,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+      "selected_origin": "tree_bank",
+      "train_mae": 0.0024546475692218844,
+      "validation_mae": 0.0024458022392848857,
+      "before_contraction_errors": 2
+    },
+    "geometric_RNJ_RX75_0.16": {
+      "full_errors": 4,
+      "full_recovery": false,
+      "missing": [
+        [
+          201,
+          202,
+          203
+        ]
+      ],
+      "extra": [
+        [
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          215
+        ],
+        [
+          202,
+          203
+        ],
+        [
+          208,
+          209
+        ]
+      ],
+      "predicted_blocks": 24,
+      "truth_blocks": 22,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+    },
+    "geometric_NJ_RX75_0.16": {
+      "full_errors": 3,
+      "full_recovery": false,
+      "missing": [
+        [
+          201,
+          202,
+          203
+        ],
+        [
+          204,
+          205,
+          206,
+          215
+        ]
+      ],
+      "extra": [
+        [
+          208,
+          209
+        ]
+      ],
+      "predicted_blocks": 21,
+      "truth_blocks": 22,
+      "prediction_definition": "all final support labels, no R/X threshold",
+      "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+    }
+  },
+  "selected_raw_index": 19,
+  "selected_raw_origin": "multistart_1",
+  "selected_validation_ratio": 1.022511826600369,
+  "validation_band_remaining": 8.910808807029375e-06,
+  "search_stops": {
+    "primary": "pool_wall_limit",
+    "multistart_0": "pool_wall_limit",
+    "multistart_1": "pool_wall_limit"
+  },
+  "full_history_preserved": true,
+  "no_DR_or_AC": true
+}
