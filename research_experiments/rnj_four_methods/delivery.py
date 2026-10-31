@@ -53,8 +53,21 @@ def package(output):
         assert 'source_recovery.json' not in zipped.namelist(), 'Do not append twice; recreate the analysis archive first.'
         for file in (output / 'previous_sources').rglob('*.py'):
             zipped.write(file, file.relative_to(output))
+        for file in (output / 'analysis').glob('*.csv'):
+            zipped.write(file, file.relative_to(output))
+        for name in ('PLAN.md', 'METHODS.md', 'ANALYSIS.md', 'CONCLUSIONS.md', 'README.md', 'RECOVERY.md', 'implementation_check.json'):
+            if (dest / name).exists():
+                zipped.write(dest / name, f'reports/{name}')
+        for name in ('test_rnj_four_methods.py', 'test_rnj_small_seed.py', 'test_joint_exit.py'):
+            zipped.write(ROOT / 'research_experiments/tests' / name, f'tests/{name}')
         zipped.write(output / 'source_recovery.json', 'source_recovery.json')
         zipped.write(Path(__file__), 'actual_driver/delivery.py')
+        if (dest / 'report_provenance.json').exists():
+            assert sha(Path(__file__).with_name('report.py')) == read(dest / 'report_provenance.json')['source_sha256']
+            zipped.write(Path(__file__).with_name('report.py'), 'actual_driver/report.py')
+            zipped.write(dest / 'report_provenance.json', 'analysis/report_provenance.json')
+            for name in ('prior_new_scopes.csv', 'all120.csv', 'mechanism_checks.json', 'scoring_data_manifest.json'):
+                zipped.write(dest / name, f'analysis/{name}')
     with ZipFile(dest / 'records.zip') as zipped:
         assert zipped.testzip() is None
         assert hashlib.sha256(zipped.read('actual_driver/analyze.py')).hexdigest() == audit['analyzer_sha256']
