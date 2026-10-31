@@ -1,0 +1,45 @@
+{
+  "id": "budget_reference_independent_audit_v1",
+  "created_utc": "2026-10-31T02:42:17.330289+00:00",
+  "source_sha256": "a35a80b4b7645628006e91ece60a2057938961bf45a8ba33583b456d1fef431b",
+  "root": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_budget_reference_diagnostic_v1\\run_v1",
+  "main_protocol_sha256": "ed29e9c44f8f18c8623674164bad7cde1011727de32f24bcf889a7a644b764a0",
+  "price_lock_sha256": {
+    "flynn16": "bd3b0d5e273c143844383e8afe17fed5da8bed216f157b4308c39958908b004d",
+    "pengwah18": "edc02909658ae0b6dbfb405b96d78c32f69e7fdb7703807c15a71b3676a5d7df"
+  },
+  "cases": [
+    "flynn16",
+    "pengwah18"
+  ],
+  "policies": [
+    "zero",
+    "single",
+    "rotation",
+    "opposed"
+  ],
+  "planning_paths": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "test_paths": [
+    100,
+    101,
+    102,
+    103
+  ],
+  "guard": "all phase_ended and fits_frozen plus oracle and aggregate before packets/truth",
+  "new_identifier_calls": 0,
+  "new_LP_calls": 0,
+  "new_AC_calls": 0,
+  "bounded_expected_future_records": 64,
+  "bounded_expected_historical_baselines": 2,
+  "tolerance": {
+    "physical": 1e-10,
+    "standardized_noise": 5e-10,
+    "losses": 1e-10
+  },
+  "scope": "saved-data and graph-score replay only; no AC equation re-solve or statistical population claim"
+}

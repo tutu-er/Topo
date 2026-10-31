@@ -1,8 +1,18 @@
+## 最新恢复：原预算内参照批已全部结束
+
+- 先读dr_balanced_design/BUDGET_REFERENCE_REPORT.md与evidence/budget_reference_diagnostic_v1。原64未来＋2历史、66unique、3443LP均封存；未来34完成30首LP状态9。测试23/32未决；不要把缺失当0错，不重启旧price/seed。
+- 两完整历史五方法均0错；规划参照pengwah=zero、flynn未决。独立测试zero在pengwah4/4全恢复、0付费；同观察几何NJ/RNJ测试各32/32全恢复。主已完成输出与rnj_bank相同，无付费额外恢复。
+- private run_v1的aggregate、4个phase_ended/fits_frozen及oracle已齐。audit_v3/receipt15984检查通过；audit_v1/v2及旧source仅保留，不能用于全失败phase。supplement_failure_fronts_v1补齐64几何控制且不改原失败。lp_method_probe_v1为4次追加数值LP，全部最优、0新物理。
+- 原源码source_snapshot_v2.zip85文件和Git 4c0d8adf时的engine/adapter用于恢复原协议。下一数值修复改变source hash时，旧协议拒绝直接当前源重跑是正常保护；应读取归档，不绕过。
+- 当前新项仅显式lp_method default1及2个完整planning观察Method2调用准备，另建numerical_full_replay_v1，无新价格/未来/物理数据。完成后另报告，不覆盖原fail/oracle或称新独立样本。
+- 公开源audit_budget_reference.py/audit_budget_failure_fronts.py/probe_budget_lp_methods.py/export_budget_reference.py；原私有source原名及完整protocol由manifest恢复。轨迹/连续参数不上传。
+
 ## 最新恢复：预算内参照诊断正在实际运行
 
 - 先读dr_balanced_design/BUDGET_REFERENCE_PLAN.md；源码prepare_budget_reference.py、run_budget_reference_baseline.py、budget_reference_diagnostic.py复用既有physical worker/SharedFitter/fit_observed，不复制识别器。
 - private scratch/wzzt_budget_reference_diagnostic_v1/run_v1含两case完整history.pkl/plans/baseline_frozen_result和planning/test。两基线已完成248+60LP，不重跑；plan protocol SHA ed29e9c44f8f18c8623674164bad7cde1011727de32f24bcf889a7a644b764a0。source_snapshot_v2.zip为首物理前跨case RNG分离版本，旧protocol_pre_rng_split保存未执行。
-- planning均已结束32/32尝试、25完成7状态9；oracle_selected于2026-10-31T02:34:16Z冻结，pengwah选zero、flynn未决。test两进程已启动，不重复。\n- 四菜单、四planning路径0..3、四test100..103。两case规划均完成后select冻结oracle_selected，才可运行test；全部test结束后aggregate，再独立audit。先检查进程/phase.lock/ended，不能同时重启同phase。current sources绑定85文件，不可改动后继续冻结实验。
+- planning均已结束32/32尝试、25完成7状态9；oracle_selected于2026-10-31T02:34:16Z冻结，pengwah选zero、flynn未决。test两进程已启动，不重复。
+- 四菜单、四planning路径0..3、四test100..103。两case规划均完成后select冻结oracle_selected，才可运行test；全部test结束后aggregate，再独立audit。先检查进程/phase.lock/ended，不能同时重启同phase。current sources绑定85文件，不可改动后继续冻结实验。
 - 每case完整288/288历史追加至480/480；同预算1.6、原设备/.0002/.005/阻抗和原3%/.16联合主规则不变。只按历史条件选源/位，没有真值筛难例。未来truth只在phase fits_frozen后用于离线评分。
 - 公开evidence/budget_reference_diagnostic_v1仅协议/预注册/数值汇总，私有packet/physical/fit参数不上传。当前无最终DR收益结论；4独立heldout路径/case仅小规模诊断。
 
