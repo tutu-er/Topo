@@ -1,3 +1,10 @@
+## 最新恢复：联合响应风险计算门控已通过
+
+- 入口dr_balanced_design/JOINT_RISK_GATE_REPORT.md、joint_response_risk.py、run_joint_risk_gate.py；evidence/joint_risk_gate_v1含两个冻结协议、最终结果与11项Fraction核验。private scratch/wzzt_joint_risk_gate_v1保留两次源码快照与run_v1/run_v2，不重跑已完成记录。
+- 14项不同检查过；两版100概率LP含2次预设不可行，0新辨识/权重LP/AC/真实未来。风险计算仅声明有限历史解释域；缺失质量保留，不称覆盖或拓扑概率。
+- 先准备历史参考/背景预测/全局查询及完整观察缓存契约，再另锁完整联合算法小条件表。当前无可用完整规划表，旧flynn仅8/1073格且已0错/0支付，不补齐它找正；旧22面板不是W-only也不能直接当当前主规则全状态表。
+- 自动化未重建；用户已授权github.com/tutu-er/Topo任务分支外发，旧阻断已解除，原f0df5f8e已推送。
+
 ## 最新恢复：基础审查结束，当前方法未闭合
 
 - 入口dr_balanced_design/FOUNDATION_CLOSURE_REVIEW.md；PRICE_DESIGN_CONTRACT是数学定义/边界，不是已验证优化器。当前缺联合整段响应/支付依据及历史结构/参数参考ν_h；iFlex旧价格均值失败与日内形状相关不能补齐。

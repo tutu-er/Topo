@@ -1,0 +1,42 @@
+{
+  "id": "joint_risk_gate_v1",
+  "created_utc": "2026-10-31T01:02:33.812093+00:00",
+  "repository": "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo",
+  "head_before_run": "f0df5f8e46cc39ee923984d61857fc63464bf1be",
+  "scope": "mathematical counterexamples and existing summary coverage audit only",
+  "max_probability_lp": 300,
+  "wall_seconds": 120,
+  "per_probability_lp_seconds": 15,
+  "wall_gate_may_overrun_by_one_lp": true,
+  "max_dense_response_atoms": 65536,
+  "tie_seed": 944231,
+  "new_identifier_or_AC_or_future_runs": 0,
+  "raw_household_or_PQV_reads": false,
+  "source_sha256": {
+    "research_experiments/wzzt_dr_selection/dr_balanced_design/joint_response_risk.py": "ff7385ca2141bd3d3cc48ef3e77c213c5fef354c912f48e9edd9c80c3df50fcd",
+    "research_experiments/wzzt_dr_selection/dr_balanced_design/test_joint_response_risk.py": "b26a804a0f4842980f043154d90e32a2d8d7821ecfa09f916d4110c7df93972f",
+    "research_experiments/wzzt_dr_selection/dr_balanced_design/run_joint_risk_gate.py": "6416692952cd548c2d8873b58f22b517abac45455b5bd31b7781fb5ce5939b09",
+    "research_experiments/wzzt_dr_selection/dr_balanced_design/audit_joint_risk_gate.py": "6a1b10afcaa998b0f698440574696c767fcf31d0f593c7dfd57288d212831779",
+    "research_experiments/wzzt_dr_selection/dr_pool_v2/adapter.py": "ede744ed556afeae2c5c70df89b18a788a3dfb48a7f3eafef63d362b4bd96f92",
+    "research_experiments/wzzt_dr_selection/dr_pool_v2/engine.py": "9b3c5f332002927e26ea9cd81a93d235d00d2a823120793f2e1c3918b6b243bf",
+    "research_experiments/wzzt_dr_selection/dr_pool_v2/selection.py": "43cd2d14984808861caed734f185a600c74b0071119a363b431119efe6cb743d",
+    "research_experiments/wzzt_dr_selection/dr_pool_v2/observations.py": "414f7b7db05bb7b9b33db86f28ad4f65dfd5f88c7318ed6d064e5beadd6012f0",
+    "research_experiments/wzzt_dr_selection/dr_competition_bridge/pricing_tables.py": "adf6f8cc3ffda00a2a490b48a10dc5a469c0da93ff105bb52f969fa12f438009",
+    "research_experiments/wzzt_dr_selection/evidence/flynn_local_phase_pilot_v1/plans.json": "e1752a305cf0fc1dba0a7283203f762a0a4c395ed8ec00f49e4464cb9dc07e1e",
+    "research_experiments/wzzt_dr_selection/evidence/flynn_local_phase_pilot_v1/protocol.json": "bd7233a2633af60f0e88b2ff37266a77e14d38bfc727ce7b6fb0a5f6caa920d0",
+    "research_experiments/wzzt_dr_selection/evidence/flynn_local_phase_pilot_v1/aggregate_summary.json": "02ebe1be75d4e96a80e0871b16c4de4c3a01b11dc05ea6af3ea1bd7f20f3c6e0"
+  },
+  "expected_checks": {
+    "unit_tests": 12,
+    "independent_fraction_checks": 11
+  },
+  "passing_conditions": [
+    "closed-form Frechet and same-mechanism regret match",
+    "missing mass not dropped and shared unknown cells cancel",
+    "all probability LP primal and dual numerical checks pass",
+    "infeasible probability constraints recorded as infeasible not zero risk",
+    "pilot coverage counted without using test truth as planning reference"
+  ],
+  "not_a_WZZT_price_effectiveness_trial": true,
+  "all_old_batches_stay_closed": true
+}

@@ -1,0 +1,978 @@
+{
+  "status": "complete_computational_gate_only",
+  "started_utc": "2026-10-31T01:05:09.030184+00:00",
+  "protocol_sha256": "7f01532db01f2afa2b9440c0b5a2482e3499651068830c50efc3ef95e18f610e",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "executable": "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "new_identifier_calls": 0,
+  "new_fixed_family_lp": 0,
+  "new_ac_timepoints": 0,
+  "new_future_or_household_trajectories": 0,
+  "new_DR_recovery_claim": false,
+  "unit_tests": {
+    "run": 14,
+    "failures": 0,
+    "errors": 0,
+    "successful": true
+  },
+  "analytical_table": {
+    "source": "hand_constructed_decision_losses_not_WZZT",
+    "risk_table": {
+      "scope": "declared_finite_history_domain_and_response_constraints",
+      "full_parameter_coverage": false,
+      "topology_probability": false,
+      "complete_table": true,
+      "partial_bounds_may_be_loose": false,
+      "risk": [
+        [
+          {
+            "lower": -0.0,
+            "upper": 0.5
+          },
+          {
+            "lower": -0.0,
+            "upper": 1.0
+          }
+        ]
+      ],
+      "regret_lower": [
+        0.5,
+        1.0
+      ],
+      "regret_upper": [
+        0.5,
+        1.0
+      ],
+      "comparisons": [
+        {
+          "menu": 0,
+          "history": 0,
+          "comparator": 1,
+          "lower": 0.5,
+          "upper": 0.5
+        },
+        {
+          "menu": 1,
+          "history": 0,
+          "comparator": 0,
+          "lower": 1.0,
+          "upper": 1.0
+        }
+      ]
+    },
+    "selection": {
+      "candidate_index": 0,
+      "all_cost_and_upper_bound_ties": [
+        0
+      ],
+      "tie_seed": 944231,
+      "finite_domain_suboptimality_upper": 0.0,
+      "selection_resolved": true,
+      "certified_true_topology_or_global_parameter_optimum": false
+    }
+  },
+  "existing_cache_coverage": {
+    "scope": "already_seen_pilot_coverage_only_not_planning_or_new_evaluation",
+    "menus": [
+      {
+        "menu": "zero",
+        "node_event_participations": 0,
+        "reachable_states_at_fixed_background": 1,
+        "saved_realized_cells": 1,
+        "worst_payment": 0.0
+      },
+      {
+        "menu": "single_left",
+        "node_event_participations": 4,
+        "reachable_states_at_fixed_background": 16,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      },
+      {
+        "menu": "single_right",
+        "node_event_participations": 4,
+        "reachable_states_at_fixed_background": 16,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      },
+      {
+        "menu": "rotation",
+        "node_event_participations": 4,
+        "reachable_states_at_fixed_background": 16,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      },
+      {
+        "menu": "same_local",
+        "node_event_participations": 8,
+        "reachable_states_at_fixed_background": 256,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      },
+      {
+        "menu": "opposed_local",
+        "node_event_participations": 8,
+        "reachable_states_at_fixed_background": 256,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      },
+      {
+        "menu": "repeat_left",
+        "node_event_participations": 8,
+        "reachable_states_at_fixed_background": 256,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      },
+      {
+        "menu": "repeat_right",
+        "node_event_participations": 8,
+        "reachable_states_at_fixed_background": 256,
+        "saved_realized_cells": 1,
+        "worst_payment": 1.6
+      }
+    ],
+    "menu_state_cells": 1073,
+    "saved_cells": 8,
+    "natural_measurement_paths": 1,
+    "realized_generation_models": 1,
+    "usable_complete_conditional_planning_risk_tables": 0,
+    "source_hash_matches": {
+      "adapter.py": true,
+      "engine.py": true,
+      "selection.py": true,
+      "observations.py": true
+    },
+    "shared_node_event_price_queries": 24,
+    "dense_common_type_atoms": 16777216,
+    "dense_type_gate": 65536,
+    "max_pairwise_queries": 16,
+    "max_pairwise_type_atoms": 65536,
+    "pair_projection_scope": "exact for marginal-only response ambiguity, not arbitrary joint-moment constraints",
+    "may_expand_old_zero_error_case": false,
+    "interpretation": "State cells are not independent samples. A realized error is not an expected risk."
+  },
+  "scope": "finite decision-table arithmetic; no actual RNJ+WZZT price-effectiveness test",
+  "next_boundary": "No complete history-conditioned joint state loss table exists; do not refill closed flynn pilot.",
+  "probability_lp": {
+    "total": 51,
+    "successful": 50,
+    "intentionally_infeasible": 1,
+    "other_unresolved": 0,
+    "receipts": [
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -0.09999999999999998,
+        "dual_value": -0.1,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 2.7755575615628914e-17
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.2,
+        "dual_value": 0.2,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -0.6,
+        "dual_value": -0.6,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.8,
+        "dual_value": 0.8,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -0.39999999999999997,
+        "dual_value": -0.3999999999999999,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 5.551115123125783e-17
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.7000000000000001,
+        "dual_value": 0.7,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 1.1102230246251565e-16
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.25,
+        "dual_value": 0.25,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.3,
+        "dual_value": 0.3,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -0.1,
+        "dual_value": -0.1,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.25,
+        "dual_value": 0.25,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -0.25,
+        "dual_value": -0.25,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.4,
+        "dual_value": 0.4000000000000001,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 5.551115123125783e-17
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -0.4,
+        "dual_value": -0.4000000000000001,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 5.551115123125783e-17,
+          "dual_sign": 0.0,
+          "objective_gap": 5.551115123125783e-17
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 5.0,
+        "dual_value": 5.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -5.0,
+        "dual_value": -5.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 5.0,
+        "dual_value": 5.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -5.0,
+        "dual_value": -5.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 8,
+        "value": 0.25,
+        "dual_value": 0.25,
+        "residuals": {
+          "equality": 5.551115123125783e-17,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.25,
+        "dual_value": 0.25,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": -1.0,
+        "dual_value": -1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 5.0,
+        "dual_value": 5.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 2,
+        "success": false,
+        "message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+        "variables": 4,
+        "value": null
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.0,
+        "dual_value": -0.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 0.5,
+        "dual_value": 0.5,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      },
+      {
+        "status": 0,
+        "success": true,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "variables": 4,
+        "value": 1.0,
+        "dual_value": 1.0,
+        "residuals": {
+          "equality": 0.0,
+          "inequality": 0.0,
+          "nonnegative": 0.0,
+          "dual_feasibility": 0.0,
+          "dual_sign": 0.0,
+          "objective_gap": 0.0
+        }
+      }
+    ]
+  },
+  "ended_utc": "2026-10-31T01:05:09.141301+00:00",
+  "elapsed_seconds": 0.09355670001241378
+}
