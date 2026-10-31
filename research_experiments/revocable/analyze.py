@@ -22,7 +22,12 @@ def analyze(output):
     dest=output/'analysis';dest.mkdir(exist_ok=True)
     p=read(output/'protocol.json');frozen=read(output/'frozen.json');catalog=read(output/'catalog.json')
     assert frozen['protocol_sha256']==sha(output/'protocol.json')
-    checks=1;rows=[];events=[];coverage=[];errors=[];failures=[];lp_checks=[];transitions=[]
+    checks=1;rows=[];events=[];coverage=[];errors=[];failures=[];lp_checks=[];transitions=[];final_errors=[]
+    old_audit=read(PARENT/'input_audit.json')
+    for file,digest in old_audit['input_hashes'].items():
+        assert sha(file)==digest;checks+=1
+    write(dest/'input_audit.json',dict(passed=True,parent_audit_sha256=sha(PARENT/'input_audit.json'),
+        verified_files=len(old_audit['input_hashes']),input_hashes=old_audit['input_hashes']))
     for name,digest in p['source_hashes'].items():
         assert sha(output/'source'/name)==digest;checks+=1
     assert not set(p['development'])&set(p['evaluation'])
@@ -53,19 +58,36 @@ def analyze(output):
                     assert abs(value-point['objective'])<1e-8
                     assert criterion(point,n,t['penalty'])<=previous+1e-9
                     previous=criterion(point,n,t['penalty']);checks+=2
+                path_lookup={canonical(q['supports']):q for q in t['path']}
                 for e in t['attempts']:
                     if e.get('status') is not None:
                         assert e['warm_start']['valid'] and e['bound_consistent_with_known_upper'];checks+=2
                         if e['audit']['has_incumbent']:
                             assert e['audit']['valid'];checks+=1
                     if e.get('regularized_bound') is not None:
-                        assert e['regularized_bound']<=e['decoded_score']+1e-8;checks+=1
+                        restored=0
+                        if e['kind']=='revocable_local':
+                            after_family=(set(map(tuple,e['keep']+e['released']))-set(map(tuple,e['deleted'])))|set(map(tuple,e['added']))
+                            restored=sum(1<len(s)<n and tuple(s) not in after_family for s in e['keep'])
+                        # A fixed-domain lower bound applies before global zero
+                        # cleanup. Restore its fixed count constant for a valid UB.
+                        e['cleanup_outside_fixed_domain_count']=restored
+                        e['model_scope_decoded_score']=e['decoded_score']+e['penalty']*restored
+                        e['bound_scope']='local MILP with original kept structure; excludes later global zero cleanup'
+                        assert e['regularized_bound']<=e['model_scope_decoded_score']+1e-8;checks+=1
                     if e['kind']=='revocable_local':
                         assert 3<=len(e['blocks'])<=5;checks+=1
                         if e['accepted']:
                             deleted=set(map(tuple,e['deleted']));added=set(map(tuple,e['added']))
+                            before_family=canonical(e['keep']+e['released'])
+                            after_family=canonical((set(before_family)-deleted)|added)
+                            before_pred=supports(path_lookup[before_family],n)
+                            after_pred=supports(path_lookup[after_family],n)
+                            f1=lambda pred:2*len(pred&true)/(len(pred)+len(true)) if pred or true else 1.
                             transitions.append(dict(phase=phase,job=job,method=method,case=meta['case'],
                                 gain=e['gain'],raw_gain=e['before']-e['decoded_objective'],
+                                F1_before=f1(before_pred),F1_after=f1(after_pred),F1_delta=f1(after_pred)-f1(before_pred),
+                                exact_before=before_pred==true,exact_after=after_pred==true,
                                 deleted=len(deleted),added=len(added),deleted_true=len(deleted&true),
                                 deleted_false=len({s for s in deleted if 1<len(s)<n}-true),
                                 added_true=len(added&true),added_false=len({s for s in added if 1<len(s)<n}-true),
@@ -110,6 +132,10 @@ def analyze(output):
                     assert abs(cache[key]['objective']-point['objective'])<2e-7;checks+=1
                     for q in size_errors(point,true,n):
                         errors.append(dict(**base,view=view,**q))
+                    pred=supports(point,n);wrong=pred-true
+                    final_errors.append(dict(**base,view=view,false_compatible=sum(error_type(s,true)[0]=='compatible_overresolution' for s in wrong),
+                        false_cross=sum(error_type(s,true)[0]=='crosses_truth' for s in wrong),
+                        blocked_true=sum(any(not compatible(s,w) for w in wrong) for s in true)))
     frame=pd.DataFrame(rows);frame.to_csv(dest/'per_model.csv',index=False)
     summary=frame.groupby(['phase','panel','view','method']).agg(inputs=('job','size'),available=('model_available','sum'),
         F1=('clade_f1','mean'),exact=('exact','sum'),internal=('internal','mean'),train_MAE=('train_mae','mean'),
@@ -120,6 +146,7 @@ def analyze(output):
     pd.DataFrame(coverage).to_csv(dest/'stage_coverage.csv',index=False)
     pd.DataFrame(transitions).to_csv(dest/'transitions.csv',index=False)
     pd.DataFrame(errors).to_csv(dest/'size_errors.csv',index=False)
+    pd.DataFrame(final_errors).groupby(['phase','panel','view','method'])[['false_compatible','false_cross','blocked_true']].sum().to_csv(dest/'final_error_types.csv')
     if errors:
         pd.DataFrame(errors).groupby(['phase','panel','view','method','size'])[['TP','FP','FN']].sum().to_csv(dest/'size_summary.csv')
     paired=[]
@@ -143,7 +170,7 @@ def analyze(output):
     write(dest/'event_records.json',events)
     delivery=ROOT/'docs/revocable_rebuild_20261031';delivery.mkdir(exist_ok=True)
     for file in dest.iterdir():
-        if file.suffix=='.csv' or file.name=='verification.json':
+        if file.suffix=='.csv' or file.name in ('verification.json','input_audit.json'):
             shutil.copy2(file,delivery/file.name)
     for name in ('protocol.json','frozen.json','tuning_grid.csv'):
         shutil.copy2(output/name,delivery/name)
@@ -167,6 +194,7 @@ def report(output,dest,frame,summary,paired,transitions):
         historical_original='历史原RNJ加WZZT',historical_joint_zero='历史五块联合 无惩罚',historical_count='历史五块联合 搜索惩罚')
     lines=['# 可撤销局部重构完整矩阵测试','',f'开发集64次搜索；最终参数lambda={selected:g}。正式矩阵108主条件加12压力条件，所有方法沿用完整RNJ初值。',
         f"正式返回{verification['evaluation_returned']}/{verification['evaluation_planned']}，独立重解{verification['unique_independent_LP']}个输入与家族组合，核查{verification['checks']}项。",'',
+        '本报告采用v2修正版：单点和全集基础响应项即使权重为零也保持可用，并且不计内部线路惩罚。初版允许零清理删除全集，后续新增阶段可能对全集误计一次代价，偏离所保存的数学模型；其开发与矩阵记录保留在outputs/revocable_rebuild_20261031，不纳入修正版汇总。v2重新进行了开发选择、参数冻结和完整矩阵测试。','',
         '## 主面板与压力面板','', '| 面板 | 方法 | F1 | 完整恢复 | 内部连接数 | 搜索中位秒 |','|---|---|---:|---:|---:|---:|']
     for _,r in summary[(summary.phase=='evaluation')&(summary.view=='bank')].iterrows():
         lines.append(f"| {r.panel} | {names.get(r.method,r.method)} | {r.F1:.4f} | {int(r.exact)}/{int(r.inputs)} | {r.internal:.3f} | {r.search_median:.2f} |")
@@ -175,6 +203,7 @@ def report(output,dest,frame,summary,paired,transitions):
         '每条搜索20秒软预算，RNJ重构预选最多5秒，每次MILP最多2秒，四个单线程工作进程。模型构造和LP可能使软预算小幅超出，实际耗时保留。历史三基线复用上一轮同输入结果，计时不同批，不作为同次速度比较。',
         '开发bundle0与1的外层观测用于参数选择；正式bundle2至4的测试观测和真拓扑不参与选参。最终候选均采用相同公共RNJ库、验证MAE、0.16收缩、0至2权重界；另列仅路径和未收缩终点，避免把RNJ回退当作搜索修复。',
         '局部候选至多25个，但20秒只覆盖有限邻域。触时与未排除改进的状态保留为unresolved，未报告全局或全邻域收敛。原始训练MAE与含线路代价的J分别核验，J下降允许MAE上升。',
+        '全局零清理可能在局部MILP结束后删除其原本固定的外部零支撑。MILP下界只针对清理前的固定结构域；核验时把这些被删外部支撑以零权重恢复，并加回其固定线路数代价，形成同域可行上界。清理后更大的结构域不沿用该局部最优性证书。',
         '','## 配对与结构转化','', '| 面板 | 输出 | 比较基线 | 平均F1差 | 胜 平 负 |','|---|---|---|---:|---|']
     for r in paired:
         if r['view'] in ('bank','path'):

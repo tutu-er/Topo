@@ -61,6 +61,8 @@ def test_zero_cleanup_releases_only_provisional_supports():
         assert (0,1) in point['supports']
         point,removed=clean_zero(bank,old)
         assert (0,1) in removed and point['objective']==pytest.approx(old['objective'])
+        assert (0,1,2) in point['supports']
+        assert all((i,) in point['supports'] for i in range(3))
     finally:
         bank.close()
 
@@ -71,3 +73,33 @@ def test_subtree_size_is_not_a_releasability_limit():
     candidates=neighborhoods(point,n,np.eye(n))
     assert any((0,1,2,3,4,5) not in blocks and set(v)>set((0,1,2,3,4,5)) and len(blocks)<=5
                for v,blocks,_ in candidates)
+
+
+def test_six_terminal_wrong_boundary_can_be_replaced_in_a_four_block_milp():
+    n=8;old_big=(0,1,2,3,4,5);truth_big=(3,4,5,6)
+    blocks=((0,1,2),(3,4,5),(6,),(7,))
+    family=[(i,) for i in range(n)]+[(0,1,2),(3,4,5),old_big,tuple(range(n))]
+    y=np.eye(n)*.3
+    for s,w in [((0,1,2),.2),((3,4,5),.2),(truth_big,.3)]:
+        z=np.array([i in s for i in range(n)],float);y+=w*np.outer(z,z)
+    bank=make_bank(y,family)
+    try:
+        old=bank.fit(family,preserve=True)
+        point,event=local_fit(bank,old,tuple(range(n)),blocks,penalty=.001,seconds=3.)
+        assert event['accepted'] and old_big in event['released']
+        assert old_big not in point['supports'] and truth_big in point['supports']
+        assert point['objective']==pytest.approx(0.,abs=1e-9)
+    finally:
+        bank.close()
+
+
+def test_zero_full_set_stays_available_without_becoming_a_penalized_extension():
+    p=np.eye(3);z=np.array([0.,1.,1.]);family=[(0,),(1,),(2,),(0,1),(0,1,2)]
+    bank=make_bank(p+np.outer(z,z),family)
+    try:
+        result=search(bank,family,np.eye(3),kind='zero_only',coefficient=.003,seconds=3.)
+        assert all((0,1,2) in point['supports'] for point in result['path'])
+        assert (1,2) in result['point']['supports']
+        assert not any((0,1,2) in event.get('added',[]) for event in result['attempts'])
+    finally:
+        bank.close()

@@ -13,7 +13,7 @@ from research_experiments.rnj_count.engine import criterion, original_step
 def clean_zero(bank, point, *, hard=()):
     protected=set(canonical(hard)); before=canonical(point['supports'])
     keep=[s for s,r,x in zip(point['supports'],point['r'],point['x'])
-          if len(s)==1 or tuple(s) in protected or max(r,x)>1e-9]
+          if len(s) in (1,bank.data.n) or tuple(s) in protected or max(r,x)>1e-9]
     if len(keep)==len(before):
         return point,[]
     # A numerical threshold has no unconditional zero-loss guarantee.
