@@ -1,0 +1,68 @@
+{
+  "id": "acn_public_session_field_qualification_v1",
+  "source": "https://ev.caltech.edu/dataset",
+  "official_example": "https://acnportal.readthedocs.io/en/latest/tutorials/acnsim/lesson1.html",
+  "query": {
+    "site": "caltech",
+    "local_timezone": "America/Los_Angeles",
+    "local_start": "2019-05-01T00:00:00-07:00",
+    "local_end_exclusive": "2019-05-02T00:00:00-07:00",
+    "UTC_start": "2019-05-01T07:00:00+00:00",
+    "UTC_end_exclusive": "2019-05-02T07:00:00+00:00",
+    "max_results": 5,
+    "sort": "connectionTime",
+    "pages_read": 1,
+    "pagination_followed": false,
+    "timeseries_requested": false
+  },
+  "sample_rows": 5,
+  "matching_rows_reported_by_API": 38,
+  "response_bytes": 3526,
+  "response_sha256": "6e154240611f07448f69b85540bbd5c03f6d9855b1918706146f0e06fca2aa10",
+  "anonymized_schema_sha256": "6176efd3b854acde13947bcd4c942edce33a76d33e672ea51172bbcd8eec183c",
+  "fields": {
+    "realized": [
+      "connectionTime",
+      "disconnectTime",
+      "doneChargingTime",
+      "kWhDelivered",
+      "timezone"
+    ],
+    "user_declaration": [
+      "kWhRequested",
+      "requestedDeparture",
+      "minutesAvailable",
+      "modifiedAt"
+    ]
+  },
+  "checks": {
+    "connection_le_input_lt_estimated_departure": 5,
+    "input_before_actual_disconnect": 5,
+    "estimated_departure_before_actual_disconnect_observed": 5,
+    "requested_energy_exceeds_delivered": 5,
+    "denominator": 5
+  },
+  "input_delay_seconds": {
+    "min": 13.0,
+    "max": 29.0
+  },
+  "required_mean_rate_kW": {
+    "definition": "kWhRequested / hours(requestedDeparture - modifiedAt)",
+    "minimum": 1.0013908205841446,
+    "maximum": 7.472238558134707,
+    "not_measured_maximum_or_feasibility_test": true
+  },
+  "planning_boundary": "An individualized quote using a declaration must occur no earlier than that userInput.modifiedAt. Day-ahead plans use historical forecasts, not future declarations/actual disconnects/delivered energy. Later input updates must not leak backward.",
+  "energy_boundary": "Requested and delivered energy are distinct. delivered/requested is not DR participation probability.",
+  "sample_boundary": "Five earliest returned sessions qualify field availability only; not a representative calibration set, future performance test, or price-response experiment.",
+  "missing": [
+    "initial_SOC",
+    "battery_capacity",
+    "true_vehicle_maximum_power",
+    "DR_offer_prices",
+    "DR_acceptance",
+    "feeder_topology_or_PQV"
+  ],
+  "license_boundary": "No independent dataset redistribution license found in checked official page/author static README; software BSD license is separate. Raw session responses and access helper remain private.",
+  "new_topology_LP_AC_runs": 0
+}

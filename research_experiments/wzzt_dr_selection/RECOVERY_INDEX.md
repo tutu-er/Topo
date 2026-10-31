@@ -1,3 +1,12 @@
+## 最新恢复：全天模块/历史输入阶段结束
+
+- 先读dr_day_modules/{README,MODEL,HISTORY_REPORT,RESOURCE_REPORT,ACN_DATA_REPORT,AMPLITUDE_NOTE,NEXT}.md。只实现历史审计/资源运行域；尚无全天价格优化器、新AC/完整W恢复结果。旧两例作为零收益对照保留。
+- 历史审计e092cb91，40/40源、80hash、560窗口/60620对已结束，不重跑。2x双通道全天0/4330、全历史夜间19/4330。该标准严格；无近比例不否定多节点补偿。未读真实结构/V/未来，未完成历史竞争关联。
+- resource源码3855b348.../test6d8d2ecb...，完整29检查通过。v3局部6测1LP，完整回归7LP（6最优1预设不可行）分别保存，不累计成样本。AMPLITUDE_NOTE数学经独立审查已收紧正确族噪声底条件，固定历史反例保留。
+- private scratch/wzzt_day_modules_v1: history_audit_v1的protocol/progress/ended/cases/aggregate及audit_independent_v1，full_stage_regression.xml；wzzt_day_schedule_resource_audit_v3含previous_v2/source_snapshot_v3/receipt/semantic_summary；wzzt_acn_public_session_probe_v1含官方5会话metadata原响应（私有）及public_schema_summary。
+- 公开evidence/day_history_input_v1、day_resource_modules_v1、acn_session_qualification_v1均有manifest；不上传输入轨迹/会话/认证。新资源桥未核验一次注入/多日总预算，整段rho由调用方提供且无参与校准。下次先按NEXT锁最小资源/物理批，保留所有真实任务超能力/断连/失败；不得直接运行旧价格panel或把运行LP称价格优化。
+- fit_observed、SharedFitter与旧物理默认没有因该阶段改动；显式Method2缓存身份仍可用。Git目的地github.com/tutu-er/Topo任务分支已授权，旧阻断不再适用。当前无研究数值进程，不创建自动重复。
+
 ## 收尾恢复：全部本轮有界阶段已结束
 
 - 最终入口BUDGET_REFERENCE_REPORT.md（原参照）、NUMERICAL_REPLAY_REPORT.md（2数值重放）、CACHE_METHOD_REPORT.md（缓存安全）。原source版本c0282288、数值API af24ba98，精确原字节zip保留；缓存修复是下一独立版本。
