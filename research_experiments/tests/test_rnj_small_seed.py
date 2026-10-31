@@ -69,3 +69,14 @@ def test_exit_replaces_wrong_seed_instead_of_merely_contracting_it():
         assert (1,2) in q['point']['supports'] and (0,1) not in q['point']['supports']
         assert q['point']['objective']<1e-8
     finally:bank.close()
+
+
+def test_optional_known_feasible_start_is_retained_and_labelled():
+    bank,true=bank_for(3,[((1,2),.4)]);initial=canonical([*((i,) for i in range(3)),(0,1),tuple(range(3))])
+    try:
+        current=bank.fit(initial,preserve=True);known=bank.fit(true,preserve=True)
+        q,event=exit_repair(bank,initial,current,np.eye(3),reference=current['objective'],prefix_seconds=0.,warm_candidates=[known])
+        assert q['warm_origin']=='complete_rnj'
+        assert q['raw_score']<=q['warm_score']+1e-8 and q['score']<=q['before_score']+1e-8
+        assert q['audit']['valid']
+    finally:bank.close()

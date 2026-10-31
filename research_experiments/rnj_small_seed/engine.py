@@ -89,7 +89,7 @@ def forward(bank,current,*,penalty,deadline,per_mip=2.):
     return current,dict(kind='coarse_wzzt',accepted=False,trials=trials,seconds=perf_counter()-then,stop='no_gain_or_unresolved')
 
 
-def prefix(bank,initial,*,mode,reference,seconds=20.):
+def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.):
     then=perf_counter();deadline=then+seconds;penalty=.003*reference
     current,seeding=seed_family(bank,initial,mode=mode,reference=reference,deadline=deadline)
     path=[current];events=[];reason='wall_limit';initial_max=remainder(current['supports'],bank.data.n)
@@ -101,7 +101,7 @@ def prefix(bank,initial,*,mode,reference,seconds=20.):
             e.update(released=released,iteration=iteration);events.append(e)
             if e['accepted']:path.append(current)
             reason='joint_tail_gap_met' if e.get('status')==2 else 'joint_tail_unresolved';break
-        current,e=forward(bank,current,penalty=penalty,deadline=deadline);e['iteration']=iteration;events.append(e)
+        current,e=forward(bank,current,penalty=penalty,deadline=deadline,per_mip=per_mip);e['iteration']=iteration;events.append(e)
         if e['accepted']:path.append(current)
         else:reason='coarse_no_gain_or_unresolved';break
     return dict(point=current,path=path,attempts=events,seeding=seeding,seconds=perf_counter()-then,stop_reason=reason,
@@ -126,12 +126,17 @@ def repair_windows(initial,kernel,n):
     return canonical(pool),canonical(windows)
 
 
-def exit_repair(bank,initial,current,kernel,*,reference,prefix_seconds):
+def exit_repair(bank,initial,current,kernel,*,reference,prefix_seconds,warm_candidates=(),total_seconds=40.,extra_repair=True):
     then=perf_counter();base,domain=candidate_pool(bank,initial,current,kernel,'compact')
-    extra,windows=repair_windows(initial,kernel,bank.data.n);pool=canonical([*base,*extra]);penalty=.003*reference
-    model,meta=build(bank.scaled,pool,penalty=penalty);construction=perf_counter()-then
-    snapshots,record=solve_checkpoints(bank,model,meta,current,prefix_seconds=prefix_seconds+construction,budgets=(40.,))
-    s=snapshots[40.];values=s.pop('values');from research_experiments.rebuild_benchmark.engine import audit_vector
+    extra,windows=repair_windows(initial,kernel,bank.data.n) if extra_repair else ((),())
+    pool=canonical([*base,*extra]);penalty=.003*reference
+    model,meta=build(bank.scaled,pool,penalty=penalty)
+    starts=[current,*warm_candidates]
+    warm_index=min(range(len(starts)),key=lambda k:criterion(starts[k],bank.data.n,penalty));warm=starts[warm_index]
+    warm_score=criterion(warm,bank.data.n,penalty)
+    construction=perf_counter()-then
+    snapshots,record=solve_checkpoints(bank,model,meta,warm,prefix_seconds=prefix_seconds+construction,budgets=(float(total_seconds),))
+    s=snapshots[float(total_seconds)];values=s.pop('values');from research_experiments.rebuild_benchmark.engine import audit_vector
     audit=audit_vector(model,values)
     if not audit['valid']:raise RuntimeError('invalid exit incumbent')
     indices=[*range(len(meta['keep'])),*[len(meta['keep'])+k for k,v in enumerate(values[meta['selection']]) if v>.5]]
@@ -139,11 +144,12 @@ def exit_repair(bank,initial,current,kernel,*,reference,prefix_seconds):
     raw=dict(supports=[meta['all_supports'][i] for i in indices],r=rr[indices].tolist(),x=xx[indices].tolist());raw['objective']=loss(bank.data,raw)
     before=criterion(current,bank.data.n,penalty);raw_score=criterion(raw,bank.data.n,penalty)
     if raw_score>audit['objective']+1e-8:raise RuntimeError('raw physical score exceeds audited epigraph')
-    accepted=prefix_seconds+construction<40 and before-raw_score>1e-10+.001*current['objective']
+    accepted=prefix_seconds+construction<total_seconds and before-raw_score>1e-10+.001*current['objective']
     point=bank.fit(raw['supports'],preserve=True) if accepted else current
     if accepted:point,_=clean_zero(bank,point)
     score=criterion(point,bank.data.n,penalty)
     if score>before+1e-8 or (s['bound'] is not None and s['bound']>score+1e-8):raise RuntimeError('invalid exit score/bound')
     return dict(point=point,raw_point=raw,accepted=accepted,before_score=before,score=score,raw_score=raw_score,audit=audit,
+        warm_index=warm_index-1,warm_score=warm_score,warm_origin='prefix' if warm_index==0 else 'complete_rnj',
         coefficient_projection_max=max(rp,xp),**s),{**record,**domain,'pool':pool,'pool_count':len(pool),'repair_windows':windows,
         'additional_supports':len(set(pool)-set(base)),'construction_seconds':construction}
