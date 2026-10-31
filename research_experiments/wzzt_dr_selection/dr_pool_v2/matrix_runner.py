@@ -9,6 +9,7 @@ from collections import defaultdict
 import copy
 import json
 from pathlib import Path
+from numbers import Integral
 import re
 import traceback
 
@@ -25,12 +26,39 @@ class CachedFitFailure(RuntimeError):
     pass
 
 
-def observation_identity(training, validation, *, root_label=1, search_seconds=25., sources=None):
+def _validated_lp_method(lp_method):
+    if isinstance(lp_method,bool) or not isinstance(lp_method,Integral) or lp_method not in (0,1,2):
+        raise ValueError('lp_method must be an integer in {0, 1, 2}')
+    return int(lp_method)
+
+
+def _method_metadata(result, requested):
+    """Validate declared/actual method records; only default legacy fakes may omit them."""
+    records=[]
+    if 'lp_method' in result:records.append(('lp_method',result['lp_method']))
+    settings=result.get('settings') or {}
+    for name in ('lp_method','actual_lp_method'):
+        if name in settings:records.append(('settings.'+name,settings[name]))
+    for index,solve in enumerate(result.get('LP_solves') or []):
+        if 'lp_method' in solve:records.append((f'LP_solves[{index}].lp_method',solve['lp_method']))
+    for name,value in records:
+        if _validated_lp_method(value)!=requested:
+            raise RuntimeError(f'recorded LP method at {name} differs from requested lp_method={requested}')
+    if not records and requested!=1:
+        raise RuntimeError('nondefault lp_method requires an explicit method record in the result')
+    return {'recorded_lp_method':requested if records else None,
+            'lp_method_recording':'explicit' if records else 'legacy_default_unrecorded',
+            'lp_method_record_count':len(records)}
+
+
+def observation_identity(training, validation, *, root_label=1, search_seconds=25., sources=None,lp_method=1):
+    lp_method=_validated_lp_method(lp_method)
     train,days,_=normalize(training,'training')
     valid,valid_days,_=normalize(validation,'validation')
     identity={'training':input_hash(train,days),'validation':input_hash(valid,valid_days),
         'terminal_labels':list(train[0].columns),'root_label':int(root_label),
-        'search_seconds':float(search_seconds),'algorithm_source_sha256':algorithm_sources() if sources is None else sources}
+        'search_seconds':float(search_seconds),'lp_method':lp_method,
+        'algorithm_source_sha256':algorithm_sources() if sources is None else sources}
     return runner.fingerprint(identity),identity
 
 
@@ -40,24 +68,29 @@ class SharedFitter:
         self.sources=sources;self.max_new_fits=max_new_fits;self.fit_function=fit_function
         self.new_count=0;self.reused_count=0
 
-    def __call__(self, training, validation, output_dir, *, root_label=1, search_seconds=25.):
+    def __call__(self, training, validation, output_dir, *, root_label=1, search_seconds=25.,lp_method=1):
+        lp_method=_validated_lp_method(lp_method)
         key,identity=observation_identity(training,validation,root_label=root_label,
-            search_seconds=search_seconds,sources=self.sources)
+            search_seconds=search_seconds,sources=self.sources,lp_method=lp_method)
         cache=self.folder/key;meta_path=cache/'cache_record.json';result_path=cache/'result.json'
         request=Path(output_dir);request.mkdir(parents=True,exist_ok=True)
         reused=meta_path.exists()
         if reused:
             meta=runner.read(meta_path)
             if meta['identity']!=identity:raise RuntimeError('cache identity mismatch')
+            if _validated_lp_method(meta.get('lp_method',identity['lp_method']))!=lp_method:
+                raise RuntimeError('cached metadata LP method mismatch')
             if result_path.exists():
                 result=runner.read(result_path)
                 if meta.get('result_sha256') and runner.sha(result_path)!=meta['result_sha256']:
                     raise RuntimeError('cached result hash changed')
+                method_metadata=_method_metadata(result,lp_method)
                 if result.get('status')=='complete':
-                    meta.update(status='complete',result_sha256=runner.sha(result_path))
+                    meta.update(status='complete',result_sha256=runner.sha(result_path),lp_method=lp_method,**method_metadata)
                     runner.write(meta_path,meta)
                 elif meta['status']=='running':
-                    meta.update(status='failed',exception=result.get('exception',{'message':'identifier returned noncomplete result'}))
+                    meta.update(status='failed',exception=result.get('exception',{'message':'identifier returned noncomplete result'}),
+                                lp_method=lp_method,**method_metadata)
                     runner.write(meta_path,meta)
             elif meta['status']=='running':
                 meta.update(status='interrupted',exception={'message':'incomplete cached attempt; no budget extension or restart'})
@@ -68,7 +101,7 @@ class SharedFitter:
                 raise BatchBoundary()
             cache.mkdir(parents=True,exist_ok=True)
             meta={'key':key,'identity':identity,'status':'running','created_at':runner.now(),
-                'first_request':str(request.resolve()),'result_path':str(result_path.resolve())}
+                'lp_method':lp_method,'first_request':str(request.resolve()),'result_path':str(result_path.resolve())}
             runner.write(meta_path,meta)
             self.new_count+=1
             try:
@@ -76,26 +109,35 @@ class SharedFitter:
                     from .adapter import fit_observed
                     fn=fit_observed
                 else:fn=self.fit_function
-                result=fn(training,validation,cache,root_label=root_label,search_seconds=search_seconds)
+                # Keep old default custom fake signatures valid. The returned
+                # records still catch a partial that silently binds another method.
+                keywords={'root_label':root_label,'search_seconds':search_seconds}
+                if lp_method!=1:keywords['lp_method']=lp_method
+                result=fn(training,validation,cache,**keywords)
+                method_metadata=_method_metadata(result,lp_method)
                 if not result_path.exists():runner.write(result_path,result)
+                stored=runner.read(result_path)
+                stored_method_metadata=_method_metadata(stored,lp_method)
                 meta.update(status='complete' if result.get('status')=='complete' else 'failed',
-                    result_sha256=runner.sha(result_path),finished_at=runner.now())
+                    result_sha256=runner.sha(result_path),finished_at=runner.now(),**stored_method_metadata)
             except Exception as exc:
                 meta.update(status='failed',finished_at=runner.now(),
                     exception={'type':type(exc).__name__,'message':str(exc),'traceback':traceback.format_exc()})
                 if result_path.exists():meta['result_sha256']=runner.sha(result_path)
                 runner.write(meta_path,meta)
-                runner.write(request/'fit_request.json',{'cache_key':key,'status':'failed','reused':False,
+                runner.write(request/'fit_request.json',{'cache_key':key,'status':'failed','reused':False,'lp_method':lp_method,
                     'reused_from':None,'cache_result':str(result_path),'exception':meta['exception']})
                 raise
             runner.write(meta_path,meta)
-        reference={'cache_key':key,'status':meta['status'],'reused':reused,
+        reference={'cache_key':key,'status':meta['status'],'reused':reused,'lp_method':lp_method,
+            'recorded_lp_method':meta.get('recorded_lp_method'),'lp_method_recording':meta.get('lp_method_recording'),
             'reused_from':meta['first_request'] if reused else None,'cache_result':str(result_path.resolve()),
             'cache_record':str(meta_path.resolve())}
         runner.write(request/'fit_request.json',reference)
         if meta['status']!='complete':
             raise CachedFitFailure('cached '+meta['status']+' fit '+key+': '+str(meta.get('exception')))
         returned=copy.deepcopy(runner.read(result_path))
+        _method_metadata(returned,lp_method)
         returned['matrix_cache']=reference
         # Local materialization permits the ordinary runner to resume its task
         # without a second adapter call. Numerical output remains unchanged.

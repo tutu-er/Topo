@@ -1,3 +1,11 @@
+## 本轮收尾：预算内参照与数值修正均已完成
+
+- 首批实际数据结果保持：原64未来观察34完成30首LP超时，测试9/32完成；完成者及同观测几何NJ/RNJ均0错。两完整历史已0错/0付费，本两例未证明付费DR结构收益，当前没有新部署价格优化器。
+- Method2在两个预锁planning失败观察上完整2/2完成、188LP，最终仍0错且tree_bank；只证明局部数值配置可行，不覆盖其余失败或增加独立样本，原参照和30失败全部保留。
+- 方法参数现同时进入fit_observed与SharedFitter缓存身份并校验记录，旧默认1不改。数值/adapter13项、缓存/既有matrix12项合计25个不同检查通过；源和汇总见NUMERICAL_REPLAY_REPORT.md与CACHE_METHOD_REPORT.md。
+- 原物理/辨识批、4LP探针、2完整重放、全部核验均已结束，无待恢复数值进程。各源码版本zip与所有未决保留，旧协议从归档恢复，禁止用新hash绕过旧缓存。
+- 本两静态例保留为零收益对照；不新增价格/预算/种子/网络维持优势。后续DR研究应先给出有历史依据的输入不足条件及可检验联合响应依据，不能仅靠候选分歧继续付费。
+
 ## 数值配置补充：两份原失败planning完整重放已完成
 
 - 读dr_balanced_design/NUMERICAL_REPLAY_REPORT.md与evidence/numerical_lp_configuration_v1。现有engine/adapter增加显式lp_method，默认1保留；全目标/权重域/接受/15秒LP/25秒W/3%/.16均未改。

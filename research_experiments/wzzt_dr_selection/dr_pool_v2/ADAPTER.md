@@ -15,7 +15,7 @@
 
 fit_observed与PoolLP接收lp_method=0/1/2，默认仍为1。参数进入输入身份、结果settings及每次LP回执；增加支撑时保留原方法。0为primal simplex、1为dual simplex、2为barrier，均保持相同目标、非负权重、界、容差与15秒LP时限；该参数不改变W的接受、验证及收缩规则。
 
-此配置用于诊断预算内参照批的首个固定族LP状态9。四个单LP对照已在原15秒内最优，但不据此承诺完整路径速度或恢复优势。非唯一最优点、数值剪枝和墙限会使不同求解方法产生不同路径，因此新配置必须另存协议与结果，不能覆盖旧失败或复用旧源码缓存。完整联合重放另见dr_balanced_design/NUMERICAL_REPLAY_REPORT.md（完成后记录）。
+此配置用于诊断预算内参照批的首个固定族LP状态9。四个单LP对照已在原15秒内最优，但不据此承诺完整路径速度或恢复优势。非唯一最优点、数值剪枝和墙限会使不同求解方法产生不同路径，因此新配置必须另存协议与结果，不能覆盖旧失败或复用旧源码缓存。两次完整联合重放见dr_balanced_design/NUMERICAL_REPLAY_REPORT.md。SharedFitter亦接受显式lp_method并绑定cache key及方法记录；不同方法不共享结果。旧默认fake无方法记录时标为legacy_default_unrecorded，非默认缺记录或记录冲突直接报错。缓存修复见dr_balanced_design/CACHE_METHOD_REPORT.md。
 
 ## 对真实DR数据的必要接口修正
 

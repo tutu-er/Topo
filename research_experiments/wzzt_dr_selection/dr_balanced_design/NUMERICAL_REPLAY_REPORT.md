@@ -33,7 +33,7 @@
 
 ## 缓存边界
 
-直接fit_observed的identity已区分lp_method，本阶段两个新缓存独立安全。SharedFitter缓存还需要同样绑定方法，避免自定义partial改变方法而复用另一个方法的缓存；该问题单独修复和验证，不修改本阶段冻结源。
+直接fit_observed的identity已区分lp_method，本阶段两个新缓存独立安全。SharedFitter方法缓存绑定已另行修复并通过12项检查，见CACHE_METHOD_REPORT.md；本两次重放的冻结源码和输出不改。新缓存源码不用于回写旧结果。
 
 ## 恢复
 

@@ -1,3 +1,9 @@
+## 收尾恢复：全部本轮有界阶段已结束
+
+- 最终入口BUDGET_REFERENCE_REPORT.md（原参照）、NUMERICAL_REPLAY_REPORT.md（2数值重放）、CACHE_METHOD_REPORT.md（缓存安全）。原source版本c0282288、数值API af24ba98，精确原字节zip保留；缓存修复是下一独立版本。
+- 全部研究数值与审计均结束。不要重启原32+32、3443LP、4LP探针或2fit188LP；原30失败、flynn参照未决、pengwah免费选择保留。零收益结论限于本两例。
+- direct与SharedFitter均显式记录方法，缓存隔离修复12测试通过，0研究调用；累计25不同单元/回归检查。无新增家庭、PQV、AC轨迹公开。
+
 ## 数值重放恢复：2/2已结束，不重跑
 
 - 入口dr_balanced_design/NUMERICAL_REPLAY_REPORT.md、numerical_full_replay.py；private run_v1/numerical_full_replay_v1的2fit/188LP均结束，score五方法0错。无新独立样本/AC/价格。
