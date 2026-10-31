@@ -1,0 +1,165 @@
+\documentclass[UTF8,a4paper,11pt,fontset=windows]{ctexart}
+\usepackage[margin=2.35cm]{geometry}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parskip}{2pt}
+\linespread{1.08}
+\pagestyle{plain}
+\setlist{nosep,leftmargin=2em}
+\newcommand{\F}{\mathcal F}
+\newcommand{\Hh}{\mathcal H}
+\title{WZZT可撤销局部树重构数学模型}
+\author{}
+\date{2026年10月31日}
+\begin{document}
+\begin{center}
+{\Large\bfseries WZZT可撤销局部树重构数学模型}\par
+\vspace{0.4em}
+2026年10月31日
+\end{center}
+本稿保存供审核的数学结构，区分连接退出、局部联合重构和搜索停止。
+RNJ或WZZT形成的集合均为临时决定，只有已经核实的物理先验继续作为硬约束。
+本稿给出模型与条件性保证，实验结果另行记录。
+
+\section{量测和树的表示}
+设有$n$个观测终端和$T$个采样点，$P,Q,Y\in\mathbb R^{n\times T}$的列对应采样时刻，
+分别表示有功、无功和电压响应。若使用电压平方差，则$Y_{it}=v_{0t}^2-v_{it}^2$；
+已知比例及标幺基准吸收入响应系数。对非空集合$C\subseteq[n]$，$z_C\in\{0,1\}^n$为其指示向量，预计算
+\begin{equation}
+ A_C^P=z_Cz_C^\top P,\qquad A_C^Q=z_Cz_C^\top Q.
+\end{equation}
+树由层级集合族$\F$表示：任意两个集合只能包含或分离。相同支撑的串联线路合并表示；单点与全集作为基础响应项，系数允许为零。
+共同R/X支撑模型为
+\begin{equation}
+ \widehat Y=\sum_{C\in\F}(r_CA_C^P+x_CA_C^Q),\quad
+ R=\sum_{C\in\F}r_Cz_Cz_C^\top,\quad X=\sum_{C\in\F}x_Cz_Cz_C^\top.
+\end{equation}
+这里$r_C,x_C$是响应系数，换算为物理阻抗时需恢复相应比例因子；参数界为$0\le r_C\le\bar r_C$、$0\le x_C\le\bar x_C$。
+
+\section{局部区域与允许退出的旧集合}
+当前层级为$\F^{(k)}$，硬先验为$\Hh\subseteq\F^{(k)}$。RNJ初值本身不属于已经核实的物理先验。
+选择当前子树区域$V$，以完整当前子树或单点构成不相交划分
+\begin{equation}
+ V=B_1\mathbin{\dot\cup}\cdots\mathbin{\dot\cup}B_b.
+\end{equation}
+保留各$B_a$内部、$V$外部及包含$V$的祖先结构。需要重新表示的旧集合为
+\begin{equation}
+ \mathcal R=\{C\in\F^{(k)}:C\subsetneq V,\ C\nsubseteq B_a\ \text{对所有 }a\},\qquad
+ \F_{\rm keep}=\F^{(k)}\setminus\mathcal R.
+\end{equation}
+完整子树划分保证$\mathcal R$中每个集合都是若干完整块的并。
+$\mathcal R\setminus\Hh$允许退出；$\mathcal R\cap\Hh$只改变表示，仍强制保留。
+
+\textbf{要删除错误集合$C$，应选择严格祖先区域$V\supsetneq C$，并打开$C$内部的划分。}
+若$C$本身仍是固定区域边界或不可拆块，本次优化就无法用与它交叉的新集合替代它。
+本轮固定的临时边界，在后续更大区域中仍应允许释放。
+
+\section{候选线路与层级约束}
+定义
+\begin{equation}
+ \mathcal S_b=\{S\subseteq[b]:2\le|S|\le b-1\},\qquad
+ C_S=\bigcup_{a\in S}B_a,\qquad |\mathcal S_b|=2^b-b-2.
+\end{equation}
+四块和五块分别有10和25个候选；枚举的是候选线路，兼容候选的组合仍由MILP决定。
+引入$a_S\in\{0,1\}$和响应系数，满足
+\begin{equation}
+ 0\le r_S\le\bar r_Sa_S,\qquad 0\le x_S\le\bar x_Sa_S.
+\end{equation}
+若$S,T$交叉，即交集与两边差集都非空，加入
+\begin{equation}
+ a_S+a_T\le1.
+\end{equation}
+对$C_S\in\mathcal R\cap\Hh$强制$a_S=1$；与任一保留集合交叉的候选强制$a_S=0$。
+已释放的临时旧集合不得通过其他历史约束继续限制新候选。
+
+对任意$W\subseteq[b]$、$|W|\ge2$，加入
+\begin{equation}
+ \boxed{\sum_{\substack{S\in\mathcal S_b\\S\subsetneq W}}a_S\le|W|-2.}
+\end{equation}
+取$W=[b]$得到$\sum_Sa_S\le b-2$。给$W$内所选层级补上单点与全集，并压缩单孩子节点后，内部节点最多$|W|-1$个；排除全集后最多$|W|-2$个。
+该约束可加强成对冲突约束的LP松弛。不得改为等式，否则会强迫细分。
+本文把跨块硬先验放在候选池中以$a_S=1$计数；若实现把它们留在保留集合中，须相应扣减数量上界。
+
+\section{完整局部MILP及线路数惩罚}
+候选的指示向量是常数，因此
+\begin{equation}
+ \widehat Y=
+ \sum_{D\in\F_{\rm keep}}(r_DA_D^P+x_DA_D^Q)
+ +\sum_{S\in\mathcal S_b}(r_SA_{C_S}^P+x_SA_{C_S}^Q).
+\end{equation}
+令$K_{\rm keep}$为保留结构中的非平凡内部集合数，排除单点和全集；
+$K=K_{\rm keep}+\sum_Sa_S$是在简化树上可辨识的内部线路数。完整模型为
+\begin{equation}
+\boxed{\begin{aligned}
+ \min\quad &J=\frac1{nT}\sum_{i,t}e_{it}
+       +\gamma\left(K_{\rm keep}+\sum_{S\in\mathcal S_b}a_S\right)\\
+ \text{s.t.}\quad&-e_{it}\le Y_{it}-\widehat Y_{it}\le e_{it},\qquad e_{it}\ge0,\\
+ &a_S\in\{0,1\},\quad 0\le r_S\le\bar r_Sa_S,\quad 0\le x_S\le\bar x_Sa_S,\\
+ &a_S+a_T\le1\quad\text{对所有交叉候选},\\
+ &\sum_{\substack{S\in\mathcal S_b\\S\subsetneq W}}a_S\le|W|-2
+      \quad\text{对所有 }W\subseteq[b],\ |W|\ge2,\\
+ &\text{硬先验、保留集合相容性及保留响应系数的上下界。}
+\end{aligned}}
+\end{equation}
+所有保留系数也联合重新拟合，使用全部原始量测，不要求局部与外部损失独立。
+模型中没有未知$z_iz_j$或$r z_iz_j$乘积变量。
+
+可取$\gamma=\lambda L_{\rm ref}$，其中$L_{\rm ref}>0$为搜索期间固定的误差尺度，
+例如初始完整RNJ的未正则训练MAE并作极小正数保护。$\lambda=0$恢复原始量测L1模型。
+保留连接的数量代价虽是子问题常数，报告完整目标和求解上下界时仍须加回。
+
+\section{连接退出与零权重清理}
+对旧临时候选，$a_S=0$使$r_S=x_S=0$，同时其交叉约束不再阻止新候选进入，完成响应项和结构限制的共同退出。
+每轮可以删除$r_C=x_C=0$且$C\notin\Hh$的临时集合，并删除其相容性限制。
+精确零清理不改变预测响应且扩大后续搜索域。
+采用数值阈值清理时，须重新拟合和评分；它与最终拓扑分辨率阈值分别设置。
+
+数量惩罚主要抑制多余细分。相同线路数的错误与正确分组具有相同代价，纠正它们依赖候选覆盖和量测拟合。
+若修复需增加更多真实线路，数量惩罚还会提高修复门槛。
+生效阻抗下界仅在物理尺度或独立校准支持时加入，例如$r_S+x_S\ge\underline w_Sa_S$；
+它可能排除弱真实线路，也可能使当前解无法恢复，不作为退出机制的必要条件。
+
+\section{接收规则与条件性保证}
+记原始训练MAE为$L$，重新核验可行性后，只有满足
+\begin{equation}
+ J_{\rm current}-J_{\rm new}>\varepsilon,\qquad
+ \varepsilon=\varepsilon_{\rm abs}+\varepsilon_{\rm rel}L_{\rm current}
+\end{equation}
+才接收新解。等价地，
+\begin{equation}
+ L_{\rm current}-L_{\rm new}>
+ \gamma(K_{\rm new}-K_{\rm current})+\varepsilon.
+\end{equation}
+增加线路须换来足够误差下降；删除线路可容许一定误差上升。
+
+\textbf{当前解可恢复。}若旧集合全部可由块并表示，参数界和硬先验一致，且没有新增排除当前系数的限制，
+则选择旧候选并沿用原系数是可行解，因此
+\begin{equation}
+ \boxed{J^*_{\rm rebuild}\le J_{\rm current}.}
+\end{equation}
+正则化后保证的是$J$不增；仅在$\gamma=0$时，才直接保证原始训练L1不增。
+精确求解给出指定邻域内最优值；触时可行解通过核验和接收门槛后也可更新，但没有精确邻域最优保证。
+
+\textbf{细化块扩大可行域。}对同一区域进一步打开完整块，若旧结构仍可表示、参数界与硬先验一致、线路计数口径一致且惩罚尺度固定，则
+\begin{equation}
+ \mathcal N(V,\mathcal B)\subseteq\mathcal N(V,\mathcal B'),\qquad
+ J^*(V,\mathcal B')\le J^*(V,\mathcal B).
+\end{equation}
+固定$b\le5$只限定计算范围；若打开错误边至少需要更多块，该邻域不保证能修复它。
+
+\section{执行流程与停止}
+\begin{enumerate}
+ \item 用完整RNJ或当前WZZT得到临时初值，联合拟合并固定误差尺度。
+ \item 清理经复核的零响应临时集合，解除其结构限制。
+ \item 选局部区域和至多五块的frontier，完整枚举块并候选，构造MILP。
+ \item 联合重新拟合，通过门槛则更新树和邻域；继续扫描其他区域。
+ \item 必要时用WZZT新增连接，再尝试撤销与重构；计算预算与实际覆盖分别记录。
+\end{enumerate}
+若所有声明的邻域均精确求解且没有超过门槛的改善，可称为该邻域下的容差局部最优。
+对于有效下界$\mathrm{LB}_V$，条件
+\begin{equation}
+ J_{\rm current}-\mathrm{LB}_V\le\varepsilon
+\end{equation}
+也足以排除该邻域超过门槛的改善。触时无改善但界不足时，应记为未解决。
+达到时限或尝试数上限不等于收敛。本模型不提供全局拓扑恢复保证；F1和完整恢复率需单独测试。
+\end{document}
