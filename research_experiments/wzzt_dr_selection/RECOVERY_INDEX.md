@@ -1,3 +1,11 @@
+## 最新恢复：day_module_actual_v1全阶段已结束，不重跑
+
+- 入口dr_day_modules/ACTUAL_TEST_REPORT.md。48请求/41unique fit/9565LP/18432AC时点全结束，无失败未决；planning18、test30（23unique）。oracle正式zero、paid-only rotation_010，test先锁后开，raw/final全0。
+- private scratch/wzzt_day_module_actual_v1/run_v1：protocol SHA 26cef82997ecfa871f4f9b1d0208614f6a7fadfb901096ca91c13ecbf148b157、source_snapshot.zip、plans、planning/test的observations/worker_ended/fits_frozen/scored、oracle、summary。source d42250fe对应冻结驱动；不要改源hash后冒充resume或重跑终态。
+- 同级audit_independent_report_v2.json/execution_v2/repair_v2及v1原失败完整保留。v2源码d4d34408...、报告8fa0ea7c...，18007检查0差异；repo audit_day_trial.py可在新out路径只读重核，不新增AC/fit。公开evidence/day_module_actual_v1为标量白名单，家庭/节点PQV/AC/连续参数私有。
+- 完整路径与Gamma结果均为当前固定单控制：一条未干预背景、一个条件4格背景。40/41有原路径墙限，不称全树最优。几何RNJ额外假块由现有族库选模修正，完整W最终未选新路径；不改记为DR恢复收益。
+- 原两例继续零收益对照，不扩该例费用/种子求正。新协议必须有新的历史依据与响应律边界，旧NEXT下方只作已执行计划记录。当前无研究进程和待恢复数值阶段，授权Git目的地仍为github.com/tutu-er/Topo任务分支。
+
 ## 最新恢复：全天模块/历史输入阶段结束
 
 - 先读dr_day_modules/{README,MODEL,HISTORY_REPORT,RESOURCE_REPORT,ACN_DATA_REPORT,AMPLITUDE_NOTE,NEXT}.md。只实现历史审计/资源运行域；尚无全天价格优化器、新AC/完整W恢复结果。旧两例作为零收益对照保留。

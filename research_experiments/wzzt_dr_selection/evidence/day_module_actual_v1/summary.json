@@ -1,0 +1,1235 @@
+{
+  "status": "completed",
+  "private_summary_sha256": "2bdebf2c4dc0e7ee442ff2b61abdfefebbcbea35f6812377d5cc32399d3e32e1",
+  "protocol_sha256": "26cef82997ecfa871f4f9b1d0208614f6a7fadfb901096ca91c13ecbf148b157",
+  "requests": 48,
+  "planning_requests": 18,
+  "test_requests": 30,
+  "unique_fits": 41,
+  "completed_unique_fits": 41,
+  "failed_unique_fits": 0,
+  "LP_solves": 9565,
+  "sum_completed_fit_elapsed_seconds": 2573.7663094002637,
+  "information_units": {
+    "planning": 2,
+    "conditional_test": 1,
+    "unintervened_test": 1
+  },
+  "offline_reference": {
+    "status": "frozen",
+    "created_utc": "2026-10-31T07:08:31.028291+00:00",
+    "protocol_sha256": "26cef82997ecfa871f4f9b1d0208614f6a7fadfb901096ca91c13ecbf148b157",
+    "planning_scored_sha256": "e6d604836200f6800df991656f6667c973738d81c37236ecf39bc22f2aa30eef",
+    "formal_selection_status": "selected",
+    "selected_policy": "zero",
+    "paid_only_mechanism_reference": "rotation_010",
+    "mechanism_amplitude": "010",
+    "mechanism_is_not_replacement_for_zero_selection": true,
+    "test_policies": [
+      "zero",
+      "rotation_010",
+      "rotation_020",
+      "same_010",
+      "opposed_010",
+      "complement_010"
+    ],
+    "table": [
+      {
+        "policy": "zero",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.0,
+        "theoretical_expected_payment": 0.0
+      },
+      {
+        "policy": "rotation_010",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.6000000000000001,
+        "theoretical_expected_payment": 0.4
+      },
+      {
+        "policy": "rotation_020",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 1.2000000000000002,
+        "theoretical_expected_payment": 0.8
+      },
+      {
+        "policy": "same_010",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.4,
+        "theoretical_expected_payment": 0.4
+      },
+      {
+        "policy": "same_020",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.8,
+        "theoretical_expected_payment": 0.8
+      },
+      {
+        "policy": "opposed_010",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.4,
+        "theoretical_expected_payment": 0.4
+      },
+      {
+        "policy": "opposed_020",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.8,
+        "theoretical_expected_payment": 0.8
+      },
+      {
+        "policy": "complement_010",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.4,
+        "theoretical_expected_payment": 0.4
+      },
+      {
+        "policy": "complement_020",
+        "status": "complete",
+        "MC_mean_final_errors": 0.0,
+        "mean_actual_payment": 0.8,
+        "theoretical_expected_payment": 0.8
+      }
+    ],
+    "test_future_has_not_yet_been_generated": true,
+    "scope": "two-path MC approximate model-known reference; not full expectation/price-space optimum"
+  },
+  "unintervened_test": [
+    {
+      "policy": "zero",
+      "status": "complete",
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00045770689615617764,
+          "validation_mae": 0.00047022058896387396,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00045770689615617764,
+          "validation_mae": 0.00047022058896387396,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00045770689615617764,
+          "validation_mae": 0.00047022058896387396,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [],
+          "extra": [
+            [
+              207,
+              208
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "actual_payment": 0.0,
+      "worst_payment": 0.0
+    },
+    {
+      "policy": "rotation_010",
+      "status": "complete",
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004577131163833207,
+          "validation_mae": 0.0004702233388222808,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004577131163833207,
+          "validation_mae": 0.0004702233388222808,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004577131163833207,
+          "validation_mae": 0.0004702233388222808,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [],
+          "extra": [
+            [
+              207,
+              208
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "actual_payment": 0.4,
+      "worst_payment": 0.8
+    },
+    {
+      "policy": "rotation_020",
+      "status": "complete",
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004577193979210115,
+          "validation_mae": 0.0004702265974503063,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004577193979210115,
+          "validation_mae": 0.0004702265974503063,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004577193979210115,
+          "validation_mae": 0.0004702265974503063,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [],
+          "extra": [
+            [
+              207,
+              208
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "actual_payment": 0.8,
+      "worst_payment": 1.6
+    },
+    {
+      "policy": "same_010",
+      "status": "complete",
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00045771444762041677,
+          "validation_mae": 0.00047022464752563916,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00045771444762041677,
+          "validation_mae": 0.00047022464752563916,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00045771444762041677,
+          "validation_mae": 0.00047022464752563916,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [],
+          "extra": [
+            [
+              207,
+              208
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "actual_payment": 0.4,
+      "worst_payment": 0.8
+    },
+    {
+      "policy": "opposed_010",
+      "status": "complete",
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.000457707558295668,
+          "validation_mae": 0.00047022455400208736,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.000457707558295668,
+          "validation_mae": 0.00047022455400208736,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.000457707558295668,
+          "validation_mae": 0.00047022455400208736,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [],
+          "extra": [
+            [
+              207,
+              208
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "actual_payment": 0.4,
+      "worst_payment": 0.8
+    },
+    {
+      "policy": "complement_010",
+      "status": "complete",
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.000457711890488546,
+          "validation_mae": 0.00047022189650555056,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.000457711890488546,
+          "validation_mae": 0.00047022189650555056,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.000457711890488546,
+          "validation_mae": 0.00047022189650555056,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [],
+          "extra": [
+            [
+              207,
+              208
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "actual_payment": 0.4,
+      "worst_payment": 0.8
+    }
+  ],
+  "conditional_Gamma_panels": [
+    {
+      "policy": "zero",
+      "complete": 4,
+      "denominator": 4,
+      "conditioning": "one independent background; other six resource-day participation bits fixed",
+      "models": {
+        "multistart_original_rule": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "rnj_bank": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "baseline25": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_NJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "policy": "rotation_010",
+      "complete": 4,
+      "denominator": 4,
+      "conditioning": "one independent background; other six resource-day participation bits fixed",
+      "models": {
+        "multistart_original_rule": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "rnj_bank": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "baseline25": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_NJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "policy": "rotation_020",
+      "complete": 4,
+      "denominator": 4,
+      "conditioning": "one independent background; other six resource-day participation bits fixed",
+      "models": {
+        "multistart_original_rule": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "rnj_bank": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "baseline25": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_NJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "policy": "same_010",
+      "complete": 4,
+      "denominator": 4,
+      "conditioning": "one independent background; other six resource-day participation bits fixed",
+      "models": {
+        "multistart_original_rule": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "rnj_bank": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "baseline25": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_NJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "policy": "opposed_010",
+      "complete": 4,
+      "denominator": 4,
+      "conditioning": "one independent background; other six resource-day participation bits fixed",
+      "models": {
+        "multistart_original_rule": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "rnj_bank": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "baseline25": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_NJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "policy": "complement_010",
+      "complete": 4,
+      "denominator": 4,
+      "conditioning": "one independent background; other six resource-day participation bits fixed",
+      "models": {
+        "multistart_original_rule": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "rnj_bank": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "baseline25": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        },
+        "geometric_NJ_RX75_0.16": {
+          "state_full_errors": {
+            "00": 0,
+            "10": 0,
+            "01": 0,
+            "11": 0
+          },
+          "Gamma": {
+            "lower": 0.0,
+            "upper": 0.0,
+            "value": 0.0,
+            "shared_observation_coefficients_cancelled": true
+          },
+          "conditional_independent_mean_errors": 0.0,
+          "conditional_Frechet_risk_endpoints": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  ],
+  "unique_fit_method_error_histograms": {
+    "multistart_original_rule": {
+      "0": 41
+    },
+    "rnj_bank": {
+      "0": 41
+    },
+    "baseline25": {
+      "0": 41
+    },
+    "geometric_RNJ_RX75_0.16": {
+      "0": 35,
+      "1": 6
+    },
+    "geometric_NJ_RX75_0.16": {
+      "0": 41
+    }
+  },
+  "actual_search_and_selection": {
+    "accepted_updates": 221,
+    "accepted_cross_updates": 32,
+    "unique_fits_with_any_wall_limited_path": 40,
+    "selected_origin_counts": {
+      "tree_bank": 41
+    },
+    "selected_raw_error_histogram": {
+      "0": 41
+    },
+    "selected_bank_config_counts": {
+      "raw_R_0.16": 32,
+      "raw_RX75_0.08": 2,
+      "raw_R_0.24": 7
+    }
+  },
+  "physical": {
+    "requests": 48,
+    "events": 192,
+    "AC_timepoints": 18432,
+    "operations_pass": 48,
+    "budgets_pass": 48,
+    "opposed_joint_execution": {
+      "scope": "only actual event0 opposed joint execution; not an ancestor-voltage-zero certificate",
+      "maximum_absolute_sum_deltaP_kw": 0.0,
+      "maximum_absolute_sum_deltaQ_kvar": 0.0,
+      "maximum_node_absolute_deltaP_kw": 0.1
+    },
+    "source": "actual saved physical execution; no new AC"
+  },
+  "interpretation": "No paid structural-recovery benefit in this fixed zero-gain control; raw selected families already correct. Existing RNJ bank corrects the geometric RNJ false block; W search is executed but not selected.",
+  "limitation": [
+    "n=2 approximate planning reference",
+    "one untouched test path",
+    "conditional Gamma only event0, not whole four-day correlation",
+    "synthetic fixed p=.5 and full-day DR capability, not calibrated EV pricing",
+    "Only first of two retained controls tested anew; second original control not rerun",
+    "40/41 fits contain an original path wall limit; completed fixed-family LPs optimal, no global tree-optimum claim",
+    "Conditional Gamma is one held-background intervention panel, not global joint-response expectation"
+  ],
+  "no_PQV_AC_trajectories_or_continuous_line_parameters": true
+}
