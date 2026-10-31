@@ -1,3 +1,10 @@
+## 最新恢复：历史参考材料与剪枝前系数接口
+
+- 数学入口dr_balanced_design/MATHEMATICAL_MODEL.md；执行及边界见HISTORY_REFERENCE_REPORT.md。history_reference.py、run_history_reference.py及18检查已通过；evidence/history_reference_packet_v1保存协议、提取汇总、静态审查及hash。
+- private scratch/wzzt_history_reference_packet_v1保留protocol/source_snapshot及run_v1/reference_packet.json、result、测试日志。只读1份旧历史JSON，不读PQV；22行16数值点，11行25未保存块保留区间。科学参考/未来损失未就绪，不据此运行价格。
+- engine仅加full_fit字段，记录完整族/全部clipped系数及剪枝前目标；无真实拟合重跑。当前源码hash与旧baseline不同是明确元数据修补，不能绕过旧缓存source校验resume。
+- 保留旧flynn零收益收口；不要补其1073格或重跑旧214LP。下一次新拟合使用full_fit，并先锁历史解释与条件未来规律，保留零弱/多遗漏及同数据RNJ联合对照。
+
 ## 最新恢复：联合响应风险计算门控已通过
 
 - 入口dr_balanced_design/JOINT_RISK_GATE_REPORT.md、joint_response_risk.py、run_joint_risk_gate.py；evidence/joint_risk_gate_v1含两个冻结协议、最终结果与11项Fraction核验。private scratch/wzzt_joint_risk_gate_v1保留两次源码快照与run_v1/run_v2，不重跑已完成记录。

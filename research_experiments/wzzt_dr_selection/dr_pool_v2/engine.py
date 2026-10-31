@@ -1,5 +1,6 @@
 """Adapted finite-pool LP and crossing replacement; provenance.json records source.
-Only input day boundaries, root label, explicit QP budget and failure recording differ.
+Input day boundaries, root label, explicit QP budget and failure recording are adapted.
+Full pre-pruning coefficients are retained as audit metadata; decisions are unchanged.
 """
 from __future__ import annotations
 
@@ -77,7 +78,10 @@ class PoolLP:
         if not np.isclose(physical,self.model.ObjVal,atol=1e-8,rtol=1e-8):raise RuntimeError("LP physical objective mismatch")
         kept=[i for i,s in enumerate(family) if len(s)==1 or max(r[i],x[i])>1e-9]
         point=dict(supports=[list(family[i]) for i in kept],r=r[kept].tolist(),x=x[kept].tolist(),
-                   objective=physical,preprocess=self.preprocess,solver_objective=float(self.model.ObjVal))
+                   objective=physical,preprocess=self.preprocess,solver_objective=float(self.model.ObjVal),
+                   full_fit=dict(supports=[list(s) for s in family],r=r.tolist(),x=x.tolist(),
+                                 objective=physical,weight_upper_bound=float(self.bound),support_prune_tolerance=1e-9,
+                                 semantics="clipped coefficients before numerical support pruning; not physical zero or an optimal-face certificate"))
         audit=dict(family=family,objective=float(self.model.ObjVal),physical=physical,
                    max_constraint_violation=float(self.model.ConstrVio),max_bound_violation=float(self.model.BoundVio),
                    status=int(self.model.Status),seconds=perf_counter()-then)
