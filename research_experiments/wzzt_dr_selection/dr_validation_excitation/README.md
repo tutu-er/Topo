@@ -1,11 +1,11 @@
-# 共同调权后的验证排除激励
+# 固定验证参数的连续价格搜索
 
-- MODEL.md：完整数学模型及概率口径。
-- REPORT.md：保持3%和原病例的实际观测重分析、均值反号、10场景小试验。
-- profile_margin.py：复用PoolLP的全族调权、验证排除裕量与最优面核验。
-- audit_existing.py：重读既有8观测，不生成物理未来。
-- forecast_gate.py / scenario_gate.py：历史均值和整段残差参考门控。
-- test_profile_margin.py：4个可手算的非唯一/训练验证隔离检查。
-- ../evidence/validation_excitation_v1：仅含标量/离散支持的公开证据。
+最新模型与证据：CONTINUOUS_MODEL.md、CONTINUOUS_REPORT.md，公开 ../evidence/validation_continuous_v1。
 
-当前没有经过验证的新连续价格优化器；原SOCP/MISOCP仍属固定线性激励版本。本目录没有改生产RNJ/WZZT、3%验证或.16收缩。
+- 给定训练报价，17完整历史族用原PoolLP共同估计所有R/X；验证参数固定。
+- affine_solver.py精确优化验证日连续价格/合同类型，保留原3%与硬预算。continuous_search.py是有界外层；coarse_exit_reprice.py按当前粗族退出条件复用已拟合表。
+- actual_bridge.py只复用原AC与RNJ＋WZZT，不重写辨识器。
+- retained_history_audit.py是额外命名的组合敏感性审计，不改生产默认与原实际结果。
+- 原MODEL.md/REPORT.md记录上一阶段的全无C族排除与8份旧观测重分析；它强于当前粗族退出，不能混用。
+
+本轮13个新连续训练报价、独立10模型路径和2实际完整路径已全部结束。未找到90%激励达标报价，付费最终错漏未胜自然新增/轮换。原实际四策略全恢复；保留17历史族时四策略均漏1，详见报告。所有已完成目录不可重跑覆盖；恢复路径见上级RECOVERY_INDEX。

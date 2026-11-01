@@ -1,3 +1,15 @@
+## 最新恢复：连续价格与独立实际测试全部结束
+
+- 先读 `dr_validation_excitation/{CONTINUOUS_MODEL,CONTINUOUS_REPORT,CONTINUOUS_PLAN}.md`、`evidence/validation_continuous_v1`。原3%/.16、资源/1.6预算、完整历史、误差及零弱权均未改。原实际全正确，但没有DR净收益；保留历史族的命名组合审计全部漏1，不能混用两口径。
+- 私有主根 `C:\Users\23761\.codex\visualizations\2026\10\25\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\wzzt_validation_continuous_v1`。
+- `plan_v1`：13不同训练报价×10场景×17全族=2210LP；原all-noC强条件和Powell到评价上限均保留。`coarse_reprice_v2`：同13表重求当前F0精确退出报价，新增LP0；其price_selection SHA317ba149694d9d37e2dfa246923645d87e71b5f9b668637512303c2111ec37f9。合计56个价格求解阶段全status2；不称全域价格最优。
+- `model_holdout_v2`：seed2026110132、10新工作模型路径，3种不同训练报价510LP，四策略均0/10；与真实AC背景不同，不校准现场概率。价格未据留出更新。
+- `actual_v1`：先price_freeze/source_snapshot再8未来观测，4策略×2路径1200/1201；observe、两个fit worker、finish、aggregate全结束。8/8拟合824LP，原源与算法hash一致；32事件3072AC点，原480/480；全最终0错/原墙限。源冻结28d1b0e970d159852ed2a224152cf299d70c5c9d539fc45113f35bcb468b1d7e（price_freeze）；actual protocol f8926e94e25de85be00ed92d3cb5d87aa55a4e62543bc7399a9de2bc1c3d32d2。不要重跑，也不据已看未来重选价格。
+- `retained_history_v1`：同8观察再加17历史族共同训练136LP，同原规则组合审计，8/8漏C且F0合格。原池F0出现0/8；历史全冻结预测器也8/8漏C。不是生产默认修复，未更改报价或原实际0错结果；原/追加/frozen三个selector及loss均独立重放过。该阶段源码hash事前锁定，source_snapshot在完成后归档且精确匹配，不冒称事前zip。
+- 私有审计：`planning_audit.json`36279、`audit_actual_v1.json`812、`audit_retained_history_v1.json`1777全过；`audit_actual_mechanism_v1.json`明确path0准备初值修正2/8，16次接受未最终入选。独立脚本在visualization根或wzzt_validation_continuous_stage，公开证据附源码，轨迹/连续参数私有。
+- 所有solver/worker已结束，无待恢复计算。若续研先解决“规划固定历史族与实际生成新族”一致性；可以明确比较保留历史族的算法版本，但不得无说明改默认或再换阈值制造收益。90%仍是激励条件概率，当前没有达标报价或统计恢复保证。
+
+
 ## 最新恢复：全族重调权后的3%排除审查已结束
 
 - 先读 `dr_validation_excitation/{MODEL,REPORT,README}.md`、公开 `evidence/validation_excitation_v1`。没有新全局连续价格优化器或独立新价格实际效果，原3%/.16/接受/完整历史/预算/零弱权未改。
