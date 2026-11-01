@@ -1,0 +1,146 @@
+{
+  "status": "complete",
+  "source_audit_sha256": "3a32b30a08b25eadbd468dfd93741b01f664205178f796ce707b79dc1b8c0cd4",
+  "fees_by_policy": [
+    {
+      "policy": "zero",
+      "denominator": 20,
+      "valid": 19,
+      "failed": 1,
+      "valid_modeled_fee": 0.0,
+      "failed_undelivered_modeled_fee": 0.0,
+      "unknown_fee_events": 0,
+      "mean_valid_fee": 0.0,
+      "physical_positive": 0,
+      "observed_positive": 0,
+      "mean_physical_gain": 0.0,
+      "mean_observed_gain": 0.0
+    },
+    {
+      "policy": "rotation",
+      "denominator": 20,
+      "valid": 19,
+      "failed": 1,
+      "valid_modeled_fee": 25.930463008003144,
+      "failed_undelivered_modeled_fee": 1.4916179954953201,
+      "unknown_fee_events": 0,
+      "mean_valid_fee": 1.364761210947534,
+      "physical_positive": 17,
+      "observed_positive": 18,
+      "mean_physical_gain": 1.346768566829461e-06,
+      "mean_observed_gain": 1.3394025092554998e-06
+    },
+    {
+      "policy": "optimized",
+      "denominator": 20,
+      "valid": 19,
+      "failed": 1,
+      "valid_modeled_fee": 25.77412986356285,
+      "failed_undelivered_modeled_fee": 1.4671952364188516,
+      "unknown_fee_events": 0,
+      "mean_valid_fee": 1.3565331507138343,
+      "physical_positive": 19,
+      "observed_positive": 19,
+      "mean_physical_gain": 7.124264516195354e-06,
+      "mean_observed_gain": 7.123616623435696e-06
+    }
+  ],
+  "failed_components": [
+    {
+      "condition": "flynn16_b7_v0002",
+      "policy": "zero",
+      "path": 1540,
+      "worker_status": "physical_failed",
+      "actual_model_fee": 0.0,
+      "AC_attempted": false,
+      "nodes": [
+        {
+          "node": 202,
+          "P_min_kw": 0.9503181348846788,
+          "Q_min_kvar": 0.354324543885042,
+          "P_component_kw": 1.0,
+          "Q_component_kvar": 0.35,
+          "min_P_remainder_kw": -0.049681865115321244,
+          "min_Q_remainder_kvar": 0.004324543885041998,
+          "P_min_slot": 48,
+          "Q_min_slot": 54
+        },
+        {
+          "node": 201,
+          "P_min_kw": 3.2521480792238924,
+          "Q_min_kvar": 0.8778999893994802,
+          "P_component_kw": 1.0,
+          "Q_component_kvar": 0.35,
+          "min_P_remainder_kw": 2.2521480792238924,
+          "min_Q_remainder_kvar": 0.5278999893994802,
+          "P_min_slot": 50,
+          "Q_min_slot": 0
+        }
+      ]
+    },
+    {
+      "condition": "flynn16_b7_v0002",
+      "policy": "rotation",
+      "path": 1540,
+      "worker_status": "physical_failed",
+      "actual_model_fee": 1.4916179954953201,
+      "AC_attempted": false,
+      "nodes": [
+        {
+          "node": 202,
+          "P_min_kw": 0.9503181348846788,
+          "Q_min_kvar": 0.354324543885042,
+          "P_component_kw": 1.0,
+          "Q_component_kvar": 0.35,
+          "min_P_remainder_kw": -0.049681865115321244,
+          "min_Q_remainder_kvar": 0.004324543885041998,
+          "P_min_slot": 48,
+          "Q_min_slot": 54
+        },
+        {
+          "node": 201,
+          "P_min_kw": 3.2521480792238924,
+          "Q_min_kvar": 0.8778999893994802,
+          "P_component_kw": 1.0,
+          "Q_component_kvar": 0.35,
+          "min_P_remainder_kw": 2.2521480792238924,
+          "min_Q_remainder_kvar": 0.5278999893994802,
+          "P_min_slot": 50,
+          "Q_min_slot": 0
+        }
+      ]
+    },
+    {
+      "condition": "flynn16_b7_v0002",
+      "policy": "optimized",
+      "path": 1540,
+      "worker_status": "physical_failed",
+      "actual_model_fee": 1.4671952364188516,
+      "AC_attempted": false,
+      "nodes": [
+        {
+          "node": 202,
+          "P_min_kw": 0.9503181348846788,
+          "Q_min_kvar": 0.354324543885042,
+          "P_component_kw": 1.0,
+          "Q_component_kvar": 0.35,
+          "min_P_remainder_kw": -0.049681865115321244,
+          "min_Q_remainder_kvar": 0.004324543885041998,
+          "P_min_slot": 48,
+          "Q_min_slot": 54
+        },
+        {
+          "node": 201,
+          "P_min_kw": 3.2521480792238924,
+          "Q_min_kvar": 0.8778999893994802,
+          "P_component_kw": 1.0,
+          "Q_component_kvar": 0.35,
+          "min_P_remainder_kw": 2.2521480792238924,
+          "min_Q_remainder_kvar": 0.5278999893994802,
+          "P_min_slot": 50,
+          "Q_min_slot": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,15 @@
+## 最新恢复：新日样本加权五条件测试全部结束
+
+- 先读 `dr_newday_weighted/REPORT.md`、`README.md`；公开 `evidence/newday_weighted_v1`含完整九规则结果、正反例和费用分列。主w2/tau2额外DR收益0，部分预锁敏感性有真实纠错；不将敏感性替代主版本。
+- 私有根 `C:\Users\23761\.codex\visualizations\2026\10\25\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\wzzt_newday_weighted_v1`：run_v1为未部署raw-pair历史诊断，run_v2为唯一实际新日测试；不可混成两批独立试验。v2复用v1前2份完全相同问题报价，另3对改为真正不同的最终结构；原参数均历史原样。
+- 实验源码0248a357、38bf5dd4、5c0b9d21；精确字节以run_v2/source_snapshot.zip为准。protocol SHAc4f74eafdafca1e017818d66d839eb9b6eb57677ad89ac8272e9b15017fef288；price_freeze SHA534153bf3c7bb8d44bf29f71ea5491ab916b70dd90cdc5a25d883899423e5592；snapshot SHAc03e8a2cbaab153fc634dcd142ca0dbc66b254647e5a3abb943e11a09a534416。
+- 入口controller prepare/holdout/observe/score；全部已结束，勿重跑旧记录。57有效/60记录、19有效/20条件日、5472AC时点，新增fit/LP/W0。b7/path1540三策略前置资源资格失败，无AC；未决保留，不能靠填0、降库存或重抽补成60成功。
+- 所有原288训练/288验证、R/X、原.16图固定。评分只改新日样本w1/2/4与新日tau3/2/1%，历史权重1与3%不变；原未门控累计3%单列。物理数据只生成一次，九规则重评分不重新仿真。
+- 主要数字：主三策略各6错/13恢复/19有效，原三策略8错/11恢复；主DR净0。w1tau2总错8/8/7，paper1501粗族裕量-.570949/-.433748/+.407332；反例w2tau1总错3/1/2且flynn1512轮换距离负而纠，设计距离正未纠。完整九规则读rules.json，不择优报告。
+- 审计run_v2/independent_planning_audit.json4951、independent_selection_audit.json10730、independent_physical_audit_v2.json9753均通过。首个independent_physical_audit.json为schema读取失败回执，勿当成功。补充independent_physical_supplement.json分有效/未交付费用；失败模型账项不是交付支付。所有审计新增solve/AC/fit均0。
+- 源码已最小参数化旧one_day_worker的协议绑定nodes/noise，默认旧.0005/201/213保留；旧frozen_pool增加可选competition_selector、默认旧选择保留。旧实验当前文件hash可能已变，精确重放需各自snapshot/commit恢复，勿改历史hash；本轮外部审计后归档脚本不冒称事前核心代码。
+- 下一项实质问题：价格需直接针对实际固定模型排除/选择而非仅D，误差生成依据需明确；柔性容量要与自然负荷联合约束，zero应有不依赖柔性资格的物理路径。当前批不追加参数/seed或重跑失败日。公开白名单无P/Q/V/AC/完整R/X，原家庭和聚合轨迹留私有。
+
 ## 最新恢复：冻结参数距离DR小测试全部结束
 
 - 先读 `dr_frozen_distance/REPORT.md`、`README.md`，公开 `evidence/frozen_distance_v1/{configuration,planning,summary,physical_distance,audit_summary,manifest}.json`。已完成12/12物理记录、4独立日、1152AC；没有正在运行或未完成的新实验，勿重跑。
