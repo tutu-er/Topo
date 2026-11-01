@@ -1,3 +1,18 @@
+## 最新恢复：连续DR实际效果批已全部结束，无重跑项目
+
+- 主报告 `dr_conic_pricing/effect_test/ACTUAL_TEST_REPORT.md`，事前 `PLAN.md`；公开 `evidence/conic_effects_v1/{summary,independent_audit,manifest}.json`。源码首阶段5838911f，原SOCP/MISOCP42c03737；最终记录见后续阶段提交。
+- 私有根 `C:\Users\23761\.codex\visualizations\2026\10\25\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\wzzt_conic_effects_v1\run_v1`。`price_freeze.json` SHA91bab2aa043802f470d7f1bea26cfc4eb5dcbb311cfaeb31b8d65355cf456a7c；`source_snapshot.zip` SHA25a6209527fed5aa86309d3c95af9a8742dceb834102df4cbf36a48c84912e01。
+- 两例main/zero_control各protocol/problem/4plans、4报价求解回执、规划moment检查2000，test/records/physical及fit_cache/fits、worker_0/1_ended、fits_frozen、scored、summary全齐。16/16不同完整拟合、1511LP、64事件6144AC均完成；没有失败或待跑worker。完整历史288/288→480/480，不重跑旧基线或本16记录。
+- 主例zero/rotation/SOCP/MISOCP最终同[1,1]、0/2恢复；对照同[0,0]、2/2恢复。付费相对zero与简单轮换均未减少最终错漏。主例价法提高固定参考激励，但freezero实际2/2且模型内2000/2000也达同阈值，现指标不支持纠错收益。
+- 主例6/8得到且验证合格的正确候选，21粗族在3%带内仍回选。33accept/9cross/11删除未转化DR收益；收缩未丢正确解；16/16有墙限。不同辨识方法的自身修正收益与DR收益分开。
+- 冻结runtime为prepare.py/physical_worker.py/driver.py和原audit.py，不能改后硬套协议恢复。audit_v1_schema_failure.json原错误保留；后验audit_v2.py只修预算字段读request，audit_v2.json SHA d8dcce2195a455abdb8edaf01f4f5ff34f25c143f0b6ff256e9400b2f40dc528，16/16独立审核过；physical_independent_audit_v1.json也留存。
+- report.py是只读导出；public_summary.json旧v1与public_summary_v3.json均保留，v2增加模型配对zero达标数，v3核验两条件共享2个自然背景、4个响应流，没有重算价格/AC/W。公开汇总只复制v3，不把任何P/Q/V、物理时序或拟合R/X上传。后验电压信号/误差比仅描述诊断，非噪声消融。
+- 这些仅是连续DR、合成响应乘子相关.8；无PV新增、无EV实测/行为校准。规划六日因子近似不等同实际producer。概率只针对激励，非恢复；两实际路径不提供90%总体认证。
+- 下一项先审查激励条件与最终选模的一致性，需要有具体新差异再锁有界实验；不自动补种子、扩大网络或改噪声/预算找正。本批和所有旧批均保持结束。
+
+
+- 独立性口径：4个case-path分层记录中只有2个不同自然背景，不能合称4条iid自然路径；各条件内的两条路径保持固定分母。background_reuse_audit.json保存数组哈希证据。
+
 ## 最新恢复：连续DR SOCP/MISOCP实现已完成，无后台批次
 
 - 先读 `dr_conic_pricing/{README,MODEL,IMPLEMENTATION_REPORT}.md` 与 `evidence/conic_pricing_v1/{summary.json,audit_delivery.py}`。新主模型90%指激励达标；不使用Copula，不是90%完整恢复，也没有新增AC/W恢复试验。

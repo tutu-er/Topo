@@ -1,0 +1,3430 @@
+{
+  "status": "complete",
+  "planned_records": 16,
+  "completed_records": 16,
+  "case_path_strata": 4,
+  "distinct_natural_background_paths": 2,
+  "distinct_response_factor_streams": 4,
+  "background_reuse_records": [
+    {
+      "case": "main",
+      "path": 1100,
+      "background_sha256": "d9c23094416a7e3482a3a3c7f96aeaf8a9540cec12737a9b9f57729d82ba9efa"
+    },
+    {
+      "case": "main",
+      "path": 1101,
+      "background_sha256": "d28b603c5bd6646155700a55cd940316a080bdc192104bc5a284cd21bdd55bab"
+    },
+    {
+      "case": "zero_control",
+      "path": 1100,
+      "background_sha256": "d9c23094416a7e3482a3a3c7f96aeaf8a9540cec12737a9b9f57729d82ba9efa"
+    },
+    {
+      "case": "zero_control",
+      "path": 1101,
+      "background_sha256": "d28b603c5bd6646155700a55cd940316a080bdc192104bc5a284cd21bdd55bab"
+    }
+  ],
+  "independence_scope": "Two natural four-day backgrounds shared across the historical/noise conditions; four separately seeded response streams. Four strata are not four iid natural paths.",
+  "rows": [
+    {
+      "case": "main",
+      "path": 1100,
+      "policy": "zero",
+      "status": "complete",
+      "actual_payment": 0.0,
+      "worst_payment": 0.0,
+      "excitation_physical": [
+        98.69841408416514,
+        92.0240149993785
+      ],
+      "excitation_observed": [
+        98.77699718321634,
+        92.1303779659157
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012159195185926304,
+          "validation_mae": 0.0012248248354859391,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0011933811512926838,
+          "validation_mae": 0.001197163008437269,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0011933811512926838,
+          "validation_mae": 0.001197163008437269,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": true,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.0,
+        0.0
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 0.0,
+        "metering_error_rms_pu2": 0.0014690589557151102,
+        "signal_to_metering_error_rms": 0.0,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1100,
+      "policy": "rotation",
+      "status": "complete",
+      "actual_payment": 1.124913106899819,
+      "worst_payment": 1.3333333333333337,
+      "excitation_physical": [
+        98.52171487699691,
+        92.04021803762615
+      ],
+      "excitation_observed": [
+        98.60008513512463,
+        92.14631485367302
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012159557462150343,
+          "validation_mae": 0.001224780928718611,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.001193381706297341,
+          "validation_mae": 0.0011971587681156707,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.001193381706297341,
+          "validation_mae": 0.0011971587681156707,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": true,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        -0.17669920716822674,
+        0.016203038247653012
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.626423947887753e-05,
+        "metering_error_rms_pu2": 0.0014690583439777893,
+        "signal_to_metering_error_rms": 0.024685363673633515,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1100,
+      "policy": "socp",
+      "status": "complete",
+      "actual_payment": 1.158188578511182,
+      "worst_payment": 1.3330874995628386,
+      "excitation_physical": [
+        98.71451036889286,
+        92.04021782685506
+      ],
+      "excitation_observed": [
+        98.79310354030427,
+        92.14631464629805
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012159084347818886,
+          "validation_mae": 0.0012248240085605776,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0011933810562634322,
+          "validation_mae": 0.0011971619232417885,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0011933810562634322,
+          "validation_mae": 0.0011971619232417885,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": true,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.016096284727723287,
+        0.016202827476561765
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.9104137771242945e-05,
+        "metering_error_rms_pu2": 0.001469057998259963,
+        "signal_to_metering_error_rms": 0.02661851187465719,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1100,
+      "policy": "misocp",
+      "status": "complete",
+      "actual_payment": 1.1560112093317705,
+      "worst_payment": 1.3327750118127941,
+      "excitation_physical": [
+        98.730599286379,
+        92.05730402517236
+      ],
+      "excitation_observed": [
+        98.80889437928704,
+        92.16348170150283
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.001215926957209544,
+          "validation_mae": 0.0012248241496238001,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0011933803583156848,
+          "validation_mae": 0.0011971619555630056,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0011933803583156848,
+          "validation_mae": 0.0011971619555630056,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": true,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.032185202213867115,
+        0.03328902579386295
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.716531326392034e-05,
+        "metering_error_rms_pu2": 0.0014690580525741658,
+        "signal_to_metering_error_rms": 0.025298736968765254,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1101,
+      "policy": "zero",
+      "status": "complete",
+      "actual_payment": 0.0,
+      "worst_payment": 0.0,
+      "excitation_physical": [
+        108.87061169930827,
+        112.12665535193486
+      ],
+      "excitation_observed": [
+        108.70037024676014,
+        112.12170493274924
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012243852572941295,
+          "validation_mae": 0.0012056264444762908,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 20,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0033787675951829897,
+          "validation_mae": 0.003349924024186541,
+          "before_contraction_errors": 2
+        },
+        "baseline25": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              202,
+              203
+            ]
+          ],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_initialized_correction",
+          "train_mae": 0.0012099849744187355,
+          "validation_mae": 0.0011841985265880533,
+          "before_contraction_errors": 2
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 3,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ],
+            [
+              202,
+              204,
+              205,
+              206,
+              213,
+              215
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ]
+          ],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 3,
+        "accepted_cross_updates": 2,
+        "removed_blocks": 3,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": false,
+        "correct_candidate_validation_eligible": false,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.0,
+        0.0
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 0.0,
+        "metering_error_rms_pu2": 0.001449818539194279,
+        "signal_to_metering_error_rms": 0.0,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1101,
+      "policy": "rotation",
+      "status": "complete",
+      "actual_payment": 1.1195025270664156,
+      "worst_payment": 1.3333333333333337,
+      "excitation_physical": [
+        108.67223266355873,
+        112.14084683716018
+      ],
+      "excitation_observed": [
+        108.50150405249627,
+        112.13574000232309
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012243099591051916,
+          "validation_mae": 0.0012056321531267796,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 20,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0033774482941457797,
+          "validation_mae": 0.003348608917011681,
+          "before_contraction_errors": 2
+        },
+        "baseline25": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 20,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0033774482941457797,
+          "validation_mae": 0.003348608917011681,
+          "before_contraction_errors": 2
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 3,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ],
+            [
+              202,
+              204,
+              205,
+              206,
+              213,
+              215
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ]
+          ],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 3,
+        "accepted_cross_updates": 1,
+        "removed_blocks": 1,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": true,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        -0.1983790357495394,
+        0.014191485225325096
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.57616077106951e-05,
+        "metering_error_rms_pu2": 0.0014498188059049173,
+        "signal_to_metering_error_rms": 0.024666260063011234,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1101,
+      "policy": "socp",
+      "status": "complete",
+      "actual_payment": 1.1547741771423334,
+      "worst_payment": 1.3330874995628386,
+      "excitation_physical": [
+        108.88862459790792,
+        112.14084665299946
+      ],
+      "excitation_observed": [
+        108.71809882447863,
+        112.13573982014934
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012243734360077106,
+          "validation_mae": 0.0012056321530550787,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 20,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.003378906882073716,
+          "validation_mae": 0.0033500835018706386,
+          "before_contraction_errors": 2
+        },
+        "baseline25": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 20,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.003378906882073716,
+          "validation_mae": 0.0033500835018706386,
+          "before_contraction_errors": 2
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 3,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ],
+            [
+              202,
+              204,
+              205,
+              206,
+              213,
+              215
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ]
+          ],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 3,
+        "accepted_cross_updates": 1,
+        "removed_blocks": 1,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": true,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.018012898599650384,
+        0.014191301064599315
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.927229260926159e-05,
+        "metering_error_rms_pu2": 0.0014498190272312916,
+        "signal_to_metering_error_rms": 0.027087720516580326,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "main",
+      "path": 1101,
+      "policy": "misocp",
+      "status": "complete",
+      "actual_payment": 1.1188519043556195,
+      "worst_payment": 1.3327750118127941,
+      "excitation_physical": [
+        108.90665709749072,
+        112.1549366756086
+      ],
+      "excitation_observed": [
+        108.7358532956514,
+        112.14972400504419
+      ],
+      "excitation_threshold": 31.89232403853123,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 1,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 21,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "multistart_1",
+          "train_mae": 0.0012243390656629615,
+          "validation_mae": 0.0012056368005267499,
+          "before_contraction_errors": 1
+        },
+        "rnj_bank": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ],
+            [
+              204,
+              205,
+              206,
+              215
+            ]
+          ],
+          "extra": [],
+          "predicted_blocks": 20,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0033772868559389193,
+          "validation_mae": 0.003348448718735061,
+          "before_contraction_errors": 2
+        },
+        "baseline25": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              202,
+              203
+            ]
+          ],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_initialized_correction",
+          "train_mae": 0.0012099696186311573,
+          "validation_mae": 0.0011841997529393592,
+          "before_contraction_errors": 2
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 3,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ],
+            [
+              202,
+              204,
+              205,
+              206,
+              213,
+              215
+            ]
+          ],
+          "predicted_blocks": 23,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 2,
+          "full_recovery": false,
+          "missing": [
+            [
+              201,
+              202,
+              203
+            ]
+          ],
+          "extra": [
+            [
+              201,
+              203
+            ]
+          ],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 3,
+        "accepted_cross_updates": 2,
+        "removed_blocks": 3,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "multistart_1",
+        "correct_candidate_available": false,
+        "correct_candidate_validation_eligible": false,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 1,
+        "final_errors": 1,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.036045398182452004,
+        0.028281323673738257
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.63533675328675e-05,
+        "metering_error_rms_pu2": 0.0014498188533788566,
+        "signal_to_metering_error_rms": 0.02507442046856035,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1100,
+      "policy": "zero",
+      "status": "complete",
+      "actual_payment": 0.0,
+      "worst_payment": 0.0,
+      "excitation_physical": [
+        3.1918653203872664,
+        3.7606720523344643
+      ],
+      "excitation_observed": [
+        3.2081796590933296,
+        3.7910445532909582
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676603930512394,
+          "validation_mae": 0.0004743239709173273,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676603930512394,
+          "validation_mae": 0.0004743239709173273,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676603930512394,
+          "validation_mae": 0.0004743239709173273,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 1,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.0,
+        0.0
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 0.0,
+        "metering_error_rms_pu2": 0.0005876224077992699,
+        "signal_to_metering_error_rms": 0.0,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1100,
+      "policy": "rotation",
+      "status": "complete",
+      "actual_payment": 1.2293261687782597,
+      "worst_payment": 1.3333333333333337,
+      "excitation_physical": [
+        3.2234256497084206,
+        3.7607266567333726
+      ],
+      "excitation_observed": [
+        3.2395218192157342,
+        3.7910994759712726
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676592878341762,
+          "validation_mae": 0.00047433207946643284,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676592878341762,
+          "validation_mae": 0.00047433207946643284,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676592878341762,
+          "validation_mae": 0.00047433207946643284,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 1,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.03156032932115416,
+        5.4604398908253415e-05
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.942220289180727e-05,
+        "metering_error_rms_pu2": 0.0005876221421139748,
+        "signal_to_metering_error_rms": 0.06708767431735232,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1100,
+      "policy": "socp",
+      "status": "complete",
+      "actual_payment": 1.474104206501519,
+      "worst_payment": 1.5968275675755934,
+      "excitation_physical": [
+        3.2234513921652725,
+        3.7913417924579913
+      ],
+      "excitation_observed": [
+        3.2395482827295545,
+        3.8212890060423224
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676600042804278,
+          "validation_mae": 0.00047433254701700103,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676600042804278,
+          "validation_mae": 0.00047433254701700103,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004676600042804278,
+          "validation_mae": 0.00047433254701700103,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 1,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.0315860717780061,
+        0.030669740123526967
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 5.4194658266264756e-05,
+        "metering_error_rms_pu2": 0.0005876220433821651,
+        "signal_to_metering_error_rms": 0.09222706819223046,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1100,
+      "policy": "misocp",
+      "status": "complete",
+      "actual_payment": 1.2363365971982163,
+      "worst_payment": 1.3306375363064764,
+      "excitation_physical": [
+        3.2235648643272174,
+        3.791449871436242
+      ],
+      "excitation_observed": [
+        3.2395967696769636,
+        3.821688950522659
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00046765715951408284,
+          "validation_mae": 0.00047433258092869854,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00046765715951408284,
+          "validation_mae": 0.00047433258092869854,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00046765715951408284,
+          "validation_mae": 0.00047433258092869854,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.031699543939951,
+        0.03077781910177757
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 5.408855710672408e-05,
+        "metering_error_rms_pu2": 0.0005876221574648556,
+        "signal_to_metering_error_rms": 0.09204649011207343,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1101,
+      "policy": "zero",
+      "status": "complete",
+      "actual_payment": 0.0,
+      "worst_payment": 0.0,
+      "excitation_physical": [
+        3.693029782017557,
+        3.3473569273248063
+      ],
+      "excitation_observed": [
+        3.6824893707963104,
+        3.3670948035912973
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004709366546251955,
+          "validation_mae": 0.0004680518968088174,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004709366546251955,
+          "validation_mae": 0.0004680518968088174,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004709366546251955,
+          "validation_mae": 0.0004680518968088174,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 1,
+        "removed_blocks": 1,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.0,
+        0.0
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 0.0,
+        "metering_error_rms_pu2": 0.0005799359716507056,
+        "signal_to_metering_error_rms": 0.0,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1101,
+      "policy": "rotation",
+      "status": "complete",
+      "actual_payment": 1.1490030602206278,
+      "worst_payment": 1.3333333333333337,
+      "excitation_physical": [
+        3.7237730336856254,
+        3.3474057542886033
+      ],
+      "excitation_observed": [
+        3.7132209430335403,
+        3.36714387903628
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004709390303355678,
+          "validation_mae": 0.0004680549930735651,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004709390303355678,
+          "validation_mae": 0.0004680549930735651,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.0004709390303355678,
+          "validation_mae": 0.0004680549930735651,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 1,
+        "removed_blocks": 1,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.03074325166806835,
+        4.882696379704399e-05
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 3.674543298440271e-05,
+        "metering_error_rms_pu2": 0.0005799360616221275,
+        "signal_to_metering_error_rms": 0.06336117964732663,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1101,
+      "policy": "socp",
+      "status": "complete",
+      "actual_payment": 1.4221844651701558,
+      "worst_payment": 1.5968275675755934,
+      "excitation_physical": [
+        3.723798350471571,
+        3.3769588639577366
+      ],
+      "excitation_observed": [
+        3.7132461922940503,
+        3.396768012099684
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00047093852952180884,
+          "validation_mae": 0.0004680532162504713,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00047093852952180884,
+          "validation_mae": 0.0004680532162504713,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00047093852952180884,
+          "validation_mae": 0.0004680532162504713,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 1,
+        "removed_blocks": 1,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.030768568454013767,
+        0.029601936632930315
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 5.207849804376356e-05,
+        "metering_error_rms_pu2": 0.0005799362363854319,
+        "signal_to_metering_error_rms": 0.08980038627755556,
+        "not_a_causal_noise_ablation": true
+      }
+    },
+    {
+      "case": "zero_control",
+      "path": 1101,
+      "policy": "misocp",
+      "status": "complete",
+      "actual_payment": 1.1804950997140542,
+      "worst_payment": 1.3306375363064764,
+      "excitation_physical": [
+        3.723909571124823,
+        3.3770582712549113
+      ],
+      "excitation_observed": [
+        3.7133296852129933,
+        3.396703838094984
+      ],
+      "excitation_threshold": -0.25508956442887865,
+      "excitation_physical_joint_pass": true,
+      "excitation_observed_joint_pass": true,
+      "models": {
+        "multistart_original_rule": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00047093735817021126,
+          "validation_mae": 0.0004680526892049251,
+          "before_contraction_errors": 0
+        },
+        "rnj_bank": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00047093735817021126,
+          "validation_mae": 0.0004680526892049251,
+          "before_contraction_errors": 0
+        },
+        "baseline25": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained",
+          "selected_origin": "tree_bank",
+          "train_mae": 0.00047093735817021126,
+          "validation_mae": 0.0004680526892049251,
+          "before_contraction_errors": 0
+        },
+        "geometric_RNJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        },
+        "geometric_NJ_RX75_0.16": {
+          "full_errors": 0,
+          "full_recovery": true,
+          "missing": [],
+          "extra": [],
+          "predicted_blocks": 22,
+          "truth_blocks": 22,
+          "prediction_definition": "all final support labels, no R/X threshold",
+          "truth_definition": "physical evaluator: exact-zero edges inactive, every positive weak edge retained"
+        }
+      },
+      "mechanism": {
+        "accepted_updates": 2,
+        "accepted_cross_updates": 0,
+        "removed_blocks": 0,
+        "wall_limited": true,
+        "search_stops": {
+          "primary": "pool_wall_limit",
+          "multistart_0": "pool_wall_limit",
+          "multistart_1": "pool_wall_limit"
+        },
+        "final_source": "tree_bank",
+        "correct_candidate_available": true,
+        "correct_candidate_validation_eligible": true,
+        "W_reached_correct_from_wrong_start": false,
+        "pre_contraction_errors": 0,
+        "final_errors": 0,
+        "correct_lost_at_contraction": false
+      },
+      "physical_excitation_change_vs_zero": [
+        0.030879789107265854,
+        0.02970134393010504
+      ],
+      "posthoc_voltage_diagnostic": {
+        "scope": "two paid days; paired noiseless squared-voltage-drop change versus zero",
+        "DR_signal_rms_pu2": 5.1642848443948986e-05,
+        "metering_error_rms_pu2": 0.0005799362620949339,
+        "signal_to_metering_error_rms": 0.08904917974502377,
+        "not_a_causal_noise_ablation": true
+      }
+    }
+  ],
+  "cases": {
+    "main": {
+      "summary": {
+        "status": "complete",
+        "case": "flynn16",
+        "case_index": 0,
+        "protocol_sha256": "04d63dd5fe1dff9b594300607f42c76a65f0be30ace3bf88e56ea80a2f0bbc9e",
+        "requested_records": 8,
+        "unique_fits": 8,
+        "unique_complete": 8,
+        "unique_failed": 0,
+        "actual_LP_calls": 857,
+        "independent_case_paths": 2,
+        "tables": [
+          {
+            "policy": "zero",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 0.0,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          {
+            "policy": "rotation",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 1.1222078169831173,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          {
+            "policy": "socp",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 1.1564813778267578,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          {
+            "policy": "misocp",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 1.137431556843695,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 2,
+                "mean_full_errors": 1.0,
+                "mean_full_error_bounds": [
+                  1.0,
+                  1.0
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 1,
+                "recovery_fraction_bounds": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 3,
+                "mean_full_errors": 1.5,
+                "mean_full_error_bounds": [
+                  1.5,
+                  1.5
+                ],
+                "recoveries": 0,
+                "recovery_fraction_bounds": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          }
+        ],
+        "paired": [
+          {
+            "path": 1100,
+            "policy": "rotation",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1100,
+            "policy": "socp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1100,
+            "policy": "misocp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1101,
+            "policy": "rotation",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 3,
+                "paid_errors": 3,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1101,
+            "policy": "socp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 3,
+                "paid_errors": 3,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1101,
+            "policy": "misocp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 1,
+                "paid_errors": 1,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 3,
+                "paid_errors": 3,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 2,
+                "paid_errors": 2,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          }
+        ],
+        "planner_scope": "fixed historical two-fit signed prediction difference; not final structural error",
+        "actual_background_law": "unchanged source natural-load generator; planner factor law is an approximation",
+        "confidence_scope": "planning90pct excitation only; two actual paths do not certify actual90pct",
+        "new_PV": false
+      },
+      "competition": {
+        "selected_index": 19,
+        "alternative_index": 20,
+        "rule": "next accepted point on the selected historical W path",
+        "selected_origin": "multistart_1",
+        "selected_path_index": 0,
+        "alternative_origin": "multistart_1",
+        "alternative_path_index": 1,
+        "selected_support_count": 21,
+        "alternative_support_count": 22,
+        "planning_scope": "fixed historical fitted references, not full parameter-face separation"
+      },
+      "original_voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "original_history_rows": [
+        288,
+        288
+      ],
+      "final_rows": [
+        480,
+        480
+      ],
+      "budget": 1.6,
+      "policy_details": {
+        "zero": {
+          "expected_payment": 0.0,
+          "hard_budget_bound": 0.0,
+          "reliable_benefit": 31.87683526633529,
+          "positive_contract_ids": []
+        },
+        "rotation": {
+          "expected_payment": 1.1111111111111114,
+          "hard_budget_bound": 1.3333333333333335,
+          "reliable_benefit": 31.696300223370287,
+          "positive_contract_ids": [
+            "e0_anchor_spread",
+            "e2_partner_spread"
+          ]
+        },
+        "socp": {
+          "expected_payment": 1.110906249635699,
+          "hard_budget_bound": 1.3330874995628388,
+          "reliable_benefit": 31.89232403853123,
+          "positive_contract_ids": [
+            "e0_partner_spread",
+            "e2_partner_spread"
+          ]
+        },
+        "misocp": {
+          "expected_payment": 1.1106458431773287,
+          "hard_budget_bound": 1.3327750118127943,
+          "reliable_benefit": 31.908260879751836,
+          "positive_contract_ids": [
+            "e0_anchor_late",
+            "e0_partner_early",
+            "e2_anchor_late",
+            "e2_partner_early"
+          ]
+        }
+      },
+      "optimization_status": {
+        "socp": "primary_optimal_secondary_suboptimal",
+        "misocp": "optimal"
+      },
+      "planning_model_validation": {
+        "socp": {
+          "samples": 2000,
+          "successes": 2000,
+          "failures": 0,
+          "budget_failures": 0,
+          "device_failures": 0,
+          "paired_no_dr_successes": 2000,
+          "threshold": 31.89232403853123
+        },
+        "misocp": {
+          "samples": 2000,
+          "successes": 2000,
+          "failures": 0,
+          "budget_failures": 0,
+          "device_failures": 0,
+          "paired_no_dr_successes": 2000,
+          "threshold": 31.908260879751836
+        }
+      }
+    },
+    "zero_control": {
+      "summary": {
+        "status": "complete",
+        "case": "flynn16",
+        "case_index": 1,
+        "protocol_sha256": "07b62415f55f10f01d1cb00066d11b69462cce3fb3986396cdc09eef3caec777",
+        "requested_records": 8,
+        "unique_fits": 8,
+        "unique_complete": 8,
+        "unique_failed": 0,
+        "actual_LP_calls": 654,
+        "independent_case_paths": 2,
+        "tables": [
+          {
+            "policy": "zero",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 0.0,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              }
+            }
+          },
+          {
+            "policy": "rotation",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 1.1891646144994437,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              }
+            }
+          },
+          {
+            "policy": "socp",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 1.4481443358358375,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              }
+            }
+          },
+          {
+            "policy": "misocp",
+            "denominator": 2,
+            "completed": 2,
+            "unresolved": 0,
+            "mean_actual_payment": 1.2084158484561351,
+            "physical_excitation_evaluated": 2,
+            "physical_excitation_passes": 2,
+            "observed_excitation_evaluated": 2,
+            "observed_excitation_passes": 2,
+            "models": {
+              "multistart_original_rule": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "rnj_bank": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "baseline25": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              },
+              "geometric_NJ_RX75_0.16": {
+                "full_error_sum_known": 0,
+                "mean_full_errors": 0.0,
+                "mean_full_error_bounds": [
+                  0.0,
+                  0.0
+                ],
+                "recoveries": 2,
+                "recovery_fraction_bounds": [
+                  1.0,
+                  1.0
+                ]
+              }
+            }
+          }
+        ],
+        "paired": [
+          {
+            "path": 1100,
+            "policy": "rotation",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1100,
+            "policy": "socp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1100,
+            "policy": "misocp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1101,
+            "policy": "rotation",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1101,
+            "policy": "socp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          },
+          {
+            "path": 1101,
+            "policy": "misocp",
+            "status": "complete",
+            "zero_status": "complete",
+            "models": {
+              "multistart_original_rule": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "rnj_bank": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "baseline25": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_RNJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              },
+              "geometric_NJ_RX75_0.16": {
+                "zero_errors": 0,
+                "paid_errors": 0,
+                "improvement_zero_minus_paid": 0,
+                "recovered_by_paid": false
+              }
+            }
+          }
+        ],
+        "planner_scope": "fixed historical two-fit signed prediction difference; not final structural error",
+        "actual_background_law": "unchanged source natural-load generator; planner factor law is an approximation",
+        "confidence_scope": "planning90pct excitation only; two actual paths do not certify actual90pct",
+        "new_PV": false
+      },
+      "competition": {
+        "selected_index": 7,
+        "alternative_index": 19,
+        "rule": "smallest higher-support historical eligible point; validation/order break ties",
+        "selected_origin": "tree_bank",
+        "selected_path_index": null,
+        "alternative_origin": "multistart_0",
+        "alternative_path_index": 3,
+        "selected_support_count": 22,
+        "alternative_support_count": 23,
+        "planning_scope": "fixed historical fitted references, not full parameter-face separation"
+      },
+      "original_voltage_sigma": 0.0002,
+      "pq_sigma": 0.005,
+      "original_history_rows": [
+        288,
+        288
+      ],
+      "final_rows": [
+        480,
+        480
+      ],
+      "budget": 1.6,
+      "policy_details": {
+        "zero": {
+          "expected_payment": 0.0,
+          "hard_budget_bound": 0.0,
+          "reliable_benefit": -0.2832602084325657,
+          "positive_contract_ids": []
+        },
+        "rotation": {
+          "expected_payment": 1.1111111111111114,
+          "hard_budget_bound": 1.3333333333333335,
+          "reliable_benefit": -0.2832102191893795,
+          "positive_contract_ids": [
+            "e0_anchor_spread",
+            "e2_partner_spread"
+          ]
+        },
+        "socp": {
+          "expected_payment": 1.3306896396463281,
+          "hard_budget_bound": 1.5968275675755934,
+          "reliable_benefit": -0.25508956442887865,
+          "positive_contract_ids": [
+            "e0_anchor_spread",
+            "e0_partner_spread",
+            "e2_anchor_spread",
+            "e2_partner_spread"
+          ]
+        },
+        "misocp": {
+          "expected_payment": 1.1088646135887306,
+          "hard_budget_bound": 1.3306375363064764,
+          "reliable_benefit": -0.2549905933014118,
+          "positive_contract_ids": [
+            "e0_anchor_late",
+            "e0_partner_late",
+            "e2_anchor_late",
+            "e2_partner_late"
+          ]
+        }
+      },
+      "optimization_status": {
+        "socp": "primary_optimal_secondary_suboptimal",
+        "misocp": "optimal"
+      },
+      "planning_model_validation": {
+        "socp": {
+          "samples": 2000,
+          "successes": 2000,
+          "failures": 0,
+          "budget_failures": 0,
+          "device_failures": 0,
+          "paired_no_dr_successes": 2000,
+          "threshold": -0.25508956442887865
+        },
+        "misocp": {
+          "samples": 2000,
+          "successes": 2000,
+          "failures": 0,
+          "budget_failures": 0,
+          "device_failures": 0,
+          "paired_no_dr_successes": 2000,
+          "threshold": -0.2549905933014118
+        }
+      }
+    }
+  },
+  "actual_LP_calls": 1511,
+  "physical_events": 64,
+  "ac_time_points": 6144,
+  "independent_audit_totals": {
+    "physical_complete": 16,
+    "joint_complete": 16,
+    "unique_joint_complete": 16,
+    "failed_or_unresolved": 0,
+    "wall_limited_complete": 16,
+    "unique_wall_limited_complete": 16,
+    "lp_calls": 1511
+  },
+  "independent_audit_sha256": "d8dcce2195a455abdb8edaf01f4f5ff34f25c143f0b6ff256e9400b2f40dc528",
+  "price_freeze_sha256": "91bab2aa043802f470d7f1bea26cfc4eb5dcbb311cfaeb31b8d65355cf456a7c",
+  "source_snapshot_sha256": "25a6209527fed5aa86309d3c95af9a8742dceb834102df4cbf36a48c84912e01",
+  "export_source_sha256": "aeec8f3a2c8868132f8c80d08c3436fa24f8ca84d1d5c3fa9497f0f9e125d614",
+  "actual_recovery_probability_guarantee": false,
+  "no_household_or_PQV_or_AC_trajectories_exported": true,
+  "assumptions": {
+    "response": "synthetic continuous relative response, not behavior calibration",
+    "cross_node_response_correlation": 0.8,
+    "joint_excitation_requirement": "90pct under planning moments; not topology recovery",
+    "background": "original producer retained; finite historical factor model is an approximation",
+    "PV": "not added",
+    "EV": "no EV field calibration or actual EV declared in this pilot"
+  }
+}
