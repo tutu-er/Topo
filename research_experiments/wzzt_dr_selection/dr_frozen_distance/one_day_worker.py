@@ -72,6 +72,30 @@ def integer(value,name,minimum=0):
     return value
 
 
+def contract_scope(request,protocol):
+    """Bind only explicit multi-case gates; original defaults stay unchanged.
+
+    The caller verifies the protocol hash before this pure check. Resource
+    inventories and response laws remain in the separately hash-bound plan.
+    """
+    allowed=protocol.get('allowed_voltage_sigma',[.0005])
+    if (not isinstance(allowed,list) or not allowed
+            or any(isinstance(v,bool) or not isinstance(v,(int,float)) or v not in (.0002,.0005) for v in allowed)
+            or len(set(allowed))!=len(allowed)):
+        raise ValueError('declare allowed_voltage_sigma as distinct original .0002/.0005 values')
+    if request.get('voltage_sigma') not in allowed or request.get('pq_sigma')!=.005:
+        raise ValueError('retain protocol-declared original voltage noise andPQ.005')
+    expected=protocol.get('expected_resource_nodes',[201,213])
+    if (not isinstance(expected,list) or not expected
+            or any(isinstance(v,bool) or not isinstance(v,int) or v not in request['labels'] for v in expected)
+            or len(set(expected))!=len(expected)):
+        raise ValueError('declared resource nodes must be distinct observed terminal labels')
+    if 'expected_resource_nodes' in request and request['expected_resource_nodes']!=expected:
+        raise ValueError('request resource nodes differ from hash-bound protocol')
+    request['expected_resource_nodes']=list(expected)
+    return request
+
+
 def load_request(request_path,expected_sha):
     """All source/reference gates precede parsing a plan or loading a producer."""
     request_path=Path(request_path).resolve()
@@ -99,14 +123,13 @@ def load_request(request_path,expected_sha):
     base=float(request.get('base_kw',float('nan')))
     if not math.isfinite(base) or base<=0:raise ValueError('positive base_kw required')
     request['base_kw']=base
-    if request.get('voltage_sigma')!=.0005 or request.get('pq_sigma')!=.005:
-        raise ValueError('retain voltage.0005 andPQ.005 for this declared case')
     budget=float(request.get('incentive_budget',request.get('budget',float('nan'))))
     if budget!=1.6:raise ValueError('one-day hard budget remains1.6')
     request['incentive_budget']=budget
     protocol_path=reference(request.get('protocol'),parent,'protocol')
     protocol=json.loads(protocol_path.read_text(encoding='utf-8'))
     if protocol.get('status')!='frozen':raise ValueError('protocol must be frozen')
+    contract_scope(request,protocol)
     if 'voltage_sigma' in protocol and protocol['voltage_sigma']!=request['voltage_sigma']:
         raise ValueError('protocol noise differs from request')
     if 'pq_sigma' in protocol and protocol['pq_sigma']!=request['pq_sigma']:
@@ -185,7 +208,8 @@ def audit_plan(request):
         resources.append(ResourceDay(**dto))
     mapping={r.resource_id:r.node_label for r in resources}
     if len(mapping)!=len(resources) or set(quotes)-set(mapping):raise ValueError('contract resource declarations inconsistent')
-    if set(mapping.values())!={201,213}:raise ValueError('retain declared resource nodes201/213')
+    if set(mapping.values())!=set(request.get('expected_resource_nodes',[201,213])):
+        raise ValueError('resource nodes differ from hash-bound declared scope')
     if any(r.node_label not in request['labels'] for r in resources):raise ValueError('resource outside observed terminals')
     hard=float(np.sum(hours*elasticities*(1+np.abs(d).sum(axis=1))*prices**2))
     if hard>request['incentive_budget']+1e-9:raise ValueError('analytical hard payment exceeds1.6')
