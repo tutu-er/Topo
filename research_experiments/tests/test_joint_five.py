@@ -95,7 +95,9 @@ def test_stage_interventions_are_once_each_and_can_repair_rnj_small_error():
     for pre, tail in ((False, False), (True, True)):
         bank = bank_for(p, p*0, .3*p+.2*np.outer(z, z), family)
         try:
-            result = search(bank, family, pre_joint=pre, tail_joint=tail, seconds=6.)
+            # This is the original stage-only ablation; immediate zero release
+            # is covered separately and would repair the baseline too.
+            result = search(bank, family, pre_joint=pre, tail_joint=tail, seconds=6.,zero_release=False)
             assert sum(e['kind'] == 'rnj_pre_joint' for e in result['attempts']) == int(pre)
             assert sum(e['kind'] == 'wzzt_tail_joint' for e in result['attempts']) == int(tail)
             results.append(result['point']['objective'])

@@ -16,6 +16,7 @@ from research_experiments.rnj_count.engine import criterion,joint_fit
 from research_experiments.joint_five.model import open_small,remainder
 from research_experiments.joint_exit.model import candidate_pool,build,solve_checkpoints,physical_weights
 from research_experiments.revocable.engine import clean_zero
+from research_experiments.iterative_exit.zero import release_zero_atoms
 
 
 def seed_family(bank,initial,*,mode,reference,deadline,max_seeds=2):
@@ -89,17 +90,28 @@ def forward(bank,current,*,penalty,deadline,per_mip=2.):
     return current,dict(kind='coarse_wzzt',accepted=False,trials=trials,seconds=perf_counter()-then,stop='no_gain_or_unresolved')
 
 
-def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.,strategy='coarse'):
+def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.,strategy='coarse',zero_release=True,hard=()):
     then=perf_counter();deadline=then+seconds;penalty=.003*reference
     current,seeding=seed_family(bank,initial,mode=mode,reference=reference,deadline=deadline)
-    path=[current];events=[];reason='wall_limit';initial_max=remainder(current['supports'],bank.data.n)
+    if hard:current=bank.fit(canonical([*current['supports'],*hard]),preserve=True)
+    path=[current];events=[];reason='wall_limit';initial_max=remainder(current['supports'],bank.data.n);zero_events=[]
+    def clean(stage):
+        nonlocal current
+        current,rows=release_zero_atoms(bank,current,hard=hard,enabled=zero_release,stage=stage)
+        zero_events.extend(rows)
+        if any(e['accepted'] for e in rows):path.append(current)
+    clean('initial')
     for iteration in range(3*bank.data.n):
         if deadline-perf_counter()<=.1:break
         if remainder(current['supports'],bank.data.n)<=5:
             keep,released=open_small(current['supports'],bank.data.n)
+            keep=canonical([*keep,*hard])
+            released=canonical(C for C in released if C not in set(canonical(hard)))
             current,e=joint_fit(bank,current,keep,penalty=penalty,seconds=deadline-perf_counter(),stage='joint_tail')
             e.update(released=released,iteration=iteration);events.append(e)
             if e['accepted']:path.append(current)
+            previous=len(zero_events);clean('tail_joint')
+            if any(e['accepted'] for e in zero_events[previous:]):continue
             reason='joint_tail_gap_met' if e.get('status')==2 else 'joint_tail_unresolved';break
         if strategy=='original':
             from research_experiments.rnj_count.engine import original_step
@@ -107,11 +119,13 @@ def prefix(bank,initial,*,mode,reference,seconds=20.,per_mip=2.,strategy='coarse
         elif strategy=='coarse':current,e=forward(bank,current,penalty=penalty,deadline=deadline,per_mip=per_mip)
         else:raise ValueError(strategy)
         e['iteration']=iteration;events.append(e)
-        if e['accepted']:path.append(current)
+        if e['accepted']:
+            path.append(current);clean('extension')
         else:reason='coarse_no_gain_or_unresolved';break
     return dict(point=current,path=path,attempts=events,seeding=seeding,seconds=perf_counter()-then,stop_reason=reason,
         initial_maximum_remainder=initial_max,maximum_remainder=remainder(current['supports'],bank.data.n),reference_MAE=reference,
-        coefficient=.003,penalty=penalty,tree_global_optimal=False,strategy=strategy)
+        coefficient=.003,penalty=penalty,tree_global_optimal=False,strategy=strategy,
+        zero_release=zero_release,zero_events=zero_events,hard=canonical(hard))
 
 
 def repair_windows(initial,kernel,n):
@@ -131,12 +145,15 @@ def repair_windows(initial,kernel,n):
     return canonical(pool),canonical(windows)
 
 
-def exit_repair(bank,initial,current,kernel,*,reference,prefix_seconds,warm_candidates=(),total_seconds=40.,extra_repair=True):
+def exit_repair(bank,initial,current,kernel,*,reference,prefix_seconds,warm_candidates=(),total_seconds=40.,extra_repair=True,
+                forbidden=(),hard=()):
     then=perf_counter();base,domain=candidate_pool(bank,initial,current,kernel,'compact')
     extra,windows=repair_windows(initial,kernel,bank.data.n) if extra_repair else ((),())
-    pool=canonical([*base,*extra]);penalty=.003*reference
-    model,meta=build(bank.scaled,pool,penalty=penalty)
-    starts=[current,*warm_candidates]
+    forbidden=set(canonical(forbidden));hard=canonical(hard)
+    if set(hard)&forbidden:raise ValueError('A hard prior cannot be masked.')
+    pool=canonical(C for C in [*base,*extra] if tuple(C) not in forbidden);penalty=.003*reference
+    model,meta=build(bank.scaled,pool,penalty=penalty,hard=hard)
+    starts=[current,*[p for p in warm_candidates if not set(canonical(p['supports']))&forbidden and set(hard)<=set(canonical(p['supports']))]]
     warm_index=min(range(len(starts)),key=lambda k:criterion(starts[k],bank.data.n,penalty));warm=starts[warm_index]
     warm_score=criterion(warm,bank.data.n,penalty)
     construction=perf_counter()-then
@@ -151,10 +168,10 @@ def exit_repair(bank,initial,current,kernel,*,reference,prefix_seconds,warm_cand
     if raw_score>audit['objective']+1e-8:raise RuntimeError('raw physical score exceeds audited epigraph')
     accepted=prefix_seconds+construction<total_seconds and before-raw_score>1e-10+.001*current['objective']
     point=bank.fit(raw['supports'],preserve=True) if accepted else current
-    if accepted:point,_=clean_zero(bank,point)
+    if accepted:point,_=clean_zero(bank,point,hard=hard)
     score=criterion(point,bank.data.n,penalty)
     if score>before+1e-8 or (s['bound'] is not None and s['bound']>score+1e-8):raise RuntimeError('invalid exit score/bound')
     return dict(point=point,raw_point=raw,accepted=accepted,before_score=before,score=score,raw_score=raw_score,audit=audit,
         warm_index=warm_index-1,warm_score=warm_score,warm_origin='prefix' if warm_index==0 else 'complete_rnj',
         coefficient_projection_max=max(rp,xp),**s),{**record,**domain,'pool':pool,'pool_count':len(pool),'repair_windows':windows,
-        'additional_supports':len(set(pool)-set(base)),'construction_seconds':construction}
+        'additional_supports':len(set(pool)-set(base)),'construction_seconds':construction,'forbidden':canonical(forbidden),'hard':hard}

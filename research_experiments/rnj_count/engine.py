@@ -11,6 +11,7 @@ from research_experiments.local_rebuild.model import canonical, compatible
 from research_experiments.rebuild_benchmark.engine import SCALE, solve, reconstruction_start, any_extension, loss
 from research_experiments.wzzt_retune.engine import extension_start
 from research_experiments.lp_rebuild.engine import select_output as plain_output
+from research_experiments.iterative_exit.zero import release_zero_atoms
 
 
 def count(point, n):
@@ -101,37 +102,49 @@ def original_step(bank,current,*,penalty,deadline,per_mip=2.,relative=.001):
     return (best if event['accepted'] else current),event
 
 
-def search(bank,initial,*,coefficient,seconds=20.,pre_seconds=5.,per_mip=2.,relative=.001):
+def search(bank,initial,*,coefficient,seconds=20.,pre_seconds=5.,per_mip=2.,relative=.001,zero_release=True,hard=()):
     if coefficient==0:
         result=unregularized_search(bank,initial,pre_joint=True,tail_joint=True,seconds=seconds,
-                                   pre_seconds=pre_seconds,per_mip=per_mip,relative=relative)
+                                   pre_seconds=pre_seconds,per_mip=per_mip,relative=relative,zero_release=zero_release,hard=hard)
         result.update(coefficient=0.,penalty=0.,reference_MAE=result['path'][0]['objective'])
         return result
     then=perf_counter();deadline=then+seconds;n=bank.data.n
     initial=canonical([*initial,*((i,) for i in range(n)),tuple(range(n))]);raw=bank.fit(initial,preserve=True)
     reference=max(raw['objective'],1e-12);penalty=coefficient*reference
-    current=raw;path=[raw];events=[];states=dict(rnj=raw);reason='wall_limit'
-    keep,released=open_small(initial,n)
+    current=raw;path=[raw];events=[];states=dict(rnj=raw);reason='wall_limit';zero_events=[]
+    def clean(stage):
+        nonlocal current
+        current,rows=release_zero_atoms(bank,current,hard=hard,enabled=zero_release,stage=stage)
+        zero_events.extend(rows)
+        if any(e['accepted'] for e in rows):path.append(current)
+    clean('initial');states['after_zero']=current
+    keep,released=open_small(current['supports'],n);keep=canonical([*keep,*hard])
+    released=canonical(C for C in released if C not in set(canonical(hard)))
     current,event=joint_fit(bank,current,keep,penalty=penalty,seconds=min(pre_seconds,max(0.,deadline-perf_counter())),stage='rnj_pre_joint')
     event['released']=released;events.append(event)
     if event['accepted']:
         path.append(current)
+    clean('pre_joint')
     states['after_pre']=current
     for iteration in range(3*n):
         if deadline-perf_counter()<=.05:
             break
         if remainder(current['supports'],n)<=5:
-            states['before_tail']=current;keep,released=open_small(current['supports'],n)
+            states['before_tail']=current;keep,released=open_small(current['supports'],n);keep=canonical([*keep,*hard])
+            released=canonical(C for C in released if C not in set(canonical(hard)))
             current,event=joint_fit(bank,current,keep,penalty=penalty,seconds=deadline-perf_counter(),stage='wzzt_tail_joint')
             event.update(released=released,iteration=iteration);events.append(event)
             if event['accepted']:
                 path.append(current)
+            previous=len(zero_events);clean('tail_joint')
+            if any(e['accepted'] for e in zero_events[previous:]):continue
             reason='joint_tail_gap_met' if event.get('status')==2 else 'joint_tail_no_candidates' if event.get('no_candidates') else 'joint_tail_unresolved'
             break
         current,event=original_step(bank,current,penalty=penalty,deadline=deadline,per_mip=per_mip,relative=relative)
         event['iteration']=iteration;events.append(event)
         if event['accepted']:
             path.append(current)
+            clean('extension')
         else:
             reason='structurally_complete' if event.get('structurally_complete') else 'wall_limit' if event.get('time_exhausted') else 'no_regularized_gain'
             break
@@ -139,7 +152,8 @@ def search(bank,initial,*,coefficient,seconds=20.,pre_seconds=5.,per_mip=2.,rela
         reason='step_limit'
     states['endpoint']=current
     return dict(point=current,path=path,attempts=events,states=states,stop_reason=reason,seconds=perf_counter()-then,
-        coefficient=coefficient,penalty=penalty,reference_MAE=reference,maximum_remainder=remainder(current['supports'],n),tree_global_optimal=False)
+        coefficient=coefficient,penalty=penalty,reference_MAE=reference,maximum_remainder=remainder(current['supports'],n),tree_global_optimal=False,
+        zero_release=zero_release,zero_events=zero_events,hard=canonical(hard))
 
 
 def select_output(bank,points,validation,*,penalty=0.,resolution=.16):

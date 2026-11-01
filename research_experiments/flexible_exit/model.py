@@ -12,6 +12,7 @@ from research_experiments.rebuild_benchmark.engine import hierarchy_children, SC
 from research_experiments.joint_five.model import remainder, open_small, build_joint
 from research_experiments.wzzt_retune.engine import extension_start
 from research_experiments.rnj_union_long.model import DeadlineBank, solve_native, criterion
+from research_experiments.iterative_exit.zero import release_zero_atoms
 
 
 class MaskBank(DeadlineBank):
@@ -87,8 +88,10 @@ def original_step(bank, current, *, penalty, deadline, per_mip, heartbeat=None):
     return (best if accepted else current), event
 
 
-def joint_tail(bank, current, *, penalty, deadline, heartbeat=None):
+def joint_tail(bank, current, *, penalty, deadline, heartbeat=None,hard=()):
     keep, released = open_small(current['supports'], bank.data.n)
+    keep=canonical([*keep,*hard])
+    released=canonical(C for C in released if C not in set(canonical(hard)))
     model, meta = build_joint(bank.scaled, keep)
     assert set(canonical(current['supports'])) <= set(meta['all_supports'])
     assert not set(meta['keep']) & bank.forbidden
@@ -114,24 +117,33 @@ def joint_tail(bank, current, *, penalty, deadline, heartbeat=None):
     return (point if accepted else current), event
 
 
-def replay(bank, initial, *, penalty, deadline, per_mip=3600., heartbeat=None, checkpoint=None):
-    current = initial; path = [current]; events = []; reason = 'step_limit'
+def replay(bank, initial, *, penalty, deadline, per_mip=3600., heartbeat=None, checkpoint=None,zero_release=False,hard=()):
+    current = initial; path = [current]; events = []; reason = 'step_limit';zero_events=[]
+    def clean(stage):
+        nonlocal current
+        current,rows=release_zero_atoms(bank,current,hard=hard,enabled=zero_release,stage=stage)
+        zero_events.extend(rows)
+        if any(e['accepted'] for e in rows):path.append(current)
+    clean('initial')
     for iteration in range(3*bank.data.n):
         if deadline-perf_counter() <= .1: reason = 'deadline'; break
         if remainder(current['supports'], bank.data.n) <= 5:
-            current, e = joint_tail(bank, current, penalty=penalty, deadline=deadline, heartbeat=heartbeat)
+            current, e = joint_tail(bank, current, penalty=penalty, deadline=deadline, heartbeat=heartbeat,hard=hard)
             e['iteration'] = iteration; events.append(e)
             if e['accepted']: path.append(current)
+            previous=len(zero_events);clean('tail_joint')
+            if any(e['accepted'] for e in zero_events[previous:]):continue
             reason = 'tail_gap_met' if e.get('status') == 2 else 'tail_no_candidates' if e.get('no_candidates') else 'tail_unresolved'
             if checkpoint: checkpoint(dict(point=current, path=path, events=events, stop=reason))
             break
         current, e = original_step(bank, current, penalty=penalty, deadline=deadline, per_mip=per_mip, heartbeat=heartbeat)
         e['iteration'] = iteration; events.append(e)
-        if e['accepted']: path.append(current)
+        if e['accepted']:
+            path.append(current);clean('extension')
         if checkpoint: checkpoint(dict(point=current, path=path, events=events))
         if not e['accepted']:
             reason = 'structurally_complete' if e.get('structurally_complete') else 'deadline' if e.get('deadline') else 'no_gain_unresolved'
             if e.get('bound') is not None and e['before']-(e['bound']+e['constant']) <= e['threshold']+1e-10:
                 reason = 'bound_excludes_gain'
             break
-    return dict(point=current, path=path, events=events, stop=reason, forbidden=list(bank.forbidden))
+    return dict(point=current, path=path, events=events, stop=reason, forbidden=list(bank.forbidden),zero_events=zero_events,zero_release=zero_release)

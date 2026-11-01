@@ -9,6 +9,7 @@ from research_experiments.local_rebuild.model import canonical, compatible
 from research_experiments.rebuild_benchmark.engine import any_extension, solve
 from research_experiments.wzzt_retune.engine import extension_start
 from .model import open_small, remainder, joint_fit
+from research_experiments.iterative_exit.zero import release_zero_atoms
 
 
 def original_step(bank, current, *, deadline, per_mip=2., relative=.001):
@@ -46,17 +47,28 @@ def original_step(bank, current, *, deadline, per_mip=2., relative=.001):
     return (best if gain>gate else current), event
 
 
-def search(bank, initial, *, pre_joint=False, tail_joint=False, seconds=20., pre_seconds=5., per_mip=2., relative=.001):
+def search(bank, initial, *, pre_joint=False, tail_joint=False, seconds=20., pre_seconds=5., per_mip=2., relative=.001,
+           zero_release=True, hard=()):
     then = perf_counter(); deadline = then+seconds; n = bank.data.n
     initial = canonical([*initial, *((i,) for i in range(n)), tuple(range(n))])
     raw = bank.fit(initial, preserve=True); current = raw
-    path = [raw]; attempts = []; states = dict(rnj=raw); reason = 'wall_limit'
+    path = [raw]; attempts = []; states = dict(rnj=raw); reason = 'wall_limit'; zero_events=[]
+    def clean(stage):
+        nonlocal current
+        current,events=release_zero_atoms(bank,current,hard=hard,enabled=zero_release,stage=stage)
+        zero_events.extend(events)
+        if any(e['accepted'] for e in events):path.append(current)
+    clean('initial')
+    states['after_zero']=current
     if pre_joint and perf_counter() < deadline:
-        keep, released = open_small(initial, n)
+        keep, released = open_small(current['supports'], n)
+        keep=canonical([*keep,*hard])
+        released=canonical(C for C in released if C not in set(canonical(hard)))
         current, event = joint_fit(bank, current, keep, seconds=min(pre_seconds, deadline-perf_counter()), stage='rnj_pre_joint')
         event['released'] = released; attempts.append(event)
         if event['accepted']:
             path.append(current)
+        clean('pre_joint')
     states['after_pre'] = current
     for iteration in range(3*n):
         if deadline-perf_counter() <= .05:
@@ -65,10 +77,14 @@ def search(bank, initial, *, pre_joint=False, tail_joint=False, seconds=20., pre
         if tail_joint and size <= 5:
             states['before_tail'] = current
             keep, released = open_small(current['supports'], n)
+            keep=canonical([*keep,*hard])
+            released=canonical(C for C in released if C not in set(canonical(hard)))
             current, event = joint_fit(bank, current, keep, seconds=deadline-perf_counter(), stage='wzzt_tail_joint')
             event.update(released=released, iteration=iteration); attempts.append(event)
             if event['accepted']:
                 path.append(current)
+            previous=len(zero_events);clean('tail_joint')
+            if any(e['accepted'] for e in zero_events[previous:]):continue
             reason = ('joint_tail_gap_met' if event.get('status') == 2 else
                       'joint_tail_no_candidates' if event.get('no_candidates') else 'joint_tail_unresolved')
             break
@@ -76,6 +92,7 @@ def search(bank, initial, *, pre_joint=False, tail_joint=False, seconds=20., pre
         event['iteration'] = iteration; attempts.append(event)
         if event['accepted']:
             path.append(current)
+            clean('extension')
         else:
             if event.get('structurally_complete'):
                 reason = 'structurally_complete'
@@ -90,4 +107,5 @@ def search(bank, initial, *, pre_joint=False, tail_joint=False, seconds=20., pre
     states['endpoint'] = current
     return dict(point=current, path=path, attempts=attempts, states=states,
                 stop_reason=reason, seconds=perf_counter()-then, pre_joint=pre_joint, tail_joint=tail_joint,
-                maximum_remainder=remainder(current['supports'], n), tree_global_optimal=False)
+                maximum_remainder=remainder(current['supports'], n), tree_global_optimal=False,
+                zero_release=zero_release,zero_events=zero_events,hard=canonical(hard))
