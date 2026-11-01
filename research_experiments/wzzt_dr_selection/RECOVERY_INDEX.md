@@ -1,3 +1,11 @@
+## 最新恢复：DR距离与时长敏感性图表全部完成
+
+- 先读 `dr_signal_analysis/REPORT.md`、`README.md`，公共 `evidence/signal_analysis_v1`。新增仅图表和固定模型反事实算术，无新增AC、fit、LP/MILP、价格优化或实际观测。旧实际数据独立分母19/20；新240设置行228有效不能当228独立日。
+- 私有 `wzzt_dr_visual_stage`：scalar_extract_v1与visual_release_v1保存标量/绘图；dose_run_v1保存广播错误；dose_run_v2完成246内审与5296独审；working_law_v1复用原每例1000工作场景、192核验。installed_tests_v2.xml为16/16通过。协议/源码/结果hash见公开audit_summary和manifest。
+- D为同输入两冻结模型L1平均预测距离，DeltaD是前后范数之差；g90取1000增量降序第900个，gamma只为原激励幅值目标。实际M=0正反例和旧主最终DR净0保持。
+- 原2h/4h/8h平均DeltaD7.1243/9.6539/11.0238微单位，同1.6预算；6h/8h旧工作场景原gamma五例均1000/1000，仍非独立长时交付。12h部分下降，不据曲线改主方案。alpha sqrt2需3.2预算，单列超原预算。
+- 五图PNG/SVG/PDF可用公开JSON直接重绘；通常无需重做私有核算。新长时动作尚未实际运行；若继续，应历史选时形与价格、冻结后新独立核验，保留旧2h和无奖励。所有当前批结束无worker，原资源失败日不填0、不重抽。
+
 ## 最新恢复：新日样本加权五条件测试全部结束
 
 - 先读 `dr_newday_weighted/REPORT.md`、`README.md`；公开 `evidence/newday_weighted_v1`含完整九规则结果、正反例和费用分列。主w2/tau2额外DR收益0，部分预锁敏感性有真实纠错；不将敏感性替代主版本。

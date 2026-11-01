@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-01",
+  "scope": "completed archived-observation visualization and fixed-model arithmetic counterfactual",
+  "new_AC": 0,
+  "new_fit_calls": 0,
+  "new_solver_calls": 0,
+  "new_observations": 0,
+  "original_study": "dr_newday_weighted/run_v2; 5 conditions; 3 networks; fixed history models",
+  "planned_archived_case_days": 20,
+  "valid_archived_case_days": 19,
+  "unresolved_archived_case_days": 1,
+  "historical_training_rows": 288,
+  "historical_validation_rows": 288,
+  "new_day_slots": 96,
+  "slot_hours": 0.25,
+  "distance": "mean(abs((R1-R2)P+(X1-X2)Q)) over all nodes and 96 slots",
+  "distance_increment": "distance(controlled) minus distance(same natural background)",
+  "objective": "largest gain attained in at least 90 percent of scenarios",
+  "evaluation_scenarios_per_case": 1000,
+  "evaluation_order_statistic": "900th largest gain; scenarios reused pairwise from original working-law holdout",
+  "original_hard_budget": 1.6,
+  "cumulative_reduction_hours": [
+    1,
+    2,
+    4,
+    6,
+    8,
+    12
+  ],
+  "equal_rebound_hours": true,
+  "amplitude_alpha": [
+    0,
+    0.25,
+    0.5,
+    0.75,
+    1,
+    1.4142135623730951
+  ],
+  "price_search": "none; sites and relative prices frozen; common amplitude capped by resource and declared budget",
+  "duration_construction": "historical gradient orders slots; full-day template; no future-based timing selection",
+  "amplitude_budget_rule": "unchanged temporal template; alpha above 1 needs original budget times alpha squared",
+  "response_model": "A=lambda*c*(1+D*z), lambda=.5, z iid Uniform[-1,1]^2 held whole day",
+  "response_factors": [
+    [
+      0.15,
+      0.05
+    ],
+    [
+      0.15,
+      -0.05
+    ]
+  ],
+  "response_correlation": 0.8,
+  "response_status": "synthetic continuous correlated response; not empirically calibrated whole-day behavior",
+  "planned_arithmetic_rows": 240,
+  "valid_arithmetic_rows": 228,
+  "unresolved_arithmetic_rows": 12,
+  "independent_denominator_warning": "12 repeated settings of the same unresolved original case-day are not 12 independent failures",
+  "target_warning": "original gamma is an increment target, not a topology rejection distance",
+  "interpretation": "long-duration model effects require fresh frozen-policy physical and behavioral validation"
+}
