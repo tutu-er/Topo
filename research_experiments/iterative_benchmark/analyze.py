@@ -63,6 +63,7 @@ def analyze_job(args):
         if method=='after':views['native_final']=result['native_selection']
         for name,choice in views.items():
             verify(choice['point']);metrics=score(choice['point'],data,truth,labels,canonical(common['pool']))
+            if choice.get('source')=='masked':assert tuple(result['selected_block']) not in canonical(choice['point']['supports'])
             assert abs(metrics['validation_mae']-choice['validation'])<1e-10
             rows.append(dict(**base,method=method,view=name,available=True,selected_source=choice.get('source'),
                 fresh_seconds=result['fresh_seconds'],common_seconds=result['common_seconds'],total_seconds=result['total_seconds'],**metrics))
@@ -83,6 +84,8 @@ def analyze_job(args):
         rec=dict(**base,method=method,zero_checks=len(zeros),zero_release_events=len(accepted),
             zero_released_sets=sum(len(e['removed']) for e in accepted),forward_zero_events=len(forward),
             zero_unique_sets=len({tuple(C) for e in accepted for C in e['removed']}),
+            zero_released_true=sum(tuple(C) in truepos for e in accepted for C in e['removed']),
+            zero_released_false=sum(tuple(C) not in truepos for e in accepted for C in e['removed']),
             forward_zero_sets=sum(len(e['removed']) for e in forward),
             stalled=bool(result.get('stalled')),deletion_triggered=result['recovery_attempts'],
             deletion_ranking_complete=result.get('ranking',{}).get('complete'),
@@ -175,8 +178,9 @@ def analyze(output):
     for scope,g in scopes(events):
         for method,h in g.groupby('method'):
             event_summary.append(dict(scope=scope,method=method,inputs=len(h),
-                **{name:int(h[name].sum()) for name in ('zero_checks','zero_release_events','zero_released_sets','zero_unique_sets','forward_zero_events','forward_zero_sets',
+                **{name:int(h[name].sum()) for name in ('zero_checks','zero_release_events','zero_released_sets','zero_unique_sets','zero_released_true','zero_released_false','forward_zero_events','forward_zero_sets',
                     'stalled','deletion_triggered','release_branch_run','masked_branch_run','release_adopted','mask_adopted')},
+                deleted_true_inputs=int(h.selected_block_is_true.eq(True).sum()),deleted_seed_inputs=int(h.selected_block_was_seed.eq(True).sum()),
                 inputs_with_zero=int((h.zero_release_events>0).sum()),inputs_with_forward_zero=int((h.forward_zero_events>0).sum())))
     summary=pd.concat(summary,ignore_index=True);paired_summary=pd.DataFrame(paired_summary);event_summary=pd.DataFrame(event_summary)
     detail=pairs.merge(events[events.method=='after'].drop(columns=['method','panel','case']),on='job',how='left')
@@ -201,6 +205,7 @@ def analyze(output):
         incumbent=r.get('objective',r.get('final_objective'))) for r in solver])
     solver_frame.to_csv(dest/'solver.csv',index=False)
     solver_summary=solver_frame.groupby(['method','status'],dropna=False).size().reset_index(name='calls');solver_summary.to_csv(dest/'solver_summary.csv',index=False)
+    solver_frame.groupby(['method','branch','stage','status'],dropna=False).agg(calls=('status','size'),seconds=('seconds','sum'),max_gap=('gap','max')).reset_index().to_csv(dest/'solver_phases.csv',index=False)
     verification=dict(passed=True,returned=240,paired_inputs=120,checks=sum(r['checks'] for r in records),
         independent_LPs=sum(r['independent_LPs'] for r in records),source_hashes_verified=True,parent_files_preserved=len(m['files']),
         analyzer_sha256=sha(Path(__file__)),analysis_seconds=perf_counter()-then)
