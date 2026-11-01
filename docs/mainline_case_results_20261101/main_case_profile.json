@@ -1,0 +1,73 @@
+{
+  "main_case": "少量RNJ小块＋原始WZZT及时清零＋五块联合末端＋一次退出及验证选模",
+  "core_modules": [
+    "RNJ小块预选",
+    "原始WZZT扩展与及时清零",
+    "五块联合末端重构",
+    "一次最终退出与输出选择"
+  ],
+  "source_method": "after",
+  "source_view": "zero_only",
+  "includes_public_RNJ_fallback": true,
+  "includes_singleton_fallback": true,
+  "extra_stall_recovery": false,
+  "mask_branch": false,
+  "quality_from_executed_baseline_branch": true,
+  "standalone_end_to_end_timing_measured": false,
+  "runtime_defaults_modified": false,
+  "parameters": {
+    "max_RNJ_seeds": 2,
+    "seed_size": [
+      2,
+      3
+    ],
+    "strategy": "original",
+    "zero_tolerance": 1e-09,
+    "zero_loss_tolerance": 1e-10,
+    "terminal_block_limit": 5,
+    "exit_solves": 1,
+    "lambda_coefficient": 0.003,
+    "resolution": 0.24,
+    "response_bounds": [
+      0,
+      2
+    ],
+    "positive_impedance_floor": null
+  },
+  "source_files": {
+    "per_model.csv": {
+      "path": "D:\\0-github_workspace\\Topo\\docs\\iterative_exit_matched120_20261101\\per_model.csv",
+      "sha256": "2d705335c54c1cb5be4d9b63eecc649d8540e3b7862867dffbde3b384add96dd"
+    },
+    "verification.json": {
+      "path": "D:\\0-github_workspace\\Topo\\docs\\iterative_exit_matched120_20261101\\verification.json",
+      "sha256": "2351a8fa5890a309f9c16a38abe29ad779977f490360275227a027cd507eab73"
+    },
+    "domain_diagnostics.json": {
+      "path": "D:\\0-github_workspace\\Topo\\docs\\iterative_exit_matched120_20261101\\domain_diagnostics.json",
+      "sha256": "c68ba3dc3f7d2e50b7b8ff1c873687ff0597b0e3ca56faca73ec0201b570b564"
+    },
+    "protocol.json": {
+      "path": "D:\\0-github_workspace\\Topo\\docs\\iterative_exit_matched120_20261101\\protocol.json",
+      "sha256": "10e1eca6efe506f55f41118cf5af03293745f6b2d6dd6a3172fdb7d70b2ba4d7"
+    }
+  },
+  "original_experiment_limits": {
+    "total": 14400.0,
+    "prefix": 7200.0,
+    "per_mip": 3600.0,
+    "LP": 300.0,
+    "post_reserve": 600.0,
+    "mip_gap": 0.0001,
+    "threads": 1
+  },
+  "inputs": 120,
+  "F1": 0.8287061087061088,
+  "exact": 66,
+  "own_path_without_RNJ": {
+    "F1": 0.8217551430051431,
+    "exact": 60
+  },
+  "producer_sha256": "5da4aa5ff778f7d9bd7d6f436df72c45692ecf2a771368f6a8ed3006a0f0f74e",
+  "font": "C:\\Windows\\Fonts\\msyh.ttc"
+}
