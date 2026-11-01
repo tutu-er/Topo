@@ -1,0 +1,257 @@
+{
+  "date": "2026-11-01",
+  "condition": "paper15_b2_v0005",
+  "qualification": {
+    "qualified_conditions": 1,
+    "original_conditions": 5,
+    "not_qualified": {
+      "sample_target_infeasible": 2,
+      "sample_target_unresolved": 2
+    },
+    "rule": "only planning-target-feasible quoted curves; no test-truth case filtering"
+  },
+  "days": 12,
+  "planned_records": 60,
+  "slots": 96,
+  "interval_hours": 0.25,
+  "policies": [
+    "zero",
+    "rotation_low",
+    "optimized_low",
+    "rotation_high",
+    "optimized_high"
+  ],
+  "primary_rule": "w2_tau2pct",
+  "historical_rows": [
+    288,
+    288
+  ],
+  "actual_validation_rows": 384,
+  "effective_weight_rows": 480,
+  "case": "paper15",
+  "root_label": 1,
+  "terminals": 15,
+  "base_kw": 200.0,
+  "voltage_sigma": 0.0005,
+  "pq_sigma": 0.005,
+  "optimizer_payment_cap": null,
+  "execution_payment_mode": "frozen_plan_bound",
+  "comparison": "24h alternating6h exploration scaled before execution to each optimized plan expected fee and conservative payment bound",
+  "low_selection": "minimum independently replayed expected cost among previously frozen planning-feasible curves; not global optimum",
+  "high_role": "prelocked sensitivity; not chosen by test outcome",
+  "trials": [
+    {
+      "day": 0,
+      "path": 7100,
+      "profile_index": 1,
+      "replicate": 910000,
+      "factors": [
+        0.3798012404994371,
+        -0.021661187656765835
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 1,
+      "path": 7101,
+      "profile_index": 0,
+      "replicate": 910097,
+      "factors": [
+        -0.8262289036931831,
+        0.4594657602778347
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 2,
+      "path": 7102,
+      "profile_index": 2,
+      "replicate": 910194,
+      "factors": [
+        0.7151684064276249,
+        -0.9864901363143297
+      ],
+      "rotation_phase": -1
+    },
+    {
+      "day": 3,
+      "path": 7103,
+      "profile_index": 2,
+      "replicate": 910291,
+      "factors": [
+        0.38705118264648863,
+        0.3741127987280095
+      ],
+      "rotation_phase": -1
+    },
+    {
+      "day": 4,
+      "path": 7104,
+      "profile_index": 0,
+      "replicate": 910388,
+      "factors": [
+        0.2524525406316409,
+        0.03218834989388197
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 5,
+      "path": 7105,
+      "profile_index": 0,
+      "replicate": 910485,
+      "factors": [
+        0.6254691617230217,
+        -0.5257084242761096
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 6,
+      "path": 7106,
+      "profile_index": 0,
+      "replicate": 910582,
+      "factors": [
+        0.3045033683871605,
+        -0.538586774195166
+      ],
+      "rotation_phase": -1
+    },
+    {
+      "day": 7,
+      "path": 7107,
+      "profile_index": 1,
+      "replicate": 910679,
+      "factors": [
+        0.6903799829349331,
+        0.860355660940185
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 8,
+      "path": 7108,
+      "profile_index": 0,
+      "replicate": 910776,
+      "factors": [
+        0.5239178907078348,
+        -0.45456614076138546
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 9,
+      "path": 7109,
+      "profile_index": 2,
+      "replicate": 910873,
+      "factors": [
+        0.11211057740234431,
+        0.5048970054532451
+      ],
+      "rotation_phase": 1
+    },
+    {
+      "day": 10,
+      "path": 7110,
+      "profile_index": 2,
+      "replicate": 910970,
+      "factors": [
+        0.6214251074723811,
+        -0.7637509499577062
+      ],
+      "rotation_phase": -1
+    },
+    {
+      "day": 11,
+      "path": 7111,
+      "profile_index": 1,
+      "replicate": 911067,
+      "factors": [
+        0.6739167256541176,
+        0.7128252545360014
+      ],
+      "rotation_phase": -1
+    }
+  ],
+  "prior_identity_audit": {
+    "request_files_examined": 946,
+    "requests_with_physical_identity": 145,
+    "identity_count": 27,
+    "identity_digest": "bdbd282b2d4d03ae4124af8eac88d7fe3aea24fc29ede71cf18617cef7cc024d"
+  },
+  "plans": {
+    "optimized_low": {
+      "sha256": "2cc89a7a58bedca759cfbf9d7275cd45d8b27038bd9d46eb7488e77a6bafbd0a",
+      "expected_payment": 0.22874801439814688,
+      "payment_bound": 0.2744976172777763,
+      "prices": [
+        0.21246165248721782,
+        0.0
+      ]
+    },
+    "rotation_low_neg": {
+      "sha256": "3b57a4f9f2d2aa4c9320a3f6dbf6adc676e3f5f54636da6ef64c8d8c6a93bd5f",
+      "expected_payment": 0.22874801439814693,
+      "payment_bound": 0.27449761727777633,
+      "prices": [
+        0.1380664134870567,
+        0.1380664134870567
+      ]
+    },
+    "rotation_low_pos": {
+      "sha256": "e9f18c16acd236fae72295ca7c33fa978e2528743c146cf67fd7f0a410306099",
+      "expected_payment": 0.22874801439814693,
+      "payment_bound": 0.27449761727777633,
+      "prices": [
+        0.1380664134870567,
+        0.1380664134870567
+      ]
+    },
+    "optimized_high": {
+      "sha256": "474df005c753f2e92a4d63d8f16d7f28dabd24cc1dea7a0073980cdba7f2581e",
+      "expected_payment": 0.5831095380321598,
+      "payment_bound": 0.6997314456385918,
+      "prices": [
+        0.9252280423602246,
+        0.0
+      ]
+    },
+    "rotation_high_neg": {
+      "sha256": "d9d45ac4b8a20ab14fac7fea774f89e30c88de2947c70b8832ab585b04bce9b0",
+      "expected_payment": 0.5831095380321598,
+      "payment_bound": 0.6997314456385918,
+      "prices": [
+        0.22043697852828592,
+        0.22043697852828592
+      ]
+    },
+    "rotation_high_pos": {
+      "sha256": "93791b882842e25a9dc8e1eefaa4adadd1131e7af42d3eaa64d7988e77d425e6",
+      "expected_payment": 0.5831095380321598,
+      "payment_bound": 0.6997314456385918,
+      "prices": [
+        0.22043697852828592,
+        0.22043697852828592
+      ]
+    },
+    "zero": {
+      "sha256": "ba598e2a7903c262720507b9ce8af5fc244d91a2f44558f5b3484a63cad4638e",
+      "expected_payment": 0.0,
+      "payment_bound": 0.0,
+      "prices": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "full_matrices_and_daily_profiles": "private",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "scipy": "1.17.1"
+  },
+  "scope": "fixed historical RNJ+WZZT candidates and parameters; no new W acceptance/search/refit; truth after all scores frozen",
+  "protocol_sha256": "f1e0f5ac0e798481888600c3f37b57aa001efd0a83dce7a5169df6b932659ee7"
+}

@@ -1,3 +1,12 @@
+## 最新恢复：独立AC报价效果测试已关闭
+
+- 先读 `dr_day_effect/REPORT.md`，公共 `evidence/day_effect_actual_v1`含完整9规则、12日标量、所需/实际gap、CI/p、机制和图。主zero及两opt各6/12恢复、总6错，两个匹配轮换5/12总7错；只避免一次轮换伤害，无主规则相对zero新恢复。预设w1敏感性低价有2真纠错，不能改写主结果。
+- 私有根wzzt_day_effect_stage/actual_v1：protocol SHA f1e0f5ac0e798481888600c3f37b57aa001efd0a83dce7a5169df6b932659ee7；freeze、source_snapshot261、requests60、preflight、observations_frozen、predictions_frozen、scored、summary_private、ended齐。12独立source/case/profile/replicate新身份、5策略CRN，60/60成功5760 AC点，失败/重抽0。勿重跑。
+- 方案设计源提交a212f761(worker显式结算/zero修复)、6237518b(driver)，精确运行字节以zip/hash为准。报价完全冻结、原288/288、R/X/.16/newday2%w2不变，无新fit/价格solve/W接受搜索。只有原5中1个规划资格case执行，其他4保持原不可行/未决。
+- audit_selection_v1预审856、actual_receipt7194；audit_actual_v1/results_v1/receipt5017及mechanism_rms_public_candidate。先完整观测选模后truth；meta source/gates/费用/4角/AC/CRN/9规则/真假块均独立核过。branch_ampacity_checked=false，勿叫完整工程安全验证。
+- public_release_v2和public_figures_v3为发布；plot_failure_v1/public_figures_v1保留WindowsGBK的SVG后处理失败，只重绘没重模拟。低费ΔM12/12正但原6误日缺口未补足；旧残差迁移RMS .536116远大于transport差.004538，先改善预测残差与需求gap，不简单增DR随机维度或刷批。
+- 当前所有worker结束，run_lock complete，恢复只读结果，无待续计算。P/Q/V/AC/整日控制及R/X留私有；公开白名单可重绘。下一批须新锁规划/规则/种子/物理身份，已看测试不能重称首次独立。
+
 ## 最新恢复：无支付上限24h最低费用模型结束
 
 - 先读 `dr_day_curve/REPORT.md`、MODEL.md，主配置budget=None，费用只作目标/输出；原1.6批次见CAPPED_PILOT_REPORT及capped_summary，勿混淆两域结论。
