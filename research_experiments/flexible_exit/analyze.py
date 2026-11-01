@@ -20,6 +20,7 @@ def analyze(output):
     output = Path(output); p = read(output / 'protocol.json'); catalog = read(output / 'catalog.json')
     completion = read(output / 'completion.json'); checks = 0; preserved = 0
     for name, digest in p['source_hashes'].items(): assert sha(output / 'source' / name) == digest
+    for path, digest in p.get('primary_pilot_references', {}).items(): assert sha(path) == digest
     for file, record in p['parent_manifests'].items():
         assert sha(file) == record['sha256']
         for name, item in record['files'].items(): assert sha(Path(file).parent / name) == item['sha256']; preserved += 1
@@ -58,7 +59,7 @@ def analyze(output):
             point = base_points.get(view)
             if point: profile(point)
             rows.append(dict(**header, method='historical', view=view, selected_source='historical',
-                **score(point, data, truth, labels, start['pool'])))
+                **score(point, data, truth, labels, canonical(start['pool']))))
         costs.append(dict(**header, method='historical', fresh_seconds=0., total_seconds=start['upstream_seconds'],
             timing='recorded components, not rerun'))
         for method in METHODS:
@@ -91,7 +92,7 @@ def analyze(output):
             assert r['guarded']['validation'] <= historical['validation']+1e-12
             points = dict(raw=trajectory['point'], proposal=r['proposal']['point'], guarded=r['guarded']['point'])
             for view, point in points.items():
-                profile(point); metric = score(point, data, truth, labels, start['pool'])
+                profile(point); metric = score(point, data, truth, labels, canonical(start['pool']))
                 if view != 'raw': assert abs(metric['validation_mae']-r[view]['validation']) < 1e-10
                 if method == 'mask_resume' and block and view != 'guarded': assert block not in canonical(point['supports'])
                 rows.append(dict(**header, method=method, view=view,
@@ -142,7 +143,8 @@ def analyze(output):
         failures=completion['failures'],MIPs=int(e.status.notna().sum()) if len(e) else 0,
         gap_met=int((e.status==2).sum()) if len(e) else 0,timeouts=int((e.status==9).sum()) if len(e) else 0,
         analyzer_sha256=sha(Path(__file__))))
-    delivery=ROOT/'docs/flexible_exit_20261101'
+    shutil.copy2(Path(__file__),dest/'executed_analysis.py')
+    delivery=Path(p.get('delivery_directory',str(ROOT/'docs/flexible_exit_20261101')))
     for file in dest.glob('*.csv'):shutil.copy2(file,delivery/file.name)
     for name in ('verification.json',):shutil.copy2(dest/name,delivery/name)
     for name in ('protocol.json','completion.json'):shutil.copy2(output/name,delivery/name)
@@ -153,7 +155,7 @@ def analyze(output):
 def package(output):
     output=Path(output);p=read(output/'protocol.json');audit=read(output/'analysis/verification.json')
     assert audit['passed'] and audit['returned']==96
-    delivery=ROOT/'docs/flexible_exit_20261101';archive=delivery/'records.zip'
+    delivery=Path(p.get('delivery_directory',str(ROOT/'docs/flexible_exit_20261101')));archive=delivery/'records.zip'
     for file,record in p['parent_manifests'].items():
         assert sha(file)==record['sha256']
         for name,item in record['files'].items():assert sha(Path(file).parent/name)==item['sha256']
@@ -162,12 +164,17 @@ def package(output):
             for file in (output/folder).rglob('*'):
                 if file.is_file() and file.suffix in ('.py','.json','.csv','.log'):z.write(file,file.relative_to(output))
         for name in ('protocol.json','completion.json','catalog.json'):z.write(output/name,name)
+        executed=output/'analysis/executed_analysis.py'
+        assert sha(executed)==audit['analyzer_sha256']
+        z.write(executed,'actual_analysis/analyze.py')
+        for file in Path(__file__).parent.glob('*.py'):z.write(file,'actual_driver/'+file.name)
         for name in ('PLAN.md','CONCLUSIONS.md','RECOVERY.md','implementation_check.json'):
             if (delivery/name).exists():z.write(delivery/name,'reports/'+name)
         z.write(ROOT/'research_experiments/tests/test_flexible_exit.py','tests/test_flexible_exit.py')
     with ZipFile(archive) as z:
         assert z.testzip() is None
         for name,digest in p['source_hashes'].items():assert hashlib.sha256(z.read('source/'+name)).hexdigest()==digest
+        assert hashlib.sha256(z.read('actual_analysis/analyze.py')).hexdigest()==audit['analyzer_sha256']
     write(delivery/'delivery_audit.json',dict(passed=True,returned=96,archive_sha256=sha(archive),
         parent_files_preserved=audit['parent_files_preserved'],note='24 paired pilot inputs, no raw observations copied; immutable previous mainline retained.'))
     write(delivery/'manifest.json',dict(files={f.name:dict(bytes=f.stat().st_size,sha256=sha(f)) for f in sorted(delivery.iterdir()) if f.is_file() and f.name!='manifest.json'}))

@@ -1,0 +1,13 @@
+# 追加时机消融的恢复索引
+
+这不是首轮预注册比较。先完成outputs/flexible_exit_20261101的96分支并检查目标块，再决定在同一24输入、同一选块规则和同一数值worker下改变起点。PLAN.md与protocol.json明确记录added_after_primary_results。
+
+源快照直接复制首轮冻结源，逐文件source_hashes完全相同。新训练起点是旧主线trajectory.point，不是旧exit.point；只改起点及相关大块，仍不读真拓扑来生成/筛选试验。旧完整主线的最终树继续作验证保护，所以成本继续计入旧完整流程；不主张这是替换旧退出后的端到端耗时。
+
+本地outputs/flexible_exit_earlier_20261101：parents为训练起点和分开读取的历史验证候选，jobs为96个payload/checkpoint/progress/result/log，analysis为独立评分与核验。completion为方法分支分母；输入始终是相同24个，不是新增24个独立数据集。
+
+先读CONCLUSIONS.md，再看summary.csv的raw/proposal/guarded及all24/eligible两个范围。screened block的真假只在diagnostics.csv/block_truth.csv事后显示。paired.csv相对于旧主线及不删块继续对照，cost_per_input.csv按实际新增与旧组件分开记账。与首轮结果的横向表在../flexible_exit_20261101/timing_comparison.csv。
+
+protocol引用首轮协议、独立审计和96条原始结果哈希。不要覆盖这些引用文件；重新运行分析也可能因分析器SHA改变verification字节。records.zip保留实际执行的冻结源、实际分析器、回执和日志；观测与网络文件不重复打包，原位路径/哈希仍可恢复。actual_analysis为生成本次指标的后分析代码，actual_driver为交付代码；source中的未调用分析入口不是实际审计器。
+
+Python D:/apps/miniconda3/envs/Topo/python.exe，PYTHONPATH=D:/0-github_workspace/Topo/rnj_wzzt_core。查看已完成文件即可，无需再次启动求解器。后续新参数/时机/输入应另开目录并保留失败分母。
