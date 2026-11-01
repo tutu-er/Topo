@@ -144,8 +144,8 @@ def addition_orders(dest, tables, protocol):
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside lower center", ncol=6, frameon=False, fontsize=9)
     paired = int(frame.paired_inputs.min())
-    fig.suptitle(f"六种模块加入顺序：完整八配置配对{paired}/{len(protocol['jobs'])}输入", fontsize=14)
-    fig.supxlabel("这里改变实验加入顺序，单次算法内部仍按RNJ预选→末端→退出执行", fontsize=9)
+    fig.suptitle(f"六种模块加入顺序：完整八配置配对{paired}/{len(protocol['jobs'])}输入\n"
+                 "实验改变模块加入顺序；算法内执行次序仍为RNJ预选→末端→退出", fontsize=13)
     return save(fig, dest, "module_addition_orders")
 
 

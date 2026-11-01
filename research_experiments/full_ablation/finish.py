@@ -52,6 +52,8 @@ def finish(output):
     archive = delivery / "records.zip"
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as bundle:
         for path in sorted(output.rglob("*")):
+            if path == output / "postprocess.json":
+                continue  # Its archive digest is external, avoiding a stale self-reference on reruns.
             if path.is_file() and path.suffix.lower() in {".py", ".json", ".csv", ".md", ".log"}:
                 bundle.write(path, path.relative_to(output).as_posix())
     status = dict(passed=receipt["passed"], complete=receipt["complete"], returned=receipt["returned"],
