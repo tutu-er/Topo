@@ -11,10 +11,16 @@ def choose_design(pool,history):
     block is only the local resource-search focus. No candidate/weight is
     dropped and no physical or test-truth file is read.
     """
-    added=pool['dispute_added_supportlabels']
+    raw_added=deepcopy(pool['dispute_added_supportlabels'])
+    rule=pool.get('competition_rule',{})
+    labels=pool.get('labels',[])
+    final_added=[[labels[i] for i in block] for block in rule.get('final_added_supports',[])]
+    final_removed=[[labels[i] for i in block] for block in rule.get('final_removed_supports',[])]
+    added=final_added if final_added or final_removed else raw_added
+    focuses=[list(b) for b in sorted({tuple(sorted(b)) for b in added+final_removed},key=lambda b:(len(b),b))]
     attempts=[];best=[]
     for units in range(5,0,-1):
-        for block in sorted(added,key=lambda x:(len(x),tuple(x))):
+        for block in focuses:
             local=deepcopy(pool)
             local['dispute_added_supportlabels']=[block]
             try:
@@ -29,8 +35,9 @@ def choose_design(pool,history):
     if not best:raise ValueError('no historically supported local resource pair at inventory1..5: '+str(attempts))
     score,block,design=min(best,key=lambda a:(-a[0],a[1]))
     design['qualification'].update(all_added_disputes=deepcopy(added),
-        all_removed_disputes=deepcopy(pool['dispute_removed_supportlabels']),
+        all_removed_disputes=deepcopy(final_removed or pool['dispute_removed_supportlabels']),
+        raw_added_disputes=raw_added,raw_removed_disputes=deepcopy(pool['dispute_removed_supportlabels']),
         inventory_rule='largest common integer1..5 feasible for an inside/outside pair, then sum of full-model difference column norms',
-        focus_rule='one added historical support for resource search only; both complete R/X unchanged',
+        focus_rule='one symmetric-difference support of the frozen final output maps, resource search only; both complete R/X unchanged',
         attempts=attempts,chosen_column_score=score)
     return design

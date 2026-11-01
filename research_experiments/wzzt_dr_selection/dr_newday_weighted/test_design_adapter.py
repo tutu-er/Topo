@@ -27,3 +27,18 @@ def test_no_capacity_is_not_silently_dropped(monkeypatch):
     monkeypatch.setattr(module,'single_design',bad)
     with pytest.raises(ValueError,match='inventory1..5'):
         module.choose_design(dict(dispute_added_supportlabels=[[1,2]],dispute_removed_supportlabels=[]),None)
+
+
+def test_final_dispute_focus_overrides_empty_raw_family_difference(monkeypatch):
+    pool=dict(labels=[301,302,303],dispute_added_supportlabels=[],dispute_removed_supportlabels=[],
+        competition_rule=dict(final_added_supports=[[0,2]],final_removed_supports=[]),models=['fullmodels'])
+    original=deepcopy(pool)
+    def fake(local,history,units):
+        assert local['models']==['fullmodels']
+        assert local['dispute_added_supportlabels']==[[301,303]]
+        return dict(qualification=dict(selected_labels=[301,302],nodes=[dict(node_label=i,unit_response_column_micro=1) for i in [301,302]]))
+    monkeypatch.setattr(module,'single_design',fake)
+    result=module.choose_design(pool,None)
+    assert result['qualification']['raw_added_disputes']==[]
+    assert result['qualification']['all_added_disputes']==[[301,303]]
+    assert pool==original

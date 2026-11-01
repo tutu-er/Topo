@@ -131,7 +131,7 @@ def _fingerprint(pool):
     return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
 
 
-def freeze_pool(case_protocol_path,output_path):
+def freeze_pool(case_protocol_path,output_path,competition_selector=None):
     """Freeze existing selected historical point and rule-chosen competitor.
 
     Only the case protocol, historical observation pickle and saved historical
@@ -152,7 +152,7 @@ def freeze_pool(case_protocol_path,output_path):
     train_rows=sum(_power(s,labels)[0].shape[0] for s in train)
     valid_rows=sum(_power(s,labels)[0].shape[0] for s in valid)
     if train_rows!=288 or valid_rows!=288:raise ValueError('full original288/288 historical rows required')
-    coarse,refined,rule=_choose_competition(baseline)
+    coarse,refined,rule=(competition_selector or _choose_competition)(baseline)
     calibration=deepcopy(baseline['calibrations']['raw'])
     for name in ['a','b','median_root_depth']:
         if not np.isfinite(float(calibration[name])):raise ValueError('invalid historical calibration')

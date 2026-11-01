@@ -8,6 +8,7 @@ import numpy as np
 from .case_inputs import build_cases
 from .design_adapter import choose_design
 from .weighted_selection import score as weighted_score
+from .pool_competition import choose_final_competition
 from research_experiments.wzzt_dr_selection.dr_frozen_distance.driver import read,write,ref,checked,sha
 from research_experiments.wzzt_dr_selection.dr_frozen_distance.frozen_pool import freeze_pool
 from research_experiments.wzzt_dr_selection.dr_frozen_distance.design import draw_scenarios,plan_payload,warm_quotes
@@ -42,17 +43,19 @@ def config(root):
     return root,p,f
 
 
-def prepare(root):
+def prepare(root,reuse_root=None):
     root=Path(root).resolve();root.mkdir(parents=True,exist_ok=False)
     inputs=build_cases();cases=[]
     for i,c in enumerate(inputs):
         folder=root/'cases'/c['name'];folder.mkdir(parents=True)
         write(folder/'case_protocol.json',c)
-        pool=freeze_pool(folder/'case_protocol.json',folder/'frozen_pool.json')
+        pool=freeze_pool(folder/'case_protocol.json',folder/'frozen_pool.json',competition_selector=choose_final_competition)
         history=load_pickle(c['history_packet'])['history']
         item=dict(name=c['name'],index=i,case=c['case'],status='qualified',
             case_protocol=ref(folder/'case_protocol.json'),pool=ref(folder/'frozen_pool.json'),
             history_eligible_ids=historical_eligible(pool),
+            final_output_distinct={tuple(sorted(s)) for s in pool['models'][0]['frozen_output_supports']}!={tuple(sorted(s)) for s in pool['models'][1]['frozen_output_supports']},
+            no_historical_final_dispute=pool['competition_rule'].get('no_final_dispute',False),
             planning_seed=2026110171+10*i,holdout_seed=2026110172+10*i,response_seed=2026110173+10*i,
             paths=[1500+10*i+j for j in range(4)],profiles=[0,1,2,0])
         try:
@@ -76,7 +79,7 @@ def prepare(root):
             expected_resource_nodes=nodes,frozen_pool=item['pool'],labels=c['labels'],root_label=c['root_label'],base_kw=c['base_kw'],
             response_seed=item['response_seed'],paths=item['paths'],replicate_base=610000)
         write(folder/'runtime_protocol.json',runtime);item['runtime_protocol']=ref(folder/'runtime_protocol.json')
-    p=dict(status='frozen',id='five_case_newday_weighted_v1',created_utc=now(),repository=str(REPO),cases=cases,
+    p=dict(status='frozen',id='five_case_newday_weighted_v2',created_utc=now(),repository=str(REPO),cases=cases,
         source_sha256=sources,algorithm_source_sha256=algorithm,budget=1.6,planning_samples=64,holdout_samples=1000,
         solver_seconds=60.,replicate_base=610000,policies=POLICIES,primary_rule='w2_tau2pct',
         new_day_weights=[1,2,4],new_day_tolerances=[.03,.02,.01],historical_tolerance=.03,history_gate=True,
@@ -85,6 +88,8 @@ def prepare(root):
         inventory_rule='largest historically feasible common integer1..5 at a local dispute pair; all policies same inventory',
         case_rule='all five existing compatible histories from three networks; no filtering on new test truth or outcomes',
         objective='same-background frozen-predictor distance-gain scenario90% quantile; unchanged from preceding test',
+        predecessor_scope='v1 historical raw-pair quotes retained but undeployed; three pairs had identical final structures, repaired before any actual/holdout',
+        reuse_root=str(Path(reuse_root).resolve()) if reuse_root else None,
         probability_scope='90% refers to prediction-distance gain only; finite-scenario approximation and separate working-law holdout',
         truth_boundary='all quotes frozen before all physical observations; all selections frozen before truth labels',
         weight_scope='new-day validation sample weights only; all R/X and historical row weights fixed',
@@ -100,8 +105,21 @@ def prepare(root):
         folder=root/'cases'/item['name'];design=load_pickle(item['design']);problem=design['problem']
         scenarios,draws=draw_scenarios(design,p['planning_samples'],item['planning_seed'])
         write(folder/'planning_draws.json',dict(status='frozen',draws=draws));save_pickle(folder/'planning_scenarios.pkl',scenarios)
-        if len(item['history_eligible_ids'])==2:
-            solved=solve_distance(problem,scenarios,seconds=p['solver_seconds'],probability=.9,warm_start_prices=warm_quotes(problem))
+        reused=None
+        if not item['final_output_distinct'] or item['no_historical_final_dispute']:
+            optimized=np.zeros(problem.n_contracts);gamma=0.;planning_status='no_final_structure_dispute_no_purchase'
+            solved=dict(status=planning_status,feasible_incumbent=True,solver_calls=0,primary=None,secondary=None,prices=optimized.tolist(),quantile_micro=0.)
+        elif len(item['history_eligible_ids'])==2:
+            old_folder=Path(reuse_root)/'cases'/item['name'] if reuse_root else None
+            if old_folder and (old_folder/'optimization.json').exists():
+                old_pool=read(old_folder/'frozen_pool.json');new_pool=read(checked(item['pool']))
+                same=all(old_pool['models'][j]['point']==new_pool['models'][j]['point'] and old_pool['models'][j]['R']==new_pool['models'][j]['R'] and old_pool['models'][j]['X']==new_pool['models'][j]['X'] for j in (0,1))
+                if same and old_pool['calibration']==new_pool['calibration'] and sha(old_folder/'problem.json')==sha(folder/'problem.json') and sha(old_folder/'planning_scenarios.pkl')==sha(folder/'planning_scenarios.pkl'):
+                    solved=read(old_folder/'optimization.json');reused=ref(old_folder/'optimization.json')
+                else:solved=None
+            else:solved=None
+            if solved is None:
+                solved=solve_distance(problem,scenarios,seconds=p['solver_seconds'],probability=.9,warm_start_prices=warm_quotes(problem))
             if solved.get('feasible_incumbent'):
                 optimized=np.asarray(solved['amplitudes']);gamma=solved['quantile_micro']/1e6;planning_status='planned'
             else:optimized=np.zeros(problem.n_contracts);gamma=0.;planning_status='optimizer_failed_zero_fallback'
@@ -123,6 +141,7 @@ def prepare(root):
                 quantile_micro=replay['quantile_micro'],positive_passes=replay['positive_pass_count'],denominator=64))
         freeze=dict(plans=plans,gamma_native=gamma,positive_gamma=gamma>1e-12,planning_status=planning_status,
             optimization=ref(folder/'optimization.json'))
+        if reused:freeze['reused_quote_from']=reused
         frozen[item['name']]=freeze
         result=dict(condition=item['name'],status=planning_status,table=table,
             history_eligible_ids=item['history_eligible_ids'],gamma_native=gamma,primary=solved.get('primary'),secondary=solved.get('secondary'))
@@ -263,5 +282,8 @@ def score(root):
 
 def main():
     a=argparse.ArgumentParser(description=__doc__);a.add_argument('phase',choices=['prepare','holdout','observe','score']);a.add_argument('--root',type=Path,required=True)
-    x=a.parse_args();globals()[x.phase](x.root)
+    a.add_argument('--reuse-root',type=Path)
+    x=a.parse_args()
+    if x.phase=='prepare':prepare(x.root,x.reuse_root)
+    else:globals()[x.phase](x.root)
 if __name__=='__main__':main()
