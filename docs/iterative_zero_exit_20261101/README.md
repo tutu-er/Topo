@@ -6,12 +6,12 @@
 
 - 普通研究WZZT：research_experiments.joint_five.search.search，默认zero_release=True；显式False可复现旧零块保留行为。
 - 当前完整研究主线：research_experiments.iterative_exit.engine.fit_mainline。
-- 旧rnj_count/rnj_small_seed搜索入口也补齐逐状态清理；已冻结历史outputs/source不改写。
+- rnj_count/rnj_small_seed及纯WZZT搜索入口也补齐逐状态清理；五个相关freeze入口携带清理依赖和匹配接口，隔离导入5/5通过。已冻结历史outputs/source不改写。
 - 通用核心fit_laminar_l1_sensitivity本来会清理新增非初始零块；initial_supports硬先验语义保持不变。此轮研究RNJ种子是临时集合，已核实先验需显式hard。
 
 ## 验证结果
 
-97项相关回归通过：37项研究代码和60项通用核心检查。覆盖初始化错误零块释放后，普通单候选WZZT能选择原先交叉受阻的正确集合；硬先验保留；数值近零但删后损失超容差时拒绝清理；停滞只触发一次；屏蔽贯穿恢复/退出/输出拟合；验证可接受或拒绝屏蔽提议，不把屏蔽永久写回其他分支。
+101项相关回归通过：41项研究代码和60项通用核心检查。覆盖初始化错误零块释放后，普通单候选WZZT能选择原先交叉受阻的正确集合；硬先验保留；数值近零但删后损失超容差时拒绝清理；停滞只触发一次；屏蔽贯穿恢复/退出/输出拟合；验证可接受或拒绝屏蔽提议，不把屏蔽永久写回其他分支。
 
 四个真实算例入口检查使用paper15/soumalas11/flynn16/pengwah18，bundle2/N48/V噪声.0002。4/4正常完成，26个独立HiGHS固定家族LP核验通过。paper15的迭代路径实际释放1个零块；其余3例没有符合条件的零块。四例均正常完成末端求解，未触发停滞反事实，new_branch明确记为not_triggered，而非填入回退结果。
 
@@ -21,7 +21,7 @@
 
 ## 恢复
 
-代码research_experiments/iterative_exit，结果outputs/iterative_zero_exit_20261101。先读completion.json、smoke_verification.json、tests.json。records.zip含执行快照source/、交付时current_source/、源/数据哈希、四个结果与检查回执，不重复保存原始观测NPZ。执行快照和交付文件分别保存，源码SHA以协议为准。交付阶段修正了硬先验released日志及文档输出路径，并重算独立检查、重跑37项研究回归；没有重新求解或修改四例空hard设置的数值策略。
+代码research_experiments/iterative_exit，结果outputs/iterative_zero_exit_20261101。先读completion.json、smoke_verification.json、tests.json。records.zip含执行快照source/、交付时current_source/、源/数据哈希、四个结果与检查回执，不重复保存原始观测NPZ。执行快照和交付文件分别保存，源码SHA以协议为准。交付阶段修正了硬先验released日志、文档输出路径、纯WZZT入口清理与冻结依赖，并重算独立检查、重跑41项研究回归、检查5份隔离快照导入；没有重新求解或修改四例空hard设置的数值策略。
 
 ```powershell
 $env:PYTHONPATH='D:\0-github_workspace\Topo\rnj_wzzt_core'

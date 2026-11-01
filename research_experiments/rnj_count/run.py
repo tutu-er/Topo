@@ -39,6 +39,8 @@ def freeze(output):
         assert sha(source/name)==digest
     for file in Path(__file__).parent.glob('*.py'):
         target=source/'research_experiments/rnj_count'/file.name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(file.read_bytes())
+    from research_experiments.iterative_exit.zero import snapshot_zero_support
+    snapshot_zero_support(source,with_ordinary_search=True)
     catalog=read(PARENT/'catalog.json');reused={}
     for job in dev:
         catalog[job]=read(ROOT/'outputs/wzzt_paper_20261029_full/jobs'/job/'payload.json')

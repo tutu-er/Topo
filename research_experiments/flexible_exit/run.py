@@ -32,6 +32,8 @@ def freeze(output):
     for file in Path(__file__).parent.glob('*.py'):
         dest = output / 'source/research_experiments/flexible_exit' / file.name
         dest.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(file, dest)
+    from research_experiments.iterative_exit.zero import snapshot_zero_support
+    snapshot_zero_support(output/'source')
     write(output / 'catalog.json', {j: catalog[j] for j in jobs})
     references = {}; starts = {}; eligible = 0
     for job in jobs:

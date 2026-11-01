@@ -5,6 +5,7 @@ from time import perf_counter
 import numpy as np
 from scipy.sparse import csr_matrix
 from research_experiments.local_rebuild.model import canonical
+from research_experiments.iterative_exit.zero import release_zero_atoms
 from research_experiments.rebuild_benchmark.engine import SCALE, audit_vector, reconstruction_start, any_extension, loss
 from research_experiments.lp_rebuild.engine import FloorBank
 from research_experiments.joint_exit.model import build, physical_weights
@@ -133,12 +134,12 @@ def joint_rebuild(bank, pool, warm_points, *, penalty, deadline, heartbeat=None)
                 cardinality_cuts=meta['cardinality_cuts'], clique_cuts=meta['clique_cuts'])
 
 
-def pure_search(bank, *, structural_deadline, single_mip=3600., heartbeat=None, checkpoint=None):
+def pure_search(bank, *, structural_deadline, single_mip=3600., heartbeat=None, checkpoint=None, zero_release=True):
     """Leaf/full basis only; no NJ/RNJ pool, initialization, tail or exit."""
     then = perf_counter(); n = bank.data.n
     family = canonical([*((i,) for i in range(n)), tuple(range(n))])
     current = bank.fit(family, preserve=True)
-    path, events = [current], []
+    path, events, zero_events = [current], [], []
     if checkpoint: checkpoint(dict(path=path, point=current, attempts=events, seconds=perf_counter()-then))
     reason = 'step_limit'
     for iteration in range(3*n):
@@ -153,16 +154,18 @@ def pure_search(bank, *, structural_deadline, single_mip=3600., heartbeat=None, 
         values, event = solve_native(bank, model, start, deadline=min(structural_deadline, perf_counter()+single_mip), heartbeat=heartbeat)
         C = core._round_and_validate_support(values[model.z], family, n)
         q = bank.fit([*family, C], preserve=True)
+        q, cleanup = release_zero_atoms(bank, q, enabled=zero_release, stage='pure_extension')
         before = current['objective']; gate = 1e-10+.001*before
         accepted = before-q['objective'] > gate
         event.update(iteration=iteration, kind='pure_wzzt_extension', support=C, before=before, after=q['objective'],
-                     gain=before-q['objective'], threshold=gate, accepted=accepted, elapsed=perf_counter()-then)
+                     gain=before-q['objective'], threshold=gate, accepted=accepted, elapsed=perf_counter()-then,
+                     zero_events=cleanup)
         events.append(event)
         if accepted:
-            current = q; path.append(current)
+            current = q; path.append(current); zero_events.extend(cleanup)
         if checkpoint: checkpoint(dict(path=path, point=current, attempts=events, seconds=perf_counter()-then))
         if not accepted:
             reason = 'bound_excludes_gain' if event['bound'] is not None and before-event['bound'] <= gate else 'no_gain_unresolved'
             break
-    return dict(point=current, path=path, attempts=events, seconds=perf_counter()-then, stop_reason=reason,
+    return dict(point=current, path=path, attempts=events, zero_events=zero_events, seconds=perf_counter()-then, stop_reason=reason,
                 initial_supports=canonical([*((i,) for i in range(n)), tuple(range(n))]), no_RNJ_NJ_supports=True)

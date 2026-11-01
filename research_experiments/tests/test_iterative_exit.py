@@ -9,7 +9,7 @@ from research_experiments.lp_rebuild.engine import FloorBank
 from research_experiments.joint_five.search import search
 from research_experiments.flexible_exit.model import MaskBank
 from research_experiments.rnj_small_seed.engine import exit_repair
-from research_experiments.iterative_exit.zero import release_zero_atoms
+from research_experiments.iterative_exit.zero import release_zero_atoms,snapshot_zero_support
 from research_experiments.iterative_exit.engine import fit_mainline,select_outputs,weakest_deletion
 
 
@@ -99,3 +99,13 @@ def test_deletion_ranking_respects_hard_supports():
         best,record=weakest_deletion(bank,point,hard=((0,1),),deadline=perf_counter()+5.)
         assert best is None and record['complete']
     finally:bank.close()
+
+
+def test_frozen_cleanup_dependency_includes_matching_forward_api(tmp_path):
+    from pathlib import Path
+    import inspect
+    snapshot_zero_support(tmp_path,with_ordinary_search=True)
+    root=Path(__file__).resolve().parents[2]
+    for name in ('iterative_exit/__init__.py','iterative_exit/zero.py','joint_five/search.py'):
+        assert (tmp_path/'research_experiments'/name).read_bytes()==(root/'research_experiments'/name).read_bytes()
+    assert 'zero_release' in inspect.signature(search).parameters

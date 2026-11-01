@@ -33,6 +33,8 @@ def freeze(output):
     for file in Path(__file__).parent.glob('*.py'):
         target = snapshot/'research_experiments/joint_five'/file.name
         target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(file.read_bytes())
+    from research_experiments.iterative_exit.zero import snapshot_zero_support
+    snapshot_zero_support(snapshot)
     catalog = read(PARENT/'catalog.json'); reused = {}
     for job in jobs:
         p = catalog[job]; common = PARENT/'common'/job/'result.json'

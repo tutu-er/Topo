@@ -24,3 +24,15 @@ def release_zero_atoms(bank, point, *, hard=(), enabled=True, tolerance=1e-9, lo
         if not accepted:break
         current=proposed
     return current,events
+
+
+def snapshot_zero_support(source, *, with_ordinary_search=False):
+    """Include the cleanup dependency when refreshing a historical snapshot."""
+    from pathlib import Path
+    import shutil
+    root=Path(__file__).resolve().parents[2];source=Path(source)
+    names=['research_experiments/iterative_exit/__init__.py','research_experiments/iterative_exit/zero.py']
+    if with_ordinary_search:names.append('research_experiments/joint_five/search.py')
+    for name in names:
+        target=source/name;target.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(root/name,target)

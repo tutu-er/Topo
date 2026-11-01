@@ -32,6 +32,8 @@ def freeze(output):
     for file in Path(__file__).parent.glob('*.py'):
         target = output / 'source/research_experiments/rnj_union_long' / file.name
         target.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(file, target)
+    from research_experiments.iterative_exit.zero import snapshot_zero_support
+    snapshot_zero_support(output/'source')
     manifests = {}
     for folder in ('rnj_four_methods_20261031', 'rnj_nj_portfolio_20261031'):
         file = ROOT / 'docs' / folder / 'manifest.json'; manifests[str(file)] = dict(sha256=sha(file), files=read(file)['files'])

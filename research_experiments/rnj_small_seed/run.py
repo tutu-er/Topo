@@ -19,6 +19,8 @@ def freeze(output):
     for directory in ('joint_exit','rnj_small_seed'):
         for f in (ROOT/'research_experiments'/directory).glob('*.py'):
             dest=source/'research_experiments'/directory/f.name;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(f,dest)
+    from research_experiments.iterative_exit.zero import snapshot_zero_support
+    snapshot_zero_support(source)
     hashes={}
     for job in [*parent['development'],*parent['evaluation']]:
         dest=output/'common'/job/'result.json';dest.parent.mkdir(parents=True);shutil.copy2(PARENT/'common'/job/'result.json',dest);hashes[job]=sha(dest)

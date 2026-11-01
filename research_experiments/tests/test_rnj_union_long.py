@@ -51,4 +51,7 @@ def test_pure_starts_with_only_leaf_full_basis_and_finds_data_supported_set():
         assert result['point']['objective'] < 1e-8
         assert (1, 2) in canonical(result['point']['supports'])
         assert all(a['kind'] == 'pure_wzzt_extension' for a in result['attempts'])
+        assert len(result['path']) == 1+sum(a['accepted'] for a in result['attempts'])
+        assert all(max(r,x)>1e-9 for point in result['path']
+                   for C,r,x in zip(point['supports'],point['r'],point['x']) if 1<len(C)<3)
     finally: bank.close()
