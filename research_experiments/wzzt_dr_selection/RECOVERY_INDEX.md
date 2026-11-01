@@ -1,3 +1,14 @@
+## 最新恢复：冻结参数距离DR小测试全部结束
+
+- 先读 `dr_frozen_distance/REPORT.md`、`README.md`，公开 `evidence/frozen_distance_v1/{configuration,planning,summary,physical_distance,audit_summary,manifest}.json`。已完成12/12物理记录、4独立日、1152AC；没有正在运行或未完成的新实验，勿重跑。
+- 实验源码阶段 `c58d2631`（初版）和 `caf68f20`（可行初值/冻结凭证）；实际精确源码以run_v2/source_snapshot.zip与protocol.source_sha256为准。后续外部审计/报告源码不冒称事前运行逻辑。
+- 私有根 `C:\Users\23761\.codex\visualizations\2026\10\25\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\wzzt_frozen_distance_v1`。run_v1为60秒零初值未实际执行；run_v2价格先冻结后1000工作留出及4新日。两个版本problem/draws/affine scenarios逐字节相同，不重复算作两个独立科学条件。
+- run_v2/price_freeze SHA407f1ea4ca24df648dbb9bd0774fca715be2c3c505de4c27f2d35dd90444c2df；protocol SHAaf607d4c2760c4a8195ad5b1830a2150da43e29f8df41643a369a1d62a5741e5。环境environment.json；参数frozen_pool.json、物理problem.json均私有勿上传。
+- main288历史验证＋96新日；历史训练288只供已存R/X，未改权重。选池仅历史已选点19和同路径下一接受点20；新日完整RNJ＋W重跑为0。原规则select/contract直接复用，不更改原生产默认。raw/output粗21/21、细22/22。
+- 结果：设计DR4/4扩大预测距离且物理P/Q核验同向；各策略最终均1遗漏/0恢复/0累计排除。1000工作留出达冻结gamma846/1000，90%幅值目标失败。主求解TIME_LIMIT、返回价恰为最佳初值，无连续精调或全局最优结论。
+- 审计run_v2/external_gate_before_score.json268、independent_price_audit.json979、independent_score_audit.json755、independent_physical_audit.json1332均过。核心输入/源码不变，审计新增求解和AC均0。审计脚本已归档研究模块；公开白名单导出evidence/frozen_distance_v1/export_public.py只导标量，不读出私有参数数组。
+- 后续先从M384=.75Mh+.25Mday与所需新日M>29.085610微单位检查可购买的排除空间；不能继续凭距离增量改写为纠错收益，也不以超时未达标否定所有DR。旧两零收益对照与本例失败完整保留。
+
 ## 最新恢复：连续价格与独立实际测试全部结束
 
 - 先读 `dr_validation_excitation/{CONTINUOUS_MODEL,CONTINUOUS_REPORT,CONTINUOUS_PLAN}.md`、`evidence/validation_continuous_v1`。原3%/.16、资源/1.6预算、完整历史、误差及零弱权均未改。原实际全正确，但没有DR净收益；保留历史族的命名组合审计全部漏1，不能混用两口径。

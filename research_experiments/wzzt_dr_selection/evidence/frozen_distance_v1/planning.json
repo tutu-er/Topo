@@ -1,0 +1,276 @@
+{
+  "status": "complete",
+  "table": [
+    {
+      "policy": "zero",
+      "prices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "amplitudes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "expected_payment": 0.0,
+      "hard_payment_bound": 0.0,
+      "quantile_micro": 0.0,
+      "positive_passes": 0,
+      "denominator": 64
+    },
+    {
+      "policy": "rotation",
+      "prices": [
+        1.1547005383792517,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.1547005383792517,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "amplitudes": [
+        0.5773502691896258,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.5773502691896258,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "expected_payment": 1.3333333333333337,
+      "hard_payment_bound": 1.6000000000000003,
+      "quantile_micro": -0.17318783273288021,
+      "positive_passes": 45,
+      "denominator": 64
+    },
+    {
+      "policy": "optimized",
+      "prices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.4418847653807892,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.066804193588354
+      ],
+      "amplitudes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.2209423826903946,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.533402096794177
+      ],
+      "expected_payment": 1.3333333333333337,
+      "hard_payment_bound": 1.6000000000000005,
+      "quantile_micro": 1.2090127639331723,
+      "positive_passes": 64,
+      "denominator": 64
+    }
+  ],
+  "quotes": [
+    {
+      "policy": "zero",
+      "prices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "amplitudes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "expected_payment": 0.0,
+      "hard_payment_bound": 0.0,
+      "selected_module_ids": []
+    },
+    {
+      "policy": "rotation",
+      "prices": [
+        1.1547005383792517,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.1547005383792517,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "amplitudes": [
+        0.5773502691896258,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.5773502691896258,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "expected_payment": 1.3333333333333337,
+      "hard_payment_bound": 1.6000000000000003,
+      "selected_module_ids": [
+        "focus_early",
+        "partner_late"
+      ]
+    },
+    {
+      "policy": "optimized",
+      "prices": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.4418847653807892,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.066804193588354
+      ],
+      "amplitudes": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.2209423826903946,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.533402096794177
+      ],
+      "expected_payment": 1.3333333333333337,
+      "hard_payment_bound": 1.6000000000000005,
+      "selected_module_ids": [
+        "focus_history_contrast",
+        "partner_history_contrast"
+      ]
+    }
+  ],
+  "primary": {
+    "status_code": 9,
+    "objective_sense": "maximize_paired_distance_quantile_micro",
+    "objective_value": 1.2090122639331722,
+    "best_bound": 4.49393311977161,
+    "absolute_gap": 3.2849208558384375,
+    "solver_reported_optimal": false,
+    "solution_count": 1,
+    "runtime": 40.270999908447266,
+    "node_count": 1.0
+  },
+  "secondary": null,
+  "elapsed_seconds": 60.17199999999866,
+  "conditional_finite_scenario_optimality": false,
+  "warm_start_quotes": 451,
+  "verified_warm_start_quotes": 451,
+  "returned_quote_equals_best_warm_start": true,
+  "warm_start_best_quantile_micro": 1.2090127639331723,
+  "v1_failed_solver": {
+    "primary": {
+      "status_code": 9,
+      "objective_sense": "maximize_paired_distance_quantile_micro",
+      "objective_value": -0.0,
+      "best_bound": 4.309456290399095,
+      "absolute_gap": 4.309456290399095,
+      "solver_reported_optimal": false,
+      "solution_count": 1,
+      "runtime": 54.15499997138977,
+      "node_count": 1.0
+    },
+    "gamma_micro": 0.0,
+    "new_AC": 0,
+    "new_holdout": 0
+  },
+  "v1_v2_identical_inputs": {
+    "problem.json": true,
+    "planning_draws.json": true,
+    "private_planning_scenarios.pkl": true
+  },
+  "model_holdout": [
+    {
+      "policy": "zero",
+      "denominator": 1000,
+      "positive_gain_count": 0,
+      "target_gain_count": 0,
+      "target_gamma_native": 1.2090127639331722e-06,
+      "empirical_target_rate": 0.0,
+      "gain_min": 0.0,
+      "gain_mean": 0.0,
+      "gain_p10": 0.0,
+      "gain_max": 0.0
+    },
+    {
+      "policy": "rotation",
+      "denominator": 1000,
+      "positive_gain_count": 784,
+      "target_gain_count": 0,
+      "target_gamma_native": 1.2090127639331722e-06,
+      "empirical_target_rate": 0.0,
+      "gain_min": -2.250333216157629e-07,
+      "gain_mean": 2.2652642538695737e-07,
+      "gain_p10": -7.43493001353245e-08,
+      "gain_max": 1.034858971555482e-06
+    },
+    {
+      "policy": "optimized",
+      "denominator": 1000,
+      "positive_gain_count": 1000,
+      "target_gain_count": 846,
+      "target_gamma_native": 1.2090127639331722e-06,
+      "empirical_target_rate": 0.846,
+      "gain_min": 9.92047456316417e-07,
+      "gain_mean": 1.6079821639435815e-06,
+      "gain_p10": 1.1427434484437196e-06,
+      "gain_max": 2.5420554871333787e-06
+    }
+  ]
+}

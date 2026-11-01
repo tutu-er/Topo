@@ -1,0 +1,61 @@
+{
+  "id": "frozen_dispute_distance_one_day_v2",
+  "case": "flynn16",
+  "labels": [
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216
+  ],
+  "root_label": 1,
+  "base_kw": 200.0,
+  "voltage_sigma": 0.0005,
+  "pq_sigma": 0.005,
+  "budget": 1.6,
+  "aggregate_units": 5,
+  "original_history_rows": [
+    288,
+    288
+  ],
+  "new_training_rows": 0,
+  "new_validation_rows": 96,
+  "cumulative_validation_rows": 384,
+  "planning_samples": 64,
+  "planning_seed": 2026110151,
+  "model_holdout_samples": 1000,
+  "model_holdout_seed": 2026110152,
+  "actual_paths": [
+    1400,
+    1401,
+    1402,
+    1403
+  ],
+  "actual_profiles": [
+    0,
+    1,
+    2,
+    0
+  ],
+  "actual_response_seed": 2026110153,
+  "actual_replicate_base": 510000,
+  "solver_seconds": 60.0,
+  "event": "90% same-background increase in exact frozen-predictor L1 distance",
+  "validation_rule": "historical_validation plus one new day, original3%/support count/order; historical.16 output frozen",
+  "parameter_rule": "historical pool/R/X/order/calibration frozen; no new fit, new search or new candidate",
+  "candidate_scope": "historical selected point plus its next accepted structural competitor only",
+  "resource_scope": "5x original synthetic0.2kW units per qualified node, embedded existing component; same fleet all policies",
+  "budget_intensity_note": "same1.6 total cap, now concentrated onone day instead ofoldfour events; not algorithm-only old/new comparison",
+  "scenario_scope": "uniform six past complete P/Q templates; shared two-factor continuous response; no empirical behavior calibration"
+}
