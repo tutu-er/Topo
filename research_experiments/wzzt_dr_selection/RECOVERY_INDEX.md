@@ -1,3 +1,10 @@
+## 最新恢复：Gaussian裕量SOCP批已收口
+
+- dr_gaussian_margin/REPORT.md；公开evidence/gaussian_margin_v1。私有wzzt_gaussian_margin_stage/run_v1，protocol SHA 3599a32c62f6d33e517a25f07316a576d330a1df7fba1e366a4b509d512f2709; problem/源zip/价冻结/三求解/2000共享路径/8000选模/ended齐，所有任务完成。
+- 当前正式corrected报价不可行；naive仅诊断，max及同费rotation所有路径资源越界。不得转旧worker当作新AC交付。没有自动新AC待启动。
+- audit_history25、audit_solver26、audit_evaluation67、audit_labels16008；cost_bound给naive近最优下界。完整源码和失败回执保存。Gaussian预测仅3日rank2且708/2000自然负P，不能称实证校准。
+- 本轮新合同及scope见MODEL.md。保留全历史/零弱参数/frozen输出；真块只后评。不得复用此2000路径调价后再称独立。
+
 ## 最新恢复：独立AC报价效果测试已关闭
 
 - 先读 `dr_day_effect/REPORT.md`，公共 `evidence/day_effect_actual_v1`含完整9规则、12日标量、所需/实际gap、CI/p、机制和图。主zero及两opt各6/12恢复、总6错，两个匹配轮换5/12总7错；只避免一次轮换伤害，无主规则相对zero新恢复。预设w1敏感性低价有2真纠错，不能改写主结果。

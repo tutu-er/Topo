@@ -1,0 +1,58 @@
+{
+  "status": "frozen",
+  "id": "gaussian_original_margin_v1",
+  "created_utc": "2026-11-01T14:26:54.686411+00:00",
+  "condition": "paper15_b2_v0005",
+  "inputs": {
+    "history": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_targeted_pricing_v1\\run_v1\\history.pkl",
+      "sha256": "7ada36398650968ddb35d195e264e3e52bcc2b0544439731315d7c7131ebf5a2"
+    },
+    "pool": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_newday_weighted_v1\\run_v2\\cases\\paper15_b2_v0005\\frozen_pool.json",
+      "sha256": "3747c224d0df2b6a8d469481ce9bf42edf1bda50fe8e7d4678c3a72b171c389c"
+    },
+    "resources": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_newday_weighted_v1\\run_v2\\cases\\paper15_b2_v0005\\zero_plan.json",
+      "sha256": "ade6e58333f891b7c81f797e02f4e520e9d417d95b692642da55c53dab3831bd"
+    }
+  },
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\code\\gaussian_socp.py": "5f539e1d3a79c3bb78091b88a87dab7579a816c350d1957c1c6b25eded80846f",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\code\\runner.py": "0565b401601eb7d579a4894cfa302cf64b313a1b1d0786b7583549351a1d4c03",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\code\\test_gaussian_socp.py": "c453bb20e73f5dda6a961abbd4ace56a0081cca700e3af45f8f6874da9cd775e",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_frozen_distance\\frozen_pool.py": "706e6194c716f438d8824e2d12d5100b0939e1a781ff4ec571256a0dadf9fef9",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_newday_weighted\\weighted_selection.py": "7320a8a888a727361a523de51343b7ac0bbbab01091800d73a6a0f2fc9e22828"
+  },
+  "history_rows": [
+    288,
+    288
+  ],
+  "slots": 96,
+  "optimizer": "continuous SOCP, no scenarios, no integer variables, fixed signs plus reference flip compensation",
+  "data_law": "joint (P,Q,reference residual) Gaussian; slotwise mean and 3-day sample covariance, rank<=2",
+  "response": "independent per-resource-slot Gaussian: U=u+sqrt(.025/3)*abs(u)*Z; Q=.35U",
+  "reference_response": "Yafter=Ybaseline+mu_F(DR); reference residual distribution fixed, not a true-topology assertion",
+  "prices": "abs(u)/.5 per slot, direction chosen by signed mean u",
+  "settlement": "planned bidirectional regulation, dt*sum(abs(u)^2/.5), prepaid deterministic conditional on plan",
+  "budget": null,
+  "exact_daily_energy_constraint": false,
+  "aggregate_power_constraint": false,
+  "nominal_power_box": "original component [0,2] around baseline1, actual Gaussian excursions retained",
+  "risk_G": 0.05,
+  "risk_F": 0.05,
+  "reference_risk_allocation": "uniform .05/(96*15)",
+  "target": ".2*max(-analytic_E_original_M_zero,0)+.0001 micro; fixed before price solve",
+  "evaluation_paths": 2000,
+  "evaluation_seed": 2026112401,
+  "solver_seconds": 30,
+  "policy_rule": "zero; corrected feasible mincost if any; naive signed mincost if any; corrected max-bound diagnostic; same-planned-cost 6h opposite rotation",
+  "ac_gate": "only a corrected original-form target-feasible mincost quote qualifies for a separately frozen AC batch",
+  "old_actual_days_used": false,
+  "truth_used_for_design": false,
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6"
+  }
+}

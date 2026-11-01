@@ -1,0 +1,107 @@
+{
+  "status": "independently_verified",
+  "checks": 16008,
+  "source": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\run_v1\\predictions_frozen.json": "fe481671c12f2e288b52b714d2d3c4e5c377e71a709e800476bb3f53b589b271",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\run_v1\\price_freeze.json": "4b01bb6ab6f068049effb93c99ff51413145929d76dfb3e255b6990cc7f3b5eb",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_newday_weighted_v1\\run_v2\\cases\\paper15_b2_v0005\\frozen_pool.json": "3747c224d0df2b6a8d469481ce9bf42edf1bda50fe8e7d4678c3a72b171c389c",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_day_effect_stage\\actual_v1\\actual\\paper15_day00_zero\\physical\\truth_evaluation.json": "f1f458cd030463721589ba4de2052daca7ec326f0f29f9aefa88c0a330bdef7b",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\run_v1\\evaluation_scalars.npz": "66c8eab057a3294bc214263ce8a2389d53229b4b9e8dce1c70f0739605fee2bc",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\run_v1\\evaluation_draws.npz": "7351cec3755818f71780c2d90c318b727e8d38ee5697eed704f587ec1808184c",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_gaussian_margin_stage\\run_v1\\problem.pkl": "bd3a7af6410107027f27fe92b85f9e4fe2b850eaf165a90b7dabc1ad3ecf4624"
+  },
+  "truth_read_gate": "predictions_frozen existed and bound price_freeze before truth read",
+  "full_effective_truth_blocks": 21,
+  "models": {
+    "coarse": {
+      "raw": {
+        "support_count": 20,
+        "missing": 1,
+        "extra": 0,
+        "full_errors": 1,
+        "complete_recovery": false
+      },
+      "final": {
+        "support_count": 20,
+        "missing": 1,
+        "extra": 0,
+        "full_errors": 1,
+        "complete_recovery": false
+      },
+      "raw_zero_weight_support_count": 1
+    },
+    "refined": {
+      "raw": {
+        "support_count": 21,
+        "missing": 0,
+        "extra": 0,
+        "full_errors": 0,
+        "complete_recovery": true
+      },
+      "final": {
+        "support_count": 21,
+        "missing": 0,
+        "extra": 0,
+        "full_errors": 0,
+        "complete_recovery": true
+      },
+      "raw_zero_weight_support_count": 0
+    }
+  },
+  "rows": [
+    {
+      "policy": "zero",
+      "denominator": 2000,
+      "conditional_gaussian_raw_full_errors_sum": 579,
+      "conditional_gaussian_final_full_errors_sum": 579,
+      "conditional_gaussian_full_recovery_count": 1421,
+      "resource_power_bound_violation_paths": 0,
+      "resource_power_bound_violation_cells": 0,
+      "negative_natural_active_power_paths": 708,
+      "negative_post_DR_active_power_paths": 708,
+      "full_recovery_and_no_resource_excursion": 1421,
+      "complete_no_new_AC_or_physical_checks": true
+    },
+    {
+      "policy": "naive",
+      "denominator": 2000,
+      "conditional_gaussian_raw_full_errors_sum": 456,
+      "conditional_gaussian_final_full_errors_sum": 456,
+      "conditional_gaussian_full_recovery_count": 1544,
+      "resource_power_bound_violation_paths": 0,
+      "resource_power_bound_violation_cells": 0,
+      "negative_natural_active_power_paths": 708,
+      "negative_post_DR_active_power_paths": 708,
+      "full_recovery_and_no_resource_excursion": 1544,
+      "complete_no_new_AC_or_physical_checks": true
+    },
+    {
+      "policy": "max_diagnostic",
+      "denominator": 2000,
+      "conditional_gaussian_raw_full_errors_sum": 40,
+      "conditional_gaussian_final_full_errors_sum": 40,
+      "conditional_gaussian_full_recovery_count": 1960,
+      "resource_power_bound_violation_paths": 2000,
+      "resource_power_bound_violation_cells": 192096,
+      "negative_natural_active_power_paths": 708,
+      "negative_post_DR_active_power_paths": 709,
+      "full_recovery_and_no_resource_excursion": 0,
+      "complete_no_new_AC_or_physical_checks": true
+    },
+    {
+      "policy": "rotation",
+      "denominator": 2000,
+      "conditional_gaussian_raw_full_errors_sum": 174,
+      "conditional_gaussian_final_full_errors_sum": 174,
+      "conditional_gaussian_full_recovery_count": 1826,
+      "resource_power_bound_violation_paths": 2000,
+      "resource_power_bound_violation_cells": 192248,
+      "negative_natural_active_power_paths": 708,
+      "negative_post_DR_active_power_paths": 708,
+      "full_recovery_and_no_resource_excursion": 0,
+      "complete_no_new_AC_or_physical_checks": true
+    }
+  ],
+  "scope": "Labels from existing same-paper15 AC network reused only after all Gaussian selections frozen. These are conditional Gaussian working-law selected-model errors, not new AC or field recovery.",
+  "resource_scope": "Per-sampled DR U bounds only: original component baseline1 and power[0,2], equivalently U[-1,1]. No prefix/day energy check, no AC, voltage, ampacity or physical delivery qualification. Negative Gaussian background loads retained, never clipped/resampled."
+}
