@@ -16,7 +16,7 @@ for _k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_N
 import numpy as np
 
 from .frozen_pool import freeze_pool,predict,score_frozen
-from .design import build_design,draw_scenarios,plan_payload
+from .design import build_design,draw_scenarios,plan_payload,warm_quotes
 from .distance_solver import solve_distance,evaluate_distance
 from research_experiments.wzzt_dr_selection.dr_conic_pricing.effect_test.prepare import _sources
 from research_experiments.wzzt_dr_selection.dr_conic_pricing.model import evaluate_plan
@@ -43,7 +43,11 @@ def config(root):
     if c['status']!='frozen':raise RuntimeError('unfrozen protocol')
     for p,h in c['source_sha256'].items():
         if sha(p)!=h:raise RuntimeError('source drift: '+p)
-    checked(c['frozen_pool']);checked(c['history_packet'])
+    checked(c['frozen_pool']);checked(c['history_packet']);checked(c['problem'])
+    ended=read(root/'preparation_ended.json')
+    checked(ended['price_freeze']);freeze=read(ended['price_freeze']['path'])
+    checked(freeze['protocol']);checked(freeze['frozen_pool']);checked(freeze['problem'])
+    for item in freeze['plans'].values():checked(item)
     return root,c
 
 
@@ -59,7 +63,7 @@ def prepare(case_protocol,root):
     extras += [str(REPO/'research_experiments/wzzt_dr_selection/dr_conic_pricing/resources.py'),
         str(REPO/'research_experiments/wzzt_dr_selection/dr_conic_pricing/model.py')]
     sources,algorithm=_sources(REPO,[dict(source_root=old['source_root'])],extras)
-    c=dict(status='frozen',id='frozen_dispute_distance_one_day_v1',created_utc=now(),repository=str(REPO),
+    c=dict(status='frozen',id='frozen_dispute_distance_one_day_v2',created_utc=now(),repository=str(REPO),
         case=old['case'],old_case_protocol=ref(case_protocol),frozen_pool=ref(root/'frozen_pool.json'),
         history_packet=pool['history_packet'],source_root=old['source_root'],source_metadata=old['source_metadata'],
         labels=pool['labels'],root_label=pool['root_label'],base_kw=pool['base_kw'],problem=ref(root/'problem.json'),
@@ -70,6 +74,8 @@ def prepare(case_protocol,root):
         model_holdout_samples=1000,model_holdout_seed=2026110152,
         actual_paths=[1400,1401,1402,1403],actual_profiles=[0,1,2,0],actual_response_seed=2026110153,
         actual_replicate_base=510000,solver_seconds=60.,
+        warm_start='451 deterministic type/budget-ellipse quotes, original physical checks; MIP start only',
+        predecessor='run_v1:60s timeout, zero incumbent, no holdout or actual generated; computational repair only',
         event='90% same-background increase in exact frozen-predictor L1 distance',
         validation_rule='historical_validation plus one new day, original3%/support count/order; historical.16 output frozen',
         parameter_rule='historical pool/R/X/order/calibration frozen; no new fit, new search or new candidate',
@@ -85,7 +91,7 @@ def prepare(case_protocol,root):
     scenarios,draws=draw_scenarios(design,c['planning_samples'],c['planning_seed'])
     write(root/'planning_draws.json',dict(status='frozen',draws=draws))
     with (root/'private_planning_scenarios.pkl').open('wb') as stream:pickle.dump(scenarios,stream,protocol=4)
-    solved=solve_distance(problem,scenarios,seconds=c['solver_seconds'],probability=.9)
+    solved=solve_distance(problem,scenarios,seconds=c['solver_seconds'],probability=.9,warm_start_prices=warm_quotes(problem))
     write(root/'optimization.json',solved)
     if not solved.get('feasible_incumbent'):raise RuntimeError('no verified feasible distance quote; retain failed solve')
     rotation=np.zeros(problem.n_contracts);active=[0,6] # focus early, partner late
@@ -182,6 +188,7 @@ def observe(root):
 
 def score(root):
     root,c=config(root);output=root/'actual';ledger=read(output/'observations_frozen.json');pool=read(checked(c['frozen_pool']))
+    checked(ledger['price_freeze'])
     if (output/'scored.json').exists():raise FileExistsError('retain original scored results')
     projections=[]
     for original in ledger['rows']:
@@ -202,7 +209,10 @@ def score(root):
     for original in projections:
         row=dict(original)
         if row['status']=='predictions_frozen':
-            result=read(checked(row['scores']));truth=read(Path(row['physical_output'])/'truth_evaluation.json')['true_supports']
+            result=read(checked(row['scores']));receipt=read(checked(row['receipt']))
+            truth_path=Path(row['physical_output'])/'truth_evaluation.json'
+            checked(dict(path=str(truth_path),sha256=receipt['private_files']['truth_evaluation.json']['sha256']))
+            truth=read(truth_path)['true_supports']
             true={tuple(sorted(s)) for s in truth}
             def errors(blocks):
                 blocks={tuple(sorted(s)) for s in blocks}
@@ -239,17 +249,20 @@ def score(root):
     table=[]
     for policy in c['policies']:
         group=[r for r in rows if r['policy']==policy];ok=[r for r in group if r['status']=='complete']
+        known_fees=[r['actual_payment'] for r in group if r.get('actual_payment') is not None]
         table.append(dict(policy=policy,denominator=4,complete=len(ok),unresolved=4-len(ok),
             full_errors=[r.get('full_errors') for r in group],recoveries=sum(r['full_errors']==0 for r in ok),
             wrong_excluded=sum(r['wrong_model_excluded'] for r in ok),day_only_wrong_excluded=sum(r['day_only_wrong_model_excluded'] for r in ok),
-            mean_payment=sum(r['actual_payment'] for r in ok)/4 if len(ok)==4 else None,
+            mean_payment=sum(known_fees)/4 if len(known_fees)==4 else None,
+            known_payment_total=sum(known_fees),unknown_payment_records=4-len(known_fees),
             distance_gains=[r.get('distance_gain') for r in group],
             positive_distance_count=sum(r.get('distance_positive',False) for r in ok),
             target_distance_count=sum(r.get('distance_target_met') is True for r in ok)))
     summary=dict(status='complete',table=table,rows=rows,independent_actual_days=4,requested_records=12,
         completed=sum(r['status']=='complete' for r in rows),new_parameter_fits=0,new_search_calls=0,
         source_pool_size=2,history_training_rows=288,history_validation_rows=288,new_validation_rows=96,
-        cumulative_validation_rows=384,actual_AC_time_points=sum(96 for r in rows if r['status']=='complete'),
+        cumulative_validation_rows=384,completed_valid_AC_time_points=sum(96 for r in rows if r['status']=='complete'),
+        attempted_AC_time_points=sum(96 for r in rows if r.get('receipt') and read(checked(r['receipt'])).get('AC_attempted')),
         price_freeze=ref(root/'price_freeze.json'),gamma_native=gamma,
         probability_scope='90% prediction-distance-gain event only; four physical days do not certify population probability',
         no_true_topology_in_price_design=True)

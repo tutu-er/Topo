@@ -62,7 +62,7 @@ def build_design(pool,history,units=5):
     direction=np.sign(delta)
     modules=[];factors=[];shape_audit=[]
     for identity,index,d in zip(('focus','partner'),chosen,([.15,.05],[.15,-.05])):
-        marginal=direction@(dr[:,index]+.35*dx[:,index])/(n*base_kw)
+        marginal=direction@(dr[:,index]+.35*dx[:,index])/(96*n*base_kw)
         guided=contrast_shape(marginal)
         kinds=[('early',early),('late',late),('spread',early+late),('opposedlate',-late),('history_contrast',guided)]
         for kind,shape in kinds:
@@ -127,5 +127,29 @@ def plan_payload(design,amplitudes,policy):
         amplitudes=x.tolist(),prices=(x/problem.elasticities).tolist(),elasticities=problem.elasticities.tolist(),
         response_factors=problem.response_factors.tolist(),budget=1.6,
         expected_payment=audit['expected_cost'],hard_payment_bound=audit['hard_budget_bound'],
-        baseline_semantics='already-contained component; increment-only injection',aggregate_units=5,
+        baseline_semantics='already-contained component; increment-only injection',aggregate_units=problem.metadata['aggregate_units'],
         probability_scope='90% paired frozen-predictor distance gain, never topology recovery')
+
+
+def warm_quotes(problem):
+    """Deterministic feasible-domain seeds; exact model still optimizes prices.
+
+    Enumerate only the two declared type groups and a fixed coarse set of
+    directions/radii in the budget ellipse. These are MIP starts, not a new
+    action domain. All are rechecked with the original physical constraints.
+    """
+    groups=[list(g) for g in problem.exclusive_groups]
+    if len(groups)!=2:raise ValueError('two historical resource groups required')
+    caps=problem.amplitude_upper/problem.elasticities
+    beta=problem.hard_cost_coefficients*problem.elasticities**2
+    result=[np.zeros(problem.n_contracts)]
+    for first in groups[0]:
+        for second in groups[1]:
+            for angle in np.linspace(0,np.pi/2,9):
+                for radius in (.5,1.):
+                    quote=np.zeros(problem.n_contracts)
+                    quote[first]=min(caps[first],radius*np.sqrt(problem.budget/beta[first])*np.cos(angle))
+                    quote[second]=min(caps[second],radius*np.sqrt(problem.budget/beta[second])*np.sin(angle))
+                    quote[np.abs(quote)<1e-12]=0.
+                    result.append(quote)
+    return result

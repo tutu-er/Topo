@@ -98,3 +98,25 @@ def test_zero_budget_has_a_complete_feasible_zero_price_start():
     assert r['prices']==pytest.approx(np.zeros(10),abs=1.e-8)
     assert r['quantile_micro']==pytest.approx(0.,abs=1.e-5)
     assert r['expected_cost']==0.
+
+
+def test_verified_nonzero_start_and_zero_fallback_are_both_complete():
+    candidate=np.zeros(10);candidate[0]=1.
+    scenes=[scenario([-.4],[[1.]])]
+    r=solve_distance(problem(),scenes,seconds=10,warm_start_prices=[candidate])
+    assert r['complete_verified_nonzero_start_supplied']
+    assert r['complete_zero_start_supplied'] and r['mip_start_count']==2
+    assert r['provided_warm_start_count']==r['verified_warm_start_count']==1
+    assert r['warm_start_best_quantile_micro']==pytest.approx(.2e6)
+    assert r['quantile_micro']>=r['warm_start_best_quantile_micro']-2.
+    assert r['original_evaluation']['numerical_feasible']
+
+
+def test_invalid_type_warm_start_is_retained_as_rejection_not_domain_change():
+    invalid=np.zeros(10);invalid[:2]=.5
+    scenes=[scenario([0.],[[1.,2.]])]
+    r=solve_distance(problem(budget=2.,groups=[(0,1)]),scenes,seconds=10,
+                     warm_start_prices=[invalid])
+    assert r['provided_warm_start_count']==1 and r['verified_warm_start_count']==0
+    assert len(r['warm_start_rejections'])==1
+    assert r['prices'][:2]==pytest.approx([0.,1.],abs=2.e-6)

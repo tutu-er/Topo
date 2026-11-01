@@ -5,7 +5,8 @@ import numpy as np
 import pytest
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from design import contrast_shape
+from design import contrast_shape,warm_quotes
+from research_experiments.wzzt_dr_selection.dr_conic_pricing.model import PriceProblem,evaluate_plan
 
 
 def test_guided_shape_is_energy_neutral_with_two_kwh_prefix_limit():
@@ -49,3 +50,16 @@ def test_constant_sign_energy_neutral_change_can_give_zero_distance_gain():
 @pytest.mark.parametrize('shape',([1,2],[np.nan]*96,[1]*95))
 def test_invalid_guidance_is_rejected(shape):
     with pytest.raises(ValueError):contrast_shape(shape)
+
+
+def test_warm_quotes_keep_same_continuous_domain_and_allow_single_point():
+    problem=PriceProblem(mu0=[0.],background_factors=np.zeros((1,1)),profiles=np.zeros((1,10)),
+        response_factors=np.zeros((10,1)),elasticities=np.ones(10),reduction_hours=np.ones(10),
+        price_upper=np.ones(10),actual_amplitude_upper=np.ones(10),benefit_directions=[[0.]],
+        benefit_offsets=[0.],risk_allocations=[.1],budget=1.,exclusive_groups=[list(range(5)),list(range(5,10))])
+    seeds=warm_quotes(problem)
+    assert len(seeds)==451
+    assert not np.any(seeds[0])
+    assert any(np.count_nonzero(s)==1 for s in seeds)
+    for seed in seeds:
+        assert evaluate_plan(problem,seed)['numerical_feasible']

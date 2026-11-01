@@ -95,12 +95,14 @@ def _bounds(base, coefficient, caps, groups, beta, budget):
     return float(base-min(box_down,ell_down)-pad),float(base+min(box_up,ell_up)+pad)
 
 
-def solve_distance(problem, scenarios, seconds=60, probability=.9):
+def solve_distance(problem, scenarios, seconds=60, probability=.9, warm_start_prices=None):
     """Optimize continuous prices and mutually exclusive module types.
 
     Stage one maximizes the supplied-scenario lower90% paired-gain quantile;
     stage two minimizes original expected payment within1e-6 micro-pu2 of it.
     This is a finite-scenario result, not an actual-probability certificate.
+    Optional warm starts are full original-domain price vectors. They only
+    provide verified incumbents; they do not restrict the continuous domain.
     """
     seconds=float(seconds);probability=float(probability)
     if not np.isfinite((seconds,probability)).all() or seconds<=0 or not 0<probability<=1:
@@ -132,6 +134,40 @@ def solve_distance(problem, scenarios, seconds=60, probability=.9):
     groups=[list(group) for group in problem.exclusive_groups]
     used={j for group in groups for j in group}
     groups.extend([[j] for j in range(n) if j not in used])
+    best_start=dict(prices=zero.copy(),evaluation=evaluate_distance(scenarios,zero,probability),
+                    original_evaluation=zero_check,index=None)
+    provided=0;verified=0;rejections=[]
+    if warm_start_prices is not None:
+        if isinstance(warm_start_prices,np.ndarray) and warm_start_prices.shape==(n,):
+            warm_start_prices=[warm_start_prices]
+        for index,candidate in enumerate(warm_start_prices):
+            provided+=1
+            try:
+                candidate=np.asarray(candidate,float)
+                if candidate.shape!=(n,) or not np.isfinite(candidate).all() or np.any(candidate<0) or np.any(candidate>caps+1.e-12):
+                    raise ValueError('warm quote violates original price vector/caps')
+                candidate=np.minimum(candidate,caps)
+                amplitude=lam*candidate
+                if any(np.count_nonzero(amplitude[list(group)]>0)>1 for group in problem.exclusive_groups):
+                    raise ValueError('warm quote activates multiple original types on one resource')
+                original=_check_original(problem,amplitude)
+                if not original['numerical_feasible']:
+                    raise ValueError('warm quote fails original all-support device/budget checks')
+                evaluation=evaluate_distance(scenarios,candidate,probability)
+                verified+=1
+                current=evaluation['quantile_micro'];incumbent=best_start['evaluation']['quantile_micro']
+                better=current>incumbent+1.e-8
+                cheaper=abs(current-incumbent)<=1.e-8 and original['expected_cost']<best_start['original_evaluation']['expected_cost']
+                if better or cheaper:
+                    best_start=dict(prices=candidate.copy(),evaluation=evaluation,original_evaluation=original,index=index)
+            except Exception as error:
+                rejections.append(dict(index=index,error_type=type(error).__name__,message=str(error)))
+    result.update(provided_warm_start_count=provided,verified_warm_start_count=verified,
+        warm_start_rejections=rejections,warm_start_best_index=best_start['index'],
+        warm_start_best_prices=best_start['prices'].tolist(),
+        warm_start_best_quantile_micro=best_start['evaluation']['quantile_micro'],
+        warm_start_best_expected_cost=best_start['original_evaluation']['expected_cost'],
+        warm_start_scope='verified computational incumbents only; original continuous optimization domain unchanged')
 
     import gurobipy as gp
     from gurobipy import GRB
@@ -140,7 +176,7 @@ def solve_distance(problem, scenarios, seconds=60, probability=.9):
     compilation=dict(constant_coordinates_skipped=0,sign_stable_coordinates=0,
         exact_abs_coordinates=0,duplicate_device_rows=0,zero_device_rows=0,
         robust_device_abs=0)
-    zero_starts=[]
+    zero_starts=[];warm_records=[]
     try:
         for key,value in dict(OutputFlag=0,Threads=1,Seed=0,NonConvex=0,NumericFocus=2,
                 FeasibilityTol=1.e-9,OptimalityTol=1.e-9,BarQCPConvTol=1.e-8,
@@ -174,6 +210,7 @@ def solve_distance(problem, scenarios, seconds=60, probability=.9):
                 absolute=model.addVar(lb=0.,name=f'device_abs_{i}_{k}')
                 model.addConstr(absolute>=factor);model.addConstr(absolute>=-factor)
                 expression+=absolute;zero_starts.append((absolute,0.))
+                warm_records.append((absolute,'abs_linear',coefficient.copy()))
                 compilation['robust_device_abs']+=1
             model.addConstr(expression<=float(rhs),name=f'original_device_{i}')
 
@@ -208,12 +245,15 @@ def solve_distance(problem, scenarios, seconds=60, probability=.9):
                     model.addGenConstrAbs(absolute,residual)
                     expression+=(absolute-abs(float(base)))/normalizer
                     zero_starts.extend([(residual,float(base)),(absolute,abs(float(base)))])
+                    warm_records.extend([(residual,'affine',(float(base),coefficient.copy())),
+                                         (absolute,'abs_affine',(float(base),coefficient.copy()))])
                     compilation['exact_abs_coordinates']+=1
             # Zero price is feasible and its paired gain is identically zero.
             lower=min(lower,0.);upper=max(upper,0.)
             gain=model.addVar(lb=lower,ub=upper,name=f'paired_gain_micro_{s}')
             model.addConstr(gain==expression)
             zero_starts.append((gain,0.))
+            warm_records.append((gain,'gain',s))
             scenario_vars.append(dict(var=gain,lower=lower,upper=upper))
         gamma_upper=sorted((s['upper'] for s in scenario_vars),reverse=True)[required-1]
         gamma=model.addVar(lb=0.,ub=max(0.,gamma_upper),name='quantile_micro')
@@ -222,11 +262,32 @@ def solve_distance(problem, scenarios, seconds=60, probability=.9):
             big_m=max(0.,gamma_upper-record['lower'])+1.e-8
             model.addConstr(record['var']>=gamma-big_m*(1-flags[s]),name=f'quantile_event_{s}')
         model.addConstr(gp.quicksum(flags[s] for s in range(len(scenarios)))>=required)
-        for j in range(n):price[j].Start=0.;activate[j].Start=0.
-        for var,value in zero_starts:var.Start=float(value)
-        gamma.Start=0.
-        for s in range(len(scenarios)):flags[s].Start=1. if s<required else 0.
+        starts=[best_start]
+        if np.any(best_start['prices']!=0):
+            starts.append(dict(prices=zero.copy(),evaluation=evaluate_distance(scenarios,zero,probability),
+                original_evaluation=zero_check,index=None))
+        model.NumStart=len(starts)
+        for start_number,point in enumerate(starts):
+            model.Params.StartNumber=start_number
+            c_start=point['prices'];evaluation=point['evaluation']
+            for j in range(n):
+                price[j].Start=float(c_start[j]);activate[j].Start=1. if c_start[j]>0 else 0.
+            for var,value in zero_starts:var.Start=float(value)
+            for var,kind,data in warm_records:
+                if kind=='abs_linear':value=abs(float(data@c_start))
+                elif kind=='affine':value=float(data[0]+data[1]@c_start)
+                elif kind=='abs_affine':value=abs(float(data[0]+data[1]@c_start))
+                elif kind=='gain':value=float(evaluation['scenario_gain_native'][data]*MICRO)
+                else:raise AssertionError('unknown warm-start variable role')
+                var.Start=value
+            start_gamma=max(0.,min(gamma_upper,evaluation['quantile_micro']-5.e-7))
+            gamma.Start=float(start_gamma)
+            selected=sorted(range(len(scenarios)),key=lambda s:(-evaluation['scenario_gain_native'][s],s))[:required]
+            for s in range(len(scenarios)):flags[s].Start=1. if s in selected else 0.
+        model.Params.StartNumber=0
         result['complete_zero_start_supplied']=True
+        result['complete_verified_nonzero_start_supplied']=bool(np.any(best_start['prices']!=0))
+        result['mip_start_count']=len(starts)
         result['zero_start_variable_count']=2*n+len(zero_starts)+1+len(scenarios)
         model.setObjective(gamma,GRB.MAXIMIZE)
         model.Params.TimeLimit=max(.001,seconds-(time.monotonic()-started))
