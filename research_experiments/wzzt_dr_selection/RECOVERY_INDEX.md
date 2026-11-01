@@ -1,3 +1,11 @@
+## 最新恢复：无支付上限24h最低费用模型结束
+
+- 先读 `dr_day_curve/REPORT.md`、MODEL.md，主配置budget=None，费用只作目标/输出；原1.6批次见CAPPED_PILOT_REPORT及capped_summary，勿混淆两域结论。
+- 私有根wzzt_day_curve_stage：model_pilot_uncapped_v2含5个原条件的冻结协议/源zip/raw/修后/费用与模型评价，ended已完成；audit_uncapped_v2为1108独立复核，uncapped_export_v1为标量和原单位矩阵审核。所有solver结束，不重跑。
+- paper新23/24费.5831下界0；旧可行witness新域24/24费.228748构成更好上界，不冒称新返回值。validation仅86/256与zero相同；不是实际90%已证。b4/b7无货币约束目标数值不可行，b5/peng未决，诊断高费用不作所需预算。
+- 原model_pilot_v1、paper_adapter_retry_v1、combined_evaluation_v1/v2、audit_v1及源码zip独立保留。发布版runner先存raw再适配，旧运行以快照字节为准；原raw丢失限制和7.81e-12kW恢复单重试不覆盖。
+- 发布版28单元过；公开代码/标量/源码hash，u及P/Q/V/AC/完整R/X私有。无上限DTO不能直接交给仍固定1.6的旧物理worker。后续应先锁有效跨日误差/响应模型，非继续增加费用；当前无待续实际试验。
+
 ## 最新恢复：DR距离与时长敏感性图表全部完成
 
 - 先读 `dr_signal_analysis/REPORT.md`、`README.md`，公共 `evidence/signal_analysis_v1`。新增仅图表和固定模型反事实算术，无新增AC、fit、LP/MILP、价格优化或实际观测。旧实际数据独立分母19/20；新240设置行228有效不能当228独立日。

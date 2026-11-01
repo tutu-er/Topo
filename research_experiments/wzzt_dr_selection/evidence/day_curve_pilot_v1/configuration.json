@@ -1,0 +1,91 @@
+{
+  "id": "fixed_24h_no_payment_cap_minimum_fee_margin_v2",
+  "slots": 96,
+  "slot_hours": 0.25,
+  "history_rows": [
+    288,
+    288
+  ],
+  "budget": null,
+  "payment_cap_enforced": false,
+  "fees": "objective and reported output only; physical device limits retained",
+  "planning_samples": 24,
+  "required_samples": 22,
+  "model_holdout_samples": 256,
+  "planning_seconds": 60.0,
+  "cost_seconds": 30.0,
+  "reference_candidate": "refined by historical candidate id, not selected with true labels",
+  "forecast": "3 paired historical training P/Q/Y blocks; Ynew=Yblock+mu_refined(DR); fixed block residual",
+  "reference_sensitivity": "same curves evaluated under coarse response hypothesis, no parameter refits",
+  "target": "Mafter>=.2*max(-Mzero,0)+.0001 micro; 120 percent of baseline shortfall",
+  "probability_scope": "empirical conditional working-law excitation probability only; no topology recovery or field guarantee",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "gurobipy": "13.0.3",
+    "scipy": "1.17.1",
+    "pandas": "3.0.3"
+  },
+  "date": "2026-11-01",
+  "new_AC": 0,
+  "new_fit_calls": 0,
+  "new_measurement_days": 0,
+  "cases": [
+    {
+      "name": "paper15_b2_v0005",
+      "case": "paper15",
+      "planning_seed": 2026111101,
+      "training_evaluation_seed": 2026111102,
+      "validation_evaluation_seed": 2026111103
+    },
+    {
+      "name": "flynn16_b4_v0005",
+      "case": "flynn16",
+      "planning_seed": 2026111201,
+      "training_evaluation_seed": 2026111202,
+      "validation_evaluation_seed": 2026111203
+    },
+    {
+      "name": "flynn16_b5_v0002",
+      "case": "flynn16",
+      "planning_seed": 2026111301,
+      "training_evaluation_seed": 2026111302,
+      "validation_evaluation_seed": 2026111303
+    },
+    {
+      "name": "pengwah18_b5_v0002",
+      "case": "pengwah18",
+      "planning_seed": 2026111401,
+      "training_evaluation_seed": 2026111402,
+      "validation_evaluation_seed": 2026111403
+    },
+    {
+      "name": "flynn16_b7_v0002",
+      "case": "flynn16",
+      "planning_seed": 2026111501,
+      "training_evaluation_seed": 2026111502,
+      "validation_evaluation_seed": 2026111503
+    }
+  ],
+  "response_factors": [
+    [
+      0.15,
+      0.05
+    ],
+    [
+      0.15,
+      -0.05
+    ]
+  ],
+  "elasticities": [
+    0.5,
+    0.5
+  ],
+  "reactive_ratio": 0.35,
+  "economic_objective": "minimum expected fee; minimum conservative budget1.2*expected_fee has same ordering under original factors",
+  "physical_limits": "original1kW modulation and+/-2kWh prefix shift at two historically qualified sites; whole-day availability synthetic",
+  "target_scope": "declared coarse-exit condition; not all unknown topologies or universal final-correctness requirement",
+  "old_capped_scope": "separate5 attempts plus one adapter-only retry; not pooled as independent conditions",
+  "holdout_scope": "256 new factors per policy-role; only3 old residual days per case-role; four policies share draws"
+}
