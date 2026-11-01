@@ -9,6 +9,10 @@ Plan JSON fields: resources, modules, amplitudes, prices, elasticities,
 response_factors.  All resource/module entries are the existing constructor
 DTOs.  ``amplitudes`` are mean kW, a=lambda*price; the actual full-day response
 is a*(1+D*z). Request z is ``factors`` (two prelocked numbers in[-1,1]).
+
+The legacy payment mode retains its 1.6 optimization budget. Explicit
+``frozen_plan_bound`` requests have no optimization payment cap: their finite
+payment_bound is the independently replayed upper cost of the frozen plan.
 """
 from __future__ import annotations
 
@@ -72,6 +76,35 @@ def integer(value,name,minimum=0):
     return value
 
 
+def payment_scope(request,protocol=None):
+    """Keep legacy gates; explicitly bind uncapped execution to a frozen cost."""
+    mode=request.get('payment_mode','legacy_1p6')
+    if mode not in ('legacy_1p6','frozen_plan_bound'):
+        raise ValueError('unknown payment_mode')
+    if mode=='legacy_1p6':
+        if protocol is not None and protocol.get('payment_mode','legacy_1p6')!=mode:
+            raise ValueError('request payment mode differs from protocol')
+        return request
+    if 'optimizer_payment_cap' not in request or request['optimizer_payment_cap'] is not None:
+        raise ValueError('frozen_plan_bound requires explicit optimizer_payment_cap null')
+    bound=request.get('payment_bound')
+    if isinstance(bound,bool) or not isinstance(bound,(int,float)) or not math.isfinite(bound) or bound<0:
+        raise ValueError('finite nonnegative frozen-plan payment_bound required')
+    request['payment_bound']=float(bound)
+    request['incentive_budget']=None
+    if protocol is not None:
+        if protocol.get('payment_mode')!=mode:
+            raise ValueError('request payment mode differs from protocol')
+        if 'optimizer_payment_cap' not in protocol or protocol['optimizer_payment_cap'] is not None:
+            raise ValueError('protocol must explicitly remove optimizer payment cap')
+        expected=protocol.get('payment_bound')
+        if isinstance(expected,bool) or not isinstance(expected,(int,float)) or not math.isfinite(expected) or expected<0:
+            raise ValueError('protocol must bind finite nonnegative frozen-plan payment_bound')
+        if abs(float(expected)-request['payment_bound'])>1e-9:
+            raise ValueError('request payment_bound differs from protocol')
+    return request
+
+
 def contract_scope(request,protocol):
     """Bind only explicit multi-case gates; original defaults stay unchanged.
 
@@ -123,12 +156,15 @@ def load_request(request_path,expected_sha):
     base=float(request.get('base_kw',float('nan')))
     if not math.isfinite(base) or base<=0:raise ValueError('positive base_kw required')
     request['base_kw']=base
-    budget=float(request.get('incentive_budget',request.get('budget',float('nan'))))
-    if budget!=1.6:raise ValueError('one-day hard budget remains1.6')
-    request['incentive_budget']=budget
+    if request.get('payment_mode','legacy_1p6')=='legacy_1p6':
+        budget=float(request.get('incentive_budget',request.get('budget',float('nan'))))
+        if budget!=1.6:raise ValueError('one-day hard budget remains1.6')
+        request['incentive_budget']=budget
+    payment_scope(request)
     protocol_path=reference(request.get('protocol'),parent,'protocol')
     protocol=json.loads(protocol_path.read_text(encoding='utf-8'))
     if protocol.get('status')!='frozen':raise ValueError('protocol must be frozen')
+    payment_scope(request,protocol)
     contract_scope(request,protocol)
     if 'voltage_sigma' in protocol and protocol['voltage_sigma']!=request['voltage_sigma']:
         raise ValueError('protocol noise differs from request')
@@ -180,6 +216,10 @@ def audit_plan(request):
         Battery,DayModule,ResourceDay,evaluate_schedule,
     )
     plan=json.loads(Path(request['plan_path']).read_text(encoding='utf-8'))
+    payment_scope(request)
+    uncapped=request.get('payment_mode','legacy_1p6')=='frozen_plan_bound'
+    if uncapped and ('budget' not in plan or plan['budget'] is not None or plan.get('cap_enforced') is not False):
+        raise ValueError('uncapped execution requires frozen plan budget null and cap_enforced false')
     modules=[DayModule(**m) for m in plan['modules']];n=len(modules)
     mean=np.asarray(plan['amplitudes'],float);prices=np.asarray(plan['prices'],float)
     elasticities=np.asarray(plan['elasticities'],float)
@@ -212,7 +252,14 @@ def audit_plan(request):
         raise ValueError('resource nodes differ from hash-bound declared scope')
     if any(r.node_label not in request['labels'] for r in resources):raise ValueError('resource outside observed terminals')
     hard=float(np.sum(hours*elasticities*(1+np.abs(d).sum(axis=1))*prices**2))
-    if hard>request['incentive_budget']+1e-9:raise ValueError('analytical hard payment exceeds1.6')
+    if uncapped:
+        declared=plan.get('hard_payment_bound')
+        if isinstance(declared,bool) or not isinstance(declared,(int,float)) or not math.isfinite(declared) or abs(hard-float(declared))>1e-9:
+            raise ValueError('frozen plan hard_payment_bound differs from independent replay')
+        if abs(hard-request['payment_bound'])>1e-9:
+            raise ValueError('request payment_bound differs from frozen-plan replay')
+    elif hard>request['incentive_budget']+1e-9:
+        raise ValueError('analytical hard payment exceeds1.6')
     expected_audit=evaluate_schedule(resources,modules,mean.tolist(),rho=None)
     actual_audit=evaluate_schedule(resources,modules,actual.tolist(),rho=None)
     if not expected_audit['resource_feasible'] or not actual_audit['resource_feasible']:
@@ -226,6 +273,10 @@ def audit_plan(request):
         corner_records.append(dict(factors=[z1,z2],maximum_violation=corner['maximum_violation'],
                                    payment=corner['total_incentive_payment']))
     fee=float((hours*prices)@actual);expected=float((hours*prices)@mean)
+    if uncapped:
+        declared=plan.get('expected_payment')
+        if isinstance(declared,bool) or not isinstance(declared,(int,float)) or not math.isfinite(declared) or abs(expected-float(declared))>1e-9:
+            raise ValueError('frozen plan expected_payment differs from independent replay')
     if abs(fee-actual_audit['total_incentive_payment'])>1e-9 or abs(expected-expected_audit['total_incentive_payment'])>1e-9:
         raise AssertionError('independent per-contract/net-resource billing mismatch')
     if fee<0 or fee>hard+1e-9:raise AssertionError('realized fee outside hard payment cap')
@@ -235,7 +286,25 @@ def audit_plan(request):
     payments=dict(actual_payment=fee,known_actual_payment=fee,unknown_payment_events=0,
                   expected_payment=expected,worst_payment=hard,
                   exact_box_worst_payment=max(r['payment'] for r in corner_records),budget_pass=True)
+    if uncapped:
+        payments.update(payment_mode='frozen_plan_bound',payment_bound=request['payment_bound'],
+            payment_bound_pass=True,optimizer_payment_cap=None,payment_cap_enforced=False,budget_pass=None)
     return plan,detail,payments
+
+
+def zero_resource_execution(schedule):
+    """Exact zero per resource; cancellation or weak nonzero does not qualify."""
+    import numpy as np
+    rows=schedule.get('resources')
+    if not isinstance(rows,dict) or not rows:
+        raise ValueError('resource execution records required for zero check')
+    zero=True
+    for row in rows.values():
+        delta=np.asarray(row.get('executed_delta_kw'),float)
+        if delta.shape!=(96,) or not np.isfinite(delta).all():
+            raise ValueError('zero check needs96 finite executed increments per resource')
+        zero=zero and not bool(np.any(delta!=0.))
+    return zero
 
 
 def contained_component_check(natural_p,natural_q,resources,labels,base_kw):
@@ -304,19 +373,28 @@ def run(request,output,receipt):
         base=sim._build_base_trajectory(context,request['profile_index'],request['replicate'])
         p0,q0=base.p_base.to_numpy(),base.q_base.to_numpy()
         private.update(natural_P_pu=p0,natural_Q_pu=q0,root_pu=base.root_true.to_numpy())
-        component=contained_component_check(p0,q0,detail['resources'],request['labels'],metadata['base_kw'])
-        receipt.update(component)
         dp,dq=node_increment_arrays(detail['audit'],request['labels'])
+        zero=zero_resource_execution(detail['audit'])
+        if zero:
+            if np.any(dp!=0.) or np.any(dq!=0.):
+                raise AssertionError('zero resource execution has nonzero node increments')
+            receipt.update(component_check_status='not_required_zero_increment',
+                component_check_skipped=True,contained_component_pass=None)
+        else:
+            component=contained_component_check(p0,q0,detail['resources'],request['labels'],metadata['base_kw'])
+            receipt.update(component,component_check_status='passed',component_check_skipped=False)
         physical_p,physical_q=p0+dp/metadata['base_kw'],q0+dq/metadata['base_kw']
         if physical_p.shape!=(96,len(request['labels'])) or physical_q.shape!=physical_p.shape or not np.isfinite(physical_p).all() or not np.isfinite(physical_q).all():
             raise ValueError('finite96-row original producer/increment arrays required')
         target_positions=[request['labels'].index(r.node_label) for r in detail['resources']]
-        if np.min(physical_p[:,target_positions]) < -1e-10:raise ValueError('DR overdraws whole actual terminal active load')
+        nonnegative=bool(np.min(physical_p[:,target_positions])>=-1e-10)
+        if not zero and not nonnegative:raise ValueError('DR overdraws whole actual terminal active load')
         p_error=float(np.max(np.abs((physical_p-p0)*metadata['base_kw']-dp),initial=0.))
         q_error=float(np.max(np.abs((physical_q-q0)*metadata['base_kw']-dq),initial=0.))
         if max(p_error,q_error)>1e-9:raise AssertionError('resource increment was not added exactly once')
         receipt.update(increment_only_bridge_pass=True,max_p_increment_error_kw=p_error,
-                       max_q_increment_error_kvar=q_error,whole_target_terminal_nonnegative=True,
+                       max_q_increment_error_kvar=q_error,whole_target_terminal_nonnegative=nonnegative,
+                       overdraw_check_status='not_required_zero_increment' if zero else 'passed',
                        profile_seed=int(base.shifted_seed))
         pf=pd.DataFrame(physical_p,index=base.p_base.index,columns=request['labels'])
         qf=pd.DataFrame(physical_q,index=base.q_base.index,columns=request['labels'])
