@@ -33,6 +33,12 @@ D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.full_ablation
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.full_ablation.analyze outputs/full_ablation_20261102
 ```
 
+批次运行期间也可启动一次性后处理等待器；它只等待完成回执，然后评分、绘图并压缩已有记录，不新增优化求解：
+
+```powershell
+D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.full_ablation.finish outputs/full_ablation_20261102
+```
+
 运行器可重入，跳过已有结果和错误回执；不覆盖失败记录。只有后分析打开真实拓扑和测试量测。
 完整8配置支持全部6种模块加入顺序的边际比较与交互分解；这不改变单次算法内RNJ预选、联合末端和最终退出的执行顺序。
 E的候选池也覆盖部分小块结构，因此T/E可能替代，不预设各模块的收益为正。
