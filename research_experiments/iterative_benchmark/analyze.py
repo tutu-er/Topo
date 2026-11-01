@@ -197,7 +197,8 @@ def analyze(output):
                     validation_improved_F1_worse=int(((selected.delta_validation< -1e-12)&(d< -1e-10)).sum())))
     tables=dict(per_model=frame,summary=summary,cases=aggregate(frame,['panel','case','method','view']),
         conditions=aggregate(frame,['panel','N','voltage_sigma','method','view']),per_input_events=events,
-        events=event_summary,paired_inputs=pairs,paired=paired_summary,mechanism_benefits=pd.DataFrame(mechanism),mechanism_inputs=detail)
+        events=event_summary,paired_inputs=pairs,paired=paired_summary,mechanism_benefits=pd.DataFrame(mechanism),mechanism_inputs=detail,
+        selected_origins=frame.groupby(['panel','method','view','selected_source'],dropna=False).size().reset_index(name='inputs'))
     for name,table in tables.items():table.to_csv(dest/(name+'.csv'),index=False)
     write(dest/'solver_records.json',solver)
     solver_frame=pd.DataFrame([dict(job=r['job'],panel=r['panel'],case=r['case'],method=r['method'],branch=r['branch'],stage=r['stage'],
@@ -218,7 +219,7 @@ def analyze(output):
     for file in dest.iterdir():
         if file.is_file():shutil.copy2(file,delivery/file.name)
     final=summary[(summary.view=='final')];main_pairs=paired_summary[paired_summary.comparison.isin(['matched_before_after','budget_effect','zero_path_comparison','release_increment','mask_increment','all_recovery_increment'])]
-    text='# 同120输入：迭代零块释放与一次停滞恢复\n\n240/240新求解完成；原300秒结果仅作预算敏感性参照。每方法/输入总账上限4小时，共享RNJ前端成本计入；新版分支共享预算。所有MILP相对gap统一0.0001，单线程；参数未重调。\n\n'
+    text='# 同120输入：迭代零块释放与一次停滞恢复\n\n240/240新求解完成；原300秒结果仅作预算及精度放宽的参照。每方法/输入总账上限4小时，共享RNJ前端成本计入；新版分支共享预算。所有MILP相对gap统一0.0001，单线程；参数未重调。算法内计时含数据准备、求解和验证，不含Python启动/导入；整批并行墙钟另见batch_timing.json。\n\n'
     text+='## 最终结果\n\n'+markdown(final[['scope','method','inputs','F1','exact','exact_rate','total_seconds','fresh_seconds','median_seconds','max_seconds']])+'\n\n'
     text+='## 配对变化\n\n'+markdown(main_pairs)+'\n\n## 机制触发\n\n'+markdown(event_summary)+'\n\n'
     text+='zero_path_comparison比较旧算法与新版已计算的baseline延续，包含零块处理及其后续路径变化；新版baseline退出时间由分支共享预算分配，因此不是独立满预算零块消融。release_increment比较零块路径与加入非屏蔽恢复分支；mask_increment再比较加入屏蔽分支，均保留相同RNJ验证保护。触发、最终采用、F1变好和新增完整恢复分别报告；验证改善不等于拓扑改善。\n\n'

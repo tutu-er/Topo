@@ -27,7 +27,7 @@ def deliver(output):
 
 入口协议protocol.json固定120个输入、两份源码、数值精度适配、4小时共同总预算及前端成本。PLAN.md说明控制变量和归因范围，RESULTS.md为总表，per_model/paired_inputs/mechanism_inputs为逐输入证据；verification.json是独立LP/哈希检查回执，solver.csv保留子问题状态与界。result_hashes.json对应全部240个最终训练记录。
 
-records.zip包含sources/before、sources/after两份真正执行的源码，当前分析/交付源码current_source、共同前端与旧300秒记录、240个新结果、checkpoint、进度日志及逐输入独立LP核验。它不包含观测NPZ，原始数据路径及SHA256由catalog/protocol引用。
+records.zip包含sources/before、sources/after两份真正执行的源码，当前分析/交付源码current_source、共同前端与旧300秒记录、240个新结果、checkpoint、进度日志及逐输入独立LP核验。完整原始求解器记录位于归档的analysis/solver_records.json；独立CSV保留简明状态与界，避免另行提交重复的10MB未压缩JSON。归档不包含观测NPZ，原始数据路径及SHA256由catalog/protocol引用。
 
 恢复时先核验manifest.json，再核验协议源码哈希及240个结果哈希。run命令会跳过已有result/error；恢复前须检查state.json中的worker PID，避免与尚在运行的进程重复计算。保留失败记录及原分母，处理错误时另存新协议或记录必要的驱动适配，不覆盖历史源码/结果。
 
@@ -49,7 +49,7 @@ records.zip包含sources/before、sources/after两份真正执行的源码，当
         for f in Path(__file__).parent.glob('*.py'):z.write(f,'current_source/'+f.relative_to(ROOT).as_posix())
         f=ROOT/'research_experiments/tests/test_iterative_benchmark.py';z.write(f,'current_source/'+f.relative_to(ROOT).as_posix())
         for f in delivery.iterdir():
-            if f.is_file() and f.suffix in ('.md','.json','.csv') and f.name not in ('manifest.json','delivery_audit.json'):
+            if f.is_file() and f.suffix in ('.md','.json','.csv') and f.name not in ('manifest.json','delivery_audit.json','solver_records.json'):
                 z.write(f,'reports/'+f.name)
     with ZipFile(archive) as z:
         assert z.testzip() is None and len(z.namelist())==len(set(z.namelist()))
@@ -57,8 +57,8 @@ records.zip包含sources/before、sources/after两份真正执行的源码，当
             for name,digest in p['source_hashes'][method].items():assert hashlib.sha256(z.read('sources/'+method+'/'+name)).hexdigest()==digest
         for key,digest in result_hashes.items():assert hashlib.sha256(z.read('jobs/'+key+'/result.json')).hexdigest()==digest
     write(delivery/'delivery_audit.json',dict(passed=True,returned=240,archive_sha256=sha(archive),
-        independent_LPs=audit['independent_LPs'],historical_files_preserved=len(manifest['files'])))
-    write(delivery/'manifest.json',dict(files={f.name:dict(bytes=f.stat().st_size,sha256=sha(f)) for f in sorted(delivery.iterdir()) if f.is_file() and f.name!='manifest.json'}))
+        independent_LPs=audit['independent_LPs'],historical_files_preserved=len(manifest['files']),raw_solver_records='records.zip:analysis/solver_records.json'))
+    write(delivery/'manifest.json',dict(files={f.name:dict(bytes=f.stat().st_size,sha256=sha(f)) for f in sorted(delivery.iterdir()) if f.is_file() and f.name not in ('manifest.json','solver_records.json')}))
     print('Archived 240 matched fresh results, executed sources and independent verification',flush=True)
 
 
