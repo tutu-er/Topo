@@ -37,6 +37,71 @@ def validation(point, data):
     return float(np.mean(np.abs(p@r.T+q@x.T-y)))
 
 
+def dual_face_check(lp, point, valid):
+    """Numerically check exact-optimum predictive uniqueness via complementarity.
+
+    With an exact optimal LP dual, every primal optimum satisfies its strict
+    complementary equalities B*theta=b. Thus Phi_val*ker(B)=0 is sufficient for
+    validation-prediction uniqueness. This is NOT an epsilon-face bound, input
+    rank heuristic, or statistical confidence statement.
+    """
+    gp = lp.gp
+    k, size = len(lp.pool), lp.y.size
+    if lp.model.Status != gp.GRB.OPTIMAL:
+        raise ValueError("an untouched optimal training model is required")
+    primal = np.asarray(lp.weights.X)
+    upper = np.asarray(lp.weights.UB)
+    reduced = np.asarray(lp.weights.RC)
+    trc = np.asarray(lp.t.RC)
+    pi = np.asarray(lp.model.getAttr(gp.GRB.Attr.Pi, lp.model.getConstrs()))
+    assert len(pi) == 2*size
+    dual_violation = float(lp.model.DualVio)
+    tolerance = 10*max(dual_violation, float(lp.model.Params.OptimalityTol))
+    # Positive reduced cost of t pins t=0; both row multipliers strict also
+    # force Atheta-t=y=Atheta+t, independently of the particular primal point.
+    zero = (trc > tolerance) | ((pi[:size] < -tolerance) & (pi[size:] > tolerance))
+    rows = [lp.features[zero]]
+    rhs = [lp.y.ravel()[zero]]
+    fixed = []
+    for j in range(2*k):
+        value = None
+        if upper[j] == 0 or reduced[j] > tolerance:
+            value = 0.
+        elif reduced[j] < -tolerance:
+            value = float(upper[j])
+        if value is not None:
+            row = np.zeros(2*k); row[j] = 1.
+            rows.append(row[None,:]); rhs.append(np.array([value])); fixed.append(j)
+    B, b = np.vstack(rows), np.concatenate(rhs)
+    norms = np.linalg.norm(B, axis=1)
+    if np.any(norms == 0):
+        keep = norms > 0; B,b,norms = B[keep],b[keep],norms[keep]
+    scaled = B/norms[:,None]
+    _, singular, vt = np.linalg.svd(scaled, full_matrices=True)
+    rank_tol = max(scaled.shape)*np.finfo(float).eps*(singular[0] if len(singular) else 1.)
+    rank = int(np.count_nonzero(singular > rank_tol))
+    null = vt[rank:].T
+    av = features(valid[0], valid[1], lp.pool)
+    projection = float(np.linalg.norm(av@null))
+    member_error = float(np.max(np.abs(B@primal-b), initial=0.))
+    predictive = projection <= 1e-10*max(1., float(np.linalg.norm(av)))
+    w = pi[:size]+pi[size:]
+    dual_objective = float(lp.y.ravel()@w-upper@np.maximum(lp.features.T@w,0.))
+    primal_objective = float(point['full_fit']['objective'])
+    audited = member_error <= 1e-7 and abs(primal_objective-dual_objective) <= 1e-8
+    return dict(scope="numerical exact-optimum complementary face; not epsilon face or statistical coverage",
+        audited=audited, dual_violation=dual_violation, dual_strict_tolerance=tolerance,
+        primal_dual_objective_gap=primal_objective-dual_objective,
+        complementary_equality_rows=len(B), parameter_count=2*k, numerical_rank=rank,
+        minimum_nonzero_singular_value=float(singular[rank-1]) if rank else None,
+        maximum_singular_value=float(singular[0]) if len(singular) else None,
+        returned_point_equality_error=member_error,
+        validation_nullspace_projection_norm=projection,
+        parameter_unique_numerically=bool(audited and rank==2*k),
+        validation_prediction_unique_numerically=bool(audited and predictive),
+        fixed_coefficients=len(fixed))
+
+
 def validation_range(lp, family, point, valid, *, face_epsilon=1e-8, seconds=8.):
     """Min/max validation L1 over ALL weights in the training optimal face.
 
@@ -133,16 +198,18 @@ def validation_range(lp, family, point, valid, *, face_epsilon=1e-8, seconds=8.)
     return out
 
 
-def refit_pair(training, valid, coarse, fine, *, ranges=False, face_epsilon=1e-8, face_seconds=8.):
+def refit_pair(training, valid, coarse, fine, *, ranges=False, face_epsilon=1e-8, face_seconds=8., dual_face=False):
     """Refit every R/X coefficient on full training only; evaluate validation."""
     pval = arrays(valid)
     pool = canonical([*coarse, *fine])
     lp = PoolLP(training, pool, "raw", bound=2., lp_method=2)
-    points, faces = {}, {}
+    points, faces, dual_checks = {}, {}, {}
     try:
         for key, family in (("coarse", coarse), ("fine", fine)):
             point = lp.fit(family)
             points[key] = dict(point, validation_mae=validation(point, pval))
+            if dual_face:
+                dual_checks[key] = dual_face_check(lp, point, pval)
             if ranges:
                 faces[key] = validation_range(lp, family, point, pval,
                     face_epsilon=face_epsilon, seconds=face_seconds)
@@ -156,6 +223,7 @@ def refit_pair(training, valid, coarse, fine, *, ranges=False, face_epsilon=1e-8
             coarse_supports=points["coarse"]["supports"], fine_supports=points["fine"]["supports"],
             fine_weights=dict(r=points["fine"]["r"], x=points["fine"]["x"]),
             training_LP_solves=lp.solves, optimal_face_ranges=faces,
+            exact_optimum_dual_face_checks=dual_checks,
             safe_validation_exit_margin=None, optimistic_validation_exit_margin=None)
         if ranges:
             lo0, up0 = faces["coarse"]["lower"], faces["coarse"]["upper"]

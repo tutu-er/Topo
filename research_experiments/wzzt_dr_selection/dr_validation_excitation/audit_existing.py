@@ -50,7 +50,7 @@ def family(point):
     return point.get("full_fit", {}).get("supports", point.get("native_family", point["supports"]))
 
 
-def run(source, output):
+def run(source, output, *, dual_face=False):
     from research_experiments.wzzt_dr_selection.dr_pool_v2.observations import normalize
     from research_experiments.wzzt_dr_selection.dr_pool_v2.adapter import source_hashes
     from .profile_margin import refit_pair
@@ -68,6 +68,7 @@ def run(source, output):
         policies=["zero", "rotation", "socp", "misocp"], paths=[1100,1101], expected_records=8,
         range_probes=[dict(policy="zero",path=1100),dict(policy="socp",path=1100)],
         face_epsilon=1e-8, face_seconds_per_min_or_max=8.,
+        dual_face_check=dual_face,
         unchanged_validation_band=.03, unchanged_weight_bounds=[0.,2.], unchanged_prune_tolerance=1e-9,
         new_AC=0,new_future=0,new_RNJ_W_search=0,
         scope="mechanism reanalysis of previously seen observations, not independent validation of a new pricing optimizer")
@@ -93,9 +94,10 @@ def run(source, output):
             train, _, _ = normalize(history["training"]+packet["training"], "training")
             valid, _, _ = normalize(history["validation"]+packet["validation"], "validation")
             assert len(train[0]) == len(valid[0]) == 480
-            probes = (source_row["path"] == 1100 and source_row["policy"] in ("zero", "socp"))
+            probes = not dual_face and (source_row["path"] == 1100 and source_row["policy"] in ("zero", "socp"))
             fitted = refit_pair(train, valid, coarse, fine, ranges=probes,
-                face_epsilon=protocol["face_epsilon"], face_seconds=protocol["face_seconds_per_min_or_max"])
+                face_epsilon=protocol["face_epsilon"], face_seconds=protocol["face_seconds_per_min_or_max"],
+                dual_face=dual_face)
             actual = read(bound(source_row["result"]))
             def has(point):
                 return target in {tuple(s) for s in point["supports"]}
@@ -143,10 +145,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source",type=Path,required=True)
     parser.add_argument("--output",type=Path,required=True)
+    parser.add_argument("--dual-face",action="store_true")
     args=parser.parse_args()
     for path in (REPO,REPO/"rnj_wzzt_core"):
         if str(path) not in sys.path:sys.path.insert(0,str(path))
-    run(args.source,args.output)
+    run(args.source,args.output,dual_face=args.dual_face)
 
 
 if __name__=="__main__":main()

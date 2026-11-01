@@ -1,3 +1,13 @@
+## 最新恢复：全族重调权后的3%排除审查已结束
+
+- 先读 `dr_validation_excitation/{MODEL,REPORT,README}.md`、公开 `evidence/validation_excitation_v1`。没有新全局连续价格优化器或独立新价格实际效果，原3%/.16/接受/完整历史/预算/零弱权未改。
+- 私有 `C:\Users\23761\.codex\visualizations\2026\10\25\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\wzzt_validation_margin_v1`：`run_v1`（16训LP＋8面探针）、`run_v2_dual`（16训LP）、`mean_forecast_gate_v1`（2训LP）、`noise_scenario_gate_v1`（80训LP，10场景×4价）均已有summary。前两阶段另有ended；后两summary已complete。全部结束，不重跑。
+- 原实际源仍为 `wzzt_conic_effects_v1/run_v1/main` 的8份观察，不是8新实际事件。新预测场景不读实际未来/真拓扑。两路径全族粗/细验证排除m仍负，接受/收缩裕量全正；当前价格未实现纠错。面探针8/8墙限保留，不用其宽松界宣称不确定性；精确对偶面16数值核验通过只覆盖声明域。
+- 均值未来Y免费m=+8.374e−6，与实际免费−8.253/−9.331e−6相反。保留完整残差后的有限价格门控四者均0/10；代码使用返回最优点必要筛查，若有正点仍须最优面核验。没有新可行报价，不启动新物理或完整辨识。
+- `wzzt_validation_margin_stage`保存4单元XML、MODEL/REPORT、导出审计脚本与public_evidence。独立261检查全过，0额外solver；原私有参数只用于重放不导出。四阶段`source_snapshot_recovered.zip/source_recovery.json`精确匹配协议5/5、6/6、46/46、46/46；来源当前未变字节或b0d713ca，恢复时点为事后。可据协议hash恢复而不换hash重跑。
+- 下一实质工作是同病例/原资源域内对新验证排除条件做有界连续价格搜索，包含theta(c)重调权项，候选价逐一原LP复算。仅找到可行响应且通过原门槛时再冻独立实际核算；未找到就保留未找到，不改3%或用固定参数梯度替代最终条件。当前4报价失败不代表整个DR/连续价格域无效。
+
+
 ## 最新恢复：连续DR实际效果批已全部结束，无重跑项目
 
 - 主报告 `dr_conic_pricing/effect_test/ACTUAL_TEST_REPORT.md`，事前 `PLAN.md`；公开 `evidence/conic_effects_v1/{summary,independent_audit,manifest}.json`。源码首阶段5838911f，原SOCP/MISOCP42c03737；最终记录见后续阶段提交。

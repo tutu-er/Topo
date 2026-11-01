@@ -36,3 +36,22 @@ def test_point_fit_uses_training_only():
     b=refit_pair(train,obs([[.1,0],[.2,0]],[[.09,.01],[.18,.02]]),[(0,),(1,)],[(0,),(1,),(0,1)])
     assert a['fine_weights']==b['fine_weights']
     assert a['fine_training_loss']==b['fine_training_loss']
+
+
+def test_dual_face_distinguishes_parameter_from_prediction_uniqueness():
+    train=obs([[.1,.1],[.2,.2]],[[.1,.1],[.2,.2]])
+    valid=obs([[.1,0],[.2,0]],[[.06,.04],[.12,.08]])
+    r=refit_pair(train,valid,[(0,),(1,)],[(0,),(1,),(0,1)],dual_face=True)
+    coarse,fine=r['exact_optimum_dual_face_checks']['coarse'],r['exact_optimum_dual_face_checks']['fine']
+    assert coarse['audited'] and fine['audited']
+    assert not coarse['parameter_unique_numerically']  # Q=0 leaves all X weights free
+    assert coarse['validation_prediction_unique_numerically']
+    assert not fine['validation_prediction_unique_numerically']
+
+
+def test_full_column_equalities_identify_validation_predictions():
+    train=obs([[.1,0],[0,.1],[.2,.1],[.1,.2]],[[.05,.02],[.02,.05],[.12,.09],[.09,.12]])
+    valid=obs([[.1,0],[.2,0]],[[.05,.02],[.10,.04]])
+    r=refit_pair(train,valid,[(0,),(1,)],[(0,),(1,),(0,1)],dual_face=True)
+    f=r['exact_optimum_dual_face_checks']['fine']
+    assert f['audited'] and f['validation_prediction_unique_numerically']
