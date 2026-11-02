@@ -1,3 +1,12 @@
+## 最新恢复：条件连续DR的AC批已结束，2026-11-02
+
+- dr_conditional_ac/{REPORT,README}.md与evidence/conditional_ac_v1为最新入口；核心代码2415e10a。12新背景×5策略60AC日全部完成，四噪声共240选模，不重跑、不补seed。
+- 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_conditional_ac_stage，run_v1/{protocol,price_freeze,source_snapshot,observations_frozen,predictions_frozen,scored_private,summary,ended}齐。每个actual/dayXX_policy含receipt和原始result.pkl，scores保存原完整weighted_score。协议SHA4758419f45fe60596d174406fe345ee27c34e7662377a81d38663691324009f6。
+- source_snapshot是物理执行前冻结闭包；post_analysis/artifacts/audit属完成后的只读汇总，不要据此更新旧协议hash。src执行版本保持原样；公开源和配置足以定位，私有P/Q/V与价格/随机数组不上传。
+- 高价continuous/rotation费用81.0211、低价47.20046来自旧条件积分price_freeze，未重新优化。主结果both中2/10/7/6/5恢复（zero/连续高/轮换高/连续低/轮换低，各12），有实际AC选模收益但95%未证；完整历史和所有R/X保持冻结，无新W搜索。
+- audit_summary核验240次直接评分/噪声/源hash/费用；load_audit55、post_analysis1271检查；repo/pure测试各同6项，不合计为12独立测试。图已渲染核看。
+- 当前没有未完数字批。后续需要新的明确协议及信息时序，先改进规划背景/误差参考再冻结独立验证；不能将当前12日当未看测试、不能改3%或删资源越界来维持收益。
+
 ## 最新恢复：条件积分DR两批均结束，2026-11-02
 
 - 先读dr_conditional_gaussian/REPORT.md、MODEL.md；公开evidence/conditional_gaussian_v1含两批protocol、汇总、执行源zip、审计与效果图。实现0721a1ef。

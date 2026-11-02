@@ -1,0 +1,727 @@
+{
+  "status": "passed",
+  "created_utc": "2026-11-02T01:51:01.633745+00:00",
+  "environment": {
+    "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:05:56) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.4.4",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "definitions": {
+    "load": "Historical observed net-demand P only, original per-unit values multiplied by 200 kW; includes original P measurement noise. Signed terminal power is preserved, including local negative injections. Positive and negative aggregates are reported separately; gross behind-meter demand is unavailable.",
+    "time": "96 equal quarter-hour slots per day; historical day labels are synthetic independent replicate ordering.",
+    "control_order": [
+      103,
+      101
+    ],
+    "u": "Frozen planned mean active response in kW; positive increases load; no response draws or clipping used.",
+    "absolute_energy": "0.25*sum(abs(u)); includes increases and decreases, not net additional consumption.",
+    "fee": "0.25*sum(u**2/0.5), uncalibrated synthetic contract units, not established currency.",
+    "elasticity": "0.5 kW per reward-price unit, matching frozen contract.",
+    "ratios": "Dimensionless fractions, not percentages. Training is planning-safe historical denominator. Validation/all_history are descriptive existing-history denominators.",
+    "aligned": "The same frozen mean day is aligned to each old observed day; the maximum ratio is descriptive, not a future delivery guarantee.",
+    "exclusions": "No new future, forecast packet member, physical truth, topology, model fitting, AC solve, or stochastic evaluation is accessed."
+  },
+  "historical_case": "paper_style_terminal_lv_15",
+  "base_kw": 200.0,
+  "denominators": {
+    "training": {
+      "day_count": 3,
+      "row_count": 288,
+      "system_daily_kwh": 1928.3453988973342,
+      "terminal_positive_power_daily_kwh": 1928.3455985423363,
+      "terminal_negative_power_magnitude_daily_kwh": 0.00019964500203894882,
+      "negative_terminal_observation_count": 1,
+      "minimum_terminal_observed_kw": -0.002395740024467386,
+      "controlled_pair_daily_kwh": 257.02602740595114,
+      "controlled_node_daily_kwh": {
+        "103": 115.52184576636881,
+        "101": 141.50418163958233
+      },
+      "system_mean_kw": 80.3477249540556,
+      "controlled_pair_mean_kw": 10.7094178085813,
+      "system_peak_kw": 131.10800730396707,
+      "controlled_pair_peak_kw": 17.132633287546177,
+      "controlled_node_mean_kw": {
+        "103": 4.813410240265368,
+        "101": 5.89600756831593
+      },
+      "controlled_node_peak_kw": {
+        "103": 7.3040981513042045,
+        "101": 9.857720636462371
+      }
+    },
+    "validation": {
+      "day_count": 3,
+      "row_count": 288,
+      "system_daily_kwh": 1917.673501748295,
+      "terminal_positive_power_daily_kwh": 1918.1716064364903,
+      "terminal_negative_power_magnitude_daily_kwh": 0.49810468819542075,
+      "negative_terminal_observation_count": 28,
+      "minimum_terminal_observed_kw": -0.7478842175424066,
+      "controlled_pair_daily_kwh": 256.48497932290144,
+      "controlled_node_daily_kwh": {
+        "103": 114.55239296918568,
+        "101": 141.93258635371578
+      },
+      "system_mean_kw": 79.90306257284561,
+      "controlled_pair_mean_kw": 10.686874138454225,
+      "system_peak_kw": 131.4423256532649,
+      "controlled_pair_peak_kw": 16.981753485658682,
+      "controlled_node_mean_kw": {
+        "103": 4.77301637371607,
+        "101": 5.913857764738157
+      },
+      "controlled_node_peak_kw": {
+        "103": 7.210463156989372,
+        "101": 10.035074414556856
+      }
+    },
+    "all_history": {
+      "day_count": 6,
+      "row_count": 576,
+      "system_daily_kwh": 1923.0094503228147,
+      "terminal_positive_power_daily_kwh": 1923.2586024894135,
+      "terminal_negative_power_magnitude_daily_kwh": 0.24915216659872988,
+      "negative_terminal_observation_count": 29,
+      "minimum_terminal_observed_kw": -0.7478842175424066,
+      "controlled_pair_daily_kwh": 256.7555033644263,
+      "controlled_node_daily_kwh": {
+        "103": 115.03711936777727,
+        "101": 141.71838399664907
+      },
+      "system_mean_kw": 80.1253937634506,
+      "controlled_pair_mean_kw": 10.69814597351776,
+      "system_peak_kw": 131.4423256532649,
+      "controlled_pair_peak_kw": 17.132633287546177,
+      "controlled_node_mean_kw": {
+        "103": 4.793213306990719,
+        "101": 5.904932666527044
+      },
+      "controlled_node_peak_kw": {
+        "103": 7.3040981513042045,
+        "101": 10.035074414556856
+      }
+    }
+  },
+  "policies": [
+    {
+      "batch": "run_v1",
+      "policy": "continuous",
+      "fee_contract_units": 81.02112917030036,
+      "increase_kwh": 22.93870461676351,
+      "decrease_magnitude_kwh": 19.311539168281975,
+      "absolute_kwh": 42.250243785045484,
+      "net_kwh": 3.6271654484815343,
+      "sum_absolute_peak_kw": 2.0,
+      "absolute_net_peak_kw": 2.0,
+      "max_node_absolute_kw": 1.0,
+      "controlled_node_absolute_kwh": {
+        "103": 23.64947981382758,
+        "101": 18.6007639712179
+      },
+      "controlled_node_net_kwh": {
+        "103": 3.9707164091526095,
+        "101": -0.34355096067107527
+      },
+      "mean_price_all_resource_slots": 1.7604268243768952,
+      "peak_price": 2.0,
+      "energy_weighted_price": 1.9176487970698495,
+      "ratios": {
+        "training": {
+          "absolute_energy_over_system_daily_energy": 0.021910101690913363,
+          "net_energy_over_system_daily_energy": 0.0018809729058682219,
+          "absolute_energy_over_pair_daily_energy": 0.16438118820672878,
+          "net_energy_over_pair_daily_energy": 0.014112055051735012,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.20471868032351428,
+            "101": 0.13145027769281692
+          },
+          "absolute_peak_over_system_mean_kw": 0.024891806222810158,
+          "absolute_peak_over_pair_mean_kw": 0.1867515149513944,
+          "max_aligned_absolute_over_system_kw": 0.034474536142712245,
+          "max_aligned_absolute_over_pair_kw": 0.2841393577699584,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.5054006679299117,
+            "101": 0.21441421147153347
+          }
+        },
+        "validation": {
+          "absolute_energy_over_system_daily_energy": 0.02203203191081641,
+          "net_energy_over_system_daily_energy": 0.0018914405633569731,
+          "absolute_energy_over_pair_daily_energy": 0.16472794584923664,
+          "net_energy_over_pair_daily_energy": 0.014141824047774428,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.2064512071798381,
+            "101": 0.13105351243908292
+          },
+          "absolute_peak_over_system_mean_kw": 0.02503032969702069,
+          "absolute_peak_over_pair_mean_kw": 0.18714546218931,
+          "max_aligned_absolute_over_system_kw": 0.03208527635549012,
+          "max_aligned_absolute_over_pair_kw": 0.2878957460775917,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.4584961121233911,
+            "101": 0.21713686650715627
+          }
+        },
+        "all_history": {
+          "absolute_energy_over_system_daily_energy": 0.021970897635449974,
+          "net_energy_over_system_daily_energy": 0.001886192211833719,
+          "absolute_energy_over_pair_daily_energy": 0.16455438435170575,
+          "net_energy_over_pair_daily_energy": 0.014126923867074084,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.20558129361897054,
+            "101": 0.13125159521758106
+          },
+          "absolute_peak_over_system_mean_kw": 0.024960875773097354,
+          "absolute_peak_over_pair_mean_kw": 0.18694828103400432,
+          "max_aligned_absolute_over_system_kw": 0.034474536142712245,
+          "max_aligned_absolute_over_pair_kw": 0.2878957460775917,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.5054006679299117,
+            "101": 0.21713686650715627
+          }
+        }
+      }
+    },
+    {
+      "batch": "run_v1",
+      "policy": "rotation",
+      "fee_contract_units": 81.02112917030036,
+      "increase_kwh": 22.048282813448356,
+      "decrease_magnitude_kwh": 22.048282813448356,
+      "absolute_kwh": 44.09656562689671,
+      "net_kwh": 0.0,
+      "sum_absolute_peak_kw": 1.8373569011206963,
+      "absolute_net_peak_kw": 0.0,
+      "max_node_absolute_kw": 0.9186784505603481,
+      "controlled_node_absolute_kwh": {
+        "103": 22.048282813448356,
+        "101": 22.048282813448356
+      },
+      "controlled_node_net_kwh": {
+        "103": 4.440892098500626e-16,
+        "101": -4.440892098500626e-16
+      },
+      "mean_price_all_resource_slots": 1.8373569011206963,
+      "peak_price": 1.8373569011206963,
+      "energy_weighted_price": 1.8373569011206963,
+      "ratios": {
+        "training": {
+          "absolute_energy_over_system_daily_energy": 0.02286756597241967,
+          "net_energy_over_system_daily_energy": 0.0,
+          "absolute_energy_over_pair_daily_energy": 0.17156459239534474,
+          "net_energy_over_pair_daily_energy": 0.0,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.19085812442816025,
+            "101": 0.15581364845885862
+          },
+          "absolute_peak_over_system_mean_kw": 0.02286756597241967,
+          "absolute_peak_over_pair_mean_kw": 0.1715645923953447,
+          "max_aligned_absolute_over_system_kw": 0.03167101344737361,
+          "max_aligned_absolute_over_pair_kw": 0.26103270507986776,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.4643015007868438,
+            "101": 0.1969785469931724
+          }
+        },
+        "validation": {
+          "absolute_energy_over_system_daily_energy": 0.022994824503073635,
+          "net_energy_over_system_daily_energy": 0.0,
+          "absolute_energy_over_pair_daily_energy": 0.1719265032334755,
+          "net_energy_over_pair_daily_energy": 0.0,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.19247334989657783,
+            "101": 0.1553433455971905
+          },
+          "absolute_peak_over_system_mean_kw": 0.022994824503073635,
+          "absolute_peak_over_pair_mean_kw": 0.17192650323347552,
+          "max_aligned_absolute_over_system_kw": 0.029476051968062234,
+          "max_aligned_absolute_over_pair_kw": 0.2644836180642077,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.4212104985744981,
+            "101": 0.1994821459930871
+          }
+        },
+        "all_history": {
+          "absolute_energy_over_system_daily_energy": 0.022931018679858407,
+          "net_energy_over_system_daily_energy": 0.0,
+          "absolute_energy_over_pair_daily_energy": 0.17174535715523956,
+          "net_energy_over_pair_daily_energy": 0.0,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.1916623341632826,
+            "101": 0.15557814160490066
+          },
+          "absolute_peak_over_system_mean_kw": 0.02293101867985841,
+          "absolute_peak_over_pair_mean_kw": 0.1717453571552396,
+          "max_aligned_absolute_over_system_kw": 0.03167101344737361,
+          "max_aligned_absolute_over_pair_kw": 0.2644836180642077,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.4643015007868438,
+            "101": 0.1994821459930871
+          }
+        }
+      }
+    },
+    {
+      "batch": "delivery_v1",
+      "policy": "continuous",
+      "fee_contract_units": 47.200463207672016,
+      "increase_kwh": 17.508255413586674,
+      "decrease_magnitude_kwh": 14.73977566896579,
+      "absolute_kwh": 32.24803108255247,
+      "net_kwh": 2.7684797446208855,
+      "sum_absolute_peak_kw": 1.5265252075997104,
+      "absolute_net_peak_kw": 1.5265252075997104,
+      "max_node_absolute_kw": 0.7632626037998552,
+      "controlled_node_absolute_kwh": {
+        "103": 18.050763541214156,
+        "101": 14.197267541338313
+      },
+      "controlled_node_net_kwh": {
+        "103": 3.030699345400632,
+        "101": -0.2622196007797465
+      },
+      "mean_price_all_resource_slots": 1.3436679617730196,
+      "peak_price": 1.5265252075997104,
+      "energy_weighted_price": 1.4636696140251932,
+      "ratios": {
+        "training": {
+          "absolute_energy_over_system_daily_energy": 0.016723161266126146,
+          "net_energy_over_system_daily_energy": 0.001435676277809959,
+          "absolute_energy_over_pair_daily_energy": 0.1254660137263819,
+          "net_energy_over_pair_daily_energy": 0.010771203883754165,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.15625411299019573,
+            "101": 0.10033108122203348
+          },
+          "absolute_peak_over_system_mean_kw": 0.01899898483090352,
+          "absolute_peak_over_pair_mean_kw": 0.14254044756536888,
+          "max_aligned_absolute_over_system_kw": 0.026313124221078767,
+          "max_aligned_absolute_over_pair_kw": 0.2168729460535171,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.3857534297663704,
+            "101": 0.16365434933945544
+          }
+        },
+        "validation": {
+          "absolute_energy_over_system_daily_energy": 0.016816226043251236,
+          "net_energy_over_system_daily_energy": 0.0014436658493205082,
+          "absolute_energy_over_pair_daily_energy": 0.12573068086748992,
+          "net_energy_over_pair_daily_energy": 0.010793925445183717,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.1575764859497066,
+            "101": 0.10002824514137117
+          },
+          "absolute_peak_over_system_mean_kw": 0.019104714618516854,
+          "absolute_peak_over_pair_mean_kw": 0.1428411327599401,
+          "max_aligned_absolute_over_system_kw": 0.024489491574729315,
+          "max_aligned_absolute_over_pair_kw": 0.21974005677408462,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.34995293637140984,
+            "101": 0.16573245011119367
+          }
+        },
+        "all_history": {
+          "absolute_energy_over_system_daily_energy": 0.01676956453705363,
+          "net_energy_over_system_daily_energy": 0.0014396599788712126,
+          "absolute_energy_over_pair_daily_energy": 0.1255982078669651,
+          "net_energy_over_pair_daily_energy": 0.010782552694465285,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.15691251346015803,
+            "101": 0.10017943431865556
+          },
+          "absolute_peak_over_system_mean_kw": 0.01905170303569901,
+          "absolute_peak_over_pair_mean_kw": 0.1426906317579212,
+          "max_aligned_absolute_over_system_kw": 0.026313124221078767,
+          "max_aligned_absolute_over_pair_kw": 0.21974005677408462,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.3857534297663704,
+            "101": 0.16573245011119367
+          }
+        }
+      }
+    },
+    {
+      "batch": "delivery_v1",
+      "policy": "rotation",
+      "fee_contract_units": 47.20046320767201,
+      "increase_kwh": 16.828629749508192,
+      "decrease_magnitude_kwh": 16.828629749508192,
+      "absolute_kwh": 33.657259499016384,
+      "net_kwh": 0.0,
+      "sum_absolute_peak_kw": 1.4023858124590158,
+      "absolute_net_peak_kw": 0.0,
+      "max_node_absolute_kw": 0.7011929062295079,
+      "controlled_node_absolute_kwh": {
+        "103": 16.828629749508192,
+        "101": 16.828629749508192
+      },
+      "controlled_node_net_kwh": {
+        "103": -4.440892098500626e-16,
+        "101": 4.440892098500626e-16
+      },
+      "mean_price_all_resource_slots": 1.402385812459016,
+      "peak_price": 1.4023858124590158,
+      "energy_weighted_price": 1.4023858124590156,
+      "ratios": {
+        "training": {
+          "absolute_energy_over_system_daily_energy": 0.017453957946674006,
+          "net_energy_over_system_daily_energy": 0.0,
+          "absolute_energy_over_pair_daily_energy": 0.1309488375115317,
+          "net_energy_over_pair_daily_energy": 0.0,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.14567486900739438,
+            "101": 0.11892673103026374
+          },
+          "absolute_peak_over_system_mean_kw": 0.017453957946674006,
+          "absolute_peak_over_pair_mean_kw": 0.13094883751153163,
+          "max_aligned_absolute_over_system_kw": 0.02417330018882261,
+          "max_aligned_absolute_over_pair_kw": 0.19923650215617955,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.3543839724387469,
+            "101": 0.15034635867072094
+          }
+        },
+        "validation": {
+          "absolute_energy_over_system_daily_energy": 0.017551089624136696,
+          "net_energy_over_system_daily_energy": 0.0,
+          "absolute_energy_over_pair_daily_energy": 0.13122507052018675,
+          "net_energy_over_pair_daily_energy": 0.0,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.14690771020414262,
+            "101": 0.11856776644349241
+          },
+          "absolute_peak_over_system_mean_kw": 0.017551089624136696,
+          "absolute_peak_over_pair_mean_kw": 0.13122507052018675,
+          "max_aligned_absolute_over_system_kw": 0.02249796817488303,
+          "max_aligned_absolute_over_pair_kw": 0.20187045498609363,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.32149422188980664,
+            "101": 0.15225726216226654
+          }
+        },
+        "all_history": {
+          "absolute_energy_over_system_daily_energy": 0.017502389025371847,
+          "net_energy_over_system_daily_energy": 0.0,
+          "absolute_energy_over_pair_daily_energy": 0.13108680849284426,
+          "net_energy_over_pair_daily_energy": 0.0,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.14628869222382504,
+            "101": 0.11874697745569908
+          },
+          "absolute_peak_over_system_mean_kw": 0.01750238902537185,
+          "absolute_peak_over_pair_mean_kw": 0.13108680849284426,
+          "max_aligned_absolute_over_system_kw": 0.02417330018882261,
+          "max_aligned_absolute_over_pair_kw": 0.20187045498609363,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.3543839724387469,
+            "101": 0.15225726216226654
+          }
+        }
+      }
+    },
+    {
+      "batch": "delivery_v1",
+      "policy": "single",
+      "fee_contract_units": 47.200463207672016,
+      "increase_kwh": 23.799276427909827,
+      "decrease_magnitude_kwh": 0.0,
+      "absolute_kwh": 23.799276427909827,
+      "net_kwh": 23.799276427909827,
+      "sum_absolute_peak_kw": 0.9916365178295761,
+      "absolute_net_peak_kw": 0.9916365178295761,
+      "max_node_absolute_kw": 0.9916365178295761,
+      "controlled_node_absolute_kwh": {
+        "103": 23.799276427909827,
+        "101": 0.0
+      },
+      "controlled_node_net_kwh": {
+        "103": 23.799276427909827,
+        "101": 0.0
+      },
+      "mean_price_all_resource_slots": 0.9916365178295762,
+      "peak_price": 1.9832730356591521,
+      "energy_weighted_price": 1.9832730356591517,
+      "ratios": {
+        "training": {
+          "absolute_energy_over_system_daily_energy": 0.012341812022638019,
+          "net_energy_over_system_daily_energy": 0.012341812022638019,
+          "absolute_energy_over_pair_daily_energy": 0.0925948109928994,
+          "net_energy_over_pair_daily_energy": 0.0925948109928994,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.20601537544718118,
+            "101": 0.0
+          },
+          "absolute_peak_over_system_mean_kw": 0.012341812022638019,
+          "absolute_peak_over_pair_mean_kw": 0.09259481099289937,
+          "max_aligned_absolute_over_system_kw": 0.017093104487174517,
+          "max_aligned_absolute_over_pair_kw": 0.14088148173452278,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.501174620110529,
+            "101": 0.0
+          }
+        },
+        "validation": {
+          "absolute_energy_over_system_daily_energy": 0.012410494490439912,
+          "net_energy_over_system_daily_energy": 0.012410494490439912,
+          "absolute_energy_over_pair_daily_energy": 0.09279013722650697,
+          "net_energy_over_pair_daily_energy": 0.09279013722650697,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.2077588761878748,
+            "101": 0.0
+          },
+          "absolute_peak_over_system_mean_kw": 0.012410494490439912,
+          "absolute_peak_over_pair_mean_kw": 0.09279013722650697,
+          "max_aligned_absolute_over_system_kw": 0.015908465859378926,
+          "max_aligned_absolute_over_pair_kw": 0.14274396764188052,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.45466148882114976,
+            "101": 0.0
+          }
+        },
+        "all_history": {
+          "absolute_energy_over_system_daily_energy": 0.012376057966805444,
+          "net_energy_over_system_daily_energy": 0.012376057966805444,
+          "absolute_energy_over_pair_daily_energy": 0.0926923712093925,
+          "net_energy_over_pair_daily_energy": 0.0926923712093925,
+          "node_absolute_energy_over_node_daily_energy": {
+            "103": 0.20688345256475693,
+            "101": 0.0
+          },
+          "absolute_peak_over_system_mean_kw": 0.012376057966805444,
+          "absolute_peak_over_pair_mean_kw": 0.09269237120939251,
+          "max_aligned_absolute_over_system_kw": 0.017093104487174517,
+          "max_aligned_absolute_over_pair_kw": 0.14274396764188052,
+          "max_aligned_node_absolute_over_node_kw": {
+            "103": 0.501174620110529,
+            "101": 0.0
+          }
+        }
+      }
+    }
+  ],
+  "checks": [
+    {
+      "check": "input hash: run_v1/protocol.json",
+      "passed": true
+    },
+    {
+      "check": "input hash: delivery_v1/protocol.json",
+      "passed": true
+    },
+    {
+      "check": "input hash: run_v1/price_freeze.json",
+      "passed": true
+    },
+    {
+      "check": "input hash: delivery_v1/price_freeze.json",
+      "passed": true
+    },
+    {
+      "check": "history protocol expected hash",
+      "passed": true
+    },
+    {
+      "check": "history file expected hash",
+      "passed": true
+    },
+    {
+      "check": "original labels",
+      "passed": true
+    },
+    {
+      "check": "200 kW power base",
+      "passed": true
+    },
+    {
+      "check": "three complete training days",
+      "passed": true
+    },
+    {
+      "check": "training/0 shape",
+      "passed": true
+    },
+    {
+      "check": "training/0 labels",
+      "passed": true
+    },
+    {
+      "check": "training/0 units",
+      "passed": true
+    },
+    {
+      "check": "training/0 finite loads and positive ratio denominators",
+      "passed": true
+    },
+    {
+      "check": "training/1 shape",
+      "passed": true
+    },
+    {
+      "check": "training/1 labels",
+      "passed": true
+    },
+    {
+      "check": "training/1 units",
+      "passed": true
+    },
+    {
+      "check": "training/1 finite loads and positive ratio denominators",
+      "passed": true
+    },
+    {
+      "check": "training/2 shape",
+      "passed": true
+    },
+    {
+      "check": "training/2 labels",
+      "passed": true
+    },
+    {
+      "check": "training/2 units",
+      "passed": true
+    },
+    {
+      "check": "training/2 finite loads and positive ratio denominators",
+      "passed": true
+    },
+    {
+      "check": "three complete validation days",
+      "passed": true
+    },
+    {
+      "check": "validation/0 shape",
+      "passed": true
+    },
+    {
+      "check": "validation/0 labels",
+      "passed": true
+    },
+    {
+      "check": "validation/0 units",
+      "passed": true
+    },
+    {
+      "check": "validation/0 finite loads and positive ratio denominators",
+      "passed": true
+    },
+    {
+      "check": "validation/1 shape",
+      "passed": true
+    },
+    {
+      "check": "validation/1 labels",
+      "passed": true
+    },
+    {
+      "check": "validation/1 units",
+      "passed": true
+    },
+    {
+      "check": "validation/1 finite loads and positive ratio denominators",
+      "passed": true
+    },
+    {
+      "check": "validation/2 shape",
+      "passed": true
+    },
+    {
+      "check": "validation/2 labels",
+      "passed": true
+    },
+    {
+      "check": "validation/2 units",
+      "passed": true
+    },
+    {
+      "check": "validation/2 finite loads and positive ratio denominators",
+      "passed": true
+    },
+    {
+      "check": "run_v1/continuous response shape",
+      "passed": true
+    },
+    {
+      "check": "run_v1/continuous response finite",
+      "passed": true
+    },
+    {
+      "check": "run_v1/continuous fee agrees with frozen quote",
+      "passed": true
+    },
+    {
+      "check": "run_v1/continuous energy balance",
+      "passed": true
+    },
+    {
+      "check": "run_v1/rotation response shape",
+      "passed": true
+    },
+    {
+      "check": "run_v1/rotation response finite",
+      "passed": true
+    },
+    {
+      "check": "run_v1/rotation fee agrees with frozen quote",
+      "passed": true
+    },
+    {
+      "check": "run_v1/rotation energy balance",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/continuous response shape",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/continuous response finite",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/continuous fee agrees with frozen quote",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/continuous energy balance",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/rotation response shape",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/rotation response finite",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/rotation fee agrees with frozen quote",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/rotation energy balance",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/single response shape",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/single response finite",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/single fee agrees with frozen quote",
+      "passed": true
+    },
+    {
+      "check": "delivery_v1/single energy balance",
+      "passed": true
+    },
+    {
+      "check": "exactly five paid policies",
+      "passed": true
+    }
+  ],
+  "check_count": 55,
+  "passed_count": 55
+}
