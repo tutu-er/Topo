@@ -9,3 +9,5 @@ Python入口runner.py依次prepare、optimize、observe、evaluate，--output指
 纯测试：python -m pytest research_experiments/wzzt_dr_selection/dr_spatial_correlated -q -p no:cacheprovider。实验冻结后新增的独立测试/审计不追改已执行源manifest；其字节另保存。
 
 数值求解是有界多起点局部方法。若没有返回满足95%有限积分约束的点，保留最大概率诊断方案并明确标注未达标，不能称问题不可行、最小费用或概率已验证。独立512积分只核验，不按其结果事后挑价格；实际AC结果也不用于重新优化。
+
+本轮原有限罚规划保留在run_v1，没有生成实际新日。一次有界约束修复在refinement/refined_runner.py：prepare/run --output 私有run_v2，随后使用原runner.py的observe/evaluate --output run_v2。constrained_refine.py新增6项解析测试，修复先达概率要求再降费，未读取新日。refinement脚本显式定位同一私有stage及原输入，不覆盖旧协议或价格冻结。
