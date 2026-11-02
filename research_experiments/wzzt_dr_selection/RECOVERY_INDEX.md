@@ -1,3 +1,14 @@
+## 最新恢复：饱和响应配对批已结束，2026-11-02
+
+- dr_saturation/{MODEL,REPORT,README}.md，evidence/saturation_replay_v1；代码8d321847。现有dr_spatial_correlated/ac_bridge增加可选delivery_rule=device_clip，原默认unbounded不变，5新增+8原桥接纯测全过。
+- 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_saturation_stage。src/runner.py的prepare/observe/evaluate已经全部完成run_v1，post/audit.py只读重放，post/export_and_plot.py只发显式标量。勿重新调用observe；无未完任务。
+- run_v1协议SHA d551c8520f49c32b374c7cee2c5f4a67ced09e703d3c5d90aecf6d2133fd0ac1；原价格SHA cd6d531bef1147f687c2b8efae591f8c544f8ca76a7f6c05ee7567f4de8c0cf3逐字相同。problem_frozen引用spatial_correlated_stage/run_v1/problem.pkl，不能假定本地有problem.pkl。
+- source_snapshot224文件、parent旧144路径引用、观察/预测freeze、scored、summary、audit5652、ended及complete锁齐。evaluation.log保存清单尚未完成时的失败；evaluation_completed.log为随后只重试评分成功，未重跑AC。已完成144/144及13824AC时点，不重抽。
+- 开放主9/12、失配8/12恢复与截断前逐条同，费用44.9505；调节27.57→26.82及25.06→24.86kWh。固定两点主9→8是唯一输出变化。严格设备与总2kW界均满足；原同费轮换恢复0/12、同配置4/12。配对两law共享12背景，不能算24独立背景。
+- public_release为配置/标量/图/hash白名单，PNG已目视核查；完整price、P/Q/V、u、RX、Z和AC轨迹不上传。后处理源与物理源快照分别保存，不据报告回改运行hash。
+- 当前未优化饱和价，旧95%不沿用；数学可通过条件化Z复用一维L1积分。要继续必须保留原规则并另冻结新价/新独立路径，当前已看12路径只作开发。用户未授权扩大算例。
+
+
 ## 最新恢复：开放节点相关DR小批结束，2026-11-02
 
 - 最新入口dr_spatial_correlated/{MODEL,REPORT,README}.md；evidence/spatial_correlated_v2。源码提交1c3242a2及0ce1dc02。31原纯测+6约束修复纯测=37（另7子项）；两次运行同测试不叠加分母。
