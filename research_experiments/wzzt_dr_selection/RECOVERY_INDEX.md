@@ -1,3 +1,13 @@
+## 最新恢复：开放节点相关DR小批结束，2026-11-02
+
+- 最新入口dr_spatial_correlated/{MODEL,REPORT,README}.md；evidence/spatial_correlated_v2。源码提交1c3242a2及0ce1dc02。31原纯测+6约束修复纯测=37（另7子项）；两次运行同测试不叠加分母。
+- 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_spatial_correlated_stage。src是原冻结实现，refinement是读未来前的附录；audit/post是只读复算/导图，勿用后处理源码追改旧manifest。
+- run_v1保存原4起点有限罚规划及price_freeze、planning_superseded，无实际未来；不重启原优化。run_v2经refinement/refined_runner.py prepare/run另冻，引用run_v1/problem.pkl；不能假定run_v2有本地problem.pkl。原src/runner.py observe/evaluate在v2执行144记录，已ended。所有原失败/墙限/迭代限保留。
+- run_v2协议SHA a2e4ee23d2f97456e10f47070637c41e9138e2de677768b861d17051370c41ca；价格SHA cd6d531bef1147f687c2b8efae591f8c544f8ca76a7f6c05ee7567f4de8c0cf3。source_snapshot/protocol/problem_frozen/price_freeze/observations_frozen/predictions_frozen/scored_private/summary/ended齐。actual/dayXX_law_policy有receipt及原result.pkl；scores保存完整原weighted_selection输出。
+- 12新背景×6方案×2配对law=144/144；独立背景仍12。主恢复0/8/9/9/0/4、失配0/7/8/8/0/4（zero/旧两点/固定相关/开放/均匀轮换/同配置轮换）。开放费44.9505，与固定91.4457逐日错误相同；实际设备越界主12/12、失配9/12，不能忽略。同费轮换0越界。全部AC收敛、原3%与冻结映射已核。
+- audit/audit_results.py --run run_v2只读重放，7794项通过；policy_actual_metrics和resource_excursion_summary给执行总量及越界。public_figures/comprehensive含计划u仅私有，aggregate带未裁剪越界脚注可公开。public_release为显式标量白名单，不上传轨迹/完整价格。
+- 无待续批次。不再读新日或重复优化；下一次需另锁设备可交付约束/饱和与误差校准方案，之后才考虑用户暂缓的跨场景评价。
+
 ## 最新恢复：条件连续DR的AC批已结束，2026-11-02
 
 - dr_conditional_ac/{REPORT,README}.md与evidence/conditional_ac_v1为最新入口；核心代码2415e10a。12新背景×5策略60AC日全部完成，四噪声共240选模，不重跑、不补seed。

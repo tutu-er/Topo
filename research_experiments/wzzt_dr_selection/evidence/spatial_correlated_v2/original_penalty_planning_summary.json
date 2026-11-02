@@ -1,0 +1,179 @@
+{
+  "results": [
+    {
+      "status": "iteration_limit",
+      "elapsed": 108.01448450000316,
+      "planning_feasible": false,
+      "returned_candidates": 46,
+      "global_optimum_proven": false,
+      "algorithm": "sequential conic steps on original finite conditional probability; exact merit acceptance",
+      "domain": "fixed",
+      "start": "legacy"
+    },
+    {
+      "status": "iteration_limit",
+      "elapsed": 113.77773989998968,
+      "planning_feasible": false,
+      "returned_candidates": 46,
+      "global_optimum_proven": false,
+      "algorithm": "sequential conic steps on original finite conditional probability; exact merit acceptance",
+      "domain": "fixed",
+      "start": "zero"
+    },
+    {
+      "status": "time_limit",
+      "elapsed": 667.3230862000055,
+      "planning_feasible": false,
+      "returned_candidates": 36,
+      "global_optimum_proven": false,
+      "algorithm": "sequential conic steps on original finite conditional probability; exact merit acceptance",
+      "domain": "open",
+      "start": "legacy"
+    },
+    {
+      "status": "trust_region_stalled",
+      "elapsed": 44.243752599999425,
+      "planning_feasible": false,
+      "returned_candidates": 31,
+      "global_optimum_proven": false,
+      "algorithm": "sequential conic steps on original finite conditional probability; exact merit acceptance",
+      "domain": "open",
+      "start": "uniform_gradient"
+    }
+  ],
+  "policies": {
+    "zero": {
+      "capacity_kw": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cost": 0.0,
+      "role": "no reward natural new day",
+      "planning_probability": 0.2504348315817636,
+      "diagnostic_probability": 0.26730823816687144,
+      "diagnostic_se": 0.010384147084664572,
+      "planning_target_met": false
+    },
+    "legacy_iid_pair": {
+      "capacity_kw": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cost": 81.02112917030036,
+      "role": "previous independent-error design, no reoptimization",
+      "planning_probability": 0.9227786314393773,
+      "diagnostic_probability": 0.9524327902150977,
+      "diagnostic_se": 0.00555113840802603,
+      "planning_target_met": false
+    },
+    "fixed_correlated": {
+      "capacity_kw": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cost": 81.02112917030036,
+      "role": "original conditional probability reoptimized under correlated response; fixed domain",
+      "planning_probability": 0.9227786314393773,
+      "diagnostic_probability": 0.9524327902150977,
+      "diagnostic_se": 0.00555113840802603,
+      "planning_target_met": false
+    },
+    "open_correlated": {
+      "capacity_kw": [
+        2.263252631220245e-08,
+        0.9999999807325582,
+        0.4804504753338147,
+        0.5195493651545554,
+        1.9140764162730478e-08,
+        1.9318620490319666e-08,
+        1.9758982827456017e-08,
+        1.9864192557953897e-08,
+        1.928139956738914e-08,
+        1.9250849400043407e-08,
+        1.914658214627555e-08,
+        2.0385154164137588e-08
+      ],
+      "cost": 37.2599501811171,
+      "role": "original conditional probability reoptimized under correlated response; open domain",
+      "planning_probability": 0.9450369425414776,
+      "diagnostic_probability": 0.9734157425661147,
+      "diagnostic_se": 0.004323037441417663,
+      "planning_target_met": false
+    },
+    "rotation_uniform": {
+      "capacity_kw": [
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666
+      ],
+      "cost": 37.25995018111709,
+      "role": "prelocked all-eligible-node equal capacity simple exploration",
+      "planning_probability": 0.2877170929408332,
+      "diagnostic_probability": 0.305992862128406,
+      "diagnostic_se": 0.010828164463974726,
+      "planning_target_met": false
+    },
+    "rotation_selected_capacity": {
+      "capacity_kw": [
+        2.263252631220245e-08,
+        0.9999999807325582,
+        0.4804504753338147,
+        0.5195493651545554,
+        1.9140764162730478e-08,
+        1.9318620490319666e-08,
+        1.9758982827456017e-08,
+        1.9864192557953897e-08,
+        1.928139956738914e-08,
+        1.9250849400043407e-08,
+        1.914658214627555e-08,
+        2.0385154164137588e-08
+      ],
+      "cost": 37.259950181117105,
+      "role": "optimized allocation reused, time/sign ablation only",
+      "planning_probability": 0.5144699945871265,
+      "diagnostic_probability": 0.526230151822522,
+      "diagnostic_se": 0.013309548820554372,
+      "planning_target_met": false
+    }
+  },
+  "global_optimality_proven": false
+}

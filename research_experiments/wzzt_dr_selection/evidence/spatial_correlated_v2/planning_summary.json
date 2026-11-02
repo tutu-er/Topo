@@ -1,0 +1,171 @@
+{
+  "results": [
+    {
+      "status": "iteration_limit",
+      "planning_feasible": false,
+      "target": 0.95,
+      "target_tolerance": 1e-07,
+      "elapsed": 18.915208099992014,
+      "iterations": 12,
+      "accepted_steps": 12,
+      "probability_evaluations": 26,
+      "fixed_capacity": true,
+      "global_optimum_proven": false,
+      "infeasibility_proven": false,
+      "algorithm": "lexicographic slack/movement restoration then hard linearized cost steps; original finite probability acceptance",
+      "probability_scope": "unchanged evaluator sample only; diagnostic samples and actual future never read",
+      "domain": "fixed"
+    },
+    {
+      "status": "iteration_limit",
+      "planning_feasible": true,
+      "target": 0.95,
+      "target_tolerance": 1e-07,
+      "elapsed": 37.69701049999276,
+      "iterations": 12,
+      "accepted_steps": 8,
+      "probability_evaluations": 52,
+      "fixed_capacity": false,
+      "global_optimum_proven": false,
+      "infeasibility_proven": false,
+      "algorithm": "lexicographic slack/movement restoration then hard linearized cost steps; original finite probability acceptance",
+      "probability_scope": "unchanged evaluator sample only; diagnostic samples and actual future never read",
+      "domain": "open"
+    }
+  ],
+  "policies": {
+    "zero": {
+      "capacity_kw": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cost": 0.0,
+      "role": "no reward natural new day",
+      "planning_probability": 0.2504348315817636,
+      "diagnostic_probability": 0.26730823816687144,
+      "diagnostic_se": 0.010384147084664572,
+      "planning_target_met": false
+    },
+    "legacy_iid_pair": {
+      "capacity_kw": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cost": 81.02112917030036,
+      "role": "previous independent-error design, no reoptimization",
+      "planning_probability": 0.9227786314393773,
+      "diagnostic_probability": 0.9524327902150977,
+      "diagnostic_se": 0.00555113840802603,
+      "planning_target_met": false
+    },
+    "fixed_correlated": {
+      "capacity_kw": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cost": 91.44572347386868,
+      "planning_probability": 0.9271246510285636,
+      "role": "constraint-first local refinement, fixed",
+      "diagnostic_probability": 0.9575393515148649,
+      "diagnostic_se": 0.0047735434019636975,
+      "planning_target_met": false
+    },
+    "open_correlated": {
+      "capacity_kw": [
+        5.596325976213786e-08,
+        0.9999998404346794,
+        0.48045040792763083,
+        0.5195493425561821,
+        4.215583126166535e-08,
+        4.262598766638663e-08,
+        4.595288044275188e-08,
+        4.622579555892671e-08,
+        4.2521518412657836e-08,
+        4.296050471221772e-08,
+        4.217220441045835e-08,
+        4.850352534964662e-08
+      ],
+      "cost": 44.95045742310861,
+      "planning_probability": 0.949999904972436,
+      "role": "constraint-first local refinement, open",
+      "diagnostic_probability": 0.979719304987827,
+      "diagnostic_se": 0.003998200470486392,
+      "planning_target_met": true
+    },
+    "rotation_uniform": {
+      "capacity_kw": [
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666,
+        0.16666666666666666
+      ],
+      "cost": 44.95045742310862,
+      "role": "prespecified six-hour rotation; rotation_uniform",
+      "planning_probability": 0.29290816309366924,
+      "diagnostic_probability": 0.3108976263262631,
+      "diagnostic_se": 0.010919871821153702,
+      "planning_target_met": false
+    },
+    "rotation_selected_capacity": {
+      "capacity_kw": [
+        5.596325976213786e-08,
+        0.9999998404346794,
+        0.48045040792763083,
+        0.5195493425561821,
+        4.215583126166535e-08,
+        4.262598766638663e-08,
+        4.595288044275188e-08,
+        4.622579555892671e-08,
+        4.2521518412657836e-08,
+        4.296050471221772e-08,
+        4.217220441045835e-08,
+        4.850352534964662e-08
+      ],
+      "cost": 44.9504574231086,
+      "role": "prespecified six-hour rotation; rotation_selected_capacity",
+      "planning_probability": 0.5523810325697198,
+      "diagnostic_probability": 0.574310694733422,
+      "diagnostic_se": 0.01323305607939319,
+      "planning_target_met": false
+    }
+  },
+  "global_optimality_proven": false
+}
