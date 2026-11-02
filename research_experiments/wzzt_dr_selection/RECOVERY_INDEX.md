@@ -1,3 +1,11 @@
+## 最新恢复：异质DR资源配置完成，尚未接入报价优化
+
+- 读取dr_heterogeneous_resources/{README,REPORT}.md、library.json、case_allocations.json与node_resources.csv。17网络332节点、81旧训练P输入，0新优化/AC/辨识。公开证据evidence/heterogeneous_resources_v1。
+- 私有C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_heterogeneous_resources_stage/run_v2：protocol/prepared/ended、configuration_checks、source_snapshot、public齐；run_v1为序列化失败保留，输出库存与v2完全相同，不重复计算当新实验。
+- 全库存域与matched_enrollment_kw受限对照域须显式选定；成本最小化无货币预算上界。库存来自预锁历史P尺度及合成设备组成，不是真设备校准，不看错误标签。所有对照用相同资源/能量/价格；保留无奖励及旧零收益例。
+- next：复用现有条件积分/原AC，接入异质P/Q和EV/储能状态可行交付；现有逐槽clip不保证能量服务，未实现的接口不能称已支持。原生产默认、原3%与候选参数冻结未改。尚无本配置下的实际效果结果。
+
+
 ## 最新恢复：饱和响应配对批已结束，2026-11-02
 
 - dr_saturation/{MODEL,REPORT,README}.md，evidence/saturation_replay_v1；代码8d321847。现有dr_spatial_correlated/ac_bridge增加可选delivery_rule=device_clip，原默认unbounded不变，5新增+8原桥接纯测全过。

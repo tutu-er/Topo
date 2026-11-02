@@ -1,0 +1,45 @@
+{
+  "tests": 12,
+  "failures": 0,
+  "errors": 0,
+  "junit_sha256": "1903297432d0285851c0a2a5223e6733b1e96d6b30f8f9c2f058723e013d0ac3",
+  "configuration_checks": 3320,
+  "configuration_failed_checks": 0,
+  "arithmetic_audit": {
+    "status": "passed",
+    "checks": 1780,
+    "failures": [],
+    "allocations_sha256": "0770978e6ba6346289cdaf5e8596d0b29fd74eb9279bb64e6d95c72f736521d1",
+    "scope": "independent arithmetic/unit replay of exported synthetic configuration, not independent data calibration or AC feasibility",
+    "new_optimizer_calls": 0,
+    "new_identifier_calls": 0,
+    "new_AC_calls": 0
+  },
+  "attempts": [
+    {
+      "id": "run_v1",
+      "status": "failed_serialization",
+      "reason": "NumPy bool was not JSON serializable",
+      "parameter_changes": false
+    },
+    {
+      "id": "run_v2",
+      "status": "complete",
+      "fix": "cast configuration check results to native bool",
+      "parameters_unchanged": true,
+      "allocation_bytes_unchanged": true
+    }
+  ],
+  "actual_price_optimizations": 0,
+  "actual_AC_days": 0,
+  "actual_identifier_runs": 0,
+  "dataset_scope": "81 existing training bundles (243 synthetic profiles), no new field/evaluation days",
+  "private_recovery_root": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_heterogeneous_resources_stage\\run_v2",
+  "source_snapshot_sha256": {
+    "audit_allocations.py": "53e1bbd6144b34f7f843afccc02c98b20b6a38f2c3d1f09888e303f6e8873ae5",
+    "build_allocations.py": "6ceed1d852c1aecf665a1306e26d6b7e8bd08c62c2637273691a85299af156a4",
+    "library.json": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
+    "README.md": "171dbe3cea3b33406e3165e1229468ff2b7b1c2186c50abb3722ec7a5ff5420d",
+    "test_allocations.py": "1a52aadbc3094fcabcbef18751904476d5fe0d1f336b568f668dc29c8129eb57"
+  }
+}
