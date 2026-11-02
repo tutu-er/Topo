@@ -279,7 +279,7 @@ def audit_run(root, audit):
     audit.same('selected_quote_is_radial_derating',quote,planning['alpha']*parent_u,atol=1e-13)
     audit.check('all_four_prelocked_policies',set(policies)=={'zero','continuous','rotation','single'})
     audit.check('no_added_source_or_case',protocol['inputs']==parent_protocol['inputs'])
-    delivery_probabilities={};violations_by_policy={} 
+    delivery_probabilities={};violations_by_policy={}
     for name,policy in policies.items():
         u=np.asarray(policy['mean_u']);cost=float(.25*np.sum(u**2/elasticity))
         audit.check(name+':mean_domain',u.shape==(2,96) and np.all(u>=lower-1e-9) and np.all(u<=upper+1e-9))

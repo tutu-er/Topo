@@ -46,6 +46,10 @@ write(out/'tests_summary.json',dict(passed=45,subtests_passed=4,failed=0,xfail=0
 (out/'audit_sources').mkdir(exist_ok=True)
 for source in ['audit_independent.py','audit_delivery_independent.py','make_figure.py','export_public.py']:
     shutil.copyfile(base/source,out/'audit_sources'/source)
+    copied=out/'audit_sources'/source
+    lines=copied.read_text(encoding='utf-8').splitlines()
+    copied.write_text('\n'.join(line.rstrip() for line in lines)+'\n',encoding='utf-8')
 write(out/'manifest.json',dict(scope='source, configurations, hashes and scalar aggregates only; no P/Q/Y, R/X matrices, draws or price trajectories',
+    public_audit_source_formatting='Trailing whitespace normalized in public audit copies; audit receipts retain original executed-source hashes and private originals remain unchanged.',
     files={str(p.relative_to(out)).replace('\\','/'):dict(sha256=sha(p),bytes=p.stat().st_size) for p in out.rglob('*') if p.is_file() and p.name!='manifest.json'}))
 print('public files',len(list(out.rglob('*'))),'bytes',sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))
