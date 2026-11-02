@@ -1,0 +1,300 @@
+{
+  "id": "heterogeneous_resource_pilot_v2",
+  "created_utc": "2026-11-02T08:34:14.424152+00:00",
+  "case_rule": "two previously declared historical disagreements plus retained pengwah b5 zero-yield control; no new test outcome filtering",
+  "full_history_rows": [
+    288,
+    288
+  ],
+  "resource_domain": "full_inventory",
+  "new_day_weight": 2,
+  "new_day_fraction": 0.03,
+  "history_fraction": 0.03,
+  "control": "all nodes and four resource classes, 24 hourly continuous requests expanded to96 slots; causal deadline/SOC projection",
+  "background_law": "reuse three complete training-day joint Gaussian [P,Q,reference residual]; rank<=2 retained to isolate resource extension; working distribution not calibrated",
+  "response_law": "new library node/time/type continuous correlated multipliers, causal state feasible delivery",
+  "planning_samples": 32,
+  "qualification_samples": 128,
+  "optimizer": {
+    "maxiter": 18,
+    "seconds_per_start": 120,
+    "starts": 2,
+    "target": 0.95
+  },
+  "planning_repair": {
+    "reason": "flat zero-probability gradient at small starts and failed first feasibility search",
+    "mean_D_for_initialization_only": {
+      "maxiter": 20,
+      "seconds": 60
+    },
+    "event_feasibility": {
+      "starts": 2,
+      "maxiter": 20,
+      "seconds": 60
+    },
+    "min_cost": {
+      "maxiter": 25,
+      "seconds": 90
+    },
+    "target": 0.95,
+    "qualification_not_used_for_selection": true,
+    "unchanged": [
+      "resource domain",
+      "case set",
+      "history",
+      "loss event",
+      "95% target",
+      "price law",
+      "actual path seeds",
+      "selector"
+    ]
+  },
+  "primary_policies": [
+    "zero",
+    "rotation",
+    "cost_first",
+    "optimized"
+  ],
+  "baseline_rule": "two predetermined feasible physical schedules each scaled to equal optimized prepaid fee if attainable; otherwise report saturation and unequal cost",
+  "no_money_budget_upper": true,
+  "matched_legacy_2kw_not_used": true,
+  "laws": [
+    "main",
+    "stress"
+  ],
+  "independent_backgrounds_per_case": 6,
+  "expected_records": 144,
+  "truth_gate": "prices frozen before backgrounds/AC, selections frozen before true supports evaluated",
+  "evaluation": "new independent synthetic AC backgrounds, original P/Q and V meter noise per historical case; no physics/noise/budget tuning",
+  "identifier": "historical RNJ+WZZT frozen pair/frozen RX, original.16 output mapping and w2 common3% final selection; no new W search",
+  "interpretation": "local finite-integration price design, not global optimum or 95 percent physical recovery guarantee",
+  "cases": [
+    {
+      "name": "paper15_b2_v0005",
+      "case": "paper15",
+      "labels": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115
+      ],
+      "base_kw": 200.0,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005
+    },
+    {
+      "name": "flynn16_b4_v0005",
+      "case": "flynn16",
+      "labels": [
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216
+      ],
+      "base_kw": 200.0,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005
+    },
+    {
+      "name": "pengwah18_b5_v0002",
+      "case": "pengwah18",
+      "labels": [
+        301,
+        302,
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309,
+        310,
+        311,
+        312,
+        313,
+        314,
+        315,
+        316,
+        317,
+        318
+      ],
+      "base_kw": 200.0,
+      "voltage_sigma": 0.0002,
+      "pq_sigma": 0.005
+    }
+  ],
+  "streams": [
+    {
+      "condition": "paper15_b2_v0005",
+      "base_integration_seed": 2026110501,
+      "response_integration_seed": 2026110502,
+      "initial_optimizer_seed": 2026110503,
+      "repair_initialization_seed": 2026110533,
+      "independent_base_seed": 2026110504,
+      "independent_response_seed": 2026110505,
+      "paths": [
+        {
+          "day": 0,
+          "profile": 0,
+          "replicate": 980000,
+          "response_seed": 2026110600
+        },
+        {
+          "day": 1,
+          "profile": 1,
+          "replicate": 980137,
+          "response_seed": 2026110601
+        },
+        {
+          "day": 2,
+          "profile": 2,
+          "replicate": 980274,
+          "response_seed": 2026110602
+        },
+        {
+          "day": 3,
+          "profile": 0,
+          "replicate": 980411,
+          "response_seed": 2026110603
+        },
+        {
+          "day": 4,
+          "profile": 1,
+          "replicate": 980548,
+          "response_seed": 2026110604
+        },
+        {
+          "day": 5,
+          "profile": 2,
+          "replicate": 980685,
+          "response_seed": 2026110605
+        }
+      ]
+    },
+    {
+      "condition": "flynn16_b4_v0005",
+      "base_integration_seed": 2026110502,
+      "response_integration_seed": 2026110503,
+      "initial_optimizer_seed": 2026110504,
+      "repair_initialization_seed": 2026110534,
+      "independent_base_seed": 2026110505,
+      "independent_response_seed": 2026110506,
+      "paths": [
+        {
+          "day": 0,
+          "profile": 0,
+          "replicate": 990000,
+          "response_seed": 2026110700
+        },
+        {
+          "day": 1,
+          "profile": 1,
+          "replicate": 990137,
+          "response_seed": 2026110701
+        },
+        {
+          "day": 2,
+          "profile": 2,
+          "replicate": 990274,
+          "response_seed": 2026110702
+        },
+        {
+          "day": 3,
+          "profile": 0,
+          "replicate": 990411,
+          "response_seed": 2026110703
+        },
+        {
+          "day": 4,
+          "profile": 1,
+          "replicate": 990548,
+          "response_seed": 2026110704
+        },
+        {
+          "day": 5,
+          "profile": 2,
+          "replicate": 990685,
+          "response_seed": 2026110705
+        }
+      ]
+    },
+    {
+      "condition": "pengwah18_b5_v0002",
+      "base_integration_seed": 2026110503,
+      "response_integration_seed": 2026110504,
+      "initial_optimizer_seed": 2026110505,
+      "repair_initialization_seed": 2026110535,
+      "independent_base_seed": 2026110506,
+      "independent_response_seed": 2026110507,
+      "paths": [
+        {
+          "day": 0,
+          "profile": 0,
+          "replicate": 1000000,
+          "response_seed": 2026110800
+        },
+        {
+          "day": 1,
+          "profile": 1,
+          "replicate": 1000137,
+          "response_seed": 2026110801
+        },
+        {
+          "day": 2,
+          "profile": 2,
+          "replicate": 1000274,
+          "response_seed": 2026110802
+        },
+        {
+          "day": 3,
+          "profile": 0,
+          "replicate": 1000411,
+          "response_seed": 2026110803
+        },
+        {
+          "day": 4,
+          "profile": 1,
+          "replicate": 1000548,
+          "response_seed": 2026110804
+        },
+        {
+          "day": 5,
+          "profile": 2,
+          "replicate": 1000685,
+          "response_seed": 2026110805
+        }
+      ]
+    }
+  ],
+  "protocol_sha256": "23111e9bf52b532e19c724401463a9f5c0a12ad586af6cfba4e9b57ded9a207e",
+  "price_freeze_sha256": "cdc36265eacb90564a281ddc0c09e7dd50af67c8924f4d579d366225cb2ac433",
+  "source_count": 320,
+  "source_snapshot_sha256": "0ce131d0ffa9f3737433c629ae5157c49b9912f87d2d0eb5659a07c96321b023",
+  "resource_config_sha256": {
+    "library": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
+    "allocations": "0770978e6ba6346289cdaf5e8596d0b29fd74eb9279bb64e6d95c72f736521d1"
+  }
+}

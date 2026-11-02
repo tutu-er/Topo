@@ -1,3 +1,15 @@
+## 最新恢复：异质资源实际测试结束，2026-11-02
+
+- 读dr_heterogeneous_pilot/{REPORT,MODEL,README,PLAN,REPAIR_PLAN}.md与evidence/heterogeneous_pilot_v1。原17网络库存被三例小批调用；不再称资源执行尚未接通，不宣称全17网络已测试。
+- 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_heterogeneous_pilot_stage。run_v1仅原规划，superseded_planning引用v2；run_v2有protocol/source_snapshot、case/pool/problem、solver_private/price_receipt/plans、price_freeze、actual144逐次receipt/result、observations_frozen、scores、predictions_frozen、truth_private、scored_private、summary、aggregate_diagnostics、audit18523、ended、complete锁。勿重启已完成optimize/observe。
+- 真实执行入口driver.py直接复用原AC和weighted_selection w2/tau3；并非primary_rule旧tau2，也不是新RNJ/W拟合。模型/输出映射从完整历史freeze；原.16保持。devices.py因果控制可还EV分段能量和储能损耗；不同资源Q/P由库给出，非统一.35。
+- v1有6个未达标启动；v2唯一附录为planning_repair.py：同一D解析均值只作初值，两次原概率可行化，只有>=95%才硬约束降费。三例最终均未95%，保留诊断价53.3829/72.2039/0。源码记录repair seed=原optimizer_seed+caseindex+30。128概率诊断未回流选价。没有第三次搜索。
+- 三例每6新背景、两相关响应律配对；144记录/90不同观察/18独立背景，全部AC和选模完成，0失败未决。paper15主/失配恢复zero2、rotation2、cost_first2、optimized6；flynn全0；pengwah全6且全零动作。同费只保证rotation；cost_first满额费用更低。paper纠错发生在历史候选回选，raw=final，无新结构发现。
+- tests.xml（10项）、repair_tests.xml（2项）与独立审计齐；post_audit/summarize/export_results仅只读算术及公开汇总，未重跑AC。公开source_hashes分物理规划源与后处理源；发布文件不能回写旧snapshot。完整轨迹/随机数组/价格/RX留私有，公开PNG/PDF为每条路径标量D图，已目视检查。
+- resource库存使用full_inventory，不是旧2kW matched域。用户/EV/储能成本/相关SD为合成假设。背景仍旧三个训练日rank2，资源库5–10%预测误差未用。自动服务回补不等于手动用户参与校准；当前未查线路热限。
+- 若新工作：另锁报价和新的独立路径；优先paper15费用/可行化、flynn受限门槛诊断，保留pengwah。当前本批无待续worker，不自动扩大网络/预算或重复已看18日求正。
+
+
 ## 最新恢复：异质DR资源配置完成，尚未接入报价优化
 
 - 读取dr_heterogeneous_resources/{README,REPORT}.md、library.json、case_allocations.json与node_resources.csv。17网络332节点、81旧训练P输入，0新优化/AC/辨识。公开证据evidence/heterogeneous_resources_v1。
