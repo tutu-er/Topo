@@ -2,7 +2,8 @@
 
 Importing this file creates no network and no trajectories.  Runtime/context
 construction and background generation are explicit post-freeze operations.
-No resource limit causes clipping, redraw, rescaling, or an early AC skip.
+The explicit device_clip rule saturates delivery at the allocated device bounds.
+The default unbounded rule, all prices and original AC/meter calls are preserved.
 Only resource indexing and contract scaling extend the prior two-node adapter;
 the production physical solver and all four observation variants are unchanged.
 """
@@ -147,7 +148,8 @@ def _result(scenes, summary, private):
 
 def execute_policy(runtime, background, u, Z, *, resource_labels, capacity_kw,
                    cv=np.sqrt(.025/3), multiplier_mean=1., reactive_ratio=.35,
-                   dt=.25, day_offset=6, name='spatial_correlated_ac_day'):
+                   dt=.25, day_offset=6, name='spatial_correlated_ac_day',
+                   delivery_rule='unbounded'):
     """Deliver the frozen signed Gaussian curve and solve original AC once.
 
     Return layout: scenes={none/v/pq/both: observed scene or None}, summary=
@@ -160,8 +162,13 @@ def execute_policy(runtime, background, u, Z, *, resource_labels, capacity_kw,
     validates sum(a)<=2 and historical capacity caps. This execution adapter
     only checks finite nonnegative allocations and exact zero command at a=0.
     Correlation is supplied by the caller's already-drawn Z; no draw is made.
+    device_clip applies min(max(raw,-a),a) before P/Q and AC. It leaves the
+    mean command, quote and prepaid contract cost unchanged; it is not a
+    redraw from a truncated Gaussian distribution.
     """
     labels, context, sim = list(runtime['labels']), runtime['context'], runtime['sim']
+    if delivery_rule not in ('unbounded','device_clip'):
+        raise ValueError('unknown delivery rule')
     resource_labels = tuple(resource_labels)
     m = len(resource_labels)
     if not m or len(set(resource_labels)) != m or any(v not in labels for v in resource_labels):
@@ -191,7 +198,9 @@ def execute_policy(runtime, background, u, Z, *, resource_labels, capacity_kw,
     base_kw = float(runtime['metadata']['base_kw'])
     if not np.isfinite(base_kw) or base_kw <= 0:
         raise ValueError('positive frozen power base required')
-    delivered = u*(multiplier_mean + cv*Z)  # Signed multiplier; no abs(u), clip or redraw.
+    proposed = u*(multiplier_mean + cv*Z)
+    delivered = (np.clip(proposed,-allocation[:,None],allocation[:,None])
+                 if delivery_rule=='device_clip' else proposed.copy())
     dp, dq = np.zeros(p0.shape), np.zeros(p0.shape)
     for r, node in enumerate(resource_labels):
         j = labels.index(node)
@@ -223,11 +232,15 @@ def execute_policy(runtime, background, u, Z, *, resource_labels, capacity_kw,
         multiplier_mean_min=float(multiplier_mean.min()), multiplier_mean_max=float(multiplier_mean.max()),
         planned_cost=planned_cost, planned_cost_contract='prepaid bidirectional volume; elasticity=.5*capacity_kw',
         actual_net_energy_kwh=(dt*delivered.sum(axis=1)).tolist(), physical_sample_count=96,
-        no_clipping=True, no_redraw=True, resource_limit_does_not_skip_AC=True,
+        delivery_rule=delivery_rule, no_clipping=delivery_rule=='unbounded', no_redraw=True,
+        saturated_cells=int(np.sum(np.abs(delivered-proposed)>1e-10)),
+        removed_abs_modulation_kwh=float(dt*np.sum(np.abs(proposed)-np.abs(delivered))),
+        resource_limit_does_not_skip_AC=True,
         root_sigma=.003, voltage_sigma=float(runtime['voltage_sigma']), pq_sigma=float(runtime['pq_sigma']),
         impedance_scale=1., new_fit_calls=0, new_search_calls=0, ac_calls=0, observed_noise_versions=0)
     private = dict(natural_P_pu=p0, natural_Q_pu=q0, physical_P_pu=pf, physical_Q_pu=qf,
         root_true=background.root_true.copy(), mean_u=u.copy(), Z=Z.copy(), delivered_kw=delivered,
+        proposed_delivered_kw=proposed,
         capacity_kw=allocation.copy(), prices=prices, multiplier_mean=multiplier_mean.copy(), cv=cv.copy(),
         node_increment_kw=dp, node_increment_kvar=dq, resource_component_kw=component,
         resource_violation_mask=component_bad)
