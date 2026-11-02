@@ -1,3 +1,11 @@
+## 最新恢复：条件积分DR两批均结束，2026-11-02
+
+- 先读dr_conditional_gaussian/REPORT.md、MODEL.md；公开evidence/conditional_gaussian_v1含两批protocol、汇总、执行源zip、审计与效果图。实现0721a1ef。
+- 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_conditional_dr_stage；run_v1主批、delivery_v1降额诊断均有ended.json，无待续worker。各2000独立整日；6000/8000观察选模，不重复生成。
+- run_v1原执行源与当前修复后源码不同，仅无效条件因子guard/固定零项边界；executed_v1及两个source_snapshot.zip保留。严守各protocol hash，不直接拿当前源码重跑旧phase或覆盖原协议。src/是现行纯测通过版本。
+- audit_v1.json 212项、audit_delivery_v1.json 286项；guarded_amplitude_plan_v1.json为解析降额而非新激励优化；price_freeze/evaluation_draws/evaluation_scalars/predictions_frozen/summary齐。P/Q/Y、R/X、价格与随机轨迹不得上传。
+- 95%排除未达；原高强度全部越界，降额有条件选模收益。下一有界问题见REPORT末段，不开新网络/新种子扩批维持正结果。
+
 ## 最新恢复：Gaussian裕量SOCP批已收口
 
 - dr_gaussian_margin/REPORT.md；公开evidence/gaussian_margin_v1。私有wzzt_gaussian_margin_stage/run_v1，protocol SHA 3599a32c62f6d33e517a25f07316a576d330a1df7fba1e366a4b509d512f2709; problem/源zip/价冻结/三求解/2000共享路径/8000选模/ended齐，所有任务完成。

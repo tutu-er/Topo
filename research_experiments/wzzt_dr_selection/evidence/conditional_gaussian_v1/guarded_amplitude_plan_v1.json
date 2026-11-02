@@ -1,0 +1,70 @@
+{
+  "status": "analytic_planning_only",
+  "created_utc": "2026-11-02T01:04:21.646335+00:00",
+  "source_price_freeze_sha256": "a8e53fa24a8ea2c7af27f7d44d51b245804df68a864e012d146cfc105b9fe501",
+  "alpha_brentq": 0.7632626037998562,
+  "alpha_used": 0.7632626037998562,
+  "target_all_day_bounds_probability": 0.95,
+  "cv": 0.09128709291752768,
+  "planned_evaluation_seed": 2026110204,
+  "new_random_stream_read": false,
+  "new_observations_generated": 0,
+  "formula": "max alpha in [0,1] with product_i P(-1<=alpha*u_i*(1+gamma*Z_i)<=1)>=.95",
+  "root_method": "brentq on log product; at most downward nextafter rounding to retain computed feasibility",
+  "roles": "Implementation derating diagnostic on the already frozen direction; not a newly optimized 95 percent excitation policy",
+  "baseline_warning": "matched_single is mean-feasible but does not satisfy 95 percent all-day delivery bounds; protocol must report this rather than call it physically feasible",
+  "rows": [
+    {
+      "policy": "zero",
+      "cost": 0.0,
+      "mean_peak_absolute_kw": 0.0,
+      "all_day_bounds_probability": 1.0,
+      "log10_all_day_bounds_probability": 0.0,
+      "mean_domain_feasible": true,
+      "physical_95_feasible": true,
+      "mean_net_energy_per_resource_kwh": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "policy": "guarded_continuous",
+      "cost": 47.20046320767214,
+      "mean_peak_absolute_kw": 0.7632626037998562,
+      "all_day_bounds_probability": 0.9500000000000007,
+      "log10_all_day_bounds_probability": -0.02227639471115191,
+      "mean_domain_feasible": true,
+      "physical_95_feasible": true,
+      "mean_net_energy_per_resource_kwh": [
+        3.030699345400636,
+        -0.26221960077974676
+      ]
+    },
+    {
+      "policy": "matched_rotation",
+      "cost": 47.20046320767215,
+      "mean_peak_absolute_kw": 0.7011929062295089,
+      "all_day_bounds_probability": 0.9997082632642702,
+      "log10_all_day_bounds_probability": -0.00012671813956302032,
+      "mean_domain_feasible": true,
+      "physical_95_feasible": true,
+      "mean_net_energy_per_resource_kwh": [
+        -4.440892098500626e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "policy": "matched_single",
+      "cost": 47.20046320767216,
+      "mean_peak_absolute_kw": 0.9916365178295775,
+      "all_day_bounds_probability": 1.1546792800576543e-26,
+      "log10_all_day_bounds_probability": -25.937538627237934,
+      "mean_domain_feasible": true,
+      "physical_95_feasible": false,
+      "mean_net_energy_per_resource_kwh": [
+        23.799276427909863,
+        0.0
+      ]
+    }
+  ]
+}

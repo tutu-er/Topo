@@ -1,0 +1,149 @@
+{
+  "status": "complete",
+  "created_utc": "2026-11-02T01:03:27.363700+00:00",
+  "source_hashes": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\run_v1\\protocol.json": "76c4908d3358442b8ac76f098750135b747c43ba8720db8592b7b5810cafdc31",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\run_v1\\price_freeze.json": "a8e53fa24a8ea2c7af27f7d44d51b245804df68a864e012d146cfc105b9fe501",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\run_v1\\predictions_frozen.json": "8a6c1ebc0721b4e779e41a302e5b9c3735daac45b5f1366c3fdada20ede077d2",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\audit_v1.json": "aae4bc80eca79f4e308550ffd4fe935e160882115a8a0a51a6bf9389fcc5d81f"
+  },
+  "formula": "p_i=Phi((1-u_i)/(gamma*abs(u_i)))-Phi((-1-u_i)/(gamma*abs(u_i))); p_all=product_i(p_i); u_i=0 has p_i=1",
+  "calculation": "Direct Gaussian marginal tails and log product, no simulation or response redraw",
+  "response": "U_i=u_i*(1+gamma*Z_i), independent across all 2x96 resource-slot factors",
+  "bounds": "exact delivered increments [-1,1] kW; observed producer uses 1e-10 numerical allowance",
+  "scope": "Conditional stated independent Gaussian response only; 95% excitation requirement did not include these capacity limits",
+  "rows": [
+    {
+      "policy": "zero",
+      "controls": 192,
+      "cv": 0.09128709291752768,
+      "planned_cost": 0.0,
+      "mean_min_kw": 0.0,
+      "mean_max_kw": 0.0,
+      "mean_peak_absolute_kw": 0.0,
+      "mean_rms_kw": 0.0,
+      "peak_price": 0.0,
+      "minimum_mean_headroom_kw": 1.0,
+      "headroom_le_counts": {
+        "1e-08": 0,
+        "0.01": 0,
+        "0.05": 0,
+        "0.1": 0
+      },
+      "all_192_slots_within_exact_bounds_probability": 1.0,
+      "log10_all_within_probability": 0.0,
+      "any_slot_violation_probability": -0.0,
+      "expected_violating_coordinates_per_path": 0.0,
+      "expected_all_safe_paths_in_2000": 2000.0,
+      "probability_of_zero_all_safe_paths_in_2000": 0.0,
+      "observed_paths": 2000,
+      "observed_violation_paths": 0,
+      "observed_safe_paths": 2000,
+      "event_and_resource_valid": 545,
+      "per_resource": [
+        {
+          "resource_index": 0,
+          "all_96_slots_within_bounds_probability": 1.0,
+          "expected_violating_slots": 0.0,
+          "cost": 0.0,
+          "mean_net_energy_kwh": 0.0
+        },
+        {
+          "resource_index": 1,
+          "all_96_slots_within_bounds_probability": 1.0,
+          "expected_violating_slots": 0.0,
+          "cost": 0.0,
+          "mean_net_energy_kwh": 0.0
+        }
+      ]
+    },
+    {
+      "policy": "continuous",
+      "controls": 192,
+      "cv": 0.09128709291752768,
+      "planned_cost": 81.02112917030036,
+      "mean_min_kw": -1.0,
+      "mean_max_kw": 1.0,
+      "mean_peak_absolute_kw": 1.0,
+      "mean_rms_kw": 0.9186784505603481,
+      "peak_price": 2.0,
+      "minimum_mean_headroom_kw": 0.0,
+      "headroom_le_counts": {
+        "1e-08": 138,
+        "0.01": 151,
+        "0.05": 152,
+        "0.1": 154
+      },
+      "all_192_slots_within_exact_bounds_probability": 1.4147099032208998e-46,
+      "log10_all_within_probability": -45.84933260632119,
+      "any_slot_violation_probability": 1.0,
+      "expected_violating_coordinates_per_path": 76.31242762041666,
+      "expected_all_safe_paths_in_2000": 2.8294198064417997e-43,
+      "probability_of_zero_all_safe_paths_in_2000": 1.0,
+      "observed_paths": 2000,
+      "observed_violation_paths": 2000,
+      "observed_safe_paths": 0,
+      "event_and_resource_valid": 0,
+      "per_resource": [
+        {
+          "resource_index": 0,
+          "all_96_slots_within_bounds_probability": 5.048839437196074e-29,
+          "expected_violating_slots": 46.999987160797005,
+          "cost": 47.09280499047614,
+          "mean_net_energy_kwh": 3.9707164091526095
+        },
+        {
+          "resource_index": 1,
+          "all_96_slots_within_bounds_probability": 2.8020497003695043e-18,
+          "expected_violating_slots": 29.312440459619655,
+          "cost": 33.92832417982422,
+          "mean_net_energy_kwh": -0.34355096067107527
+        }
+      ]
+    },
+    {
+      "policy": "rotation",
+      "controls": 192,
+      "cv": 0.09128709291752768,
+      "planned_cost": 81.02112917030036,
+      "mean_min_kw": -0.9186784505603481,
+      "mean_max_kw": 0.9186784505603481,
+      "mean_peak_absolute_kw": 0.9186784505603481,
+      "mean_rms_kw": 0.9186784505603481,
+      "peak_price": 1.8373569011206963,
+      "minimum_mean_headroom_kw": 0.08132154943965186,
+      "headroom_le_counts": {
+        "1e-08": 0,
+        "0.01": 0,
+        "0.05": 0,
+        "0.1": 192
+      },
+      "all_192_slots_within_exact_bounds_probability": 7.142022680535672e-16,
+      "log10_all_within_probability": -15.146178774975516,
+      "any_slot_violation_probability": 0.9999999999999993,
+      "expected_violating_coordinates_per_path": 31.89131857082579,
+      "expected_all_safe_paths_in_2000": 1.4284045361071343e-12,
+      "probability_of_zero_all_safe_paths_in_2000": 0.9999999999985716,
+      "observed_paths": 2000,
+      "observed_violation_paths": 2000,
+      "observed_safe_paths": 0,
+      "event_and_resource_valid": 0,
+      "per_resource": [
+        {
+          "resource_index": 0,
+          "all_96_slots_within_bounds_probability": 2.6724563009590394e-08,
+          "expected_violating_slots": 15.945659285412894,
+          "cost": 40.51056458515018,
+          "mean_net_energy_kwh": 4.440892098500626e-16
+        },
+        {
+          "resource_index": 1,
+          "all_96_slots_within_bounds_probability": 2.6724563009590394e-08,
+          "expected_violating_slots": 15.945659285412894,
+          "cost": 40.51056458515018,
+          "mean_net_energy_kwh": -4.440892098500626e-16
+        }
+      ]
+    }
+  ]
+}

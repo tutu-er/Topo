@@ -1,0 +1,100 @@
+{
+  "id": "conditional_gaussian_delivery_diagnostic_v1",
+  "created_utc": "2026-11-02T01:05:37.919595+00:00",
+  "status": "locked_before_prepare",
+  "inputs": {
+    "history": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_targeted_pricing_v1\\run_v1\\history.pkl",
+      "sha256": "7ada36398650968ddb35d195e264e3e52bcc2b0544439731315d7c7131ebf5a2"
+    },
+    "pool": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_newday_weighted_v1\\run_v2\\cases\\paper15_b2_v0005\\frozen_pool.json",
+      "sha256": "3747c224d0df2b6a8d469481ce9bf42edf1bda50fe8e7d4678c3a72b171c389c"
+    },
+    "resources": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_newday_weighted_v1\\run_v2\\cases\\paper15_b2_v0005\\zero_plan.json",
+      "sha256": "ade6e58333f891b7c81f797e02f4e520e9d417d95b692642da55c53dab3831bd"
+    },
+    "historical_fit": {
+      "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_targeted_pricing_v1\\run_v1\\baseline_fit\\result.json",
+      "sha256": "cff8f0fbaae30d5cf1b9180c7c80b590f47f4fe947dab8f14d38e873727c0422"
+    }
+  },
+  "case": "paper15_b2_v0005",
+  "history_rows": [
+    288,
+    288
+  ],
+  "slots": 96,
+  "source_sha256": {
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\src\\conditional_integral.py": "080b5b59195a3301e41bca31331a8ba1de09c992503793f6a990b8a79fc72e57",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\src\\delivery_check.py": "d2c44099c5b32c24e7ffb78305c8a87ae5dbb509c66968b2464fe7cd969ee2e7",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\src\\problem.py": "ce0619eb0ae267738e84e0e59a7bc22f211da8982f4581fcbd2ba8aa2ce0b7eb",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\src\\runner.py": "28304f005d59c695db4abe4b879cc1c1f9528cdfaaed408aacd4f29976cfd4dd",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\src\\test_conditional_integral.py": "3fbb503e4d25bd71a239371301116b956cbb606dc934be0d0f7112e9c5c2257f",
+    "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\src\\test_problem.py": "6203cf36c1495bb5a8d355edf1904e0e6a8e783d28c064c575f70963c7eb55f8",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_frozen_distance\\frozen_pool.py": "706e6194c716f438d8824e2d12d5100b0939e1a781ff4ec571256a0dadf9fef9",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_newday_weighted\\weighted_selection.py": "7320a8a888a727361a523de51343b7ac0bbbab01091800d73a6a0f2fc9e22828",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_pool_v2\\selection.py": "43cd2d14984808861caed734f185a600c74b0071119a363b431119efe6cb743d",
+    "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo\\research_experiments\\wzzt_dr_selection\\dr_pool_v2\\observations.py": "414f7b7db05bb7b9b33db86f28ad4f65dfd5f88c7318ed6d064e5beadd6012f0"
+  },
+  "voltage_predictor": "reuse historical_fit.fronts.raw ordered non-tree RX, all training, no refit",
+  "data_law": "Gaussian [P,Q,e0] sample mean/covariance from three training days only; rank <= 2; no calibrated population claim",
+  "response": "U=u*(1+sqrt(.025/3)*Z); independent resource-slot Gaussian in main case; shared multipliers across policies",
+  "cost": "prepaid .25*sum(u^2/.5), bidirectional mean-volume contract",
+  "control_domain": "same resource means [-1,1] kW; no budget cap, no energy equality; no clipping",
+  "rule": {
+    "historical_fraction": 0.03,
+    "new_fraction": 0.03,
+    "new_weight": 2,
+    "epsilon": 1e-12,
+    "history_gate": true
+  },
+  "probability_target": 0.95,
+  "integration_samples": 128,
+  "integration_seed": 2026110201,
+  "qualification_samples": 0,
+  "qualification_seed": 2026110202,
+  "evaluation_paths": 2000,
+  "evaluation_seed": 2026110204,
+  "optimizer": {
+    "method": "analytic maximal radial derating; no new price optimization",
+    "alpha": 0.7632626037998552,
+    "component_probability": 0.95
+  },
+  "policy_selection": "all four prelocked policies reported, no choice on new evaluation",
+  "comparisons": [
+    "zero",
+    "selected_continuous_quote",
+    "same_cost_opposed_6h_rotation",
+    "same_cost_single_resource_0_if_feasible"
+  ],
+  "scopes": [
+    "no topology prior",
+    "no global optimality",
+    "no new AC",
+    "no new RNJ/W search",
+    "Gaussian parameter estimation uncertainty not certified"
+  ],
+  "truth_gate": "read existing same-case truth only after all new selection results frozen",
+  "environment": {
+    "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:05:56) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "parent_protocol": {
+    "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\run_v1\\protocol.json",
+    "sha256": "76c4908d3358442b8ac76f098750135b747c43ba8720db8592b7b5810cafdc31"
+  },
+  "parent_price": {
+    "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\run_v1\\price_freeze.json",
+    "sha256": "a8e53fa24a8ea2c7af27f7d44d51b245804df68a864e012d146cfc105b9fe501"
+  },
+  "parent_ended": {
+    "path": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_conditional_dr_stage\\run_v1\\ended.json",
+    "sha256": "4eb1a4f972ee854d03f316d6f95bbaa9b7e9d9091cdea6bee0867fdc7ec3507e"
+  },
+  "main_excitation_requirement_unchanged": 0.95,
+  "interpretation": "follow-up execution-capability diagnostic; component safety95 is separate from excitation95"
+}
