@@ -1,0 +1,33 @@
+{
+  "new_tests": {
+    "command": "python -B test_refinement.py -v",
+    "cases": 4,
+    "passed": 4,
+    "seconds": 5.027,
+    "scope": "24 random exact shortfall versus quadrature and coefficient/threshold derivatives; zero atom; signed-weight constant; real device-chain directional derivative"
+  },
+  "regression_tests": {
+    "command": "python -B -m pytest dr_heterogeneous_pilot/test_pilot.py dr_heterogeneous_pilot/test_repair.py -q -p no:cacheprovider",
+    "cases": 12,
+    "passed": 12,
+    "seconds": 2.52
+  },
+  "postprocess_checks": [
+    {
+      "status": "failed",
+      "reason": "read_text used Windows GBK for UTF-8 exporter; no experiment affected"
+    },
+    {
+      "status": "passed",
+      "reason": "AST parsed all scripts with explicit UTF-8"
+    }
+  ],
+  "tests_used_for_actual_claims": false,
+  "cost_branch_test": {
+    "cases": 1,
+    "passed": 1,
+    "seconds": 0.405,
+    "scope": "known feasible synthetic arithmetic problem; hard probability cost stage reached, cost decreased, target preserved; not physical evidence"
+  },
+  "total_different_tests": 17
+}

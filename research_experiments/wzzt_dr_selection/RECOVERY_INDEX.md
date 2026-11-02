@@ -1,3 +1,12 @@
+## 最新恢复：概率可行化与15页算法文档已完成，2026-11-03
+
+- 读dr_probability_refinement/{README,REPORT,PLAN}.md、algorithm/main.tex/main.pdf、evidence/probability_refinement_v1。源码复用原设备控制、条件积分、AC与冻结选择；新的tail.py只作可行化初值，不是新辨识器。模型含方差/相关性/95%事件，但0/3实际条件未找到95可行点。
+- 私有C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_probability_refinement_stage/run_v1已结束。protocol/source_snapshot、3例pool/problem/solver_private/plans/price_receipt、price_freeze、actual576、observations_frozen、scores、predictions_frozen、truth_private、scored_private、summary、audit25240、policy_probability_summary与ended/complete锁齐。optimize/observe/evaluate勿重跑；全部未决/迭代限/时间限保留。源码实际运行自private/code，快照/hash未回写。
+- 旧wzzt_heterogeneous_pilot_stage/run_v2及其18背景保留。新批72背景、576记录、360不同观察、55296AC点全完成。17不同测试；cost分支用明确合成可行算术问题覆盖，不当作第4个物理算例。后处理初次AST遇Windows GBK解码失败已以UTF-8修复，仅检查命令失败，无实验重跑。
+- 三例95规划均未达。paper新主21/24、失配20/24，旧均20/24；同费轮换均3/24。新价88.2076更贵，不建议替换旧53.3829。flynn新旧均0/24；pengwah均24/24零价但历史仍有争议。不能把0/3改成只测试两个争议例。
+- 4096同流独立工作概率用于新旧比较，不复用旧128点：paper .922895/.933590，flynn .341636/.361234。价格冻结后才读新实际路径，无统计真实性/恢复保证。完整历史、原噪声、全库存、w2/common3%/.16及R/X固定，0新fit/搜索。
+- 文档15页全部目视核验，数学别名已统一，源包包含main/results/figures/BUILD。原始P/Q/V、RX/u/报价/AC只私有，公开白名单无pickle/原轨迹。下一阶段应先用现有数据检查参考预测失配与阈值可达，不自动再扩计算。
+
 ## 最新恢复：异质资源实际测试结束，2026-11-02
 
 - 读dr_heterogeneous_pilot/{REPORT,MODEL,README,PLAN,REPAIR_PLAN}.md与evidence/heterogeneous_pilot_v1。原17网络库存被三例小批调用；不再称资源执行尚未接通，不宣称全17网络已测试。
