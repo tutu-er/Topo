@@ -1,0 +1,811 @@
+{
+  "scope": "frozen affine Gaussian method diagnosis; prior AC results reused only for comparison",
+  "audit": {
+    "checks": 183,
+    "failures": [],
+    "passed": true,
+    "audit_scope": "Arithmetic and provenance only, not certified probability integration.",
+    "initial_audit": "171 checks;8 failures against an unplanned spectral D-error target 1e-4 retained in audit_initial.json. All integrations remain approximate; no experiment rerun.",
+    "zero_hash_issue": "v1 raw byte hash distinguishes +0 and -0. 11 computed plans but only9 mathematically distinct;2 duplicate computations retained. Delivery normalizes signed zero for future runs.",
+    "main_records": 12,
+    "main_compute_calls": 11,
+    "mathematically_distinct_plans": 9,
+    "quadratic_records": 6,
+    "quadratic_compute_calls": 5,
+    "quadratic_probability_converged": 2,
+    "quadratic_probability_unresolved": 4
+  },
+  "random_draws": 0,
+  "new_AC": 0,
+  "new_fits": 0,
+  "new_W": 0,
+  "strict_95_passes": 0,
+  "rows": [
+    {
+      "case": "paper15_b2_v0005",
+      "policy": "zero",
+      "fee": 0.0,
+      "threshold": 9.179191188409,
+      "mean_D": 0.9609723105224361,
+      "sd_interval": [
+        11.971410832242789,
+        13.65286240203991
+      ],
+      "cantelli_q05_lower": -58.55047519003551,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -51.22119771883203,
+      "gaussian_approx_q05_interval": [
+        -21.4959879297423,
+        -18.73024621661826
+      ],
+      "sphere_p": 0.26763546269516336,
+      "sphere_grid_spread": 8.587753983491098e-07,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": 0.0,
+      "nominal_mean_D": 19.680869389993696,
+      "actual_main_recovery": 3,
+      "actual_main_exclusions": 3,
+      "actual_days": 24,
+      "sphere_dimension": 2,
+      "sphere_expected_spectral_D_error": 0.00010910616852018063,
+      "sphere_discarded_positive_trace": 3.2071191740507666e-05,
+      "sphere_min_eigenvalue": -3.8516346736100894e-06,
+      "seconds": 23.73257300001569,
+      "canonical_hash": "44131189679a9336715bc3f89899cbfbaa63687879d531a640d6a7b27bc7ef0a",
+      "quadratic": {
+        "mean": 0.9609723105224361,
+        "quadratic_variance": 124.9653340955021,
+        "variance_numerical_error": 2.8421709430404007e-13,
+        "dropped_covariance_trace": 3.2071191740507666e-05,
+        "remainder_variance_upper": 61.43531767353289,
+        "approximate_probability": {
+          "p": 0.23054644244333883,
+          "error": 7.863740663283851e-05,
+          "tail_bound": 7.863619168386992e-05,
+          "interval_upper": 4096.0,
+          "status": "numerically_unresolved",
+          "messages": []
+        },
+        "corrected_bounds": [
+          {
+            "remainder_risk": 0.01,
+            "eta": 77.98779679975424,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 8.278601341699435e-05,
+              "tail_bound": 7.863619168386992e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.025,
+            "eta": 48.94872203916853,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 8.459096702150023e-05,
+              "tail_bound": 7.863619168386992e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The integral is probably divergent, or slowly convergent."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.04,
+            "eta": 38.398536745099925,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 8.014024847659458e-05,
+              "tail_bound": 7.863619168386992e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          }
+        ],
+        "best_corrected_lower": 0.0,
+        "label": "quadratic projection is approximate; remainder-corrected bound is analytically sufficient under the Gaussian law"
+      }
+    },
+    {
+      "case": "paper15_b2_v0005",
+      "policy": "rotation",
+      "fee": 88.20761550682278,
+      "threshold": 9.179191188409,
+      "mean_D": 1.8743718887282057,
+      "sd_interval": [
+        11.803303183937059,
+        13.477524809313397
+      ],
+      "cantelli_q05_lower": -56.87279676413119,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -49.57503389002531,
+      "gaussian_approx_q05_interval": [
+        -20.294183676199385,
+        -17.540334163378525
+      ],
+      "sphere_p": 0.2893051499298259,
+      "sphere_grid_spread": 0.0015159898713916209,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": 0.0,
+      "nominal_mean_D": 20.05894169198031,
+      "actual_main_recovery": 3,
+      "actual_main_exclusions": 3,
+      "actual_days": 24,
+      "sphere_dimension": 1879,
+      "sphere_expected_spectral_D_error": 0.0008601659694956551,
+      "sphere_discarded_positive_trace": 0.007964521251904949,
+      "sphere_min_eigenvalue": -6.001209965572142e-08,
+      "seconds": 19.254095400014194,
+      "canonical_hash": "bbf951073073fbb862b386d6fe7b550a466523ba43c353ffbf61834aad8d2f1d"
+    },
+    {
+      "case": "paper15_b2_v0005",
+      "policy": "old_diagnostic",
+      "fee": 53.382911843478354,
+      "threshold": 9.179191188409,
+      "mean_D": 46.49772502824263,
+      "sd_interval": [
+        23.26462877974722,
+        24.13387398568743
+      ],
+      "cantelli_q05_lower": -58.69939279151407,
+      "cantelli_success_lower": 0.7051091554101627,
+      "cantelli_optimistic_q05": -54.91044078166348,
+      "gaussian_approx_q05_interval": [
+        6.801034870494874,
+        8.230816000195809
+      ],
+      "sphere_p": 0.9341754853457769,
+      "sphere_grid_spread": 0.0020763280561247877,
+      "holder_success_lower": 0.005341175490235828,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": 0.0,
+      "nominal_mean_D": 85.00777770706594,
+      "actual_main_recovery": 20,
+      "actual_main_exclusions": 20,
+      "actual_days": 24,
+      "sphere_dimension": 1744,
+      "sphere_expected_spectral_D_error": 0.00993156986400428,
+      "sphere_discarded_positive_trace": 0.18776201641505083,
+      "sphere_min_eigenvalue": -2.8340075724193723e-08,
+      "seconds": 55.13818530002027,
+      "canonical_hash": "1f3d0a7b7490d6f2d91e05bdfd630479dc81f52785f6eedfa14aa6c8210b07d9"
+    },
+    {
+      "case": "paper15_b2_v0005",
+      "policy": "candidate",
+      "fee": 88.20761550682279,
+      "threshold": 9.179191188409,
+      "mean_D": 47.88949494366683,
+      "sd_interval": [
+        23.08963661134763,
+        23.960490337951523
+      ],
+      "cantelli_q05_lower": -56.55186107714658,
+      "cantelli_success_lower": 0.7230014882612313,
+      "cantelli_optimistic_q05": -52.7558976882744,
+      "gaussian_approx_q05_interval": [
+        8.477995507751565,
+        9.910422418500183
+      ],
+      "sphere_p": 0.9458174459351902,
+      "sphere_grid_spread": 0.00250252220685665,
+      "holder_success_lower": 0.005763385678653865,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": 0.0,
+      "nominal_mean_D": 86.80697752385977,
+      "actual_main_recovery": 21,
+      "actual_main_exclusions": 21,
+      "actual_days": 24,
+      "sphere_dimension": 1847,
+      "sphere_expected_spectral_D_error": 0.00364364351979551,
+      "sphere_discarded_positive_trace": 0.059242332825507865,
+      "sphere_min_eigenvalue": -5.201767678767977e-09,
+      "seconds": 57.15106550001656,
+      "canonical_hash": "cc42175103c947c9f1522b5571e5df82fc22145505feabc11667d632280d1ee2",
+      "quadratic": {
+        "mean": 47.88949494366683,
+        "quadratic_variance": 453.62391436472427,
+        "variance_numerical_error": 2.259764642076334e-08,
+        "dropped_covariance_trace": 0.059242332825507865,
+        "remainder_variance_upper": 120.48118287034396,
+        "approximate_probability": {
+          "p": 0.9410833461166122,
+          "error": 2.1321060120695995e-09,
+          "tail_bound": 2.0201502918004497e-09,
+          "interval_upper": 32.0,
+          "status": "converged",
+          "messages": []
+        },
+        "corrected_bounds": [
+          {
+            "remainder_risk": 0.01,
+            "eta": 109.21372214224753,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 2.744643341590686e-09,
+              "tail_bound": 2.0201502918004497e-09,
+              "interval_upper": 32.0,
+              "status": "converged",
+              "messages": []
+            }
+          },
+          {
+            "remainder_risk": 0.025,
+            "eta": 68.54754650564391,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0005775056074057705,
+              "error": 2.0201655977154693e-09,
+              "tail_bound": 2.0201502918004497e-09,
+              "interval_upper": 32.0,
+              "status": "converged",
+              "messages": []
+            }
+          },
+          {
+            "remainder_risk": 0.04,
+            "eta": 53.77311957556726,
+            "probability_lower": 0.19684977729709685,
+            "quadratic_evaluation": {
+              "p": 0.23684977931725026,
+              "error": 2.020153404042255e-09,
+              "tail_bound": 2.0201502918004497e-09,
+              "interval_upper": 32.0,
+              "status": "converged",
+              "messages": []
+            }
+          }
+        ],
+        "best_corrected_lower": 0.19684977729709685,
+        "label": "quadratic projection is approximate; remainder-corrected bound is analytically sufficient under the Gaussian law"
+      }
+    },
+    {
+      "case": "flynn16_b4_v0005",
+      "policy": "zero",
+      "fee": 0.0,
+      "threshold": 14.542805777814756,
+      "mean_D": -18.185950060364412,
+      "sd_interval": [
+        18.423269636016663,
+        19.880387942701287
+      ],
+      "cantelli_q05_lower": -104.84255206098379,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -98.49112061336243,
+      "gaussian_approx_q05_interval": [
+        -50.88627827311894,
+        -48.48953194147135
+      ],
+      "sphere_p": 0.0,
+      "sphere_grid_spread": 0.0,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": null,
+      "nominal_mean_D": 8.978082051543309,
+      "actual_main_recovery": 0,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 2,
+      "sphere_expected_spectral_D_error": 0.00012822365843106256,
+      "sphere_discarded_positive_trace": 5.615398241787765e-05,
+      "sphere_min_eigenvalue": -5.911729607330425e-06,
+      "seconds": 41.407791400008136,
+      "canonical_hash": "0d49a8f41aaa7d1b09ea8d95c3e6073ede92ef15f685717bea507b130bb4224a",
+      "quadratic": {
+        "mean": -18.185950060364412,
+        "quadratic_variance": 302.65453053012675,
+        "variance_numerical_error": 1.1937117960769683e-12,
+        "dropped_covariance_trace": 5.615398241787765e-05,
+        "remainder_variance_upper": 92.5752942221759,
+        "approximate_probability": {
+          "p": 0.0,
+          "error": 7.761187545725552e-05,
+          "tail_bound": 7.761175164058685e-05,
+          "interval_upper": 4096.0,
+          "status": "numerically_unresolved",
+          "messages": []
+        },
+        "corrected_bounds": [
+          {
+            "remainder_risk": 0.01,
+            "eta": 95.73376691635723,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 9.421596393971684e-05,
+              "tail_bound": 7.761175164058685e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The integral is probably divergent, or slowly convergent.",
+                "The integral is probably divergent, or slowly convergent."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.025,
+            "eta": 60.08690768099869,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 1.0765495733755515e-07,
+              "error": 7.859942641601819e-05,
+              "tail_bound": 7.761175164058685e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.04,
+            "eta": 47.13604842720931,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 8.052303217782174e-05,
+              "tail_bound": 7.761175164058685e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          }
+        ],
+        "best_corrected_lower": 0.0,
+        "label": "quadratic projection is approximate; remainder-corrected bound is analytically sufficient under the Gaussian law"
+      }
+    },
+    {
+      "case": "flynn16_b4_v0005",
+      "policy": "rotation",
+      "fee": 92.17729454146888,
+      "threshold": 14.542805777814756,
+      "mean_D": -16.248402968201,
+      "sd_interval": [
+        19.401031497354488,
+        20.755139096712398
+      ],
+      "cantelli_q05_lower": -106.71795684990042,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -100.81553866561882,
+      "gaussian_approx_q05_interval": [
+        -50.38756878931069,
+        -48.16025999322428
+      ],
+      "sphere_p": 0.018236856952630696,
+      "sphere_grid_spread": 0.0009645650856077888,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": null,
+      "nominal_mean_D": 14.187453357646163,
+      "actual_main_recovery": 0,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 2073,
+      "sphere_expected_spectral_D_error": 0.008412450937748029,
+      "sphere_discarded_positive_trace": 0.24111310141364575,
+      "sphere_min_eigenvalue": -6.876145965275087e-08,
+      "seconds": 52.54605880001327,
+      "canonical_hash": "ec953823e35a2c4d8b657fa92946670dd93378ded3dbf57e2ed80a68864e055f"
+    },
+    {
+      "case": "flynn16_b4_v0005",
+      "policy": "old_diagnostic",
+      "fee": 72.203887788572,
+      "threshold": 14.542805777814756,
+      "mean_D": 1.886802557422513,
+      "sd_interval": [
+        25.03580586146531,
+        26.076986613714194
+      ],
+      "cantelli_q05_lower": -111.78014684382059,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -107.24174516280803,
+      "gaussian_approx_q05_interval": [
+        -41.00602345411027,
+        -39.29343351746163
+      ],
+      "sphere_p": 0.35810141505154613,
+      "sphere_grid_spread": 0.0035753581617744,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": 0.198940437112165,
+      "nominal_mean_D": 37.634471885289614,
+      "actual_main_recovery": 0,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 1889,
+      "sphere_expected_spectral_D_error": 0.011425357411958737,
+      "sphere_discarded_positive_trace": 0.2717909585850296,
+      "sphere_min_eigenvalue": -7.9331735703833e-08,
+      "seconds": 51.13904760000878,
+      "canonical_hash": "5755705cb160a4c155368fa59f0dca9f33de192356802ca9d4110c46e69c6e7c"
+    },
+    {
+      "case": "flynn16_b4_v0005",
+      "policy": "candidate",
+      "fee": 92.17729454146887,
+      "threshold": 14.542805777814756,
+      "mean_D": 3.2051566923672468,
+      "sd_interval": [
+        25.49824274040698,
+        26.5155684187777
+      ],
+      "cantelli_q05_lower": -112.37352647562332,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -107.9391066509364,
+      "gaussian_approx_q05_interval": [
+        -40.40907219193917,
+        -38.73572036008022
+      ],
+      "sphere_p": 0.37907337756518555,
+      "sphere_grid_spread": 0.0038738884745388447,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": 0.18981655485138244,
+      "nominal_mean_D": 39.46100845411492,
+      "actual_main_recovery": 0,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 1912,
+      "sphere_expected_spectral_D_error": 0.00985785585013421,
+      "sphere_discarded_positive_trace": 0.240729161417163,
+      "sphere_min_eigenvalue": -6.952910779051162e-08,
+      "seconds": 31.499288999999408,
+      "canonical_hash": "0d0be203e10cd75e62f73d1b5774503e21eb35ea96d131a0c1f029b517dbb0a5",
+      "quadratic": {
+        "mean": 3.2051566923672468,
+        "quadratic_variance": 563.9324472455635,
+        "variance_numerical_error": 9.484210750088096e-08,
+        "dropped_covariance_trace": 0.240729161417163,
+        "remainder_variance_upper": 139.14292132531796,
+        "approximate_probability": {
+          "p": 0.4056874236350594,
+          "error": 4.51551578049576e-12,
+          "tail_bound": 7.061269909547433e-14,
+          "interval_upper": 128.0,
+          "status": "converged",
+          "messages": []
+        },
+        "corrected_bounds": [
+          {
+            "remainder_risk": 0.01,
+            "eta": 117.36758160244453,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 1.1423667576565763e-09,
+              "tail_bound": 7.061269909547433e-14,
+              "interval_upper": 128.0,
+              "status": "converged",
+              "messages": []
+            }
+          },
+          {
+            "remainder_risk": 0.025,
+            "eta": 73.66528308292447,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 5.484181107067536e-10,
+              "tail_bound": 7.061269909547433e-14,
+              "interval_upper": 128.0,
+              "status": "converged",
+              "messages": []
+            }
+          },
+          {
+            "remainder_risk": 0.04,
+            "eta": 57.7878024483336,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 2.540792027659912e-10,
+              "tail_bound": 7.061269909547433e-14,
+              "interval_upper": 128.0,
+              "status": "converged",
+              "messages": []
+            }
+          }
+        ],
+        "best_corrected_lower": 0.0,
+        "label": "quadratic projection is approximate; remainder-corrected bound is analytically sufficient under the Gaussian law"
+      }
+    },
+    {
+      "case": "pengwah18_b5_v0002",
+      "policy": "zero",
+      "fee": 0.0,
+      "threshold": 39.31418484350804,
+      "mean_D": -31.8826246516226,
+      "sd_interval": [
+        9.887316232239549,
+        10.283238860881532
+      ],
+      "cantelli_q05_lower": -76.7062236584955,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -74.98043693078412,
+      "gaussian_approx_q05_interval": [
+        -48.79704738875191,
+        -48.14581261703799
+      ],
+      "sphere_p": 0.0,
+      "sphere_grid_spread": 0.0,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": null,
+      "nominal_mean_D": -22.057029988593893,
+      "actual_main_recovery": 24,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 2,
+      "sphere_expected_spectral_D_error": 4.644792873820416e-05,
+      "sphere_discarded_positive_trace": 7.160210876371847e-06,
+      "sphere_min_eigenvalue": -8.830056266497272e-07,
+      "seconds": 11.345967300003394,
+      "canonical_hash": "82d4efcb58fc7064c33890e5e02e6d10dde3276430b5586a1fa41a425fc0c349",
+      "quadratic": {
+        "mean": -31.8826246516226,
+        "quadratic_variance": 92.93253964745625,
+        "variance_numerical_error": 1.4210854715202004e-14,
+        "dropped_covariance_trace": 7.160210876371847e-06,
+        "remainder_variance_upper": 12.812461822487862,
+        "approximate_probability": {
+          "p": 2.289572309521759e-06,
+          "error": 0.00010973278265167522,
+          "tail_bound": 9.150479325579957e-05,
+          "interval_upper": 4096.0,
+          "status": "numerically_unresolved",
+          "messages": [
+            "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+            "The integral is probably divergent, or slowly convergent."
+          ]
+        },
+        "corrected_bounds": [
+          {
+            "remainder_risk": 0.01,
+            "eta": 35.61507715036286,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 9.782191336890878e-05,
+              "tail_bound": 9.150479325579957e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.025,
+            "eta": 22.35365766663314,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 9.191906484822066e-05,
+              "tail_bound": 9.150479325579957e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.04,
+            "eta": 17.535651791128515,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 1.2359587586718845e-07,
+              "error": 9.593061530851326e-05,
+              "tail_bound": 9.150479325579957e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          }
+        ],
+        "best_corrected_lower": 0.0,
+        "label": "quadratic projection is approximate; remainder-corrected bound is analytically sufficient under the Gaussian law"
+      }
+    },
+    {
+      "case": "pengwah18_b5_v0002",
+      "policy": "rotation",
+      "fee": 0.0,
+      "threshold": 39.31418484350804,
+      "mean_D": -31.8826246516226,
+      "sd_interval": [
+        9.887316232239549,
+        10.283238860881532
+      ],
+      "cantelli_q05_lower": -76.7062236584955,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -74.98043693078412,
+      "gaussian_approx_q05_interval": [
+        -48.79704738875191,
+        -48.14581261703799
+      ],
+      "sphere_p": 0.0,
+      "sphere_grid_spread": 0.0,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": null,
+      "nominal_mean_D": -22.057029988593893,
+      "actual_main_recovery": 24,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 2,
+      "sphere_expected_spectral_D_error": 4.644792873820416e-05,
+      "sphere_discarded_positive_trace": 7.160210876371847e-06,
+      "sphere_min_eigenvalue": -8.830056266497272e-07,
+      "seconds": 14.284152599982917,
+      "canonical_hash": "82d4efcb58fc7064c33890e5e02e6d10dde3276430b5586a1fa41a425fc0c349"
+    },
+    {
+      "case": "pengwah18_b5_v0002",
+      "policy": "old_diagnostic",
+      "fee": 0.0,
+      "threshold": 39.31418484350804,
+      "mean_D": -31.8826246516226,
+      "sd_interval": [
+        9.887316232239549,
+        10.283238860881532
+      ],
+      "cantelli_q05_lower": -76.7062236584955,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -74.98043693078412,
+      "gaussian_approx_q05_interval": [
+        -48.79704738875191,
+        -48.14581261703799
+      ],
+      "sphere_p": 0.0,
+      "sphere_grid_spread": 0.0,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": null,
+      "nominal_mean_D": -22.057029988593893,
+      "actual_main_recovery": 24,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 2,
+      "sphere_expected_spectral_D_error": 4.644792873820416e-05,
+      "sphere_discarded_positive_trace": 7.160210876371847e-06,
+      "sphere_min_eigenvalue": -8.830056266497272e-07,
+      "seconds": 16.252097199991113,
+      "canonical_hash": "82d4efcb58fc7064c33890e5e02e6d10dde3276430b5586a1fa41a425fc0c349"
+    },
+    {
+      "case": "pengwah18_b5_v0002",
+      "policy": "candidate",
+      "fee": 0.0,
+      "threshold": 39.31418484350804,
+      "mean_D": -31.8826246516226,
+      "sd_interval": [
+        9.887316232239549,
+        10.283238860881532
+      ],
+      "cantelli_q05_lower": -76.7062236584955,
+      "cantelli_success_lower": 0.0,
+      "cantelli_optimistic_q05": -74.98043693078412,
+      "gaussian_approx_q05_interval": [
+        -48.79704738875191,
+        -48.14581261703799
+      ],
+      "sphere_p": 0.0,
+      "sphere_grid_spread": 0.0,
+      "holder_success_lower": 0.0,
+      "holder_quad_unresolved": false,
+      "nominal_alpha": null,
+      "nominal_mean_D": -22.057029988593893,
+      "actual_main_recovery": 24,
+      "actual_main_exclusions": 0,
+      "actual_days": 24,
+      "sphere_dimension": 2,
+      "sphere_expected_spectral_D_error": 4.644792873820416e-05,
+      "sphere_discarded_positive_trace": 7.160210876371847e-06,
+      "sphere_min_eigenvalue": -8.830056266497272e-07,
+      "seconds": 1.479999627918005e-05,
+      "canonical_hash": "82d4efcb58fc7064c33890e5e02e6d10dde3276430b5586a1fa41a425fc0c349",
+      "quadratic": {
+        "mean": -31.8826246516226,
+        "quadratic_variance": 92.93253964745625,
+        "variance_numerical_error": 1.4210854715202004e-14,
+        "dropped_covariance_trace": 7.160210876371847e-06,
+        "remainder_variance_upper": 12.812461822487862,
+        "approximate_probability": {
+          "p": 2.289572309521759e-06,
+          "error": 0.00010973278265167522,
+          "tail_bound": 9.150479325579957e-05,
+          "interval_upper": 4096.0,
+          "status": "numerically_unresolved",
+          "messages": [
+            "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+            "The integral is probably divergent, or slowly convergent."
+          ]
+        },
+        "corrected_bounds": [
+          {
+            "remainder_risk": 0.01,
+            "eta": 35.61507715036286,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 9.782191336890878e-05,
+              "tail_bound": 9.150479325579957e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.025,
+            "eta": 22.35365766663314,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 0.0,
+              "error": 9.191906484822066e-05,
+              "tail_bound": 9.150479325579957e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          },
+          {
+            "remainder_risk": 0.04,
+            "eta": 17.535651791128515,
+            "probability_lower": 0.0,
+            "quadratic_evaluation": {
+              "p": 1.2359587586718845e-07,
+              "error": 9.593061530851326e-05,
+              "tail_bound": 9.150479325579957e-05,
+              "interval_upper": 4096.0,
+              "status": "numerically_unresolved",
+              "messages": [
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used.",
+                "The maximum number of subdivisions (300) has been achieved.\n  If increasing the limit yields no improvement it is advised to analyze \n  the integrand in order to determine the difficulties.  If the position of a \n  local difficulty can be determined (singularity, discontinuity) one will \n  probably gain from splitting up the interval and calling the integrator \n  on the subranges.  Perhaps a special-purpose integrator should be used."
+              ]
+            }
+          }
+        ],
+        "best_corrected_lower": 0.0,
+        "label": "quadratic projection is approximate; remainder-corrected bound is analytically sufficient under the Gaussian law"
+      }
+    }
+  ]
+}

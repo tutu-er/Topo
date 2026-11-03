@@ -1,3 +1,11 @@
+## 最新恢复：共同误差方法比较已结束，2026-11-03
+
+- 先读dr_joint_loss_methods/REPORT.md、MODEL.md、LITERATURE.md与evidence/joint_loss_methods_v1。不是新生产报价器，原辨识/设备代码未改。
+- 私有C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_joint_loss_methods_stage：code为实际运行版本，run_v1含12记录、parts/checkpoint/summary/protocol/source_snapshot/ended，quadratic_v1含6记录与协议/hash/source_snapshot/complete锁。两批结束无待续worker，不重跑。主结果9数学计划、11计算，二阶5计算；保留2次signed-zero重复。
+- audit_initial.json保存171项中8个未预锁谱精度门槛失败；audit.json为修正解释后的183项算术/来源核验，不是积分认证。delivery仅修正缓存有符号零及追加回归，不能据此更新旧运行protocol。public明确无轨迹。
+- 概率为控制前仿射Gaussian；sphere方向积分保留原L1，quadratic是二阶近似，2/6普通CDF达容差、4/6未决。严格95%可行报价0；零新增AC/参数拟合/W/部署。此前原控制后4096工作模型概率和576AC结果仅作已有对照，不能重复作独立分母。
+- 下一项若继续：先核验原设备控制后的联合概率与梯度，二阶近似只产生候选，不直接作为95%认证。需另锁小优化/未看实际路径。全部数学、数值、设备边界见MODEL/REPORT，不自动增预算/噪声/网络。
+
 ## 最新完成：无抽样SOCP损失排除条件的固定报价筛查，2026-11-03
 
 入口dr_socp_loss_screen/{README,MODEL,REPORT,PLAN}.md与evidence/socp_loss_screen_v1。复用probability_refinement的3例×4冻结报价，12/12完成、失败0；两符号×两行风险分配共48/48个界，0通过。pengwah四价均零，合计9个算例＋名义计划组合，不作为独立随机实验。抽样/新报价优化/AC/参数拟合/W搜索全部0。8项不同测试、338项确定性重算通过。

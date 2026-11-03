@@ -1,0 +1,54 @@
+{
+  "id": "joint_loss_quadratic_v1",
+  "policies": [
+    "zero",
+    "candidate"
+  ],
+  "expected": 6,
+  "purpose": "Second-Hermite projection, deterministic CF inversion, and variance-remainder bound. No new quote, AC, fit or draws.",
+  "cdf_tolerance": 1e-07,
+  "cdf_cutoff_max": 4096,
+  "remainder_risks": [
+    0.01,
+    0.025,
+    0.04
+  ],
+  "tests_passed": 6,
+  "cases": [
+    "paper15_b2_v0005",
+    "flynn16_b4_v0005",
+    "pengwah18_b5_v0002"
+  ],
+  "inputs_sha256": [
+    {
+      "file": "summary.json",
+      "sha256": "680561fad9d4fd770d47fcc5a652971cc4a1c0ceaf1759bdb5518827d43d30be"
+    },
+    {
+      "file": "protocol.json",
+      "sha256": "1bf9e42fc5e95fa3a85076f61aa725e07300e6af62fe2f1bab549e3a7bae6f0d"
+    }
+  ],
+  "source_sha256": [
+    {
+      "file": "code/quadratic.py",
+      "sha256": "1a1b89246134cff3f14deda1f205b0600db42af726b0d8976c0efa778097f426"
+    },
+    {
+      "file": "code/quadratic_run.py",
+      "sha256": "2deb36c81052d15c707a05f6ccdccca3eb7cae667e0d84e6cece95059a23ddcc"
+    },
+    {
+      "file": "code/test_quadratic.py",
+      "sha256": "cbfface7c8c922c3b202aa9aad9d8548e1620db2e619986a8c3deac460a13fc0"
+    },
+    {
+      "file": "code/kernel.py",
+      "sha256": "8cbf2c060e9e3836dd1bd2a2a7fb0449bfbd4ee9349905353f790f735fa3092b"
+    },
+    {
+      "file": "code/run.py",
+      "sha256": "342a78ddb79298e9b0d334b5e81bb590abbbc25d580512c6aafbcaef6f17e37a"
+    }
+  ]
+}
