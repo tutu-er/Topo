@@ -1,3 +1,11 @@
+## 最新恢复：90%有界小批全部完成，2026-11-03
+
+- dr_p90_cost/REPORT.md与METHOD_REVIEW.md是结果/数学及文献入口；public evidence/p90_cost_v1仅标量。新源码cost_only.py/run.py使用原Probability、设备、observe和evaluate，不重写辨识器。
+- 私有C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_p90_stage：code为冻结执行版本，run_v1的prepare/optimize/qualify/observe/evaluate全部完成；protocol/source_snapshot、3例solver/plans/price_receipt、price_freeze、4096概率、360物理逐条、observations/predictions_frozen、truth_private、summary、audit5472与ended/complete锁齐。不重跑。audit_export.py按私有根读取；第一后处理字段错误单独留档，无物理失败。
+- 主3case各12新合成整段背景，共36，配对两law；去重观察204不是360独立样本。paper90价52.1695相对旧53.3829降2.2731%，主11/12、失配10/12，与旧逐路径同；同费轮换5/12。flynn无90起点保留92.1773诊断，均0/12；peng零价全12/12。
+- 名义MILP仅旧candidate射线：paper零价、flynn.18981655、peng无名义解零fallback；新工作概率26.98%/3.48%/0，不能称90概率MILP已经实施。只有连续原概率法进行了90降费；规划与实际恢复两种分母分开。
+- 下一项如继续是同目标/预算比较条件概率与损失差下分位数求解；后者未实现。原95%三例结论不改；不自动新抽路径/扩网络/强行调资源求正。原设备约束保留，轨迹/RX/u/报价私有。
+
 ## 最新恢复：共同误差方法比较已结束，2026-11-03
 
 - 先读dr_joint_loss_methods/REPORT.md、MODEL.md、LITERATURE.md与evidence/joint_loss_methods_v1。不是新生产报价器，原辨识/设备代码未改。
