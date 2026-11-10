@@ -1,3 +1,9 @@
+## 同报价新抽样与原 AC 配对核验完成，2026-11-10
+
+[执行／近似及对照报告](dr_continuous_independent/COMPARISON_REPORT.md)、[预锁方案](dr_continuous_independent/COMPARISON_PLAN.md)、[公开汇总](dr_continuous_independent/comparison_results.json)。四合同全部冻结。新条件32768抽样 current90 为64.1296%，与连续反演64.0538%相容；新完整独立模型8192为64.0503%；旧工作分布8192为91.1987%，与旧规划及4096核验相容。旧约90%和新约64%涉及分布／条件变化，旧版内层也已完整处理L1翻号。
+
+新增原AC64/64输出（同一封存自然日×16请求/量测路径×4合同），6144/6144槽收敛、0失败。无奖励／同费轮换／旧95合同／current90完整恢复各1／1／9／8，总错漏15／15／7／8。current90对同费轮换7好9同0差，平均绝对交付96.46对153.59kWh。370项配对、曲线hash、资源及先选后truth审计通过。自然日分母1、执行路径分母16；本轮无新报价、无新RNJ/W搜索。当前LaTeX第19节说明执行、近似、旧方法区别及抽样对照，内置编译通过。
+
 ## paper15 连续反演小核验完成，2026-11-10
 
 [报告](dr_continuous_independent/REPORT.md)、[事前方案及计算修正](dr_continuous_independent/PLAN.md)、[公开标量](dr_continuous_independent/results.json)。用户允许独立原始误差，本轮固定报价的 1440 项独立电压创新条件概率为 0.6405376493。均匀积分 46.17 秒，改同范围分段 Gauss 后 0.858 秒，结果差 1.67e-15；解析尾界与经验求积精度分开。六项内核检查通过。

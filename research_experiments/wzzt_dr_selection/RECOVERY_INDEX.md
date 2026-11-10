@@ -1,3 +1,10 @@
+## 冻结合同的新模型／AC 抽样，2026-11-10
+
+- 入口 [COMPARISON_REPORT.md](dr_continuous_independent/COMPARISON_REPORT.md)、[comparison_results.json](dr_continuous_independent/comparison_results.json)。sample_compare.py 的 load_policies 为两评价程序共用的唯一合同读取入口，复用旧4份冻结合同，未改价。
+- 私有 wzzt_dr_continuous_compare_v1/model_samples 完成32768新条件、8192新完整独立及8192旧工作模型路径，共196608策略输出，0失败/缺失；保留逐批断点与源/输入hash，不重跑。
+- 私有 wzzt_dr_comparison_v1/actual_run_v1 完成64原AC输出、16执行/量测路径，只有1自然曲线，保存政策冻结、观察、真值前选择、最终summary、source_snapshot及370项audit。曲线不变、当前合同相对同费轮换少7错漏，无新拟合或W搜索。
+- 当前打开main.tex第19节与以上新证据对应。旧90%背景概率、新预测条件概率和固定自然日AC执行概率分开报告。
+
 ## 连续反演的实际小核验，2026-11-10
 
 - 入口 [dr_continuous_independent/REPORT.md](dr_continuous_independent/REPORT.md) 和 [results.json](dr_continuous_independent/results.json)。内核为 continuous.py，频率求积修正为 gauss_frequency.py；run.py、repair.py、optimize_two.py 分别对应三个冻结阶段。
