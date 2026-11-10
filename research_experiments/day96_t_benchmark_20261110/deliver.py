@@ -41,6 +41,10 @@ def main():
     assert timing["complete"] and timing["returned"] == timing["planned"] == 144
     assert timing["protocol_sha256"] == sha(protocol_file)
     assert timing["native_analysis_receipt_sha256"] == sha(native_receipt)
+    stages = read(OUTPUT / "stage_effects/verification.json")
+    assert stages["passed"] and stages["planned_native_results"] == 144
+    assert stages["native_verification_sha256"] == sha(native_receipt)
+    assert stages["native_protocol_sha256"] == sha(protocol_file)
     # Unresolved or exceeded conservative caps remain reportable evidence;
     # they are not silently converted to a successful budget certificate.
     figures = read(DOCS / "figure_receipt.json")
@@ -55,6 +59,9 @@ def main():
     for file in (OUTPUT / "timing_uncertainty").iterdir():
         if file.is_file():
             shutil.copy2(file, DOCS / ("timing_"+file.name))
+    for file in (OUTPUT / "stage_effects").iterdir():
+        if file.is_file():
+            shutil.copy2(file, DOCS / ("stages_"+file.name))
     (DOCS / "bridge_export_summary.json").write_text(
         json.dumps({k:v for k,v in bridge.items() if k != "receipts"}, indent=2)+"\n", encoding="utf-8")
     environment = dict(python=sys.version, executable=sys.executable, numpy=np.__version__,
@@ -62,7 +69,7 @@ def main():
                        scope="recorded after the finite batch; numerical libraries not changed during it")
     (DOCS / "environment.json").write_text(json.dumps(environment, indent=2)+"\n", encoding="utf-8")
     files = {}
-    for top in ("source", "analysis_source", "analysis", "bridge_candidates", "compatibility_analysis", "timing_uncertainty", "recovery", "common", "networks"):
+    for top in ("source", "analysis_source", "analysis", "bridge_candidates", "compatibility_analysis", "timing_uncertainty", "stage_effects", "recovery", "common", "networks"):
         for file in (OUTPUT / top).rglob("*"):
             if file.is_file() and file.suffix not in {".pyc", ".npz"}:
                 files["run/"+file.relative_to(OUTPUT).as_posix()] = file

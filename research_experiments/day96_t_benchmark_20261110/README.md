@@ -39,8 +39,11 @@ D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_bench
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.bridge_candidates outputs/day96_t_benchmark_20261110
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.compare_rules outputs/day96_t_benchmark_20261110
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.timing_uncertainty outputs/day96_t_benchmark_20261110
+D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.stage_effects outputs/day96_t_benchmark_20261110
 ```
 
 确认PNG图形后，记录`docs/day96_t_benchmark_20261110/visual_review.json`，再运行`deliver.py`。归档入口会核对144条数值结果、144份桥接导出、对照与时间回执，以及图形引用的是同一版原生核验结果。重新生成原生核验回执后，须同步更新依赖它的桥接、对照、时间与图形回执。
 
 `deliver.py`将原生分析表复制到文档目录，将选模对照和时间核验表分别加`compatibility_`和`timing_`前缀复制，并全部纳入ZIP与哈希清单。时间区分成功尝试算法耗时、含基础设施中断代理扣账的操作耗时，以及宿主确认的保守上界；未知的中断终止时刻不写成精确值。保守预算未决或超限不会被改成通过，相关分母与归档回执字段继续保留。
+
+`stage_effects.py`只重放保存的T/E阶段端点和既有.24重拟合输出，不新增求解。T仅在可按冻结控制流无歧义定位时计算阶段前后变化；交错或非末尾轨迹保留`unresolved`，被拒绝T提案缺少完整权重时不补造F1。条件阶段变化与关闭模块的完整消融分别解释。阶段结果以`stages_`前缀复制到文档目录并纳入归档。
