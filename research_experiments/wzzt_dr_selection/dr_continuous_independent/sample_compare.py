@@ -82,13 +82,14 @@ def condition_means(problem, policies):
     return means
 
 
-def conditional_predictions(problem, policies):
+def conditional_predictions(problem, policies, *, policy_order=None, normalization_policy="current90"):
+    policy_order = POLICY_ORDER if policy_order is None else tuple(policy_order)
     means = condition_means(problem, policies)
-    baseline = IndependentResiduals(means["current90"]["C"].ravel(),
-                                    means["current90"]["F"].ravel(), problem["sigma"].ravel())
+    baseline = IndependentResiduals(means[normalization_policy]["C"].ravel(),
+                                    means[normalization_policy]["F"].ravel(), problem["sigma"].ravel())
     normalization = baseline.sum_mean, baseline.sum_sd
     results = {}
-    for name in POLICY_ORDER:
+    for name in policy_order:
         model = IndependentResiduals(means[name]["C"].ravel(), means[name]["F"].ravel(),
                                      problem["sigma"].ravel())
         results[name] = gauss_probability(model, problem["packet"]["threshold"],
@@ -120,8 +121,9 @@ def resource_valid(device, delivered):
     return valid, audit
 
 
-def sample_batch(problem, policies, means, mode, index, size):
-    spec = MODES[mode]
+def sample_batch(problem, policies, means, mode, index, size, *, policy_order=None, mode_spec=None):
+    policy_order = POLICY_ORDER if policy_order is None else tuple(policy_order)
+    spec = MODES[mode] if mode_spec is None else mode_spec
     seed = np.random.SeedSequence([spec["seed"], index])
     independent_seed, response_seed = seed.spawn(2)
     rng = np.random.default_rng(independent_seed)
@@ -140,7 +142,7 @@ def sample_batch(problem, policies, means, mode, index, size):
         multiplier = device.draw(child, size, stress=False)
     gaps, valid, energy = [], [], []
     audits = {}
-    for name in POLICY_ORDER:
+    for name in policy_order:
         policy = policies[name]
         if mode == "conditional":
             residual = {k: means[name][k] + voltage for k in ("C", "F")}
@@ -176,7 +178,8 @@ def sample_batch(problem, policies, means, mode, index, size):
     return dict(gap=np.asarray(gaps), valid=np.asarray(valid), energy=np.asarray(energy)), audits
 
 
-def aggregate_batches(folder, spec, threshold):
+def aggregate_batches(folder, spec, threshold, *, policy_order=None, main_policy="current90"):
+    policy_order = POLICY_ORDER if policy_order is None else tuple(policy_order)
     arrays = []
     for file in sorted(folder.glob("batch_*.npz")):
         with np.load(file, allow_pickle=False) as saved:
@@ -187,7 +190,7 @@ def aggregate_batches(folder, spec, threshold):
     completed = values["gap"].shape[1]
     policies = {}
     passed = values["gap"] > threshold
-    for i, name in enumerate(POLICY_ORDER):
+    for i, name in enumerate(policy_order):
         valid = values["valid"][i]
         successes = int(np.sum(passed[i] & valid))
         count = int(valid.sum())
@@ -204,13 +207,15 @@ def aggregate_batches(folder, spec, threshold):
                               sd_D=float(values["gap"][i, valid].std(ddof=1)) if count>1 else None,
                               mean_absolute_DR_kwh=float(values["energy"][i, valid].mean()) if count else None)
     paired = {}
-    main = POLICY_ORDER.index("current90")
-    for i, name in enumerate(POLICY_ORDER[:-1]):
+    main = policy_order.index(main_policy)
+    for i, name in enumerate(policy_order):
+        if name == main_policy:
+            continue
         valid = values["valid"][main] & values["valid"][i]
         difference = passed[main, valid].astype(float) - passed[i, valid].astype(float)
         n = difference.size
         paired[name] = dict(valid=n, requested=spec["samples"],
-                            current90_only=int(np.sum(difference>0)), comparator_only=int(np.sum(difference<0)),
+                            **{main_policy+"_only":int(np.sum(difference>0))}, comparator_only=int(np.sum(difference<0)),
                             same=int(np.sum(difference==0)),
                             probability_difference=float(difference.mean()) if n else None,
                             paired_standard_error=float(difference.std(ddof=1)/np.sqrt(n)) if n>1 else None,
@@ -218,10 +223,12 @@ def aggregate_batches(folder, spec, threshold):
     return dict(requested=spec["samples"], completed=completed, seed=spec["seed"], policies=policies, paired=paired)
 
 
-def run_sampling(problem, policies, means, mode, out, seconds=180):
+def run_sampling(problem, policies, means, mode, out, seconds=180, *,
+                 policy_order=None, mode_spec=None, main_policy="current90"):
+    policy_order = POLICY_ORDER if policy_order is None else tuple(policy_order)
     folder = out / mode
     folder.mkdir(exist_ok=True)
-    spec = MODES[mode]
+    spec = MODES[mode] if mode_spec is None else mode_spec
     if (folder / "complete.json").exists():
         return bounded.read(folder / "summary.json")
     start = time.perf_counter()
@@ -235,7 +242,8 @@ def run_sampling(problem, policies, means, mode, out, seconds=180):
         size = min(spec["batch"], spec["samples"]-position)
         batch_start = time.perf_counter()
         try:
-            arrays, audits = sample_batch(problem, policies, means, mode, index, size)
+            arrays, audits = sample_batch(problem, policies, means, mode, index, size,
+                                          policy_order=policy_order, mode_spec=spec)
         except Exception as exc:
             bounded.write(folder / f"batch_{index:05d}_failure.json", dict(index=index,size=size,error=repr(exc),
                                                                         traceback=traceback.format_exc()))
@@ -246,7 +254,8 @@ def run_sampling(problem, policies, means, mode, out, seconds=180):
         temporary.replace(destination)
         timing[str(index)] = dict(seconds=time.perf_counter()-batch_start, size=size, audits=audits)
         bounded.write(folder / "timing.json", timing)
-    result = aggregate_batches(folder, spec, problem["packet"]["threshold"])
+    result = aggregate_batches(folder, spec, problem["packet"]["threshold"],
+                               policy_order=policy_order, main_policy=main_policy)
     result.update(seconds=float(sum(item["seconds"] for item in timing.values())),
                   batch_count=len(timing), model=mode)
     bounded.write(folder / "summary.json", result)

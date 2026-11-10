@@ -1,3 +1,12 @@
+## 全资源小时报价与独立AC，2026-11-10
+
+- 先读 [FULL_PRICE_REPORT.md](dr_continuous_independent/FULL_PRICE_REPORT.md)、[FULL_PRICE_PLAN.md](dr_continuous_independent/FULL_PRICE_PLAN.md)、full_price_results.json；当前main.tex为现行完整文档，旧版本可由Git467bedc6恢复。
+- 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_full_price_v1。formula_checks/run_v1为89/89逐式核验；optimization、optimization_continue、optimization_scaled_v2、optimization_restore为四阶段，正式quote及price_freeze在optimization_restore，allocation_audit.json给节点/小时/类型汇总。首次optimization_scaled启动引用错误0求值保留，不删除。
+- evaluation/{request,policy_freeze,results,complete}.json、source_snapshot.zip、conditional和independent_full全批及断点、actual/下160观测/先选择后truth/summary/complete、audit/下完整只读重算均齐。32768条件、8192完整模型及32×5AC全部结束，勿重复启动。1自然日，32独立执行/量测路径，实际种子见FULL_PRICE_PLAN.md。所有报价/功率/电压/物理轨迹私有。
+- full_adjoint.py仅系数伴随，接原Devices.hourly_vjp；全价四入口各自源锁定。full_evaluate.py使用原sample_compare/actual_compare的可选参数，旧默认重放逐位一致；不重写辨识器。full_evaluate_audit.py仅重算，full_price_export.py只白名单导出。
+- 新价p_V=.9000042969、费43.40192642、AC32/32恢复，旧90费52.169487/恢复27/32，同费轮换0/32，zero0/32。原资源/完整历史/冻结参数/3%规则不变。模型概率只有剩余电压创新，完整随机模型仅独立评价。225搜索点556.17秒，无全局最优；AC胜出在冻结联合候选回选，0新W搜索。该阶段目标已完成，不继续刷种子或拓展算例。
+- main.tex由当前打开编辑器原位维护且内置编译通过，不另导出替代PDF。最新说明含逐符号定义、合成三段计算、erfcx与反演证明、误差及梯度、SLSQP和可行性恢复、全部独立分母与费用口径。
+
 ## 冻结合同的新模型／AC 抽样，2026-11-10
 
 - 入口 [COMPARISON_REPORT.md](dr_continuous_independent/COMPARISON_REPORT.md)、[comparison_results.json](dr_continuous_independent/comparison_results.json)。sample_compare.py 的 load_policies 为两评价程序共用的唯一合同读取入口，复用旧4份冻结合同，未改价。

@@ -1,815 +1,661 @@
 % !TeX program = xelatex
-% UTF-8. Compile twice with XeLaTeX. No external figures or bibliography required.
+% UTF-8. Current paper15 algorithm, code, and independently checked calculations.
 \documentclass[UTF8,11pt,a4paper,fontset=fandol]{ctexart}
-\usepackage[left=22mm,right=22mm,top=22mm,bottom=22mm,headheight=15pt]{geometry}
-\usepackage{amsmath,amssymb,booktabs,tabularx,array,xcolor,fancyhdr}
+\usepackage[left=21mm,right=21mm,top=21mm,bottom=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,tabularx,array,xcolor,fancyhdr,listings}
 \usepackage[unicode,colorlinks,linkcolor=teal!65!black,urlcolor=teal!65!black,bookmarksnumbered]{hyperref}
-\hypersetup{pdftitle={paper15 面向拓扑验证的需求响应定价模型},pdfsubject={冻结候选、90％激励机会约束与实现对照}}
-\ctexset{section={format=\Large\bfseries\raggedright,beforeskip=1ex,afterskip=.8ex},
-subsection={format=\normalsize\bfseries\raggedright,beforeskip=1.0ex,afterskip=.35ex}}
-\pagestyle{fancy}\fancyhf{}\fancyhead[L]{paper15 \quad 需求响应与拓扑验证}\fancyhead[R]{数学模型与实现}\fancyfoot[C]{\thepage}
-\setlength{\parindent}{2em}\setlength{\parskip}{.3em}\renewcommand{\arraystretch}{1.22}
+\hypersetup{pdftitle={paper15 全资源需求响应报价与拓扑验证},pdfsubject={完整符号、设备约束、连续概率反演、全变量优化及独立评价}}
+\ctexset{section={format=\Large\bfseries\raggedright},subsection={format=\normalsize\bfseries\raggedright}}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{paper15 \quad 全资源报价与拓扑验证}\fancyhead[R]{算法、证明与代码}\fancyfoot[C]{\thepage}
+\setlength{\parindent}{2em}\setlength{\parskip}{.3em}\renewcommand{\arraystretch}{1.18}
 \setlength{\tabcolsep}{4pt}\raggedbottom
-\newcommand{\pos}[1]{[#1]_+}\newcommand{\E}{\mathbb E}\newcommand{\Prob}{\mathbb P}
-\newcommand{\ind}{\mathbf 1}\newcommand{\normone}[1]{\left\lVert #1\right\rVert_1}
-\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
-\newcommand{\src}[3]{\href{https://github.com/tutu-er/Topo/blob/96c7d1e7edbd460f4e922f8426112a15b11f8432/research_experiments/wzzt_dr_selection/#1\#L#2}{#3}}
-\newcommand{\daysrc}[3]{\href{https://github.com/tutu-er/Topo/blob/9bd09bf2da06f041e03c52f2f6fe6cf8e0b2145f/research_experiments/wzzt_dr_selection/dr_paper15_forecast_day/#1\#L#2}{#3}}
-\newcommand{\atcode}[1]{\par\noindent{\small\textbf{实现}\quad #1}\par}
+\newcommand{\E}{\mathbb E}\newcommand{\Prob}{\mathbb P}
+\newcommand{\abs}[1]{\left|#1\right|}\newcommand{\normone}[1]{\left\lVert#1\right\rVert_1}
+\newcommand{\pos}[1]{[#1]_+}\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\lstset{language=Python,basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,
+ frame=single,numbers=left,numberstyle=\tiny\color{gray},numbersep=6pt,showstringspaces=false,keepspaces=true}
 \begin{document}
 \begin{center}
-{\LARGE\bfseries 面向拓扑验证的需求响应定价模型}\\[4pt]
-{\large paper15 的最小合同费用、90\% 激励约束与代码对照}\\[3pt]
-{\small 算例 \code{paper15_b2_v0005}\qquad 原模型 \code{96c7d1e7}\qquad 逐日定价 \code{9bd09bf2}}
+{\LARGE\bfseries paper15 全资源需求响应报价与拓扑验证}\\[5pt]
+{\large 数学模型、逐式计算、代码输入输出及独立评价}\\[4pt]
+{\small 2026-11-10\quad 算例 \code{paper15_b2_v0005}}
 \end{center}
 
-\section{日前问题与完整优化式}
-日前已知完整的历史功率、电压、可调资源能力及两套历史拓扑候选。规划者签订一份 24 小时合同，让次日观测有足够概率把历史粗候选排除在原验证带之外。下文先说明原算例，再在第 \ref{sec:forecastday} 节给出已运行的逐日定价版本。其单日失配结果见第 11 节；一般的共同残差与连续概率建议模型从第 \ref{sec:repairprob} 节开始。用户随后允许全独立假设，本轮核验的精确定义从第 \ref{sec:indpilot} 节开始；条件概率核验和全随机参考模型模拟分别报告。
+\section{本版解决的问题与证据范围}
+给定完整历史 P/Q/V、日前功率预报和已经拟合的两套拓扑，选择各节点、各资源、各小时的请求方向与幅值。请求经过原设备控制器成为可行合同，合同价格由原线性奖励--响应关系决定。目标是在规划工作分布下以至少 90\% 概率使粗候选退出原 3\% 验证带，同时最小化合同费用。
 
-末端节点 $i=1,\ldots,15$，每个节点四类资源，资源编号 $r=1,\ldots,60$。
-时段 $t=1,\ldots,96$，槽长 $\Delta t=0.25$ 小时，对应小时
-$\ell(t)=1+\lfloor(t-1)/4\rfloor$。唯一自由决策是小时请求强度 $x_{r\ell}$。
-合同调节 $u_{rt}$ 和实际调节 $v_{rt}$ 的单位均为 kW，增加负荷为正。
-用 $A^\pm_{rt}\ge0$ 表示相对设备基线的向上、向下功率裕量，
-$S_{rt}=\max(A^+_{rt},A^-_{rt})$，$\pos{a}=\max(a,0)$。完整问题为
-\begin{align}
-\min_x\quad &K(u)=\Delta t\sum_{r,t}c_{rt}
-  \left(\frac{\pos{u_{rt}}^2}{A^+_{rt}}+\frac{\pos{-u_{rt}}^2}{A^-_{rt}}\right)
-       \tag{P}\label{obj}\\
-\text{s.t.}\quad &-1\le x_{r\ell}\le 1\ \text{（双向）},\quad
-               -1\le x_{r\ell}\le 0\ \text{（仅削减）},\tag{C1}\label{c1}\\
- &u=\Pi\!\left((S_{rt}\,x_{r,\ell(t)})_{rt}\right), \tag{C2}\label{c2}\\
- &v(x,\xi)=\Pi\!\left((u_{rt}(m+\sigma_{rt}\xi_{rt}))_{rt}\right),\tag{C3}\label{c3}\\
- &\Prob_{Z,\xi}\{L_C(v(x,\xi),Z)-1.03 L_F(v(x,\xi),Z)>h\}\ge0.90.
-       \tag{C4}\label{c4}
-\end{align}
-$c_{rt}$ 是满响应单位奖励；零裕量方向只能零交付，其费用项定义为零。
-$\Pi$ 是设备的因果执行规则。$\xi$ 表示交付偏差，$Z$ 表示自然负荷及参考电压的整日背景。$C,F$ 是历史粗、细候选，$L_k$ 是新日平均绝对电压残差。$h=9.179191188409$ 来自两套候选的历史验证损失。
+本版规划约束给定日前功率均值和名义交付，只对独立剩余电压创新取概率。冻结报价后，再分别用完整随机线性参考模型和原 AC 观察器检验功率预测误差、实际交付和量测误差。规划概率与完整执行概率均须注明随机对象。完整随机响应的无抽样价格优化尚未实现。
 
-\noindent\textbf{各式的来源。}
-\eqref{obj} 来自约定电量和单位奖励的结算关系。
-\eqref{c1} 规定可发出的指令，\eqref{c2} 把指令变成能履行的合同。
-\eqref{c3} 指定签约后的随机行为，其中 $v$ 由设备产生。
-\eqref{c4} 是唯一的辨识要求。费用直接最小化，原问题允许零购买、集中购买和分散购买。后文按这五行逐项推导，末页给出固定版本代码索引。
+节点、小时和幅值均由本轮自由变量决定，旧报价只作起点。历史候选、其全部 R/X、历史数据、原设备容量、能量规则、验证带和输出映射保持原配置。评价真值只在报价和选择冻结后使用。
 
-\newpage
-\section{合同费用与小时请求（P、C1）}
-\subsection{从价量关系得到二次费用}
-取资源和时段的一个调节方向。设 $a\ge0$ 为该方向的约定幅值，$A$ 为可用裕量，$\pi$ 为支付给该资源的单位奖励。算例假设名义响应比例与单位奖励成正比，即
-\[
-     a=A\,\pi/c,\qquad 0\le\pi\le c.
-\]
-若 $A>0$，购买 $a$ kW 意味着 $\pi=c\,a/A$，一槽合同费用因此为
-$\Delta t\,a\pi=\Delta t\,ca^2/A$。增、减两个方向分别采用 $A^+$ 和 $A^-$，一个有符号功率同槽只取一个方向，便得到式 \eqref{obj}。当 $u=0$ 时可以采用零奖励。费用由名义合同 $u$ 预付，不随执行误差重算。参数库采用元/kWh 作为单位奖励的情景口径，报告将总额称为合同费用单位；各斜率与费用尚缺现场校准。
+\section{符号、维度和单位}
+下表的编号从 1 开始。代码数组从 0 开始，但排列顺序相同。所有功率调节均相对原负荷基线计量，正值表示增加取电，负值表示减少取电。
 
-\subsection{节点差异、时段差异和设备能力怎样进入}
-下面是乘节点系数之前的满响应单位奖励。负荷调节量一律为相对于自然负荷的增量。历史基线中已经包含设备原用电，进入电网的只有增量。
-\begin{center}
-\begin{tabular}{lrrrrr}
-\toprule 资源类别／小时 & 00--06&06--09&09--17&17--22&22--24\\\midrule
-用户移时与削减 & .60&1.00&.80&1.20&.70\\
-EV & .30&.60&.60&.45&.30\\
-储能 & .30&.35&.30&.50&.35\\\bottomrule
-\end{tabular}
-\end{center}
-节点费用系数取 $0.9,1.0,1.1$ 之一。库存由训练期节点正向有功的 90 分位数配置：全网总容量等于各节点该分位数之和的 20\%，再按预设节点大小与资源配比落实到各资源。设 $P_r$ 为配置到该资源的额定 kW。用户时段可用系数依次为 $0.6,1.0,0.8,1.0,0.7$，记为 $a_t$。各类设备的增减裕量如下。
-\begin{center}
-\begin{tabularx}{\linewidth}{lccY}
-\toprule 资源&$A^+_{rt}$&$A^-_{rt}$&构造依据\\\midrule
-可移时负荷 &$a_tP_r$&$a_tP_r$&以嵌入原负荷的 $a_tP_r$ 为基线，可上调或下调。\\
-可削减负荷 &0&$a_tP_r$&仅可减少已有用电。\\
-EV 在线 &$P_r-b_r$&$b_r$&基线充电功率 $b_r$；配置任务电量除以 14 个接入小时。离线时两方向均为零。\\
-储能 &$P_r$&$P_r$&以零充放电为基线，双向受变流器额定功率限制。\\\bottomrule
-\end{tabularx}
-\end{center}
-式 \eqref{c1} 中 $x$ 是归一化请求。四个连续槽共享同一个 $x$，但各槽实际功率还取决于时段裕量和能量状态。求解后由式 \eqref{obj} 上方的关系恢复 $\pi$，无需再优化一套单位奖励。允许每槽独立择优会扩大可行合同空间。
-\atcode{\src{dr_heterogeneous_resources/library.json}{30}{奖励表与结算约定}；
-\src{dr_heterogeneous_resources/build_allocations.py}{136}{节点设备时段参数}；
-\src{dr_heterogeneous_pilot/devices.py}{94}{合同费用}；
-\src{dr_p90_cost/cost_only.py}{22}{可用小时与请求上下界}。}
-
-\newpage
-\section{设备控制器与可行合同（C2）}
-式 \eqref{c2} 调用同一个确定映射 $\Pi$，但不同资源使用各自的可用窗口、功率边界与终端任务。以下给出可从当前槽起逐步执行的完整定义。令 $s_t$ 表示一个资源相对基线的累计调节能量，单位 kWh；在独立任务窗口开始时置 $s_0=0$。
-
-\subsection{能量状态与终端条件}
-对输出功率 $a$ 定义 $\gamma_r(a)=\eta_r\pos{a}-\pos{-a}/\eta_r$，每槽状态递推
-\begin{equation}
-   -A^-_{rt}\le a\le A^+_{rt},\qquad
-   s_t=s_{t-1}+\Delta t\,\gamma_r(a).
-   \label{state}
-\end{equation}
-储能取 $\eta_r=\sqrt{0.85}$，充放电往返效率为 85\%。其他资源的增量按电表侧电量记账，式 \eqref{state} 中取 $\eta_r=1$。对 EV，削减充电指的是相对其基线少充，网侧实际充电功率仍非负。
-\begin{center}
-\begin{tabularx}{\linewidth}{lY Y}
-\toprule 资源&运行能量要求&终端要求与依据\\\midrule
-移时负荷&$|s_t|\le (2\,\mathrm h)P_r$&日末 $s_{96}=0$，允许前移后补或先减后补。\\
-可削减负荷&$-(2\,\mathrm h)P_r\le s_t\le0$&日内最多削减两小时额定能量，允许净削减。\\
-EV&只在 00--08、18--24 接入，充电功率在 $[0,P_r]$&两窗口分开起算并各自满足 $s_{\rm end}=0$；既定网侧充电任务在窗口内完成。\\
-储能&额定电量 $E_r=(2.5\,\mathrm h)P_r$，$|s_t|\le0.3E_r$&初始 SOC 50\%，运行范围 20\%--80\%，日末返回初始 SOC。\\\bottomrule
-\end{tabularx}
-\end{center}
-
-\subsection{为何不能只按当前功率上下限截断}
-例如一项移时任务在最后一个槽开始时还欠 $0.25$ kWh，且可用充电功率足够。该槽必须增加 1 kW 才能结清。只按当前设备额定功率截断，允许零响应，会把欠量留到合同结束以后。
-
-给定本窗口末槽 $T_r$，记当前槽\emph{之后}余下时段可提供的最小、最大能量增量为
-\[
-E^-_{\rm rem}=\Delta t\sum_{j=t+1}^{T_r}\gamma_r(-A^-_{rj}),
-\qquad
-E^+_{\rm rem}=\Delta t\sum_{j=t+1}^{T_r}\gamma_r(A^+_{rj}).
-\]
-有归零任务时，当前槽结束后必须有 $-s_t\in[E^-_{\rm rem},E^+_{\rm rem}]$。结合运行能量边界 $[\underline s_r,\overline s_r]$ 得到下一状态区间
-\[
-I^s_t=[\underline s_r,\overline s_r]\cap[-E^+_{\rm rem},-E^-_{\rm rem}].
-\]
-纯削减资源只取第一个区间。EV 执行器在每个接入窗口用功率界和终端条件控制调节增量。令
-\[
-I^p_t=\{a\in[-A^-_{rt},A^+_{rt}]:s_{t-1}+\Delta t\,\gamma_r(a)\in I^s_t\}.
-\]
-由于 $\gamma_r$ 单调递增，$I^p_t$ 是区间。对请求 $w_t$，令 $a_t=\mathrm{clip}(w_t,I^p_t)$ 并更新 $s_t$。全日递推即 $\Pi(w)$。它只使用当前请求和状态，以及事先已知的未来设备能力。
-\atcode{\src{dr_heterogeneous_pilot/devices.py}{23}{容量、能量与剩余能力}；
-\src{dr_heterogeneous_pilot/devices.py}{48}{逐槽执行}；
-\src{dr_heterogeneous_pilot/devices.py}{86}{小时请求转合同功率}。}
-
-\newpage
-\section{从约定交付到相关随机交付（C3）}
-\subsection{平均偏差与方差具体作用在哪一层}
-在设备约束再次生效之前，原始交付为 $v^{\rm raw}_{rt}=u_{rt}(m+\sigma_{rt}\xi_{rt})$。$\xi$ 为均值零、边际方差一的联合高斯扰动。冻结 $u$ 后有
-\begin{align}
- \E[v^{\rm raw}_{rt}\mid u]&=m\,u_{rt},&
- \operatorname{Var}(v^{\rm raw}_{rt}\mid u)&=u_{rt}^2\sigma_{rt}^2, \label{mom}\\
- \operatorname{Cov}(v^{\rm raw}_{rt},v^{\rm raw}_{r's}\mid u)
- &=u_{rt}u_{r's}\sigma_{rt}\sigma_{r's}
-   \operatorname{Cov}(\xi_{rt},\xi_{r's}).\notag
-\end{align}
-报价先影响 $u$，再通过式 \eqref{mom} 同时改变交付的均值和方差。符号相反的两个功率请求即便受同一乘子影响，功率偏差的符号也会相反。用户负荷、EV、储能的基础相对标准差分别为 $0.15,0.08,0.03$，再乘节点系数；用户早晚高峰乘 1.25，EV 在 06--08 时乘 1.5。以上均为情景参数。
-\subsection{哪些误差由不同节点、时段共享}
-记 $j(r)$ 为资源所在节点。误差的协方差写成一式
-\begin{equation}
-\operatorname{Cov}(\xi_{rt},\xi_{r's})=
-\omega_1+\omega_2\ind_{\{j(r)=j(r')\}}
-+\left(\omega_3+\omega_4\ind_{\{r=r'\}}\right)\phi^{|t-s|}.
-\label{cov}
-\end{equation}
-该式有一个明确的生成过程。独立抽取一个全网日因子、每节点一个日因子、一条全网时序和每资源一条时序，各自方差为一。时序按 $q_t=\phi q_{t-1}+\sqrt{1-\phi^2}\,\varepsilon_t$ 更新，初值和创新为独立标准高斯。四项分别乘 $\sqrt{\omega_1},\ldots,\sqrt{\omega_4}$ 后相加即 $\xi_{rt}$，逐项取协方差得到式 \eqref{cov}。权重非负且和为一，故各边际方差为一。
-\begin{center}
-\begin{tabular}{lrrrrrr}
-\toprule 执行律 &$m$&$\omega_1$&$\omega_2$&$\omega_3$&$\omega_4$&$\phi$\\\midrule
-规划及主响应 &1.0 &.15&.25&.20&.40&.8\\
-执行失配对照 &0.9 &.30&.30&.25&.15&.9\\\bottomrule
-\end{tabular}
-\end{center}
-式 \eqref{c3} 再把 $v^{\rm raw}$ 送入 $\Pi$。若电池受 SOC 限制或 EV 接近截止时刻，某槽的执行偏差会改变后续可交付功率。因此式 \eqref{mom} 只描述进入控制器的请求；输出 $v$ 可能饱和，且 $\E[v\mid u]$ 一般与 $u$ 有差异。
-
-\subsection{建模取舍}
-\eqref{c2} 回答设备能签什么合同，\eqref{c3} 回答设备面对已发生的随机偏差怎样执行。若把 \eqref{c3} 换成“存在一条可行交付”，求解器便可替用户选出有利于辨识的响应。若只用 $\E[v\mid u]$ 评价一个阈值事件，则会丢掉低交付与延迟回补的影响。反之，四个误差来源都可封装在式 \eqref{cov} 中，没有必要将它们列作四项优化约束。
-\atcode{\src{dr_heterogeneous_resources/library.json}{89}{行为与参数表}；
-\src{dr_heterogeneous_resources/build_allocations.py}{154}{资源标准差和无功比例}；
-\src{dr_heterogeneous_pilot/devices.py}{101}{相关乘子生成}；
-\src{dr_heterogeneous_pilot/planner.py}{24}{随机交付的第二次设备控制}。}
-
-\newpage
-\section{从原联合辨识器严格推出激励事件（C4）}
-\subsection{候选和参数在什么时候固定}
-RNJ 提供候选起点与树族，WZZT 在历史上逐线路优化。对历史点 $k$，其支撑族为 $\mathcal F_k$，$z_B$ 是块 $B$ 的节点指示向量。原始预测矩阵由该点的整套权重恢复：
-\begin{equation}
- R_k=\sum_{B\in\mathcal F_k}r_{kB}z_Bz_B^\top,\qquad
- X_k=\sum_{B\in\mathcal F_k}\chi_{kB}z_Bz_B^\top,\qquad r_{kB},\chi_{kB}\ge0 .
- \label{blocks}
-\end{equation}
-$r_{kB},\chi_{kB}$ 分别为两通道的历史响应权重。两候选共享某些块时，历史共同调权后的数值仍可不同。预测使用原始权重形成的矩阵；最终结构评价采用历史已冻结的 0.16 收缩映射。
-
-paper15 完整历史中，本次选中同一条多初值路径的相邻点 0 和 1，二者均通过历史资格筛选。两者原始与最终块数分别均为 20、21；细族 $F$ 相对粗族 $C$ 多保留 $\{103,104,105\}$。日前保留整套 $R_C,X_C,R_F,X_F$。DR 设计和新日验证期间固定这些参数。其他未进入这对候选的拓扑不在本次比较范围内。
-
-\subsection{为何恰好是原损失超过这个数}
-对量测记 $y_{it}=V_{0t}^2-V_{it}^2$，其中 $V_{0t}$ 为量测根电压。以标幺功率 $p_t,q_t$ 得到候选预测 $\widehat y_{kt}=R_k p_t+X_k q_t$。新日实测损失为
-\[
- L_k^{\rm obs}=\frac{10^6}{M}\sum_{t,i}|y_{it}-\widehat y_{kit}|,\qquad M=1440 .
-\]
-记 $H_k$ 为相同单位的历史验证平均绝对误差。新日样本权重为 2，故分数
-$J_k=(288H_k+192L_k)/480=0.6H_k+0.4L_k$。用 $L_k$ 可同时表述规划和事后评分，两者使用的电压信息见下一页。原规则先保留距最低分在 3\% 带内的候选，再按原始支撑数、分数、冻结次序择优。在本例两候选均有历史资格，粗候选原始块数较少；因此 $F$ 胜出当且仅当 $J_C>1.03J_F+\epsilon$。等号仍选 $C$。原始标幺平方损失的容差为 $10^{-12}$，乘 $10^6$ 后 $\epsilon=10^{-6}$。
-
-令 $D=L_C-1.03L_F$。移项得
-\begin{align}
- h &=1.5(1.03H_F-H_C)+2.5\epsilon, \label{h}\\
- J_C-1.03J_F-\epsilon &=0.4(D-h).\label{equiv}
-\end{align}
-用未舍入的历史验证损失代入式 \eqref{h}。以 $10^{-6}\,\mathrm{p.u.}^2$ 计，数值如下：
-\[
- H_C\simeq1197.606818,\qquad H_F\simeq1168.666289,\qquad h=9.179191188409.
-\]
-式 \eqref{c4} 的 3\% 来自原选模，$h$ 来自历史，90\% 是用户设定的规划要求。事后真值核对表明，本例 $C$ 恰漏一个块、$F$ 完整，故逐观测有 $\text{最终错漏数}=\ind_{\{D_{\rm obs}\le h\}}$。推广到其他争议时，需另验获选候选的结构是否正确。
-\atcode{\src{dr_newday_weighted/pool_competition.py}{44}{历史竞争点}；
-\src{dr_frozen_distance/frozen_pool.py}{84}{原始矩阵构造}；
-\src{dr_newday_weighted/weighted_selection.py}{61}{带内排序}；
-\src{dr_heterogeneous_pilot/driver.py}{65}{阈值计算}。}
-
-\newpage
-\section{日前如何计算损失差及概率}
-\subsection{从功率变化到残差变化}
-令 $R_0,X_0$ 为历史拟合的参考电压灵敏度。工作模型假设次日自然背景为 $(p^b,q^b,y^b)$ 时，施加 DR 后的电压平方降增量可用 $R_0\Delta p+X_0\Delta q$ 近似。资源 $r$ 位于 $j(r)$，无功与有功的增量比为 $\kappa_r$，用户取预设的 0.2、0.35 或 0.5，EV、储能取零。将同一增量代入候选模型并相减，有
-\[
- y(v)-\widehat y_k(v)
- =(y^b-R_kp^b-X_kq^b)+(R_0-R_k)\Delta p+(X_0-X_k)\Delta q.
-\]
-按节点汇总 $v_{rt}$ 和 $\kappa_r v_{rt}$，分别除以 200 kW 基准得到 $\Delta p_t,\Delta q_t$。因而资源每交付 1 kW 对残差的系数为
-\[
- g_{kir}=\frac{10^6}{200}\big[(R_0-R_k)_{i,j(r)}+
-               \kappa_r(X_0-X_k)_{i,j(r)}\big],\qquad
- [G_kv]_{it}=\sum_r g_{kir}v_{rt}.
-\]
-此系数使用两候选各自共同调权后的矩阵。它度量候选相对于参考电压的变化，只用线路自身阻抗会遗漏共有块的补偿。
-
-\subsection{从三个训练日构造同一背景下的两组损失}
-令 $a_k^{(d)}=10^6\,\mathrm{vec}_{t,i}(y_t^{(d)}-R_kp_t^{(d)}-X_kq_t^{(d)})$ 为训练日 $d$ 的 $M$ 维实测残差。上下拼接为 $a^{(d)}=(a_C^{(d)},a_F^{(d)})$，取
-\[
- \mu=\tfrac13\sum_{d=1}^3 a^{(d)},\qquad
- A_0=\tfrac1{\sqrt{2}}[\,a^{(1)}-\mu,\ a^{(2)}-\mu,\ a^{(3)}-\mu\,].
-\]
-三个中心化列之和为零，因此协方差 $A_0A_0^\top$ 至多秩二。取 $BB^\top=A_0A_0^\top$，本例 $B$ 有两个有效列。以 $Z\sim N(0,I_2)$ 表示整日背景，$\mu_k,B_k$ 表示对应候选的行块。规划损失即
-\begin{equation}
- L_k(v,Z)=\frac1M\normone{\mu_k+B_kZ+G_kv}.
- \label{loss}
-\end{equation}
-历史残差直接由量测构成，参考灵敏度只进入 DR 增量。两候选共用一个 $Z$，并假设 $Z$ 与执行误差 $\xi$ 独立。这保留共享背景的日内与节点相关性。三个训练日足以构造该工作分布，其尾部概率仍待更多日期校准。
-
-\subsection{机会约束与代码中的局部求解}
-给定一条交付 $v$，令 $p_h(v)=\Prob_Z(D(v,Z)>h)$。按全概率公式，
-\[
- \Prob_{Z,\xi}(D(v(x,\xi),Z)>h)=\E_\xi[p_h(v(x,\xi))].
-\]
-原 90\% 求解器固定 128 个外层样本（交付与剩余背景），对独立的一维高斯坐标 $z$ 作条件积分。每个条件样本的事件为 $\sum_j w_j|\alpha_j+\beta_jz|>h$。按残差零点分段，在各段求阈值交点；每个通过区间 $(l,b)$ 的概率为 $\Phi(b)-\Phi(l)$。对所有区间求和、再对外层取平均。该算法保留残差过零。在可微段，用阈值交点的导数和设备映射链式求导供 SLSQP 更新。当前为有限样本、有限时间的局部降费，未建立全局最优证明。
-\atcode{\src{dr_heterogeneous_pilot/driver.py}{48}{构造背景与增量}；
-\src{dr_heterogeneous_pilot/planner.py}{24}{实际概率函数}；
-\src{dr_conditional_gaussian/conditional_integral.py}{92}{条件积分}；
-\src{dr_p90_cost/cost_only.py}{36}{90\% 优化入口}。}
-
-\newpage
-\section{冻结后的概率核验、AC 选模与交付余量}
-\subsection{区分三类概率和一种观测结果}
-paper15 在 90\% 降费阶段找到费用从 53.3829 降至 52.1695 的报价，求解达到迭代上限。表中各量使用不同的信息和分母，均沿用同一对冻结候选。
-\begin{center}
-\begin{tabularx}{\linewidth}{l r Y}
-\toprule 评价量 &结果&计算对象与用途\\\midrule
-规划概率 &90.1937\%&原 128 个外层点，对整份随机合同求值，供优化器判定。\\
-独立工作模型估计 &91.726\%&冻结后 4096 个新外层点，评估同一合同的随机执行。单报价 Hoeffding 95\% 下界为 89.814\%。\\
-按约交付的条件概率 &92.65859\%&指定 $v=u^0$，仅对 $Z$ 积分。$u^0$ 为冻结后的名义合同。\\\bottomrule
-\end{tabularx}
-\end{center}
-独立物理核验把实际交付加入自然日节点 $P/Q$，运行 AC 潮流，再叠加本例电压与 $P/Q$ 的相对量测噪声（系数分别为 0.0005、0.005）。用含噪 $P/Q/V$ 重新计算 $L_C,L_F$、原验证分数和冻结最终块族。下表以同一批 12 个配对合成背景日为分母。两种响应律、三种合同共 72 个已存输出。
-\begin{center}
-\begin{tabular}{lrrrrr}
-\toprule &合同费用&\multicolumn{2}{c}{主响应}&\multicolumn{2}{c}{失配响应}\\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}
-策略&&完整恢复&总错漏&完整恢复&总错漏\\\midrule
-无奖励自然新增&0&5/12&7&5/12&7\\
-简单轮换&52.16949&5/12&7&5/12&7\\
-优化合同&52.16949&11/12&1&10/12&2\\\bottomrule
-\end{tabular}
-\end{center}
-相对轮换，优化合同在主响应下 6 日改善、6 日相同，失配响应下 5 日改善、7 日相同。改善归于式 \eqref{equiv} 对两个已有候选的回选。历史候选的取得依赖联合辨识器，本批没有在新日重新发现候选池外的线路。
-
-\subsection{为何 99\% 履约覆盖只用于单独的敏感性核算}
-若额外假设整条交付以至少 99\% 概率落在轨迹集 $\mathcal S$，且给定交付后背景仍服从上述分布，则 $\Prob(D>h)\ge0.99\inf_{v\in\mathcal S}p_h(v)$。因此集合内 $p_h(v)\ge10/11$ 是总体 90\% 的充分条件。一个平均电量指标无法确定该轨迹集。
-
-冻结合同绝对调节能量为 99.76991 kWh。沿 $v=(1-s)u^0$ 单轴确定性积分，$p_h$ 穿过 $10/11$ 的数值交点为 $s=8.0548\%$，相当于全天平均少交付 0.33485 kW。单独把整条请求延迟后按 15 分钟平均并经设备控制器执行，交点为 8.46 分钟。给定轨迹直接求 $p_h=0.90$ 时，两交点分别为 0.48442 kW 和 15.71 分钟。这些读数适用于各自指定的轨迹形状；真实异质交付的 99\% 覆盖没有在本例建立。该诊断沿二维高斯方向按绝对值折点解析积半径，再数值积方向角；原报价优化的外层计算仍有抽样。
-\atcode{\src{dr_p90_cost/run.py}{99}{冻结后独立核验}；
-\src{dr_paper15_delivery_margin/ac_replay.py}{32}{原观测回选}；
-\src{dr_paper15_delivery_margin/model_test.py}{67}{指定交付的确定性积分}。}
-
-\newpage
-\section{模型边界与实现索引}
-\subsection{哪些内容可以从优化主体移出}
-报价 $\pi$ 已由功率与方向裕量确定，另设一组价格决策只会重复式 \eqref{obj}。也可以改用 $u$ 为变量，但应要求 $u\in\{\Pi((S_{rt}x_{r,\ell(t)})_{rt}):x\text{ 满足 \eqref{c1}}\}$。仅要求 $u$ 在各槽物理可行，会把合同的时间自由度从小时放宽到 15 分钟。交付误差的四因子生成方式可放在参数表中。没有必要为了设定 90\% 的规划目标而增加 Copula、逐节点置信约束或拓扑真实性概率。
-
-需要保留的三项是：对每个完整候选使用历史共同调权后的矩阵；对两个候选施加同一个随机背景及实际交付；以原损失和原验证带判定事件。对两个绝对值提前固定符号、用平均交付代替随机交付，或让求解器逐情景任选可行交付，都会改变式 \eqref{c4} 的含义。相同费用的轮换与实际 AC 是检验价格作用的对照。若其他算例中细族事后有误，选细族概率提高也可能增加结构错漏。
-
-\subsection{代码、入口和证据文件}
-在仓库目录 \code{research_experiments/wzzt_dr_selection/} 下可按表中路径定位。链接指向提交 \code{96c7d1e7} 的对应行。90\% 降费调用 \code{cost_only.solve}；旧版 95\% 的入口为 \code{planner.solve}。
-\par\small\noindent
-\begin{tabularx}{\linewidth}{p{.22\linewidth}Y}
-\toprule 数学对象&路径、函数与起始行\\\midrule
-输入与合同参数&
-\src{dr_heterogeneous_resources/library.json}{30}{\code{dr_heterogeneous_resources/library.json}，第 30 行}；
-\src{dr_heterogeneous_resources/build_allocations.py}{136}{同目录 \code{build_allocations.py}，\code{profiles}，136}。\\
-费用、请求与设备&
-\src{dr_heterogeneous_pilot/devices.py}{23}{\code{dr_heterogeneous_pilot/devices.py}，设备参数，23}；
-\src{dr_heterogeneous_pilot/devices.py}{48}{\code{project}，48}；
-\src{dr_heterogeneous_pilot/devices.py}{86}{\code{nominal}，86}；
-\src{dr_heterogeneous_pilot/devices.py}{94}{\code{fees}，94}；
-\src{dr_heterogeneous_pilot/devices.py}{101}{\code{draw}，101}。\\
-候选、评分&
-\src{dr_newday_weighted/pool_competition.py}{44}{\code{dr_newday_weighted/pool_competition.py}，44}；
-\src{dr_frozen_distance/frozen_pool.py}{84}{\code{dr_frozen_distance/frozen_pool.py}，\code{_matrices}，84}；
-\src{dr_newday_weighted/weighted_selection.py}{26}{\code{dr_newday_weighted/weighted_selection.py}，\code{score}，26}。\\
-背景、响应、损失&
-\src{dr_heterogeneous_pilot/driver.py}{48}{\code{dr_heterogeneous_pilot/driver.py}，\code{make_packet}，48}；
-\src{dr_heterogeneous_pilot/planner.py}{24}{同目录 \code{planner.py}，\code{Probability.evaluate}，24}。\\
-优化与积分&
-\src{dr_p90_cost/run.py}{56}{\code{dr_p90_cost/run.py}，\code{optimize}，56}；
-\src{dr_p90_cost/cost_only.py}{9}{同目录 \code{cost_only.py}，\code{solve}，9}；
-\src{dr_conditional_gaussian/conditional_integral.py}{92}{\code{dr_conditional_gaussian/conditional_integral.py}，92}。\\
-执行与样本外评分&
-\src{dr_heterogeneous_pilot/driver.py}{187}{\code{dr_heterogeneous_pilot/driver.py}，AC 观测，187}；
-\src{dr_paper15_delivery_margin/ac_replay.py}{32}{\code{dr_paper15_delivery_margin/ac_replay.py}，\code{score_scene}，32}。\\
-可核对的标量结果&
-\src{dr_p90_cost/REPORT.md}{1}{\code{dr_p90_cost/REPORT.md}}；
-\src{evidence/p90_cost_v1/qualification_summary.json}{49}{\code{evidence/p90_cost_v1/qualification_summary.json}，49}；
-\src{dr_paper15_delivery_margin/ac_results.json}{1}{\code{dr_paper15_delivery_margin/ac_results.json}}；
-\src{dr_paper15_delivery_margin/results.json}{1}{同目录 \code{results.json}}。\\\bottomrule
-\end{tabularx}
+\small
+\begin{longtable}{p{.19\linewidth}p{.55\linewidth}p{.17\linewidth}}
+\toprule 符号&含义&维度或单位\\\midrule\endhead
+$N=15$&末端节点数，标签 101--115&节点\\
+$N_r=60$&四类资源在每个节点分别建模&资源\\
+$T=96$&一日 15 分钟时段数&时段\\
+$J=24$&小时请求决策数&小时\\
+$\Delta t=0.25$&一个物理时段的长度&小时\\
+$M=NT=1440$&节点--时段单元数&单元\\
+$j,r,t,h$&节点、资源、物理时段、小时的索引&整数\\
+$i=N(t-1)+j$&把节点--时段排成一列的索引&整数\\
+$h(t)=1+\lfloor(t-1)/4\rfloor$&物理时段对应的小时&整数\\
+$k\in\{C,F\}$&粗候选与细候选的编号&候选\\
+$P_{\rm base}=200$&P/Q 标幺值使用的功率基准&kW/kvar\\
+$p_t,q_t$&每节点物理有功、无功的标幺向量&各 $N$ 维\\
+$b_t=(p_t^\top,q_t^\top)^\top$&按 P 后 Q 排列的功率&$2N$ 维\\
+$R_k,X_k$&历史拟合并冻结的电压平方降响应矩阵&各 $N\times N$\\
+$H_k=10^6[R_k\ X_k]$&同时作用于 P/Q 的响应矩阵&$N\times2N$\\
+$H_0=10^6[R_0\ X_0]$&历史拟合的参考响应矩阵；$R_0,X_0$ 为其 P/Q 响应块，各为 $N\times N$&$N\times2N$\\
+$Y_t=10^6(V_{0t}^2-V_{jt}^2)_{j=1}^N$&根表与末端表形成的电压平方降&$10^{-6}$ p.u.$^2$\\
+$f_t$&日前发布、规划可见的功率曲线&$2N$ 维，p.u.\\
+$\bar b_t$&本轮指定的去偏预测均值&$2N$ 维，p.u.\\
+$c_t^{\rm ref}$&仅从历史计算的共同参考残差均值&$N$ 维，$10^{-6}$ p.u.$^2$\\
+$x_{rh}$&资源--小时归一化请求&无量纲\\
+$A^+_{rt},A^-_{rt}$&资源增取电、减取电的可用裕量&非负，kW\\
+$S_{rt}=\max(A^+_{rt},A^-_{rt})$&把请求强度换成原始 kW 的尺度&kW\\
+$u_{rt},v_{rt}$&名义合同交付、实际随机交付&kW\\
+$\Pi$&原因果设备执行器&完整日请求到交付\\
+$\gamma_r$&该资源无功与有功增量之比&无量纲\\
+$c^{\rm pay}_{rt}$&满响应奖励单价，区别于参考残差&合同费用单位/kWh\\
+$\pi_{rt}$&合同实际奖励单价&合同费用单位/kWh\\
+$K(u)$&计划时支付的完整合同费用&合同费用单位\\
+$\nu_{rt}$&交付倍数的相对标准差&无量纲\\
+$\sigma_i$&剩余电压平方降创新的标准差&$10^{-6}$ p.u.$^2$\\
+$\kappa=1.03$&原验证带的乘数&无量纲\\
+$h_\star$&由历史损失导出的新日过线门槛&$10^{-6}$ p.u.$^2$\\
+\bottomrule
+\end{longtable}
 \normalsize
-\par\noindent\textbf{阅读顺序。} 复核主优化时，先看 \code{run.optimize} 如何构造评价器，再看 \code{cost_only.solve} 的目标、箱约束与概率约束。复核辨识收益时，从 \code{score_scene} 按原观测重算损失和最终支撑，再对照冻结报价前的 \code{make_packet}；两条路径使用的信息时点不同。
-\newpage
-\section{逐日定价：日前看预测，事后按真实自然负荷结算}\label{sec:forecastday}
-\subsection{同一天究竟固定什么、随机什么}
-固定一日 $d$。记 $b_d^\star\in\mathbb R^{96\times30}$ 为\emph{无 DR 时}该日的基础负荷，每行依次存 15 个节点的 $P$ 和 15 个节点的 $Q$，单位均为标幺值。它可以是测试方锁定的模拟真值，也可以来自留出的实测自然日。在优化方收到任何该日数据前，测试方封存这条曲线。日前只给规划器一条可见曲线 $f_d$。零奖励、简单轮换、规划合同都用同一个 $b_d^\star$ 考核。因此，这一修改改变了规划的信息集，也要求每天重新冻结报价；原每例共用一份报价的结果另列在第 7 节。
+后文每个新随机量及计算量均在使用前定义。$\mathrm i=\sqrt{-1}$ 是虚数单位，与单元索引 $i$ 以正体区分。
 
-\subsection{测试方把真实曲线变成一条带偏差的预测}
-令 $s_j$ 为通道 $j$ 在三个训练日全部时段的均方根。用当地时间指示函数 $I_t=\ind_{\{17{:}00\le t<22{:}00\}}$ 定义预设的晚峰偏差和误差幅度。测试方只生成并发布一次
-\begin{align}
- f_{dtj}&=b^\star_{dtj}+d_{tj}+a_{tj}\eta_{dtj},&
- d_{tj}&=-0.05s_j I_t,&
- a_{tj}&=(0.04+0.04 I_t)s_j .\label{release}
-\end{align}
-举例说，若一个通道的训练 RMS 为 10 kW，晚峰预报平均少 0.5 kW；叠加的随机预测误差标准差为 0.8 kW，其余时段为 0.4 kW。这些百分比以训练 RMS 为基数，不用测试日峰值。$\eta$ 为均值零的联合高斯误差，协方差为
+\section{历史候选与日前数据怎样准备}
+\subsection{候选来自既有联合流程}
+两套完整候选来自既有 RNJ＋WZZT 历史流程及路径点，不重新编写辨识器。历史拟合已允许整套块权重共同调整。本轮在历史拟合后固定全部矩阵；价格搜索和新日评价均不重新拟合。当前粗、细族分别保留 20、21 个输出块，争议为 $\{103,104,105\}$。规划不使用哪个候选事后正确的标签。
+
+参考矩阵 $H_0$ 从原历史结果读取。对历史日 $d$，先定义参考残差
+$e^{(d)}_t=Y^{(d)}_t-H_0b^{(d)}_t$。三个完整训练日给出
 \[
- \operatorname{Cov}(\eta_{dtj},\eta_{dsj'})=
- (0.25+0.75\ind_{\{j=j'\}})\,0.8^{|t-s|}.
+c_t^{\rm ref}=\frac13\sum_{d=1}^3 e^{(d)}_t.
 \]
-相同的时序偏差可以作用于多个节点，预测曲线保留日内相关性。晚峰系数、随机方差及相关系数是预先指定的试验条件。训练 RMS 为零的通道发布零值，并从预测似然移除。测试方不向规划器提供 $b_d^\star$、本次噪声实现或其种子。规划方可知道平均偏差及其误差律，这相当于一个已知统计特性的合成预测器。
+这里仅取均值，剩余方差另按下述工作假设指定，未把旧低秩残差方差再加一次。
 
-\subsection{预测发布之后，还对什么取概率}
-求报价时 $f_d$ 已知。随机的是给定 $f_d$ 后仍可能出现的负荷／参考残差，以及收到报价后的实际 DR 交付。式 \eqref{release} 给出 $f\mid b$。若要对负荷误差也作概率承诺，还需要 $b\mid f$。直接把生成预测时抽到的噪声反号交给规划器会泄露真值；重新独立抽同样的噪声反号，一般也不服从正确的条件律。
-
-一个标量例子说明两者的差别。若历史自然负荷 $b\sim N(100,10^2)$ kW，预测为 $f=b-5+\varepsilon$，$\varepsilon\sim N(0,5^2)$ kW 且独立于 $b$，则发布 $f=105$ kW 后
+\subsection{已发布预报与直接指定的条件误差}
+令 $\ell=1,\ldots,2N$ 为按 P 后 Q 排列的功率通道索引，$s_\ell$ 为训练期第 $\ell$ 个通道的 RMS；$I_t$ 在 17:00--22:00 为 1，其余为 0。测试方已发布带系统偏差的预测 $f$，本轮直接规定
 \[
- \E[b\mid f=105]=100+\frac{100}{125}(105-100+5)=108,\qquad
- \operatorname{Var}(b\mid f)=100-\frac{100^2}{125}=20 .
+\beta_{t\ell}=-0.05s_\ell I_t,\qquad
+\bar b_{t\ell}=f_{t\ell}-\beta_{t\ell},\qquad
+\sigma^b_{t\ell}=(0.04+0.04I_t)s_\ell.
 \]
-均值去偏得到的 110 kW 是一条参考点预测；真实负荷的条件标准差约为 4.47 kW。规划后评价时再读取当天封存的具体 $b_d^\star$。这个例子只解释信息关系。
+完整执行诊断中用 $b_{t\ell}=\bar b_{t\ell}+\sigma^b_{t\ell}Z^b_{t\ell}$，$Z^b$ 为独立标准正态。这是给定预测后的工作分布假设，未声称仅由正向“真值加噪声生成预报”公式便能唯一推出该条件律。报价设计不读取隐藏的真实自然曲线。
 
-\newpage
-\section{把发布的预测代入原损失的机会约束}
-\subsection{只更新背景分布，保留同一个拒绝阈值}
-按同样的时间和通道顺序向量化训练功率。令 $\bar b$ 是三条训练曲线的平均，用三日的同一组正交中心化对比构造功率载荷 $A$ 与两个候选残差载荷 $B_C,B_F$。具体地，对三日向量按列拼接、减列均值、除以 $\sqrt{2}$，再右乘同一个 $3\times2$ 正交矩阵，其列张成与 $(1,1,1)^\top$ 正交的平面。这样自然功率和背景残差具有共同的日因子
+\subsection{电压创新尺度}
+令 $\sigma_v=0.0005$ 为原相对电压量测系数，$\overline{V_0^4}_t,\overline{V_j^4}_t$ 为训练记录的四次方均值。规定
 \[
- b=\bar b+A z,\qquad e_k^b=\mu_k+B_k z,\qquad z\sim N(0,I_2).
+\sigma_i=2\cdot10^6\sigma_v
+\sqrt{\overline{V_0^4}_t+\overline{V_j^4}_t},
+\qquad i=N(t-1)+j .
 \]
-这是三个训练日提供的低秩工作模型。$A$ 与 $B_k$ 必须使用相同的日对比次序，才能保留负荷与候选误差的配对关系。历史输入沿用观测 $P/Q$ 作为自然功率的训练近似。训练中从未变化的方向无法凭该模型预测出新的背景变化。
-
-令 $\Omega$ 为式 \eqref{release} 中 $a\eta$ 的整段协方差，训练 RMS 为零的通道从预测似然中移除。因 $f=\bar b+Az+d+a\eta$，且生成预测的误差独立于 $z$，在保留通道上，条件高斯公式给出
-\begin{equation}
- V_f=(I_2+A^\top\Omega^{-1}A)^{-1},\qquad
- m_f=V_f A^\top\Omega^{-1}(f-\bar b-d),\qquad
- z\mid f=m_f+V_f^{1/2}Z,\quad Z\sim N(0,I_2).
- \label{belief}
-\end{equation}
-该式来自对 $\|z\|^2+(f-\bar b-d-Az)^\top\Omega^{-1}(f-\bar b-d-Az)$ 配方。可利用 AR(1) 时序白化及通道相关矩阵计算两项乘积，无需显式求一个全日协方差的逆。
-
-\subsection{优化器计数的具体事件}
-设 $v=v(x,\xi)$ 为式 \eqref{c3} 的随机实际交付，$\xi$ 与预测／背景误差独立。对同一整日 $Z,\xi$，两套候选共享同一功率和履约结果。将原来的无条件背景代换为条件背景：
+来源是相对量测 $\widetilde V=V(1+\sigma_vZ)$ 的一阶项：
 \[
- e_k=\mu_k+B_k m_f+B_kV_f^{1/2}Z+G_kv,\quad
- D_f(x,Z,\xi)=\frac{\normone{e_C}-1.03\normone{e_F}}{1440}.
+\widetilde V^2=V^2+2\sigma_vV^2Z+\sigma_v^2V^2Z^2.
 \]
-当天的合同由下式决定：
-\begin{equation}
- \min_x K(u)\qquad\text{满足 \eqref{c1}--\eqref{c3} 及}\qquad
- \E_{Z,\xi}\!\left[\ind_{\{D_f(x,Z,\xi)>9.179191188409\}}\right]\ge0.90 .
- \label{daychance}
-\end{equation}
-这里 $f$ 是已发布的常数，背景分布取式 \eqref{belief}；$Z,\xi$ 代表完整一天，1440 个单元合计只产生一次通过或失败。等号处属于粗族带内。原程序的条件积分可以替代逐条抽样计数。旧的无条件背景 $B_kz$ 已被替换，重复叠加会把自然负荷误差计算两次。
+本轮条件模型把各平方降创新设为独立，只匹配原根表和末端表的边际方差；原共享根表的相关性在实际 AC 观察器中保留。高斯一阶近似、独立性和尺度均属于模型假设，不是数值积分误差。
 
-报价冻结后，测试方在 $b_d^\star$ 上叠加独立实现的实际调节，运行 AC、加入原表计噪声并用式 \eqref{equiv} 计算 $D_{\rm obs}$、出带、错漏及合同费。对同一自然日多次生成履约或表计噪声，只能检验给定该日的执行效果；跨日达成率按独立自然日汇报。若选择只对履约随机性提要求，可以把条件背景固定为其均值，但该约束不再包含负荷预测误差。
-\newpage
-\section{冻结一份逐日报价后，在同一自然日复核}
-\subsection{报价为什么为零，以及实际判定为何相反}
-在一个事前指定的新合成自然日，报价器获得 96 时段预测。两组起点是零合同和旧历史报价（费用 52.16949）。两者的规划积分都在数值精度内得到 1.0000，故费用非负的目标取到零。冻结后更换 512 个外层状态核算，零合同仍得到 1.0000。按同费缩放的轮换亦为零，三种策略在这一天实际对应同一个动作。原 3\% 带、阈值、支付和设备规则均沿用原设定。
-
-\begin{center}\small
-\begin{tabular}{lrrrr}
-\toprule & $L_C$ & $L_F$ & $D=L_C-1.03L_F$ & $D-h$\\\midrule
-规划模型，给定预测的均值&743.5552&701.2611&21.2562&12.0771\\
-测试日，实际含噪 AC&1226.7564&1193.1445&$-2.1824$&$-11.3616$\\\bottomrule
+\section{资源、合同价格与设备约束}
+\subsection{本轮真正执行的资源}
+四类资源总名义功率如下，均来自已经冻结的 allocation；所有方案复用同一库存。
+\begin{center}
+\begin{tabular}{lr}\toprule 类型&合计 kW\\\midrule
+用户可转移&6.70856\\
+用户可削减&2.23619\\
+EV 充电&6.73123\\
+家庭储能&5.92039\\\bottomrule
 \end{tabular}
 \end{center}
-同一新日、一次独立履约实现，三次策略核算均完成全部 96 槽，均选中粗族、漏掉一个块，整日交付为 0 kWh，费用为零。自然日独立分母为 1，激励事件为 0/1。新日的节点时段平均预测均方根误差为 $0.001707$ p.u.（有功）及 $0.000654$ p.u.（无功），按 200 kW/kvar 基值约为 0.341 kW 和 0.131 kvar。
+配置库中的旧 2 kW 登记说明不是当前 \code{Devices} 执行的额外总约束。本轮保持当前全部分配库存和逐资源限制，未增加新总预算或强制分散。EV 是给定到离站、固定基准任务的充电调移；不额外优化车辆行程或任务。
 
-把 $D$ 写成 $(L_C-L_F)-0.03L_F$ 就能看到错判的来源。规划时两候选相差 42.2941，减去细族损失的 3\% 后还剩 21.2562。当天实测只相差 33.6119，3\% 对应的扣减却从 21.0378 增至 35.7943。两项变化共同使粗族留在验证带内。
+\subsection{逐时价格、容量和随机交付参数}
+五个价格时段依次为 00:00--06:00、06:00--09:00、09:00--17:00、17:00--22:00、22:00--24:00。表中每一项均是该时段的满响应奖励系数。
+\begin{center}\small
+\begin{tabular}{lrrrrr}\toprule
+资源&00--06&06--09&09--17&17--22&22--24\\\midrule
+用户移位及削减&.60&1.00&.80&1.20&.70\\
+EV&.30&.60&.60&.45&.30\\
+储能&.30&.35&.30&.50&.35\\\bottomrule
+\end{tabular}
+\end{center}
+各节点按既有固定分配再乘 .9、1 或 1.1 的成本因子。这些数据保留原合同含义和数值，费用仅作为本算例的合同费用单位报告。原合同在规划时支付固定服务奖励，交付不足后不退款或重抽；因而不同路径的实际调节量可以不同，合同费保持不变。\code{fees(delivered)} 只是设备磨损代理，不能再当作第二笔实际支付。
 
-\subsection{在此工作模型内，积分精度是否足以解释错判}
-零交付时，每个条件残差分量为 $X\sim N(\mu,s^2)$。用
+设某节点各资源名牌容量依次为 $A^{\rm sh},A^{\rm cu},A^{\rm ev},A^{\rm ba}$，均从已有 allocation 读取。用户可用系数在上述五时段依次为 $(.6,1,.8,1,.7)$，记为 $a_t^{\rm av}$。因此移位资源的双向裕量为 $A^+_t=A^-_t=A^{\rm sh}a_t^{\rm av}$，削减资源为 $A^-_t=A^{\rm cu}a_t^{\rm av},A^+_t=0$。EV 在两个连接段的基线充电为 $(20/7)A^{\rm ev}/14$ kW，其减取电裕量等于该基线，增取电裕量等于名牌与基线之差；离站时均为零。储能双向裕量均为 $A^{\rm ba}$。
+
+用户移位的能量偏移界为 $[-2A^{\rm sh},2A^{\rm sh}]$ kWh，削减为 $[-2A^{\rm cu},0]$ kWh，储能为 $[-.75A^{\rm ba},.75A^{\rm ba}]$ kWh。用户两类资源的 $\gamma_r$ 按节点取 .2、.35 或 .5，EV 和储能均为零。
+
+后续完整执行评价中的相对交付标准差基值依次为用户 .15、EV .08、储能 .03，再乘原节点 .9、1 或 1.1 的标准差因子。用户在 06:00--09:00 和 17:00--22:00 再乘1.25，EV在06:00--08:00再乘1.5。当前独立评价保持这些边际标准差，各原始请求创新相互独立。前文的条件规划概率只积分电压创新，不把这些执行方差混写为已经进入报价约束。
+
+\subsection{小时请求与原执行器}
+定义 $\pos{a}=\max(a,0)$。变量范围为
 \[
- \E|X|=s\sqrt{2/\pi}\exp[-\mu^2/(2s^2)]+|\mu|\,[2\Phi(|\mu|/s)-1]
+-1\le x_{rh}\le0\quad\text{（仅削减）},\qquad
+-1\le x_{rh}\le1\quad\text{（其余）}.
 \]
-逐分量相加即得表中第一行；$s=0$ 时取 $|\mu|$。还可以只用已发布预测证明一次条件下界。令 $\bar e_k=\mu_k+B_km_f$，$T_k=B_k V_f^{1/2}$，$t_{Fi}$ 为 $T_F$ 第 $i$ 行，$M=1440$。取均值点的斜率
-$g=(T_C^\top\operatorname{sign}(\bar e_C)-1.03T_F^\top\operatorname{sign}(\bar e_F))/M$。
-绝对值在均值处的切线为下界；在半径 $r$ 的圆内，第 $i$ 个细族分量高出切线至多 $2[r\|t_{Fi}\|_2-|\bar e_{Fi}|]_+$。因此在 $\|Z\|_2\le r$ 内，
+整小时 $S_{rt}$ 全为零时，将该小时变量固定零。本例共 1440 个原始变量，1290 个有容量的自由变量。原始请求为
 \[
- D_f(0,Z)\ \ge\ D_f(0,0)-r\|g\|_2-
-     \frac{2.06}{M}\sum_i[r\|t_{Fi}\|_2-|\bar e_{Fi}|]_+ .
+w^{\rm req}_{rt}=S_{rt}x_{r,h(t)},\qquad u=\Pi(w^{\rm req}).
 \]
-二维标准正态在 $r=\sqrt{-2\log 0.01}$ 的圆内有 99\% 概率。代入得到下界 19.4434，已高于阈值 9.1792。这说明即使用解析界，当前背景模型也会选择零价。
+$\Pi$ 同时执行功率、累计能量和终端规则。旧报价只作起点；$x$ 没有旧支撑或两个比例的限制。
 
-新日预测对历史工作模型的标准化平方距离（每个有效分量平均）为 11.35，模型假设下的期望为 1。三日背景把负荷和参考电压误差都绑定在同一个二维平面。功率预测一旦锁紧这两个因子，模型也会把参考电压误差估得过于确定。下一次建模应单独保留给定功率后尚未消失的参考电压和量测误差，用独立配对日检验其大小。
-\atcode{\daysrc{forecast.py}{43}{预报生成}，\daysrc{forecast.py}{73}{条件化}；
-\daysrc{day_run.py}{104}{准备并封存}，\daysrc{day_run.py}{157}{日前定价}，\daysrc{day_run.py}{199}{含噪 AC 核算}。}
-\newpage
-\section{修正共同电压残差及其条件分布}\label{sec:repairprob}
-\subsection{先确定一次量测对应的共同误差}
-本节及后两节给出数学修订，旧实验数字仍对应前述实现。令 $T=96,n=15,M=Tn$，全天功率量测按时段排为 $w\in\mathbb R^{2M}$。电压目标记为 $Y=10^6\operatorname{vec}(V_0^2-V_i^2)$，新节所有电压残差均使用 $10^{-6}$ p.u.$^2$。定义
+\subsection{能量状态及因果控制的具体公式}
+令 $e_{r,t}$ 为资源相对基线的累计能量偏移，初始为零。令 $\eta_r=\sqrt{0.85}$ 对储能、其余资源取 1，定义功率到能量速率的单调函数
 \[
- \mathsf H_k=10^6 I_T\otimes[R_k\ X_k],\qquad k=0,C,F,\qquad
- e=Y-\mathsf H_0w .
+\psi_r(p)=
+\begin{cases}\eta_rp,&p\ge0,\\p/\eta_r,&p<0.\end{cases}
+\qquad
+e_{r,t}=e_{r,t-1}+\Delta t\,\psi_r(u_{rt}).
 \]
-参考矩阵与两套候选都在历史上冻结。$e$ 是同一条量测记录的共同参考误差。自然日的候选残差满足恒等式
-$r_k=(\mathsf H_0-\mathsf H_k)w+e$。
+每槽约束为 $-A^-_{rt}\le u_{rt}\le A^+_{rt}$，能量偏移上下限读取原设备数据。可转移用户和储能日末偏移为零。EV 在原 00:00--08:00、18:00--24:00 两个连接段分别满足基准充电任务，段首重置偏移，段末为零；充电功率非负、无 V2G。可削减用户仅有总削减上限，无偿还等式。储能偏移上下界对应原 20\%--80\% SOC 和 50\% 初末 SOC。
 
-给定已经发布的日前预测 $f$，采用联合条件高斯工作模型
+为说明 $\Pi$ 怎样避免末端任务失约，令 $L^{\rm fut}_{rt},U^{\rm fut}_{rt}$ 为时段 $t$ 之后按已声明功率能力计算的最小、最大可实现能量变化；不使用未来随机请求。对需要末端归零的资源，当前槽后的能量范围为
 \[
- \begin{bmatrix}w\\e\end{bmatrix}\Bigm| f
- \sim N\!\left(
- \begin{bmatrix}m_w\\m_e\end{bmatrix},
- \begin{bmatrix}\Sigma_w&\Sigma_{we}\\
- \Sigma_{ew}&\Sigma_e\end{bmatrix}\right).
+\underline E^*_{rt}=\max(\underline E_r,-U^{\rm fut}_{rt}),\qquad
+\overline E^*_{rt}=\min(\overline E_r,-L^{\rm fut}_{rt}).
 \]
-$m_w,m_e$ 和协方差均指给定 $f$ 后的量。令
+令 $\psi_r^{-1}$ 表示上述单调函数的逆。把这两个能量边界转为当前功率边界：
 \[
- K_e=\Sigma_{ew}\Sigma_w^\dagger,\qquad
- \Sigma_\perp=\Sigma_e-\Sigma_{ew}\Sigma_w^\dagger\Sigma_{we}.
+\ell^*_{rt}=\max\!\left(-A^-_{rt},
+\psi_r^{-1}\!\left(\frac{\underline E^*_{rt}-e_{r,t-1}}{\Delta t}\right)\right),
+\quad
+u^*_{rt}=\min\!\left(A^+_{rt},
+\psi_r^{-1}\!\left(\frac{\overline E^*_{rt}-e_{r,t-1}}{\Delta t}\right)\right).
 \]
-对有效功率支撑，该模型等价于
-\begin{equation}
- w=m_w+\delta w,\qquad
- e=m_e+K_e\delta w+\eta,\qquad
- \delta w\sim N(0,\Sigma_w),\quad
- \eta\sim N(0,\Sigma_\perp),\quad \eta\perp\delta w .
- \label{orthogonalnoise}
-\end{equation}
-条件高斯的 Schur 补给出该分解。$\Sigma_e=K_e\Sigma_wK_e^\top+\Sigma_\perp$，因此功率误差已传播后，只另加 $\eta$。将整个原始 $\Sigma_e$ 再独立加一次会重复其中可由功率误差解释的部分。
+输出为原始请求在 $[\ell^*,u^*]$ 内的截断，再更新状态。可削减资源取消未来归零限制。该控制逐槽执行，未来仅用固定能力边界。
 
-若量测为 $w=w^\star+\varepsilon_w$、$Y=\mathsf H_0w^\star+\zeta+\varepsilon_Y$，则 $e=\zeta+\varepsilon_Y-\mathsf H_0\varepsilon_w$。因此量测口径的 $e$ 已含 P/Q 与电压表误差，也一般与 $w$ 相关。其独立电压噪声部分应保留在 $\Sigma_\perp$，而不是随功率预测的条件化一起消失。
-
-\subsection{估计及数值假设的来源}
-用更早留出日的 $(f_d,w_d,Y_d)$ 形成 $\delta w_d=w_d-m_w(f_d)$ 和 $e_d=Y_d-\mathsf H_0w_d$，估计上述条件均值与协方差。参考矩阵应在这些校准记录之前冻结。三日整段样本不能充分估计完整协方差；可采用声明的少参数时空误差假设和已知表计方差，后续按日核验。$\Sigma_\perp$ 的大小须有独立依据，避免通过同一低秩拟合自动压为零。
-
-下一节为了确定性计算，采用附加的因子加对角结构
+\subsection{从合同交付到奖励单价及费用}
+在指定调节方向下，令 $A^{\rm dir}$ 表示该方向的可用裕量：增取电取 $A^+_{rt}$，减取电取 $A^-_{rt}$。原简化平均响应关系是 $|u|=A^{\rm dir}\pi/c^{\rm pay}$。因此
 \[
- \Sigma_w=B_wB_w^\top,\qquad
- \eta=F_vz_v+D_\sigma\epsilon,\qquad
- \Sigma_\perp=F_vF_v^\top+D_\sigma^2,\quad
- D_\sigma=\operatorname{diag}(\sigma_1,\ldots,\sigma_M).
+\pi_{rt}=
+c^{\rm pay}_{rt}\left(\frac{\pos{u_{rt}}}{A^+_{rt}}+
+\frac{\pos{-u_{rt}}}{A^-_{rt}}\right).
 \]
-$z_v,\epsilon$ 是独立标准高斯向量。共同偏移及相关量测因素进入 $F_v$，独立创新进入 $D_\sigma$。正交化仅保证 $\eta$ 与功率误差独立；本节的因子加对角结构另需估计或明确假设。它不从三个日因子自动推出。
-
-\newpage
-\section{报价、交付及同一观测下的候选竞争}
-\subsection{完整随机响应映射}
-小时变量 $x$、费用 $K(u)$ 及设备执行器 $\Pi$ 沿用第 1--4 节。名义请求仍为 $u=\Pi((S_{rt}x_{r,\ell(t)})_{rt})$。用标准高斯向量 $z_d$ 表示整段履约因素，规定
+零裕量方向只允许零交付，对应比值定义为零。费用是奖励单价乘合同绝对调节电量：
 \[
- v(x,z_d)=\Pi\!\left(u\odot
-       [\,m_d+\operatorname{diag}(s_d)L_dz_d\,]\right),\qquad
- \Delta w(x,z_d)=\mathcal A v(x,z_d).
+K(u)=\Delta t\sum_{r,t}\pi_{rt}|u_{rt}|
+=\Delta t\sum_{r,t}c^{\rm pay}_{rt}
+\left(\frac{\pos{u_{rt}}^2}{A^+_{rt}}+
+\frac{\pos{-u_{rt}}^2}{A^-_{rt}}\right).
 \]
-$m_d,s_d,L_d$ 分别为交付倍数的均值、逐资源时段标准差及相关因子，$\mathcal A$ 将资源 kW 按所在节点及无功比例汇总为标幺 P/Q。设备功率与能量限制由原 $\Pi$ 执行。$z_d$ 与自然日误差暂设条件独立。
+本轮最小化该计划支付，没有额外总费用上限。费用参数是声明的合同数值，尚未实证校准为真实用户支出。
 
-令 $\mathsf H_{\rm DR}$ 为参考 DR 电压灵敏度，起步可取 $\mathsf H_{\rm DR}=\mathsf H_0$。令 $\delta w=B_wz_w$，$q=(z_w,z_v,z_d)$。两个候选共用同一 $q,\epsilon$，其残差为
+\noindent\textbf{代码块的作用和输入输出。}
+输入为完整小时矩阵 \code{x}、原设备对象 \code{dev}；输出为名义交付、控制器导数缓存、费用及费用对交付的导数。
+\begin{lstlisting}
+u, cache = dev.nominal(x, cache=True)
+fee, fee_u = dev.fees(u, gradient=True)
+\end{lstlisting}
+\code{u} 的形状为 $(60,96)$、单位 kW；缓存仅用于求导，不改变设备运行。
+
+\section{从资源调节到原验证事件}
+\subsection{残差均值}
+资源 $r$ 位于节点 $j(r)$，其无功与有功增量比为 $\gamma_r$。定义每交付 1 kW 对候选残差的影响
+\[
+G_{k,jr}=\frac{10^6}{P_{\rm base}}\bigl[
+(R_0-R_k)_{j,j(r)}+\gamma_r(X_0-X_k)_{j,j(r)}\bigr].
+\]
+条件模型使用名义交付，因而
+\[
+a_{k,t}(x)=c_t^{\rm ref}+(H_0-H_k)\bar b_t+G_ku_t,
+\qquad
+r_{ki}=a_{ki}(x)+\sigma_iZ_i.
+\]
+$u_t$ 是资源向量，$Z_i$ 独立标准正态；两个候选在同一单元共用 $Z_i$。历史参考残差中的功率相关变化已通过 $\bar b_t$ 与矩阵计算，未再次叠加旧联合背景。上述电压调节关系是参考线性近似，真实 AC 用独立评价检验。
+
+\subsection{为什么损失差门槛来自原选模}
+定义新日平均绝对残差 $L_k=M^{-1}\sum_i|r_{ki}|$，历史验证损失为 $H_k^{\rm val}$。原 288 个历史验证时段加权后，新日 96 时段权重为 2，因此总分
+\[
+J_k=\frac{288H_k^{\rm val}+192L_k}{480}
+=0.6H_k^{\rm val}+0.4L_k.
+\]
+两族都有历史资格，粗族的原始支撑更少。原规则保留最低分的 3\% 带内候选，再优先取更少支撑，所以细族胜出等价于
+$J_C>1.03J_F+\varepsilon_{\rm sel}$。
+原标幺损失的容差是 $10^{-12}$，换成本文单位为 $\varepsilon_{\rm sel}=10^{-6}$。移项得到
+\[
+D=L_C-\kappa L_F,\qquad
+h_\star=1.5(\kappa H_F^{\rm val}-H_C^{\rm val})+2.5\varepsilon_{\rm sel},
+\]
+\[
+J_C-\kappa J_F-\varepsilon_{\rm sel}
+=0.4(D-h_\star).
+\]
+本例 $h_\star=9.179191188409$。因此规划事件是 $D>h_\star$，等号保留粗族。它对应既有两候选的最终回选，不是拓扑真实性概率。
+
+\section{为什么要计算完整的绝对值分布}
+对一项定义 $d_i(z)=|a_{Ci}+\sigma_i z|-\kappa|a_{Fi}+\sigma_i z|$，则
+$D=M^{-1}\sum_i d_i(Z_i)$。
+一般情况下 $d_i$ 和 $D$ 都不是高斯变量。不能仅因残差是高斯就把 $D$ 的分位数写成均值减固定倍标准差。
+
+当 $\sigma_i>0$ 时，两残差只在
+$-a_{Ci}/\sigma_i,-a_{Fi}/\sigma_i$ 处变号。排序后得到最多三个区间 $(l_{im},u_{im})$，其中 $m$ 为该单元的区间编号。在第 $m$ 段用 $s_{C,im},s_{F,im}\in\{-1,1\}$ 表示对应残差符号，定义
+\[
+A_{im}=s_{C,im}a_{Ci}-\kappa s_{F,im}a_{Fi},\qquad
+B_{im}=\sigma_i(s_{C,im}-\kappa s_{F,im}).
+\]
+因此 $d_i(z)=A_{im}+B_{im}z$ 在该段精确成立。报价变化时，零点和符号逐段重新计算。重合零点产生空段，程序略去；$\sigma_i=0$ 时直接处理常数项。
+
+\noindent\textbf{代码块的作用和输入输出。}
+输入为长度 $M$ 的 \code{a_C,a_F,sigma}；输出对象保存区间、截距、斜率、精确分段矩和频率尾界常数。
+\begin{lstlisting}
+model = IndependentResiduals(a_C, a_F, sigma, kappa=1.03)
+moments = model.moments()
+\end{lstlisting}
+\code{moments} 返回条件 $D$ 的均值和标准差。下面解释求这些矩以及求概率的全部步骤。
+
+\section{基础正态积分与逐式计算}
+\subsection{密度、分布函数和截断矩}
+令 $\phi(z)=(2\pi)^{-1/2}e^{-z^2/2}$ 为标准正态密度，$\Phi(x)=\int_{-\infty}^x\phi(z)\,dz$ 为其实数分布函数。对区间 $(l,u)$ 及阶数 $n=0,1,2$，定义 $m_n(l,u)=\int_l^u z^n\phi(z)\,dz$。由 $\phi'(z)=-z\phi(z)$ 可逐行得到
+\[
+m_0=\Phi(u)-\Phi(l),\qquad
+m_1=\phi(l)-\phi(u),\qquad
+m_2=m_0+l\phi(l)-u\phi(u).
+\]
+端点为无穷时取 $z^n\phi(z)\to0$。因此每段贡献的期望为 $Am_0+Bm_1$，二阶矩为
+$A^2m_0+2ABm_1+B^2m_2$。
+逐段相加得到 $\mu_i=\E d_i$ 和 $v_i=\operatorname{Var}(d_i)$。独立性给出
+\[
+\E D=M^{-1}\sum_i\mu_i,\qquad
+\operatorname{Var}(D)=M^{-2}\sum_i v_i.
+\]
+程序用这些真实分段矩作归一化；没有据此替换原分布。
+
+\subsection{高斯区间积分的特征函数}
+定义 $\psi_i(\omega)=\E[e^{\mathrm i\omega d_i(Z_i)}]$。特征函数是分布的傅里叶表示，满足 $\psi_i(0)=1$、$|\psi_i|\le1$ 和 $\psi_i(-\omega)=\overline{\psi_i(\omega)}$，这三条也用于数值检查。
+
+先考虑一个区间内的贡献 $A+Bz$。因为
+\[
+-\frac{z^2}{2}+\mathrm i\omega Bz
+=-\frac{(z-\mathrm i\omega B)^2}{2}-\frac{\omega^2B^2}{2},
+\]
+对高斯积分配方可得
+\[
+\int_l^u \phi(z)e^{\mathrm i\omega(A+Bz)}\,dz
+=e^{\mathrm i\omega A-\omega^2B^2/2}
+[\Phi(u-\mathrm i\omega B)-\Phi(l-\mathrm i\omega B)].
+\]
+这里 $\Phi$ 在复数上指该高斯积分的解析延拓；最后概率仍为实数。对至多三段求和得到完整的 $\psi_i$。这一步是解析等式，误差来自计算机浮点实现。
+
+\subsection{为什么代码使用缩放误差函数}
+为说明稳定实现，先定义
+$\operatorname{erf}(z)=2\pi^{-1/2}\int_0^z e^{-s^2}\,ds$，
+$\operatorname{erfc}(z)=1-\operatorname{erf}(z)$，
+$\operatorname{erfcx}(z)=e^{z^2}\operatorname{erfc}(z)$。
+对实数 $\ell\ge0,b$，定义尾积分
+$\mathcal T(\ell,b)=\int_\ell^\infty\phi(z)e^{\mathrm ibz}\,dz$。逐行变换为
 \begin{align}
- r_k(x)&=a_k(x,q)+D_\sigma\epsilon,\label{repairedresidual}\\
- a_k(x,q)&=(\mathsf H_0-\mathsf H_k)m_w+m_e
-  +(\mathsf H_0+K_e-\mathsf H_k)B_wz_w
-  +F_vz_v+(\mathsf H_{\rm DR}-\mathsf H_k)\mathcal A v(x,z_d).
-  \nonumber
+\mathcal T(\ell,b)
+&=e^{-b^2/2}[1-\Phi(\ell-\mathrm ib)]\\
+&=\tfrac12e^{-b^2/2}\operatorname{erfc}((\ell-\mathrm ib)/\sqrt2)\\
+&=\tfrac12e^{-\ell^2/2+\mathrm ib\ell}
+             \operatorname{erfcx}((\ell-\mathrm ib)/\sqrt2).
 \end{align}
-$K_e$ 描述自然功率与参考残差的相关性，DR 项使用的是 $\mathsf H_{\rm DR}-\mathsf H_k$。将 $K_e$ 加进 DR 灵敏度会把统计相关当作控制效果。以上假设还把剩余计量方差冻结在日前工作点；若调节足以显著改变相对表计噪声，应另估其动作相关方差。
+最后一行避免直接相乘一个极小指数和极大复 CDF。代码只在 $\ell\ge0$ 使用它。正区间用两尾相减，负区间以 $z\mapsto-z$ 反射，跨零区间用完整正态特征函数 $e^{-b^2/2}$ 减去两侧尾。
 
-\subsection{唯一的激励事件与优化目标}
-定义
+\noindent\textbf{代码块的作用和输入输出。}
+输入为非负尾端点 \code{ell} 及实频率 \code{b}，输出为复数尾积分。
+\begin{lstlisting}
+tail = (0.5 * np.exp(-0.5 * ell * ell + 1j * b * ell)
+        * erfcx((ell - 1j * b) / np.sqrt(2.0)))
+\end{lstlisting}
+区间反射和尾部相减由 \code{continuous._truncated_fourier} 统一完成。所有波动符号都来自本次计算的区间。
+
+\subsection{一个可以逐行复算的数值例}
+下面使用无量纲的纯合成系数 $a_C=2,a_F=.5,\sigma=1,\kappa=1.03$，用于核验计算链，不是 paper15 的功率或残差。此时
 \[
- D(x,q,\epsilon)=
- \frac{\|r_C(x)\|_1-1.03\|r_F(x)\|_1}{M},\qquad
- h=9.179191188409 .
+d(z)=|2+z|-1.03|.5+z|,
 \]
-该 $h$ 仍由完整历史与原新日权重算出，$D>h$ 仍表示粗族退出原 3\% 验证带。数学问题为
+两个零点为 $-2,-.5$，所以精确分段为
 \[
- \min_{x\in\mathcal X}K(u(x))
- \qquad\text{满足}\qquad
- p_f(x)=\Pr\{D(x,q,\epsilon)>h\mid f\}\ge0.90.
- \label{targetrepaired}
+d(z)=\begin{cases}-1.485+.03z,&z<-2,\\
+2.515+2.03z,&-2\le z<-.5,\\
+1.485-.03z,&z\ge-.5.\end{cases}
 \]
-这里 $\mathcal X$ 是原合同请求域，实际交付必须经过设备执行器。两套 $R/X$ 保持冻结。达到该事件约束只涉及这对历史候选；最终拓扑错漏仍在价格冻结后的真实曲线、AC 与含噪量测中计算。
-
-共同因素维数为 $d_q=\operatorname{rank}(B_w)+\dim z_v+\dim z_d$。当前资源响应代码含节点、时序及资源时段因素，保留其全维结构时 $d_q$ 很高。下一节的外层确定性求积适用于可处理的因素数；改成少量整段因素属于新的响应近似，须单独声明并检验，不能默认为原交付律。
-
-\newpage
-\section{连续概率计算与实际有限约束}
-\subsection{原损失贡献的连续分布}
-固定 $x,q$，令 $\kappa=1.03$，
+下面直接列出各段截断矩和对应贡献；每个数都使用前文 $m_0,m_1,m_2$ 公式得到。
+\begin{center}\small
+\begin{tabular}{lrrr}\toprule
+区间&$(-\infty,-2)$&$(-2,-.5)$&$(-.5,\infty)$\\\midrule
+$m_0$&.022750132&.285787407&.691462461\\
+$m_1$&$-.053990967$&$-.298074360$&.352065327\\
+$m_2$&.130732065&.353838137&.515429798\\
+$Am_0+Bm_1$&$-.035403675$&.113664377&1.016259795\\
+$A^2m_0+2ABm_1+B^2m_2$&.055097414&.222193744&1.493925172\\\bottomrule
+\end{tabular}
+\end{center}
+三段相加，得到均值1.094520496987、二阶原点矩1.771216330328、方差0.573241212004。在频率1，各段特征函数贡献依次为
 \[
- d_i(z)=|a_{Ci}+\sigma_i z|-\kappa|a_{Fi}+\sigma_i z|,
- \quad z\sim N(0,1),\qquad D=M^{-1}\sum_i d_i(\epsilon_i).
+\begin{aligned}
+&.000332125956-.022746537486\mathrm i,\\
+&.186761340314+.090677359380\mathrm i,\\
+&.069751872417+.687783290671\mathrm i.
+\end{aligned}
 \]
-按两个零点 $-a_{Ci}/\sigma_i,-a_{Fi}/\sigma_i$ 排序，得到最多三段 $(l_{ij},u_{ij})$。每段为 $d_i(z)=A_{ij}+B_{ij}z$，其中
-$A_{ij}=s_Ca_{Ci}-\kappa s_Fa_{Fi}$，
-$B_{ij}=\sigma_i(s_C-\kappa s_F)$。
-在每次报价评价时重新计算这些折点，保留全部符号变化。
+总和为 $.256845338687+.755714112566\mathrm i$。对原绝对值函数直接做实数余弦与正弦积分，最大差为 $1.39\times10^{-16}$。
 
-使用特征函数实现连续卷积。这里特征函数就是分布的傅里叶表示，不增加决策变量。记虚数单位为 $\mathrm i$，则逐段完成高斯积分可得
+若要求 $d(Z)>.5$，第一段无解，第二段给出 $Z>-.992610837438$，第三段给出 $Z<32.833333333333$。合并后概率为
+\[
+\Phi(32.833333333333)-\Phi(-.992610837438)=.839550179343.
+\]
+这里没有抽样，也没有事先把两个残差的符号固定为全域常数。多个单元的独立和没有这么短的根区间表达，下一节用其特征函数计算同一类概率。
+
+\section{独立贡献怎样合成总过线概率}
+\subsection{乘积与概率反演的证明}
+因为各 $Z_i$ 独立，期望乘积可分解。因此
+\[
+\Psi_D(\omega)=\E e^{\mathrm i\omega D}
+=\prod_i\psi_i(\omega/M).
+\]
+这里相乘的是特征函数，不是各单元的通过概率。
+
+令 $X=D-h_\star$。标准正弦积分恒等式为
+$\lim_{T_\omega\to\infty}\int_0^{T_\omega}\sin(\omega x)/\omega\,d\omega
+=(\pi/2)\operatorname{sign}(x)$。
+有限上限内，零附近的被积函数受 $|X|$ 控制，可以交换期望与积分；正弦积分一致有界，可对极限使用有界控制。若 $D$ 在 $h_\star$ 处没有原子，
+\[
+\Prob(D>h_\star)
+=\frac12+\frac1\pi\int_0^\infty
+\frac{\operatorname{Im}\{e^{-\mathrm i\omega h_\star}\Psi_D(\omega)\}}{\omega}\,d\omega .
+\]
+当至少一项 $\sigma_i>0$ 时，因 $\kappa>1$，该项所有非空段斜率均非零，具有连续分布；独立相加后仍连续。全部方差为零则直接判断严格不等式，避免在原子处使用半质量反演值。
+
+\subsection{固定归一化与实际有限约束}
+令 $S_D=\sum_i d_i$。在旧报价起点计算两个固定常数
+$c_0=\E S_D=17994.855921$、
+$s_0=\sqrt{\operatorname{Var}(S_D)}=13516.393292$。
+对所有被搜索报价共用它们，定义
+\[
+W=(S_D-c_0)/s_0,\qquad
+b_h=(Mh_\star-c_0)/s_0=-0.3534094.
+\]
+归一化并未声明 $W$ 是标准正态。其特征函数是
+\[
+\chi(\omega;x)=e^{-\mathrm i\omega c_0/s_0}
+                 \prod_i\psi_i(\omega/s_0;x).
+\]
+代码还对每项作局部相位重排，以减小复指数的相位幅度。令 $\mu_i(x)=\E[d_i(Z_i)]$ 为已计算的该项均值，并定义中心化特征函数
+\[
+\widetilde\psi_i(\omega;x)
+=e^{-\mathrm i\omega\mu_i(x)}\psi_i(\omega;x).
+\]
+因此也可以精确写成
+\[
+\chi(\omega;x)
+=e^{\mathrm i\omega(\sum_i\mu_i(x)-c_0)/s_0}
+ \prod_i\widetilde\psi_i(\omega/s_0;x).
+\]
+\code{full_adjoint.py} 用 \code{centered_intercept = A - means_i} 计算各项，再用 \code{normalization_phase} 恢复整体相位。这里随报价变化的 $\mu_i(x)$ 只是代数重排：其在各中心化因子导数中产生的相位项，与整体相位的导数恰好抵消。后文直接对原绝对值函数求导，已经包含完整导数；固定的只有 $c_0,s_0$，没有把动态中心冻结，也没有增加近似。
+
+在 $[0,1],[1,2],\ldots,[256,512]$ 内，取固定 Gauss--Legendre 节点 $\omega_{\ell'}>0$ 和权重 $w_{\ell'}$；$\ell'$ 为频率节点索引，与功率通道索引 $\ell$ 区分。实际概率近似为
 \begin{equation}
- \psi_i(t;x,q)=\sum_j
- e^{\mathrm i tA_{ij}-t^2B_{ij}^2/2}
- \bigl[\Phi(u_{ij}-\mathrm i tB_{ij})
-       -\Phi(l_{ij}-\mathrm i tB_{ij})\bigr].
- \label{contributioncf}
+\widehat p_V(x)=\frac12+\frac1\pi\sum_{\ell'}
+\frac{w_{\ell'}}{\omega_{\ell'}}
+\operatorname{Im}\{e^{-\mathrm i\omega_{\ell'} b_h}\chi(\omega_{\ell'};x)\}.
+\label{finiteprob}
 \end{equation}
-式中 $\Phi$ 表示正态 CDF 的复数延拓，实数概率仍由下一式给出。式 \eqref{contributioncf} 来自对
-$\exp(-z^2/2+\mathrm itBz)$ 配方；$\sigma_i=0$ 时直接使用
-$\psi_i(t)=\exp(\mathrm it d_i)$。给定 $q$ 后，局部误差独立，因此
-\[
- \Psi_D(t;x,q)=\prod_{i=1}^{M}\psi_i(t/M;x,q).
-\]
-若至少一个 $\sigma_i>0$，因 $\kappa\ne1$，其各段斜率均非零，$D\mid q$ 有连续分布。此时反演公式给出
-\[
- p(x\mid q)=\frac12+\frac1\pi\int_0^\infty
- \frac{\operatorname{Im}\{e^{-\mathrm ith}\Psi_D(t;x,q)\}}{t}\,dt .
-\]
-该式也可由 $\operatorname{sign}(v)=(2/\pi)\lim_{T\to\infty}\int_0^T\sin(tv)/t\,dt$ 推出。反演形式见
-\href{https://doi.org/10.1093/biomet/38.3-4.481}{Gil-Pelaez (1951)}。
-若全部 $\sigma_i=0$，须直接计算严格事件，避免在概率原子处使用半质量反演值。
+下标 $V$ 表示当前只对剩余电压创新取概率。有限节点的函数不含等待优化器解释的概率或积分符号。Gauss32 使用 320 个频率节点；最终点另用16/32/64阶加密核验。
 
-\subsection{优化器收到的约束不含积分符号}
-取固定共同因素求积节点 $q_s$、正权重 $\omega_s$，$\sum_s\omega_s=1$；取频率区间 $[0,T_\omega]$ 内的正节点 $t_\ell$ 和积分权重 $\nu_\ell$。定义
-\begin{align}
- \widehat p_Q(x)
- &=\sum_{s=1}^{N_q}\omega_s\left[
- \frac12+\frac1\pi\sum_{\ell=1}^{N_\omega}
- \frac{\nu_\ell}{t_\ell}
- \operatorname{Im}\left\{
- e^{-\mathrm it_\ell h}
- \prod_{i=1}^{M}\psi_i(t_\ell/M;x,q_s)
- \right\}\right],\label{finitecontinuous}\\
- g_Q(x)&=\widehat p_Q(x)-0.90.\nonumber
-\end{align}
-实际数值优化就是 $\min_{x\in\mathcal X}K(u(x))$，约束为 $g_Q(x)\ge0$。一次调用只需设备映射、复数正态函数、乘积和有限求和。它避免逐项向下取整产生的数值平台，但仍是非凸、可能分段可微的函数。式 \eqref{finitecontinuous} 是数值近似；只有核验了频率尾部、频率求积和外层求积的误差上界 $\varepsilon_{\rm num}$ 后，才可使用
-$g_Q(x)=\widehat p_Q(x)-\varepsilon_{\rm num}-0.90$
-作为原工作概率的充分条件。节点加密的稳定性检查是数值证据，不能自动充当严格误差界。
-
-\newpage
-\section{梯度、可行性阶段及待实现部分}
-\subsection{报价梯度从何而来}
-在固定 $\sigma_i$ 且设备映射可微的位置，连续分布允许对局部特征函数求导：
-\[
- \nabla_x\psi_i(t)=\mathrm it\,\E\!\left[
- e^{\mathrm it d_i(Z)}
- \left\{\operatorname{sign}(a_{Ci}+\sigma_iZ)\nabla_xa_{Ci}
- -\kappa\operatorname{sign}(a_{Fi}+\sigma_iZ)\nabla_xa_{Fi}\right\}\right].
-\]
-该期望也在同样的至多三段上解析计算。移动折点的边界项相消，因为原函数在折点连续。随后沿式 \eqref{finitecontinuous} 的乘积、有限求和、设备执行器及小时映射作链式求导。乘积导数应使用前后缀乘积，避免除以可能为零的 $\psi_i$。饱和面切换、零方差和退化点需要单独处理。该导数对应有限数值概率函数，不提供整个问题的全局最优保证。
-
-\subsection{先找可行报价，再降低费用}
-现有 \code{cost_only.solve} 只有在起点已达到目标时才启动降费。新模型接入应先加入可行性阶段
-\[
- \min_{x\in\mathcal X,\ s\ge0}s
- \quad\text{满足}\quad
- \widehat p_Q(x)-0.90+s\ge0.
-\]
-找到 $s=0$ 的点并经高精度复核后，再启动原最小费用阶段；未找到可行点须保留求解未决，局部搜索不能证明全域不可行。两阶段使用相同的 $D$、概率工作模型与最终选模规则。
-
-\subsection{本次修订的状态与验收}
-前 11 节的代码与结果保持原解释。本节给出的是待实现的连续概率模型。原代码中的 \code{forecast.condition_packet} 尚未包含 $\Sigma_\perp$ 的独立创新；\code{Probability.evaluate} 仍为外层抽样加一维解析积分。复数 CDF 的缩放计算、频率反演、确定性共同因素求积及新可行性阶段均尚未实现或验证。
-
-实现前先在一两个报价变量上核对直接积分、连续反演和方向导数；检查原粗网格反例中真实概率随报价变化是否被保留。之后才评估全部资源上的计算量。单次概率评价工作量约随 $N_qN_\omega M$ 增长，共同因素维数决定 $N_q$ 是否可承受。独立电压创新保留逐单元方差，相关因素及高维履约误差也应按声明的模型保留；因算量而改变因素数须作为模型近似记录。
-\newpage
-\section{独立原始误差下的完整模型与首批核验}\label{sec:indpilot}
-\subsection{独立假设具体作用在哪一层}
-本节采用用户最新允许的简化，令功率预测误差、设备请求误差、P/Q 表计误差和电压平方降误差的原始标准高斯输入全部相互独立。该设定替代原响应相关系数。电压平方降创新的独立性也舍弃了原共用根表造成的节点相关性。
-
-日前发布的功率曲线为 $f$。用训练 RMS 和已预设的晚峰偏差形成 $\bar b=f-d$，规定
-\[
- b\mid f=\bar b+D_bz_b .
-\]
-这是本轮直接假设的条件预测分布。$D_b$ 对角元为训练 RMS 的非峰 4\%、17--22 点 8\%。该条件律独立于评价方封存的测试真值，不声称来自旧二因子后验或实证校准。
-
-沿用第 13 节的单位和节点汇总矩阵，完整观测参考模型规定为
-\begin{align}
- v(x,z_d)&=\Pi\!\left(u(x)\odot[1+s_d\odot z_d]\right),\\
- w^m&=b+\mathcal Av+D_w(b,v)z_w,\\
- Y^m&=\mathsf H_0 b+\mathsf H_{\rm DR}\mathcal Av+c+D_ez_e .
-\end{align}
-所有 $z$ 均独立标准正态。$c$ 只用三条历史量测的参考残差均值，不从测试日估计。$D_w(b,v)=0.005\operatorname{diag}(|b+\mathcal Av|)$ 按实现中的总功率应用原相对表计系数；$D_e$ 采用原电压系数 0.0005 的一阶边际换算。该 $D_e$ 是本轮指定的电压创新，未把含噪历史残差方差再次加入。$c$ 的抽样误差和更一般的参考模型误差尚待校准。
-
-因此两候选共用同一实现，实际评分残差为
+完整条件优化问题为
 \begin{equation}
- r_k=(\mathsf H_0-\mathsf H_k)b+
- (\mathsf H_{\rm DR}-\mathsf H_k)\mathcal Av+
- c+D_ez_e-\mathsf H_kD_w(b,v)z_w .
- \label{fullindmodel}
+\min_{x\in\mathcal X}K(\Pi(Sx))
+\quad\text{满足}\quad
+g(x)=\widehat p_V(x)-0.90\ge0,
+\label{fulloptimization}
 \end{equation}
-其完整规划事件仍为 $D=(\|r_C\|_1-1.03\|r_F\|_1)/M>h$。
+$\mathcal X$ 是第 4 节的全部有效小时变量界。设备约束通过 $\Pi$ 进入。它是数值非线性、非凸问题，局部返回不证明全局最优。
 
-\subsection{独立输入与独立贡献并非同一个条件}
-线性变换后协方差为 $A\operatorname{Cov}(z)A^\top$。例如两个节点的独立功率误差 $\delta p\sim N(0,I_2)$，若 $R_0-R_k=J$，其中 $J$ 的全部元素为 1，则残差误差为 $J\delta p$，协方差为 $2J$，两节点完全相关。设备控制同样会引入时间依赖。若两时段交付必须满足 $v_1+v_2=0$，则独立的原始请求最终也会形成负相关的实际交付。
+\section{全变量梯度怎样计算而不展开巨大矩阵}
+\subsection{每个残差均值的导数}
+在固定频率 $\omega$ 下，记第 $i$ 项第 $m$ 段傅里叶积分为 $I_{im}(\omega)$，它包含 $e^{\mathrm i\omega A_{im}}$。定义
+\[
+P_i^C(\omega)=\frac{\partial\psi_i}{\partial a_{Ci}}
+=\mathrm i\omega\sum_m s_{C,im}I_{im}(\omega),\qquad
+P_i^F(\omega)=\frac{\partial\psi_i}{\partial a_{Fi}}
+=-\kappa\mathrm i\omega\sum_m s_{F,im}I_{im}(\omega).
+\]
+证明如下。对原绝对值，除零点外，
+$\partial d_i/\partial a_{Ci}=\operatorname{sign}(a_{Ci}+\sigma_iZ_i)$，
+$\partial d_i/\partial a_{Fi}=-\kappa\operatorname{sign}(a_{Fi}+\sigma_iZ_i)$。
+其绝对值有界，固定频率下可将导数移入高斯积分。移动分段端点的边界项相消，因为相邻段的原函数连续。再对 $\exp(\mathrm i\omega d_i)$ 用链式法则即得上述公式。
 
-所以式 \eqref{fullindmodel} 的不同节点时段贡献通常相关，不能直接将它们的标量特征函数相乘。首批连续反演的对象明确限定为
+定义 $Q_i(\omega)=\prod_{i'\ne i}\psi_{i'}(\omega)$。用左侧累积乘积与右侧累积乘积计算 $Q_i$，避免除以可能为零的 $\psi_i$。固定归一化常数 $c_0,s_0$ 后，对候选编号 $k\in\{C,F\}$ 有
 \[
- b=\bar b,\qquad v=u(x),\qquad z_w=0,\qquad
- r_{ki}=a_{ki}(x)+\sigma_i\epsilon_i ,
+\frac{\partial\chi(\omega;x)}{\partial a_{ki}}
+=e^{-\mathrm i\omega c_0/s_0}
+ Q_i(\omega/s_0)P_i^k(\omega/s_0).
 \]
-其中 $\sigma_i=(D_e)_{ii}$，仅对独立电压创新取概率。该条件分布用于核验反演精度、时间与两变量报价方向。另用独立原始误差模拟式 \eqref{fullindmodel}，检查条件化遗漏的影响。完整模拟保留原设备控制器，使用线性参考电压关系，尚未生成新的 AC 物理证据。
+因此式 \eqref{finiteprob} 的两个单元梯度分别为
+\[
+g_i^k=\frac{\partial\widehat p_V}{\partial a_{ki}}
+=\frac1\pi\sum_{\ell'}\frac{w_{\ell'}}{\omega_{\ell'}}
+\operatorname{Im}\!\left\{
+e^{-\mathrm i\omega_{\ell'} b_h}
+e^{-\mathrm i\omega_{\ell'} c_0/s_0}
+Q_i(\omega_{\ell'}/s_0)P_i^k(\omega_{\ell'}/s_0)
+\right\},\qquad k\in\{C,F\}.
+\]
+式中 $P_i^k$ 自带原始频率因子，代入 $\omega_{\ell'}/s_0$ 已包含链式缩放，无需再乘一次 $1/s_0$。
 
-\subsection{电压创新标准差的来源}
-若相对电压量测为 $\widetilde V=V(1+\sigma_vZ)$，则
-\[
- \widetilde V^2=V^2+2\sigma_v V^2Z+\sigma_v^2V^2Z^2 .
-\]
-取一阶项，电压平方降的边际标准差为
-\[
- \sigma_i=2\cdot10^6\sigma_v
-       \sqrt{\overline V_0^{\,4}+\overline V_i^{\,4}},
-\]
-本轮 $\overline V$ 只取历史训练记录的平均。二阶项还给出均值修正
-$10^6\sigma_v^2(V_0^2-V_i^2)$，其方差相对一阶项为 $\sigma_v^2/2$。这是高斯近似；原共享根表误差使同一时段各节点相关，本轮依据独立假设只保留其边际方差。
+\noindent\textbf{代码块的作用和输入输出。}
+输入为残差分布对象、历史门槛及固定归一化；输出为概率和两个单元系数梯度，不构造单元--频率--报价变量三维张量。
+\begin{lstlisting}
+out = probability_with_adjoint(
+    model, threshold, cutoff=512, order=32,
+    normalization=(center, scale), refinements=0)
+p = out["probability"]
+gC = out["gradient_coarse"].reshape(96, 15)
+gF = out["gradient_fine"].reshape(96, 15)
+\end{lstlisting}
+\code{refinements=0} 适用于固定节点搜索，不表示已经完成最终精度核验。
 
-\newpage
-\section{连续反演的基础证明与误差核算}
-\subsection{为什么闭式特征函数和乘积成立}
-对固定条件均值 $a_C,a_F$，绝对值只在 $-a_C/\sigma,-a_F/\sigma$ 两处变号。在每一段上 $d(z)=A+Bz$。由
+\subsection{从单元梯度回到资源与小时请求}
+由残差均值对交付的线性关系，
 \[
- -z^2/2+\mathrm itBz
- =-(z-\mathrm itB)^2/2-t^2B^2/2
+\frac{\partial\widehat p_V}{\partial u_{rt}}
+=\sum_j\bigl(G_{C,jr}g^C_{tj}+G_{F,jr}g^F_{tj}\bigr).
 \]
-配方积分，得到式 \eqref{contributioncf}。复数 $\Phi$ 只是计算高斯积分的解析延拓，最终概率仍为实数。实现用缩放复误差函数避免大指数与大复 CDF 相乘。
+再通过原设备控制器回传。定义该槽输出对当前原始请求的局部导数 $d_{rt}^{\rm ctrl}$，对前一能量状态的导数 $b_{rt}^{\rm ctrl}$，以及能量更新对该槽输出的导数 $k_{rt}^{\rm ctrl}$。它们对应缓存的 \code{aa,bb,kk}。以下对每个资源分别递推并省略资源下标。令 $\lambda_t$ 为未来目标对当前能量状态的导数，已知交付梯度为 $g_t^u$；从 $\lambda_T=0$ 开始，按 $t=T,\ldots,1$ 反向计算
+\[
+\zeta_t=g_t^u+\lambda_t k_t^{\rm ctrl},\qquad
+g_t^{\rm raw}=\zeta_t d_t^{\rm ctrl},\qquad
+\lambda_{t-1}=\lambda_t+\zeta_t b_t^{\rm ctrl}.
+\]
+段首能量重置时切断此前状态的导数。最后
+$\partial\widehat p_V/\partial x_{rh}
+=\sum_{t:h(t)=h} S_{rt}g_{rt}^{\rm raw}$。
+设备饱和面切换处使用当前面导数，并以方向差分核验；不把局部可微性外推为全域光滑。
 
-独立局部创新意味着
-$\E\exp(\mathrm it\sum_i d_i/M)=\prod_i\E\exp(\mathrm it d_i/M)$。
-两个候选必须在每一项中共享同一个创新，贡献之间的独立性则由本轮条件定义保证。因 $\kappa=1.03$，正方差项各段斜率 $\sigma(s_C-\kappa s_F)$ 非零，该项具有连续分布，独立相加后仍连续。
+\noindent\textbf{代码块的作用和输入输出。}
+输入为上一块的两个梯度、两个已定义的影响矩阵以及名义控制缓存；输出为所有 $60\times24$ 请求的概率导数。
+\begin{lstlisting}
+g_u = (gC @ effect_C + gF @ effect_F).T
+g_x = dev.hourly_vjp(g_u, cache)
+fee_x = dev.hourly_vjp(fee_u, cache)
+\end{lstlisting}
+\code{effect_C/effect_F} 对应 $G_C,G_F$。单次傅里叶工作数组约为 $M\times$频率块大小，与报价变量数无额外乘积关系。
 
-令 $X=D-h$。有限上限内可以交换期望与积分，$\sin(tX)/t$ 在零附近受 $|X|$ 控制。再利用
-\[
- \lim_{T\to\infty}\int_0^T\frac{\sin(tx)}t\,dt
- =\frac\pi2\operatorname{sign}(x)
-\]
-及正弦积分的一致有界性，可得
-\[
- \Pr(D>h)=\frac12+\frac1\pi\int_0^\infty
- \frac{\operatorname{Im}[e^{-\mathrm ith}\Psi_D(t)]}{t}\,dt .
-\]
-全部方差为零时直接判断严格不等式。积分核在零点的连续极限为 $\E[D]-h$。
+\section{求解入口、可行性与冻结报价}
+旧报价和零请求先重放并审核。原实现先用有界 L-BFGS-B 提高概率作为启动尝试。可行性并不是 SLSQP 的前置数学要求：在启动尝试未达到90\%时，也可以直接从该点求式 \eqref{fulloptimization}。本轮续阶段正是这样执行，未加新的资源限制或改概率目标。
 
-\subsection{显式频率尾部界}
-在任一段上分部积分，
-\[
- \left|\int_l^u e^{\mathrm iv(A+Bz)}\phi(z)\,dz\right|
- \le\frac{\phi(l)+\phi(u)+\int_l^u|\phi'(z)|\,dz}{|vB|}.
-\]
-正态密度单峰，因此分子为 $2\max_{[l,u]}\phi$。定义
-$C_i=\sum_j2\max_{[l_{ij},u_{ij}]}\phi/|B_{ij}|$，则
-$|\psi_i(v)|\le\min(1,C_i/|v|)$。选任意 $r$ 项正方差贡献，反演尾部满足
-\[
- \varepsilon_{\rm tail}\le
- \frac{M^r\prod_{i\in I}C_i}{\pi rT_\omega^r}.
-\]
-实现按候选乘积界选择较小者。该式只控制频率截断，不包含积分和浮点误差。$\kappa-1=0.03$ 可使 $C_i$ 很大，严格尾界可能偏松。
+对每一次求值保存费用、概率、返回状态、设备审核、源与输入指纹。选择满足目标的返回点中费用最低者，并另作16/32/64阶概率、费用、资源核验。若未达目标，只能报告诊断和求解未决；局部失败不证明资源下全域不可行。所有独立抽样均在最终报价和来源指纹冻结后启动，结果不反馈本轮价格。
 
-\subsection{区间积分误差与实际报告口径}
-记 $F(t)=\E[\sin(tX)/t]$，则
-$F(t)=\E[X\int_0^1\cos(tuX)\,du]$。有限三阶矩下，
-\[
- \sup_t|F''(t)|\le\E|X|^3/3 .
-\]
-例如采用步长 $\delta t$ 的复合中点公式，概率积分误差可界为
-\[
- \varepsilon_{\rm freq}\le
- \frac{T_\omega\delta t^2\E|D-h|^3}{72\pi}.
-\]
-Minkowski 不等式还给出
-$\E|D-h|^3\le[M^{-1}\sum_i(\E|d_i-h|^3)^{1/3}]^3$，
-各一维三阶矩可再按直线零点分段计算。该界可能保守。
+\noindent\textbf{代码块的作用和输入输出。}
+下面代码表达求解器所见的同一目标与约束。\code{evaluate(x)} 的输入是有效小时向量，输出包括费用、概率和两个同维梯度；其中 \code{gradient} 为概率梯度。\code{start} 为有效小时变量的初始向量，\code{request_bounds} 为这些变量的上下界，\code{minimize} 是 SciPy 的优化入口。
+\begin{lstlisting}
+fit = minimize(
+    lambda x: evaluate(x)["fee"], start,
+    jac=lambda x: evaluate(x)["fee_gradient"],
+    bounds=request_bounds, method="SLSQP",
+    constraints=[{
+        "type": "ineq",
+        "fun": lambda x: evaluate(x)["probability"] - 0.90,
+        "jac": lambda x: evaluate(x)["gradient"]
+    }])
+\end{lstlisting}
+实际程序复用缓存并设置墙限、迭代限及检查点。返回 \code{success} 需和真实约束值分别报告。
 
-本轮小实现以确定性 Simpson 加密差、显式尾界、精确单项参照、独立模拟和方向导数核对作为数值证据。Simpson 加密差未自动成为严格积分误差界，因此结果单列已证明尾界与经验精度，不将二者合称总体认证误差。核验模拟的抽样误差也与反演误差分别报告。
-\newpage
-\section{paper15 的实际连续反演、梯度及两变量结果}
-\subsection{实际有限函数与数值归一化}
-为控制相位及频率尺度，程序对总贡献 $S_D=\sum_i d_i$ 使用冻结报价处的常数
+\subsection{SLSQP 每一步实际解什么}
+为避免费用与概率的数值尺度相差过大，最终续阶段使用固定正数 $K_0=52.169487$，即旧合同费用，把目标写为 $f(x)=K(\Pi(Sx))/K_0$。该除法不改变任何可行点或费用排序。令 $x^{(n)}$ 表示第 $n$ 次迭代的请求，$d$ 表示本步增量，$B_n$ 表示求解器更新的拉格朗日函数 Hessian 近似，$\underline x,\overline x$ 为有效变量的原始上下界。SLSQP 的核心子问题为
 \[
- c_0=17994.855921,\qquad s_0=13516.393292,\qquad
- W=(S_D-c_0)/s_0,\qquad
- b_h=(Mh-c_0)/s_0=-0.3534094 .
+\begin{aligned}
+\min_d\quad &\nabla f(x^{(n)})^\top d+\tfrac12d^\top B_n d,\\
+\text{满足}\quad &g(x^{(n)})+\nabla g(x^{(n)})^\top d\ge0,\\
+&\underline x-x^{(n)}\le d\le\overline x-x^{(n)}.
+\end{aligned}
 \]
-所有被比较报价共用这两个常数。$W$ 的特征函数为
-$\chi(t;x)=e^{-\mathrm itc_0/s_0}\prod_i\psi_i(t/s_0;x)$。
-取频率上限 512，在 $[0,1],[1,2],\ldots,[256,512]$ 上使用 Gauss--Legendre 节点 $\tau_\ell,\nu_\ell$，条件概率函数实际为
-\[
- \widehat p_V(x)=\frac12+\frac1\pi
-       \sum_\ell\frac{\nu_\ell}{\tau_\ell}
-       \operatorname{Im}\{e^{-\mathrm i\tau_\ell b_h}\chi(\tau_\ell;x)\}.
-\]
-因此条件核验的约束可直接返回 $\widehat p_V(x)-0.90$ 及其方向导数。
-该式没有贡献向下取整或随机抽样。归一化后，上一节的尾界中 $M^r$ 相应替换为 $s_0^r$。固定归一化时，零频积分核必须使用 $(\E S_D-Mh)/s_0$；仅在当前均值等于 $c_0$ 时才能写作 $-b_h$。
+这一二次子问题使用当前概率约束的一阶展开。求解器通过步长搜索试探 $x^{(n)}+\alpha d$，其中 $0<\alpha\le1$；每个试探点仍调用原设备投影和完整有限特征函数求和，重新计算真实的数值费用与概率。约束线性化只用来提出下一步，不替代最终点的约束审核。导数由上一节的解析伴随给出，没有用抽样估计梯度。
 
-\subsection{冻结报价的数值核验}
-固定旧报价费用 52.169487、绝对请求交付能量 99.76991 kWh。条件损失差均值为 12.49643、标准差为 9.38638，而出带门槛为 9.17919。独立电压创新的大小来自原表计系数的一阶边际换算，未按通过率调整。
+所有变量都是连续请求。节点和小时的选择体现为哪些交付或报价接近零，没有额外的0/1选址变量，也没有预设只能保留两个节点。当前问题保留了固定两候选、固定参数的边界。非凸概率和分段设备控制使局部求解及墙限返回均可能不满足目标；程序须单独检查最终 $g(x)$。最终返回的可行报价称为本次有界搜索找到的低费用报价，不称全空间最小费用。
+
+\subsection{接近可行时的最后修正}
+费用阶段因迭代限停在略低于90\%时，使用独立事前锁定的最多10次求值、30秒恢复规则。令 $p=\widehat p_V(x)$，把概率梯度中在变量界处指向域外的分量置零，记余下方向为 $v^{\rm rest}$。取初始步长倍率 $s=1$，计算
+\[
+\alpha=s\frac{1.2(.90-p)+10^{-6}}{\|v^{\rm rest}\|_2^2},\qquad
+x^{\rm trial}=\operatorname{clip}(x+\alpha v^{\rm rest},\underline x,\overline x).
+\]
+此处 $\operatorname{clip}$ 逐项截入原变量界。分母为零时停止；每个试点都重算原设备投影和原有限概率。概率提高则接受并令 $s=1$，否则拒绝并将 $s$ 减半，达到90\%即停止。1.2和 $10^{-6}$ 只是数值步长的安全余量，不进入物理模型或概率事件。最后保存的是全部实际可行试点中费用最低者；该修正保证的是保存点经过真实数值约束核验，不保证费用驻点。
+
+\section{数值精度、证明边界与逐式核验}
+\subsection{解析尾部界}
+对单段分部积分得到
+\[
+\left|\int_l^u e^{\mathrm i\omega(A+Bz)}\phi(z)\,dz\right|
+\le\frac{\phi(l)+\phi(u)+\int_l^u|\phi'(z)|\,dz}{|\omega B|}.
+\]
+正态密度单峰，分子等于 $2\max_{[l,u]}\phi$。定义
+$C_i=\sum_m2\max_{[l_{im},u_{im}]}\phi/|B_{im}|$，则
+$|\psi_i(\omega)|\le\min(1,C_i/|\omega|)$。
+任选正方差单元的索引集合 $I$，令 $n_I=|I|\ge1$ 为所选单元数。对归一化频率上限 $T_\omega$ 的尾部误差有
+\[
+\varepsilon_{\rm tail}\le
+\frac{s_0^{n_I}\prod_{i\in I}C_i}{\pi n_IT_\omega^{n_I}}.
+\]
+代码取多个候选乘积界中的较小值。它不包含求积和浮点误差。
+
+\subsection{区间积分误差为什么可估计}
+本小节使用已经归一化的频率，先定义无量纲随机量 $X=(S_D-Mh_\star)/s_0=W-b_h$，再定义 $F(t)=\E[\sin(tX)/t]$。有
+$F(t)=\E[X\int_0^1\cos(tuX)\,du]$，
+故有限三阶矩下
+$\sup_t|F''(t)|\le\E|X|^3/3$。
+例如复合中点步长 $\delta t$ 给出概率积分误差
+\[
+\varepsilon_{\rm freq}\le
+T_\omega\delta t^2\E|X|^3/(72\pi).
+\]
+本轮采用的 Gauss 求积以阶数加密和独立数值参照作实证核验，尚未实现完整的 Gauss 与浮点误差认证。因此 \code{certified_error=None}；加密差不能冒充严格总体误差界。如果获得 $\varepsilon_{\rm num}$ 的有效上界，才可把式 \eqref{fulloptimization} 改成
+$\widehat p_V-\varepsilon_{\rm num}-0.90\ge0$
+作为工作分布下的充分条件。
+
+\subsection{逐行公式验证的输入和输出}
+\code{verify_formulas.py} 在计算前保存纯合成输入、容差、源哈希和环境，逐条输出 \code{expected,actual,absolute_error,tolerance,passed,record_seconds}；其中 \code{record_seconds} 只计记录开销，完整运行时间由汇总中的 \code{seconds} 给出。验证不读取 paper15 未来或真拓扑。独立参照包括实数正弦／余弦积分、原绝对值直接积分、原函数根求解和嵌套概率，避免只复述同一段实现。
+
+已完成89项，89通过、0失败，用时0.524秒。下表每一行对应前文一个运算链。
 \begin{center}\small
 \begin{tabularx}{\linewidth}{Yrr}
-\toprule 核算&概率&时间（秒）\\\midrule
-均匀 Simpson，20481 频率节点&0.640537649288109&46.1748\\
-分段 Gauss，320 频率节点&0.640537649288107&0.8578\\
-独立条件模拟，21018/32768&0.641418457&1.1572\\\bottomrule
+\toprule 运算及独立参照&项数&最大绝对差\\\midrule
+缩放 erfcx 与实数正弦／余弦积分&20&$1.67\times10^{-16}$\\
+折叠高斯均值与原绝对值积分&6&$4.44\times10^{-16}$\\
+分段方差与原绝对值二阶积分&6&$1.41\times10^{-15}$\\
+特征函数与原绝对值直接积分&24&$3.58\times10^{-15}$\\
+单项概率与原函数两根参照&18&$5.55\times10^{-17}$\\
+两项反演与嵌套标量概率&1&$2.25\times10^{-7}$\\
+系数伴随与固定求积差分&6&$7.00\times10^{-11}$\\\bottomrule
 \end{tabularx}
 \end{center}
-两种确定性积分相差 $1.67\times10^{-15}$。Gauss 16 至 32 阶的变化为 $7.77\times10^{-16}$，解析频率尾界为 $4.81\times10^{-88}$，提速约 53.83 倍。完整求积和浮点误差尚未认证；这些数值一致性不能解释为总体误差只有 $10^{-15}$。条件模拟 Wilson 95\% 区间为 $[0.636210,0.646594]$，与反演相容。
+其余8项覆盖零频、模长、共轭对称、独立求和矩、固定归一化及零方差严格事件。两项独立参照为0.759932070603861，反演为0.759931845981199，解析尾界为0.0001862035；该例保留经验精度而未误写成已认证误差。全资源设备反向链另有3项单元核验。
 
-六项内核检查通过，包括实数直接积分、单项手算和半正态分布、特征函数矩及共轭对称、两单元嵌套 CDF、方向导数及零方差严格事件。独立模拟只作核验，不进入优化器的约束评价。
+\section{冻结后的独立抽样及原 AC 评价}
+\subsection{完整执行工作模型}
+定义全部原始标准正态输入 $Z^b,Z^d,Z^w,Z^e$ 相互独立。自然功率为第3节给出的 $b$，请求误差的相对标准差为 $\nu_{rt}$。实际交付为
+\[
+v=\Pi(u\odot[1+\nu\odot Z^d]).
+\]
+一般 $\E[v]\ne u$，因为饱和及任务偿还改变响应均值。P/Q 量测误差为 $\varepsilon_t^w=0.005|b_t+\Delta b_t|\odot Z_t^w$，其中 $\Delta b_t$ 是交付汇总。令 $\sigma_t$ 为时段 $t$ 的 $N$ 个剩余电压标准差，$D_{e,t}=\operatorname{diag}(\sigma_t)$。参考线性模型的逐时段候选残差为
+\[
+r_{k,t}=c_t^{\rm ref}+(H_0-H_k)b_t+G_kv_t+D_{e,t}Z^e_t-H_k\varepsilon^w_t .
+\]
+每项均为 $N$ 维，$v_t$ 为 $N_r$ 维，$\varepsilon^w_t$ 为 $2N$ 维。P/Q 误差只加入一次。由于网络矩阵和设备能量状态，独立原始输入通常不会给出独立残差贡献。例如将某两维输入误差的协方差记为 $I_2$，让其到两输出的线性矩阵全为1，则两输出的协方差矩阵每项均为2。故本完整模型用独立抽样评价，不直接套逐单元特征函数乘积。
 
-\subsection{两个报价变量的导数及可行性搜索}
-令 $\theta_1,\theta_2\in[0,1]$ 分别缩放旧小时请求的前、后 12 小时，原设备控制器随后重新执行。概率导数对特征函数解析求导；设备映射的系数导数用两个变量的小扰动求出。控制面不变时，该步骤对应原设备分段的线性导数。
+\subsection{同一真实自然日上的 AC}
+新旧合同先冻结，再读取既有封存自然曲线。自然 P/Q 和真实根电压曲线逐次哈希核对保持不变。抽新的独立请求及量测实现，资源仍经过原控制器；原 AC 和观察器保留共享根表及末端噪声。每条路径对全部合同使用相同原始随机实现，评分仍使用完整历史、冻结 R/X 和原选模规则。所有选择冻结后才读取真块计算错漏。
 
-内部点 $(0.5,0.5)$ 条件概率为 0.12867009，方向梯度为 $(0.36224482,0.35580170)$。步长 $10^{-4}$ 时，两方向与概率差分之差小于 $1.4\times10^{-8}$；$10^{-5}$ 时分别为 $4.65\times10^{-11}$、$1.20\times10^{-10}$。粗步 $10^{-3}$ 跨越设备控制面，出现 $0.001925$ 的第一方向差，已保留该诊断。
+本轮预定32条执行／量测路径、一个自然日；独立自然日分母仍为1。合同包括新报价、旧90、旧95、零奖励和按新费用匹配的轮换。轮换的缩放只用合同费用及设备资料，先审核可行性，不读评价结果。若无法达到同费应明确报告。完整恢复、总错漏、费用和实际交付分别统计，失败与未决保留。
 
-有界可行性搜索从零、半幅和原报价三点出发，正常停止于 $(1,1)$，条件概率 0.640538、费用 52.169487，仍未达到 90\%。因此降费阶段未启动。该阶段用时 2.027 秒，共三个报价点评价；没有得到优于旧报价的新报价，也未证明完整价格空间不可行。原阶段因均匀积分超时、下一阶段因粗步导数门限而跳过的记录分别保留。
+\subsection{为什么抽样要分两种}
+第一种固定和规划相同的 $a_C,a_F,\sigma$，直接抽独立电压创新核验连续反演。第二种抽完整功率、交付、表计或运行原 AC，检验规划假设对执行的影响。前者差异属于计算及抽样误差，后者还包含模型失配。Wilson 95\% 区间描述估计概率的抽样误差，不改变90\%规划目标，也不自动给拓扑真实性概率。
 
-\newpage
-\subsection{完整独立原始误差的另外核算}
-另按式 \eqref{fullindmodel} 生成 2048 条独立原始误差路径，三策略共用同一批输入。P/Q 量测误差随随机总功率改变标准差，设备仍经过原能量控制，所以完整模型通常不联合高斯。以下结果来自线性参考模型，不含新的 AC 运行。
+\section{本轮求解与评价结果}
+\subsection{全资源条件报价已经冻结}
+全变量搜索的最终条件概率为0.9000042968761889，合同费为43.4019264214。16、32、64阶分别得到0.9000042968761888、0.9000042968761882、0.9000042968761889，计算前后设备审核均通过。频率加密差约 $7\times10^{-16}$；总数值误差尚未认证。
+
+初始50次迭代的概率启动为0.770662，直接费用阶段因300秒墙限停在0.889038，固定目标缩放后的60次迭代达到0.899908741。最后沿真实概率伴随作两步可行性恢复，3次求值、5.22秒，达到上述合格点。所有未达阶段及一次启动引用错误均保留。费用问题经有限搜索并恢复可行，未达到可宣称全局最优的条件。
+
+新合同仍使用原21.59637 kW库存。15节点均有交付，1290个有效小时请求中1188个非零。相对旧合同，1124个小时请求改变，46个原零小时获得非零请求；在原旧报价的两个分段比例空间中，拟合新请求的相对残差为0.7696。故本次确实重新优化了位置、时段与幅值。
+
+名义绝对调节92.93478 kWh，其中正调46.17199、负调46.76280，净值 $-0.59081$ kWh。四类资源绝对调节依次为44.87421、2.36283、23.84289、21.85486 kWh。移位与EV日净值为零，削减贡献 $-2.36283$ kWh，储能损耗补充1.77202 kWh。所有资源绝对功率和的峰为12.05150 kW，发生于23:30；单资源最大调节1.03585 kW。奖励单价范围约 $1.34\times10^{-7}$ 至1.32合同单位/kWh。与旧90合同费52.16949相比，本次费用降低16.8059\%。
+
+规划损失差 $D$ 的条件均值为22.02491、标准差为9.97604，门槛为9.17919；概率由完整分段分布积分得到，没有用均值和标准差代替分位数。
+
+\subsection{独立抽样与原AC的完整结果}
+所有合同使用相同的新抽样实现，冻结价格后没有重新拟合参数或优化报价。条件MC抽样32768条，完整原始误差线性参考MC抽样8192条；AC使用同一既有封存自然曲线上的32条独立交付与量测实现。表中MC列为过线次数，AC恢复列为最终完整块族恢复次数。
 \begin{center}\small
-\begin{tabularx}{\linewidth}{Yrr}
-\toprule 策略&过线次数／路径&估计概率\\\midrule
-无奖励&26/2048&1.2695\%\\
-半幅旧请求&434/2048&21.1914\%\\
-旧冻结报价&1332/2048&65.0391\%\\\bottomrule
-\end{tabularx}
+\begin{tabular}{lrrrrr}\toprule
+合同&固定费用&条件MC&完整MC&AC恢复&AC总错漏\\
+& &$/32768$&$/8192$&$/32$&\\\midrule
+新报价&43.40193&29443&7375&32&0\\
+旧90报价&52.16949&21048&5232&27&5\\
+旧95报价&53.38291&22823&5664&27&5\\
+同费轮换&43.40193&89&64&0&32\\
+无奖励&0&94&60&0&32\\\bottomrule
+\end{tabular}
 \end{center}
-模拟用时 6.279 秒，三策略 6144 个模型输出均完成，无失败；独立路径分母仍为 2048。冻结报价的 Wilson 95\% 区间为 $[62.9474\%,67.0744\%]$。半幅处的固定功率／交付条件概率仅 12.8670\%，与完整模拟相差 8.3244 个百分点。因此不能由原报价处两种概率接近，推断条件概率在整个报价域都近似完整概率。
+新价的条件MC为89.8529\%，与反演90.00043\%的差异处于抽样误差范围内；完整原始误差MC为90.0269\%。相同曲线的全部160/160个AC输出完成，失败未决0，15360/15360个时点收敛，设备与电压越限0，热限未核。相对旧90合同，新价5条更好、27条相同、0条更差；相对同费轮换32条均更好。
 
-\subsection{代码和恢复范围}
-源码位于 \code{dr_continuous_independent/}。其中 \code{continuous.py} 是稳定特征函数及原 Simpson 内核，\code{gauss_frequency.py} 只替换频率求积节点；\code{run.py} 保存冻结报价核验及完整模拟；\code{repair.py}、\code{optimize_two.py} 分别保存计算修正和细步导数后继续的两变量阶段。数学模型与各阶段的事前约定见 \code{PLAN.md}，公开数值见 \code{results.json}。
+新价AC平均 $D=23.812743$、最小9.707008，超过门槛9.179191；旧90合同平均16.833980、最小.329234。新价平均实际绝对调节为90.560224 kWh，旧90为96.452980，轮换140.143766。因此该小例的纠错改善在较低费用和较少实际调节量下发生，通过原验证回选保留到最终输出。此处没有新的W搜索，作用是利用历史联合候选库改变最终回选。
 
-私有 \code{wzzt_dr_continuous_independent_v1/run_v1} 至 \code{run_v3} 各自有配置、种子、源及输入哈希、源码快照和完成记录。旧运行没有覆盖或重跑。当前已核验条件概率和两个局部方向；完整随机模型的无抽样价格优化、独立 AC 最终错漏改善尚未完成。
-\newpage
-\section{代码的近似位置与新抽样的同报价比较}
-\subsection{从数据到约束的实际执行链}
-本节在全部报价冻结后新增独立抽样和 AC 核验。四合同为零奖励、同费轮换、旧 95\% 阶段合同和当前 90\% 阶段合同。两变量搜索返回的仍是当前合同，作为同一策略去重。
+自然日分母只有1，不把32条执行路径写成32个独立自然日。32/32的Wilson 95\%区间为 $[.89282,1]$，本批实际结果尚不足以给出总体执行成功率不低于90\%的统计认证。
 
-\begin{center}\small
-\begin{tabularx}{\linewidth}{p{.22\linewidth}Y}
-\toprule 代码对象&处理和精度性质\\\midrule
-\code{run.build_problem}&读取历史候选、旧合同及日前预报。预报去偏、独立误差和一阶电压方差均为声明的工作模型假设。\\
-\code{run.nominal}&请求经过原设备控制器，再用冻结矩阵构造条件残差均值。控制器按原模型执行，电压增量使用线性参考近似。\\
-残差分段类&\code{IndependentResiduals} 计算两个残差零点和每段 $A+Bz$，是原绝对值的等价展开。\\
-\code{_truncated_fourier}&各段高斯积分的稳定闭式计算；存在浮点误差。\\
-特征函数组合&\code{_characteristic_and_gradient} 在单元条件独立时乘积合成总分布。均值方差归一化是一一变换，并未把总损失差近似为高斯。\\
-\code{gauss_probability}&在频率轴上使用二倍区间 Gauss--Legendre；截断频率、有限节点及浮点带来数值误差。\\
-\code{run.optimize}&约束返回计算概率减 0.90，先找可行点再降费。当前只检验两个请求比例的非凸局部问题。\\\bottomrule
-\end{tabularx}
-\end{center}
-请求改变后，设备输出、$a_C,a_F$、残差零点及各段积分都重算。两候选始终共用同一次创新。频率求积节点固定在报价搜索的一轮内，便于比较有限函数的方向导数。
+\subsection{结果的独立重算}
+\code{full_evaluate_audit.py} 读取160条保存观测、冻结合同及源指纹，重新计算 $D$、总验证分数、选择、完整错漏和设备状态，不重新运行AC或改价格。160/160哈希、请求随机流、实际交付和冻结选择均一致。$D$ 重算差为0，恒等式 $J_C-1.03J_F-10^{-6}=.4(D-h_\star)$ 的最大差为 $4.67\times10^{-13}$。同费匹配差为0，全部模型抽样计数也独立重算一致，19项运行源指纹一致。
 
-\subsection{与紧接此前版本的区别}
-旧 \code{dr_heterogeneous_pilot/planner.py} 对 128 个外层背景／交付样本调用 \code{conditional_probability}。内层将全部残差零点排序，在每段求实际 L1 事件的门槛根，再加总正态质量。历史符号仅用于挑选积分方向，并未冻结后续残差符号。因此，旧约 90\% 与新约 64\% 的差异不能归于旧程序没有正确处理绝对值。
+表中费用保留原预付服务合同口径。若另假设按冻结单价与实际交付结算，事后补算平均数为新价41.79036、轮换43.48048、旧90为49.67653、旧95为50.82490；不以此替代当前优化目标。新价 \code{fees(delivered)} 的40.79338仍是使用成本代理。
+\section{代码文件、输入输出与复现顺序}
+基础目录为 \code{research_experiments/wzzt_dr_selection/}，下表使用相对路径。原始 P/Q/V、预测和报价数组留在私有目录，公开结果只含明确标量和资源汇总。
 
-两者的随机对象不同。旧模型使用三日联合低秩残差背景和相关整段交付，主要数值误差来自外层抽样；新条件反演固定日前均值功率和名义交付，仅对独立电压创新积分，主要数值误差来自频率截断和求积。新 Gauss 与上一节 Simpson 则使用完全相同的条件分布，仅改变频率节点，因此 54 倍提速属于同模型下的计算比较。
+\small
+\begin{longtable}{p{.38\linewidth}p{.55\linewidth}}
+\toprule 文件或入口&输入、输出和作用\\\midrule\endhead
+\code{dr_heterogeneous_pilot/devices.py}&资源配置及请求 $\to$ 原控制器、费用、设备导数；本轮复用。\\
+\code{dr_continuous_independent/run.py}&历史、冻结矩阵及已发布预测 $\to$ 共同参考均值、资源对象和候选影响；本轮复用准备函数。\\
+\code{continuous.py}&残差均值和标准差 $\to$ 分段、稳定特征函数、矩及原 Simpson 概率。\\
+\code{gauss_frequency.py}&同一特征函数 $\to$ 分段 Gauss 概率与加密诊断。\\
+\code{full_adjoint.py}&条件分布和固定频率节点 $\to$ 概率及全部单元均值导数。\\
+\code{full_price.py}&完整1290自由小时请求 $\to$ 启动搜索、源快照、检查点及初始冻结报价。\\
+\code{full_price_continue.py}&原检查点 $\to$ 直接约束费用求解及最终概率/资源审核。\\
+\code{full_price_scaled.py}&原检查点 $\to$ 固定正数归一化目标的同一约束问题。\\
+\code{full_price_restore.py}&近可行点 $\to$ 最多10次原概率梯度恢复及最终冻结报价。\\
+\code{full_price_allocation.py}&冻结报价 $\to$ 节点、时段、资源及费用聚合，不更新报价。\\
+\code{verify_formulas.py}&预先声明的纯合成系数 $\to$ 89条逐公式记录和汇总。\\
+\code{full_evaluate.py}&冻结新旧合同 $\to$ 新独立模型抽样和原 AC 的配对评价。\\
+\code{full_evaluate_audit.py}&保存观测与冻结选择 $\to$ 独立算术、设备及费用口径核验。\\
+\code{full_price_export.py}&完成凭据和核验汇总 $\to$ 白名单聚合结果，无原始轨迹。\\
+\code{sample_compare.py}&参数化合同库 $\to$ 工作模型直接抽样；新增可选接口保留原调用默认行为。\\
+\code{actual_compare.py}&封存曲线、冻结合同 $\to$ 原AC、先冻结选择、后评价真块。\\\bottomrule
+\end{longtable}
+\normalsize
+先运行公式核验和伴随核验，再锁定优化配置及源码。报价冻结后，才运行独立评价。每阶段保存环境版本、全部源/输入SHA-256、随机种子、完整逐次成功/失败/超时/未决及完成凭据。旧受限两变量结果和既有AC证据仍保存在原报告和Git历史，不与本轮全资源结果合并分母。
 
-\newpage
-\subsection{新独立抽样检验各自的工作概率}
-合同在所有新随机流产生前冻结。三个模型内四策略共用各自的新随机输入，直接计算原绝对值和 $D>h$，抽样结果不反馈到价格设计。
-\begin{center}\small
-\begin{tabularx}{\linewidth}{Yrrrr}
-\toprule 策略&条件反演&条件抽样&完整独立模型&旧工作模型\\
-& &$/32768$&$/8192$&$/8192$\\\midrule
-无奖励&0.2990\%&101&73&2224\\
-同费轮换&0.2946\%&101&76&2348\\
-旧95阶段合同&69.4962\%&22799&5665&7554\\
-当前90阶段合同&64.0538\%&21014&5247&7471\\\bottomrule
-\end{tabularx}
-\end{center}
-当前合同的新条件抽样为 64.1296\%，与反演相容；新完整独立模型为 64.0503\%，Wilson 95\% 区间为 $[63.0048\%,65.0826\%]$。旧工作模型为 91.1987\%，区间为 $[90.5658\%,91.7931\%]$，也与原 4096 点核验约 91.73\% 相容。原 128 点规划评价为 90.1937\%。
+\section{基础方法的来源}
+本文的反演式是Gil--Pelaez特征函数反演，前文给出适用于本模型的推导。原论文书目信息为 J.~Gil--Pelaez, \emph{Note on the inversion theorem}, Biometrika 38(3--4), 481--482, 1951，\href{https://doi.org/10.1093/biomet/38.3-4.481}{DOI 10.1093/biomet/38.3-4.481}；本轮在线核对范围为出版社书目页，公式依据为本文逐步证明和独立数值核验。
 
-当前合同的 $D$ 抽样均值在旧工作模型为 41.5715、新完整模型为 12.5434，标准差分别为 22.3789 和 9.6287。旧模型面向历史背景分布，新模型面向已发布次日预测，且误差结构不同。它们均可在各自分布中复现，但该概率差不属于数值反演误差。
-
-三个阶段共 49152 条新模型路径、196608 个策略输出，0 失败、0 缺失。各阶段分母不能合并成一个概率。条件、完整独立和旧模型抽样时间分别为 3.46、38.68、24.20 秒。公开字段中旧 95 阶段合同的 91.1547\% 是其在旧 90\% 阶段固定样本上的重评，不能当作最初 95\% 阶段的规划值。
-
-\subsection{同一封存自然日的原 AC 配对评价}
-另保持封存的自然 P/Q 和真实根电压曲线不变，新增 16 条请求及量测路径。四策略使用配对原始误差，DR 请求独立、实际交付经过原设备控制，量测使用原观察器及共享根表噪声。仅替换量测随机种子，不重抽自然负荷或真实根过程。全部选择先冻结，再查询真块族。
-\begin{center}\small
-\begin{tabularx}{\linewidth}{Yrrrr}
-\toprule 策略&完整恢复&总错漏&合同费&平均绝对交付 kWh\\\midrule
-无奖励&1/16&15&0&0\\
-同费轮换&1/16&15&52.1695&153.5935\\
-旧95阶段合同&9/16&7&53.3829&95.0991\\
-当前90阶段合同&8/16&8&52.1695&96.4581\\\bottomrule
-\end{tabularx}
-\end{center}
-当前合同相对同费轮换为 7 好、9 同、0 差。改善保留在既有争议块的最终候选回选，未重跑新 RNJ/WZZT 搜索。旧 95 阶段合同比当前合同多恢复 1 条执行路径，费用高 1.21342。
-
-64/64 策略输出完成，6144/6144 AC 时段收敛，0 失败、0 电压越限，热限未核算，用时 12.72 秒。370 项只读审计核对全部观察指纹、自然曲线不变、配对随机实现、资源审核及选择先于真值评价。独立自然日为 1，执行／量测路径为 16，不能将 64 个输出称为独立自然日。
-
-当前合同的实际过线为 50\%，Wilson 95\% 区间约为 $[28.0\%,72.0\%]$。旧规划是历史背景的平均概率，新反演是给定日前功率与名义交付的条件概率，AC 是给定这条真实自然曲线的随机执行效果。它们需要分别列出；这一批不足以校准跨日概率。
-
-\subsection{代码及新证据索引}
-\code{sample_compare.py} 共用旧冻结合同库，计算上述三个工作模型的新直接抽样；\code{actual_compare.py} 共用其 \code{load_policies}，复用原 \code{execute}、观察器及 \code{score_scene} 进行 AC 核验。公开 \code{comparison_results.json} 只含显式标量与完整私有工件哈希，详见 \code{COMPARISON_REPORT.md}。
-
-私有 \code{wzzt_dr_continuous_compare_v1/model_samples} 保存模型抽样的配置、源码快照和逐批断点；\code{wzzt_dr_comparison_v1/actual_run_v1} 保存合同冻结、全部 AC 观察、真值前选择、最终结果和审计。两阶段均完成，没有根据新样本修改报价。
+SLSQP实现与返回字段依据 \href{https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html}{SciPy官方SLSQP说明}核对。其列出的基础实现文献为 D.~Kraft, \emph{A software package for sequential quadratic programming}, DFVLR-FB 88-28, 1988。本文没有将现有反演或通用SQP方法本身称为新算法。
 \end{document}

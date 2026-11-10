@@ -94,7 +94,14 @@ def paired_results(rows, first, second):
                 first_worse=sum(a>b for a,b in outcomes))
 
 
-def main(args):
+def main(args, *, policy_loader=None, policy_order=None, response_seed=RESPONSE_SEED,
+         meter_seed=METER_SEED, extra_sources=(), comparison_pairs=None,
+         stage_metadata=None, has_new_quote=False):
+    policy_order=POLICY_ORDER if policy_order is None else tuple(policy_order)
+    if policy_loader is None:
+        policy_loader=load_policies
+    if comparison_pairs is None:
+        comparison_pairs=[("current90","zero"),("current90","rotation"),("old95","current90")]
     out=args.out.resolve()
     out.mkdir(parents=True,exist_ok=True)
     lock=out/"running.lock"
@@ -104,9 +111,11 @@ def main(args):
     try:
         archive,public=args.archive.resolve(),args.public.resolve()
         problem=bounded.build_problem(archive,public)
-        policies,policy_references=load_policies(problem,archive)
-        if set(policies)!=set(POLICY_ORDER):
-            raise ValueError("Frozen four-policy bank differs")
+        policies,policy_references=policy_loader(problem,archive)
+        if len(set(policy_order))!=len(policy_order) or set(policies)!=set(policy_order):
+            raise ValueError("Frozen policy bank differs from explicit order")
+        if any(a not in policies or b not in policies for a,b in comparison_pairs):
+            raise ValueError("Unknown policy in paired comparisons")
         artifacts=bounded.read(archive/bounded.CASE/"inputs.json")
         condition=bounded.read(bounded.checked(artifacts["case_protocol.json"]))
         pool=bounded.read(bounded.checked(artifacts["pool.json"]))
@@ -120,20 +129,22 @@ def main(args):
         sources=dict(problem["sources"])
         for filename in [Path(__file__),HERE/"sample_compare.py",
                          TASK/"dr_heterogeneous_pilot/driver.py",
-                         TASK/"dr_paper15_delivery_margin/ac_replay.py"]:
+                         TASK/"dr_paper15_delivery_margin/ac_replay.py", *extra_sources]:
             sources[str(filename.relative_to(TASK))]=bounded.sha(filename)
-        inputs=dict(case=bounded.CASE,paths=args.paths,requested_policy_observations=args.paths*4,
-                    max_seconds=args.seconds,response_seed=RESPONSE_SEED,meter_seed=METER_SEED,
+        inputs=dict(case=bounded.CASE,paths=args.paths,requested_policy_observations=args.paths*len(policy_order),
+                    max_seconds=args.seconds,response_seed=response_seed,meter_seed=meter_seed,
                     original_archive_protocol=bounded.reference(archive/"protocol.json"),
                     sealed_day=bounded.reference(natural),sealed_receipt=bounded.reference(prepared/"receipt.json"),
                     historical_and_forecast_inputs=problem["inputs"],policies=policy_references,
-                    fees={name:policies[name]["fee"] for name in POLICY_ORDER},sources=sources,
+                    fees={name:policies[name]["fee"] for name in policy_order},sources=sources,
                     python=platform.python_version(),numpy=np.__version__,scipy=scipy.__version__,
                     natural_day_count=1,rerun_natural_generator=False,
                     response_law="independent primitive Gaussian requests plus original Devices.project",
                     meter_law="original shared-root and terminal relative observation noises",
                     no_parameter_refit=True,no_W_search=True,
                     selection="complete historical gate, weight2, common3%, frozen .16 support map")
+        if stage_metadata is not None:
+            inputs["extension"]=stage_metadata
         if (out/"request.json").exists() and bounded.read(out/"request.json")!=bounded.plain(inputs):
             raise ValueError("Changed inputs or source in existing AC sampling stage")
         bounded.write(out/"request.json",inputs)
@@ -148,7 +159,7 @@ def main(args):
         # its true AC network. None of the following results feeds price design.
         frozen=out/"contracts_private.pkl"
         if not frozen.exists():
-            dump(frozen,{name:policies[name]["mean_u"] for name in POLICY_ORDER})
+            dump(frozen,{name:policies[name]["mean_u"] for name in policy_order})
         bounded.write(out/"policy_freeze.json",dict(contracts=bounded.reference(frozen),
                       sources=policy_references,fees=inputs["fees"],test_truth_used=False))
         runtime=original.open_runtime(condition["source_root"],condition["source_metadata"],
@@ -158,8 +169,8 @@ def main(args):
         background=original.load(natural)
         fingerprints=physical_fingerprints(background)
         device=problem["device"]
-        response_children=np.random.SeedSequence(RESPONSE_SEED).spawn(args.paths)
-        meter_children=np.random.SeedSequence(METER_SEED).spawn(args.paths)
+        response_children=np.random.SeedSequence(response_seed).spawn(args.paths)
+        meter_children=np.random.SeedSequence(meter_seed).spawn(args.paths)
         rows=bounded.read(out/"observed_rows.json") if (out/"observed_rows.json").exists() else []
         done={(row["path"],row["policy"]) for row in rows}
         observation_dir=out/"observations"
@@ -175,12 +186,12 @@ def main(args):
             observed_background=replace(background,shifted_seed=shifted_seed,replicate=meter_replicate)
             if physical_fingerprints(observed_background)!=fingerprints:
                 raise ArithmeticError("Meter-only seed override changed physical background")
-            seeds=dict(response=RESPONSE_SEED,response_spawn_key=list(response_children[path].spawn_key),
-                       meter=METER_SEED,meter_spawn_key=list(meter_children[path].spawn_key),
+            seeds=dict(response=response_seed,response_spawn_key=list(response_children[path].spawn_key),
+                       meter=meter_seed,meter_spawn_key=list(meter_children[path].spawn_key),
                        terminal_meter_seed=shifted_seed+2000,
                        root_meter_seed=70000019+100003*meter_replicate+int(background.scenario_index),
                        overridden_fields_are_meter_only=True)
-            for policy in POLICY_ORDER:
+            for policy in policy_order:
                 if (path,policy) in done:
                     continue
                 if time.perf_counter()-started>args.seconds:
@@ -213,7 +224,7 @@ def main(args):
                 rows.append(row)
                 done.add((path,policy))
                 bounded.write(out/"observed_rows.json",rows)
-            print(f"path {path+1}/{args.paths}, observations {len(rows)}/{args.paths*4}",flush=True)
+            print(f"path {path+1}/{args.paths}, observations {len(rows)}/{args.paths*len(policy_order)}",flush=True)
         if physical_fingerprints(background)!=fingerprints:
             raise ArithmeticError("Physical background mutated during evaluation")
         bounded.write(out/"predictions_frozen.json",dict(rows=rows,truth_used=False,
@@ -232,22 +243,21 @@ def main(args):
         summary=dict(case=bounded.CASE,role="one fixed natural-day paired AC execution sampling",
                      natural_days=1,requested_execution_paths=args.paths,
                      execution_paths_with_any_observation=len({row["path"] for row in rows}),
-                     requested_policy_observations=args.paths*4,observed_policy_records=len(rows),
+                     requested_policy_observations=args.paths*len(policy_order),observed_policy_records=len(rows),
                      complete_policy_records=sum(row["status"]=="complete" for row in rows),
                      failed_or_unresolved_records=sum(row["status"]!="complete" for row in rows),
                      seconds=time.perf_counter()-started,physical_background=fingerprints,
                      original_day_profile=background.profile,original_day_replicate=int(background.replicate),
                      threshold_micro=problem["packet"]["threshold"],
-                     response_seed=RESPONSE_SEED,meter_seed=METER_SEED,
+                     response_seed=response_seed,meter_seed=meter_seed,
                      response_independent=True,original_meter_observer=True,
-                     copied_optimizer_current90=True,no_new_policy_optimization=True,
+                     copied_optimizer_current90=not has_new_quote,no_new_policy_optimization=not has_new_quote,
                      thermal_limits_checked=False,
-                     policies={p:policy_summary(rows,p,args.paths) for p in POLICY_ORDER},
-                     paired=[paired_results(rows,a,b) for a,b in
-                             [("current90","zero"),("current90","rotation"),("old95","current90")]])
+                     policies={p:policy_summary(rows,p,args.paths) for p in policy_order},
+                     paired=[paired_results(rows,a,b) for a,b in comparison_pairs])
         bounded.write(out/"evaluated_rows.json",rows)
         bounded.write(out/"summary.json",summary)
-        status="complete" if len(rows)==args.paths*4 else "bounded_partial"
+        status="complete" if len(rows)==args.paths*len(policy_order) else "bounded_partial"
         bounded.write(out/"complete.json",dict(status=status,summary_sha256=bounded.sha(out/"summary.json"),
                       request_sha256=bounded.sha(out/"request.json"),all_selections_before_truth=True))
         print(json.dumps(bounded.plain(summary),ensure_ascii=True),flush=True)

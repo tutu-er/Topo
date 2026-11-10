@@ -1,0 +1,956 @@
+{
+  "case": "paper15_b2_v0005",
+  "status": "complete",
+  "frozen_parameters": true,
+  "new_parameter_fits": 0,
+  "new_W_search": 0,
+  "full_history_train_rows": 288,
+  "full_history_validation_rows": 288,
+  "new_day_weight": 2,
+  "common_validation_band": 0.03,
+  "output_contraction": 0.16,
+  "target_probability": 0.9,
+  "target_scope": "fixed forecast mean and nominal delivery; independent residual voltage innovations",
+  "optimization_stages": [
+    {
+      "stage": "optimization",
+      "search": {
+        "statuses": [
+          {
+            "phase": "feasibility",
+            "status": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+            "success": false,
+            "iterations": 50,
+            "seconds": 53.381612099998165
+          }
+        ],
+        "seconds": 54.71394329999748,
+        "price_evaluations": 82
+      },
+      "best_probability": 0.770661604348557,
+      "fee": 67.56785805135098,
+      "qualified": false
+    },
+    {
+      "stage": "optimization_continue",
+      "search": {
+        "status": "TimeoutError('Full constrained pricing wall limit')",
+        "solver_success": false,
+        "iterations": 0,
+        "qualified_by_search": false,
+        "feasible_price_evaluations": 0,
+        "price_evaluations": 73,
+        "seconds": 302.47341459999734,
+        "global_optimal": false,
+        "conditional_target": 0.9
+      },
+      "best_probability": 0.889037727184534,
+      "fee": 53.12559226394514,
+      "qualified": false
+    },
+    {
+      "stage": "optimization_scaled_v2",
+      "search": {
+        "status": "Iteration limit reached",
+        "solver_success": false,
+        "iterations": 60,
+        "qualified_by_search": false,
+        "feasible_price_evaluations": 0,
+        "price_evaluations": 67,
+        "seconds": 193.75846009999805,
+        "global_optimal": false,
+        "conditional_target": 0.9,
+        "fixed_objective_scale": 52.169487018602254,
+        "objective": "original_fee / fixed_old_fee"
+      },
+      "best_probability": 0.899908740657823,
+      "fee": 43.3952216196148,
+      "qualified": false
+    },
+    {
+      "stage": "optimization_restore",
+      "search": {
+        "status": "target_reached",
+        "solver_success": true,
+        "iterations": 2,
+        "qualified_by_search": true,
+        "feasible_price_evaluations": 1,
+        "price_evaluations": 3,
+        "seconds": 5.220660500010126,
+        "global_optimal": false,
+        "conditional_target": 0.9,
+        "objective": "same probability constraint feasibility restoration; original fee retained"
+      },
+      "best_probability": 0.9000042968761889,
+      "fee": 43.40192642136189,
+      "qualified": true
+    }
+  ],
+  "quote": {
+    "probability": 0.9000042968761889,
+    "fee": 43.40192642136189,
+    "qualified": true,
+    "global_optimal": false,
+    "refined": {
+      "probability": 0.9000042968761889,
+      "gradient": null,
+      "moments": {
+        "mean": 22.024909118319666,
+        "sd": 9.976038775710396,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "normalization": [
+        17994.855920885602,
+        13516.393291597302
+      ],
+      "normalized_threshold": -0.35340941229834105,
+      "cutoff": 512.0,
+      "order": 64,
+      "nodes": 640,
+      "intervals": [
+        0.0,
+        1.0,
+        2.0,
+        4.0,
+        8.0,
+        16.0,
+        32.0,
+        64.0,
+        128.0,
+        256.0,
+        512.0
+      ],
+      "trace": [
+        {
+          "level": 0,
+          "order": 32,
+          "nodes": 320,
+          "probability": 0.9000042968761882,
+          "refinement_difference": null,
+          "gradient": null,
+          "gradient_refinement_difference": null,
+          "max_cf_modulus": 0.9999989429259165
+        },
+        {
+          "level": 1,
+          "order": 64,
+          "nodes": 640,
+          "probability": 0.9000042968761889,
+          "refinement_difference": 6.661338147750939e-16,
+          "gradient": null,
+          "gradient_refinement_difference": null,
+          "max_cf_modulus": 0.9999999318058567
+        }
+      ],
+      "analytic_tail_bound": 1.896447400055774e-90,
+      "refinement_difference": 6.661338147750939e-16,
+      "gradient_refinement_difference": null,
+      "probability_in_unit_interval": true,
+      "numerical_pass": true,
+      "certified_error": null,
+      "seconds": 4.437043900004937,
+      "method": "deterministic_fourier_dyadic_gauss_legendre",
+      "gradient_scope": "finite quadrature with normalization fixed; probability gradient uncertified",
+      "error_scope": "same analytic IBP tail; order refinement is empirical; quadrature/FP uncertified",
+      "forced_orders_audit": {
+        "orders": [
+          16,
+          32,
+          64
+        ],
+        "probability16": 0.9000042968761888,
+        "probability32": 0.9000042968761882,
+        "probability64": 0.9000042968761889,
+        "maximum_probability_difference": 5.551115123125783e-16
+      }
+    },
+    "allocation": {
+      "increase_kwh": 46.171985063257594,
+      "decrease_kwh": 46.762796263452664,
+      "absolute_kwh": 92.93478132671027,
+      "net_kwh": -0.5908112001950698,
+      "max_sum_absolute_kw": 12.051497295759573,
+      "max_absolute_single_resource_kw": 1.0358460680449946,
+      "fee": 43.40192642136189,
+      "old_fee": 52.169487018602254,
+      "active_resource_hours": 1290,
+      "raw_resource_hours": 1440,
+      "nonzero_request_hours": 1188,
+      "changed_request_hours": 1124,
+      "newly_activated_request_hours": 46,
+      "changed_delivery_slots": 3559,
+      "hourly_request_min": -1.0,
+      "hourly_request_max": 1.0,
+      "unit_reward_min": 1.3359263262560997e-07,
+      "unit_reward_max": 1.32,
+      "peak_delivery_slot": 94,
+      "active_nodes": 15,
+      "audit": {
+        "power_violation_kw": 4.440892098500626e-16,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 2.220446049250313e-16,
+        "passed": true,
+        "absolute_DR_kwh": 92.93478132671025,
+        "net_DR_kwh": -0.5908112001950748,
+        "by_type_abs_kwh": {
+          "0": 44.87420566740007,
+          "1": 2.362826955677733,
+          "2": 23.84288771934635,
+          "3": 21.8548609842861
+        },
+        "max_sum_abs_kw": 12.051497295759573
+      }
+    },
+    "by_type": [
+      {
+        "kind": 0,
+        "name": "shift",
+        "increase_kwh": 22.43710283370003,
+        "decrease_kwh": 22.43710283370003,
+        "absolute_kwh": 44.87420566740006,
+        "net_kwh": 0.0,
+        "max_sum_absolute_kw": 4.334729477482033,
+        "max_absolute_single_resource_kw": 0.6978296310754827,
+        "fee": 28.974597991981984,
+        "nonzero_request_hours": 360,
+        "nonzero_delivery_slots": 1131
+      },
+      {
+        "kind": 1,
+        "name": "curtail",
+        "increase_kwh": 0.0,
+        "decrease_kwh": 2.362826955677733,
+        "absolute_kwh": 2.362826955677733,
+        "net_kwh": -2.362826955677733,
+        "max_sum_absolute_kw": 0.22884982979090746,
+        "max_absolute_single_resource_kw": 0.21283221406347133,
+        "fee": 0.922420049144752,
+        "nonzero_request_hours": 258,
+        "nonzero_delivery_slots": 812
+      },
+      {
+        "kind": 2,
+        "name": "ev",
+        "increase_kwh": 11.921443859673177,
+        "decrease_kwh": 11.921443859673175,
+        "absolute_kwh": 23.84288771934635,
+        "net_kwh": 1.7763568394002505e-15,
+        "max_sum_absolute_kw": 3.0614784434698525,
+        "max_absolute_single_resource_kw": 1.0358460680449946,
+        "fee": 8.432733456657022,
+        "nonzero_request_hours": 210,
+        "nonzero_delivery_slots": 840
+      },
+      {
+        "kind": 3,
+        "name": "battery",
+        "increase_kwh": 11.813438369884377,
+        "decrease_kwh": 10.041422614401721,
+        "absolute_kwh": 21.8548609842861,
+        "net_kwh": 1.7720157554826557,
+        "max_sum_absolute_kw": 5.326544706487021,
+        "max_absolute_single_resource_kw": 1.008586669511555,
+        "fee": 5.0721749235781335,
+        "nonzero_request_hours": 360,
+        "nonzero_delivery_slots": 616
+      }
+    ]
+  },
+  "conditional_predictions": {
+    "zero": {
+      "probability": 0.0029902065550697077,
+      "numerical_pass": true,
+      "analytic_tail_bound": 1.4342327530649443e-82,
+      "certified_error": null
+    },
+    "rotation": {
+      "probability": 0.0029260963968864018,
+      "numerical_pass": true,
+      "analytic_tail_bound": 1.7890765739400582e-82,
+      "certified_error": null
+    },
+    "old95": {
+      "probability": 0.694962251874776,
+      "numerical_pass": true,
+      "analytic_tail_bound": 2.575786933159596e-88,
+      "certified_error": null
+    },
+    "old90": {
+      "probability": 0.6405376492881072,
+      "numerical_pass": true,
+      "analytic_tail_bound": 4.806351047977889e-88,
+      "certified_error": null
+    },
+    "new": {
+      "probability": 0.9000042968761882,
+      "numerical_pass": true,
+      "analytic_tail_bound": 1.896447400055774e-90,
+      "certified_error": null
+    }
+  },
+  "model_sampling": {
+    "conditional": {
+      "requested": 32768,
+      "completed": 32768,
+      "seed": 2026111301,
+      "policies": {
+        "zero": {
+          "successes": 94,
+          "valid": 32768,
+          "attempted": 32768,
+          "requested": 32768,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.00286865234375,
+          "standard_error": 0.0002954542059090172,
+          "wilson_95": [
+            0.002344954771682131,
+            0.0035088956767814266
+          ],
+          "unresolved_probability_bounds": [
+            0.00286865234375,
+            0.00286865234375
+          ],
+          "mean_D": -12.28452451142872,
+          "sd_D": 7.9411496639177095,
+          "mean_absolute_DR_kwh": 0.0
+        },
+        "rotation": {
+          "successes": 89,
+          "valid": 32768,
+          "attempted": 32768,
+          "requested": 32768,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.002716064453125,
+          "standard_error": 0.00028751100984202217,
+          "wilson_95": [
+            0.002207870011168322,
+            0.0033408404282247823
+          ],
+          "unresolved_probability_bounds": [
+            0.002716064453125,
+            0.002716064453125
+          ],
+          "mean_D": -12.29348092265009,
+          "sd_D": 7.928390541415937,
+          "mean_absolute_DR_kwh": 139.36407693748785
+        },
+        "old95": {
+          "successes": 22823,
+          "valid": 32768,
+          "attempted": 32768,
+          "requested": 32768,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.696502685546875,
+          "standard_error": 0.0025398838489610015,
+          "wilson_95": [
+            0.6915018094495601,
+            0.7014574942313695
+          ],
+          "unresolved_probability_bounds": [
+            0.696502685546875,
+            0.696502685546875
+          ],
+          "mean_D": 13.938928703044514,
+          "sd_D": 9.37429518559386,
+          "mean_absolute_DR_kwh": 98.31625701875379
+        },
+        "old90": {
+          "successes": 21048,
+          "valid": 32768,
+          "attempted": 32768,
+          "requested": 32768,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.642333984375,
+          "standard_error": 0.002647855744157563,
+          "wilson_95": [
+            0.6371278756884624,
+            0.6475067247724564
+          ],
+          "unresolved_probability_bounds": [
+            0.642333984375,
+            0.642333984375
+          ],
+          "mean_D": 12.51989860635267,
+          "sd_D": 9.367594013633644,
+          "mean_absolute_DR_kwh": 99.76990897249995
+        },
+        "new": {
+          "successes": 29443,
+          "valid": 32768,
+          "attempted": 32768,
+          "requested": 32768,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.898529052734375,
+          "standard_error": 0.0016680610897910652,
+          "wilson_95": [
+            0.895212856051885,
+            0.9017518196383245
+          ],
+          "unresolved_probability_bounds": [
+            0.898529052734375,
+            0.898529052734375
+          ],
+          "mean_D": 22.010461388668777,
+          "sd_D": 9.954983896079703,
+          "mean_absolute_DR_kwh": 92.93478132671022
+        }
+      },
+      "paired": {
+        "zero": {
+          "valid": 32768,
+          "requested": 32768,
+          "new_only": 29349,
+          "comparator_only": 0,
+          "same": 3419,
+          "probability_difference": 0.895660400390625,
+          "paired_standard_error": 0.0016887988672136495,
+          "mean_D_difference": 34.2949859000975
+        },
+        "rotation": {
+          "valid": 32768,
+          "requested": 32768,
+          "new_only": 29354,
+          "comparator_only": 0,
+          "same": 3414,
+          "probability_difference": 0.89581298828125,
+          "paired_standard_error": 0.0016877072957871434,
+          "mean_D_difference": 34.30394231131886
+        },
+        "old95": {
+          "valid": 32768,
+          "requested": 32768,
+          "new_only": 6715,
+          "comparator_only": 95,
+          "same": 25958,
+          "probability_difference": 0.2020263671875,
+          "paired_standard_error": 0.0022576310405710534,
+          "mean_D_difference": 8.071532685624263
+        },
+        "old90": {
+          "valid": 32768,
+          "requested": 32768,
+          "new_only": 8425,
+          "comparator_only": 30,
+          "same": 24313,
+          "probability_difference": 0.256195068359375,
+          "paired_standard_error": 0.0024231100773237503,
+          "mean_D_difference": 9.490562782316106
+        }
+      },
+      "seconds": 9.794674400007352
+    },
+    "independent_full": {
+      "requested": 8192,
+      "completed": 8192,
+      "seed": 2026111302,
+      "policies": {
+        "zero": {
+          "successes": 60,
+          "valid": 8192,
+          "attempted": 8192,
+          "requested": 8192,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.00732421875,
+          "standard_error": 0.0009420834940588303,
+          "wilson_95": [
+            0.005694735937531973,
+            0.009415544006623238
+          ],
+          "unresolved_probability_bounds": [
+            0.00732421875,
+            0.00732421875
+          ],
+          "mean_D": -10.098012734990562,
+          "sd_D": 8.10373914702694,
+          "mean_absolute_DR_kwh": 0.0
+        },
+        "rotation": {
+          "successes": 64,
+          "valid": 8192,
+          "attempted": 8192,
+          "requested": 8192,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.0078125,
+          "standard_error": 0.0009727403229070574,
+          "wilson_95": [
+            0.0061231937191086674,
+            0.00996319100210883
+          ],
+          "unresolved_probability_bounds": [
+            0.0078125,
+            0.0078125
+          ],
+          "mean_D": -10.038412112486157,
+          "sd_D": 8.110214889339257,
+          "mean_absolute_DR_kwh": 140.107697360286
+        },
+        "old95": {
+          "successes": 5664,
+          "valid": 8192,
+          "attempted": 8192,
+          "requested": 8192,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.69140625,
+          "standard_error": 0.005103466186984732,
+          "wilson_95": [
+            0.6813158684006522,
+            0.7013172042077633
+          ],
+          "unresolved_probability_bounds": [
+            0.69140625,
+            0.69140625
+          ],
+          "mean_D": 13.909321421140156,
+          "sd_D": 9.48285409921913,
+          "mean_absolute_DR_kwh": 95.13435015005015
+        },
+        "old90": {
+          "successes": 5232,
+          "valid": 8192,
+          "attempted": 8192,
+          "requested": 8192,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.638671875,
+          "standard_error": 0.005307558720888699,
+          "wilson_95": [
+            0.6282064894893363,
+            0.6490072671963524
+          ],
+          "unresolved_probability_bounds": [
+            0.638671875,
+            0.638671875
+          ],
+          "mean_D": 12.51555250042528,
+          "sd_D": 9.450714894231213,
+          "mean_absolute_DR_kwh": 96.44881022874196
+        },
+        "new": {
+          "successes": 7375,
+          "valid": 8192,
+          "attempted": 8192,
+          "requested": 8192,
+          "failures": 0,
+          "missing": 0,
+          "probability": 0.9002685546875,
+          "standard_error": 0.00331060315915244,
+          "wilson_95": [
+            0.8935910910857516,
+            0.9065707999110559
+          ],
+          "unresolved_probability_bounds": [
+            0.9002685546875,
+            0.9002685546875
+          ],
+          "mean_D": 22.108014026345362,
+          "sd_D": 10.000549032494062,
+          "mean_absolute_DR_kwh": 90.56421814958617
+        }
+      },
+      "paired": {
+        "zero": {
+          "valid": 8192,
+          "requested": 8192,
+          "new_only": 7315,
+          "comparator_only": 0,
+          "same": 877,
+          "probability_difference": 0.8929443359375,
+          "paired_standard_error": 0.003416241430682791,
+          "mean_D_difference": 32.20602676133593
+        },
+        "rotation": {
+          "valid": 8192,
+          "requested": 8192,
+          "new_only": 7311,
+          "comparator_only": 0,
+          "same": 881,
+          "probability_difference": 0.8924560546875,
+          "paired_standard_error": 0.0034230870189407795,
+          "mean_D_difference": 32.146426138831515
+        },
+        "old95": {
+          "valid": 8192,
+          "requested": 8192,
+          "new_only": 1728,
+          "comparator_only": 17,
+          "same": 6447,
+          "probability_difference": 0.2088623046875,
+          "paired_standard_error": 0.004547518115414864,
+          "mean_D_difference": 8.198692605205204
+        },
+        "old90": {
+          "valid": 8192,
+          "requested": 8192,
+          "new_only": 2148,
+          "comparator_only": 5,
+          "same": 6039,
+          "probability_difference": 0.2615966796875,
+          "paired_standard_error": 0.004871496781515703,
+          "mean_D_difference": 9.592461525920083
+        }
+      },
+      "seconds": 130.53540659995633
+    }
+  },
+  "actual_AC": {
+    "natural_days": 1,
+    "requested_execution_paths": 32,
+    "requested_policy_observations": 160,
+    "observed_policy_records": 160,
+    "complete_policy_records": 160,
+    "failed_or_unresolved_records": 0,
+    "seconds": 52.77888769999845,
+    "threshold_micro": 9.179191188409,
+    "response_seed": 2026111303,
+    "meter_seed": 2026111304,
+    "thermal_limits_checked": false,
+    "policies": {
+      "zero": {
+        "requested": 32,
+        "observed": 32,
+        "complete": 32,
+        "failures": 0,
+        "not_run": 0,
+        "coarse_excluded": 0,
+        "exclusion_fraction": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1071791982550706
+        ],
+        "complete_recoveries": 0,
+        "total_wrong_or_missing_blocks": 32,
+        "mean_D": -2.4818463226596776,
+        "min_D": -15.627391084999067,
+        "max_D": 7.675687097427304,
+        "fee": 0.0,
+        "mean_delivered_absolute_kwh": 0.0,
+        "converged_AC_slots": 3072,
+        "requested_AC_slots": 3072,
+        "voltage_violation_cells": 0
+      },
+      "rotation": {
+        "requested": 32,
+        "observed": 32,
+        "complete": 32,
+        "failures": 0,
+        "not_run": 0,
+        "coarse_excluded": 0,
+        "exclusion_fraction": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1071791982550706
+        ],
+        "complete_recoveries": 0,
+        "total_wrong_or_missing_blocks": 32,
+        "mean_D": -2.5619490642377394,
+        "min_D": -16.36225138204844,
+        "max_D": 8.012668632594554,
+        "fee": 43.40192642136189,
+        "mean_delivered_absolute_kwh": 140.1437659619939,
+        "converged_AC_slots": 3072,
+        "requested_AC_slots": 3072,
+        "voltage_violation_cells": 0
+      },
+      "old95": {
+        "requested": 32,
+        "observed": 32,
+        "complete": 32,
+        "failures": 0,
+        "not_run": 0,
+        "coarse_excluded": 27,
+        "exclusion_fraction": 0.84375,
+        "wilson_95": [
+          0.682458504024696,
+          0.9313557971749429
+        ],
+        "complete_recoveries": 27,
+        "total_wrong_or_missing_blocks": 5,
+        "mean_D": 17.54128375556352,
+        "min_D": 1.0803460391600912,
+        "max_D": 34.07524693352349,
+        "fee": 53.382911843478354,
+        "mean_delivered_absolute_kwh": 95.18010667669648,
+        "converged_AC_slots": 3072,
+        "requested_AC_slots": 3072,
+        "voltage_violation_cells": 0
+      },
+      "old90": {
+        "requested": 32,
+        "observed": 32,
+        "complete": 32,
+        "failures": 0,
+        "not_run": 0,
+        "coarse_excluded": 27,
+        "exclusion_fraction": 0.84375,
+        "wilson_95": [
+          0.682458504024696,
+          0.9313557971749429
+        ],
+        "complete_recoveries": 27,
+        "total_wrong_or_missing_blocks": 5,
+        "mean_D": 16.833979733249052,
+        "min_D": 0.32923439891290734,
+        "max_D": 33.32592029185082,
+        "fee": 52.169487018602254,
+        "mean_delivered_absolute_kwh": 96.45297973407733,
+        "converged_AC_slots": 3072,
+        "requested_AC_slots": 3072,
+        "voltage_violation_cells": 0
+      },
+      "new": {
+        "requested": 32,
+        "observed": 32,
+        "complete": 32,
+        "failures": 0,
+        "not_run": 0,
+        "coarse_excluded": 32,
+        "exclusion_fraction": 1.0,
+        "wilson_95": [
+          0.8928208017449293,
+          1.0
+        ],
+        "complete_recoveries": 32,
+        "total_wrong_or_missing_blocks": 0,
+        "mean_D": 23.81274314646186,
+        "min_D": 9.707007870755337,
+        "max_D": 38.2460624003217,
+        "fee": 43.40192642136189,
+        "mean_delivered_absolute_kwh": 90.56022358677373,
+        "converged_AC_slots": 3072,
+        "requested_AC_slots": 3072,
+        "voltage_violation_cells": 0
+      }
+    },
+    "paired": [
+      {
+        "first": "new",
+        "second": "zero",
+        "paired_complete_paths": 32,
+        "first_better": 32,
+        "equal": 0,
+        "first_worse": 0
+      },
+      {
+        "first": "new",
+        "second": "rotation",
+        "paired_complete_paths": 32,
+        "first_better": 32,
+        "equal": 0,
+        "first_worse": 0
+      },
+      {
+        "first": "new",
+        "second": "old95",
+        "paired_complete_paths": 32,
+        "first_better": 5,
+        "equal": 27,
+        "first_worse": 0
+      },
+      {
+        "first": "new",
+        "second": "old90",
+        "paired_complete_paths": 32,
+        "first_better": 5,
+        "equal": 27,
+        "first_worse": 0
+      }
+    ]
+  },
+  "independent_audit": {
+    "passed": true,
+    "records": 160,
+    "verified_observation_hashes": 160,
+    "complete": 160,
+    "failures_or_unresolved": 0,
+    "requested": 160,
+    "policies": {
+      "zero": {
+        "completed": 32,
+        "requested": 32,
+        "full_error_count": 32,
+        "complete_recoveries": 0,
+        "coarse_exclusions": 0,
+        "fixed_plan_contract_fee": 0.0,
+        "mean_frozen_reward_delivered_settlement": 0.0,
+        "mean_delivered_wear_proxy": 0.0,
+        "mean_D_micro": -2.4818463226596776,
+        "mean_J_margin_micro": -4.6644150044273935
+      },
+      "rotation": {
+        "completed": 32,
+        "requested": 32,
+        "full_error_count": 32,
+        "complete_recoveries": 0,
+        "coarse_exclusions": 0,
+        "fixed_plan_contract_fee": 43.40192642136189,
+        "mean_frozen_reward_delivered_settlement": 43.480482400097245,
+        "mean_delivered_wear_proxy": 44.93871078355893,
+        "mean_D_micro": -2.5619490642377394,
+        "mean_J_margin_micro": -4.696456101058589
+      },
+      "old95": {
+        "completed": 32,
+        "requested": 32,
+        "full_error_count": 5,
+        "complete_recoveries": 27,
+        "coarse_exclusions": 27,
+        "fixed_plan_contract_fee": 53.382911843478354,
+        "mean_frozen_reward_delivered_settlement": 50.8249003431461,
+        "mean_delivered_wear_proxy": 49.07940007247832,
+        "mean_D_micro": 17.54128375556352,
+        "mean_J_margin_micro": 3.344837026861901
+      },
+      "old90": {
+        "completed": 32,
+        "requested": 32,
+        "full_error_count": 5,
+        "complete_recoveries": 27,
+        "coarse_exclusions": 27,
+        "fixed_plan_contract_fee": 52.169487018602254,
+        "mean_frozen_reward_delivered_settlement": 49.6765326277318,
+        "mean_delivered_wear_proxy": 47.87297634279133,
+        "mean_D_micro": 16.833979733249052,
+        "mean_J_margin_micro": 3.061915417936094
+      },
+      "new": {
+        "completed": 32,
+        "requested": 32,
+        "full_error_count": 0,
+        "complete_recoveries": 32,
+        "coarse_exclusions": 32,
+        "fixed_plan_contract_fee": 43.40192642136189,
+        "mean_frozen_reward_delivered_settlement": 41.79035768450266,
+        "mean_delivered_wear_proxy": 40.79338287100688,
+        "mean_D_micro": 23.81274314646186,
+        "mean_J_margin_micro": 5.853420783221129
+      }
+    },
+    "max_errors": {
+      "D_replay_error": 0.0,
+      "margin_identity_error": 4.671818487622659e-13,
+      "multiplier_replay_error": 0.0,
+      "delivery_replay_error": 0.0,
+      "energy_replay_error": 0.0
+    },
+    "sampling_recount": {
+      "conditional": {
+        "completed": 32768,
+        "requested": 32768,
+        "policies": {
+          "zero": {
+            "successes": 94,
+            "valid": 32768,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.00286865234375
+          },
+          "rotation": {
+            "successes": 89,
+            "valid": 32768,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.002716064453125
+          },
+          "old95": {
+            "successes": 22823,
+            "valid": 32768,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.696502685546875
+          },
+          "old90": {
+            "successes": 21048,
+            "valid": 32768,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.642333984375
+          },
+          "new": {
+            "successes": 29443,
+            "valid": 32768,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.898529052734375
+          }
+        }
+      },
+      "independent_full": {
+        "completed": 8192,
+        "requested": 8192,
+        "policies": {
+          "zero": {
+            "successes": 60,
+            "valid": 8192,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.00732421875
+          },
+          "rotation": {
+            "successes": 64,
+            "valid": 8192,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.0078125
+          },
+          "old95": {
+            "successes": 5664,
+            "valid": 8192,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.69140625
+          },
+          "old90": {
+            "successes": 5232,
+            "valid": 8192,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.638671875
+          },
+          "new": {
+            "successes": 7375,
+            "valid": 8192,
+            "failures": 0,
+            "missing": 0,
+            "probability": 0.9002685546875
+          }
+        }
+      }
+    },
+    "matched_plan_fee_error": 0.0,
+    "contract_fee_meaning": "fixed nominal planned contract fee, constant across execution paths",
+    "delivered_settlement_meaning": "posthoc sum(dt * frozen per-kWh reward * absolute delivered power)",
+    "wear_proxy_meaning": "original fees(delivered); quadratic usage proxy, not an actual payment",
+    "identity": "J_C_micro-1.03*J_F_micro-1e-6=.4*(D_micro-h_micro)",
+    "seconds": 10.185597500007134,
+    "no_AC_rerun": true,
+    "no_price_update": true
+  },
+  "formula_verification": {
+    "checks": 89,
+    "passed": 89,
+    "failed": 0,
+    "seconds": 0.5239548999961698,
+    "max_absolute_error": 2.2462266180411916e-07,
+    "request_sha256": "7ffe4f9a7ab2114adba81e265a2d9b9344b52bc382fbf65034588c40caa057e3",
+    "checks_sha256": "e3d16c4c51b95a5e9386b8ed5539d366893aa90cbac5a0e65013282c4c1ce349",
+    "scope": "float64 comparisons; explicit tolerances; not interval-certified"
+  },
+  "private_evidence_sha256": {
+    "evaluation\\complete.json": "a84db2cc285728bc8632d35c46f06a59f30f4913dfd7df435218f5efd7318217",
+    "evaluation\\audit\\summary.json": "ed4b716765cac05718bf17b21c411ec5751f30204ec854217a32f647955562ed",
+    "optimization_restore\\quote.pkl": "ef0c6161ed1a9e07a9c3387fba4dc245beffe48aa192a32945cef47ec0e2e383",
+    "optimization_restore\\request.json": "e5fe577fab869c469807ab191132bb0060a4f83f87340b7d76eb32a946c59627",
+    "optimization_restore\\allocation_audit.json": "bc7926e4e68c1ae551d51c4ee9828d3113105d4a79edaa27be633b4aee22e1a9",
+    "formula_checks\\run_v1\\checks.json": "e3d16c4c51b95a5e9386b8ed5539d366893aa90cbac5a0e65013282c4c1ce349"
+  },
+  "excluded_fields": "all quote arrays, forecasts, P/Q/V, natural curves, AC trajectories and per-path observations"
+}
