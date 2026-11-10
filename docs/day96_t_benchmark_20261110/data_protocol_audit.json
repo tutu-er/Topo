@@ -1,0 +1,2258 @@
+{
+  "created_utc": "2026-11-10T13:31:05.393586+00:00",
+  "passed": true,
+  "scope": "Independent frozen-source and data-only arithmetic audit, without solving or fitting",
+  "source_files_checked": 253,
+  "parent_source_files_checked": 247,
+  "inputs": 48,
+  "planned_method_evaluations": 144,
+  "observed_split_files_checked": 144,
+  "truth_split_files_checked": 144,
+  "physical_case_bundle_histories": 16,
+  "physical_case_day_records": 80,
+  "noise_repeated_diagnostic_records": 240,
+  "global_unique_profile_seeds": 20,
+  "independent_randomization_clusters": 4,
+  "recommended_primary_resampling_unit": "seed_index / bundle; retain all four networks and all three sigma regimes within each bootstrap block",
+  "network_cases_are_fixed": true,
+  "case_bundle_histories_are_not_16_independent_random_streams": true,
+  "voltage_min_pu": 0.9880231495990182,
+  "voltage_max_pu": 1.0268842119908015,
+  "paired_scaled_draw_max_difference": {
+    "V": 6.662448370775564e-13,
+    "root": 6.58311296100611e-13
+  },
+  "data_errors": [],
+  "source_overlay_diff": [
+    "--- parent/engine.py",
+    "+++ new/engine.py",
+    "@@ -23,7 +23,7 @@",
+    " ",
+    " def search(bank, common, *, reference, seed_on, tail_on, deadline,",
+    "            prefix_deadline=None, per_mip=3600., zero_release=True,",
+    "-           heartbeat=None):",
+    "+           heartbeat=None, tail_coefficient=.003):",
+    "     \"\"\"Fit one factorial forward path using an absolute wall-clock deadline.",
+    " ",
+    "     The caller fixes ``reference`` once per input, so switching R does not",
+    "@@ -80,7 +80,7 @@",
+    "         if tail_on and remainder(current[\"supports\"], n) <= 5:",
+    "             ping(\"joint_tail_started\", iteration=iteration)",
+    "             keep, released = open_small(current[\"supports\"], n)",
+    "-            current, event = joint_fit(bank, current, keep, penalty=penalty,",
+    "+            current, event = joint_fit(bank, current, keep, penalty=float(tail_coefficient)*reference,",
+    "                                        seconds=stop_at-perf_counter(), stage=\"joint_tail\")",
+    "             event.update(released=released, iteration=iteration)",
+    "             events.append(event)",
+    "@@ -114,6 +114,7 @@",
+    "                 initial_maximum_remainder=initial_max,",
+    "                 maximum_remainder=remainder(current[\"supports\"], n),",
+    "                 reference_MAE=reference, coefficient=.003, penalty=penalty,",
+    "+                tail_coefficient=float(tail_coefficient), tail_penalty=float(tail_coefficient)*reference,",
+    "                 tree_global_optimal=False, strategy=\"original\", zero_release=bool(zero_release),",
+    "                 zero_events=zero_events, hard=(), seed_on=bool(seed_on), tail_on=bool(tail_on),",
+    "                 complete_tree_output_fallback=False)"
+  ],
+  "protocol_sha256": "598a718bd41cd3288d57ff9578181ccf56187b8d7c9c0a9c725830e6836bb733",
+  "catalog_sha256": "96db2bffeb8cba0d161c3eb8eb425d07b03859c6626d2e1979799ca51b7472b5",
+  "old_seed_evidence_sha256": {
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b0\\reference\\v0002\\diagnostics.json": "0125098db297d0a8aa71bb0a70fe935ed0617859eba93937b539c587254fd32b",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b1\\reference\\v0002\\diagnostics.json": "f82da444697d782d308d3854047f00c306e40bb7bfd52d4042b0284caa98f4c7",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b2\\reference\\v0002\\diagnostics.json": "c58b2c10dd8b19e324160b06a0f883612c8ce65983a71543a50c4f256630d876",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b3\\reference\\v0002\\diagnostics.json": "1a647b8ebbab817213e18733aec5b1e1a07316016cff938f34a48c0fe4981a59",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b4\\reference\\v0002\\diagnostics.json": "e3c041ec9138769f8b0e8a8be4467b759e078d33883a3c85f96c6ae6b676e223",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b5\\reference\\v0002\\diagnostics.json": "7f18b7e97fb0c72f60c1fb30fba2a04e85a6534222c2da22851a6a4cd19ba204",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b6\\reference\\v0002\\diagnostics.json": "066f0904284b1111d3f2e66b28e4e227fd8b02763138ea04ac8a01bc31dcc186",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b7\\reference\\v0002\\diagnostics.json": "b28e64b612a42e90fcf36d963cef3e9c36a6b8e44c5feacc46c3fc9412c1a415",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b8\\reference\\v0002\\diagnostics.json": "2a5b824de4766cb54ab217cae93d2ec37645878113ef24a8d2966cc999a24f28",
+    "outputs\\wzzt_paper_20261029_full\\data\\paper15\\b9\\reference\\v0002\\diagnostics.json": "decfd68a2ed7cde22cc5f332c874ba31cbd46820b8fe787f721ce5e08329dd04",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b0\\reference\\v0002\\diagnostics.json": "20ff969306a589338b7f4db80973db54a9e41cf0ba6ec5357c2b71f7f55f52fa",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b1\\reference\\v0002\\diagnostics.json": "d8815c01f2e1c3c9405472dcb24a7a92cd810a29b2c4dfa70ad1381174cc2b64",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b2\\reference\\v0002\\diagnostics.json": "cf45a19e1e741e7528c60ca31421cdd29ea1f27d1477f73b9409ba662eed7628",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b3\\reference\\v0002\\diagnostics.json": "c5268b1cc1b8bc1ad098bd344ab696897493142b75f57cb18ecfd535ac8b1fe4",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b4\\reference\\v0002\\diagnostics.json": "ff5da91cc0b9ca89d4d611dd3ba8cab2a0af67fdcadd5d95e25c2e1f8d1556a4",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b5\\reference\\v0002\\diagnostics.json": "8ae3b7226c83c43268c5bb8a7448c27b86014daa85839e1cf4ee064442a786eb",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b6\\reference\\v0002\\diagnostics.json": "cbf68d5b9b8de54a91b6feabaeccd161a0b9b87554b2cebebe7d0cdbb15ade6f",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b7\\reference\\v0002\\diagnostics.json": "08aae0dd45afe35c0a92cd0f8c5249d2cf4f7de70f83ed60333a8ec35a8dac44",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b8\\reference\\v0002\\diagnostics.json": "1586c26a48db04d274c78c6cd646294fc4dc3470c5837ee0e67d9c96deb78b2b",
+    "outputs\\wzzt_paper_20261029_full\\data\\soumalas11\\b9\\reference\\v0002\\diagnostics.json": "70f744f005c0d7fc1b7e91a7418c4b94228c0792e7d1bcb02bad1283e08c388f",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b0\\reference\\v0002\\diagnostics.json": "a174437d659a3ee72a14fada27d57a38d121c369da11962314d035a2824590f7",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b1\\reference\\v0002\\diagnostics.json": "b1147de2bce8fddb2cff16618b1fd381f075e6241ca15fd4656825d4afa89e1d",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b2\\reference\\v0002\\diagnostics.json": "9326a3d3a4411265c6c2be25f145127e202fb832a4f6be354bb314979221faee",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b3\\reference\\v0002\\diagnostics.json": "4ff0b76a520eb05dd7e4c08a802e029a8a119aaa1a427626f1b17b9047eb527b",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b4\\reference\\v0002\\diagnostics.json": "66b45a54343db150a4f7242f0bf27a71ebce7cb9bc295e56c6521a4d39423338",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b5\\reference\\v0002\\diagnostics.json": "4b94a0b3a4089fb166cea61d58a20873a201443f78cda31fedc7ff4954e62309",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b6\\reference\\v0002\\diagnostics.json": "bec9fd0b9831eb5ba8b39cf44856c531d7faf6477a68950a2450a1f4b69ffaf6",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b7\\reference\\v0002\\diagnostics.json": "f907c94629b91b9a22948c97aef0626ab8607cd5c43a722a5dd832383abcaf97",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b8\\reference\\v0002\\diagnostics.json": "80c87e246335045677d66d746e06a2a47167ed87b8df009b422016fb8ca4b654",
+    "outputs\\wzzt_paper_20261029_full\\data\\flynn16\\b9\\reference\\v0002\\diagnostics.json": "816adf31e180d9be4b59455ee764a4a12db64418fcddb62412e2b7701da3fd22",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b0\\reference\\v0002\\diagnostics.json": "2d29d50117fc863e7be213944771967ec853b6d5d76d593543f0da58132d7de6",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b1\\reference\\v0002\\diagnostics.json": "41de3c01e0c707a629361ab43f4c2fcf48b6521cad4580ecec8f50f17f2faef5",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b2\\reference\\v0002\\diagnostics.json": "a7b2fa96ae025e7e90bec2818a0f3e93d27eb8e1c5b7fd1891c755f214c93153",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b3\\reference\\v0002\\diagnostics.json": "b0c33fcc4b272dd539fca006f9328f77c3c17d2710c08755d00a6a1e0a51a6bf",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b4\\reference\\v0002\\diagnostics.json": "e9db1400d8a41d3cb3c5cbd4b549ff72a0898fb5c788dad92deabfe7f64fbe54",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b5\\reference\\v0002\\diagnostics.json": "38ffd7dec6438bc292598290d0460f07a04752555f8830e4550a468affd3f2c8",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b6\\reference\\v0002\\diagnostics.json": "ef77b4058d008c8bcc4a20513ddbfad2917aac775c1e04105b839d21be3532f9",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b7\\reference\\v0002\\diagnostics.json": "5c63d2701d7ff072efe07067f1560d4f5a754dcc4c06064d9710311e3203a29e",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b8\\reference\\v0002\\diagnostics.json": "a467dd7e0a11b72e06baf4fc4eb204584fd45777888e4d1b86b0203329d03c13",
+    "outputs\\wzzt_paper_20261029_full\\data\\pengwah18\\b9\\reference\\v0002\\diagnostics.json": "5e3e275781e680346be2a0b95e65d0d29075034f6e5fee3df5a30bd975226bdb"
+  },
+  "checks": [
+    {
+      "name": "all frozen new source hashes",
+      "passed": true,
+      "files": 253,
+      "mismatches": []
+    },
+    {
+      "name": "all parent source hashes",
+      "passed": true,
+      "files": 247,
+      "mismatches": []
+    },
+    {
+      "name": "only one inherited source file changed",
+      "passed": true,
+      "changed": [
+        "research_experiments/full_ablation/engine.py"
+      ]
+    },
+    {
+      "name": "overlay adds declared keyword default",
+      "passed": true
+    },
+    {
+      "name": "overlay changes only T penalty expression",
+      "passed": true,
+      "expression": "float(tail_coefficient) * reference"
+    },
+    {
+      "name": "overlay adds only declared metadata",
+      "passed": true,
+      "metadata": {
+        "tail_coefficient": "float(tail_coefficient)",
+        "tail_penalty": "float(tail_coefficient) * reference"
+      }
+    },
+    {
+      "name": "optimizer AST identical after removing declared overlay",
+      "passed": true
+    },
+    {
+      "name": "protocol parent/catalog/seed references",
+      "passed": true
+    },
+    {
+      "name": "declared 48 inputs and three methods",
+      "passed": true
+    },
+    {
+      "name": "generation errors empty",
+      "passed": true
+    },
+    {
+      "name": "data-only training protocol",
+      "passed": true
+    },
+    {
+      "name": "only tail penalty differs across methods",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1000__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1000__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1000__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1000__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1000__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1001__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1001__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1001__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1001__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1001__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1002__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1002__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1002__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1002__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1002__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1003__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1003__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__paper15__b1003__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__paper15__b1003__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__paper15__b1003__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1000__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1000__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1000__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1000__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1000__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1001__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1001__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1001__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1001__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1001__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1002__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1002__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1002__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1002__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1002__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1003__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1003__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__soumalas11__b1003__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__soumalas11__b1003__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__soumalas11__b1003__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1000__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1000__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1000__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1000__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1000__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1001__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1001__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1001__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1001__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1001__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1002__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1002__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1002__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1002__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1002__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1003__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1003__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__flynn16__b1003__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__flynn16__b1003__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__flynn16__b1003__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1000__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1000__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1000__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1000__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1000__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1001__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1001__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1001__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1001__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1001__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1002__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1002__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1002__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1002__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1002__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1003__reference__v0002__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0002__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0002__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0002__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0002__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0002__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0002__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0002__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0002__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0002__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1003__reference__v0005__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0005__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0005__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0005__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0005__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0005__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0005__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0005__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0005__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0005__N96 test",
+      "passed": true
+    },
+    {
+      "name": "node order and unit base day96__pengwah18__b1003__reference__v0010__N96",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0010__N96 train observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0010__N96 train truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0010__N96 train",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0010__N96 validation observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0010__N96 validation truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0010__N96 validation",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0010__N96 test observed",
+      "passed": true
+    },
+    {
+      "name": "labels day96__pengwah18__b1003__reference__v0010__N96 test truth",
+      "passed": true
+    },
+    {
+      "name": "saved diagnostics match truth voltages day96__pengwah18__b1003__reference__v0010__N96 test",
+      "passed": true
+    },
+    {
+      "name": "all three split shapes 1x96 3x96 1x96",
+      "passed": true,
+      "problems": []
+    },
+    {
+      "name": "all observed hashes",
+      "passed": true,
+      "files": 144,
+      "mismatches": []
+    },
+    {
+      "name": "all stored values finite",
+      "passed": true,
+      "problems": []
+    },
+    {
+      "name": "all data_error fields clear",
+      "passed": true,
+      "problems": []
+    },
+    {
+      "name": "three paired noise regimes ('paper15', 1000)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('paper15', 1001)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('paper15', 1002)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('paper15', 1003)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('soumalas11', 1000)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('soumalas11', 1001)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('soumalas11', 1002)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('soumalas11', 1003)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('flynn16', 1000)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('flynn16', 1001)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('flynn16', 1002)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('flynn16', 1003)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('pengwah18', 1000)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('pengwah18', 1001)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('pengwah18', 1002)",
+      "passed": true
+    },
+    {
+      "name": "three paired noise regimes ('pengwah18', 1003)",
+      "passed": true
+    },
+    {
+      "name": "paired P/Q observations identical across voltage sigma",
+      "passed": true
+    },
+    {
+      "name": "paired physical truth identical across voltage sigma",
+      "passed": true
+    },
+    {
+      "name": "scaled voltage and root Gaussian draws paired",
+      "passed": true,
+      "maximum_standardized_draw_difference": {
+        "V": 6.662448370775564e-13,
+        "root": 6.58311296100611e-13
+      },
+      "tolerance": 2e-10
+    },
+    {
+      "name": "new seeds disjoint from ten-bundle historical case seeds",
+      "passed": true,
+      "new_case_day_records": 80,
+      "old_case_day_records": 360,
+      "intersections": []
+    },
+    {
+      "name": "new global seeds disjoint from historical global seeds",
+      "passed": true,
+      "new_global_seeds": 20,
+      "old_global_seeds": 90
+    },
+    {
+      "name": "80 physical day records with declared split days",
+      "passed": true
+    },
+    {
+      "name": "new source seed arithmetic",
+      "passed": true
+    },
+    {
+      "name": "four seed-index clusters shared across networks",
+      "passed": true
+    },
+    {
+      "name": "estimator workers do not open test or true topology in static source",
+      "passed": true,
+      "functions": {
+        "common_worker": {
+          "forbidden_input_keys": [],
+          "physical_truth_references": [],
+          "observed_arguments": [
+            "p['train']"
+          ]
+        },
+        "worker": {
+          "forbidden_input_keys": [],
+          "physical_truth_references": [],
+          "observed_arguments": [
+            "p['train']",
+            "p['validation']"
+          ]
+        }
+      }
+    }
+  ],
+  "physical_convergence_directly_verified": false,
+  "physical_convergence_evidence": "Frozen data generator asserts every AC day has 96 converged slots before writing data; data_errors empty and all stored voltages finite. Per-slot AC convergence logs/counts are not persisted in this batch.",
+  "limitations": [
+    "No independent AC solve or physical equation residual recomputation was performed.",
+    "Only four fresh independent random seed clusters; confidence intervals will be imprecise.",
+    "Freshness checked against all ten historical bundles of four fixed networks, not every experiment ever run.",
+    "Validation remains three different historical profile days; only training and test are one continuous default-profile day."
+  ],
+  "solver_calls": 0,
+  "fit_calls": 0,
+  "external_worktree_modified": false,
+  "worker_input_scope_static": {
+    "common_worker": {
+      "forbidden_input_keys": [],
+      "physical_truth_references": [],
+      "observed_arguments": [
+        "p['train']"
+      ]
+    },
+    "worker": {
+      "forbidden_input_keys": [],
+      "physical_truth_references": [],
+      "observed_arguments": [
+        "p['train']",
+        "p['validation']"
+      ]
+    }
+  }
+}
