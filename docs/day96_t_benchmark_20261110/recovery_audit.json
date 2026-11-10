@@ -1,0 +1,3675 @@
+{
+  "passed": true,
+  "scope": "Infrastructure recovery artifact consistency; no optimization, no relaunch, no process stopping",
+  "created_utc": "2026-11-10T14:36:50.113173+00:00",
+  "charges_sha256": "84731455d734294f6acbeb1d81e33ddef8da896827791295dd42d3411e949c56",
+  "host_liveness_receipt_sha256": "fe2c63fc8fd43a529ced3ed5436c32e040bbe4a16c66abd673f73c3e917961da",
+  "protocol_sha256": "598a718bd41cd3288d57ff9578181ccf56187b8d7c9c0a9c725830e6836bb733",
+  "logical_evaluations_planned": 144,
+  "completed_at_manager_interruption": 69,
+  "interrupted_infrastructure_attempts": 8,
+  "never_started_at_manager_interruption": 67,
+  "pending_logical_at_manager_interruption": 75,
+  "process_attempts_started_at_interruption": 77,
+  "expected_total_attempts_if_each_pending_runs_once": 152,
+  "expected_attempt_count_is_not_completed_count": true,
+  "reported_solver_failures_in_preserved_records": 0,
+  "recorded_successful_MIPs_preserved": 358,
+  "persisted_successful_prefix_MIPs_in_interrupted_attempts": 29,
+  "prefix_MIP_seconds_known": 633.7720469999622,
+  "six_prefix_checkpoints": 6,
+  "two_forward_stages_without_checkpoint": 2,
+  "preserved_result_method_counts": {
+    "noT": 23,
+    "T003": 23,
+    "T010": 23
+  },
+  "interrupted_attempt_method_counts": {
+    "noT": 3,
+    "T003": 3,
+    "T010": 2
+  },
+  "proxy_debit_seconds_by_method": {
+    "noT": 730.1244125366211,
+    "T003": 600.5994567871094,
+    "T010": 531.5631196498871
+  },
+  "proxy_debit_seconds_total": 1862.2869889736176,
+  "timing_upper_receipt_seconds_total": 8728.976951360703,
+  "manager_state_committed_utc": "2026-11-10T14:17:48.882892+00:00",
+  "manager_state_committed_wall_seconds": 2189.972718300007,
+  "manager_state_tmp_utc": "2026-11-10T14:17:50.976119+00:00",
+  "manager_state_tmp_wall_seconds": 2192.065364599999,
+  "scheduler_tmp_is_latest_attempted_write": true,
+  "manager_failure": "Reported PermissionError WinError5 during all_state.json.tmp replacement of all_state.json",
+  "suspected_reader_lock_cause": "inference only; underlying reader/antivirus/OS sharing owner not established by these artifacts",
+  "sandbox_process_visibility_sufficient": false,
+  "host_receipt_confirms_all_eight_old_workers_dead": true,
+  "host_receipt_confirms_waiting_helper_alive": true,
+  "actual_worker_termination_time_known": false,
+  "proxy_debit_is_exact_total_runtime_or_certified_upper_bound": false,
+  "final_budget_certificate_pending": true,
+  "final_budget_certificate_rule": "For the eight retries, use successful_total_seconds (includes shared frontend once) + timing_upper_receipt_seconds <= 14400. For other evaluations use original total_seconds. Never add the upper bound again to logical_total_seconds without first subtracting its proxy debit.",
+  "successful_historical_points_replayed": 466,
+  "raw_candidate_models_replayed": 465,
+  "maximum_training_loss_replay_error": 0.0,
+  "maximum_selected_validation_replay_error": 4.336808689942018e-19,
+  "interrupted_attempts": [
+    {
+      "job": "day96__paper15__b1003__reference__v0010__N96",
+      "method": "noT",
+      "pid": 17768,
+      "payload_created_utc": "2026-11-10T14:06:49.593663+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 203.14727329999732,
+      "timing_proxy_debit_seconds": 661.3824558258057,
+      "timing_upper_reported_host_seconds": 1518.4063370227814,
+      "timing_upper_receipt_seconds": 1519.7187011241913,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": true,
+      "last_progress_stage": "final_exit_started",
+      "saved_prefix_seconds": 203.14727329999732,
+      "saved_progress_elapsed_seconds": null,
+      "persisted_prefix_MIP_records": 6,
+      "persisted_prefix_gap_met": 6,
+      "persisted_prefix_MIP_seconds": 194.15292699998827,
+      "completed_forward_calls_inferred_without_records": null,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__paper15__b1003__reference__v0010__N96",
+      "method": "T003",
+      "pid": 37420,
+      "payload_created_utc": "2026-11-10T14:08:40.513070+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 205.86151149999932,
+      "timing_proxy_debit_seconds": 550.4630491733551,
+      "timing_upper_reported_host_seconds": 1407.4869303703308,
+      "timing_upper_receipt_seconds": 1408.7992944717407,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": true,
+      "last_progress_stage": "final_exit_started",
+      "saved_prefix_seconds": 205.86151149999932,
+      "saved_progress_elapsed_seconds": null,
+      "persisted_prefix_MIP_records": 6,
+      "persisted_prefix_gap_met": 6,
+      "persisted_prefix_MIP_seconds": 194.6738884999795,
+      "completed_forward_calls_inferred_without_records": null,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__paper15__b1003__reference__v0010__N96",
+      "method": "T010",
+      "pid": 13440,
+      "payload_created_utc": "2026-11-10T14:09:32.747396+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 206.26676790000056,
+      "timing_proxy_debit_seconds": 498.2287232875824,
+      "timing_upper_reported_host_seconds": 1355.252604484558,
+      "timing_upper_receipt_seconds": 1356.564968585968,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": true,
+      "last_progress_stage": "final_exit_started",
+      "saved_prefix_seconds": 206.26676790000056,
+      "saved_progress_elapsed_seconds": null,
+      "persisted_prefix_MIP_records": 7,
+      "persisted_prefix_gap_met": 7,
+      "persisted_prefix_MIP_seconds": 193.83146819999092,
+      "completed_forward_calls_inferred_without_records": null,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0005__N96",
+      "method": "noT",
+      "pid": 23288,
+      "payload_created_utc": "2026-11-10T14:17:05.127324+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 24.499204199993983,
+      "timing_proxy_debit_seconds": 45.84879446029663,
+      "timing_upper_reported_host_seconds": 902.8726756572723,
+      "timing_upper_receipt_seconds": 904.1850397586823,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": true,
+      "last_progress_stage": "final_exit_started",
+      "saved_prefix_seconds": 24.499204199993983,
+      "saved_progress_elapsed_seconds": null,
+      "persisted_prefix_MIP_records": 4,
+      "persisted_prefix_gap_met": 4,
+      "persisted_prefix_MIP_seconds": 23.04369000000588,
+      "completed_forward_calls_inferred_without_records": null,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0005__N96",
+      "method": "T003",
+      "pid": 35644,
+      "payload_created_utc": "2026-11-10T14:17:15.538343+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 16.662511600006837,
+      "timing_proxy_debit_seconds": 35.43777561187744,
+      "timing_upper_reported_host_seconds": 892.4616568088531,
+      "timing_upper_receipt_seconds": 893.7740209102631,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": true,
+      "last_progress_stage": "final_exit_started",
+      "saved_prefix_seconds": 16.662511600006837,
+      "saved_progress_elapsed_seconds": null,
+      "persisted_prefix_MIP_records": 3,
+      "persisted_prefix_gap_met": 3,
+      "persisted_prefix_MIP_seconds": 15.350748900003964,
+      "completed_forward_calls_inferred_without_records": null,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0005__N96",
+      "method": "T010",
+      "pid": 23036,
+      "payload_created_utc": "2026-11-10T14:17:17.641722+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 13.970897999999579,
+      "timing_proxy_debit_seconds": 33.33439636230469,
+      "timing_upper_reported_host_seconds": 890.3582775592804,
+      "timing_upper_receipt_seconds": 891.6706416606903,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": true,
+      "last_progress_stage": "final_exit_started",
+      "saved_prefix_seconds": 13.970897999999579,
+      "saved_progress_elapsed_seconds": null,
+      "persisted_prefix_MIP_records": 3,
+      "persisted_prefix_gap_met": 3,
+      "persisted_prefix_MIP_seconds": 12.719324399993639,
+      "completed_forward_calls_inferred_without_records": null,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0010__N96",
+      "method": "noT",
+      "pid": 34544,
+      "payload_created_utc": "2026-11-10T14:17:28.082957+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 9.635594100007438,
+      "timing_proxy_debit_seconds": 22.8931622505188,
+      "timing_upper_reported_host_seconds": 879.9170434474945,
+      "timing_upper_receipt_seconds": 881.2294075489044,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": false,
+      "last_progress_stage": "wzzt_extension_started",
+      "saved_prefix_seconds": null,
+      "saved_progress_elapsed_seconds": 9.635594100007438,
+      "persisted_prefix_MIP_records": 0,
+      "persisted_prefix_gap_met": 0,
+      "persisted_prefix_MIP_seconds": 0,
+      "completed_forward_calls_inferred_without_records": 2,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0010__N96",
+      "method": "T003",
+      "pid": 50096,
+      "payload_created_utc": "2026-11-10T14:17:36.277487+00:00",
+      "manager_failed_write_proxy_utc": "2026-11-10T14:17:50.976119+00:00",
+      "host_dead_confirmation_reported_utc": "2026-11-10T14:32:08+00:00",
+      "host_liveness_receipt_mtime_utc": "2026-11-10T14:32:09.312364+00:00",
+      "conservative_dead_confirmation_upper_utc": "2026-11-10T14:32:09.312364+00:00",
+      "timing_lower_known_seconds": 11.04539769999974,
+      "timing_proxy_debit_seconds": 14.698632001876831,
+      "timing_upper_reported_host_seconds": 871.7225131988525,
+      "timing_upper_receipt_seconds": 873.0348773002625,
+      "original_total_cap": 14400.0,
+      "native_checkpoint_present": false,
+      "last_progress_stage": "joint_tail_started",
+      "saved_prefix_seconds": null,
+      "saved_progress_elapsed_seconds": 11.04539769999974,
+      "persisted_prefix_MIP_records": 0,
+      "persisted_prefix_gap_met": 0,
+      "persisted_prefix_MIP_seconds": 0,
+      "completed_forward_calls_inferred_without_records": 1,
+      "interrupted_solver_outcome": "unavailable, not a solver success/failure certificate",
+      "actual_termination_time_unobserved": true,
+      "final_timing_check_formula": "successful_total_seconds + timing_upper_receipt_seconds <= original_total_cap; common frontend counted once",
+      "if_using_already_proxy_charged_logical_total": "logical_total_seconds - timing_proxy_debit_seconds + timing_upper_receipt_seconds"
+    }
+  ],
+  "checks": [
+    {
+      "name": "frozen source hashes unchanged",
+      "passed": true,
+      "files": 253
+    },
+    {
+      "name": "temporary scheduler snapshot hash",
+      "passed": true
+    },
+    {
+      "name": "snapshot denominator consistent",
+      "passed": true
+    },
+    {
+      "name": "eight charge identities match failed scheduler snapshot",
+      "passed": true
+    },
+    {
+      "name": "host process evidence, not sandbox absence",
+      "passed": true
+    },
+    {
+      "name": "waiting-only helper was alive at host query",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__paper15__b1003__reference__v0010__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__paper15__b1003__reference__v0010__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__paper15__b1003__reference__v0010__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__paper15__b1003__reference__v0010__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__paper15__b1003__reference__v0010__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__paper15__b1003__reference__v0010__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__paper15__b1003__reference__v0010__N96/T010",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__paper15__b1003__reference__v0010__N96/T010",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__paper15__b1003__reference__v0010__N96/T010",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__soumalas11__b1003__reference__v0005__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__soumalas11__b1003__reference__v0005__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__soumalas11__b1003__reference__v0005__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__soumalas11__b1003__reference__v0005__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__soumalas11__b1003__reference__v0005__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__soumalas11__b1003__reference__v0005__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__soumalas11__b1003__reference__v0005__N96/T010",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__soumalas11__b1003__reference__v0005__N96/T010",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__soumalas11__b1003__reference__v0005__N96/T010",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__soumalas11__b1003__reference__v0010__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__soumalas11__b1003__reference__v0010__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__soumalas11__b1003__reference__v0010__N96/noT",
+      "passed": true
+    },
+    {
+      "name": "preserved attempt file hashes day96__soumalas11__b1003__reference__v0010__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "proxy debit reproduced from file timestamps day96__soumalas11__b1003__reference__v0010__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "timing bounds ordered day96__soumalas11__b1003__reference__v0010__N96/T003",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 3ef7c36503755f1573fdb369c53cee2c660eda8261616350916247921d20a632",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 7225b2e0153d2d542f77e0dbc364d37493cbf37c689cfd4beac90471619854b7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json b1458b5898ca37d678492340da46662d437cf941102ffe14f6af2f56a3c65980",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json f7ac45226355988b2b7774eefa97ac2b6ff2e900641de5f13968517023680c5e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 9f58cd974377d9fa457be6f502d73d5c303c0547c9566c843c0d57c869139809",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 16040107755cceae05cbb9bc2290c9004b84ccbe1664c2bf22644368737c510b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json d6bacc9d9fc1cfb573fac4ef5572fb6d6c49a207a5b7ce156c62d05d11ad5b5a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 9af695bbce33337d5e1cc03e396bdf534b9245ee129ad21243f3fa400e8d30a2",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json f86992d1728e2efcf733fd76f5eacbcdb1473a07cd299ac5679c4c9e2f0a3124",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 8f5fa426c6403c748b9cebd53d54f144931dca54afda05a10d2e8db28c9e5349",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/noT/result.json 7d87f596838ac45fa7655ac93e086c6f589059c9eb030661077d5ef93de7c25f",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 3ef7c36503755f1573fdb369c53cee2c660eda8261616350916247921d20a632",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 7225b2e0153d2d542f77e0dbc364d37493cbf37c689cfd4beac90471619854b7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json b1458b5898ca37d678492340da46662d437cf941102ffe14f6af2f56a3c65980",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json f7ac45226355988b2b7774eefa97ac2b6ff2e900641de5f13968517023680c5e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 9f58cd974377d9fa457be6f502d73d5c303c0547c9566c843c0d57c869139809",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json bb6941d8ba630b1c02a02c6b757d297829135919c539ac7712a355ecd1b67372",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 964746670c3cd8bddb00504b1090738a3fb48d670cdcf3ec5c8360e6d39365d9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 8ad327814f951c90708df4a197164670b5bc934f7acce9f2c744e9d3f9e51d0a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 8a9cd10dec42b32455aebdecbbfab213312769074a9289c144aee01f6a5009ce",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T003/result.json 7d87f596838ac45fa7655ac93e086c6f589059c9eb030661077d5ef93de7c25f",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json 3ef7c36503755f1573fdb369c53cee2c660eda8261616350916247921d20a632",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json 7225b2e0153d2d542f77e0dbc364d37493cbf37c689cfd4beac90471619854b7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json b1458b5898ca37d678492340da46662d437cf941102ffe14f6af2f56a3c65980",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json f7ac45226355988b2b7774eefa97ac2b6ff2e900641de5f13968517023680c5e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json 9f58cd974377d9fa457be6f502d73d5c303c0547c9566c843c0d57c869139809",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json 6290a3d93e5c9b32c85334535889d8ad1e60fb27542610968eebae8163577166",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__flynn16__b1000__reference__v0005__N96/T010/result.json 4ccda349dd1ab80fad7db54ba1bdb2cd4557c9643900e63861cc122482e6da42",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json 1681a0cefdc5d5ebed5823b3223b59ec3b4d8cfdc762572ab1f974f9d5bdf616",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json f8d6705409ade6731f163456c7f30685c0275e9b6a1c353c5f3f82d3f992edb4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json aafc489ce6c62c6d5c7fb9d6a9ba68cc0e0733844cc8b5da5b03484e793e52f0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json 7bf999314cb67a8e741cd9490542dd49efe34eec071d53ae5d1a2f8a0db7377d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json ab6d482c4a2a823d0c82088632816f6c3cca79d5f0fe02d8a01e0b21d7e26081",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/noT/result.json d62a8edd130c80ab955f005b2dd0ea172d70bf061c1ac2b70cc3c8bc846baeae",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json 1681a0cefdc5d5ebed5823b3223b59ec3b4d8cfdc762572ab1f974f9d5bdf616",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json f8d6705409ade6731f163456c7f30685c0275e9b6a1c353c5f3f82d3f992edb4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json aafc489ce6c62c6d5c7fb9d6a9ba68cc0e0733844cc8b5da5b03484e793e52f0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json 7bf999314cb67a8e741cd9490542dd49efe34eec071d53ae5d1a2f8a0db7377d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json 3f87d41eb6d21335d6dc8389e8148b2f6c9bbe73dab6396ed6ed96a049eab9cb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T003/result.json fef2c35ee91de91d6732b4807d2869a63b3a8c433afef19dbccb03db2af3bc3b",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json 1681a0cefdc5d5ebed5823b3223b59ec3b4d8cfdc762572ab1f974f9d5bdf616",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json f8d6705409ade6731f163456c7f30685c0275e9b6a1c353c5f3f82d3f992edb4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json aafc489ce6c62c6d5c7fb9d6a9ba68cc0e0733844cc8b5da5b03484e793e52f0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json 7bf999314cb67a8e741cd9490542dd49efe34eec071d53ae5d1a2f8a0db7377d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json 3f87d41eb6d21335d6dc8389e8148b2f6c9bbe73dab6396ed6ed96a049eab9cb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0002__N96/T010/result.json fef2c35ee91de91d6732b4807d2869a63b3a8c433afef19dbccb03db2af3bc3b",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json 0487524e8f1d806a75fead8b8a7834a686a3d3bd0ba7fa6dbcf98918ceabb4a9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json 43c627cc6c51682b211831d727350514d2543893c2ea704a5e2f03d0933e563c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json b416462ad67cba6e6c9ee18c9287b43e1460f5e1f03b009b22f74e3101be8b0a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json f62e237691cc6af3e53f828e3ccb218c90e7ce4f0467a8ea966cc8aa3f6e4c7d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json 3eda031a3a867bc62c2610d158b96a2828d5778dd52aec0800d40622fa8335c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json b71795b612c0d25703e3410a31afeb7a03227d98eda9e8bd683d112309c26ae1",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json 29e4cf2db49b83425ef62e12132b41bb3b12aad746c3ca42afb9d4fcc23da853",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json e091a995b8e0bc8974c197b350ce08087d72207363120c79db85227db690cd33",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json 8ac1a8f5834a94f5d0a5f5f1069cbb1037ce3880d2e40489318171aeed007c3a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/noT/result.json d778bc5d6ebe9dcf50180cce17b4a88e6bedbe7bc1bbf77de13f63c508b9ea4e",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json 0487524e8f1d806a75fead8b8a7834a686a3d3bd0ba7fa6dbcf98918ceabb4a9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json 43c627cc6c51682b211831d727350514d2543893c2ea704a5e2f03d0933e563c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json b416462ad67cba6e6c9ee18c9287b43e1460f5e1f03b009b22f74e3101be8b0a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json 0979ae1f2506842da614c1186b8abcce6f0c10addd283bee26bfab90a34de72a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json d578e545c186b40345d141f35d9806ab8a7080ec4ad456a3ba48c24571bf52f3",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json 633dea73a0cd9a627bdcefd6af234c5e39e744c5c04b93429ab2740ccf2e3efd",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json d7d4b1bb006908691ccae43c36c878a89f101ec038cc47c3fd4e2064f83c7316",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T003/result.json 89cd1d6ffb616ea9baf58835a176fee78fc96b1a6109a039e33a69f8666a6a95",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json 0487524e8f1d806a75fead8b8a7834a686a3d3bd0ba7fa6dbcf98918ceabb4a9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json 43c627cc6c51682b211831d727350514d2543893c2ea704a5e2f03d0933e563c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json b416462ad67cba6e6c9ee18c9287b43e1460f5e1f03b009b22f74e3101be8b0a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json 0979ae1f2506842da614c1186b8abcce6f0c10addd283bee26bfab90a34de72a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json d578e545c186b40345d141f35d9806ab8a7080ec4ad456a3ba48c24571bf52f3",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json 633dea73a0cd9a627bdcefd6af234c5e39e744c5c04b93429ab2740ccf2e3efd",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json d7d4b1bb006908691ccae43c36c878a89f101ec038cc47c3fd4e2064f83c7316",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0005__N96/T010/result.json 89cd1d6ffb616ea9baf58835a176fee78fc96b1a6109a039e33a69f8666a6a95",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json c7407dbac09c859176db5d9fc1f2f774e4c2c6acb3cc726670ee0df354dc6436",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 424a1cb9c69a0c1fce2480ea2dfbe95a712bdd87d374fd6b8b1233430155bf6f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 9e146d72726ec2293ccdec4f4dbbb202c64ebe408d27ee5acadb85d2d9f2e858",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 9b892d19545dee17b45280f2b27e5aa0b13e0ad54519c967cb4bcc8a58249ebd",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json ca15c0b803fc2e253a79f4e9e9a09b26985ad46f073ea274a56c834d8a38ee24",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 05416e1f312f57ba35abb12d2c6f0f5be597ddfbb90da051da450f5ae3b2f8b0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 2e4581ca9795ff9ddd00d4abe99f1dd00e7bf918fa7bed9e8047284c072e6228",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json b20c69aaf118f665a31e80e535787bf249a6147548ac6788c7f4fafbdb03da74",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 291dc97d6dd148564cd23d828e57b1e469283ae4e869649a2a6e120887983e55",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json bca2334ba349fc62b0665674ff0c1fce853a5a701c342eb84f648398e405b819",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 46404f7e5531b044b2d05462e376bc974cb854e9899d6635e79564053ba49780",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/noT/result.json 0d035cf5d70d934e5d3541933869ceaefbd4fc974f7d5aa40d77c1067dc63cb1",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json c7407dbac09c859176db5d9fc1f2f774e4c2c6acb3cc726670ee0df354dc6436",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 424a1cb9c69a0c1fce2480ea2dfbe95a712bdd87d374fd6b8b1233430155bf6f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 9e146d72726ec2293ccdec4f4dbbb202c64ebe408d27ee5acadb85d2d9f2e858",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 9b892d19545dee17b45280f2b27e5aa0b13e0ad54519c967cb4bcc8a58249ebd",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json ca15c0b803fc2e253a79f4e9e9a09b26985ad46f073ea274a56c834d8a38ee24",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 08aea8b1524a2e5322f1b8ad6745cff2db9035160eef98a6c50e1203f6064901",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json f5da1fc4e2f79c348ce12f8e0eb33f4b14dc0469996095d97957a031a44b3557",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 05c87d9dd437435953a03165e9bc54f0710bfa56a967328d14b9cde67919132b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 532e3a70a77f395ea912b4e0caefb4bf8cc390791e8caad9c57258e884756a1a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T003/result.json 2d3c58760fe7ebbb9efea2889e6920bbc57fbb15cfd91678a6e87b9a64690c66",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json c7407dbac09c859176db5d9fc1f2f774e4c2c6acb3cc726670ee0df354dc6436",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json 424a1cb9c69a0c1fce2480ea2dfbe95a712bdd87d374fd6b8b1233430155bf6f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json 9e146d72726ec2293ccdec4f4dbbb202c64ebe408d27ee5acadb85d2d9f2e858",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json 9b892d19545dee17b45280f2b27e5aa0b13e0ad54519c967cb4bcc8a58249ebd",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json ca15c0b803fc2e253a79f4e9e9a09b26985ad46f073ea274a56c834d8a38ee24",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json cc8d4391ffa6dd5d95e863ef2840d02b440a4b3c1605b3ffc70a97f38102da03",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json 9c2deb86aa46291dd3fecad122c9aecd4c983fb8377b31752caea280d034f956",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1000__reference__v0010__N96/T010/result.json 73b7344844a5b3dd7676c4cbbffa78272a2572012dab5868a3b6ebd62c8386e7",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json dd2fe63d61b77b3cbbd84e94409bf04f9a934cd17757fffb28eafc7c1b633a8a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 993c7e3c0fffdd54f7e12e067bc391f9200569281e2b661fad1264a55b5ded8e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 81d9fed81f2c134ab36869049ed6828f674ae99ccdf19a8ba9589a6a1b118c27",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 4b05e036cfd7f5edebed31306ae47bf24b4bcd758749a54fdb99b03b29a6d69c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json ea13edd12f19ccaacb6fbc690db8a0e085e04647394c47fd26f8416ce8fe9e78",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 2262edd4e165c293a8588e4a740794f7f7227faea54504235b34a95cbf733ef0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json e667113ecabc9c279013e351051c1aef41f85cc030cf96e0df4b3e09d364e3a8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 52daae971ba27b1ec8213897ebb06a3f4354aeba3f61abca0542f7508a4520c0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 06f6d9d94ea9006e9a6254b07ab05cf97f6b715eb6f3f672ec840f98a01a4257",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 2e614cd177b1aedd20ce4dff984454a646192bb5c6a38d670e5a701febeb9208",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json b5abaeda2680139a44abeb681b493d6fb765ed61a54f05fe94249c523ee41363",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json 338e11c407a67e43f79d8b0a7d4d32d8453f1563635139315da9127860b79114",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/noT/result.json a9ec7828433abb81e74229813171b0038d3fe2dd00af1f43156afed6dd8e534a",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json dd2fe63d61b77b3cbbd84e94409bf04f9a934cd17757fffb28eafc7c1b633a8a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json 993c7e3c0fffdd54f7e12e067bc391f9200569281e2b661fad1264a55b5ded8e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json 81d9fed81f2c134ab36869049ed6828f674ae99ccdf19a8ba9589a6a1b118c27",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json 4b05e036cfd7f5edebed31306ae47bf24b4bcd758749a54fdb99b03b29a6d69c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json acc4a6ed11a89aa85e9f65bc9bd4411da5137c41d6d38d4f9404164de2b07197",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json ec5e5e42d7773d720b237d4b014a3b24e825f12b4f154dc22cdeed945066da36",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json 6a78c89cb8965834f78890bc7a1fd9deb3c887ea696b784ddc658f4d9896b53c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json 91173091214a4a41ae29863727913a2276cffc6491458964397ce4c1bcf8d1b5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T003/result.json 8c94b6e68448e57fa00c2a924b2cae97dc4288365158c2b6f4ad0de6e647b53e",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json dd2fe63d61b77b3cbbd84e94409bf04f9a934cd17757fffb28eafc7c1b633a8a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 993c7e3c0fffdd54f7e12e067bc391f9200569281e2b661fad1264a55b5ded8e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 81d9fed81f2c134ab36869049ed6828f674ae99ccdf19a8ba9589a6a1b118c27",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 4b05e036cfd7f5edebed31306ae47bf24b4bcd758749a54fdb99b03b29a6d69c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json fdabc2f8cbb4f9f9cad872189cb2b4f0f4ba47fb2e1d4bdfd90bf491ab531f7b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 15c8436f9122e4ce34b4e838dd00857b42248748cc59c7fd7d27e307e9534eae",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 6a78c89cb8965834f78890bc7a1fd9deb3c887ea696b784ddc658f4d9896b53c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 91173091214a4a41ae29863727913a2276cffc6491458964397ce4c1bcf8d1b5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0002__N96/T010/result.json 8c94b6e68448e57fa00c2a924b2cae97dc4288365158c2b6f4ad0de6e647b53e",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json 01cbe16c254c35cc184f5fdb10150b174b3005a09b9e7b593f588e9345d91930",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json 1f27fe13595a351a368623ca3654f20f5a7720d5a1fd09b7bc66752338d919ab",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json 43584c764faaf0e9978d8d9f46b1c5d1698a9111c9c5bebe784b6eef4bc51908",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json ff2f26926bb92e1989317454e8c716f9e8a2e608105d2c7c0f90efa564d251c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json 8eb1a2a3bc5e6aa79582d72aa16a4f973b616967aa5a5c1d09b845a6829328d0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json b0c17a516cea296790d3e2d9bc87a575ed2f60dc0cb1442086e6c16930dc6097",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json 597a70dae869371c7ddf3d4afa3a7d3d78c56c31be1bd6926737c76bedce1289",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json 110cdd6e2657fcf950eda88d4da990bc5d87998fdbcdbb89a8f3ba169cf02b07",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/noT/result.json c216cf566e1ea473cd0687de7f96c191404173078b5ef8aa94b4cb1daa35d10b",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 01cbe16c254c35cc184f5fdb10150b174b3005a09b9e7b593f588e9345d91930",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 1f27fe13595a351a368623ca3654f20f5a7720d5a1fd09b7bc66752338d919ab",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 43584c764faaf0e9978d8d9f46b1c5d1698a9111c9c5bebe784b6eef4bc51908",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json ff2f26926bb92e1989317454e8c716f9e8a2e608105d2c7c0f90efa564d251c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 8eb1a2a3bc5e6aa79582d72aa16a4f973b616967aa5a5c1d09b845a6829328d0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 597a70dae869371c7ddf3d4afa3a7d3d78c56c31be1bd6926737c76bedce1289",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 847e56e6b06efb3ca775a64178679f41afe3e305ea2d1e154780f27d1bba1176",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T003/result.json 35566ab12feb1f08875ed9f76979fef3f1801de0ec7d72c8b903bd65aa4fd728",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 01cbe16c254c35cc184f5fdb10150b174b3005a09b9e7b593f588e9345d91930",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 1f27fe13595a351a368623ca3654f20f5a7720d5a1fd09b7bc66752338d919ab",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 43584c764faaf0e9978d8d9f46b1c5d1698a9111c9c5bebe784b6eef4bc51908",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json ff2f26926bb92e1989317454e8c716f9e8a2e608105d2c7c0f90efa564d251c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 8eb1a2a3bc5e6aa79582d72aa16a4f973b616967aa5a5c1d09b845a6829328d0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 597a70dae869371c7ddf3d4afa3a7d3d78c56c31be1bd6926737c76bedce1289",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 847e56e6b06efb3ca775a64178679f41afe3e305ea2d1e154780f27d1bba1176",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0005__N96/T010/result.json 35566ab12feb1f08875ed9f76979fef3f1801de0ec7d72c8b903bd65aa4fd728",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json c8ef1b89d6428c2ba0216e5a8d12f5fba1fa093451dd3cc2e0fe7fd5619fc98b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json 1be9cff3ac0d376fe6827170caf589a40c6bfd6a04f3dedeb8d88f8a0dbf4d65",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json 977dbe2dfa618521b111dd0da179a009347a8d942212353f7ab1f7b2945a677b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json 2edcf8fe4b5433e11783265ac8c2e70cd3dbcf2b4377062d64c8e94f5ff06301",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json edd05a56e04090ccfc81f7bcb9e7a1dae670d27612357d163d233ac967fb881c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json 4fc5217cac4d3d8d9d8a065d70272eb99371405e6a5feb5a712ec48ca6d0e5d7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json ae9a7603e87d8c8e21dafc934176b1a565d6796124c39da258a4d120e6a7a4d2",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json ea6dffa68c4a58b643e84fe5818de1befe9b8760219235b673f6bf271bdfc37f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/noT/result.json 1d2d789efa7d55749c0837c9b7c7ab4e0ab0f4980921b0c4e0e11e20ce4f301f",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json c8ef1b89d6428c2ba0216e5a8d12f5fba1fa093451dd3cc2e0fe7fd5619fc98b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json 1be9cff3ac0d376fe6827170caf589a40c6bfd6a04f3dedeb8d88f8a0dbf4d65",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json 977dbe2dfa618521b111dd0da179a009347a8d942212353f7ab1f7b2945a677b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json 2edcf8fe4b5433e11783265ac8c2e70cd3dbcf2b4377062d64c8e94f5ff06301",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json ae9a7603e87d8c8e21dafc934176b1a565d6796124c39da258a4d120e6a7a4d2",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json 031ed72059df0d4cdceef7ac4d7992b26f068f66e9b8aec240749b11f60b29d2",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T003/result.json 9ef1a7178957e0bd60041955e0becf758e1aa7d7ed84684f541efd252b21c764",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json c8ef1b89d6428c2ba0216e5a8d12f5fba1fa093451dd3cc2e0fe7fd5619fc98b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json 1be9cff3ac0d376fe6827170caf589a40c6bfd6a04f3dedeb8d88f8a0dbf4d65",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json 977dbe2dfa618521b111dd0da179a009347a8d942212353f7ab1f7b2945a677b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json 2edcf8fe4b5433e11783265ac8c2e70cd3dbcf2b4377062d64c8e94f5ff06301",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json b8208819098f3f0056ee70e172b41aa4cabc096f81daf183da398354f788794c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1001__reference__v0010__N96/T010/result.json 9ef1a7178957e0bd60041955e0becf758e1aa7d7ed84684f541efd252b21c764",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json b4cf967063ec6be954d67620f04e9269cd8fa948d7d05ee88dfc7cd74d02cba8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json 74a2cfc8723ba994b7271db559969b76aa78c3464f99b2787df94db541bc25b0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json aa4490b236e1ada470e776ce89b874a076370164e7ccd69dca41d4c5aa12ce9c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json 37dfdba69c78e0e51505402c73d8fea236cdbab3150c56991e76afcc1bea1f79",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json 24b5f693ace13e7ef4c987a3940fd71bbb6d9812281007209e978682924eeb9c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json 53375fd7605a4c53b9ba0d55f93e6a3d7d7afaf980a0a9c826a258dbce86d1b6",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json d3ffbe5bddbe3046f20aeca8b25da1ad18d87b5e94cdd2f23f9892327a51ce6a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json a5bdb54eac5089ea872616095ab158cd332966146bfd7a4daed768bdb6047879",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/noT/result.json 1780b404437af8a728eece32d89dcfb37d079a8751c48fedf2f73df64d369c58",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json b4cf967063ec6be954d67620f04e9269cd8fa948d7d05ee88dfc7cd74d02cba8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json 74a2cfc8723ba994b7271db559969b76aa78c3464f99b2787df94db541bc25b0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json aa4490b236e1ada470e776ce89b874a076370164e7ccd69dca41d4c5aa12ce9c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json 37dfdba69c78e0e51505402c73d8fea236cdbab3150c56991e76afcc1bea1f79",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json d3ffbe5bddbe3046f20aeca8b25da1ad18d87b5e94cdd2f23f9892327a51ce6a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json 6ad488dac1db123b8d838f74e9cbec64d3aba8d7b10b9adef7328ac980705253",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T003/result.json e5955d3f24c0937bcd08407857de52ec8e23f13d027611196dac29fc9c3c1831",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json b4cf967063ec6be954d67620f04e9269cd8fa948d7d05ee88dfc7cd74d02cba8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json 74a2cfc8723ba994b7271db559969b76aa78c3464f99b2787df94db541bc25b0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json aa4490b236e1ada470e776ce89b874a076370164e7ccd69dca41d4c5aa12ce9c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json 37dfdba69c78e0e51505402c73d8fea236cdbab3150c56991e76afcc1bea1f79",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json d3ffbe5bddbe3046f20aeca8b25da1ad18d87b5e94cdd2f23f9892327a51ce6a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json 6ad488dac1db123b8d838f74e9cbec64d3aba8d7b10b9adef7328ac980705253",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0002__N96/T010/result.json e5955d3f24c0937bcd08407857de52ec8e23f13d027611196dac29fc9c3c1831",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json a68daea7e227c888380441d88a8fb4d741f3e0c579eca9e6fa8cbff609539188",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json 13e615bd215d3f7901721352c74a7a240d99484f33224c59c1add860eb29da77",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json fb49ad06f057acc38a82aad85880986a8e161902bdfabb6d25c4594e7de3c1ef",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json a0176bfbeb9148641372ba16e23258fd643e55719f51268887c565346ee04825",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json d5d8b99ae7ad21ff23eddd768430412d65c6f01bdc2a53815268fe1b0ebad8a2",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json 9820da736bbf1e74773693ad57fcd9c0180e790ad0d0854bcfa864a1a047e5d0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json 1219f6ea70a6625658cb07575b81c04b068b8e156dbc3d630870f3f97db8c4bb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/noT/result.json 735fcb0cac020c76b0d280d07eeeba9e3acff9b6feeb4ff28d9e49915c8e02e9",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json a68daea7e227c888380441d88a8fb4d741f3e0c579eca9e6fa8cbff609539188",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json 13e615bd215d3f7901721352c74a7a240d99484f33224c59c1add860eb29da77",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json fb49ad06f057acc38a82aad85880986a8e161902bdfabb6d25c4594e7de3c1ef",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json a0176bfbeb9148641372ba16e23258fd643e55719f51268887c565346ee04825",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json 9820da736bbf1e74773693ad57fcd9c0180e790ad0d0854bcfa864a1a047e5d0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json 9b6f8418015bf6b8b43cff03157dfdb912c950e9c31a180cd81372f949a2ba92",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T003/result.json db4916b277bdb2a415b526b81904459d2e873a7a689ba653a3d6fb9847ad7654",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json a68daea7e227c888380441d88a8fb4d741f3e0c579eca9e6fa8cbff609539188",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json 13e615bd215d3f7901721352c74a7a240d99484f33224c59c1add860eb29da77",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json fb49ad06f057acc38a82aad85880986a8e161902bdfabb6d25c4594e7de3c1ef",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json a0176bfbeb9148641372ba16e23258fd643e55719f51268887c565346ee04825",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json ba1471ff5676accd9411481e666cf651ce3df510dc4fede472e350439fdf549f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json af717447a9c458b7e134e653e8ba6c34bc5e24fa93c49e43e868978189719610",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0005__N96/T010/result.json 735fcb0cac020c76b0d280d07eeeba9e3acff9b6feeb4ff28d9e49915c8e02e9",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json 6069a307c7feb20a36142f27f7110cd651f1d01ab9089b3cf53e8bd306a33d6c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json a80931dcc1b05371e2a0532f044881e205e3c6cb37e4aa8814bee9648f627625",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json 2a473a4195d5be207942f8d29c93590d44cdecb6dd7905df2ace767b46717981",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json c975425c570972bcfa967a580a8e18b9ec9b9bcbc6a595e39f088d2cfdf7b7f8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json 9af533ac3dc22b78cdb4191d5c199b9c86d322fc5d1c13533c3bc415462ce823",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json 694c38f4717abc4e67717732f7afa370b86c16de0e2370060b235929c5885268",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json 8e68f67ae161ae3cb8da315bbb992dc53eb4ee4955db9bf37b34745bdd652b1b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/noT/result.json d1b6c213b47801395e446386525fc0dfed9a63587a2f63687d869e362dc2b7ca",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json 6069a307c7feb20a36142f27f7110cd651f1d01ab9089b3cf53e8bd306a33d6c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json a80931dcc1b05371e2a0532f044881e205e3c6cb37e4aa8814bee9648f627625",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json 2a473a4195d5be207942f8d29c93590d44cdecb6dd7905df2ace767b46717981",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json c975425c570972bcfa967a580a8e18b9ec9b9bcbc6a595e39f088d2cfdf7b7f8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json 9af533ac3dc22b78cdb4191d5c199b9c86d322fc5d1c13533c3bc415462ce823",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json 4c715890c50ac0571c0bdcb93bca1cb7a5d1daf8851540d318ed35fb39ee8580",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json 1f093359c259d9ce88f7a0a93604bbdd27d75deca3dd97abc6bd4e71ef90a0c5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T003/result.json 54011af1255a35f514ba4d03933bc839eb7eb564d9095a741b3a81683f4ab913",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json 6069a307c7feb20a36142f27f7110cd651f1d01ab9089b3cf53e8bd306a33d6c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json a80931dcc1b05371e2a0532f044881e205e3c6cb37e4aa8814bee9648f627625",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json 2a473a4195d5be207942f8d29c93590d44cdecb6dd7905df2ace767b46717981",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json c975425c570972bcfa967a580a8e18b9ec9b9bcbc6a595e39f088d2cfdf7b7f8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json 9af533ac3dc22b78cdb4191d5c199b9c86d322fc5d1c13533c3bc415462ce823",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json eb2bc75b9b24808ea7edef384dfb6785068aeb2ef0f7a3dfb672129f958a2f86",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json 99b16e761bed4d4618d3d3f67b5d54b2ae0acacd5d581af76681e898eba3de50",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1002__reference__v0010__N96/T010/result.json d1b6c213b47801395e446386525fc0dfed9a63587a2f63687d869e362dc2b7ca",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json f4eef1704fe17ddfa98f30df4cbcef97ebed260df4164e72a44aaebed925e049",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 51b395f20bd8957d18072553d02d96aec58793690f027a3b533ddcb65373605c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 521eb49824cd872fd078b34e674e104a9378994019fa4903748c32ed2e8033f0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 77a3dd74daee5bfeaee2ffe01ef0834b1edc6af9281c374b9c8cf3a1ec0f83c7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 08f6c86c90752f2a02866c1b1904b7c6d5eceec24f9bf73a2dad297e68d6de1f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 0f7fc06a786c08f36fd022474ca7a7d2747d21ebafc844993731a30ade3e06af",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 21f7736b2c01bc3c085d266cf0364117f3154863f0a0f9fe1224d4d2314aae4a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json aca51d2d7c40f3dfbd50e77d178de13ea288fd28ad88afe87dbf442fa0e25696",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/noT/result.json 2ec9b98e2a0de56c832fb1fc1585b92a36d146b2974daca7304116fd20679a2e",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json f4eef1704fe17ddfa98f30df4cbcef97ebed260df4164e72a44aaebed925e049",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json 51b395f20bd8957d18072553d02d96aec58793690f027a3b533ddcb65373605c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json 521eb49824cd872fd078b34e674e104a9378994019fa4903748c32ed2e8033f0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json 77a3dd74daee5bfeaee2ffe01ef0834b1edc6af9281c374b9c8cf3a1ec0f83c7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json 08f6c86c90752f2a02866c1b1904b7c6d5eceec24f9bf73a2dad297e68d6de1f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json 21f7736b2c01bc3c085d266cf0364117f3154863f0a0f9fe1224d4d2314aae4a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json c6e759d0aebc7d4ba9ca9f8cad4a337a4086920174e9dc70bd10652f981ef0e1",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T003/result.json 61c63a74685f5b59e1aaaba043729be0bb1dba7df07b6b548421425837fcf193",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json f4eef1704fe17ddfa98f30df4cbcef97ebed260df4164e72a44aaebed925e049",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json 51b395f20bd8957d18072553d02d96aec58793690f027a3b533ddcb65373605c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json 521eb49824cd872fd078b34e674e104a9378994019fa4903748c32ed2e8033f0",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json 77a3dd74daee5bfeaee2ffe01ef0834b1edc6af9281c374b9c8cf3a1ec0f83c7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json 08f6c86c90752f2a02866c1b1904b7c6d5eceec24f9bf73a2dad297e68d6de1f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json 21f7736b2c01bc3c085d266cf0364117f3154863f0a0f9fe1224d4d2314aae4a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json c6e759d0aebc7d4ba9ca9f8cad4a337a4086920174e9dc70bd10652f981ef0e1",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0002__N96/T010/result.json 61c63a74685f5b59e1aaaba043729be0bb1dba7df07b6b548421425837fcf193",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 130bcd4a8bd7c2834ebfdd2b3e3be248ff82d8de72754a2528fd8c146b46e215",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 392dafe9b82855e3f27f9667bf7c0595b5d08b396d945dfa56497230badd5fe5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json c44ae32065cb65d046b971e72ab420c4228ae70b5aa5c25e83d053beb92e7e24",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 5d010f22e0dff7b1f198451cff0a1b6735d447e4a65932d337e634a5b96ba2e5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json b23d3c44e01a22e0be2e40b47395bb10b8ab4d7ba5eb1f7fbc9e01455979da85",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 5da15366e2746b39eca92fe50d5ad3528656826937311f86a1672de5dac5616b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 9a5ab200847a824ec9e6934dd254d560f6cbca9ead10ba8659218fb4d58ef90e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 4e2d3a6ed74261dbd70227e452a2759f90345311e84ed8d3aaf13d516042ab87",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/noT/result.json 2b75049988b0e482210c0fd411d7e13fc2fa743ec845ce9fe4062ae01677c36a",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json 130bcd4a8bd7c2834ebfdd2b3e3be248ff82d8de72754a2528fd8c146b46e215",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json 392dafe9b82855e3f27f9667bf7c0595b5d08b396d945dfa56497230badd5fe5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json c44ae32065cb65d046b971e72ab420c4228ae70b5aa5c25e83d053beb92e7e24",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json 5d010f22e0dff7b1f198451cff0a1b6735d447e4a65932d337e634a5b96ba2e5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json b23d3c44e01a22e0be2e40b47395bb10b8ab4d7ba5eb1f7fbc9e01455979da85",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json 9a5ab200847a824ec9e6934dd254d560f6cbca9ead10ba8659218fb4d58ef90e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json 9e1d17336f932b6b46e5fe384916a9b53d9809025f2664a548e3b43a1e5d899c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T003/result.json 2b75049988b0e482210c0fd411d7e13fc2fa743ec845ce9fe4062ae01677c36a",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json 130bcd4a8bd7c2834ebfdd2b3e3be248ff82d8de72754a2528fd8c146b46e215",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json 392dafe9b82855e3f27f9667bf7c0595b5d08b396d945dfa56497230badd5fe5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json c44ae32065cb65d046b971e72ab420c4228ae70b5aa5c25e83d053beb92e7e24",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json 5d010f22e0dff7b1f198451cff0a1b6735d447e4a65932d337e634a5b96ba2e5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json b23d3c44e01a22e0be2e40b47395bb10b8ab4d7ba5eb1f7fbc9e01455979da85",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json 9a5ab200847a824ec9e6934dd254d560f6cbca9ead10ba8659218fb4d58ef90e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json 9e1d17336f932b6b46e5fe384916a9b53d9809025f2664a548e3b43a1e5d899c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__paper15__b1003__reference__v0005__N96/T010/result.json 2b75049988b0e482210c0fd411d7e13fc2fa743ec845ce9fe4062ae01677c36a",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json 17a52668211fe85652359eff129ec43329debde34e0162ff4e12bc2899b4621b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json c22e152c110060d7261fa7a6d9421f0e462472d626b9aa394cff3a2dfd661367",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json 7c6841ecc93cc7a5fc5d059e6d7355afcc27179ec5c23706795ac7b00a792d90",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json 63b8d00e73068bd11371a275b5816ea81985bf8f5fad9d68802fce4829d58352",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json f689177fae4ffa2113d6e0c2f13bd269c84a3b7c66654a9b6a926e1d16a0454a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json 6c4c9d9f1e0c53027a7f6a4d53b9d7942b44fc812064383847eb750f9d011dc6",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/noT/result.json cb769e6641c2e9facce4849ab8b79276ab40492490429b6050671995e8f2653d",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json 17a52668211fe85652359eff129ec43329debde34e0162ff4e12bc2899b4621b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json c22e152c110060d7261fa7a6d9421f0e462472d626b9aa394cff3a2dfd661367",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json 7c6841ecc93cc7a5fc5d059e6d7355afcc27179ec5c23706795ac7b00a792d90",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json 63b8d00e73068bd11371a275b5816ea81985bf8f5fad9d68802fce4829d58352",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json a074ebc51cb00d3e8c396e8f5d01791357dfa0e67e2c886968a26995283d9054",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T003/result.json c87c96e97f12a401c7bd37bb9e456524a11ac2d71e35bb3a2c180c58605e0c51",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json 17a52668211fe85652359eff129ec43329debde34e0162ff4e12bc2899b4621b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json c22e152c110060d7261fa7a6d9421f0e462472d626b9aa394cff3a2dfd661367",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json 7c6841ecc93cc7a5fc5d059e6d7355afcc27179ec5c23706795ac7b00a792d90",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json 63b8d00e73068bd11371a275b5816ea81985bf8f5fad9d68802fce4829d58352",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json a074ebc51cb00d3e8c396e8f5d01791357dfa0e67e2c886968a26995283d9054",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__pengwah18__b1000__reference__v0005__N96/T010/result.json c87c96e97f12a401c7bd37bb9e456524a11ac2d71e35bb3a2c180c58605e0c51",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json da1b02c2904ffc82800740e1b32bba8e1db00d64544adbc61c08c9c95c6a7d0b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json c9fb389501532ead0e9adaee2a4facb5f385b1b5158fddbeaaaf68bc3bad20fc",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json 866f20306aae2471743262eba827f681e1000f349b03d97842b1a05d54ec5a17",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json 9061f4e2d099301ab890da7422615a42050f282348dbb5fe22ca4f9a3fc1da6d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json fbecfb3305052799ec6615bd68aed61f989f289cfb5b48ec995afa744a9f7c30",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/noT/result.json 30edd4b3ba7436c3fdec1e31e9290c8c103ae43afe3960e8b3753febd64a4836",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json da1b02c2904ffc82800740e1b32bba8e1db00d64544adbc61c08c9c95c6a7d0b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json c9fb389501532ead0e9adaee2a4facb5f385b1b5158fddbeaaaf68bc3bad20fc",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json 866f20306aae2471743262eba827f681e1000f349b03d97842b1a05d54ec5a17",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json 3c8631632154eb46122e278eb1fe7a22300d6d4250ebfd2663a3edd2de538788",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T003/result.json f5356621b69be6927e238701dd88885071ee1f88131c65e499c676ae31dabb9a",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json da1b02c2904ffc82800740e1b32bba8e1db00d64544adbc61c08c9c95c6a7d0b",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json c9fb389501532ead0e9adaee2a4facb5f385b1b5158fddbeaaaf68bc3bad20fc",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json 866f20306aae2471743262eba827f681e1000f349b03d97842b1a05d54ec5a17",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json 3c8631632154eb46122e278eb1fe7a22300d6d4250ebfd2663a3edd2de538788",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0002__N96/T010/result.json f5356621b69be6927e238701dd88885071ee1f88131c65e499c676ae31dabb9a",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json e8cfb7bd6822c9696eea99d6ad489d86da377ee4d839b09be3bc7109b2e68cda",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json 183f67f8a6c8f5e13142984d82e121a2a294d0638d1f0bb221a538acaad8e6c8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json 53f15d1297ae5580bf1424b2ff26fc5d076ea5390a9590fd2160281cd1044e14",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json 556a9c89dc0cd4b30c660bb91f464f6c6a3db5575aff624c162a5fefb122951a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json 04a9332bc55536838863532b90c1a101b208e0ba9042917b7736695d75afb007",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/noT/result.json fb79786cfd1b6c632c8025225b125fc929e90e6fac574ab5bd051f6e29d67c3c",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json e8cfb7bd6822c9696eea99d6ad489d86da377ee4d839b09be3bc7109b2e68cda",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json 183f67f8a6c8f5e13142984d82e121a2a294d0638d1f0bb221a538acaad8e6c8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json f9896b1584a13279369d412d765944f3384a4d455437bb066881804bff8c5577",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T003/result.json 1e566de4e6065ea8e9da3574a0627e9583d15eabd1c72d53a227a37a8497c792",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json e8cfb7bd6822c9696eea99d6ad489d86da377ee4d839b09be3bc7109b2e68cda",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json 183f67f8a6c8f5e13142984d82e121a2a294d0638d1f0bb221a538acaad8e6c8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json f9896b1584a13279369d412d765944f3384a4d455437bb066881804bff8c5577",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0005__N96/T010/result.json 1e566de4e6065ea8e9da3574a0627e9583d15eabd1c72d53a227a37a8497c792",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json 42bd3f69826dea8d9968e5ffe1d589f7e86d8134d5b768fc6e80b40bffc485a8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json 88fee61b6fb40e0a3b7a566038f7c1ad5216e85c22d9ffb41041c1b8d997e5bb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/noT/result.json 35b522ee4d394c7000a7422546c50fc9b80d9f893268af8317a2c8cf498abe81",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json 42bd3f69826dea8d9968e5ffe1d589f7e86d8134d5b768fc6e80b40bffc485a8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json 88fee61b6fb40e0a3b7a566038f7c1ad5216e85c22d9ffb41041c1b8d997e5bb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/T003/result.json 461cc729ee265cd6caabfc8fae75e35be05b878743fabd08d928d7c8489f4990",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json 42bd3f69826dea8d9968e5ffe1d589f7e86d8134d5b768fc6e80b40bffc485a8",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json 88fee61b6fb40e0a3b7a566038f7c1ad5216e85c22d9ffb41041c1b8d997e5bb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1000__reference__v0010__N96/T010/result.json 461cc729ee265cd6caabfc8fae75e35be05b878743fabd08d928d7c8489f4990",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json b602c21837f6c0922ce8b0fee9706f95d7f69d4622c16ffca3911c178fc5eb18",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json 2110bdb649e0069994865a0938e8640bf8f486d4c5f5c7ecfdd09c7c2868a434",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json c4f8a6e0bb325f3672b3a70b25b3e6f544ff47fe22cf08b245b4d66d73897999",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json 2744ed57b453df2cd3f6e8fbe12fdde0923f366faaf977a3be66fc4f5a961b4c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json dc9c941d09c26068273234daab542e1139913256f8451be82ef8e151fa6346d6",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/noT/result.json 18b215fc6b09f400a7388cac9fb5a4fb16103fd77a338b41c085fecc2af256e2",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json b602c21837f6c0922ce8b0fee9706f95d7f69d4622c16ffca3911c178fc5eb18",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json 2110bdb649e0069994865a0938e8640bf8f486d4c5f5c7ecfdd09c7c2868a434",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json c4f8a6e0bb325f3672b3a70b25b3e6f544ff47fe22cf08b245b4d66d73897999",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json d29eb64452c9bd3cfc2dfb02857ae46422a78aafb86ee378178696cec1c4b95d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T003/result.json bcb00a623b9383899fc366e1a33d34a4d500cb3eb14ffac82132758bbb27dfb4",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json b602c21837f6c0922ce8b0fee9706f95d7f69d4622c16ffca3911c178fc5eb18",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json 2110bdb649e0069994865a0938e8640bf8f486d4c5f5c7ecfdd09c7c2868a434",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json c4f8a6e0bb325f3672b3a70b25b3e6f544ff47fe22cf08b245b4d66d73897999",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json d29eb64452c9bd3cfc2dfb02857ae46422a78aafb86ee378178696cec1c4b95d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0002__N96/T010/result.json bcb00a623b9383899fc366e1a33d34a4d500cb3eb14ffac82132758bbb27dfb4",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json b969a1e6443a0ae62028afabcea31f6fac6b38a90451ad84ca7b8f996b416b43",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json d38b4634b5252f6c6df07b3ef3716e5d4b1e1b5cae48355427c6c3ce25f64cb6",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json e512db110997b35b2a1ca27fc4e8d2867a2de23de8e9a390e032207af4db2649",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json 0d3f4494eb4d9726236f9585f1333e1bfb36934227f24878a3002b60787d66ea",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json d0fad1d2abf7c536492a0d11616d7706241403488c973b50d6470f77da0ee039",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/noT/result.json 3bb8d80d36ba665de026731712b8c6fd98d9cd38c611f4e9521936f29d09ed20",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json b969a1e6443a0ae62028afabcea31f6fac6b38a90451ad84ca7b8f996b416b43",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json d38b4634b5252f6c6df07b3ef3716e5d4b1e1b5cae48355427c6c3ce25f64cb6",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json e512db110997b35b2a1ca27fc4e8d2867a2de23de8e9a390e032207af4db2649",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json 907f9b55f8d494887893f893cf5d2aabca94d80ead0094a4c72d790055cb5776",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T003/result.json 0794577c4c8f20f5a5f3c103a0fd8bb68f356ef2ae49fe5551ef6b0b4f2a14a7",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json b969a1e6443a0ae62028afabcea31f6fac6b38a90451ad84ca7b8f996b416b43",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json d38b4634b5252f6c6df07b3ef3716e5d4b1e1b5cae48355427c6c3ce25f64cb6",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json e512db110997b35b2a1ca27fc4e8d2867a2de23de8e9a390e032207af4db2649",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json 907f9b55f8d494887893f893cf5d2aabca94d80ead0094a4c72d790055cb5776",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0005__N96/T010/result.json 0794577c4c8f20f5a5f3c103a0fd8bb68f356ef2ae49fe5551ef6b0b4f2a14a7",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json 767c83f6541018c938f7f79d1913a7966dc29a2e1fab3904a103f4301215085c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json c85c40e38b8b38927a0b3f58b47b6a460ee5acd3065beb854b96870372403448",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json f17ff59c30d32044bc3cb332d99564119244e80bb7c7c1f8ec3ffa3b0c657c01",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/noT/result.json 3e3c48b6c872fdd1251ff693a161e0beaa07e18b05fce5aa9338d56024b77abc",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json 767c83f6541018c938f7f79d1913a7966dc29a2e1fab3904a103f4301215085c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json c85c40e38b8b38927a0b3f58b47b6a460ee5acd3065beb854b96870372403448",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json 3ac955a026f1ce3d3817cdfc8619c3c1341c7f5f9a15e95b95d02f225261d014",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T003/result.json 854b0bd76699d6fbbe83aafae74dc63246dd46997b08a157260632dc1188dfc0",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json 767c83f6541018c938f7f79d1913a7966dc29a2e1fab3904a103f4301215085c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json c85c40e38b8b38927a0b3f58b47b6a460ee5acd3065beb854b96870372403448",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json 3ac955a026f1ce3d3817cdfc8619c3c1341c7f5f9a15e95b95d02f225261d014",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1001__reference__v0010__N96/T010/result.json 854b0bd76699d6fbbe83aafae74dc63246dd46997b08a157260632dc1188dfc0",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json 8327e784dca7edd2e6cc27ac6f0f97359aaae02d6c467a531d565e4904cc54b7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json 7b05c18404db96658d4036812ba28a999873e44741731bbe04bb1ecbc441c6a7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json b123e3d75787813fa7dc70834a9c4d36f56154577cbadab58ff42d52640ae6c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json 714b35ea06f2499b9cc096e24a84938b9dc069262ddb62c260decace2f47a9d9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json 8dd1c36569fcd9b3ad784f0beeadce1454665820ddb9adbf06622cd155f4832e",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/noT/result.json 4dfe85aafccd1e28eab34d5e9d2867222ffa121b27e977b23c87fc8feeeed7f3",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json 8327e784dca7edd2e6cc27ac6f0f97359aaae02d6c467a531d565e4904cc54b7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json 7b05c18404db96658d4036812ba28a999873e44741731bbe04bb1ecbc441c6a7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json b123e3d75787813fa7dc70834a9c4d36f56154577cbadab58ff42d52640ae6c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json 714b35ea06f2499b9cc096e24a84938b9dc069262ddb62c260decace2f47a9d9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json e7edd03b9d2c97b0a931143a4df73618f017cb20b117ee5d3c88c9d66d52e3b9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T003/result.json 5cde213782c066cc7a110ebd9b1a6cf963c3882d12fb79b72bbd183633942b3e",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json 8327e784dca7edd2e6cc27ac6f0f97359aaae02d6c467a531d565e4904cc54b7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json 7b05c18404db96658d4036812ba28a999873e44741731bbe04bb1ecbc441c6a7",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json b123e3d75787813fa7dc70834a9c4d36f56154577cbadab58ff42d52640ae6c4",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json 714b35ea06f2499b9cc096e24a84938b9dc069262ddb62c260decace2f47a9d9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json e7edd03b9d2c97b0a931143a4df73618f017cb20b117ee5d3c88c9d66d52e3b9",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0002__N96/T010/result.json 5cde213782c066cc7a110ebd9b1a6cf963c3882d12fb79b72bbd183633942b3e",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json c792ec2f42f5e2829cae2b5148c266ab8d506d0b9d31cd2bf85b6185e1e48e12",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json 5d6ec44902f478ec7936052767730d9263dc47455652fc82585bf4c01919aa3d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json d5a02ebc12a70a4ebce8c911d97073ca49866d8992015829aa5bf257463d02ae",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json ab62653d07899d4b15804bb864886856977bcaeb4cfdca3fe4d09685fe855d4d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json e47b386a6985b2e4a203d219b1951e7072c9e08812789c423a5b859158299dd5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/noT/result.json 3addc51df70639a39ef85d55f15bc7d155c42d17571558c3283fe374a7c04db3",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json c792ec2f42f5e2829cae2b5148c266ab8d506d0b9d31cd2bf85b6185e1e48e12",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json 5d6ec44902f478ec7936052767730d9263dc47455652fc82585bf4c01919aa3d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json d5a02ebc12a70a4ebce8c911d97073ca49866d8992015829aa5bf257463d02ae",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json ab62653d07899d4b15804bb864886856977bcaeb4cfdca3fe4d09685fe855d4d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json e47b386a6985b2e4a203d219b1951e7072c9e08812789c423a5b859158299dd5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T003/result.json f0603dc0262440ff2ff787a25dc084e5dd15d35ae698f63471ee92bf84e8b812",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json c792ec2f42f5e2829cae2b5148c266ab8d506d0b9d31cd2bf85b6185e1e48e12",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json 5d6ec44902f478ec7936052767730d9263dc47455652fc82585bf4c01919aa3d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json d5a02ebc12a70a4ebce8c911d97073ca49866d8992015829aa5bf257463d02ae",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json ab62653d07899d4b15804bb864886856977bcaeb4cfdca3fe4d09685fe855d4d",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json e47b386a6985b2e4a203d219b1951e7072c9e08812789c423a5b859158299dd5",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0005__N96/T010/result.json f0603dc0262440ff2ff787a25dc084e5dd15d35ae698f63471ee92bf84e8b812",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json 04a5aca310389c182808ce2c19239808d39aaed24b74be64c1b1804c1b5aa66f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json e0ddb33e9cf9a6da7c06d27a8427667a3883f588c6194d63290fc43a0f030b61",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json e05cb600e894f0dfe7b4aa00abaf45b5ed829d34517b6d00b82355f80062f46a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json 7abe835fef3c49937fec04718f90653ee5f24f4b15e16994ee6610947f77069a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/noT/result.json 36370d995b45531b66b7bd834fe55109ec871adf5a46115e785a37955eb6ddb6",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json 04a5aca310389c182808ce2c19239808d39aaed24b74be64c1b1804c1b5aa66f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json e0ddb33e9cf9a6da7c06d27a8427667a3883f588c6194d63290fc43a0f030b61",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json e05cb600e894f0dfe7b4aa00abaf45b5ed829d34517b6d00b82355f80062f46a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json 7abe835fef3c49937fec04718f90653ee5f24f4b15e16994ee6610947f77069a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T003/result.json 36370d995b45531b66b7bd834fe55109ec871adf5a46115e785a37955eb6ddb6",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json 04a5aca310389c182808ce2c19239808d39aaed24b74be64c1b1804c1b5aa66f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json e0ddb33e9cf9a6da7c06d27a8427667a3883f588c6194d63290fc43a0f030b61",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json e05cb600e894f0dfe7b4aa00abaf45b5ed829d34517b6d00b82355f80062f46a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json 7abe835fef3c49937fec04718f90653ee5f24f4b15e16994ee6610947f77069a",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json 5b1f3c6271eecc317c36bd25334da4b644e8b8a08cfe758054025c5c0310ef5f",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1002__reference__v0010__N96/T010/result.json 705bae94b89572b8fba593fdb7c8be8383beb04d818ee2f49d01baabe37df755",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json 5b4d51fe9d5465c53ed716e79c0ab30e89d02ce713f71bec8b8b7739fa4f6e3c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json 67324bb3f7e586f3e86b9340f4f898417e280c6214e612f24f637c7393930328",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json 98491d58393c06315656ebf115ef4912bb6c3a6794f8726895ba7109b398efbf",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/noT/result.json efbba8fc1ed2ba4fd955e2b984fb8af31ea05add6a3bc99f30e37fa1b64b5eb1",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json 5b4d51fe9d5465c53ed716e79c0ab30e89d02ce713f71bec8b8b7739fa4f6e3c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json 67324bb3f7e586f3e86b9340f4f898417e280c6214e612f24f637c7393930328",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json 08ee4100968dce0ec616317f7ce2ae804152d40b17f37454de485e1d6e502ecb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T003/result.json fc4436fefaacbd8cd0cb9999dbc075bd0629f434a4348730ce3f613cd6bd3bbb",
+      "passed": true
+    },
+    {
+      "name": "completed result immutable jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result protocol and data-only flags jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result timing sum jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed result common and candidate files jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "completed raw candidate full payload hash jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json 5b4d51fe9d5465c53ed716e79c0ab30e89d02ce713f71bec8b8b7739fa4f6e3c",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json 67324bb3f7e586f3e86b9340f4f898417e280c6214e612f24f637c7393930328",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json 08ee4100968dce0ec616317f7ce2ae804152d40b17f37454de485e1d6e502ecb",
+      "passed": true
+    },
+    {
+      "name": "candidate scores replay jobs/day96__soumalas11__b1003__reference__v0002__N96/T010/result.json fc4436fefaacbd8cd0cb9999dbc075bd0629f434a4348730ce3f613cd6bd3bbb",
+      "passed": true
+    },
+    {
+      "name": "69 completed evaluations balanced across three methods",
+      "passed": true,
+      "counts": {
+        "noT": 23,
+        "T003": 23,
+        "T010": 23
+      }
+    },
+    {
+      "name": "completed recorded solvers all reached requested gap",
+      "passed": true,
+      "statuses": {
+        "2": 358
+      }
+    },
+    {
+      "name": "completed history loss replay",
+      "passed": true,
+      "max_train_error": 0.0,
+      "max_validation_error": 4.336808689942018e-19
+    },
+    {
+      "name": "total proxy debit matches immutable charges",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Host death confirmation gives an upper time, not exact child termination at manager failure.",
+    "Proxy charges include process startup only inside the proxy interval; quiet orphan work after manager failure may not be included.",
+    "29 interrupted-prefix solver records are preserved; additional forward calls inferred from two progress records lack saved solver outcomes.",
+    "No interrupted final-exit incumbent or bound can be recovered from empty worker logs.",
+    "This receipt verifies preserved artifacts and cost uncertainty; it does not certify the numerical outcomes of the 75 pending logical evaluations."
+  ],
+  "solver_calls": 0,
+  "fit_calls": 0,
+  "processes_stopped": 0,
+  "workers_relaunched": 0
+}

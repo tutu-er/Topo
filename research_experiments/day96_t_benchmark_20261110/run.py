@@ -34,9 +34,38 @@ def sha(path):
 
 def write(path, value):
     path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n")
-    temporary.replace(path)
+    temporary = path.with_name(path.name + f".{os.getpid()}.tmp")
+    serialized = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
+    for attempt in range(50):
+        try:
+            temporary.write_text(serialized, encoding="utf-8", newline="\n")
+            temporary.replace(path)
+            return
+        except PermissionError:
+            if attempt == 49:
+                raise
+            sleep(.05)
+
+
+def interruption_charge(output, job, method):
+    """Read explicit infrastructure-recovery charges; unstarted workers cost zero."""
+    path = output / "recovery/charges.json"
+    if not path.exists():
+        return 0., None
+    data = read(path)
+    charges = data.get("charges", data)
+    record = None
+    if isinstance(charges, list):
+        record = next((r for r in charges if r.get("job") == job and r.get("method") == method), None)
+    elif isinstance(charges, dict):
+        record = charges.get(f"{job}/{method}", charges.get(f"{job}::{method}"))
+        if record is None and isinstance(charges.get(job), dict):
+            record = charges[job].get(method)
+    seconds = float(record.get("interrupted_attempt_seconds", record.get("seconds", 0.))
+                    if isinstance(record, dict) else (record or 0.))
+    if not 0 <= seconds < LIMITS["total"]:
+        raise ValueError(f"Invalid interrupted-attempt budget charge for {job}/{method}: {seconds}")
+    return seconds, sha(path)
 
 
 def freeze(output, *, workers=8, bundles=4):
@@ -236,13 +265,17 @@ def dispatch(output, *, phase="pilot", workers=None):
                            common=str(common_path), common_sha256=sha(common_path), input_hashes=hashes, result=str(target),
                            protocol_sha256=sha(output/"protocol.json"), source_hashes=protocol["source_hashes"],
                            root_label=meta["root_label"], base_kw=meta["base_kw"])
+            charge, charge_hash = interruption_charge(output, job, flags["id"])
+            payload.update(original_total_cap=protocol["limits"]["total"], interrupted_attempt_seconds=charge,
+                           recovery_charges_sha256=charge_hash)
             queue.append(payload)
     active, started = {}, perf_counter()
     while queue or active:
         while queue and len(active) < (workers or protocol["workers"]):
             payload = queue.pop(0); target = Path(payload["result"]); file = target.with_name("payload.json")
             write(file, payload); log = target.with_name("worker.log").open("w", encoding="utf-8")
-            proc = subprocess.Popen([sys.executable,"-B","-m","research_experiments.day96_t_benchmark_20261110.run","worker",str(file)],
+            wrapper = Path(__file__).with_name("recovery_worker.py").resolve()
+            proc = subprocess.Popen([sys.executable,"-B",str(wrapper),"--source",str(source),str(file)],
                                     cwd=source,env=env,stdout=log,stderr=subprocess.STDOUT,creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
             active[(payload["job"],payload["method"])] = (proc, log, target)
         for key, (proc, log, target) in list(active.items()):

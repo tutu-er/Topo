@@ -135,6 +135,40 @@ def solver_records(result):
         yield dict(stage="final_exit", **event)
 
 
+def timing_audit(result, protocol):
+    """Separate a returned attempt's cost from infrastructure-lost wall time.
+
+    A recovery retry uses only the original budget minus the recorded lost
+    attempt.  Historical interruption charges are operational costs; they do
+    not change the successful attempt's saved algorithm timing or predictions.
+    """
+    timing = result.get("timing", result)
+    fresh, shared, total = (float(timing[key]) for key in ("fresh_seconds", "common_seconds", "total_seconds"))
+    assert all(np.isfinite(v) and v >= 0 for v in (fresh, shared, total))
+    assert abs(fresh + shared - total) <= 1e-7
+    original_cap = float(result.get("original_total_cap", protocol.get("limits", {}).get("total", 14400.)))
+    remaining_cap = float(result.get("limits", protocol.get("limits", {})).get("total", original_cap))
+    charge = float(result.get("interrupted_attempt_seconds", 0.))
+    logical = float(result.get("logical_total_seconds", total + charge))
+    assert all(np.isfinite(v) for v in (original_cap, remaining_cap, charge, logical))
+    assert original_cap > 0 and remaining_cap > 0 and charge >= 0 and logical >= 0
+    assert abs(original_cap - float(protocol.get("limits", {}).get("total", 14400.))) <= 1e-7
+    assert remaining_cap + charge <= original_cap + 1., "Retry allowance must not restore the lost budget"
+    assert abs(logical - (total + charge)) <= 1e-7, "Logical total must include the recorded lost-attempt wall time"
+    count = result.get("interrupted_attempt_count", result.get("interrupted_attempts", int(charge > 0)))
+    if isinstance(count, list):
+        count = len(count)
+    assert int(count) == count and int(count) >= 0 and (charge <= 0 or int(count) > 0)
+    successful_over = bool(result.get("total_cap_exceeded", False)) or total > remaining_cap + 1.
+    logical_over = logical > original_cap + 1.
+    return dict(fresh_seconds=fresh, common_seconds=shared, total_seconds=total,
+                operational_total_seconds=logical, logical_total_seconds=logical,
+                interrupted_attempt_seconds=charge, interrupted_attempts=int(count),
+                successful_attempt_cap_seconds=remaining_cap, original_total_cap_seconds=original_cap,
+                successful_attempt_cap_exceeded=successful_over,
+                logical_cap_exceeded=logical_over, cap_exceeded=logical_over)
+
+
 def coverage(raw_points, output_points, truth, n, exit_pool):
     raw_sets = [topology(p, n) for p in raw_points]
     output_sets = [topology(p, n) for p in output_points]
@@ -271,11 +305,7 @@ def analyze_job(args):
             zeros = [v for v in trajectory.get("zero_events", []) if v.get("accepted")]
             for event in zeros:
                 assert event["after"] <= event["before"] + event.get("loss_tolerance", 1e-10) + 1e-12
-            timing = result.get("timing", result)
-            fresh, shared, total = (float(timing[k]) for k in ("fresh_seconds", "common_seconds", "total_seconds"))
-            assert min(fresh, shared, total) >= 0 and abs(fresh + shared - total) < 1e-7
-            cap = float(result.get("limits", protocol.get("limits", {})).get("total", 14400.))
-            cap_exceeded = bool(result.get("total_cap_exceeded", False)) or total > cap + 1.
+            timing = timing_audit(result, protocol)
             covered = coverage(raw_path, [v["point"] for v in output_rows], truth["indexed_clades"], n,
                                result.get("exit_event", {}).get("pool", []))
             row.update(status="verified", available=True, **measured, **covered,
@@ -283,10 +313,10 @@ def analyze_job(args):
                        path_length=len(raw_path), tail_calls=len(tails), tail_accepted=sum(bool(v.get("accepted")) for v in tails),
                        exit_accepted=bool(result.get("exit_record", {}).get("accepted")),
                        zero_release_events=len(zeros), zero_released_sets=sum(len(v.get("removed", [])) for v in zeros),
-                       stop_reason=trajectory.get("stop_reason"), fresh_seconds=fresh, common_seconds=shared,
-                       total_seconds=total, cap_exceeded=cap_exceeded, MIPs=len(calls),
+                       stop_reason=trajectory.get("stop_reason"), **timing, MIPs=len(calls),
                        gap_met=sum(v.get("status") == 2 for v in calls), MIP_timeouts=sum(v.get("status") == 9 for v in calls),
                        solver_gaps_all_met=all(v.get("status") == 2 for v in calls),
+                       model_solver_failure_events=sum(v.get("status") in (3, 4, 5, 12) for v in calls),
                        true_family_training_MAE=profiles[true_family]["objective"],
                        selected_minus_true_training_MAE=measured["train_mae"] - profiles[true_family]["objective"])
             # Independently replay the export frozen by the training-only worker.
@@ -337,10 +367,16 @@ def aggregate(frame, keys):
                     exact=exact, exact_fraction_planned=exact / len(group),
                     recovery_rate_completed=exact / len(ok) if len(ok) else np.nan,
                     total_seconds=float(ok.total_seconds.sum()) if len(ok) else np.nan,
+                    operational_total_seconds=float(ok.operational_total_seconds.sum()) if len(ok) else np.nan,
+                    interrupted_attempt_seconds=float(ok.interrupted_attempt_seconds.sum()) if len(ok) else 0.,
+                    interrupted_attempts=int(ok.interrupted_attempts.sum()) if len(ok) else 0,
+                    interruption_affected_evaluations=int((ok.interrupted_attempts > 0).sum()) if len(ok) else 0,
                     median_seconds=float(ok.total_seconds.median()) if len(ok) else np.nan,
                     complete=len(ok) == len(group), MIPs=int(ok.MIPs.sum()) if len(ok) else 0,
                     MIP_timeouts=int(ok.MIP_timeouts.sum()) if len(ok) else 0,
                     cap_exceeded=int(ok.cap_exceeded.sum()) if len(ok) else 0,
+                    successful_attempt_cap_exceeded=int(ok.successful_attempt_cap_exceeded.sum()) if len(ok) else 0,
+                    model_solver_failure_events=int(ok.model_solver_failure_events.sum()) if len(ok) else 0,
                     raw_pool_truth=int(ok.raw_pool_has_true_tree.sum()) if len(ok) else 0,
                     output_pool_truth=int(ok.output_pool_has_true_tree.sum()) if len(ok) else 0,
                     exit_connection_pool_truth_covered=int(ok.exit_pool_has_all_true_connections.sum()) if len(ok) else 0))
@@ -454,7 +490,9 @@ def analyze(output, *, workers=2, export=True):
     records = [results[job] for job in jobs]
     frame = pd.DataFrame([row for r in records for row in r["rows"]])
     assert len(frame) == planned
-    for name in ("clade_f1", "exact", "total_seconds", "MIPs", "MIP_timeouts", "cap_exceeded",
+    for name in ("clade_f1", "exact", "total_seconds", "operational_total_seconds", "interrupted_attempt_seconds",
+                 "interrupted_attempts", "successful_attempt_cap_exceeded", "model_solver_failure_events",
+                 "MIPs", "MIP_timeouts", "cap_exceeded",
                  "raw_pool_has_true_tree", "output_pool_has_true_tree", "exit_pool_has_all_true_connections"):
         if name not in frame:
             frame[name] = np.nan
@@ -477,10 +515,24 @@ def analyze(output, *, workers=2, export=True):
     verified = int(frame.status.eq("verified").sum())
     complete = verified == planned
     cap_exceeded = int(frame.loc[frame.status.eq("verified"), "cap_exceeded"].sum())
-    receipt = dict(passed=complete and not errors and not cap_exceeded, complete=complete, planned=planned,
+    successful_cap_exceeded = int(frame.loc[frame.status.eq("verified"), "successful_attempt_cap_exceeded"].sum())
+    verified_frame = frame[frame.status.eq("verified")]
+    receipt = dict(passed=complete and not errors and not cap_exceeded and not successful_cap_exceeded,
+                   complete=complete, planned=planned,
                    returned=int(frame.status.isin(("verified", "invalid")).sum()), verified=verified,
                    failed=int(frame.status.eq("failed").sum()), invalid=int(frame.status.eq("invalid").sum()),
                    pending=int(frame.status.eq("pending").sum()), budget_exceeded=cap_exceeded,
+                   successful_attempt_budget_exceeded=successful_cap_exceeded,
+                   infrastructure_interrupted_attempts=int(verified_frame.interrupted_attempts.sum()),
+                   infrastructure_affected_evaluations=int((verified_frame.interrupted_attempts > 0).sum()),
+                   infrastructure_lost_wall_seconds=float(verified_frame.interrupted_attempt_seconds.sum()),
+                   interruption_charge_scope="recovery receipt's estimated lost-attempt wall time; operational charge, not solver CPU time",
+                   successful_algorithm_seconds=float(verified_frame.total_seconds.sum()),
+                   operational_total_seconds=float(verified_frame.operational_total_seconds.sum()),
+                   model_solver_failure_events=int(verified_frame.model_solver_failure_events.sum()),
+                   infrastructure_and_model_failures_separated=True,
+                   solver_record_scope="final returned native attempt only; interrupted-prefix solver calls belong to the separate recovery audit",
+                   paired_time_scope="successful-attempt algorithm time, excluding lost infrastructure attempts; CPU contention and recovery prevent an ideal isolated runtime comparison",
                    independent_LPs=sum(r["independent_LPs"] for r in records), checks=sum(r["checks"] for r in records),
                    independent_LP_count_scope="unique per-input family profiles represented in audit records; cached records reused; not cumulative solver calls across reruns",
                    MIPs=len(solver), gap_met=sum(v["status"] == 2 for v in solver),
@@ -498,7 +550,8 @@ def analyze(output, *, workers=2, export=True):
     text += f"已核验 {verified}/{planned}，失败 {receipt['failed']}，无效 {receipt['invalid']}，待完成 {receipt['pending']}。\n\n"
     text += "48输入=四网络×四个新种子×三档噪声；每输入训练为一整天96槽，验证为独立三天288槽，测试为独立一天96槽。三方法同预算、同少量RNJ初值、原始WZZT、清零和最终E；仅T开关/末端惩罚系数不同。最终为自身路径的.24收缩重拟合与严格验证，不使用完整RNJ整树备用。\n\n"
     text += markdown(tables["summary"]) + "\n\n"
-    text += "未完成时，均值仅描述已核验子集；exact_fraction_planned保留计划分母，不能当成未完成算法最终恢复率。时间为逐输入算法墙钟之和，含每方法一次公共前端记账，不是并行等待时间。\n\n"
+    text += "未完成时，均值仅描述已核验子集；exact_fraction_planned保留计划分母，不能当成未完成算法最终恢复率。total_seconds为最终返回尝试的算法墙钟之和，含公共前端记账；operational_total_seconds另计恢复回执估算的基础设施中断墙钟，不是求解器CPU时间。重试的成功尝试按剩余预算检查，成功时间加中断记账按原始4小时总额另检。\n\n"
+    text += "成对时间差只比较最终成功尝试，未加入中断损失；并行CPU争用与基础设施恢复使其不是理想独立运行速度对照。MILP数量和状态来自最终返回尝试，先前中断前缀另存恢复审计，不混入模型求解失败。\n\n"
     text += "## 成对差异\n\n" + markdown(tables["pairwise_summary"]) + "\n\n"
     text += "## 同种子噪声成组重采样\n\n" + markdown(tables["block_bootstrap"]) + "\n\n"
     text += "生成器在四个网络之间复用同一物理曲线种子。因此，16个case/seed历史只有4个独立种子组；每次重抽整个共享种子组，同时携带四个网络和三档噪声。区间只描述四个固定网络的种子变化，重采样单位很少，不是拓扑真实性概率。\n\n"
