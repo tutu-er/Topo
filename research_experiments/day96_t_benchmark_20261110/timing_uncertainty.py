@@ -96,6 +96,11 @@ def check(output, recovery_audit):
     native = read(native_audit_file)
     if not (native.get("passed") is True and native.get("complete") is True and native.get("verified") == len(pairs)):
         raise RuntimeError("The full native numerical audit must pass before conservative timing certification")
+    if native.get("protocol_sha256") != sha(protocol_file) or native.get("source_hashes_verified") is not True:
+        raise AssertionError("Native numerical audit does not reference the current frozen source/protocol")
+    for name, digest in protocol["source_hashes"].items():
+        if sha(output/"source"/name) != digest:
+            raise AssertionError("Frozen optimizer source changed after the native audit: " + name)
     audit = read(recovery_audit)
     if audit.get("passed") is not True or audit["protocol_sha256"] != sha(protocol_file):
         raise AssertionError("Recovery audit is invalid or refers to a different frozen protocol")
@@ -120,9 +125,20 @@ def check(output, recovery_audit):
         grouped[pair].append(row)
     if sum(map(len, grouped.values())) != audit["interrupted_infrastructure_attempts"]:
         raise AssertionError("Interrupted attempt denominator differs from the audited recovery receipt")
+    if any(len(attempts) != 1 for attempts in grouped.values()):
+        raise AssertionError("This immutable v1 recovery audit declares one interrupted attempt per affected evaluation")
+    charged_pairs = {(row["job"], row["method"]) for row in charges["charges"].values()
+                     if float(row["interrupted_attempt_seconds"]) > 0}
+    if set(grouped) != charged_pairs:
+        raise AssertionError("Recovery audit omitted or added an immutable positive-charge evaluation")
     rows, result_hashes = [], {}
     catalog = read(output/"catalog.json")
+    if protocol.get("catalog_sha256") != sha(output/"catalog.json"):
+        raise AssertionError("Timing summary catalog differs from the frozen input catalog")
     for job in protocol["jobs"]:
+        audited_job = read(output/"analysis/jobs"/job/"verified.json")
+        if audited_job.get("protocol_sha256") != sha(protocol_file):
+            raise AssertionError("Per-input numerical audit has a different protocol")
         for method in methods:
             file = output/"jobs"/job/method/"result.json"
             result = read(file)
@@ -130,6 +146,8 @@ def check(output, recovery_audit):
                 raise AssertionError("Native result identity mismatch")
             if result["protocol_sha256"] != sha(protocol_file):
                 raise AssertionError("Native result protocol changed")
+            if audited_job["raw_hashes"].get(method) != sha(file):
+                raise AssertionError("A returned native result changed after numerical verification")
             bounds = bound_attempt(result, grouped.get((job, method), []), original_cap=protocol["limits"]["total"])
             rows.append(dict(job=job, method=method, case=catalog[job]["case"], bundle=catalog[job]["bundle"],
                              voltage_sigma=catalog[job]["voltage_sigma"], **bounds))
@@ -168,6 +186,7 @@ def check(output, recovery_audit):
                    immutable_v1_charges_sha256=charges_sha, host_liveness_receipt_sha256=host_sha,
                    recovery_audit_sha256=sha(recovery_audit), native_analysis_receipt_sha256=sha(native_audit_file),
                    protocol_sha256=sha(protocol_file), script_sha256=sha(__file__), native_result_sha256=result_hashes,
+                   native_result_hashes_match_numerical_audit=True, frozen_source_hashes_verified=True,
                    worker_results_modified=False, charges_modified=False, optimizer_source_modified=False,
                    new_solver_calls=0, new_fit_calls=0, workers_stopped=0, workers_relaunched=0,
                    scope="per-evaluation algorithm wall bounds with shared frontend once; not solver CPU time or manager wall time",

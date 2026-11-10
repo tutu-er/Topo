@@ -149,6 +149,9 @@ def compare(output):
     # Finish all selection decisions before opening any true network.
     for job in jobs:
         meta = catalog[job]
+        audited_job = read(output/"analysis/jobs"/job/"verified.json")
+        if audited_job.get("protocol_sha256") != sha(protocol_file):
+            raise AssertionError("Per-input numerical audit references a different protocol")
         expected_hashes = protocol["input_hashes"][job]
         if {key: sha(meta[key]) for key in ("train", "validation", "test")} != expected_hashes:
             raise AssertionError("Frozen observation files changed: " + job)
@@ -157,6 +160,8 @@ def compare(output):
             result_file, raw_file = folder / "result.json", folder / "candidates.json"
             enriched_file = output / "bridge_candidates" / job / (method + ".json")
             result, raw, enriched = read(result_file), read(raw_file), read(enriched_file)
+            if audited_job["raw_hashes"].get(method) != sha(result_file):
+                raise AssertionError("A native result changed after independent numerical verification")
             if result["input_hashes"] != {key: expected_hashes[key] for key in ("train", "validation")}:
                 raise AssertionError("Native result inputs do not match frozen observed files")
             if result["candidate_export_sha256"] != sha(raw_file):
@@ -266,6 +271,7 @@ def compare(output):
                         native_anchor_metrics_reproduced=True, anchor_missing_before=missing_before, anchor_missing_after=missing_after,
                         all_enriched_pools_include_actual_native_selected_predictor=missing_after == 0,
                         native_audit_passed=True, frozen_source_hashes_verified=True, input_hashes_verified=True,
+                        native_result_hashes_match_numerical_audit=True,
                         selection_uses_truth=False, truth_opened_only_after_all_historical_selections=True,
                         new_fit_calls=0, new_search_calls=0, new_optimizer_calls=0, new_DR_runs=0,
                         view2_changed_components="selection rule only; same saved .24/refit output library and coefficients",

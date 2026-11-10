@@ -24,10 +24,27 @@ def main():
     import numpy as np
     import scipy
     import gurobipy as gp
-    verification = read(OUTPUT / "analysis/verification.json")
+    native_receipt = OUTPUT / "analysis/verification.json"
+    protocol_file = OUTPUT / "protocol.json"
+    verification = read(native_receipt)
     assert verification["passed"] and verification["verified"] == 144
-    assert read(OUTPUT / "bridge_candidates/summary.json")["exports_verified"] == 144
-    assert read(OUTPUT / "compatibility_analysis/verification.json")["passed"]
+    assert verification["protocol_sha256"] == sha(protocol_file)
+    bridge_file = OUTPUT / "bridge_candidates/summary.json"
+    bridge = read(bridge_file)
+    assert bridge["exports_verified"] == bridge["requested_exports"] == 144 and bridge["native_results_complete"]
+    compatibility = read(OUTPUT / "compatibility_analysis/verification.json")
+    assert compatibility["passed"] and compatibility["native_evaluations"] == 144
+    assert compatibility["native_protocol_sha256"] == sha(protocol_file)
+    assert compatibility["native_analysis_receipt_sha256"] == sha(native_receipt)
+    assert compatibility["bridge_summary_sha256"] == sha(bridge_file)
+    timing = read(OUTPUT / "timing_uncertainty/verification.json")
+    assert timing["complete"] and timing["returned"] == timing["planned"] == 144
+    assert timing["protocol_sha256"] == sha(protocol_file)
+    assert timing["native_analysis_receipt_sha256"] == sha(native_receipt)
+    # Unresolved or exceeded conservative caps remain reportable evidence;
+    # they are not silently converted to a successful budget certificate.
+    figures = read(DOCS / "figure_receipt.json")
+    assert figures["verification_sha256"] == sha(native_receipt)
     assert read(DOCS / "visual_review.json")["passed"]
     for file in (OUTPUT / "analysis").iterdir():
         if file.is_file():
@@ -35,7 +52,9 @@ def main():
     for file in (OUTPUT / "compatibility_analysis").iterdir():
         if file.is_file():
             shutil.copy2(file, DOCS / ("compatibility_"+file.name))
-    bridge = read(OUTPUT / "bridge_candidates/summary.json")
+    for file in (OUTPUT / "timing_uncertainty").iterdir():
+        if file.is_file():
+            shutil.copy2(file, DOCS / ("timing_"+file.name))
     (DOCS / "bridge_export_summary.json").write_text(
         json.dumps({k:v for k,v in bridge.items() if k != "receipts"}, indent=2)+"\n", encoding="utf-8")
     environment = dict(python=sys.version, executable=sys.executable, numpy=np.__version__,
@@ -75,7 +94,10 @@ def main():
         assert not any(name.lower().endswith((".npz", ".pem", ".key")) for name in bundle.namelist())
     receipt = dict(bytes=archive.stat().st_size, sha256=sha(archive), files=len(hashes),
                    zip_crc_passed=True, all_manifest_hashes_passed=True,
-                   raw_measurement_arrays_bundled=False, verified_method_runs=144)
+                   raw_measurement_arrays_bundled=False, verified_method_runs=144,
+                   timing_evaluations=timing["returned"],
+                   all_original_budget_caps_conservatively_certified=timing["all_original_budget_caps_conservatively_certified"],
+                   unresolved_budgets=timing["budget_unresolved"], proven_exceeded_budgets=timing["budget_violation_proven"])
     (DOCS / "archive_receipt.json").write_text(json.dumps(receipt, indent=2)+"\n", encoding="utf-8")
     hashes = {file.name:sha(file) for file in DOCS.iterdir() if file.is_file() and file.name != "manifest.json"}
     (DOCS / "manifest.json").write_text(json.dumps(hashes, indent=2)+"\n", encoding="utf-8")
