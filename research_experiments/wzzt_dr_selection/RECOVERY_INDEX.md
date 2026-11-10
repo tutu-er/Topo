@@ -1,3 +1,9 @@
+## 连续反演的实际小核验，2026-11-10
+
+- 入口 [dr_continuous_independent/REPORT.md](dr_continuous_independent/REPORT.md) 和 [results.json](dr_continuous_independent/results.json)。内核为 continuous.py，频率求积修正为 gauss_frequency.py；run.py、repair.py、optimize_two.py 分别对应三个冻结阶段。
+- 私有 wzzt_dr_continuous_independent_v1/run_v1、run_v2、run_v3 全部完成，保存 request、源码快照、结果、complete。v1 46 秒积分导致跳过优化，v2 粗步门限跳过，v3 细步验证后完成原两变量搜索，全部原记录保留。无需重跑 32768 条件模拟或 2048 完整模型路径。
+- 已核验固定功率／交付条件概率、约 54 倍求积提速及局部导数。未实现完整随机响应的无抽样优化，本轮无新 AC。最新详细数学及结果位于当前 main.tex 第 16–18 节。
+
 ## 连续概率模型，数学稿，2026-11-10
 
 - [当前 LaTeX 第 12–15 节](dr_paper15_delivery_margin/pricing_model/main.tex)为最新建议模型，第 1–11 节保留已实现模型和原结果。新节尚未接入代码，内置编译通过。逐项向下取整概率存在平台反例，连续特征函数卷积是待核验的替代计算路线。现有高维履约因素的确定性积分算量仍需审查。
