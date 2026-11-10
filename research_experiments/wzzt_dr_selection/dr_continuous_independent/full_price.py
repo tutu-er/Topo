@@ -155,169 +155,247 @@ def directional_check(problem):
                 coefficient_gradient_scope="analytic CF adjoints plus existing device VJP")
 
 
-def optimize(problem, out):
-    """Find a feasible point then minimize fees over every available request."""
-    records = []
-    points = []
+def optimize(problem, out, initial=None, *, maxiter=60, seconds=300.,
+             restore_evaluations=10, restore_seconds=30.):
+    """Minimize the original fee, then restore the same chance constraint.
+
+    One trace and checkpoint cover both stages. SLSQP may start infeasibly.
+    Its objective and derivative use the same positive fixed cost scale.
+    Every returned point is selected by actual probability and original fee.
+    """
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
-    phase = "starts"
-    phase_started = started
+    records, points, statuses = [], [], []
+    stage, deadline = "starts", float("inf")
 
     def observe(values, label):
-        nonlocal phase_started
-        limit = 240 if phase == "feasibility" else 300
-        if phase != "starts" and time.perf_counter()-phase_started > limit:
-            raise TimeoutError(phase + " wall limit")
+        if time.perf_counter() > deadline:
+            raise TimeoutError(stage + " wall limit")
         q = problem.evaluate(values)
-        if not records or not np.array_equal(q["values"], points[-1]["values"]):
-            row = {k:q[k] for k in ("probability", "fee", "seconds", "moments", "analytic_tail_bound")}
-            row.update(index=len(records), label=label, phase=phase,
-                       elapsed=time.perf_counter()-started,
-                       gradient_norm=float(np.linalg.norm(q["gradient"])),
-                       nonzero_resource_hours=int(np.count_nonzero(np.abs(q["mean_u"]) > 1e-8)))
+        if not points or not np.array_equal(q["values"], points[-1]["values"]):
+            row = {key:q[key] for key in
+                   ("probability", "fee", "seconds", "moments", "analytic_tail_bound")}
+            row.update(index=len(records), stage=stage, label=label,
+                       elapsed=time.perf_counter()-started)
             records.append(row)
             points.append(q)
             bounded.write(out/"optimization_trace.json", records)
             write_pickle(out/"checkpoint_private.pkl", dict(records=records, points=points))
         return q
 
-    statuses = []
     zero = observe(problem.zero, "zero")
     old = observe(problem.old, "old_warm_start")
-    if not any(q["probability"] >= TARGET-FEASIBILITY_TOLERANCE for q in points):
-        phase = "feasibility"
-        phase_started = time.perf_counter()
+    if initial is not None:
+        initial = np.asarray(initial, float)
+        if (initial.shape != problem.old.shape or not np.isfinite(initial).all()
+                or np.any(initial < problem.lower) or np.any(initial > problem.upper)):
+            raise ValueError("Warm request must satisfy the original active-hour bounds")
+        warm = observe(initial, "explicit_warm_start")
+    else:
+        warm = old
+    cost_scale = old["fee"] if old["fee"] > 0 else 1.
+    if not np.isfinite(cost_scale):
+        raise ValueError("Fixed cost scale must be finite and positive")
+
+    def feasible():
+        return [q for q in points if q["probability"] >= TARGET]
+
+    qualified = feasible()
+    # Original fees are nonnegative, so an already feasible zero fee needs no
+    # numerical search. Otherwise the explicit warm start is honored.
+    if not any(q["fee"] == 0 for q in qualified):
+        start = min(qualified, key=lambda q:q["fee"]) if qualified else warm
+        stage = "cost"
+        began = time.perf_counter()
+        deadline = began + seconds
+        iterations = None
         try:
-            fit = minimize(lambda z:-observe(z,"feasibility")["probability"], problem.old,
-                           jac=lambda z:-observe(z,"feasibility")["gradient"],
-                           bounds=problem.bounds, method="L-BFGS-B",
-                           options=dict(maxiter=50, ftol=1e-11, gtol=1e-7, maxls=20))
-            observe(fit.x,"feasibility_return")
-            statuses.append(dict(phase=phase,status=str(fit.message),success=bool(fit.success),
-                                 iterations=int(fit.nit),seconds=time.perf_counter()-phase_started))
+            fit = minimize(
+                lambda z:observe(z, "objective")["fee"] / cost_scale,
+                start["values"],
+                jac=lambda z:observe(z, "objective")["fee_gradient"] / cost_scale,
+                constraints=[dict(
+                    type="ineq",
+                    fun=lambda z:observe(z, "constraint")["probability"]-TARGET,
+                    jac=lambda z:observe(z, "constraint")["gradient"])],
+                bounds=problem.bounds, method="SLSQP",
+                options=dict(maxiter=maxiter, ftol=1e-8))
+            iterations = int(fit.nit)
+            observe(fit.x, "solver_return")
+            status, success = str(fit.message), bool(fit.success)
         except Exception as exc:
-            statuses.append(dict(phase=phase,status=repr(exc),success=False,
-                                 seconds=time.perf_counter()-phase_started))
-    feasible = [q for q in points if q["probability"] >= TARGET-FEASIBILITY_TOLERANCE]
-    if feasible:
-        phase = "cost"
-        phase_started = time.perf_counter()
-        initial = min(feasible,key=lambda q:q["fee"])["values"]
+            status, success = repr(exc), False
+            bounded.write(out/"cost_exception.json",
+                          dict(error=status, traceback=traceback.format_exc()))
+        statuses.append(dict(stage=stage, status=status, solver_success=success,
+                             iterations=iterations, seconds=time.perf_counter()-began))
+
+    if not feasible() and restore_evaluations > 0:
+        stage = "restore"
+        began = time.perf_counter()
+        deadline = began + restore_seconds
+        current = max(points, key=lambda q:q["probability"])
+        scale, accepted, count = 1., 0, 0
+        status = "maximum_evaluations"
         try:
-            fit = minimize(lambda z:observe(z,"cost")["fee"], initial,
-                           jac=lambda z:observe(z,"cost")["fee_gradient"],
-                           constraints=[dict(type="ineq",fun=lambda z:observe(z,"constraint")["probability"]-TARGET,
-                                             jac=lambda z:observe(z,"constraint")["gradient"])],
-                           bounds=problem.bounds,method="SLSQP",
-                           options=dict(maxiter=60,ftol=1e-8))
-            observe(fit.x,"cost_return")
-            statuses.append(dict(phase=phase,status=str(fit.message),success=bool(fit.success),
-                                 iterations=int(fit.nit),seconds=time.perf_counter()-phase_started))
+            while count < restore_evaluations:
+                if current["probability"] >= TARGET:
+                    status = "target_reached"
+                    break
+                values = current["values"]
+                direction = current["gradient"].copy()
+                direction[(values <= problem.lower+1e-8) & (direction < 0)] = 0.
+                direction[(values >= problem.upper-1e-8) & (direction > 0)] = 0.
+                norm_squared = float(direction@direction)
+                if norm_squared <= 1e-24:
+                    status = "zero_projected_gradient"
+                    break
+                alpha = scale*(1.2*(TARGET-current["probability"])+1e-6)/norm_squared
+                trial = np.clip(values+alpha*direction, problem.lower, problem.upper)
+                if np.array_equal(trial, values):
+                    status = "zero_projected_step"
+                    break
+                candidate = observe(trial, "probability_gradient_trial")
+                count += 1
+                if candidate["probability"] > current["probability"]+1e-12:
+                    current, scale = candidate, 1.
+                    accepted += 1
+                else:
+                    scale *= .5
+            if current["probability"] >= TARGET:
+                status = "target_reached"
         except Exception as exc:
-            statuses.append(dict(phase=phase,status=repr(exc),success=False,
-                                 seconds=time.perf_counter()-phase_started))
-    feasible = [q for q in points if q["probability"] >= TARGET-FEASIBILITY_TOLERANCE]
-    best = min(feasible,key=lambda q:q["fee"]) if feasible else max(points,key=lambda q:q["probability"])
-    return best, dict(statuses=statuses,qualified_by_search=bool(feasible), target=TARGET,
-                      feasibility_tolerance=FEASIBILITY_TOLERANCE,global_optimal=False,
-                      seconds=time.perf_counter()-started,price_evaluations=len(records),
-                      target_scope="fixed predicted powers and nominal delivery, independent voltage innovations",
-                      no_true_topology_or_future_used=True,trace=records)
+            status = repr(exc)
+            bounded.write(out/"restore_exception.json",
+                          dict(error=status, traceback=traceback.format_exc()))
+        statuses.append(dict(stage=stage, status=status, accepted_steps=accepted,
+                             trial_evaluations=count, seconds=time.perf_counter()-began))
+
+    qualified = feasible()
+    best = (min(qualified, key=lambda q:q["fee"]) if qualified
+            else max(points, key=lambda q:q["probability"]))
+    return best, dict(statuses=statuses, qualified_by_search=bool(qualified), target=TARGET,
+        fixed_cost_scale=cost_scale, seconds=time.perf_counter()-started,
+        price_evaluations=len(records), feasible_price_evaluations=len(qualified),
+        global_optimal=False, target_scope="fixed predicted powers and nominal delivery, independent voltage innovations",
+        no_true_topology_or_future_used=True)
+
+
+def finalize_quote(problem, best, solution, out, sources):
+    """Audit one saved point at 16/32/64 orders and freeze the quote once."""
+    out = Path(out)
+    point = problem.nominal(best["values"])
+    model = IndependentResiduals(point["a_C"], point["a_F"], problem.data["sigma"].ravel())
+    checks = [gauss_probability(model, problem.data["packet"]["threshold"],
+        cutoff=512., order=order, refinements=0, tolerance=FEASIBILITY_TOLERANCE,
+        normalization=problem.normalization) for order in (16, 32, 64)]
+    probabilities = [q["probability"] for q in checks]
+    spread = max(probabilities)-min(probabilities)
+    refined = checks[-1]
+    refined["forced_orders_audit"] = dict(orders=[16, 32, 64], probabilities=probabilities,
+                                          maximum_probability_difference=spread)
+    refined["numerical_pass"] = bool(spread <= FEASIBILITY_TOLERANCE and all(
+        0 <= q["probability"] <= 1 and q["analytic_tail_bound"] <= FEASIBILITY_TOLERANCE
+        for q in checks))
+    device = problem.device
+    audit = device.audit(point["mean_u"])
+    qualified = bool(refined["numerical_pass"] and audit["passed"]
+                     and refined["probability"] >= TARGET)
+    headroom = np.where(point["mean_u"] >= 0, device.delta_upper_kw, -device.delta_lower_kw)
+    reward = np.divide(device.cost_full_activation*np.abs(point["mean_u"]), headroom,
+                       out=np.zeros_like(headroom), where=headroom > 0)
+    if abs(device.dt*np.sum(reward*np.abs(point["mean_u"]))-point["fee"]) > 1e-8:
+        raise ArithmeticError("Frozen reward differs from original contract fee")
+    plan = dict(x=point["x"], mean_u=point["mean_u"], fee=point["fee"], cost=point["fee"],
+        unit_reward=reward, reward_units="contract fee units per kWh",
+        probability=refined["probability"], qualified=qualified, nominal_audit=audit,
+        target_scope=solution["target_scope"], planning_inputs=problem.data["inputs"],
+        planning_sources=sources, source_request_sha256=bounded.sha(out/"request.json"))
+    write_pickle(out/"quote.pkl", plan)
+    bounded.write(out/"price_freeze.json", dict(plan=bounded.reference(out/"quote.pkl"),
+        request=bounded.reference(out/"request.json"), qualified=qualified,
+        target_scope=solution["target_scope"], true_future_used=False))
+    summary = dict(case=bounded.CASE, active_variable_count=int(problem.active.size),
+        raw_variable_count=device.R*24, qualified=qualified, best_fee=point["fee"],
+        refined_probability=refined["probability"], nominal_audit=audit, refined=refined,
+        search=solution, global_optimal=False, no_new_AC=True,
+        probability_scope=solution["target_scope"], plan_sha256=bounded.sha(out/"quote.pkl"))
+    bounded.write(out/"summary.json", summary)
+    bounded.write(out/"complete.json", dict(status="complete", qualified=qualified,
+        summary_sha256=bounded.sha(out/"summary.json"),
+        price_freeze=bounded.reference(out/"price_freeze.json")))
+    return summary
 
 
 def main(args):
     out = args.out.resolve()
-    out.mkdir(parents=True,exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
     if (out/"complete.json").exists():
-        print("Already complete",flush=True)
+        print("Already complete", flush=True)
         return
+    if (out/"request.json").exists():
+        raise ValueError("Existing incomplete stage is preserved; choose a new output directory")
     lock = out/"running.lock"
-    with lock.open("x",encoding="utf-8") as stream:
+    with lock.open("x", encoding="utf-8") as stream:
         stream.write(str(os.getpid()))
     try:
-        data = bounded.build_problem(args.archive.resolve(),args.public.resolve())
+        data = bounded.build_problem(args.archive.resolve(), args.public.resolve())
         problem = FullPriceProblem(data)
         sources = dict(data["sources"])
-        for file in (Path(__file__),HERE/"full_adjoint.py",HERE/"gauss_frequency.py"):
+        for file in (Path(__file__), HERE/"full_adjoint.py", HERE/"gauss_frequency.py"):
             sources[str(file.relative_to(bounded.TASK))] = bounded.sha(file)
-        request = dict(case=bounded.CASE,protocol=bounded.reference(args.protocol.resolve()),
-                       inputs=data["inputs"],sources=sources,active_variable_count=problem.active.size,
-                       raw_variable_count=problem.device.R*24,normalization=problem.normalization,
-                       target=TARGET,feasibility_tolerance=FEASIBILITY_TOLERANCE,
-                       search_options=SEARCH_OPTIONS,phase_one=dict(maxiter=50,seconds=240),
-                       cost_phase=dict(maxiter=60,seconds=300),full_resource_hour_variables=True,
-                       old_quote_is_warm_start_only=True,python=platform.python_version(),
-                       numpy=np.__version__,scipy=scipy.__version__,
-                       scope="conditional independent voltage chance constraint; no new AC here")
-        if (out/"request.json").exists():
-            raise ValueError("Incomplete existing stage must be resumed explicitly; sources are preserved")
-        bounded.write(out/"request.json",request)
-        with zipfile.ZipFile(out/"source_snapshot.zip","x",zipfile.ZIP_DEFLATED) as snapshot:
+        warm_path = getattr(args, "warm_quote", None)
+        initial = None
+        if warm_path is not None:
+            warm_path = Path(warm_path).resolve()
+            plan = bounded.unpickle(warm_path)
+            if plan.get("planning_inputs") != data["inputs"]:
+                raise ValueError("Warm quote has a different historical or issued-forecast information set")
+            requests = np.asarray(plan["x"], float)
+            if requests.shape != problem.shape or not np.isfinite(requests).all():
+                raise ValueError("Warm quote differs from the original full request domain")
+            initial = requests.ravel()[problem.active]
+            if (np.any(initial < problem.lower) or np.any(initial > problem.upper)
+                    or not np.array_equal(problem.expand(initial), requests)):
+                raise ValueError("Warm quote violates active-hour bounds or uses a zero-capacity hour")
+        check_only = bool(getattr(args, "check_only", False))
+        if check_only and initial is None:
+            raise ValueError("--check-only requires an explicit --warm-quote")
+        controls = dict(maxiter=getattr(args, "maxiter", 60), seconds=getattr(args, "seconds", 300.),
+                        restore_evaluations=10, restore_seconds=30.)
+        if controls["maxiter"] <= 0 or not np.isfinite(controls["seconds"]) or controls["seconds"] <= 0:
+            raise ValueError("Positive finite solver limits required")
+        request = dict(case=bounded.CASE, protocol=bounded.reference(args.protocol.resolve()),
+            inputs=data["inputs"], sources=sources, active_variable_count=int(problem.active.size),
+            raw_variable_count=problem.device.R*24, normalization=problem.normalization,
+            target=TARGET, search_options=SEARCH_OPTIONS, solver_controls=controls,
+            warm_quote=None if warm_path is None else bounded.reference(warm_path), check_only=check_only,
+            python=platform.python_version(), numpy=np.__version__, scipy=scipy.__version__,
+            scope="conditional independent voltage chance constraint; no new AC here")
+        bounded.write(out/"request.json", request)
+        with zipfile.ZipFile(out/"source_snapshot.zip", "x", zipfile.ZIP_DEFLATED) as snapshot:
             for filename in sources:
-                snapshot.write(bounded.TASK/filename,filename)
-        check = directional_check(problem)
-        bounded.write(out/"gradient_check.json",check)
-        if not check["passed"]:
-            raise ArithmeticError("Full-variable device/probability gradient check unresolved")
-        best, solution = optimize(problem,out)
-        point = problem.nominal(best["values"])
-        model = IndependentResiduals(point["a_C"],point["a_F"],data["sigma"].ravel())
-        refined = gauss_probability(model,data["packet"]["threshold"],cutoff=512.,order=16,
-                                    refinements=2,tolerance=1e-7,normalization=problem.normalization)
-        qualified = bool(refined["numerical_pass"] and refined["probability"] >= TARGET-FEASIBILITY_TOLERANCE)
-        direction_headroom = np.where(point["mean_u"]>=0,problem.device.delta_upper_kw,
-                                      -problem.device.delta_lower_kw)
-        unit_reward = np.divide(problem.device.cost_full_activation*np.abs(point["mean_u"]),
-                                direction_headroom,out=np.zeros_like(point["mean_u"]),
-                                where=direction_headroom>0)
-        if abs(.25*np.sum(unit_reward*np.abs(point["mean_u"]))-point["fee"])>1e-8:
-            raise ArithmeticError("Resource reward schedule does not replay contract fee")
-        plan = dict(x=point["x"],mean_u=point["mean_u"],fee=point["fee"],cost=point["fee"],
-                    probability=refined["probability"],qualified=qualified,
-                    target_scope=solution["target_scope"],nominal_audit=problem.device.audit(point["mean_u"]),
-                    unit_reward=unit_reward,reward_units="contract fee units per kWh",
-                    planning_inputs=data["inputs"],planning_sources=sources,
-                    source_request_sha256=bounded.sha(out/"request.json"))
-        write_pickle(out/"quote.pkl",plan)
-        bounded.write(out/"price_freeze.json",dict(plan=bounded.reference(out/"quote.pkl"),
-                      request=bounded.reference(out/"request.json"),qualified=qualified,
-                      target_scope=solution["target_scope"],true_future_used=False))
-        old_u=problem.device.nominal(data["frozen_x"])
-        projected_old=np.zeros_like(point["x"])
-        best_old_scales=[]
-        for start,end in ((0,12),(12,24)):
-            original=np.asarray(data["frozen_x"])[:,start:end]
-            current=point["x"][:,start:end]
-            denominator=float(np.sum(original*original))
-            scale=float(np.sum(current*original)/denominator) if denominator else 0.
-            best_old_scales.append(scale)
-            projected_old[:,start:end]=scale*original
-        relative_ray_error=float(np.linalg.norm(point["x"]-projected_old)
-                                 /max(np.linalg.norm(point["x"]),1e-12))
-        summary = dict(case=bounded.CASE,active_variable_count=int(problem.active.size),
-                       raw_variable_count=problem.device.R*24,target=TARGET,
-                       old_fee=float(problem.device.fees(problem.device.nominal(data["frozen_x"]))),
-                       best_fee=point["fee"],best_search_probability=best["probability"],
-                       refined_probability=refined["probability"],qualified=qualified,
-                       full_resource_hour_variables=True,old_quote_is_warm_start_only=True,
-                       active_nodes=len(set(problem.device.node[problem.active//24])),
-                       delivered_active_nodes=int(np.unique(problem.device.node[np.any(np.abs(point["mean_u"])>1e-8,axis=1)]).size),
-                       nonzero_resource_slots=int(np.count_nonzero(np.abs(point["mean_u"])>1e-8)),
-                       changed_resource_slots=int(np.count_nonzero(np.abs(point["mean_u"]-old_u)>1e-6)),
-                       activated_from_old_zero=int(np.count_nonzero((np.abs(old_u)<=1e-8)&(np.abs(point["mean_u"])>1e-6))),
-                       old_two_scale_fit=best_old_scales,old_two_scale_relative_error=relative_ray_error,
-                       absolute_DR_kwh=float(.25*np.abs(point["mean_u"]).sum()),
-                       statuses=solution["statuses"],global_optimal=False,
-                       seconds=solution["seconds"],price_evaluations=solution["price_evaluations"],
-                       gradient_check=check,refined=refined,nominal_audit=plan["nominal_audit"],
-                       probability_scope=solution["target_scope"],no_new_AC=True,
-                       plan_sha256=bounded.sha(out/"quote.pkl"))
-        bounded.write(out/"summary.json",summary)
-        bounded.write(out/"complete.json",dict(status="complete",qualified=qualified,
-                      summary_sha256=bounded.sha(out/"summary.json"),price_freeze=bounded.reference(out/"price_freeze.json")))
-        print(__import__("json").dumps(bounded.plain(summary),ensure_ascii=True),flush=True)
+                snapshot.write(bounded.TASK/filename, filename)
+        if check_only:
+            best = problem.evaluate(initial)
+            delivery_error = float(np.max(np.abs(best["mean_u"]-np.asarray(plan["mean_u"]))))
+            fee_error = abs(best["fee"]-float(plan["fee"]))
+            if delivery_error > 1e-10 or fee_error > 1e-8:
+                raise ArithmeticError("Frozen quote does not replay its original device and fee")
+            solution = dict(mode="check_only", optimization_performed=False,
+                target_scope=plan["target_scope"], global_optimal=False,
+                input_delivery_replay_error=delivery_error, input_fee_replay_error=fee_error)
+        else:
+            check = directional_check(problem)
+            bounded.write(out/"gradient_check.json", check)
+            if not check["passed"]:
+                raise ArithmeticError("Full-variable device/probability gradient check unresolved")
+            best, solution = optimize(problem, out, initial, **controls)
+        summary = finalize_quote(problem, best, solution, out, sources)
+        print(__import__("json").dumps(bounded.plain(summary), ensure_ascii=True), flush=True)
     except Exception as exc:
-        bounded.write(out/"failure.json",dict(error=repr(exc),traceback=traceback.format_exc()))
+        bounded.write(out/"failure.json", dict(error=repr(exc), traceback=traceback.format_exc()))
         raise
     finally:
         lock.unlink()
@@ -325,6 +403,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("archive","public","protocol","out"):
-        parser.add_argument("--"+name,type=Path,required=True)
+    for name in ("archive", "public", "protocol", "out"):
+        parser.add_argument("--"+name, type=Path, required=True)
+    parser.add_argument("--warm-quote", type=Path,
+                        help="Optional frozen quote with the same historical and forecast inputs")
+    parser.add_argument("--maxiter", type=int, default=60)
+    parser.add_argument("--seconds", type=float, default=300.)
+    parser.add_argument("--check-only", action="store_true",
+                        help="Replay --warm-quote at 16/32/64 orders; no price optimization or AC")
     main(parser.parse_args())

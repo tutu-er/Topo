@@ -1,3 +1,11 @@
+## 求解入口精简与冻结调度交付，2026-11-10
+
+当前主流程为[full_price.py](dr_continuous_independent/full_price.py)建模/统一SLSQP费用优化/必要的原概率恢复/冻结，以及原[full_evaluate.py](dr_continuous_independent/full_evaluate.py)独立抽样/AC；使用说明见[README](dr_continuous_independent/README.md)。三个重复续跑脚本从活动树移除，原Git78eb5b17及私有快照保留。共用概率内核与设备库未改。新路径直接允许不可行起点，以固定费用尺度求解；不再经历旧四阶段重复流程。
+
+零请求、旧90报价、最终43.401926报价三点，重构前后交付、费用、aC/aF、概率及全部梯度逐值相同；新CLI只读报价16/32/64审核通过，13项测试通过，见[refactor_check.json](dr_continuous_independent/refactor_check.json)。本轮0新优化、0新抽样、0新AC，既有32/32恢复和556秒仍归属原批，不称精简后新性能。
+
+[SCHEDULE.md](dr_continuous_independent/SCHEDULE.md)、43行聚合CSV及schedule.png给出4类资源/15节点/24小时调度，35项算术重算通过。完整5760行资源槽合同和1440行小时请求在私有wzzt_dr_full_price_v1/schedule_delivery。名义正46.171985/负46.762796kWh、费43.401926，峰绝对功率和12.051497kW于23:30；实际AC均值90.560224kWh另列。当前main.tex精简为六组公式、4页，保留原模型与概率对象，内置及本地编译通过、4页目视检查；详细证明由Git78eb5b17与89项核验恢复。
+
 ## paper15 全资源小时报价优化及AC完成，2026-11-10
 
 [完整报告](dr_continuous_independent/FULL_PRICE_REPORT.md)、[预锁方案](dr_continuous_independent/FULL_PRICE_PLAN.md)、[公开聚合](dr_continuous_independent/full_price_results.json)、[逐公式89项记录](dr_continuous_independent/formula_verification.json)。原15节点×4资源×24小时开放1290个有效变量，旧价仅起点；原设备、21.59637kW库存、288/288完整历史、冻结C/F及R/X、w2/common3%/.16不变。新价条件过线90.00043%，费用43.40193，相对旧90的52.16949低16.8059%。全15节点交付，1124小时请求改变，非旧两比例缩放。原四个有限阶段共225求值556.17秒，时限/迭代限/一次0求值启动失败均保留，无全局最优或局部驻点保证。

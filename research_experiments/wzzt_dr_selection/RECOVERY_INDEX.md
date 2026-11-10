@@ -1,3 +1,10 @@
+## 精简入口、重放和调度，2026-11-10
+
+- 活动入口为dr_continuous_independent/full_price.py与full_evaluate.py，README.md有调用。概率/设备底层复用。原三个continue/scaled/restore文件从工作树移除，仅历史Git78eb5b17和私有源快照保留。full_price的--warm-quote用于显式同信息起点，--check-only仅重放/审核，不优化或跑AC。
+- 私有wzzt_dr_refactor_v1保留baseline_full_price.py（Git78eb原源）、model_replay/{request,rows,summary,complete}.json及cli_check_v1的完整来源/快照/冻结凭据。三点模型全部数组逐值一致，新CLI16/32/64过；13单测通过，无新paper15优化/抽样/AC。公开refactor_check.json仅标量与hash。
+- SCHEDULE.md、schedule_summary.csv、schedule.png为当前冻结合同聚合。私有wzzt_dr_full_price_v1/schedule_delivery有export_schedule.py、receipt.json及full_resource_slot_schedule.csv(5760行)、hourly_requests.csv(1440行)，35项总量/费用核验全部通过。完整调度不上传Git。
+- 当前main.tex与main.pdf为精简4页理论，详细证明见Git78eb5b17原main.tex与89条formula_verification.json。wzzt_dr_refactor_v1/theory_preview保存4页核验PNG；无缺字/未定义引用/溢出警告。旧225求值/556秒/32×5AC均是历史原批，精简入口未重新跑该优化路径。
+
 ## 全资源小时报价与独立AC，2026-11-10
 
 - 先读 [FULL_PRICE_REPORT.md](dr_continuous_independent/FULL_PRICE_REPORT.md)、[FULL_PRICE_PLAN.md](dr_continuous_independent/FULL_PRICE_PLAN.md)、full_price_results.json；当前main.tex为现行完整文档，旧版本可由Git467bedc6恢复。
