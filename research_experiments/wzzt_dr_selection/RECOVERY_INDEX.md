@@ -1,3 +1,8 @@
+## 日前发布预测、次日按真值评价，2026-11-10
+
+- [逐日方案](dr_paper15_forecast_day/PLAN.md)与[单日结果及恢复指纹](dr_paper15_forecast_day/RESULT.md)。`day_run.py` 按 prepare、plan、evaluate 分别发布预测、冻结报价、核算 AC。`zero_check.py --public` 仅凭历史和日前预测复现零合同的均值及解析概率下界。
+- [新版完整模型，第 9 至 11 节](dr_paper15_delivery_margin/pricing_model/paper15_dr_pricing_forecast_day.pdf)。私有 `wzzt_dr_forecast_day_v1/run_v1` 三阶段均完成，旁目录 `probability_audit_v1` 保存 512 点独立积分复核。
+
 ## 冻结交付余量，2026-11-10
 
 - dr_paper15_delivery_margin/REPORT.md 为模型与结论，model_test.py 与 results.json 为两轴确定性积分，ac_replay.py 与 ac_results.json 为 72 个封存输出的复核。conditional_floor.py 与 conditional_floor.json 另列确知一条交付轨迹时的 90% 条件概率口径。

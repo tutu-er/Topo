@@ -14,17 +14,18 @@ subsection={format=\normalsize\bfseries\raggedright,beforeskip=1.0ex,afterskip=.
 \newcommand{\ind}{\mathbf 1}\newcommand{\normone}[1]{\left\lVert #1\right\rVert_1}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcommand{\src}[3]{\href{https://github.com/tutu-er/Topo/blob/96c7d1e7edbd460f4e922f8426112a15b11f8432/research_experiments/wzzt_dr_selection/#1\#L#2}{#3}}
+\newcommand{\daysrc}[3]{\href{https://github.com/tutu-er/Topo/blob/9bd09bf2da06f041e03c52f2f6fe6cf8e0b2145f/research_experiments/wzzt_dr_selection/dr_paper15_forecast_day/#1\#L#2}{#3}}
 \newcommand{\atcode}[1]{\par\noindent{\small\textbf{实现}\quad #1}\par}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \begin{document}
 \begin{center}
 {\LARGE\bfseries 面向拓扑验证的需求响应定价模型}\\[4pt]
 {\large paper15 的最小合同费用、90\% 激励约束与代码对照}\\[3pt]
-{\small 算例 \code{paper15_b2_v0005}\qquad 实现版本 \code{96c7d1e7}}
+{\small 算例 \code{paper15_b2_v0005}\qquad 原模型 \code{96c7d1e7}\qquad 逐日定价 \code{9bd09bf2}}
 \end{center}
 
 \section{日前问题与完整优化式}
-日前已知完整的历史功率、电压、可调资源能力及两套历史拓扑候选。规划者签订一份 24 小时合同，让次日观测有足够概率把历史粗候选排除在原验证带之外。次日自然负荷、资源履约和量测均在定价之后揭晓。激励概率针对这项指定的选模决策；物理真树只在实验的最终评分时使用。
+日前已知完整的历史功率、电压、可调资源能力及两套历史拓扑候选。规划者签订一份 24 小时合同，让次日观测有足够概率把历史粗候选排除在原验证带之外。下文先说明原算例，再在第 \ref{sec:forecastday} 节给出逐日定价的修订：日前只接收该日的有偏预测，报价冻结后由测试方用封存的自然曲线核算。
 
 末端节点 $i=1,\ldots,15$，每个节点四类资源，资源编号 $r=1,\ldots,60$。
 时段 $t=1,\ldots,96$，槽长 $\Delta t=0.25$ 小时，对应小时
@@ -321,4 +322,99 @@ paper15 在 90\% 降费阶段找到费用从 53.3829 降至 52.1695 的报价，
 \end{tabularx}
 \normalsize
 \par\noindent\textbf{阅读顺序。} 复核主优化时，先看 \code{run.optimize} 如何构造评价器，再看 \code{cost_only.solve} 的目标、箱约束与概率约束。复核辨识收益时，从 \code{score_scene} 按原观测重算损失和最终支撑，再对照冻结报价前的 \code{make_packet}；两条路径使用的信息时点不同。
+\newpage
+\section{逐日定价：日前看预测，事后按真实自然负荷结算}\label{sec:forecastday}
+\subsection{同一天究竟固定什么、随机什么}
+固定一日 $d$。记 $b_d^\star\in\mathbb R^{96\times30}$ 为\emph{无 DR 时}该日的基础负荷，每行依次存 15 个节点的 $P$ 和 15 个节点的 $Q$，单位均为标幺值。它可以是测试方锁定的模拟真值，也可以来自留出的实测自然日。在优化方收到任何该日数据前，测试方封存这条曲线。日前只给规划器一条可见曲线 $f_d$。零奖励、简单轮换、规划合同都用同一个 $b_d^\star$ 考核。因此，这一修改改变了规划的信息集，也要求每天重新冻结报价；原每例共用一份报价的结果另列在第 7 节。
+
+\subsection{测试方把真实曲线变成一条带偏差的预测}
+令 $s_j$ 为通道 $j$ 在三个训练日全部时段的均方根。用当地时间指示函数 $I_t=\ind_{\{17{:}00\le t<22{:}00\}}$ 定义预设的晚峰偏差和误差幅度。测试方只生成并发布一次
+\begin{align}
+ f_{dtj}&=b^\star_{dtj}+d_{tj}+a_{tj}\eta_{dtj},&
+ d_{tj}&=-0.05s_j I_t,&
+ a_{tj}&=(0.04+0.04 I_t)s_j .\label{release}
+\end{align}
+举例说，若一个通道的训练 RMS 为 10 kW，晚峰预报平均少 0.5 kW；叠加的随机预测误差标准差为 0.8 kW，其余时段为 0.4 kW。这些百分比以训练 RMS 为基数，不用测试日峰值。$\eta$ 为均值零的联合高斯误差，协方差为
+\[
+ \operatorname{Cov}(\eta_{dtj},\eta_{dsj'})=
+ (0.25+0.75\ind_{\{j=j'\}})\,0.8^{|t-s|}.
+\]
+相同的时序偏差可以作用于多个节点，预测曲线保留日内相关性。晚峰系数、随机方差及相关系数是预先指定的试验条件。训练 RMS 为零的通道发布零值，并从预测似然移除。测试方不向规划器提供 $b_d^\star$、本次噪声实现或其种子。规划方可知道平均偏差及其误差律，这相当于一个已知统计特性的合成预测器。
+
+\subsection{预测发布之后，还对什么取概率}
+求报价时 $f_d$ 已知。随机的是给定 $f_d$ 后仍可能出现的负荷／参考残差，以及收到报价后的实际 DR 交付。式 \eqref{release} 给出 $f\mid b$。若要对负荷误差也作概率承诺，还需要 $b\mid f$。直接把生成预测时抽到的噪声反号交给规划器会泄露真值；重新独立抽同样的噪声反号，一般也不服从正确的条件律。
+
+一个标量例子说明两者的差别。若历史自然负荷 $b\sim N(100,10^2)$ kW，预测为 $f=b-5+\varepsilon$，$\varepsilon\sim N(0,5^2)$ kW 且独立于 $b$，则发布 $f=105$ kW 后
+\[
+ \E[b\mid f=105]=100+\frac{100}{125}(105-100+5)=108,\qquad
+ \operatorname{Var}(b\mid f)=100-\frac{100^2}{125}=20 .
+\]
+均值去偏得到的 110 kW 是一条参考点预测；真实负荷的条件标准差约为 4.47 kW。规划后评价时再读取当天封存的具体 $b_d^\star$。这个例子只解释信息关系。
+
+\newpage
+\section{把发布的预测代入原损失的机会约束}
+\subsection{只更新背景分布，保留同一个拒绝阈值}
+按同样的时间和通道顺序向量化训练功率。令 $\bar b$ 是三条训练曲线的平均，用三日的同一组正交中心化对比构造功率载荷 $A$ 与两个候选残差载荷 $B_C,B_F$。具体地，对三日向量按列拼接、减列均值、除以 $\sqrt{2}$，再右乘同一个 $3\times2$ 正交矩阵，其列张成与 $(1,1,1)^\top$ 正交的平面。这样自然功率和背景残差具有共同的日因子
+\[
+ b=\bar b+A z,\qquad e_k^b=\mu_k+B_k z,\qquad z\sim N(0,I_2).
+\]
+这是三个训练日提供的低秩工作模型。$A$ 与 $B_k$ 必须使用相同的日对比次序，才能保留负荷与候选误差的配对关系。历史输入沿用观测 $P/Q$ 作为自然功率的训练近似。训练中从未变化的方向无法凭该模型预测出新的背景变化。
+
+令 $\Omega$ 为式 \eqref{release} 中 $a\eta$ 的整段协方差，训练 RMS 为零的通道从预测似然中移除。因 $f=\bar b+Az+d+a\eta$，且生成预测的误差独立于 $z$，在保留通道上，条件高斯公式给出
+\begin{equation}
+ V_f=(I_2+A^\top\Omega^{-1}A)^{-1},\qquad
+ m_f=V_f A^\top\Omega^{-1}(f-\bar b-d),\qquad
+ z\mid f=m_f+V_f^{1/2}Z,\quad Z\sim N(0,I_2).
+ \label{belief}
+\end{equation}
+该式来自对 $\|z\|^2+(f-\bar b-d-Az)^\top\Omega^{-1}(f-\bar b-d-Az)$ 配方。可利用 AR(1) 时序白化及通道相关矩阵计算两项乘积，无需显式求一个全日协方差的逆。
+
+\subsection{优化器计数的具体事件}
+设 $v=v(x,\xi)$ 为式 \eqref{c3} 的随机实际交付，$\xi$ 与预测／背景误差独立。对同一整日 $Z,\xi$，两套候选共享同一功率和履约结果。将原来的无条件背景代换为条件背景：
+\[
+ e_k=\mu_k+B_k m_f+B_kV_f^{1/2}Z+G_kv,\quad
+ D_f(x,Z,\xi)=\frac{\normone{e_C}-1.03\normone{e_F}}{1440}.
+\]
+当天的合同由下式决定：
+\begin{equation}
+ \min_x K(u)\qquad\text{满足 \eqref{c1}--\eqref{c3} 及}\qquad
+ \E_{Z,\xi}\!\left[\ind_{\{D_f(x,Z,\xi)>9.179191188409\}}\right]\ge0.90 .
+ \label{daychance}
+\end{equation}
+这里 $f$ 是已发布的常数，背景分布取式 \eqref{belief}；$Z,\xi$ 代表完整一天，1440 个单元合计只产生一次通过或失败。等号处属于粗族带内。原程序的条件积分可以替代逐条抽样计数。旧的无条件背景 $B_kz$ 已被替换，重复叠加会把自然负荷误差计算两次。
+
+报价冻结后，测试方在 $b_d^\star$ 上叠加独立实现的实际调节，运行 AC、加入原表计噪声并用式 \eqref{equiv} 计算 $D_{\rm obs}$、出带、错漏及合同费。对同一自然日多次生成履约或表计噪声，只能检验给定该日的执行效果；跨日达成率按独立自然日汇报。若选择只对履约随机性提要求，可以把条件背景固定为其均值，但该约束不再包含负荷预测误差。
+\newpage
+\section{冻结一份逐日报价后，在同一自然日复核}
+\subsection{报价为什么为零，以及实际判定为何相反}
+在一个事前指定的新合成自然日，报价器获得 96 时段预测。两组起点是零合同和旧历史报价（费用 52.16949）。两者的规划积分都在数值精度内得到 1.0000，故费用非负的目标取到零。冻结后更换 512 个外层状态核算，零合同仍得到 1.0000。按同费缩放的轮换亦为零，三种策略在这一天实际对应同一个动作。原 3\% 带、阈值、支付和设备规则均沿用原设定。
+
+\begin{center}\small
+\begin{tabular}{lrrrr}
+\toprule & $L_C$ & $L_F$ & $D=L_C-1.03L_F$ & $D-h$\\\midrule
+规划模型，给定预测的均值&743.5552&701.2611&21.2562&12.0771\\
+测试日，实际含噪 AC&1226.7564&1193.1445&$-2.1824$&$-11.3616$\\\bottomrule
+\end{tabular}
+\end{center}
+同一新日、一次独立履约实现，三次策略核算均完成全部 96 槽，均选中粗族、漏掉一个块，整日交付为 0 kWh，费用为零。自然日独立分母为 1，激励事件为 0/1。新日的节点时段平均预测均方根误差为 $0.001707$ p.u.（有功）及 $0.000654$ p.u.（无功），按 200 kW/kvar 基值约为 0.341 kW 和 0.131 kvar。
+
+把 $D$ 写成 $(L_C-L_F)-0.03L_F$ 就能看到错判的来源。规划时两候选相差 42.2941，减去细族损失的 3\% 后还剩 21.2562。当天实测只相差 33.6119，3\% 对应的扣减却从 21.0378 增至 35.7943。两项变化共同使粗族留在验证带内。
+
+\subsection{在此工作模型内，积分精度是否足以解释错判}
+零交付时，每个条件残差分量为 $X\sim N(\mu,s^2)$。用
+\[
+ \E|X|=s\sqrt{2/\pi}\exp[-\mu^2/(2s^2)]+|\mu|\,[2\Phi(|\mu|/s)-1]
+\]
+逐分量相加即得表中第一行；$s=0$ 时取 $|\mu|$。还可以只用已发布预测证明一次条件下界。令 $\bar e_k=\mu_k+B_km_f$，$T_k=B_k V_f^{1/2}$，$t_{Fi}$ 为 $T_F$ 第 $i$ 行，$M=1440$。取均值点的斜率
+$g=(T_C^\top\operatorname{sign}(\bar e_C)-1.03T_F^\top\operatorname{sign}(\bar e_F))/M$。
+绝对值在均值处的切线为下界；在半径 $r$ 的圆内，第 $i$ 个细族分量高出切线至多 $2[r\|t_{Fi}\|_2-|\bar e_{Fi}|]_+$。因此在 $\|Z\|_2\le r$ 内，
+\[
+ D_f(0,Z)\ \ge\ D_f(0,0)-r\|g\|_2-
+     \frac{2.06}{M}\sum_i[r\|t_{Fi}\|_2-|\bar e_{Fi}|]_+ .
+\]
+二维标准正态在 $r=\sqrt{-2\log 0.01}$ 的圆内有 99\% 概率。代入得到下界 19.4434，已高于阈值 9.1792。这说明即使用解析界，当前背景模型也会选择零价。
+
+新日预测对历史工作模型的标准化平方距离（每个有效分量平均）为 11.35，模型假设下的期望为 1。三日背景把负荷和参考电压误差都绑定在同一个二维平面。功率预测一旦锁紧这两个因子，模型也会把参考电压误差估得过于确定。下一次建模应单独保留给定功率后尚未消失的参考电压和量测误差，用独立配对日检验其大小。
+\atcode{\daysrc{forecast.py}{43}{预报生成}，\daysrc{forecast.py}{73}{条件化}；
+\daysrc{day_run.py}{104}{准备并封存}，\daysrc{day_run.py}{157}{日前定价}，\daysrc{day_run.py}{199}{含噪 AC 核算}。}
 \end{document}
