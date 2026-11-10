@@ -1,14 +1,24 @@
+## 独立DR包与配置审查清单，2026-11-10
+
+当前入口为[dr_pricing/README.md](dr_pricing/README.md)，核心仅problem.py、probability.py、solve.py，全部依赖为本地文件和NumPy/SciPy；已复制到Topo之外、清空PYTHONPATH后直接运行合成安装示例，7次SLSQP迭代达标，非配网效果实验。14项测试通过。原paper15零/旧90/最终价三个点的交付、费用、残差、概率和全部梯度与私有旧参照完全相同；新日权重2只回放，未新优化或AC；160条已有实际观测经新接口重算，选择和退出判断全部一致。公开[VALIDATION.json](dr_pricing/VALIDATION.json)记录来源和失败修正。
+
+输入改为case.json+数值arrays.npz，时间/节点/资源维度由数据定义，权重/计数/验证带/容差/目标均显式配置。阈值由同一公式计算，实际score_residuals共用；aggregate_delivery保留物理P/Q增量接口，AC/RNJ/WZZT由外部现有系统接入。多于两候选、缺信息声明、残差相关但未换内核等明确拒绝或需新适配。小N积分阶数不足及全部零方差字段问题已处理，不将数值未决称不可行。
+
+[REVIEW.md](dr_pricing/REVIEW.md)有13项待用户判断设置，优先A1新日权重、A5共同残差作用、A6概率是否包含随机DR。已去默认2，legacy案例approved_for_new_optimization=false；新demo显式weight1不改paper15。权重1下历史/新日占75%/25%，门槛约18.3584而非旧9.1792，旧成绩不能沿用。
+
+旧原型35个文件、3份旧PDF及对应历史LaTeX共39文件、1,514,666B已逐文件核验归档，ZIP在私有wzzt_dr_portable_v1/archives，恢复见[归档索引](archive/dr_continuous_independent_20261110.md)。旧目录只留ARCHIVED.md，最近一次聚合移至dr_pricing/results。缓存已清理；旧forecast_day.pdf及main.pdf被Windows打开程序占用，已归档并移出版本控制，本机原文件暂留。私有原负荷、P/Q/V/AC、失败与源快照未删，其他支线未批量清理。
+
 ## 求解入口精简与冻结调度交付，2026-11-10
 
-当前主流程为[full_price.py](dr_continuous_independent/full_price.py)建模/统一SLSQP费用优化/必要的原概率恢复/冻结，以及原[full_evaluate.py](dr_continuous_independent/full_evaluate.py)独立抽样/AC；使用说明见[README](dr_continuous_independent/README.md)。三个重复续跑脚本从活动树移除，原Git78eb5b17及私有快照保留。共用概率内核与设备库未改。新路径直接允许不可行起点，以固定费用尺度求解；不再经历旧四阶段重复流程。
+当前主流程为[full_price.py](archive/dr_continuous_independent_20261110.md)建模/统一SLSQP费用优化/必要的原概率恢复/冻结，以及原[full_evaluate.py](archive/dr_continuous_independent_20261110.md)独立抽样/AC；使用说明见[README](archive/dr_continuous_independent_20261110.md)。三个重复续跑脚本从活动树移除，原Git78eb5b17及私有快照保留。共用概率内核与设备库未改。新路径直接允许不可行起点，以固定费用尺度求解；不再经历旧四阶段重复流程。
 
-零请求、旧90报价、最终43.401926报价三点，重构前后交付、费用、aC/aF、概率及全部梯度逐值相同；新CLI只读报价16/32/64审核通过，13项测试通过，见[refactor_check.json](dr_continuous_independent/refactor_check.json)。本轮0新优化、0新抽样、0新AC，既有32/32恢复和556秒仍归属原批，不称精简后新性能。
+零请求、旧90报价、最终43.401926报价三点，重构前后交付、费用、aC/aF、概率及全部梯度逐值相同；新CLI只读报价16/32/64审核通过，13项测试通过，见[refactor_check.json](archive/dr_continuous_independent_20261110.md)。本轮0新优化、0新抽样、0新AC，既有32/32恢复和556秒仍归属原批，不称精简后新性能。
 
-[SCHEDULE.md](dr_continuous_independent/SCHEDULE.md)、43行聚合CSV及schedule.png给出4类资源/15节点/24小时调度，35项算术重算通过。完整5760行资源槽合同和1440行小时请求在私有wzzt_dr_full_price_v1/schedule_delivery。名义正46.171985/负46.762796kWh、费43.401926，峰绝对功率和12.051497kW于23:30；实际AC均值90.560224kWh另列。当前main.tex精简为六组公式、4页，保留原模型与概率对象，内置及本地编译通过、4页目视检查；详细证明由Git78eb5b17与89项核验恢复。
+[SCHEDULE.md](archive/dr_continuous_independent_20261110.md)、43行聚合CSV及schedule.png给出4类资源/15节点/24小时调度，35项算术重算通过。完整5760行资源槽合同和1440行小时请求在私有wzzt_dr_full_price_v1/schedule_delivery。名义正46.171985/负46.762796kWh、费43.401926，峰绝对功率和12.051497kW于23:30；实际AC均值90.560224kWh另列。当前main.tex精简为六组公式、4页，保留原模型与概率对象，内置及本地编译通过、4页目视检查；详细证明由Git78eb5b17与89项核验恢复。
 
 ## paper15 全资源小时报价优化及AC完成，2026-11-10
 
-[完整报告](dr_continuous_independent/FULL_PRICE_REPORT.md)、[预锁方案](dr_continuous_independent/FULL_PRICE_PLAN.md)、[公开聚合](dr_continuous_independent/full_price_results.json)、[逐公式89项记录](dr_continuous_independent/formula_verification.json)。原15节点×4资源×24小时开放1290个有效变量，旧价仅起点；原设备、21.59637kW库存、288/288完整历史、冻结C/F及R/X、w2/common3%/.16不变。新价条件过线90.00043%，费用43.40193，相对旧90的52.16949低16.8059%。全15节点交付，1124小时请求改变，非旧两比例缩放。原四个有限阶段共225求值556.17秒，时限/迭代限/一次0求值启动失败均保留，无全局最优或局部驻点保证。
+[完整报告](archive/dr_continuous_independent_20261110.md)、[预锁方案](archive/dr_continuous_independent_20261110.md)、[公开聚合](archive/dr_continuous_independent_20261110.md)、[逐公式89项记录](archive/dr_continuous_independent_20261110.md)。原15节点×4资源×24小时开放1290个有效变量，旧价仅起点；原设备、21.59637kW库存、288/288完整历史、冻结C/F及R/X、w2/common3%/.16不变。新价条件过线90.00043%，费用43.40193，相对旧90的52.16949低16.8059%。全15节点交付，1124小时请求改变，非旧两比例缩放。原四个有限阶段共225求值556.17秒，时限/迭代限/一次0求值启动失败均保留，无全局最优或局部驻点保证。
 
 最终16/32/64阶概率差约7e−16，设备功率/能量/截止约束通过；数值总体误差未认证。条件90%只对给定功率预测均值与名义交付下的独立剩余电压创新。新条件MC29443/32768、完整原始功率/交付/表计误差MC7375/8192，未反馈价格。
 
@@ -18,13 +28,13 @@
 
 ## 同报价新抽样与原 AC 配对核验完成，2026-11-10
 
-[执行／近似及对照报告](dr_continuous_independent/COMPARISON_REPORT.md)、[预锁方案](dr_continuous_independent/COMPARISON_PLAN.md)、[公开汇总](dr_continuous_independent/comparison_results.json)。四合同全部冻结。新条件32768抽样 current90 为64.1296%，与连续反演64.0538%相容；新完整独立模型8192为64.0503%；旧工作分布8192为91.1987%，与旧规划及4096核验相容。旧约90%和新约64%涉及分布／条件变化，旧版内层也已完整处理L1翻号。
+[执行／近似及对照报告](archive/dr_continuous_independent_20261110.md)、[预锁方案](archive/dr_continuous_independent_20261110.md)、[公开汇总](archive/dr_continuous_independent_20261110.md)。四合同全部冻结。新条件32768抽样 current90 为64.1296%，与连续反演64.0538%相容；新完整独立模型8192为64.0503%；旧工作分布8192为91.1987%，与旧规划及4096核验相容。旧约90%和新约64%涉及分布／条件变化，旧版内层也已完整处理L1翻号。
 
 新增原AC64/64输出（同一封存自然日×16请求/量测路径×4合同），6144/6144槽收敛、0失败。无奖励／同费轮换／旧95合同／current90完整恢复各1／1／9／8，总错漏15／15／7／8。current90对同费轮换7好9同0差，平均绝对交付96.46对153.59kWh。370项配对、曲线hash、资源及先选后truth审计通过。自然日分母1、执行路径分母16；本轮无新报价、无新RNJ/W搜索。当前LaTeX第19节说明执行、近似、旧方法区别及抽样对照，内置编译通过。
 
 ## paper15 连续反演小核验完成，2026-11-10
 
-[报告](dr_continuous_independent/REPORT.md)、[事前方案及计算修正](dr_continuous_independent/PLAN.md)、[公开标量](dr_continuous_independent/results.json)。用户允许独立原始误差，本轮固定报价的 1440 项独立电压创新条件概率为 0.6405376493。均匀积分 46.17 秒，改同范围分段 Gauss 后 0.858 秒，结果差 1.67e-15；解析尾界与经验求积精度分开。六项内核检查通过。
+[报告](archive/dr_continuous_independent_20261110.md)、[事前方案及计算修正](archive/dr_continuous_independent_20261110.md)、[公开标量](archive/dr_continuous_independent_20261110.md)。用户允许独立原始误差，本轮固定报价的 1440 项独立电压创新条件概率为 0.6405376493。均匀积分 46.17 秒，改同范围分段 Gauss 后 0.858 秒，结果差 1.67e-15；解析尾界与经验求积精度分开。六项内核检查通过。
 
 两变量内部点的细步导数误差小于 1.4e-8，粗步差异定位到设备控制面切换。有界可行性搜索停于原报价，未达 90%，无新报价收益。条件模拟 21018/32768；完整独立原始误差的线性参考诊断，无奖励／半幅／原报价过线 26／434／1332，各分母 2048。原始独立输入经过网络和设备后仍相关，不能直接把条件内核当作完整概率。新 AC、真实最终错漏及完整无抽样报价优化均未开展。当前 LaTeX 第 16–18 节给出模型、基础证明、误差与结果，内置编译通过。
 

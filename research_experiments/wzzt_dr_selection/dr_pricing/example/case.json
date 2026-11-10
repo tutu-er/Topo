@@ -1,0 +1,69 @@
+{
+  "format_version": 1,
+  "case_id": "synthetic_2node_2hour_demo",
+  "dt_hours": 0.25,
+  "decision_slots": 2,
+  "node_labels": [
+    1,
+    2
+  ],
+  "resource_ids": [
+    "node1_curtail",
+    "node2_curtail"
+  ],
+  "residual_unit": "micro_pu2",
+  "selection": {
+    "history_count": 8,
+    "new_count": 8,
+    "new_day_weight": 1.0,
+    "historical_loss_coarse": 0.2,
+    "historical_loss_fine": 0.2,
+    "relative_band": 0.03,
+    "absolute_tolerance": 1e-06,
+    "candidate_ids": [
+      "coarse",
+      "fine"
+    ],
+    "support_counts": [
+      2,
+      3
+    ],
+    "historically_eligible": [
+      true,
+      true
+    ],
+    "candidate_count": 2
+  },
+  "probability": {
+    "target": 0.9,
+    "independent_cells": true,
+    "shared_candidate_noise": true,
+    "scope": "conditional_voltage"
+  },
+  "numerics": {
+    "cutoff": 512.0,
+    "order": 128,
+    "tolerance": 1e-07,
+    "chunk": 64,
+    "audit_orders": [
+      128,
+      256,
+      512
+    ]
+  },
+  "solver": {
+    "maxiter": 40,
+    "seconds": 30,
+    "restore_evaluations": 10,
+    "restore_seconds": 10
+  },
+  "information": {
+    "role": "two-hour synthetic curtailable-load installation example; not a physical-grid efficacy experiment",
+    "truth_used": false,
+    "actual_future_used": false,
+    "parameters_frozen": true,
+    "calibration": "assumed synthetic model",
+    "new_day_weight": "explicit 1 for this synthetic demonstration, not a change to paper15 legacy evaluation",
+    "numerical_note": "Small demonstration uses explicit higher quadrature orders; physical model and target unchanged."
+  }
+}

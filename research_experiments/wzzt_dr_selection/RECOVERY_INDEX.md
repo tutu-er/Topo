@@ -1,3 +1,11 @@
+## 独立包、迁移和归档，2026-11-10
+
+- 新唯一活动目录dr_pricing，README/ MODEL/ REVIEW分别为运行、数学和待决清单。核心3个文件、1个CLI，无仓库导入/pickle/绝对实验路径；requirements和example齐。14项测试、Topo外复制独立运行、原三点费用/概率/全部梯度完全一致，VALIDATION.json为证据；160条保存实际观测的新选模接口结果全同。未新跑paper15优化或AC。
+- 私有wzzt_dr_portable_v1/paper15_bundle保留原导出、旧源码快照/oracle；paper15_ready_v2补信息声明并规范150个原起点无效坐标，物理回放无差异，采用该case+quote的--check-only结果在paper15_check_final。原weight2只回放，approved_for_new_optimization=false；待REVIEW决策再更改配置，不沿用旧阈值。
+- 原物理执行映射在同bundle的physical_adapter.npz/json及receipt，资源节点/γ/基准/基线齐，P/Q增量重算差0；只加实际交付增量一次，不重复加基线。实际残差经新score_residuals使用同权重和门槛，输出块族仍由外部辨识器预冻结。
+- 旧dr_continuous_independent全部35文件、3份旧PDF及历史LaTeX共39项已ZIP核验归档，详见archive/dr_continuous_independent_20261110.md/json及源Git0a0603f1。旧目录只留跳转；最新聚合在dr_pricing/results。两个旧PDF占用，本机暂留且移出版本控制，未关闭应用。原私人负荷、AC观测、失败分母和源快照未删。
+- private isolated_final保存脱离Topo运行receipt、3源hash和成功toy；portable_replay.json保存三个点的全部标量差；初始示例积分/线搜索失败保留在各原输出目录。新示例仅安装测试，没有配网收益含义。当前LaTeX已改为显式权重通式与新入口，历史调度和32路径成绩仍标旧配置。
+
 ## 精简入口、重放和调度，2026-11-10
 
 - 活动入口为dr_continuous_independent/full_price.py与full_evaluate.py，README.md有调用。概率/设备底层复用。原三个continue/scaled/restore文件从工作树移除，仅历史Git78eb5b17和私有源快照保留。full_price的--warm-quote用于显式同信息起点，--check-only仅重放/审核，不优化或跑AC。
@@ -7,7 +15,7 @@
 
 ## 全资源小时报价与独立AC，2026-11-10
 
-- 先读 [FULL_PRICE_REPORT.md](dr_continuous_independent/FULL_PRICE_REPORT.md)、[FULL_PRICE_PLAN.md](dr_continuous_independent/FULL_PRICE_PLAN.md)、full_price_results.json；当前main.tex为现行完整文档，旧版本可由Git467bedc6恢复。
+- 先读 [FULL_PRICE_REPORT.md](archive/dr_continuous_independent_20261110.md)、[FULL_PRICE_PLAN.md](archive/dr_continuous_independent_20261110.md)、full_price_results.json；当前main.tex为现行完整文档，旧版本可由Git467bedc6恢复。
 - 私有根C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a/wzzt_dr_full_price_v1。formula_checks/run_v1为89/89逐式核验；optimization、optimization_continue、optimization_scaled_v2、optimization_restore为四阶段，正式quote及price_freeze在optimization_restore，allocation_audit.json给节点/小时/类型汇总。首次optimization_scaled启动引用错误0求值保留，不删除。
 - evaluation/{request,policy_freeze,results,complete}.json、source_snapshot.zip、conditional和independent_full全批及断点、actual/下160观测/先选择后truth/summary/complete、audit/下完整只读重算均齐。32768条件、8192完整模型及32×5AC全部结束，勿重复启动。1自然日，32独立执行/量测路径，实际种子见FULL_PRICE_PLAN.md。所有报价/功率/电压/物理轨迹私有。
 - full_adjoint.py仅系数伴随，接原Devices.hourly_vjp；全价四入口各自源锁定。full_evaluate.py使用原sample_compare/actual_compare的可选参数，旧默认重放逐位一致；不重写辨识器。full_evaluate_audit.py仅重算，full_price_export.py只白名单导出。
@@ -16,14 +24,14 @@
 
 ## 冻结合同的新模型／AC 抽样，2026-11-10
 
-- 入口 [COMPARISON_REPORT.md](dr_continuous_independent/COMPARISON_REPORT.md)、[comparison_results.json](dr_continuous_independent/comparison_results.json)。sample_compare.py 的 load_policies 为两评价程序共用的唯一合同读取入口，复用旧4份冻结合同，未改价。
+- 入口 [COMPARISON_REPORT.md](archive/dr_continuous_independent_20261110.md)、[comparison_results.json](archive/dr_continuous_independent_20261110.md)。sample_compare.py 的 load_policies 为两评价程序共用的唯一合同读取入口，复用旧4份冻结合同，未改价。
 - 私有 wzzt_dr_continuous_compare_v1/model_samples 完成32768新条件、8192新完整独立及8192旧工作模型路径，共196608策略输出，0失败/缺失；保留逐批断点与源/输入hash，不重跑。
 - 私有 wzzt_dr_comparison_v1/actual_run_v1 完成64原AC输出、16执行/量测路径，只有1自然曲线，保存政策冻结、观察、真值前选择、最终summary、source_snapshot及370项audit。曲线不变、当前合同相对同费轮换少7错漏，无新拟合或W搜索。
 - 当前打开main.tex第19节与以上新证据对应。旧90%背景概率、新预测条件概率和固定自然日AC执行概率分开报告。
 
 ## 连续反演的实际小核验，2026-11-10
 
-- 入口 [dr_continuous_independent/REPORT.md](dr_continuous_independent/REPORT.md) 和 [results.json](dr_continuous_independent/results.json)。内核为 continuous.py，频率求积修正为 gauss_frequency.py；run.py、repair.py、optimize_two.py 分别对应三个冻结阶段。
+- 入口 [dr_continuous_independent/REPORT.md](archive/dr_continuous_independent_20261110.md) 和 [results.json](archive/dr_continuous_independent_20261110.md)。内核为 continuous.py，频率求积修正为 gauss_frequency.py；run.py、repair.py、optimize_two.py 分别对应三个冻结阶段。
 - 私有 wzzt_dr_continuous_independent_v1/run_v1、run_v2、run_v3 全部完成，保存 request、源码快照、结果、complete。v1 46 秒积分导致跳过优化，v2 粗步门限跳过，v3 细步验证后完成原两变量搜索，全部原记录保留。无需重跑 32768 条件模拟或 2048 完整模型路径。
 - 已核验固定功率／交付条件概率、约 54 倍求积提速及局部导数。未实现完整随机响应的无抽样优化，本轮无新 AC。最新详细数学及结果位于当前 main.tex 第 16–18 节。
 
@@ -34,7 +42,7 @@
 ## 日前发布预测、次日按真值评价，2026-11-10
 
 - [逐日方案](dr_paper15_forecast_day/PLAN.md)与[单日结果及恢复指纹](dr_paper15_forecast_day/RESULT.md)。`day_run.py` 按 prepare、plan、evaluate 分别发布预测、冻结报价、核算 AC。`zero_check.py --public` 仅凭历史和日前预测复现零合同的均值及解析概率下界。
-- [新版完整模型，第 9 至 11 节](dr_paper15_delivery_margin/pricing_model/paper15_dr_pricing_forecast_day.pdf)。私有 `wzzt_dr_forecast_day_v1/run_v1` 三阶段均完成，旁目录 `probability_audit_v1` 保存 512 点独立积分复核。
+- [新版完整模型，第 9 至 11 节](archive/dr_continuous_independent_20261110.md)。私有 `wzzt_dr_forecast_day_v1/run_v1` 三阶段均完成，旁目录 `probability_audit_v1` 保存 512 点独立积分复核。
 
 ## 冻结交付余量，2026-11-10
 
