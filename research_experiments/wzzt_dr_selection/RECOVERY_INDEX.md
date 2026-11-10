@@ -1,3 +1,8 @@
+## 冻结交付余量，2026-11-10
+
+- dr_paper15_delivery_margin/REPORT.md 为模型与结论，model_test.py 与 results.json 为两轴确定性积分，ac_replay.py 与 ac_results.json 为 72 个封存输出的复核。conditional_floor.py 与 conditional_floor.json 另列确知一条交付轨迹时的 90% 条件概率口径。
+- 仅读取原 wzzt_dr_p90_stage/run_v1 的 paper15_b2_v0005、价格冻结及已封存观测。共用原设备控制器、背景矩阵与径向积分核。执行范围、SHA-256、库版本、左右端和每次积分点记录在标量结果中；没有新的独立物理观测。
+
 ## 最新恢复：90%有界小批全部完成，2026-11-03
 
 - dr_p90_cost/REPORT.md与METHOD_REVIEW.md是结果/数学及文献入口；public evidence/p90_cost_v1仅标量。新源码cost_only.py/run.py使用原Probability、设备、observe和evaluate，不重写辨识器。
