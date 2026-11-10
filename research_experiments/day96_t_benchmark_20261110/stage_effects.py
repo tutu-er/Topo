@@ -53,6 +53,39 @@ def point_key(point):
     return tuple(rows)
 
 
+def saved_timing(result, *, tolerance=1e-6):
+    """Disjoint top-level accounting; T call clocks are a prefix subset."""
+    trajectory = result["trajectory"]
+    tail = [event for event in trajectory["attempts"] if event.get("kind") == "joint_tail"]
+    tail_seconds = [float(event["wall_seconds"]) for event in tail]
+    total = float(result["total_seconds"])
+    common = float(result["common_seconds"])
+    prefix = float(trajectory["seconds"])
+    exit_seconds = float(trajectory["final_exit_seconds"])
+    values = [total, common, prefix, exit_seconds, *tail_seconds]
+    if any(not np.isfinite(value) or value < -tolerance for value in values):
+        raise ValueError("A saved stage wall clock is nonfinite or negative.")
+    tail_total = sum(tail_seconds)
+    overhead = total-common-prefix-exit_seconds
+    if overhead < -tolerance:
+        raise ValueError("Saved top-level timing breakdown has negative remaining overhead.")
+    if tail_total > prefix+tolerance:
+        raise ValueError("T-call wall clocks exceed their containing prefix clock.")
+    successful = float(result.get("successful_total_seconds", total))
+    if abs(successful-total) > tolerance:
+        raise ValueError("Native total is not the successful returned-attempt total.")
+    return dict(common_seconds=common, total_seconds=total, prefix_seconds=prefix,
+                T_call_wall_seconds=tail_total, T_calls=len(tail), E_finish_seconds=exit_seconds,
+                remaining_overhead_seconds=overhead, timing_nonnegative_tolerance=tolerance,
+                timing_valid=True, T_is_subset_of_prefix=True, T_must_not_be_added_again=True,
+                interrupted_proxy_charge_seconds=float(result.get("interrupted_attempt_seconds", 0.)),
+                operational_proxy_total_seconds=float(result.get("logical_total_seconds", total)),
+                timing_scope="saved successful-attempt wall clocks; shared frontend charged once",
+                T_clock_scope="sum joint_tail event.wall_seconds only, excluding surrounding cleanup and other prefix work",
+                E_clock_scope="trajectory.final_exit_seconds: complete native finish call",
+                overhead_scope="remaining setup, I/O, output fitting/selection/export combined; no saved finer split")
+
+
 def locate_stages(result):
     """Locate E and a contiguous terminal T suffix by saved control metadata.
 
@@ -197,7 +230,7 @@ def main_analysis(output):
     spec = importlib.util.spec_from_file_location("day96_stage_physical_truth", module_file)
     physical = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(physical)
-    rows,calls,locations,hashes=[],[],{},{}
+    rows,calls,locations,hashes,timings=[],[],{},{},[]
     input_audit_hashes, training_hashes = {}, {}
     for job in protocol["jobs"]:
         meta = catalog[job]
@@ -234,6 +267,9 @@ def main_analysis(output):
                 raise ValueError("Native result references different historical inputs: "+job+"/"+name)
             located = locate_stages(result)
             locations[job+"/"+name] = located
+            timing = saved_timing(result)
+            timings.append(dict(job=job,method=name,case=meta["case"],bundle=meta["bundle"],
+                                voltage_sigma=meta["voltage_sigma"],**timing))
             path = result["trajectory"]["path"]
             output_rows = {row["index"]:row for row in result["output_candidates"]}
             if len(output_rows) != len(path)+1 or set(output_rows) != set(range(len(path)+1)):
@@ -243,6 +279,9 @@ def main_analysis(output):
                 row = dict(job=job,method=name,stage=stage,status=location["status"],
                            case=meta["case"],bundle=meta["bundle"],voltage_sigma=meta["voltage_sigma"],
                            **{k:v for k,v in location.items() if k!="status"})
+                row["saved_stage_wall_seconds"] = timing["T_call_wall_seconds" if stage=="T" else "E_finish_seconds"]
+                row["stage_timing_scope"] = timing["T_clock_scope" if stage=="T" else "E_clock_scope"]
+                row["stage_time_is_prefix_subset"] = stage=="T"
                 if location["status"]=="resolved":
                     for side in ("before","after"):
                         index = location[side+"_index"]
@@ -258,6 +297,7 @@ def main_analysis(output):
                 rows.append(row)
             for call in located["T_calls"]:
                 row = dict(job=job,method=name,**call)
+                row["saved_T_call_wall_seconds"] = result["trajectory"]["attempts"][call["attempt_index"]]["wall_seconds"]
                 for side,index in (("before",call["before_index"]),("after",call["after_index"])):
                     row.update({side+"_"+k:v for k,v in metrics(path[index],training,truth).items()})
                 calls.append(row)
@@ -265,6 +305,7 @@ def main_analysis(output):
     dest.mkdir(parents=True,exist_ok=True)
     write_csv(dest/"stage_inputs.csv",rows)
     write_csv(dest/"tail_calls.csv",calls)
+    write_csv(dest/"timing_breakdown.csv",timings)
     aggregate=[]
     for method in protocol["methods"]:
         for stage in ("T","E"):
@@ -274,6 +315,11 @@ def main_analysis(output):
                      resolved=len(resolved),unresolved=sum(r["status"]=="unresolved" for r in subset),
                      not_triggered=sum(r["status"]=="not_triggered" for r in subset),
                      conditional_resolved_stage_only=True)
+            row.update(stage_timing_inputs=len(subset),
+                       saved_stage_wall_seconds_total=sum(r["saved_stage_wall_seconds"] for r in subset),
+                       saved_stage_wall_seconds_mean=float(np.mean([r["saved_stage_wall_seconds"] for r in subset])),
+                       stage_time_is_prefix_subset=stage=="T",
+                       stage_timing_not_restricted_to_resolved_F1_rows=True)
             for view in ("raw","output24"):
                 for side in ("before","after"):
                     row[view+"_"+side+"_F1"]=float(np.mean([r[view+"_"+side+"_F1"] for r in resolved])) if resolved else None
@@ -281,6 +327,16 @@ def main_analysis(output):
                     row[view+"_"+side+"_exact"]=sum(r[view+"_"+side+"_exact"] for r in resolved)
             aggregate.append(row)
     write_csv(dest/"stage_summary.csv",aggregate)
+    timing_summary=[]
+    fields=("common_seconds","prefix_seconds","T_call_wall_seconds","E_finish_seconds",
+            "remaining_overhead_seconds","total_seconds","interrupted_proxy_charge_seconds",
+            "operational_proxy_total_seconds")
+    for method in protocol["methods"]:
+        subset=[row for row in timings if row["method"]==method["id"]]
+        timing_summary.append(dict(method=method["id"],planned=len(protocol["jobs"]),inputs=len(subset),
+                                  **{field:sum(row[field] for row in subset) for field in fields},
+                                  T_is_subset_of_prefix=True,T_must_not_be_added_again=True))
+    write_csv(dest/"timing_summary.csv",timing_summary)
     write(dest/"locations.json",locations)
     receipt=dict(passed=True,planned_native_results=protocol["planned"],native_results_complete=True,
                  native_verification_sha256=sha(native_file),native_protocol_sha256=protocol_hash,
@@ -295,6 +351,10 @@ def main_analysis(output):
                  interleaved_or_nonterminal_tail_is_unresolved=True,
                  unresolved_T=sum(r["stage"]=="T" and r["status"]=="unresolved" for r in rows),
                  stage_deltas_are_not_factorial_ablation_effects=True,
+                 stage_timings_use_saved_wall_clocks_only=True,T_timing_is_prefix_subset=True,
+                 top_level_timing_identity="total = common + prefix + E_finish + remaining_overhead; T is contained in prefix",
+                 finer_CPU_or_unrecorded_phase_times_inferred=False,
+                 all_saved_timing_breakdowns_valid=all(row["timing_valid"] for row in timings),
                  solver_calls=0,fit_calls=0,test_observations_opened=False,truth_used_only_for_postanalysis_scoring=True)
     write(dest/"verification.json",receipt)
     print(json.dumps({k:v for k,v in receipt.items() if k!="result_hashes"},indent=2))
