@@ -90,7 +90,7 @@ def finish(output, *, workers=2, interval=20.):
         env = os.environ.copy()
         env["PYTHONPATH"] = str(ROOT) + os.pathsep + str(ROOT / "rnj_wzzt_core")
         with (output / "postprocess.log").open("a", encoding="utf-8") as log:
-            result = subprocess.run([sys.executable, "-B", str(source / "analyze.py"), str(output), "--workers", str(workers)],
+            result = subprocess.run([sys.executable, "-B", "-m", "research_experiments.day96_t_benchmark_20261110.analyze", str(output), "--workers", str(workers)],
                                     cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
             receipt["analysis_exit_code"] = result.returncode
             if result.returncode:
@@ -101,7 +101,7 @@ def finish(output, *, workers=2, interval=20.):
                            passed=bool(verification.get("passed") and verification.get("verified") == 144 and hashes_stable))
             if receipt["passed"]:
                 receipt["stage"] = "plotting"; write(target, receipt)
-                result = subprocess.run([sys.executable, "-B", str(source / "figures.py"), str(output)], cwd=ROOT, env=env,
+                result = subprocess.run([sys.executable, "-B", "-m", "research_experiments.day96_t_benchmark_20261110.figures", str(output)], cwd=ROOT, env=env,
                                         stdout=log, stderr=subprocess.STDOUT)
                 receipt["figures_exit_code"] = result.returncode
                 if result.returncode:

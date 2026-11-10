@@ -40,6 +40,8 @@ D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_bench
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.compare_rules outputs/day96_t_benchmark_20261110
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.timing_uncertainty outputs/day96_t_benchmark_20261110
 D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.stage_effects outputs/day96_t_benchmark_20261110
+D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.candidate_diagnostics outputs/day96_t_benchmark_20261110
+D:/apps/miniconda3/envs/Topo/python.exe -B -m research_experiments.day96_t_benchmark_20261110.tail_gate_diagnostics outputs/day96_t_benchmark_20261110
 ```
 
 确认PNG图形后，记录`docs/day96_t_benchmark_20261110/visual_review.json`，再运行`deliver.py`。归档入口会核对144条数值结果、144份桥接导出、对照与时间回执，以及图形引用的是同一版原生核验结果。重新生成原生核验回执后，须同步更新依赖它的桥接、对照、时间与图形回执。

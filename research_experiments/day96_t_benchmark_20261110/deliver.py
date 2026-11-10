@@ -45,6 +45,14 @@ def main():
     assert stages["passed"] and stages["planned_native_results"] == 144
     assert stages["native_verification_sha256"] == sha(native_receipt)
     assert stages["native_protocol_sha256"] == sha(protocol_file)
+    candidates = read(OUTPUT / "candidate_diagnostics/verification.json")
+    assert candidates["passed"] and candidates["native_evaluations"] == 144
+    assert candidates["native_analysis_receipt_sha256"] == sha(native_receipt)
+    assert candidates["bridge_summary_sha256"] == sha(bridge_file)
+    gates = read(OUTPUT / "tail_gate_diagnostics/verification.json")
+    assert gates["passed"] and gates["native_verified"] == 144
+    assert gates["native_verification_sha256"] == sha(native_receipt)
+    assert gates["stage_verification_sha256"] == sha(OUTPUT / "stage_effects/verification.json")
     # Unresolved or exceeded conservative caps remain reportable evidence;
     # they are not silently converted to a successful budget certificate.
     figures = read(DOCS / "figure_receipt.json")
@@ -62,6 +70,11 @@ def main():
     for file in (OUTPUT / "stage_effects").iterdir():
         if file.is_file():
             shutil.copy2(file, DOCS / ("stages_"+file.name))
+    for directory, prefix in (("candidate_diagnostics", "candidate_diagnostic_"),
+                              ("tail_gate_diagnostics", "tail_gate_")):
+        for file in (OUTPUT / directory).iterdir():
+            if file.is_file():
+                shutil.copy2(file, DOCS / (prefix+file.name))
     (DOCS / "bridge_export_summary.json").write_text(
         json.dumps({k:v for k,v in bridge.items() if k != "receipts"}, indent=2)+"\n", encoding="utf-8")
     environment = dict(python=sys.version, executable=sys.executable, numpy=np.__version__,
@@ -69,7 +82,7 @@ def main():
                        scope="recorded after the finite batch; numerical libraries not changed during it")
     (DOCS / "environment.json").write_text(json.dumps(environment, indent=2)+"\n", encoding="utf-8")
     files = {}
-    for top in ("source", "analysis_source", "analysis", "bridge_candidates", "compatibility_analysis", "timing_uncertainty", "stage_effects", "recovery", "common", "networks"):
+    for top in ("source", "analysis_source", "analysis", "bridge_candidates", "compatibility_analysis", "timing_uncertainty", "stage_effects", "candidate_diagnostics", "tail_gate_diagnostics", "recovery", "common", "networks"):
         for file in (OUTPUT / top).rglob("*"):
             if file.is_file() and file.suffix not in {".pyc", ".npz"}:
                 files["run/"+file.relative_to(OUTPUT).as_posix()] = file
