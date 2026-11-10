@@ -1,0 +1,822 @@
+{
+  "study": "paper15_node_scope_v1",
+  "completed": true,
+  "protocol_sha256": "640a08a960ae8b8d0938ee32c825b472d946c3f352eaa97544f54419b8cefb76",
+  "information_scope": "Same already-seen physical day; policy froze before new execution. No truth/future read by price solver.",
+  "new_day_weight": 2,
+  "relative_band": 0.03,
+  "conditional_probability_target": 0.9,
+  "threshold": 9.179191188409,
+  "candidates_frozen": true,
+  "all_history_retained": true,
+  "no_new_fit": true,
+  "no_new_W_search": true,
+  "retained_nodes": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "retained_resources": 20,
+  "retained_active_requests": 430,
+  "original_resources": 60,
+  "original_active_requests": 1290,
+  "prediction_model_source_hashes": {
+    "problem.py": "8f90924fb33eb7224af8266fca4194f2c88969dc00a52f59e6bfe7ed0d03d8ee",
+    "probability.py": "95fca332492faed53c4dc59299e42a417410785c6b3c177bf0dfbe454ab5371c",
+    "solve.py": "1f3d7008b12908f2f924769d101a8b09ce4bde8fc205021bad748813e79ce1d3"
+  },
+  "frozen_old_quote_ablation": {
+    "all_original": {
+      "probability": 0.9000042968761883,
+      "fee": 43.40192642136189,
+      "expected_loss_coarse": 1412.8537567969606,
+      "expected_loss_fine": 1350.3192695909133,
+      "expected_loss_gap": 62.53448720604729,
+      "expected_band_term": -40.509578087727434,
+      "expected_D": 22.024909118319783,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 92.93478132671025,
+      "net_kwh": -0.5908112001950748
+    },
+    "zero": {
+      "probability": 0.002990206555069652,
+      "fee": 0.0,
+      "expected_loss_coarse": 1376.5213216791408,
+      "expected_loss_fine": 1348.347543661944,
+      "expected_loss_gap": 28.17377801719681,
+      "expected_band_term": -40.45042630985836,
+      "expected_D": -12.276648292661548,
+      "mean_candidate_prediction_distance": 155.86140715929145,
+      "absolute_kwh": 0.0,
+      "net_kwh": 0.0
+    },
+    "inside_only_original": {
+      "probability": 0.8789104257239231,
+      "fee": 23.607075057415205,
+      "expected_loss_coarse": 1410.7778939036352,
+      "expected_loss_fine": 1349.38584818956,
+      "expected_loss_gap": 61.392045714075266,
+      "expected_band_term": -40.481575445686836,
+      "expected_D": 20.910470268388508,
+      "mean_candidate_prediction_distance": 212.10217305445045,
+      "absolute_kwh": 44.860524942153035,
+      "net_kwh": -1.0546499133984275
+    },
+    "outside_only_original": {
+      "probability": 0.0038708434789824775,
+      "fee": 19.794851363946684,
+      "expected_loss_coarse": 1378.128756847236,
+      "expected_loss_fine": 1349.2375350097952,
+      "expected_loss_gap": 28.891221837440753,
+      "expected_band_term": -40.47712605029389,
+      "expected_D": -11.585904212853166,
+      "mean_candidate_prediction_distance": 155.86140715929142,
+      "absolute_kwh": 48.074256384557216,
+      "net_kwh": 0.4638387132033528
+    },
+    "remove_101": {
+      "probability": 0.8742555845948458,
+      "fee": 41.105034147916314,
+      "expected_loss_coarse": 1411.297794095184,
+      "expected_loss_fine": 1350.1469878711575,
+      "expected_loss_gap": 61.15080622402638,
+      "expected_band_term": -40.50440963613476,
+      "expected_D": 20.64639658789156,
+      "mean_candidate_prediction_distance": 209.78639506276102,
+      "absolute_kwh": 85.1377651332074,
+      "net_kwh": -0.5040981239523702
+    },
+    "remove_102": {
+      "probability": 0.8687738949750334,
+      "fee": 41.7938394128862,
+      "expected_loss_coarse": 1410.9588111534486,
+      "expected_loss_fine": 1350.1048364673259,
+      "expected_loss_gap": 60.85397468612268,
+      "expected_band_term": -40.503145094019814,
+      "expected_D": 20.350829592102855,
+      "mean_candidate_prediction_distance": 209.71340126572824,
+      "absolute_kwh": 88.80289089764834,
+      "net_kwh": -0.31664404287523173
+    },
+    "remove_103": {
+      "probability": 0.5438405601584307,
+      "fee": 38.036871079270014,
+      "expected_loss_coarse": 1400.9197333318675,
+      "expected_loss_fine": 1350.2621089588856,
+      "expected_loss_gap": 50.6576243729819,
+      "expected_band_term": -40.507863268766606,
+      "expected_D": 10.149761104215258,
+      "mean_candidate_prediction_distance": 196.84434705720608,
+      "absolute_kwh": 83.26313081989933,
+      "net_kwh": -0.4238304038965707
+    },
+    "remove_104": {
+      "probability": 0.3564878392265298,
+      "fee": 35.00916945836416,
+      "expected_loss_coarse": 1396.5978633991385,
+      "expected_loss_fine": 1350.2134241047509,
+      "expected_loss_gap": 46.384439294387676,
+      "expected_band_term": -40.506402723142564,
+      "expected_D": 5.8780365712450475,
+      "mean_candidate_prediction_distance": 178.9873302682892,
+      "absolute_kwh": 79.58637000757732,
+      "net_kwh": -0.4032763647713645
+    },
+    "remove_105": {
+      "probability": 0.7828934280265469,
+      "fee": 37.45764295095756,
+      "expected_loss_coarse": 1407.1512916231682,
+      "expected_loss_fine": 1349.8667975284818,
+      "expected_loss_gap": 57.28449409468635,
+      "expected_band_term": -40.49600392585449,
+      "expected_D": 16.788490168831913,
+      "mean_candidate_prediction_distance": 205.67236199584934,
+      "absolute_kwh": 83.02322483306585,
+      "net_kwh": -0.2515571520814097
+    },
+    "remove_106": {
+      "probability": 0.8993601787250793,
+      "fee": 43.2231049691294,
+      "expected_loss_coarse": 1412.7509112982552,
+      "expected_loss_fine": 1350.2543882349387,
+      "expected_loss_gap": 62.496523063316545,
+      "expected_band_term": -40.5076316470482,
+      "expected_D": 21.988891416268416,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 91.75394945705912,
+      "net_kwh": -0.5525815279967244
+    },
+    "remove_107": {
+      "probability": 0.9000082021062357,
+      "fee": 41.94843697256978,
+      "expected_loss_coarse": 1412.8390715732253,
+      "expected_loss_fine": 1350.3047924670898,
+      "expected_loss_gap": 62.5342791061355,
+      "expected_band_term": -40.50914377401273,
+      "expected_D": 22.025135332122773,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 89.02235742369612,
+      "net_kwh": -0.6459697289071121
+    },
+    "remove_108": {
+      "probability": 0.900155143420984,
+      "fee": 39.92841258553799,
+      "expected_loss_coarse": 1412.5620658330458,
+      "expected_loss_fine": 1350.0275786269985,
+      "expected_loss_gap": 62.53448720604729,
+      "expected_band_term": -40.50082735880999,
+      "expected_D": 22.03365984723723,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 83.93965191402516,
+      "net_kwh": -0.6293934987434628
+    },
+    "remove_109": {
+      "probability": 0.8999972751001083,
+      "fee": 43.19508698738232,
+      "expected_loss_coarse": 1412.8287334511695,
+      "expected_loss_fine": 1350.2953223449135,
+      "expected_loss_gap": 62.533411106255926,
+      "expected_band_term": -40.50885967034744,
+      "expected_D": 22.024551435908506,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 91.71572909788961,
+      "net_kwh": -0.6053959338326891
+    },
+    "remove_110": {
+      "probability": 0.8856768580214267,
+      "fee": 38.006574203362206,
+      "expected_loss_coarse": 1411.5414935100034,
+      "expected_loss_fine": 1349.7905528859308,
+      "expected_loss_gap": 61.750940624072655,
+      "expected_band_term": -40.49371658657796,
+      "expected_D": 21.25722403749478,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 82.81261350204545,
+      "net_kwh": -0.923708486302167
+    },
+    "remove_111": {
+      "probability": 0.8981427191235648,
+      "fee": 41.416253614838425,
+      "expected_loss_coarse": 1412.738753033022,
+      "expected_loss_fine": 1350.3117665917898,
+      "expected_loss_gap": 62.4269864412322,
+      "expected_band_term": -40.50935299775373,
+      "expected_D": 21.917633443478508,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 88.25709051599156,
+      "net_kwh": -0.576912464215297
+    },
+    "remove_112": {
+      "probability": 0.8996244636470174,
+      "fee": 42.11272428340696,
+      "expected_loss_coarse": 1412.729191978577,
+      "expected_loss_fine": 1350.2193579265909,
+      "expected_loss_gap": 62.50983405198622,
+      "expected_band_term": -40.50658073779776,
+      "expected_D": 22.00325331418844,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 89.09210089201406,
+      "net_kwh": -0.5436933110389077
+    },
+    "remove_113": {
+      "probability": 0.8997945932947053,
+      "fee": 42.14300717964544,
+      "expected_loss_coarse": 1412.888302219794,
+      "expected_loss_fine": 1350.3646130845555,
+      "expected_loss_gap": 62.523689135238556,
+      "expected_band_term": -40.5109383925367,
+      "expected_D": 22.012750742701883,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 89.67962634717314,
+      "net_kwh": -0.5355941439821125
+    },
+    "remove_114": {
+      "probability": 0.9000207101666909,
+      "fee": 41.18287983379119,
+      "expected_loss_coarse": 1412.7699723069795,
+      "expected_loss_fine": 1350.236996858975,
+      "expected_loss_gap": 62.532975448004436,
+      "expected_band_term": -40.50710990576929,
+      "expected_D": 22.025865542235124,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 86.04365236802971,
+      "net_kwh": -0.7986572018684193
+    },
+    "remove_115": {
+      "probability": 0.8969325130279872,
+      "fee": 41.06793222000853,
+      "expected_loss_coarse": 1412.6264698828602,
+      "expected_loss_fine": 1350.2687627355726,
+      "expected_loss_gap": 62.357707147287556,
+      "expected_band_term": -40.508062882067215,
+      "expected_D": 21.849644265220377,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 88.95678536462135,
+      "net_kwh": -0.5600444182672091
+    },
+    "tiny_withdraw_108": {
+      "probability": 0.9000043066751663,
+      "fee": 43.40191244276731,
+      "expected_loss_coarse": 1412.8537378660455,
+      "expected_loss_fine": 1350.3192506599985,
+      "expected_loss_gap": 62.53448720604706,
+      "expected_band_term": -40.50957751979999,
+      "expected_D": 22.024909686247156,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 92.9347003977643,
+      "net_kwh": -0.5908150584249294
+    },
+    "tiny_withdraw_113": {
+      "probability": 0.9000043125167716,
+      "fee": 43.40192090298311,
+      "expected_loss_coarse": 1412.8537341882811,
+      "expected_loss_fine": 1350.3192467460835,
+      "expected_loss_gap": 62.53448744219759,
+      "expected_band_term": -40.50957740238254,
+      "expected_D": 22.02491003981504,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 92.93477182308322,
+      "net_kwh": -0.5908033479340192
+    },
+    "tiny_withdraw_114": {
+      "probability": 0.9000043086297004,
+      "fee": 43.401910794563186,
+      "expected_loss_coarse": 1412.8537362651014,
+      "expected_loss_fine": 1350.319248987273,
+      "expected_loss_gap": 62.53448727782825,
+      "expected_band_term": -40.50957746961823,
+      "expected_D": 22.02490980820994,
+      "mean_candidate_prediction_distance": 212.1021730544504,
+      "absolute_kwh": 92.93477749707903,
+      "net_kwh": -0.5908073705638451
+    }
+  },
+  "shared_input_increment_by_observation_group": {
+    "observed_101_105": {
+      "loss_C_contribution": 1.2768058351166474,
+      "loss_F_contribution": 0.13436434314490953,
+      "unweighted_gap_contribution": 1.1424414919717378,
+      "band_term_contribution": -0.004030930294346646,
+      "ED_contribution": 1.1384105616773468
+    },
+    "observed_106_115": {
+      "loss_C_contribution": 0.7990570582088594,
+      "loss_F_contribution": 0.799057058208632,
+      "unweighted_gap_contribution": 2.2737367544323206e-13,
+      "band_term_contribution": -0.023971711746259672,
+      "ED_contribution": -0.023971711746071378
+    }
+  },
+  "individual_node_withdrawal_quadrature": {
+    "107": {
+      "probability": 0.9000082021062368,
+      "numerical_pass": true,
+      "orders": [
+        16,
+        32,
+        64
+      ],
+      "probabilities": [
+        0.9000082021062367,
+        0.9000082021062357,
+        0.9000082021062368
+      ],
+      "maximum_difference": 1.1102230246251565e-15,
+      "moments": {
+        "mean": 22.02513533212261,
+        "sd": 9.97603842269593,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "analytic_tail_bound": 1.971032030523639e-90,
+      "certified_error": null
+    },
+    "108": {
+      "probability": 0.9001551434209846,
+      "numerical_pass": true,
+      "orders": [
+        16,
+        32,
+        64
+      ],
+      "probabilities": [
+        0.9001551434209853,
+        0.900155143420984,
+        0.9001551434209846
+      ],
+      "maximum_difference": 1.3322676295501878e-15,
+      "moments": {
+        "mean": 22.033659847237104,
+        "sd": 9.976029825883245,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "analytic_tail_bound": 2.565614010887101e-90,
+      "certified_error": null
+    },
+    "114": {
+      "probability": 0.9000207101666919,
+      "numerical_pass": true,
+      "orders": [
+        16,
+        32,
+        64
+      ],
+      "probabilities": [
+        0.9000207101666927,
+        0.9000207101666909,
+        0.9000207101666919
+      ],
+      "maximum_difference": 1.7763568394002505e-15,
+      "moments": {
+        "mean": 22.02586554223512,
+        "sd": 9.976041582681681,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "analytic_tail_bound": 2.2357765057026317e-90,
+      "certified_error": null
+    }
+  },
+  "optimization_starts": {
+    "projected_old_AB": {
+      "qualified": true,
+      "outcome": "qualified",
+      "probability": 0.900002462403179,
+      "fee": 24.95880447914832,
+      "device_audit": {
+        "power_violation_kw": 4.440892098500626e-16,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 1.1102230246251565e-16,
+        "passed": true,
+        "absolute_DR_kwh": 45.416061961588326,
+        "net_DR_kwh": -1.065091529130438,
+        "max_sum_abs_kw": 3.352492376096923
+      },
+      "probability_audit": {
+        "probability": 0.900002462403179,
+        "numerical_pass": true,
+        "orders": [
+          16,
+          32,
+          64
+        ],
+        "probabilities": [
+          0.900002462403179,
+          0.9000024624031777,
+          0.900002462403179
+        ],
+        "maximum_difference": 1.3322676295501878e-15,
+        "moments": {
+          "mean": 22.106937443070304,
+          "sd": 10.039965903900594,
+          "independent_cells": 1440,
+          "cells": 1440
+        },
+        "analytic_tail_bound": 2.5921618095885013e-90,
+        "certified_error": null
+      },
+      "search": {
+        "statuses": [
+          {
+            "stage": "cost",
+            "status": "TimeoutError('cost wall limit')",
+            "solver_success": false,
+            "iterations": null,
+            "seconds": 240.12245369999437
+          },
+          {
+            "stage": "restore",
+            "status": "target_reached",
+            "accepted_steps": 2,
+            "trial_evaluations": 2,
+            "seconds": 6.050820799995563
+          }
+        ],
+        "qualified_by_search": true,
+        "target": 0.9,
+        "fixed_cost_scale": 23.607075057415205,
+        "evaluations": 83,
+        "feasible_evaluations": 1,
+        "seconds": 247.4692217999982,
+        "optimization_performed": true,
+        "global_optimal": false
+      },
+      "global_optimal": false
+    },
+    "zero": {
+      "qualified": false,
+      "outcome": "target_not_met",
+      "probability": 0.8398874999438654,
+      "fee": 40.75171837907306,
+      "device_audit": {
+        "power_violation_kw": 1.6653345369377348e-16,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 2.7755575615628914e-17,
+        "passed": true,
+        "absolute_DR_kwh": 59.22754182360133,
+        "net_DR_kwh": -0.46412224001440305,
+        "max_sum_abs_kw": 4.101450891539581
+      },
+      "probability_audit": {
+        "probability": 0.8398874999438654,
+        "numerical_pass": true,
+        "orders": [
+          16,
+          32,
+          64
+        ],
+        "probabilities": [
+          0.8398874999438677,
+          0.8398874999438656,
+          0.8398874999438654
+        ],
+        "maximum_difference": 2.3314683517128287e-15,
+        "moments": {
+          "mean": 19.08460193445928,
+          "sd": 9.960514260046311,
+          "independent_cells": 1440,
+          "cells": 1440
+        },
+        "analytic_tail_bound": 7.440044487905819e-90,
+        "certified_error": null
+      },
+      "search": {
+        "statuses": [
+          {
+            "stage": "cost",
+            "status": "TimeoutError('cost wall limit')",
+            "solver_success": false,
+            "iterations": null,
+            "seconds": 240.50885130000825
+          },
+          {
+            "stage": "restore",
+            "status": "evaluation_limit",
+            "accepted_steps": 6,
+            "trial_evaluations": 10,
+            "seconds": 29.45262769999681
+          }
+        ],
+        "qualified_by_search": false,
+        "target": 0.9,
+        "fixed_cost_scale": 1.0,
+        "evaluations": 89,
+        "feasible_evaluations": 0,
+        "seconds": 270.5909288999974,
+        "optimization_performed": true,
+        "global_optimal": false
+      },
+      "global_optimal": false
+    }
+  },
+  "selected_start": "projected_old_AB",
+  "lift_verification": {
+    "passed": true,
+    "all_selected_input_arrays_identical": true,
+    "same_selection": true,
+    "same_probability_model": true,
+    "device_delivery_error": 0.0,
+    "outside_delivery_max_abs_kw": 0.0,
+    "fee_lift_error": 3.552713678800501e-15,
+    "probability_audit": {
+      "probability": 0.900002462403179,
+      "numerical_pass": true,
+      "orders": [
+        16,
+        32,
+        64
+      ],
+      "probabilities": [
+        0.900002462403179,
+        0.9000024624031777,
+        0.900002462403179
+      ],
+      "maximum_difference": 1.3322676295501878e-15,
+      "moments": {
+        "mean": 22.106937443070304,
+        "sd": 10.039965903900594,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "analytic_tail_bound": 2.5921618095885013e-90,
+      "certified_error": null
+    },
+    "original": {
+      "fee": 43.40192642136189,
+      "positive_kwh": 46.171985063257594,
+      "negative_kwh": 46.762796263452664,
+      "absolute_kwh": 92.93478132671025,
+      "net_kwh": -0.5908112001950748,
+      "max_simultaneous_absolute_kw": 12.051497295759573,
+      "max_single_resource_kw": 1.0358460680449946,
+      "expected_loss_coarse": 1412.8537567969606,
+      "expected_loss_fine": 1350.3192695909133,
+      "expected_unweighted_gap": 62.53448720604729,
+      "expected_band_term": -40.509578087727434,
+      "expected_D": 22.024909118319783,
+      "candidate_prediction_distance": 212.1021730544504,
+      "moments": {
+        "mean": 22.024909118319666,
+        "sd": 9.976038775710396,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "device_audit": {
+        "power_violation_kw": 4.440892098500626e-16,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 2.220446049250313e-16,
+        "passed": true,
+        "absolute_DR_kwh": 92.93478132671025,
+        "net_DR_kwh": -0.5908112001950748,
+        "max_sum_abs_kw": 12.051497295759573
+      }
+    },
+    "restricted": {
+      "fee": 24.958804479148316,
+      "positive_kwh": 22.175485216228946,
+      "negative_kwh": 23.240576745359387,
+      "absolute_kwh": 45.416061961588326,
+      "net_kwh": -1.065091529130438,
+      "max_simultaneous_absolute_kw": 3.352492376096923,
+      "max_single_resource_kw": 0.6978296310754827,
+      "expected_loss_coarse": 1412.0258700670884,
+      "expected_loss_fine": 1349.4358569165227,
+      "expected_unweighted_gap": 62.59001315056571,
+      "expected_band_term": -40.483075707495715,
+      "expected_D": 22.10693744306991,
+      "candidate_prediction_distance": 213.8997535375511,
+      "moments": {
+        "mean": 22.106937443070304,
+        "sd": 10.039965903900594,
+        "independent_cells": 1440,
+        "cells": 1440
+      },
+      "device_audit": {
+        "power_violation_kw": 4.440892098500626e-16,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 1.1102230246251565e-16,
+        "passed": true,
+        "absolute_DR_kwh": 45.416061961588326,
+        "net_DR_kwh": -1.065091529130438,
+        "max_sum_abs_kw": 3.352492376096923
+      }
+    },
+    "active_nodes": [
+      101,
+      102,
+      103,
+      104,
+      105
+    ]
+  },
+  "actual": {
+    "natural_days": 1,
+    "paths_per_contract": 32,
+    "new_records": 64,
+    "reused_records": 64,
+    "new_converged_AC_slots": 6144,
+    "new_requested_AC_slots": 6144,
+    "failures_unresolved": 0,
+    "thermal_limits_checked": false,
+    "policies": {
+      "old_AB": {
+        "denominator": 32,
+        "complete": 32,
+        "failures_unresolved": 0,
+        "recoveries": 32,
+        "total_errors": 0,
+        "fee": 43.40192642136189,
+        "mean_D": 23.81274314646186,
+        "min_D": 9.707007870755337,
+        "mean_actual_abs_kwh": 90.56022358677373,
+        "coarse_exclusions": 32,
+        "reused_saved_observations": true
+      },
+      "zero": {
+        "denominator": 32,
+        "complete": 32,
+        "failures_unresolved": 0,
+        "recoveries": 0,
+        "total_errors": 32,
+        "fee": 0.0,
+        "mean_D": -2.4818463226596776,
+        "min_D": -15.627391084999067,
+        "mean_actual_abs_kwh": 0.0,
+        "coarse_exclusions": 0,
+        "reused_saved_observations": true
+      },
+      "old_A_only": {
+        "denominator": 32,
+        "complete": 32,
+        "failures_unresolved": 0,
+        "not_run": 0,
+        "recoveries": 32,
+        "total_errors": 0,
+        "fee": 23.607075057415205,
+        "mean_D": 23.81091850006566,
+        "min_D": 9.7078315793608,
+        "mean_actual_abs_kwh": 43.524999696753014,
+        "coarse_exclusions": 32
+      },
+      "new_A": {
+        "denominator": 32,
+        "complete": 32,
+        "failures_unresolved": 0,
+        "not_run": 0,
+        "recoveries": 32,
+        "total_errors": 0,
+        "fee": 24.958804479148316,
+        "mean_D": 24.825161109875424,
+        "min_D": 11.117071834266426,
+        "mean_actual_abs_kwh": 43.98501070326637,
+        "coarse_exclusions": 32
+      }
+    },
+    "paired_differences": {
+      "old_A_only": {
+        "paired": 32,
+        "identical_seeds": true,
+        "complete_recovery_same": true,
+        "D_mean_delta": -0.0018246463961964499,
+        "D_min_delta": -0.031046765087587858,
+        "D_max_delta": 0.026217806873553684,
+        "D_abs_max_delta": 0.031046765087587858,
+        "fees_delta": -19.794851363946687
+      },
+      "new_A": {
+        "paired": 32,
+        "identical_seeds": true,
+        "complete_recovery_same": true,
+        "D_mean_delta": 1.0124179634135664,
+        "D_min_delta": 0.0580887969059134,
+        "D_max_delta": 1.7618102884955107,
+        "D_abs_max_delta": 1.7618102884955107,
+        "fees_delta": -18.443121942213576
+      }
+    }
+  },
+  "independent_actual_audit": {
+    "passed": true,
+    "audited_new_records": 64,
+    "old_shared_records_loaded": 64,
+    "hash_checked_references": 146,
+    "original_source_hashes_checked": 328,
+    "max_errors": {
+      "score_D": 0.0,
+      "score_losses": 0.0,
+      "measurement_P": 0.0,
+      "measurement_Q": 0.0,
+      "measurement_V": 0.0,
+      "delivery": 0.0,
+      "multiplier": 0.0,
+      "root_measurement_CRN": 0.0,
+      "nominal": 0.0,
+      "outside_delivery": 0.0,
+      "natural_P_CRN": 0.0,
+      "natural_Q_CRN": 0.0,
+      "node_dp": 0.0,
+      "node_dq": 0.0,
+      "physical_P_increment": 7.771561172376096e-16,
+      "physical_Q_increment": 3.469446951953614e-16,
+      "fee": 0.0
+    },
+    "all_device_audits_pass": true,
+    "all_saved_electrical_checks_pass": true,
+    "converged_AC_slots": 6144,
+    "expected_AC_slots": 6144,
+    "voltage_violation_cells": 0,
+    "same_CRN_and_natural_day_as_old_AB_zero": true,
+    "same_frozen_pool": true,
+    "same_archived_truth": true,
+    "no_new_fits_or_search": true,
+    "source_and_recorded_time_order_support_freeze_before_truth": true,
+    "candidate_errors": {
+      "coarse": {
+        "errors": 1,
+        "missing": 1,
+        "extra": 0,
+        "raw_errors": 1
+      },
+      "refined": {
+        "errors": 0,
+        "missing": 0,
+        "extra": 0,
+        "raw_errors": 0
+      }
+    },
+    "policies": {
+      "old_A_only": {
+        "complete": 32,
+        "recoveries": 32,
+        "total_errors": 0,
+        "mean_D": 23.81091850006566,
+        "min_D": 9.7078315793608,
+        "fee": 23.607075057415205,
+        "mean_actual_abs_kwh": 43.524999696753014
+      },
+      "new_A": {
+        "complete": 32,
+        "recoveries": 32,
+        "total_errors": 0,
+        "mean_D": 24.825161109875424,
+        "min_D": 11.117071834266426,
+        "fee": 24.958804479148316,
+        "mean_actual_abs_kwh": 43.98501070326637
+      }
+    },
+    "paired_against_old_AB": {
+      "old_A_only": {
+        "paired": 32,
+        "mean_D_delta": -0.0018246463961964499,
+        "min_D_delta": -0.031046765087587858,
+        "max_D_delta": 0.026217806873553684,
+        "fee_delta": -19.794851363946687
+      },
+      "new_A": {
+        "paired": 32,
+        "mean_D_delta": 1.0124179634135664,
+        "min_D_delta": 0.0580887969059134,
+        "max_D_delta": 1.7618102884955107,
+        "fee_delta": -18.443121942213576
+      }
+    },
+    "information_boundary": "This is replay on one already-seen natural day and 32 existing independent execution/meter streams; not a new unseen-day test. File order and source gate support the recorded sequence, not a forensic proof that truth was never known in prior work.",
+    "new_AC_runs": 0,
+    "new_optimizations": 0,
+    "new_parameter_fits": 0,
+    "input_hashes": {
+      "request.json": "8478a22fe92b3700f63eab6a1f54babb6bd6097bc0571178bf14de2649fe86b6",
+      "predictions_frozen.json": "4acb6762ce2a9d40a86f0f152ceaa17cf55f70d27aab2282e49a874b5cd97fc2",
+      "evaluated_rows.json": "bafb072d8d661cd58671596d6f4735ff33411155a9f4c548c673ea23275632f1",
+      "truth_private.json": "9526c71d06869851d9d1d05a78cffea146f9f55bc3d98e2cd0d417c61ec9eeec",
+      "summary.json": "8b222ee188fe2a9ea6475760d3a1c222525938aba32fdea1587a58db9bbc41b8"
+    },
+    "script_sha256": "3738ad46df22d70b66d071333e32a52facbf9cf106e223e3241cfb86c4749ddb",
+    "seconds": 1.5376836000068579
+  },
+  "provenance_hashes": {
+    "prepared.json": "1734972ddd31ff7e3e5a581b3ed2ed95487c0c00022bcddc95e5af34cdbdd7b2",
+    "policy_freeze.json": "3ec3b68bd107a0afa095cd633743a9ad045778d31b13e58644bf421f24049fca",
+    "execution_freeze.json": "64a5f0ccd7820f548483445f1f0ee2cdccc617280aaf7c3baf2e0609cae564eb",
+    "actual_runner.py": "616710044ec19a34ad7116edffed09e22129319bd6e1a5d67a242d53f8418bf3",
+    "actual_v1\\request.json": "8478a22fe92b3700f63eab6a1f54babb6bd6097bc0571178bf14de2649fe86b6",
+    "actual_v1\\predictions_frozen.json": "4acb6762ce2a9d40a86f0f152ceaa17cf55f70d27aab2282e49a874b5cd97fc2",
+    "actual_v1\\summary.json": "8b222ee188fe2a9ea6475760d3a1c222525938aba32fdea1587a58db9bbc41b8",
+    "actual_comparison.json": "40cc08729957288a3c3aa2c4787f96bb7c5baa14933d696fa155f451db819e51",
+    "actual_v1\\independent_audit.json": "12e4248ddfa37623de636d22460293db0772ca88e4b7895694f29b02d4f8e0e1",
+    "audit_independent\\audit.json": "a37e7824ed53826fb891c69413a70a79e1798fc516f614561e3af740c27b8dad",
+    "audit_independent\\row_components.json": "14320e72c48d43aa6ad6f87461a2773ad2c202299da47684afbb70bb3f0feda4",
+    "audit_independent\\restricted_first_check.json": "a40b3911e249a912a99a27c9e0d91137b1d497c2d10142a3dc25c6ebea0c78e4"
+  },
+  "private_recovery_root": "C:\\Users\\23761\\.codex\\visualizations\\2026\\10\\25\\01a1726e-8ec7-7bc1-9f18-391f9cf79a1a\\wzzt_dr_node_scope_v1",
+  "limits": [
+    "conditional voltage law only, not a full stochastic delivery guarantee",
+    "one seen day and 32 shared execution paths, not 32 independent days",
+    "both cost stages hit wall limit; zero start did not meet the target",
+    "smaller-domain feasible point proves the old saved quote was not fully optimized, not global superiority of restriction",
+    "weight 2 retained only to isolate node scope; equal weighting remains a separate pending choice"
+  ]
+}

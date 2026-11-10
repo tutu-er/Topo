@@ -110,3 +110,7 @@ reset不能抹掉未完成能量，前一任务须已关闭且间隔没有非零
 当前概率只对给定预测均值和名义交付后的独立电压创新积分。功率/响应随机性、共享根表误差和真实AC需要调用方独立评价。小规模输入也可能比1440单元难积分，可显式配置`numerics.order/audit_orders`并保留未决，不能裁剪概率以伪造达标。
 
 测试需额外安装pytest，命令为`python -m pytest -q test_problem.py test_solve.py`。迁移核验和清理恢复见`VALIDATION.json`及`../archive/dr_continuous_independent_20261110.md`。
+
+## 节点范围诊断
+
+2026-11-10的[101–105限制试验](studies/node_scope_report.md)区分直接候选差异、共同残差位置和可撤销动作，并报告冻结报价后的原AC结果。`studies/node_scope.py`只准备/核算独立输入，优化仍调用上述`solve.py`；[预锁协议](studies/node_scope_protocol.json)与聚合结果保留。该单因素试验显式沿用旧权重2，不修改默认规则或将固定节点标签用于其他算例。原AC执行器仍是外部接口，不引入核心依赖。

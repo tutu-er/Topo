@@ -1,0 +1,46 @@
+{
+  "study": "paper15_node_scope_v1",
+  "question": "Separate shared-residual positioning from direct candidate separation; restrict new optimization to nodes 101-105.",
+  "scope": "Matched diagnostic of the already evaluated paper15 day; not a new independent calendar-day test.",
+  "fixed": {
+    "history_slots": 288,
+    "future_slots": 96,
+    "dt_hours": 0.25,
+    "new_day_weight": 2,
+    "weight_reason": "Keep the previous score unchanged to isolate node eligibility. This does not endorse weight 2 for the next scientific baseline.",
+    "relative_validation_band": 0.03,
+    "probability_target": 0.9,
+    "candidate_parameters": "frozen historical pair; no refitting or new candidate search",
+    "resource_capabilities": "unchanged at retained nodes; other-node contracts disabled, no capacity redistribution",
+    "cost": "same quadratic prepaid contract fee; minimize fee, no new cost cap",
+    "probability_scope": "forecast mean, nominal delivery, independent shared-candidate residual voltage innovations"
+  },
+  "allowed_nodes": [101, 102, 103, 104, 105],
+  "counterfactuals": ["zero", "old_A_only", "old_B_only", "old_AB", "each_B_node_deleted"],
+  "analysis": [
+    "mean absolute candidate prediction difference",
+    "expected LC-LF and -0.03 LF, whose sum is expected D",
+    "exact-model probability with 16/32/64 quadrature audit",
+    "fee, absolute and net regulation, device feasibility",
+    "a deleted-node quote that remains probability-feasible and cheaper proves removable residue for this saved quote"
+  ],
+  "optimization": {
+    "starts": ["projected_old_AB", "zero"],
+    "per_start": {"maxiter": 80, "seconds": 240.0, "restore_evaluations": 10, "restore_seconds": 30.0, "ftol": 1e-8},
+    "select": "lowest fee among numerically audited feasible points; otherwise highest planning probability and report target failure",
+    "global_optimality_claim": false
+  },
+  "actual_evaluation": {
+    "freeze_before_AC": true,
+    "new_contracts": ["old_A_only", "new_A"],
+    "reuse_saved_contracts": ["old_AB", "zero"],
+    "paths_per_contract": 32,
+    "response_seed": 2026111303,
+    "meter_seed": 2026111304,
+    "same_seen_day_and_common_random_paths": true,
+    "all_failures_and_unresolved_retained": true,
+    "metrics": ["actual D", "coarse exclusion", "complete wrong and missing supports", "complete recovery", "actual regulation", "prepaid fee"]
+  },
+  "acceptance": "Better means lower fee at the same audited target with actual final errors and failures reported; better probability alone is not a topology-recovery result.",
+  "no_changes_to": ["production identifier", "selection rule", "history", "noise", "response amplitude limits", "reference predictor", "truth-based design"]
+}

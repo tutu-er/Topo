@@ -1,3 +1,11 @@
+## 节点范围与组成试验，2026-11-10
+
+- 先读dr_pricing/studies/node_scope_report.md、node_scope_protocol.json、node_scope_results.json。代码node_scope.py提供prepare/analyze/freeze，优化不改核心solve.py。protocol锁定2起点、每条240秒+10次/30秒恢复；已完成，不重复启动。
+- 私有根wzzt_dr_node_scope_v1：prepared.json、case_projected_old_AB/case_zero固定输入；optimization_projected_old_AB与optimization_zero保存源、迭代、墙限、恢复及完成。第一条合格，第二条未达90%，均保留。policy_freeze.json及frozen_execution_contracts.npz锁定选择；资源恢复为原60×96后106–115严格0。
+- audit_independent下audit.json为原4组合、15逐节点撤销及小步诊断；withdrawal_quadrature.json确认107/108/114可撤销；row_components.json给输入B按观测位置的分解；restricted_first_check.json给新报价原域lift核验。所有数组、原响应器和候选不变。
+- execution_freeze.json在新实际数据加载前冻结old_A_only/new_A两合同；actual_runner.py仅适配原driver.execute，不重写辨识器。actual_v1下64私人观测、请求/源hash、先选择后真值、summary/complete与independent_audit齐；actual_comparison.json同旧AB逐路径比较。新64、旧AB/zero复用64，不混作128个独立自然日。
+- 当前case沿用w2仅隔离参与节点；原paper15_ready_v2仍approved_for_new_optimization=false，w1未重算。当前32路径结果不转写为更改权重后的成绩。私人轨迹不公开，不删除失败记录。
+
 ## 独立包、迁移和归档，2026-11-10
 
 - 新唯一活动目录dr_pricing，README/ MODEL/ REVIEW分别为运行、数学和待决清单。核心3个文件、1个CLI，无仓库导入/pickle/绝对实验路径；requirements和example齐。14项测试、Topo外复制独立运行、原三点费用/概率/全部梯度完全一致，VALIDATION.json为证据；160条保存实际观测的新选模接口结果全同。未新跑paper15优化或AC。
