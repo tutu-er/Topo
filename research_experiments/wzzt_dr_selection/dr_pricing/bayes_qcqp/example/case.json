@@ -1,0 +1,48 @@
+{
+  "format_version": 1,
+  "case_id": "synthetic_two_slot_gaussian_pair",
+  "arrays_file": "arrays.npz",
+  "dt_hours": 0.5,
+  "decision_slots": 1,
+  "node_labels": [
+    1
+  ],
+  "resource_ids": [
+    "synthetic_shift"
+  ],
+  "residual_unit": "synthetic Gaussian measurement units",
+  "information": {
+    "parameters_frozen": true,
+    "actual_future_used": false,
+    "truth_used": false
+  },
+  "selection": {
+    "history_count": 2,
+    "new_count": 2,
+    "new_day_weight": 1.0,
+    "historical_loss_coarse": 1.0,
+    "historical_loss_fine": 1.0,
+    "relative_band": 0.03,
+    "absolute_tolerance": 1e-06,
+    "candidate_ids": [
+      "C",
+      "F"
+    ],
+    "support_counts": [
+      1,
+      2
+    ],
+    "historically_eligible": [
+      true,
+      true
+    ],
+    "candidate_count": 2
+  },
+  "probability": {
+    "target": 0.9,
+    "independent_cells": true,
+    "shared_candidate_noise": true,
+    "scope": "conditional_voltage"
+  },
+  "notes": "Pure analytic installation example; legacy selection fields only satisfy the parent loader and are not Bayesian history or a grid performance claim."
+}

@@ -1,0 +1,52 @@
+{
+  "study": "bayesian_quadratic_v1",
+  "date": "2026-11-11",
+  "purpose": "Implement and test posterior-threshold squared-residual planning, explicitly separating expected evidence from event probability.",
+  "scope": "Existing paper15 historical frozen pair and the same already-seen day. No topology refitting, new network, or selection of test truth for planning.",
+  "likelihood": {
+    "type": "two frozen linear Gaussian candidates with a common fixed diagonal voltage covariance",
+    "posterior_threshold": 0.9,
+    "base_prior": [0.5, 0.5],
+    "history": "Use all existing historical validation observations once; recompute squared Gaussian likelihood, never exponentiate stored MAE.",
+    "history_slot_weight": 1,
+    "new_day_slot_weight": 1,
+    "noise_source": "Explicit existing 96-slot sigma profile; repeat for the three historical validation days. Synthetic working-likelihood assumption, not empirical posterior calibration.",
+    "candidate_coverage": "Only this fitted pair; no integration over impedance uncertainty or omitted trees."
+  },
+  "modes": {
+    "expected_either": "Minimize original prepaid cost subject to the absolute expected log posterior odds reaching logit(0.9); evaluate both directions without test truth.",
+    "pair_event_nominal": "Optional exact closed-pair benchmark: nominal deterministic power, correct candidate posterior >=0.9 with conditional probability >=0.9 under either of the two working models. Includes history odds; not a guarantee under random delivery or AC."
+  },
+  "planning_response": {
+    "expected_mode": "Original independent per-resource multiplicative Gaussian response deviations. Shared deviations in both candidate residuals; evaluate their exact second-moment contribution.",
+    "nominal_mode": "Mean delivery only. Random response is evaluated externally, not silently included in its exact event claim.",
+    "background_power_uncertainty": "No extra background covariance added in the first paper15 run; do not double count existing residual sigma. Core accepts explicit additional residual variance inputs."
+  },
+  "resource_domain": {
+    "nodes": [101, 102, 103, 104, 105],
+    "resources": "Original 20 retained resources, other 40 contracts zero. No capacity redistribution.",
+    "policy": "Original hourly normalized request and exact causal power/energy/deadline map, not free 15-minute scheduling.",
+    "cost": "Original quadratic prepaid synthetic contract units; no budget increase or new cost cap."
+  },
+  "solver": {
+    "name": "Gurobi global nonconvex QCQP/MIQCP",
+    "NonConvex": 2,
+    "seconds_per_direction": 120,
+    "MIPGap": 0.02,
+    "Threads": 1,
+    "Seed": 0,
+    "zero_shortcut": "If a physical zero contract meets the new constraint, nonnegative cost proves global cost zero. Retain this outcome; do not alter priors or thresholds to create DR need.",
+    "all_timeouts_and_unresolved_retained": true
+  },
+  "verification": {
+    "analytic": ["posterior-to-square identity", "expected quadratic identity including multiplicative response variance", "50-percent counterexample to expectation-as-probability", "closed-pair exact probability threshold"],
+    "solver": ["known rank-one global optimum", "exact hourly device-map replay", "cost and quadratic constraint recomputation", "incumbent versus global bound"],
+    "actual": "Freeze quotes, then reuse existing identical observations or run only genuinely new contracts on the original 32 paired execution and metering paths. Compute Bayesian predictions before truth evaluation.",
+    "response_seed": 2026111303,
+    "meter_seed": 2026111304,
+    "conditional_mc_seed": 2026111401,
+    "conditional_mc_paths": 32768,
+    "metrics": ["expected log odds", "actual log odds and finite-pool posterior", "posterior threshold attainments", "Bayesian MAP/confident errors and abstentions", "unchanged legacy 3-percent errors", "cost", "bound and gap"]
+  },
+  "do_not_claim": ["expectation constraint equals a chance constraint", "posterior is calibrated probability of the true full topology", "pair-model guarantee covers all unknown trees", "Bayesian selector improvement is DR improvement", "solver completion means optimality"]
+}

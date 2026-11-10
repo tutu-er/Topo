@@ -1,3 +1,11 @@
+## Bayesian平方残差二次规划，2026-11-11
+
+- 活动入口dr_pricing/bayes_qcqp/{README,MODEL,REPORT}.md、PROTOCOL.json、RESULTS.json；3计算文件core/solver/run，复用父problem/solve。26测试通过，独立审查通过。新模式expected_either是绝对期望log odds，不是达成率；pair_event_nominal仅闭合两模型与名义功率。
+- 私有wzzt_dr_bayes_qcqp_v1：prepare.py、protocol_frozen.json、case_A含原完整历史引用、history_evidence.json及历史平方残差；expected_either保存零费证书，pair_event_nominal保存120秒无解墙限/MPS/日志，无新报价。两个公开toy在example_*_v2，第一次缺format_version失败保留在无v2目录；MC各32768已完成，勿重复。
+- expected_either_mc保存32768工作模型核验。saved_actual/{summary,scores,request,independent_check}.json、bayes_predictions_frozen.json、score_saved.py保存96已见AC观察重算及先选后真值，0新AC、0新fit/W。原物理数据仍在原私有full_price/node_scope目录，通过hash引用，不复制或上传。
+- 当前期望主问题全局费0；新后验3政策均32/32恢复，是判据改变，不是本轮DR收益。较强名义对照无incumbent、下界0属于未决。结果范围为有限冻结pair、声明对角Gaussian似然及已见日32随机路径。未校准拓扑后验、不称全局覆盖。
+- preparation_failure_initial.json/prepare_initial.py保留同名模块导入冲突，source_before_freeze_gate.py保留冻结门禁修订前源；无失败删样、无噪声/预算调整。公开白名单仅新代码、纯合成example和聚合，私有complete.json与recovery.json给恢复校验。
+
 ## 节点范围与组成试验，2026-11-10
 
 - 先读dr_pricing/studies/node_scope_report.md、node_scope_protocol.json、node_scope_results.json。代码node_scope.py提供prepare/analyze/freeze，优化不改核心solve.py。protocol锁定2起点、每条240秒+10次/30秒恢复；已完成，不重复启动。

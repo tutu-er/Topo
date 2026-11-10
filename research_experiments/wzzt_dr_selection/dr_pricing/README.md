@@ -1,5 +1,7 @@
 # 独立DR概率报价
 
+2026-11-11新增可选的[Bayesian平方残差QCQP/MIQCP路线](bayes_qcqp/README.md)，复用本目录设备模型并增加Gurobi依赖。它将期望对数证据与实际后验过线概率分开；未替换下面的绝对损失概率入口、原3%评价或RNJ/WZZT生产默认。结果见[专项报告](bayes_qcqp/REPORT.md)。
+
 把本目录复制到任何位置即可运行。运行依赖只有Python 3.10+、NumPy和SciPy，不导入Topo仓库、不读取旧实验路径、不使用pickle。核心只有3个文件，一个命令入口。
 
 | 文件 | 作用 |
