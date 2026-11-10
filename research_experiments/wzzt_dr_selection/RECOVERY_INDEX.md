@@ -1,3 +1,7 @@
+## 连续概率模型，数学稿，2026-11-10
+
+- [当前 LaTeX 第 12–15 节](dr_paper15_delivery_margin/pricing_model/main.tex)为最新建议模型，第 1–11 节保留已实现模型和原结果。新节尚未接入代码，内置编译通过。逐项向下取整概率存在平台反例，连续特征函数卷积是待核验的替代计算路线。现有高维履约因素的确定性积分算量仍需审查。
+
 ## 日前发布预测、次日按真值评价，2026-11-10
 
 - [逐日方案](dr_paper15_forecast_day/PLAN.md)与[单日结果及恢复指纹](dr_paper15_forecast_day/RESULT.md)。`day_run.py` 按 prepare、plan、evaluate 分别发布预测、冻结报价、核算 AC。`zero_check.py --public` 仅凭历史和日前预测复现零合同的均值及解析概率下界。
