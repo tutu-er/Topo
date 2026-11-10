@@ -1,0 +1,565 @@
+{
+  "passed": true,
+  "created_utc": "2026-11-10T19:10:04.955322+00:00",
+  "seconds": 1.7308639999828301,
+  "script_sha256": "ce556c27dd4ddb4fdfbdb392525b0cf21dde8766613a418b422022cb68d7113b",
+  "backend_sha256": "27e6d0cc2e0bc4a1e356dc1f0fbac76755347940420529a4db30a2cec7422ae8",
+  "source": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source",
+  "linear_constraint_builder": {
+    "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\rnj_wzzt_core\\rnj_wzzt\\estimation\\laminar_l1_milp.py",
+    "sha256": "fe8764b58bf8f65fd981e0bb37e5b00e2eb6dd252429e100a42d367e48eced94"
+  },
+  "native_origins_within_requested_source": true,
+  "native_sources_unchanged": true,
+  "install_manifest": {
+    "loss_scale": 1.5,
+    "data_scale": 1000.0,
+    "objective_scale": 1000.0,
+    "internal_loss": "loss_scale * physical_MSE",
+    "native_quadratic_coefficient": "loss_scale/(observation_count*SCALE)",
+    "native_objective": "SCALE * (normalized_MSE + normalized_line_count_penalty)",
+    "aliases": [
+      "research_experiments.rebuild_benchmark.engine.loss",
+      "research_experiments.rebuild_benchmark.engine.solve",
+      "research_experiments.rebuild_benchmark.engine.audit_vector",
+      "research_experiments.rnj_count.engine.loss",
+      "research_experiments.rnj_count.engine.solve",
+      "research_experiments.joint_exit.model.loss",
+      "research_experiments.joint_exit.model.audit_vector",
+      "research_experiments.joint_exit.model.solve_checkpoints",
+      "research_experiments.rnj_small_seed.engine.loss",
+      "research_experiments.rnj_small_seed.engine.solve",
+      "research_experiments.rnj_small_seed.engine.solve_checkpoints",
+      "research_experiments.revocable.engine.loss",
+      "research_experiments.revocable.engine.solve",
+      "research_experiments.lp_rebuild.engine.loss"
+    ],
+    "native_module_sources": {
+      "research_experiments.rebuild_benchmark.engine": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\rebuild_benchmark\\engine.py",
+        "sha256": "b053089f34744705e7bab0ee0ab42f86ceac6ba646eab49a51e4cc132cc7f48f"
+      },
+      "research_experiments.rnj_count.engine": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\rnj_count\\engine.py",
+        "sha256": "6154ca0c42b370dee5eebdac0d266d52c6dafce824fd04fd34277295fd234fee"
+      },
+      "research_experiments.joint_exit.model": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\joint_exit\\model.py",
+        "sha256": "e1ead3d4794b1d25cca903dea6b9a47c86c00a3db5ec321d378e87e6c1556682"
+      },
+      "research_experiments.rnj_small_seed.engine": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\rnj_small_seed\\engine.py",
+        "sha256": "a8120c25da2d1aba3d021de9682119dafb0298d582ce219a563b6f2c7858b796"
+      },
+      "research_experiments.revocable.engine": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\revocable\\engine.py",
+        "sha256": "78fca23c524b7cee59f3268da383009659792023ae7127e9830af195a0438543"
+      },
+      "research_experiments.lp_rebuild.engine": {
+        "path": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\lp_rebuild\\engine.py",
+        "sha256": "24ff7f3b83a8179e3c437369b5bd8f005eb343f940131cde684fb665b50719e5"
+      }
+    },
+    "backend_sha256": "27e6d0cc2e0bc4a1e356dc1f0fbac76755347940420529a4db30a2cec7422ae8",
+    "fixed_family_solver": "convex QP",
+    "structural_solver": "convex MIQP",
+    "cache_kind": "QP only",
+    "ridge": 0.0,
+    "positive_impedance_floor": 0.0,
+    "truth_used": false,
+    "future_DR_used": false
+  },
+  "normalization": {
+    "f0_MAE": 0.2222222222222222,
+    "f0_MSE": 0.14814814814814814,
+    "K": 1.5
+  },
+  "hand_checks": {
+    "one_node_MSE": 0.25,
+    "one_node_expected_MSE": 0.25,
+    "one_node_r": 1.5,
+    "one_node_expected_r": 1.5,
+    "one_node_normalized_QP": 0.375,
+    "wrong_family_MSE": 0.14814814814814814,
+    "wrong_family_expected_MSE": 0.14814814814814814,
+    "wrong_family_full_r": 0.3333333333333333,
+    "wrong_family_expected_full_r": 0.3333333333333333,
+    "wrong_family_normalized_objective": 0.2222222222222222,
+    "expected_normalized_wrong": 0.2222222222222222,
+    "forward_MSE": 0.0,
+    "tail_MSE": 0.0,
+    "expected_MIQP_objective": 0.0006666666666666666,
+    "forward_objective": 0.0006666666666666666,
+    "forward_bound": 0.0006666666666666666,
+    "tail_score": 0.0006666666666666666,
+    "tail_bound": 0.0006666666666666666,
+    "exit_objective": 0.0006666666666666666,
+    "exit_bound": 0.0006666666666666666
+  },
+  "statuses": {
+    "one_reference_QP": 2,
+    "three_leaf_reference_QP": 2,
+    "normalized_one_QP": 2,
+    "forward_MIQP": 2,
+    "tail_MIQP": 2,
+    "final_exit_MIQP": 2
+  },
+  "forward_record": {
+    "status": 2,
+    "objective": 0.0006666666666666666,
+    "dual_bound": 0.0006666666666666666,
+    "relative_gap": 0.0,
+    "nodes": 1.0,
+    "seconds": 0.006636999984038994,
+    "variable_count": 53,
+    "binary_count": 16,
+    "constraint_count": 95,
+    "warm_start": {
+      "valid": true,
+      "has_incumbent": true,
+      "maximum_violation": 0.0,
+      "integrality_violation": 0.0,
+      "objective": 0.0006666666666666666,
+      "loss_metric": "normalized_mse",
+      "loss_scale": 1.5,
+      "objective_scale": 1000.0,
+      "quadratic_epigraph_coefficient": 0.00016666666666666666
+    },
+    "audit": {
+      "valid": true,
+      "has_incumbent": true,
+      "maximum_violation": 0.0,
+      "integrality_violation": 0.0,
+      "objective": 0.0006666666666666666,
+      "loss_metric": "normalized_mse",
+      "loss_scale": 1.5,
+      "objective_scale": 1000.0,
+      "quadratic_epigraph_coefficient": 0.00016666666666666666
+    },
+    "bound_consistent_with_known_upper": true,
+    "solver": "gurobi_convex_MIQP",
+    "scale": 1000.0,
+    "requested_relative_gap": 0.0001,
+    "loss_metric": "normalized_mse",
+    "loss_scale": 1.5,
+    "normalized_objective_scale": 1000.0,
+    "kind": "wzzt_extension",
+    "warm_checked": 3,
+    "before": 0.2222222222222222,
+    "before_score": 0.2222222222222222,
+    "decoded_objective": 0.0,
+    "decoded_score": 0.0006666666666666666,
+    "gain": 0.22155555555555553,
+    "threshold": 0.0002222223222222222,
+    "accepted": true,
+    "penalty": 0.0006666666666666666,
+    "protected_count_cost": 0.0,
+    "regularized_bound": 0.0006666666666666666,
+    "added": [
+      [
+        1,
+        2
+      ]
+    ]
+  },
+  "tail_record": {
+    "kind": "toy_joint_tail",
+    "solve_started": true,
+    "accepted": true,
+    "before": 0.2222222222222222,
+    "before_score": 0.2228888888888889,
+    "penalty": 0.0006666666666666666,
+    "protected_count_cost": 0.0,
+    "candidate_count": 3,
+    "keep": [
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        2
+      ],
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "candidates": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "regions": [
+      {
+        "parent": [
+          0,
+          1,
+          2
+        ],
+        "blocks": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ],
+        "candidates": 3
+      }
+    ],
+    "conflicts": 3,
+    "maximum_remainder": 3,
+    "skipped_large_regions": [],
+    "status": 2,
+    "objective": 0.0006666666666666666,
+    "dual_bound": 0.0006666666666666666,
+    "relative_gap": 0.0,
+    "nodes": 1.0,
+    "seconds": 0.003569100023014471,
+    "variable_count": 26,
+    "binary_count": 3,
+    "constraint_count": 28,
+    "warm_start": {
+      "valid": true,
+      "has_incumbent": true,
+      "maximum_violation": 0.0,
+      "integrality_violation": 0.0,
+      "objective": 0.2228888888888889,
+      "loss_metric": "normalized_mse",
+      "loss_scale": 1.5,
+      "objective_scale": 1000.0,
+      "quadratic_epigraph_coefficient": 0.00016666666666666666
+    },
+    "audit": {
+      "valid": true,
+      "has_incumbent": true,
+      "maximum_violation": 0.0,
+      "integrality_violation": 0.0,
+      "objective": 0.0006666666666666666,
+      "loss_metric": "normalized_mse",
+      "loss_scale": 1.5,
+      "objective_scale": 1000.0,
+      "quadratic_epigraph_coefficient": 0.00016666666666666666
+    },
+    "bound_consistent_with_known_upper": true,
+    "solver": "gurobi_convex_MIQP",
+    "scale": 1000.0,
+    "requested_relative_gap": 0.0001,
+    "loss_metric": "normalized_mse",
+    "loss_scale": 1.5,
+    "normalized_objective_scale": 1000.0,
+    "decoded_objective": 0.0,
+    "decoded_score": 0.0006666666666666666,
+    "gain": 0.2222222222222222,
+    "threshold": 0.0002222223222222222,
+    "regularized_bound": 0.0006666666666666666,
+    "regularized_incumbent": 0.0006666666666666666,
+    "wall_seconds": 0.00439750001532957,
+    "scope": "conditional five-block count-regularized joint domain"
+  },
+  "exit_record": {
+    "solved": true,
+    "status": 2,
+    "seconds": 0.003877199982525781,
+    "warm_start": {
+      "valid": true,
+      "has_incumbent": true,
+      "maximum_violation": 0.0,
+      "integrality_violation": 0.0,
+      "objective": 0.22222222222222224,
+      "loss_metric": "normalized_mse",
+      "loss_scale": 1.5,
+      "objective_scale": 1000.0,
+      "quadratic_epigraph_coefficient": 0.00016666666666666666
+    },
+    "events": [
+      {
+        "at": 0.0023631999792996794,
+        "objective": 0.22222222222222224
+      },
+      {
+        "at": 0.0031686000002082437,
+        "objective": 0.0006666666666666666
+      }
+    ],
+    "final_bound": 0.0006666666666666666,
+    "final_objective": 0.0006666666666666666,
+    "binary_count": 3,
+    "variable_count": 26,
+    "constraint_count": 29,
+    "solver": "gurobi_convex_MIQP",
+    "requested_relative_gap": 0.0001,
+    "loss_metric": "normalized_mse",
+    "loss_scale": 1.5,
+    "normalized_objective_scale": 1000.0
+  },
+  "exit_audit": {
+    "valid": true,
+    "has_incumbent": true,
+    "maximum_violation": 0.0,
+    "integrality_violation": 0.0,
+    "objective": 0.0006666666666666666,
+    "loss_metric": "normalized_mse",
+    "loss_scale": 1.5,
+    "objective_scale": 1000.0,
+    "quadratic_epigraph_coefficient": 0.00016666666666666666
+  },
+  "fixed_family_QP_audits": [
+    {
+      "family": [
+        [
+          0
+        ]
+      ],
+      "objective": 250.0,
+      "normalized_squared_loss": 0.25,
+      "physical_mse": 0.25,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 0.0,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.001139800006058067,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.0,
+      "quadratic_coefficient": 0.0005,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    },
+    {
+      "family": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "objective": 148.14814814814815,
+      "normalized_squared_loss": 0.14814814814814814,
+      "physical_mse": 0.14814814814814814,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 4.9343245538895844e-17,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.0006249999860301614,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.0,
+      "quadratic_coefficient": 0.00011111111111111112,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    },
+    {
+      "family": [
+        [
+          0
+        ]
+      ],
+      "objective": 375.0,
+      "normalized_squared_loss": 0.375,
+      "physical_mse": 0.25,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 0.0,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.0005191999953240156,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.5,
+      "quadratic_coefficient": 0.00075,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    },
+    {
+      "family": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "objective": 222.22222222222223,
+      "normalized_squared_loss": 0.2222222222222222,
+      "physical_mse": 0.14814814814814814,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 0.0,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.0005322000070009381,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.5,
+      "quadratic_coefficient": 0.00016666666666666666,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    },
+    {
+      "family": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "objective": 222.22222222222223,
+      "normalized_squared_loss": 0.2222222222222222,
+      "physical_mse": 0.14814814814814814,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 0.0,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.00048370001604780555,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.5,
+      "quadratic_coefficient": 0.00016666666666666666,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    },
+    {
+      "family": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "objective": 222.22222222222223,
+      "normalized_squared_loss": 0.2222222222222222,
+      "physical_mse": 0.14814814814814814,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 0.0,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.0005338999908417463,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.5,
+      "quadratic_coefficient": 0.00016666666666666666,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    },
+    {
+      "family": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "objective": 0.0,
+      "normalized_squared_loss": 0.0,
+      "physical_mse": 0.0,
+      "max_constraint_violation": 0.0,
+      "max_bound_violation": 0.0,
+      "projected_gradient_max": 0.0,
+      "coefficient_projection_max": 0.0,
+      "status": 2,
+      "seconds": 0.00039939998532645404,
+      "solver": "gurobi_QP",
+      "objective_scale": 1000.0,
+      "loss_scale": 1.5,
+      "quadratic_coefficient": 0.00016666666666666666,
+      "ridge": 0.0,
+      "positive_impedance_floor": 0.0,
+      "cache_kind": "QP only"
+    }
+  ],
+  "fixed_family_solver_calls": 7,
+  "structural_solver_calls": 3,
+  "solver_threads": 1,
+  "ridge": 0.0,
+  "positive_impedance_floor": 0.0,
+  "real_benchmark_jobs_started": 0,
+  "existing_optimizers_stopped": 0,
+  "physical_truth_read": false,
+  "x_identifiability": "Q is zero in these toys; x coefficients are not asserted unique"
+}
