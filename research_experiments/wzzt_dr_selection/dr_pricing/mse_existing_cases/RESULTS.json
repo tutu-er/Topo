@@ -1,0 +1,445 @@
+{
+  "status": "complete",
+  "scope": "retrospective frozen-pool diagnostic",
+  "cases": [
+    {
+      "case": "pengwah18",
+      "policies": {
+        "zero": {
+          "planned": 6,
+          "completed": 6,
+          "failures": 0,
+          "unresolved": 0,
+          "pair_exclusions": 0,
+          "complete_recoveries": 0,
+          "total_errors": 6,
+          "mean_fee": 0.0,
+          "mean_pair_margin": -1.3155184913628582e-07,
+          "mean_prediction_distance_mse": 1.1044166886078527e-07,
+          "selected_models": [
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009"
+          ],
+          "absolute_DR_kwh": 0.0
+        },
+        "optimized": {
+          "planned": 6,
+          "completed": 6,
+          "failures": 0,
+          "unresolved": 0,
+          "pair_exclusions": 0,
+          "complete_recoveries": 0,
+          "total_errors": 6,
+          "mean_fee": 29.35595070225669,
+          "mean_pair_margin": -1.4684673497517893e-07,
+          "mean_prediction_distance_mse": 1.6135609732489665e-07,
+          "selected_models": [
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009"
+          ],
+          "absolute_DR_kwh": 44.0502780866426
+        },
+        "rotation": {
+          "planned": 6,
+          "completed": 6,
+          "failures": 0,
+          "unresolved": 0,
+          "pair_exclusions": 0,
+          "complete_recoveries": 0,
+          "total_errors": 6,
+          "mean_fee": 29.35595070225669,
+          "mean_pair_margin": -1.3109979632729592e-07,
+          "mean_prediction_distance_mse": 1.0976136329556465e-07,
+          "selected_models": [
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009"
+          ],
+          "absolute_DR_kwh": 127.76830005161816
+        }
+      }
+    },
+    {
+      "case": "soumalas11",
+      "policies": {
+        "zero": {
+          "planned": 6,
+          "completed": 6,
+          "failures": 0,
+          "unresolved": 0,
+          "pair_exclusions": 0,
+          "complete_recoveries": 0,
+          "total_errors": 12,
+          "mean_fee": 0.0,
+          "mean_pair_margin": -1.583909330784886e-07,
+          "mean_prediction_distance_mse": 6.234016345546121e-07,
+          "selected_models": [
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009"
+          ],
+          "absolute_DR_kwh": 0.0
+        },
+        "optimized": {
+          "planned": 6,
+          "completed": 6,
+          "failures": 0,
+          "unresolved": 0,
+          "pair_exclusions": 0,
+          "complete_recoveries": 0,
+          "total_errors": 12,
+          "mean_fee": 43.216806885273705,
+          "mean_pair_margin": -1.8307736819742893e-07,
+          "mean_prediction_distance_mse": 8.231442438180017e-07,
+          "selected_models": [
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009"
+          ],
+          "absolute_DR_kwh": 63.807103709094484
+        },
+        "rotation": {
+          "planned": 6,
+          "completed": 6,
+          "failures": 0,
+          "unresolved": 0,
+          "pair_exclusions": 0,
+          "complete_recoveries": 0,
+          "total_errors": 12,
+          "mean_fee": 43.21680688527369,
+          "mean_pair_margin": -1.624779270444023e-07,
+          "mean_prediction_distance_mse": 6.435628514422199e-07,
+          "selected_models": [
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009",
+            "model_009"
+          ],
+          "absolute_DR_kwh": 113.48356192171407
+        }
+      }
+    }
+  ],
+  "paths_per_case": 6,
+  "observations": 36,
+  "new_fits": 0,
+  "new_topology_search": 0,
+  "planning": [
+    {
+      "case": "pengwah18",
+      "current": "model_009",
+      "reference": "model_008",
+      "status": "unqualified_diagnostic",
+      "retained_source": "gradient_full_1",
+      "zero_bound": {
+        "score": 3.0616823825673087,
+        "h": 48.69350841486111,
+        "margin": -45.6318260322938,
+        "log_failure_upper": 43.32924093929975,
+        "success_lower": -0.0,
+        "sufficient": false
+      },
+      "bound": {
+        "score": 7.0244527997900175,
+        "h": 48.69350841486111,
+        "margin": -41.66905561507109,
+        "log_failure_upper": 39.366470522077044,
+        "success_lower": -0.0,
+        "sufficient": false
+      },
+      "fees": {
+        "zero": 0.0,
+        "optimized": 29.355950702256692,
+        "rotation": 29.355950702256692
+      },
+      "trace": [
+        {
+          "anchor": "zero",
+          "result": {
+            "status": 3,
+            "has_solution": false,
+            "inner_lower_bound": null,
+            "inner_gap": null,
+            "seconds": 1.2448046999925282
+          }
+        },
+        {
+          "anchor": "gradient_full_1",
+          "result": {
+            "status": 3,
+            "has_solution": false,
+            "inner_lower_bound": null,
+            "inner_gap": null,
+            "seconds": 1.148617099999683
+          }
+        },
+        {
+          "global_solver": {
+            "status": 3,
+            "has_solution": false,
+            "objective": null,
+            "lower_bound": null,
+            "reported_gap": null,
+            "qualified": false,
+            "global_gap_target_met": false,
+            "seconds": 4.522748900009901,
+            "variables": 73418,
+            "binaries": 4464,
+            "exact_zero_effect_resources": 44
+          }
+        }
+      ],
+      "rotation": {
+        "scale": 0.35021266029439313,
+        "cost": 29.355950702256692
+      },
+      "resources": 72,
+      "history_S": [
+        3277.4040762850896,
+        3467.458701201851
+      ],
+      "delta": 190.05462861042912,
+      "K": 533.6422887272379,
+      "scale": 0.0018726122053155882,
+      "global_minimum_proven": false,
+      "raw_optimizer_scope": "inner feasible upper bounds plus bounded original nonconvex solve; no global optimality claim unless zero"
+    },
+    {
+      "case": "soumalas11",
+      "current": "model_009",
+      "reference": "model_008",
+      "status": "unqualified_diagnostic",
+      "retained_source": "gradient_full_1",
+      "zero_bound": {
+        "score": 6.079546559571032,
+        "h": 15.255659910136172,
+        "margin": -9.17611335056514,
+        "log_failure_upper": 6.873528257571095,
+        "success_lower": -0.0,
+        "sufficient": false
+      },
+      "bound": {
+        "score": 9.287906655699086,
+        "h": 15.255659910136172,
+        "margin": -5.967753254437087,
+        "log_failure_upper": 3.6651681614430416,
+        "success_lower": -0.0,
+        "sufficient": false
+      },
+      "fees": {
+        "zero": 0.0,
+        "optimized": 43.216806885273705,
+        "rotation": 43.2168068852737
+      },
+      "trace": [
+        {
+          "anchor": "zero",
+          "result": {
+            "status": 3,
+            "has_solution": false,
+            "inner_lower_bound": null,
+            "inner_gap": null,
+            "seconds": 1.6478063999966253
+          }
+        },
+        {
+          "anchor": "gradient_full_1",
+          "result": {
+            "status": 3,
+            "has_solution": false,
+            "inner_lower_bound": null,
+            "inner_gap": null,
+            "seconds": 12.542055099998834
+          }
+        },
+        {
+          "global_solver": {
+            "status": 9,
+            "has_solution": false,
+            "objective": null,
+            "lower_bound": 0.0,
+            "reported_gap": null,
+            "qualified": false,
+            "global_gap_target_met": false,
+            "seconds": 64.28039780000108,
+            "variables": 48094,
+            "binaries": 2728,
+            "exact_zero_effect_resources": 0
+          }
+        }
+      ],
+      "rotation": {
+        "scale": 0.6293511347878795,
+        "cost": 43.2168068852737
+      },
+      "resources": 44,
+      "history_S": [
+        2563.662938020828,
+        2617.9656759269155
+      ],
+      "delta": 54.30273932680423,
+      "K": 278.0408694128658,
+      "scale": 0.0032700467214207833,
+      "global_minimum_proven": false,
+      "raw_optimizer_scope": "inner feasible upper bounds plus bounded original nonconvex solve; no global optimality claim unless zero"
+    }
+  ],
+  "historical_inventory": {
+    "all48": {
+      "planned": 48,
+      "complete": 40,
+      "wrong": 8,
+      "same_output_library_strict_improvement_available": 1,
+      "wrong_with_complete_output_available": 0
+    },
+    "by_voltage_sigma": {
+      "0.0002": {
+        "planned": 16,
+        "returned": 16,
+        "correct_declared_all": 16,
+        "wrong_declared_all": 0,
+        "wrong_proper": 0,
+        "wrong_effective_all": 0,
+        "same_frozen_output_library_improvable": 0,
+        "wrong_with_complete_output_candidate": 0
+      },
+      "0.0005": {
+        "planned": 16,
+        "returned": 16,
+        "correct_declared_all": 14,
+        "wrong_declared_all": 2,
+        "wrong_proper": 2,
+        "wrong_effective_all": 2,
+        "same_frozen_output_library_improvable": 0,
+        "wrong_with_complete_output_candidate": 0
+      },
+      "0.001": {
+        "planned": 16,
+        "returned": 16,
+        "correct_declared_all": 10,
+        "wrong_declared_all": 6,
+        "wrong_proper": 6,
+        "wrong_effective_all": 10,
+        "same_frozen_output_library_improvable": 1,
+        "wrong_with_complete_output_candidate": 0
+      }
+    },
+    "saved_upstream_truth_stage_score_crosschecked_inputs": 48
+  },
+  "interpretation": "Both retained DR directions are UNQUALIFIED diagnostics, not probability-feasible minimum-cost solutions; no topology search/refit was run.",
+  "mechanism": [
+    {
+      "case": "pengwah18",
+      "prediction_distance_relative_increase": 0.46100741675943335,
+      "nodal_newday_lossgap_delta": {
+        "301": 0.0,
+        "302": 0.0,
+        "303": 0.0,
+        "304": 0.0,
+        "305": 0.0,
+        "306": -5.472164874730538e-21,
+        "307": -1.4005089328350382e-21,
+        "308": -8.271687581824327e-21,
+        "309": -6.208474565478414e-05,
+        "310": -1.6374287147375104e-05,
+        "311": -1.2477156844024165e-05,
+        "312": -1.4782061272244037e-05,
+        "313": 0.0,
+        "314": 0.0,
+        "315": 0.0,
+        "316": 0.0,
+        "317": 0.0,
+        "318": 0.0
+      },
+      "largest_nodes": [
+        [
+          309,
+          -6.208474565478414e-05
+        ],
+        [
+          310,
+          -1.6374287147375104e-05
+        ],
+        [
+          312,
+          -1.4782061272244037e-05
+        ],
+        [
+          311,
+          -1.2477156844024165e-05
+        ],
+        [
+          308,
+          -8.271687581824327e-21
+        ],
+        [
+          306,
+          -5.472164874730538e-21
+        ]
+      ]
+    },
+    {
+      "case": "soumalas11",
+      "prediction_distance_relative_increase": 0.32040758026901117,
+      "nodal_newday_lossgap_delta": {
+        "101": 5.845075573445229e-06,
+        "102": 5.754459095539274e-06,
+        "103": 4.095832932753882e-05,
+        "104": -8.374744740721119e-21,
+        "105": 7.171043375277612e-20,
+        "106": -2.1127094019107612e-19,
+        "107": 6.716169768178897e-20,
+        "108": -2.888541807240957e-20,
+        "109": -2.905117471092271e-05,
+        "110": -5.745173569104714e-05,
+        "111": -7.033045553695564e-05
+      },
+      "largest_nodes": [
+        [
+          111,
+          -7.033045553695564e-05
+        ],
+        [
+          110,
+          -5.745173569104714e-05
+        ],
+        [
+          103,
+          4.095832932753882e-05
+        ],
+        [
+          109,
+          -2.905117471092271e-05
+        ],
+        [
+          101,
+          5.845075573445229e-06
+        ],
+        [
+          102,
+          5.754459095539274e-06
+        ]
+      ]
+    }
+  ],
+  "probability_scope": "90% conditional on nominal DR, frozen reference and working Gaussian errors; actual response covariance/meter/AC checked separately."
+}

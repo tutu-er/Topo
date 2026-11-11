@@ -1,3 +1,10 @@
+## 已有错误MSE算例DR，2026-11-12
+
+- public dr_pricing/mse_existing_cases/{core.py,run.py,README.md,REPORT.md,PROTOCOL.json,RESULTS.json,AUDIT.json}。历史MSE族/资源独立接口，不经旧MAE资格；完整输出库固定，参数不在新日重拟合，主评分strict物理MSE。原代码/默认不改。
+- private wzzt_mse_dr_diagnostic_v1/case_inventory.json保存48组真值事后诊断、旧三组与旧80的20个N288对照；仅souma/b1002/v0010有2→1库内空间。run_v1为已经完成的2case×6day×3policy=36观察及3456时点，报价和随机流先锁、原网络阻抗核对相同；complete/run_lock均完成，禁止当作未跑重启。source_snapshot.zip、case.json、inner/global求解/quotes/freeze、actual/*/result.pkl与observed.npz、predictions_frozen、scored_rows、summary均齐。
+- 两付费方向均unqualified；peng规划充分条件status3不可行，souma原非凸60s无解status9。36观察三策略均选009、零减错，候选距离增加但参考残差交叉项更负。独立theory_audit158与run_v1/independent_result_audit均过；后者独立重放物理/设备/量测/全库评分，没有新AC。mechanism_decomposition给逐节点贡献，history_bias_preflight仅无AC旧历史计算，无新价批。
+- 本轮不扩预算/噪声/seed。下一有意义改动是先在历史阶段用已有结构修正检查局部替换候选，禁止事后真标签生成；要先区分候选库收益与DR收益。当前有限库/参考规则失败不推成所有DR无效。全部P/Q/V与原始结果留私有，公开仅汇总和代码。
+
 ## MSE最终选模与案例准备，2026-11-11
 
 - public dr_pricing/paper15_exponential/selection_mse.py、MSE_SELECTION_PLAN.md、MSE_SELECTION_AUDIT.json、MSE_CASE_INVENTORY.json。严格MSE为新实验规范，旧MIQP_DR和原run冻规则不覆盖；3% MSE仅敏感性。selector接口含strict数值并列及required_new_sse_gap，不使用训练E门槛作最终选择。

@@ -1,0 +1,94 @@
+{
+  "status": "frozen",
+  "id": "existing_frozen_mse_DR_v1",
+  "created_utc": "2026-11-11T17:57:19.957568+00:00",
+  "scope": "retrospectively selected existing error cases, not an unbiased benchmark",
+  "cases": [
+    [
+      "pengwah18",
+      1000,
+      "v0005"
+    ],
+    [
+      "soumalas11",
+      1002,
+      "v0010"
+    ]
+  ],
+  "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+  "candidate_rule": ".24 contracted, training-QP output library; tau .001 historical view",
+  "pool": "retain every unique output model in source order; R/X frozen",
+  "pair": "historical strict-MSE winner versus nearest different support family by validation MSE",
+  "case_selection_uses_saved_truth": true,
+  "price_uses_truth": false,
+  "selection": "strict physical K*MSE, scaled tie tolerance1e-12; full old validation plus new day w1",
+  "resources": "unchanged all-node heterogeneous inventory, original causal power/state projection",
+  "forecast": "mean of all four already-observed complete days; no future data",
+  "working_law": "fixed 5% nodal P/Q co-moving forecast error, AR1 .7, independent nodes; Gaussian remaining voltage error; nominal DR in planning",
+  "actual_law": "original correlated continuous resource response, causal device clipping, original AC and original P/Q/V noise",
+  "probability_scope": "90% sufficient bound conditional on the chosen frozen reference model and working Gaussian law; not topology correctness",
+  "optimizer": {
+    "inner_seconds": 45,
+    "global_seconds": 60,
+    "mip_gap": 0.02,
+    "threads": 1,
+    "inner_anchors": [
+      "zero",
+      "best_predetermined_full_direction"
+    ]
+  },
+  "fallback": "if probability qualification fails, retain best prespecified feasible direction as unqualified diagnostic, not minimum-cost solution",
+  "policies": [
+    "zero",
+    "optimized",
+    "rotation"
+  ],
+  "no_cost_upper_bound": true,
+  "paths": [
+    {
+      "day": 0,
+      "profile": 0,
+      "replicate": 1120000,
+      "response_seed": 2026111200
+    },
+    {
+      "day": 1,
+      "profile": 1,
+      "replicate": 1120137,
+      "response_seed": 2026111201
+    },
+    {
+      "day": 2,
+      "profile": 2,
+      "replicate": 1120274,
+      "response_seed": 2026111202
+    },
+    {
+      "day": 3,
+      "profile": 0,
+      "replicate": 1120411,
+      "response_seed": 2026111203
+    },
+    {
+      "day": 4,
+      "profile": 1,
+      "replicate": 1120548,
+      "response_seed": 2026111204
+    },
+    {
+      "day": 5,
+      "profile": 2,
+      "replicate": 1120685,
+      "response_seed": 2026111205
+    }
+  ],
+  "actual_future_opened": false,
+  "new_fits": 0,
+  "new_topology_search": 0,
+  "source_sha256": {
+    "research_experiments\\wzzt_dr_selection\\dr_pricing\\mse_existing_cases\\core.py": "c3750e0bfb624c8e18719a3c135cd48f0d058847ae6cb4017f572b38ecd6688b",
+    "research_experiments\\wzzt_dr_selection\\dr_pricing\\mse_existing_cases\\run.py": "dfe85f6dae4ee70acc1d5181d44aae35bd3fa673d4c94fb65b0717d2a2199371"
+  },
+  "private_source_snapshot": "run_v1/source_snapshot.zip",
+  "no_numeric_trajectories_in_public": true
+}
