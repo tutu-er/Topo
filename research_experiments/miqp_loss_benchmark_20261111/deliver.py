@@ -6,6 +6,7 @@ import csv
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 import shutil
 import sys
@@ -21,6 +22,87 @@ def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def write(path,value):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8",newline="\n")
+
+
+def recovery_ledger(output,protocol):
+    """Read only the new MIQP host-restart debit, never the parent L1 ledger."""
+    file=output/"recovery/host_restart_20261111/charges.json"
+    if not file.exists():
+        return dict(charges={},interrupted_attempts=0,total_interrupted_wall_upper_seconds=0.,
+                    file=None,sha256=None,charge_scope="no new MIQP host-restart debit")
+    ledger=read(file)
+    assert ledger["protocol_sha256"]==sha(output/"protocol.json")
+    assert ledger["catalog_sha256"]==sha(output/"catalog.json")
+    expected={(job,method["id"]) for job in protocol["jobs"] for method in protocol["methods"]}
+    charges=ledger["charges"]
+    assert len(charges)==ledger["interrupted_attempts"]
+    assert ledger["logical_models_planned"]==protocol["planned"]==96
+    assert ledger["attempts_after_recovery_expected"]==protocol["planned"]+len(charges)
+    for key,row in charges.items():
+        assert key==row["job"]+"/"+row["method"] and (row["job"],row["method"]) in expected
+        debit=float(row["interrupted_attempt_seconds"])
+        assert math.isfinite(debit) and 0.<debit<protocol["limits"]["total"]
+        assert row["charge_is_conservative_upper_bound"] is True and row["solver_failure"] is False
+        assert abs(row["original_total_cap"]-protocol["limits"]["total"])<1e-7
+        assert abs(row["remaining_total_cap"]+debit-row["original_total_cap"])<1e-7
+        for name,digest in row["preserved_files"].items():
+            assert sha(file.parent/"jobs"/row["job"]/row["method"]/name)==digest,name
+    preserved=ledger["result_hashes_before_recovery"]
+    assert len(preserved)==ledger["returned_preserved"]
+    for name,digest in preserved.items():assert sha(output/name)==digest,name
+    total=sum(float(row["interrupted_attempt_seconds"]) for row in charges.values())
+    assert abs(total-ledger["total_interrupted_wall_upper_seconds"])<1e-6
+    return dict(charges=charges,interrupted_attempts=len(charges),file=str(file),sha256=sha(file),
+                total_interrupted_wall_upper_seconds=total,verified_system_boot_utc=ledger["verified_system_boot_utc"],
+                preserved_successful_results=len(preserved),
+                charge_scope="conservative upper bound: pre-spawn payload timestamp through verified subsequent host boot; downtime excluded")
+
+
+def timing_row(job,method,result,common,parent_result,recovery,original_cap):
+    """Charge the shared frontend once and the interrupted native attempt once."""
+    assert abs(common["seconds"]-common["parent_common_seconds"]-common["qp_common_seconds"])<1e-7
+    successful=float(result["total_seconds"])
+    assert abs(successful-result["fresh_seconds"]-common["seconds"])<1e-7
+    assert abs(float(result.get("successful_total_seconds",successful))-successful)<1e-7
+    charge=recovery["charges"].get(job+"/"+method)
+    debit=float(charge["interrupted_attempt_seconds"]) if charge else 0.
+    assert abs(float(result.get("interrupted_attempt_seconds",0.))-debit)<1e-6
+    assert int(result.get("interrupted_attempt_count",int(debit>0.)))==int(debit>0.)
+    operational=successful+debit
+    context=result.get("recovery",result.get("recovery_context",{}))
+    recorded_charge_hash=result.get("recovery_charges_sha256") or context.get("recovery_charges_sha256")
+    if context:
+        assert recorded_charge_hash==recovery["sha256"]
+        assert context["common_charged_once"] is True and context["optimizer_source_modified"] is False
+    if charge:
+        assert recorded_charge_hash==recovery["sha256"]
+        assert "logical_total_seconds" in result and "operational_total_seconds" in result
+        assert abs(float(result.get("original_total_cap",original_cap))-original_cap)<1e-7
+    for key in ("logical_total_seconds","operational_total_seconds"):
+        if key in result:assert abs(float(result[key])-operational)<1e-6,key
+    remaining=original_cap-debit
+    assert abs(float(result["limits"]["total"])-remaining)<1e-6
+    parent_successful=float(parent_result["total_seconds"])
+    parent_debit=float(parent_result.get("interrupted_attempt_seconds",0.))
+    parent_operational=float(parent_result.get("logical_total_seconds",parent_successful))
+    assert abs(parent_operational-parent_successful-parent_debit)<1e-6
+    return dict(job=job,method=method,native_fresh_seconds=result["fresh_seconds"],
+                charged_parent_common_seconds=common["parent_common_seconds"],
+                charged_qp_common_seconds=common["qp_common_seconds"],
+                total_successful_seconds=successful,successful_total_seconds=successful,
+                new_MIQP_interrupted_attempts=int(charge is not None),
+                new_MIQP_interrupted_wall_upper_seconds=debit,
+                new_MIQP_interruption_charge_is_upper_bound=bool(charge),
+                recovery_wrapper_used=bool(context),
+                operational_total_seconds=operational,operational_total_upper_seconds=operational,
+                operational_timing_scope="successful method + conservative interrupted-attempt upper debit; shared common charged once",
+                original_total_cap_seconds=original_cap,remaining_successful_attempt_cap_seconds=remaining,
+                successful_attempt_cap_exceeded=successful>remaining+1.,
+                operational_upper_cap_exceeded=operational>original_cap+1.,
+                new_MIQP_recovery_charges_sha256=recorded_charge_hash,
+                parent_L1_successful_seconds=parent_successful,parent_L1_interrupted_proxy_seconds=parent_debit,
+                parent_L1_operational_proxy_seconds=parent_operational,
+                parent_L1_interrupted_attempts=int(parent_debit>0.))
 
 
 def deliver(output):
@@ -46,31 +128,55 @@ def deliver(output):
     parent_archive=parent_docs/"records.zip";parent_archive_receipt=read(parent_docs/"archive_receipt.json")
     assert sha(parent_archive)==parent_archive_receipt["sha256"]
     methods=[m["id"] for m in protocol["methods"]]
+    recovery=recovery_ledger(output,protocol)
+    if recovery["interrupted_attempts"]:
+        for name in ("capture_recovery.py","recovery_run.py","recovery_worker.py"):
+            assert Path(__file__).with_name(name).is_file(),name
     timing_rows=[];paired_hashes={}
     for job in protocol["jobs"]:
         common=read(output/"common"/job/"common.json")
-        assert abs(common["seconds"]-common["parent_common_seconds"]-common["qp_common_seconds"])<1e-7
         for method in methods:
             file=output/"jobs"/job/method/"result.json";result=read(file)
             assert result["protocol_sha256"]==sha(output/"protocol.json")
-            assert abs(result["total_seconds"]-result["fresh_seconds"]-common["seconds"])<1e-7
-            timing_rows.append(dict(job=job,method=method,native_fresh_seconds=result["fresh_seconds"],
-                                    charged_parent_common_seconds=common["parent_common_seconds"],
-                                    charged_qp_common_seconds=common["qp_common_seconds"],total_successful_seconds=result["total_seconds"]))
             parent_file=parent/"jobs"/job/method/"result.json"
+            timing_rows.append(timing_row(job,method,result,common,read(parent_file),recovery,protocol["limits"]["total"]))
             paired_hashes[job+"/"+method]=sha(parent_file)
+    assert sum(row["new_MIQP_interrupted_attempts"] for row in timing_rows)==recovery["interrupted_attempts"]
+    assert abs(sum(row["new_MIQP_interrupted_wall_upper_seconds"] for row in timing_rows)-recovery["total_interrupted_wall_upper_seconds"])<1e-6
     with (docs/"timing_components.csv").open("w",encoding="utf-8",newline="") as stream:
         writer=csv.DictWriter(stream,timing_rows[0]);writer.writeheader();writer.writerows(timing_rows)
     unique_common=[read(output/"common"/job/"common.json") for job in protocol["jobs"]]
     timing=dict(new_native_evaluations=96,nominal_method_hours=384.,per_evaluation_cap_seconds=14400.,
                 new_successful_method_seconds=sum(r["total_successful_seconds"] for r in timing_rows),
+                new_operational_total_seconds=sum(r["operational_total_seconds"] for r in timing_rows),
+                new_operational_total_upper_seconds=sum(r["operational_total_upper_seconds"] for r in timing_rows),
+                new_operational_total_is_conservative_upper_bound=bool(recovery["interrupted_attempts"]),
+                new_interrupted_attempts=recovery["interrupted_attempts"],
+                new_interrupted_wall_upper_seconds=recovery["total_interrupted_wall_upper_seconds"],
+                new_total_native_attempts_including_interrupted=96+recovery["interrupted_attempts"],
+                new_interruption_timing_scope=recovery["charge_scope"],
+                new_recovery_charges_sha256=recovery["sha256"],
+                new_operational_upper_cap_exceeded=sum(r["operational_upper_cap_exceeded"] for r in timing_rows),
+                new_successful_attempt_cap_exceeded=sum(r["successful_attempt_cap_exceeded"] for r in timing_rows),
                 new_fresh_native_seconds=sum(r["native_fresh_seconds"] for r in timing_rows),
                 charged_parent_common_seconds=sum(r["charged_parent_common_seconds"] for r in timing_rows),
                 charged_qp_common_seconds=sum(r["charged_qp_common_seconds"] for r in timing_rows),
                 unique_parent_common_seconds=sum(c["parent_common_seconds"] for c in unique_common),
                 unique_qp_common_seconds=sum(c["qp_common_seconds"] for c in unique_common),
                 common_charge_rule="the shared frontend and QP preprocessing are each charged once per method/input",
-                parent_L1_timing_scope="successful and interrupted operational timings retained separately in paired records/analysis")
+                interrupted_charge_rule="new MIQP worker upper debit added exactly once to successful total; not added to native_fresh or common components again",
+                parent_paired_L1_successful_method_seconds=sum(r["parent_L1_successful_seconds"] for r in timing_rows),
+                parent_paired_L1_interrupted_proxy_seconds=sum(r["parent_L1_interrupted_proxy_seconds"] for r in timing_rows),
+                parent_paired_L1_operational_proxy_seconds=sum(r["parent_L1_operational_proxy_seconds"] for r in timing_rows),
+                parent_paired_L1_interrupted_attempts=sum(r["parent_L1_interrupted_attempts"] for r in timing_rows),
+                parent_L1_timing_scope="paired 96 old L1 runs only: original estimated interruption proxy, distinct from new MIQP boot-time upper debits; never added to MSE totals",
+                recovery_evidence={key:value for key,value in recovery.items() if key!="charges"})
+    timing["methods"]=[dict(method=method,evaluations=sum(r["method"]==method for r in timing_rows),
+        successful_method_seconds=sum(r["successful_total_seconds"] for r in timing_rows if r["method"]==method),
+        interrupted_attempts=sum(r["new_MIQP_interrupted_attempts"] for r in timing_rows if r["method"]==method),
+        interrupted_wall_upper_seconds=sum(r["new_MIQP_interrupted_wall_upper_seconds"] for r in timing_rows if r["method"]==method),
+        operational_total_upper_seconds=sum(r["operational_total_upper_seconds"] for r in timing_rows if r["method"]==method))
+        for method in methods]
     write(docs/"timing_components.json",timing)
     parent_reference=dict(output=str(parent),protocol_sha256=sha(parent/"protocol.json"),
                           native_analysis_receipt_sha256=sha(parent/"analysis/verification.json"),
@@ -82,7 +188,7 @@ def deliver(output):
                                      source="per-native-result environment and runtime overlay receipts retained in archive"))
     files={}
     excluded={".npz",".pyc",".pem",".key",".lic"}
-    for top in ("source","analysis_source","analysis","common","jobs"):
+    for top in ("source","analysis_source","analysis","common","jobs","recovery"):
         for file in (output/top).rglob("*"):
             if file.is_file() and file.suffix.lower() not in excluded and not file.name.endswith(".tmp"):
                 files["run/"+file.relative_to(output).as_posix()]=file
@@ -104,6 +210,10 @@ def deliver(output):
         if file.is_file() and file.name not in {"records.zip","manifest.json","archive_receipt.json"}:
             files["report/"+file.name]=file
     hashes={name:sha(file) for name,file in sorted(files.items())};archive=docs/"records.zip"
+    if recovery["interrupted_attempts"]:
+        assert "run/recovery/host_restart_20261111/charges.json" in files
+        for name in ("capture_recovery.py","recovery_run.py","recovery_worker.py"):
+            assert "actual_driver/"+name in files,name
     with zipfile.ZipFile(archive,"w",zipfile.ZIP_DEFLATED) as bundle:
         for name,file in sorted(files.items()):bundle.write(file,name)
         bundle.writestr("manifest.json",json.dumps(hashes,indent=2)+"\n")
@@ -118,6 +228,13 @@ def deliver(output):
                  new_solver_timeouts=sum(r["fit_loss"]=="scaled_mse" and r["status"]=="9" for r in solver),
                  failed=verification["new_native_failed"],invalid=verification["new_native_invalid"],pending=verification["new_native_pending"],
                  budget_exceeded=verification["budget_exceeded"],successful_attempt_budget_exceeded=verification["successful_attempt_budget_exceeded"],
+                 new_successful_method_seconds=timing["new_successful_method_seconds"],
+                 new_operational_total_upper_seconds=timing["new_operational_total_upper_seconds"],
+                 new_interrupted_attempts=recovery["interrupted_attempts"],
+                 new_interrupted_wall_upper_seconds=recovery["total_interrupted_wall_upper_seconds"],
+                 new_recovery_charges_sha256=recovery["sha256"],
+                 recovery_subtree_archived=any(name.startswith("run/recovery/") for name in files),
+                 new_interruption_cost_is_conservative_upper_bound=bool(recovery["interrupted_attempts"]),
                  parent_zip_copied=False,raw_measurement_arrays_bundled=False)
     write(docs/"archive_receipt.json",receipt)
     write(docs/"manifest.json",{p.name:sha(p) for p in docs.iterdir() if p.is_file() and p.name!="manifest.json"})
