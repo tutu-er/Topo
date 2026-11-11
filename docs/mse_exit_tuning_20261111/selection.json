@@ -1,0 +1,1194 @@
+{
+  "schema_version": 1,
+  "phase": "validation_only_selection_frozen_before_postevaluation",
+  "selection_metric": "mapped_endpoint_validation_mse_ratio",
+  "endpoint_definition": "one .24-contracted/QP-refitted final E endpoint, without library minimization",
+  "denominator": "same input's .24-contracted/QP-refitted before-E endpoint validation MSE",
+  "weighting": "equal input; complete panel and every fold remain balanced over case and noise",
+  "candidate_tau_grid": [
+    0.0,
+    0.0001,
+    0.001,
+    0.003,
+    0.01
+  ],
+  "tie_preference": [
+    0.001,
+    0.003,
+    0.0001,
+    0.01,
+    0.0
+  ],
+  "tie_tolerance": 1e-12,
+  "old_regularized_gate_is_calibration_option": false,
+  "full48": {
+    "tau": 0.001,
+    "variant": "tau_0.001",
+    "training_inputs": 48,
+    "mean_endpoint_validation_mse_ratio": 0.7308618750190644,
+    "grid_scores": [
+      {
+        "tau": 0.0,
+        "variant": "tau_0",
+        "mean_ratio": 0.7308618750190644
+      },
+      {
+        "tau": 0.0001,
+        "variant": "tau_0.0001",
+        "mean_ratio": 0.7308618750190644
+      },
+      {
+        "tau": 0.001,
+        "variant": "tau_0.001",
+        "mean_ratio": 0.7308618750190644
+      },
+      {
+        "tau": 0.003,
+        "variant": "tau_0.003",
+        "mean_ratio": 0.7312940071322213
+      },
+      {
+        "tau": 0.01,
+        "variant": "tau_0.01",
+        "mean_ratio": 0.7348267797245777
+      }
+    ],
+    "tie_tolerance": 1e-12,
+    "tie_preference": [
+      0.001,
+      0.003,
+      0.0001,
+      0.01,
+      0.0
+    ]
+  },
+  "leave_shared_seed_out": [
+    {
+      "heldout_seed_index": 0,
+      "calibration_jobs": [
+        "day96__paper15__b1001__reference__v0002__N96",
+        "day96__paper15__b1001__reference__v0005__N96",
+        "day96__paper15__b1001__reference__v0010__N96",
+        "day96__paper15__b1002__reference__v0002__N96",
+        "day96__paper15__b1002__reference__v0005__N96",
+        "day96__paper15__b1002__reference__v0010__N96",
+        "day96__paper15__b1003__reference__v0002__N96",
+        "day96__paper15__b1003__reference__v0005__N96",
+        "day96__paper15__b1003__reference__v0010__N96",
+        "day96__soumalas11__b1001__reference__v0002__N96",
+        "day96__soumalas11__b1001__reference__v0005__N96",
+        "day96__soumalas11__b1001__reference__v0010__N96",
+        "day96__soumalas11__b1002__reference__v0002__N96",
+        "day96__soumalas11__b1002__reference__v0005__N96",
+        "day96__soumalas11__b1002__reference__v0010__N96",
+        "day96__soumalas11__b1003__reference__v0002__N96",
+        "day96__soumalas11__b1003__reference__v0005__N96",
+        "day96__soumalas11__b1003__reference__v0010__N96",
+        "day96__flynn16__b1001__reference__v0002__N96",
+        "day96__flynn16__b1001__reference__v0005__N96",
+        "day96__flynn16__b1001__reference__v0010__N96",
+        "day96__flynn16__b1002__reference__v0002__N96",
+        "day96__flynn16__b1002__reference__v0005__N96",
+        "day96__flynn16__b1002__reference__v0010__N96",
+        "day96__flynn16__b1003__reference__v0002__N96",
+        "day96__flynn16__b1003__reference__v0005__N96",
+        "day96__flynn16__b1003__reference__v0010__N96",
+        "day96__pengwah18__b1001__reference__v0002__N96",
+        "day96__pengwah18__b1001__reference__v0005__N96",
+        "day96__pengwah18__b1001__reference__v0010__N96",
+        "day96__pengwah18__b1002__reference__v0002__N96",
+        "day96__pengwah18__b1002__reference__v0005__N96",
+        "day96__pengwah18__b1002__reference__v0010__N96",
+        "day96__pengwah18__b1003__reference__v0002__N96",
+        "day96__pengwah18__b1003__reference__v0005__N96",
+        "day96__pengwah18__b1003__reference__v0010__N96"
+      ],
+      "heldout_jobs": [
+        "day96__paper15__b1000__reference__v0002__N96",
+        "day96__paper15__b1000__reference__v0005__N96",
+        "day96__paper15__b1000__reference__v0010__N96",
+        "day96__soumalas11__b1000__reference__v0002__N96",
+        "day96__soumalas11__b1000__reference__v0005__N96",
+        "day96__soumalas11__b1000__reference__v0010__N96",
+        "day96__flynn16__b1000__reference__v0002__N96",
+        "day96__flynn16__b1000__reference__v0005__N96",
+        "day96__flynn16__b1000__reference__v0010__N96",
+        "day96__pengwah18__b1000__reference__v0002__N96",
+        "day96__pengwah18__b1000__reference__v0005__N96",
+        "day96__pengwah18__b1000__reference__v0010__N96"
+      ],
+      "selection": {
+        "tau": 0.001,
+        "variant": "tau_0.001",
+        "training_inputs": 36,
+        "mean_endpoint_validation_mse_ratio": 0.6819787257890153,
+        "grid_scores": [
+          {
+            "tau": 0.0,
+            "variant": "tau_0",
+            "mean_ratio": 0.6819787257890153
+          },
+          {
+            "tau": 0.0001,
+            "variant": "tau_0.0001",
+            "mean_ratio": 0.6819787257890153
+          },
+          {
+            "tau": 0.001,
+            "variant": "tau_0.001",
+            "mean_ratio": 0.6819787257890153
+          },
+          {
+            "tau": 0.003,
+            "variant": "tau_0.003",
+            "mean_ratio": 0.682554901939891
+          },
+          {
+            "tau": 0.01,
+            "variant": "tau_0.01",
+            "mean_ratio": 0.6868945888761354
+          }
+        ],
+        "tie_tolerance": 1e-12,
+        "tie_preference": [
+          0.001,
+          0.003,
+          0.0001,
+          0.01,
+          0.0
+        ]
+      }
+    },
+    {
+      "heldout_seed_index": 1,
+      "calibration_jobs": [
+        "day96__paper15__b1000__reference__v0002__N96",
+        "day96__paper15__b1000__reference__v0005__N96",
+        "day96__paper15__b1000__reference__v0010__N96",
+        "day96__paper15__b1002__reference__v0002__N96",
+        "day96__paper15__b1002__reference__v0005__N96",
+        "day96__paper15__b1002__reference__v0010__N96",
+        "day96__paper15__b1003__reference__v0002__N96",
+        "day96__paper15__b1003__reference__v0005__N96",
+        "day96__paper15__b1003__reference__v0010__N96",
+        "day96__soumalas11__b1000__reference__v0002__N96",
+        "day96__soumalas11__b1000__reference__v0005__N96",
+        "day96__soumalas11__b1000__reference__v0010__N96",
+        "day96__soumalas11__b1002__reference__v0002__N96",
+        "day96__soumalas11__b1002__reference__v0005__N96",
+        "day96__soumalas11__b1002__reference__v0010__N96",
+        "day96__soumalas11__b1003__reference__v0002__N96",
+        "day96__soumalas11__b1003__reference__v0005__N96",
+        "day96__soumalas11__b1003__reference__v0010__N96",
+        "day96__flynn16__b1000__reference__v0002__N96",
+        "day96__flynn16__b1000__reference__v0005__N96",
+        "day96__flynn16__b1000__reference__v0010__N96",
+        "day96__flynn16__b1002__reference__v0002__N96",
+        "day96__flynn16__b1002__reference__v0005__N96",
+        "day96__flynn16__b1002__reference__v0010__N96",
+        "day96__flynn16__b1003__reference__v0002__N96",
+        "day96__flynn16__b1003__reference__v0005__N96",
+        "day96__flynn16__b1003__reference__v0010__N96",
+        "day96__pengwah18__b1000__reference__v0002__N96",
+        "day96__pengwah18__b1000__reference__v0005__N96",
+        "day96__pengwah18__b1000__reference__v0010__N96",
+        "day96__pengwah18__b1002__reference__v0002__N96",
+        "day96__pengwah18__b1002__reference__v0005__N96",
+        "day96__pengwah18__b1002__reference__v0010__N96",
+        "day96__pengwah18__b1003__reference__v0002__N96",
+        "day96__pengwah18__b1003__reference__v0005__N96",
+        "day96__pengwah18__b1003__reference__v0010__N96"
+      ],
+      "heldout_jobs": [
+        "day96__paper15__b1001__reference__v0002__N96",
+        "day96__paper15__b1001__reference__v0005__N96",
+        "day96__paper15__b1001__reference__v0010__N96",
+        "day96__soumalas11__b1001__reference__v0002__N96",
+        "day96__soumalas11__b1001__reference__v0005__N96",
+        "day96__soumalas11__b1001__reference__v0010__N96",
+        "day96__flynn16__b1001__reference__v0002__N96",
+        "day96__flynn16__b1001__reference__v0005__N96",
+        "day96__flynn16__b1001__reference__v0010__N96",
+        "day96__pengwah18__b1001__reference__v0002__N96",
+        "day96__pengwah18__b1001__reference__v0005__N96",
+        "day96__pengwah18__b1001__reference__v0010__N96"
+      ],
+      "selection": {
+        "tau": 0.001,
+        "variant": "tau_0.001",
+        "training_inputs": 36,
+        "mean_endpoint_validation_mse_ratio": 0.7300140643271879,
+        "grid_scores": [
+          {
+            "tau": 0.0,
+            "variant": "tau_0",
+            "mean_ratio": 0.7300140643271879
+          },
+          {
+            "tau": 0.0001,
+            "variant": "tau_0.0001",
+            "mean_ratio": 0.7300140643271879
+          },
+          {
+            "tau": 0.001,
+            "variant": "tau_0.001",
+            "mean_ratio": 0.7300140643271879
+          },
+          {
+            "tau": 0.003,
+            "variant": "tau_0.003",
+            "mean_ratio": 0.7305902404780635
+          },
+          {
+            "tau": 0.01,
+            "variant": "tau_0.01",
+            "mean_ratio": 0.7349649361090653
+          }
+        ],
+        "tie_tolerance": 1e-12,
+        "tie_preference": [
+          0.001,
+          0.003,
+          0.0001,
+          0.01,
+          0.0
+        ]
+      }
+    },
+    {
+      "heldout_seed_index": 2,
+      "calibration_jobs": [
+        "day96__paper15__b1000__reference__v0002__N96",
+        "day96__paper15__b1000__reference__v0005__N96",
+        "day96__paper15__b1000__reference__v0010__N96",
+        "day96__paper15__b1001__reference__v0002__N96",
+        "day96__paper15__b1001__reference__v0005__N96",
+        "day96__paper15__b1001__reference__v0010__N96",
+        "day96__paper15__b1003__reference__v0002__N96",
+        "day96__paper15__b1003__reference__v0005__N96",
+        "day96__paper15__b1003__reference__v0010__N96",
+        "day96__soumalas11__b1000__reference__v0002__N96",
+        "day96__soumalas11__b1000__reference__v0005__N96",
+        "day96__soumalas11__b1000__reference__v0010__N96",
+        "day96__soumalas11__b1001__reference__v0002__N96",
+        "day96__soumalas11__b1001__reference__v0005__N96",
+        "day96__soumalas11__b1001__reference__v0010__N96",
+        "day96__soumalas11__b1003__reference__v0002__N96",
+        "day96__soumalas11__b1003__reference__v0005__N96",
+        "day96__soumalas11__b1003__reference__v0010__N96",
+        "day96__flynn16__b1000__reference__v0002__N96",
+        "day96__flynn16__b1000__reference__v0005__N96",
+        "day96__flynn16__b1000__reference__v0010__N96",
+        "day96__flynn16__b1001__reference__v0002__N96",
+        "day96__flynn16__b1001__reference__v0005__N96",
+        "day96__flynn16__b1001__reference__v0010__N96",
+        "day96__flynn16__b1003__reference__v0002__N96",
+        "day96__flynn16__b1003__reference__v0005__N96",
+        "day96__flynn16__b1003__reference__v0010__N96",
+        "day96__pengwah18__b1000__reference__v0002__N96",
+        "day96__pengwah18__b1000__reference__v0005__N96",
+        "day96__pengwah18__b1000__reference__v0010__N96",
+        "day96__pengwah18__b1001__reference__v0002__N96",
+        "day96__pengwah18__b1001__reference__v0005__N96",
+        "day96__pengwah18__b1001__reference__v0010__N96",
+        "day96__pengwah18__b1003__reference__v0002__N96",
+        "day96__pengwah18__b1003__reference__v0005__N96",
+        "day96__pengwah18__b1003__reference__v0010__N96"
+      ],
+      "heldout_jobs": [
+        "day96__paper15__b1002__reference__v0002__N96",
+        "day96__paper15__b1002__reference__v0005__N96",
+        "day96__paper15__b1002__reference__v0010__N96",
+        "day96__soumalas11__b1002__reference__v0002__N96",
+        "day96__soumalas11__b1002__reference__v0005__N96",
+        "day96__soumalas11__b1002__reference__v0010__N96",
+        "day96__flynn16__b1002__reference__v0002__N96",
+        "day96__flynn16__b1002__reference__v0005__N96",
+        "day96__flynn16__b1002__reference__v0010__N96",
+        "day96__pengwah18__b1002__reference__v0002__N96",
+        "day96__pengwah18__b1002__reference__v0005__N96",
+        "day96__pengwah18__b1002__reference__v0010__N96"
+      ],
+      "selection": {
+        "tau": 0.001,
+        "variant": "tau_0.001",
+        "training_inputs": 36,
+        "mean_endpoint_validation_mse_ratio": 0.76164540957621,
+        "grid_scores": [
+          {
+            "tau": 0.0,
+            "variant": "tau_0",
+            "mean_ratio": 0.76164540957621
+          },
+          {
+            "tau": 0.0001,
+            "variant": "tau_0.0001",
+            "mean_ratio": 0.76164540957621
+          },
+          {
+            "tau": 0.001,
+            "variant": "tau_0.001",
+            "mean_ratio": 0.76164540957621
+          },
+          {
+            "tau": 0.003,
+            "variant": "tau_0.003",
+            "mean_ratio": 0.76164540957621
+          },
+          {
+            "tau": 0.01,
+            "variant": "tau_0.01",
+            "mean_ratio": 0.766355773032685
+          }
+        ],
+        "tie_tolerance": 1e-12,
+        "tie_preference": [
+          0.001,
+          0.003,
+          0.0001,
+          0.01,
+          0.0
+        ]
+      }
+    },
+    {
+      "heldout_seed_index": 3,
+      "calibration_jobs": [
+        "day96__paper15__b1000__reference__v0002__N96",
+        "day96__paper15__b1000__reference__v0005__N96",
+        "day96__paper15__b1000__reference__v0010__N96",
+        "day96__paper15__b1001__reference__v0002__N96",
+        "day96__paper15__b1001__reference__v0005__N96",
+        "day96__paper15__b1001__reference__v0010__N96",
+        "day96__paper15__b1002__reference__v0002__N96",
+        "day96__paper15__b1002__reference__v0005__N96",
+        "day96__paper15__b1002__reference__v0010__N96",
+        "day96__soumalas11__b1000__reference__v0002__N96",
+        "day96__soumalas11__b1000__reference__v0005__N96",
+        "day96__soumalas11__b1000__reference__v0010__N96",
+        "day96__soumalas11__b1001__reference__v0002__N96",
+        "day96__soumalas11__b1001__reference__v0005__N96",
+        "day96__soumalas11__b1001__reference__v0010__N96",
+        "day96__soumalas11__b1002__reference__v0002__N96",
+        "day96__soumalas11__b1002__reference__v0005__N96",
+        "day96__soumalas11__b1002__reference__v0010__N96",
+        "day96__flynn16__b1000__reference__v0002__N96",
+        "day96__flynn16__b1000__reference__v0005__N96",
+        "day96__flynn16__b1000__reference__v0010__N96",
+        "day96__flynn16__b1001__reference__v0002__N96",
+        "day96__flynn16__b1001__reference__v0005__N96",
+        "day96__flynn16__b1001__reference__v0010__N96",
+        "day96__flynn16__b1002__reference__v0002__N96",
+        "day96__flynn16__b1002__reference__v0005__N96",
+        "day96__flynn16__b1002__reference__v0010__N96",
+        "day96__pengwah18__b1000__reference__v0002__N96",
+        "day96__pengwah18__b1000__reference__v0005__N96",
+        "day96__pengwah18__b1000__reference__v0010__N96",
+        "day96__pengwah18__b1001__reference__v0002__N96",
+        "day96__pengwah18__b1001__reference__v0005__N96",
+        "day96__pengwah18__b1001__reference__v0010__N96",
+        "day96__pengwah18__b1002__reference__v0002__N96",
+        "day96__pengwah18__b1002__reference__v0005__N96",
+        "day96__pengwah18__b1002__reference__v0010__N96"
+      ],
+      "heldout_jobs": [
+        "day96__paper15__b1003__reference__v0002__N96",
+        "day96__paper15__b1003__reference__v0005__N96",
+        "day96__paper15__b1003__reference__v0010__N96",
+        "day96__soumalas11__b1003__reference__v0002__N96",
+        "day96__soumalas11__b1003__reference__v0005__N96",
+        "day96__soumalas11__b1003__reference__v0010__N96",
+        "day96__flynn16__b1003__reference__v0002__N96",
+        "day96__flynn16__b1003__reference__v0005__N96",
+        "day96__flynn16__b1003__reference__v0010__N96",
+        "day96__pengwah18__b1003__reference__v0002__N96",
+        "day96__pengwah18__b1003__reference__v0005__N96",
+        "day96__pengwah18__b1003__reference__v0010__N96"
+      ],
+      "selection": {
+        "tau": 0.001,
+        "variant": "tau_0.001",
+        "training_inputs": 36,
+        "mean_endpoint_validation_mse_ratio": 0.7498093003838451,
+        "grid_scores": [
+          {
+            "tau": 0.0,
+            "variant": "tau_0",
+            "mean_ratio": 0.7498093003838451
+          },
+          {
+            "tau": 0.0001,
+            "variant": "tau_0.0001",
+            "mean_ratio": 0.7498093003838451
+          },
+          {
+            "tau": 0.001,
+            "variant": "tau_0.001",
+            "mean_ratio": 0.7498093003838451
+          },
+          {
+            "tau": 0.003,
+            "variant": "tau_0.003",
+            "mean_ratio": 0.7503854765347207
+          },
+          {
+            "tau": 0.01,
+            "variant": "tau_0.01",
+            "mean_ratio": 0.7510918208804247
+          }
+        ],
+        "tie_tolerance": 1e-12,
+        "tie_preference": [
+          0.001,
+          0.003,
+          0.0001,
+          0.01,
+          0.0
+        ]
+      }
+    }
+  ],
+  "validation_rows": [
+    {
+      "job": "day96__paper15__b1000__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__paper15__b1000__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__paper15__b1000__reference__v0010__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__paper15__b1001__reference__v0002__N96",
+      "old_J": 0.141405507516433,
+      "tau_0": 0.141405507516433,
+      "tau_0.0001": 0.141405507516433,
+      "tau_0.001": 0.141405507516433,
+      "tau_0.003": 0.141405507516433,
+      "tau_0.01": 0.141405507516433
+    },
+    {
+      "job": "day96__paper15__b1001__reference__v0005__N96",
+      "old_J": 0.5028213857308055,
+      "tau_0": 0.5028213857308055,
+      "tau_0.0001": 0.5028213857308055,
+      "tau_0.001": 0.5028213857308055,
+      "tau_0.003": 0.5028213857308055,
+      "tau_0.01": 0.5028213857308055
+    },
+    {
+      "job": "day96__paper15__b1001__reference__v0010__N96",
+      "old_J": 0.5887444026249179,
+      "tau_0": 0.5887444026249179,
+      "tau_0.0001": 0.5887444026249179,
+      "tau_0.001": 0.5887444026249179,
+      "tau_0.003": 0.5887444026249179,
+      "tau_0.01": 0.5887444026249179
+    },
+    {
+      "job": "day96__paper15__b1002__reference__v0002__N96",
+      "old_J": 0.08169686903454525,
+      "tau_0": 0.08169686903454525,
+      "tau_0.0001": 0.08169686903454525,
+      "tau_0.001": 0.08169686903454525,
+      "tau_0.003": 0.08169686903454525,
+      "tau_0.01": 0.08169686903454525
+    },
+    {
+      "job": "day96__paper15__b1002__reference__v0005__N96",
+      "old_J": 0.20991143808482832,
+      "tau_0": 0.20991143808482832,
+      "tau_0.0001": 0.20991143808482832,
+      "tau_0.001": 0.20991143808482832,
+      "tau_0.003": 0.20991143808482832,
+      "tau_0.01": 0.20991143808482832
+    },
+    {
+      "job": "day96__paper15__b1002__reference__v0010__N96",
+      "old_J": 0.9028862238281915,
+      "tau_0": 0.9028862238281915,
+      "tau_0.0001": 0.9028862238281915,
+      "tau_0.001": 0.9028862238281915,
+      "tau_0.003": 0.9028862238281915,
+      "tau_0.01": 0.9028862238281915
+    },
+    {
+      "job": "day96__paper15__b1003__reference__v0002__N96",
+      "old_J": 0.4415395725948152,
+      "tau_0": 0.4415395725948152,
+      "tau_0.0001": 0.4415395725948152,
+      "tau_0.001": 0.4415395725948152,
+      "tau_0.003": 0.4415395725948152,
+      "tau_0.01": 0.4415395725948152
+    },
+    {
+      "job": "day96__paper15__b1003__reference__v0005__N96",
+      "old_J": 0.6891484667984676,
+      "tau_0": 0.6891484667984676,
+      "tau_0.0001": 0.6891484667984676,
+      "tau_0.001": 0.6891484667984676,
+      "tau_0.003": 0.6891484667984676,
+      "tau_0.01": 0.6891484667984676
+    },
+    {
+      "job": "day96__paper15__b1003__reference__v0010__N96",
+      "old_J": 0.6123850698395329,
+      "tau_0": 0.6123850698395329,
+      "tau_0.0001": 0.6123850698395329,
+      "tau_0.001": 0.6123850698395329,
+      "tau_0.003": 0.6123850698395329,
+      "tau_0.01": 0.6123850698395329
+    },
+    {
+      "job": "day96__soumalas11__b1000__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1000__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1000__reference__v0010__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1001__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1001__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1001__reference__v0010__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1002__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1002__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1002__reference__v0010__N96",
+      "old_J": 0.9792576585684755,
+      "tau_0": 0.9792576585684755,
+      "tau_0.0001": 0.9792576585684755,
+      "tau_0.001": 0.9792576585684755,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__soumalas11__b1003__reference__v0010__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__flynn16__b1000__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__flynn16__b1000__reference__v0005__N96",
+      "old_J": 0.1714618153001188,
+      "tau_0": 0.1714618153001188,
+      "tau_0.0001": 0.1714618153001188,
+      "tau_0.001": 0.1714618153001188,
+      "tau_0.003": 0.1714618153001188,
+      "tau_0.01": 0.1714618153001188
+    },
+    {
+      "job": "day96__flynn16__b1000__reference__v0010__N96",
+      "old_J": 0.37201841193873475,
+      "tau_0": 0.37201841193873475,
+      "tau_0.0001": 0.37201841193873475,
+      "tau_0.001": 0.37201841193873475,
+      "tau_0.003": 0.37201841193873475,
+      "tau_0.01": 0.37201841193873475
+    },
+    {
+      "job": "day96__flynn16__b1001__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__flynn16__b1001__reference__v0005__N96",
+      "old_J": 0.207587889987851,
+      "tau_0": 0.207587889987851,
+      "tau_0.0001": 0.207587889987851,
+      "tau_0.001": 0.207587889987851,
+      "tau_0.003": 0.207587889987851,
+      "tau_0.01": 0.207587889987851
+    },
+    {
+      "job": "day96__flynn16__b1001__reference__v0010__N96",
+      "old_J": 0.3723885409933649,
+      "tau_0": 0.3723885409933649,
+      "tau_0.0001": 0.3723885409933649,
+      "tau_0.001": 0.3723885409933649,
+      "tau_0.003": 0.3723885409933649,
+      "tau_0.01": 0.3723885409933649
+    },
+    {
+      "job": "day96__flynn16__b1002__reference__v0002__N96",
+      "old_J": 0.03738359266832646,
+      "tau_0": 0.03738359266832646,
+      "tau_0.0001": 0.03738359266832646,
+      "tau_0.001": 0.03738359266832646,
+      "tau_0.003": 0.03738359266832646,
+      "tau_0.01": 0.03738359266832646
+    },
+    {
+      "job": "day96__flynn16__b1002__reference__v0005__N96",
+      "old_J": 0.1678822795531416,
+      "tau_0": 0.1678822795531416,
+      "tau_0.0001": 0.1678822795531416,
+      "tau_0.001": 0.1678822795531416,
+      "tau_0.003": 0.1678822795531416,
+      "tau_0.01": 0.1678822795531416
+    },
+    {
+      "job": "day96__flynn16__b1002__reference__v0010__N96",
+      "old_J": 0.28311719443402944,
+      "tau_0": 0.28311719443402944,
+      "tau_0.0001": 0.28311719443402944,
+      "tau_0.001": 0.28311719443402944,
+      "tau_0.003": 0.28311719443402944,
+      "tau_0.01": 0.28311719443402944
+    },
+    {
+      "job": "day96__flynn16__b1003__reference__v0002__N96",
+      "old_J": 0.02767457277068733,
+      "tau_0": 0.02767457277068733,
+      "tau_0.0001": 0.02767457277068733,
+      "tau_0.001": 0.02767457277068733,
+      "tau_0.003": 0.02767457277068733,
+      "tau_0.01": 0.02767457277068733
+    },
+    {
+      "job": "day96__flynn16__b1003__reference__v0005__N96",
+      "old_J": 0.1480251981312458,
+      "tau_0": 0.1480251981312458,
+      "tau_0.0001": 0.1480251981312458,
+      "tau_0.001": 0.1480251981312458,
+      "tau_0.003": 0.1480251981312458,
+      "tau_0.01": 0.1480251981312458
+    },
+    {
+      "job": "day96__flynn16__b1003__reference__v0010__N96",
+      "old_J": 0.31360699494968614,
+      "tau_0": 0.31360699494968614,
+      "tau_0.0001": 0.31360699494968614,
+      "tau_0.001": 0.31360699494968614,
+      "tau_0.003": 0.31360699494968614,
+      "tau_0.01": 0.31360699494968614
+    },
+    {
+      "job": "day96__pengwah18__b1000__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1000__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1000__reference__v0010__N96",
+      "old_J": 1.0,
+      "tau_0": 0.9866556452716937,
+      "tau_0.0001": 0.9866556452716937,
+      "tau_0.001": 0.9866556452716937,
+      "tau_0.003": 0.9866556452716937,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1001__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1001__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1001__reference__v0010__N96",
+      "old_J": 0.9879159582829624,
+      "tau_0": 0.9879159582829624,
+      "tau_0.0001": 0.9879159582829624,
+      "tau_0.001": 0.9879159582829624,
+      "tau_0.003": 0.9879159582829624,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1002__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1002__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1002__reference__v0010__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1003__reference__v0002__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1003__reference__v0005__N96",
+      "old_J": 1.0,
+      "tau_0": 1.0,
+      "tau_0.0001": 1.0,
+      "tau_0.001": 1.0,
+      "tau_0.003": 1.0,
+      "tau_0.01": 1.0
+    },
+    {
+      "job": "day96__pengwah18__b1003__reference__v0010__N96",
+      "old_J": 0.8558553120122421,
+      "tau_0": 0.8558553120122421,
+      "tau_0.0001": 0.8558553120122421,
+      "tau_0.001": 0.8558553120122421,
+      "tau_0.003": 0.8558553120122421,
+      "tau_0.01": 1.0
+    }
+  ],
+  "truth_opened": false,
+  "test_opened": false,
+  "truth_used_in_selection": false,
+  "future_DR_used": false,
+  "provenance": {
+    "protocol_sha256": "268de2d501b5398654aaef49631221a319ad73ff243e3230caa49cc94979f31b",
+    "catalog_sha256": "96db2bffeb8cba0d161c3eb8eb425d07b03859c6626d2e1979799ca51b7472b5",
+    "parent_protocol_sha256": "616d3542bec98407402a0857066488acd2097ff9c7e1eb6b0441f190e6f25d5b",
+    "parent_analysis_verification_sha256": "fc57b6f53f5cbfdec22da1daee4217376fa6725ab9a3382b620fd205939a2f79",
+    "replay_result_sha256": {
+      "day96__paper15__b1000__reference__v0002__N96": "ecc14eccae60e9516c3cde457c0d4875813de9adc946bd609a954359af80ecd0",
+      "day96__paper15__b1000__reference__v0005__N96": "9fb16906b007c5b9263eb67f0fc6fdee6d31e574f068e6165e156a8a6f851798",
+      "day96__paper15__b1000__reference__v0010__N96": "aa4a5e3837ce31e2fd56f21a3693a14594939dcb6e11f729f3337fbf08a66860",
+      "day96__paper15__b1001__reference__v0002__N96": "02fd6b7f7ba9839d31e628e99202465d22b0a41ced3a0ce5644956fe9722144f",
+      "day96__paper15__b1001__reference__v0005__N96": "bdd1584970be45f10684d9b24ff59b6e658b8ed54ac6e81c55e918cc815011b2",
+      "day96__paper15__b1001__reference__v0010__N96": "25a049f7bd16831caa3000892eb3e19dd81f3b354e612ffceaa046302cb8ec87",
+      "day96__paper15__b1002__reference__v0002__N96": "f4ad7bfb21db574f07c9a7753b27b83cdcbcb071f0c8188b1de7344b9fcf7b15",
+      "day96__paper15__b1002__reference__v0005__N96": "e1d2465a489438c70a6fc28f00630ff2b2e10d2408d2be9788bfa997ba01687e",
+      "day96__paper15__b1002__reference__v0010__N96": "b5018e4ca5933aee896ac3a5e556514ef6f1f85c0412d58f8c767b0e1c204cbe",
+      "day96__paper15__b1003__reference__v0002__N96": "3b5eb2672ca5aacd367e04f8fdb1a54e865f4f7661e96607cebb6bc404183b5d",
+      "day96__paper15__b1003__reference__v0005__N96": "c2726a1e9f604b6309131f821562d8bb0bb2d2ef9a5c4e53d8cd0b7643d353d4",
+      "day96__paper15__b1003__reference__v0010__N96": "8f79f12d36e4f0a68218766d630d215657f220d01f1138a38214e2854d1916d0",
+      "day96__soumalas11__b1000__reference__v0002__N96": "ec3b1340c0fe8cdba58a861b20f983c6074667794821eac534a254e8940a3903",
+      "day96__soumalas11__b1000__reference__v0005__N96": "92cbb3a7d8d8e3b4eb017b9efb9970a45b043c37fc3c2f771a506877b61ef36e",
+      "day96__soumalas11__b1000__reference__v0010__N96": "cd85d9cb353d963b7185474c8373e23af55c547c12f28bb583c1a066ba00540d",
+      "day96__soumalas11__b1001__reference__v0002__N96": "c25411e21f04daa6f086abcbfa236c18c0d6c4a4de542e7bfefe8d6ca0d90151",
+      "day96__soumalas11__b1001__reference__v0005__N96": "45abf8358817c31f7c47e4a27dd0bc3bd65062713998f95533101290352acbe9",
+      "day96__soumalas11__b1001__reference__v0010__N96": "c2a824e156539a93cb91d8e976e993189ba0519539f72b2d9b17827c2059d69e",
+      "day96__soumalas11__b1002__reference__v0002__N96": "9cdcddf2a6bb1778315c74654320a8ac6eb7b5f4e1c295e5c2d1b1495440946f",
+      "day96__soumalas11__b1002__reference__v0005__N96": "763766a91b289a5103f63e6ab27f3640efc9953f41f34009092c886971877917",
+      "day96__soumalas11__b1002__reference__v0010__N96": "2f56e8fb126589d1680d9f9f15b65c88349be7228e16b31f32e040ce085a6344",
+      "day96__soumalas11__b1003__reference__v0002__N96": "78ca62e498dda1a66c36594e797d010e11fdb384b107cb189b8477952d8f1f94",
+      "day96__soumalas11__b1003__reference__v0005__N96": "18a3b9f7320f43152d70b822a393a3409746450c97b79812cbf0e8839bc9209e",
+      "day96__soumalas11__b1003__reference__v0010__N96": "1a739152ebfe4b9d414b8fb8600255ce4185607cdaf553a6fb2f27a1d36da227",
+      "day96__flynn16__b1000__reference__v0002__N96": "dd265bd3173c7d00f6a38e74c0685bcfaf11dcb582803501acd9b3b21563aa2c",
+      "day96__flynn16__b1000__reference__v0005__N96": "c2d4a71541f42f58f77a962173ee270b1b26d5c9bf3afcc443855ce6e3a11044",
+      "day96__flynn16__b1000__reference__v0010__N96": "9b0555406db5c19b22e3fe2587437472123b497d50d8fe51f75c0f237387c81a",
+      "day96__flynn16__b1001__reference__v0002__N96": "c80265593f332aef61415d25be08961642c42f83b94d43195301b9199a2623b7",
+      "day96__flynn16__b1001__reference__v0005__N96": "698b620c238a8f889df5a9875e496efb959dc20c2b64008f342c405bd4381a16",
+      "day96__flynn16__b1001__reference__v0010__N96": "91305247d94043bae1679be5f7f894897c89ec1b50d0c5379905f6a1e167f39d",
+      "day96__flynn16__b1002__reference__v0002__N96": "4139d2e3c61dfff482df1b9adce605a408051d1435337a6976c0bccd0a0abd55",
+      "day96__flynn16__b1002__reference__v0005__N96": "ce890d7048b3e3cb74641f4cf7999e10e0755bedb00e95aa4e3ee91e8612595b",
+      "day96__flynn16__b1002__reference__v0010__N96": "e2601d39850f508147f2fe091e25ce451a04d53006dc3dba3175d41bbee7e4d5",
+      "day96__flynn16__b1003__reference__v0002__N96": "7907061782a29339ad7e47c5ae11e3a542fc20537e7258bca3b6457a4a4745ed",
+      "day96__flynn16__b1003__reference__v0005__N96": "4de51343b1b74fe5d961e7841d0676081ee992f59fdf033764df8894d6244884",
+      "day96__flynn16__b1003__reference__v0010__N96": "bae17bef2ade7384b19e6e90e466c12e4ffeb8635664b27e25587f769976ddae",
+      "day96__pengwah18__b1000__reference__v0002__N96": "5de53012dfd8c918ce67fc8fdb116ae1b8c2df64e2409eca904f461802f1c14a",
+      "day96__pengwah18__b1000__reference__v0005__N96": "e998ffb0083413a3189b785054e84cc48b4fa9452cc897fb723cf2866d152760",
+      "day96__pengwah18__b1000__reference__v0010__N96": "c64beb6c94fc298ca787ca13df5a4a107817fce3982c4295d4e11c59cc6cdc8f",
+      "day96__pengwah18__b1001__reference__v0002__N96": "e8392f2db750c49bbf255e1ca20f1040996cd9b135656d154956e97672be29eb",
+      "day96__pengwah18__b1001__reference__v0005__N96": "b2e4a7a0e11522e8acd036ecaa57143d2c24e3bc90fb38ed39e2de86588e38ba",
+      "day96__pengwah18__b1001__reference__v0010__N96": "4ca93b82bfe77f61ce0c8418a8ae028da4eee051ba3d658a02d402f5fd1e2b57",
+      "day96__pengwah18__b1002__reference__v0002__N96": "2d19308fea3571876ae949039be552e129298f324beed40880400408f3503e9d",
+      "day96__pengwah18__b1002__reference__v0005__N96": "85d25bb3106a61fe01fc489b01f20c0b48ea3ea20e108004d8441973bc971e4c",
+      "day96__pengwah18__b1002__reference__v0010__N96": "7e93b7c22f8a94ddd71411fa3393f446b3e3c4ddb9c7018e350ce4d96bf0aabd",
+      "day96__pengwah18__b1003__reference__v0002__N96": "0e9e69bf8221d3ec32facdf856f929daf6d3272fb5c904c711dcb1a9d19ac66a",
+      "day96__pengwah18__b1003__reference__v0005__N96": "eae9409f34780550d4b96217b96f04942cb7c8e434d809db1a82f270de586874",
+      "day96__pengwah18__b1003__reference__v0010__N96": "fe6ad463e82fe8354f56d2ad9747d509dd25180066ecd5a04ab0a7d58d16e1c1"
+    },
+    "parent_T003_result_sha256": {
+      "day96__paper15__b1000__reference__v0002__N96": "0bc8e157618f4749bbb98098bafd569e3dfb7ce48233a036dc87ca2cbe77875f",
+      "day96__paper15__b1000__reference__v0005__N96": "700a4e9d8ff1c765a1919b031de13e6c2415a05ce980243ca78080afe0030c48",
+      "day96__paper15__b1000__reference__v0010__N96": "2ea83d4ff13d56d0153d3782f5136b3842cfee0a801c3e17204afe8fc74f3014",
+      "day96__paper15__b1001__reference__v0002__N96": "e2d11c9885dbf18c625d2f314760b1b7b0130bd8c6a790045c4eff425b0ec495",
+      "day96__paper15__b1001__reference__v0005__N96": "dafe9e089078ab0f067153e2bc56a2b52659cf28d742354140eefbbd5a8033af",
+      "day96__paper15__b1001__reference__v0010__N96": "fa37d7c506c4ead127ff72b7cba5ce36704c916de94678889f079c7e9c47e33c",
+      "day96__paper15__b1002__reference__v0002__N96": "a483f7f1168f7b64b6310b3f2826b14c68ddcf4ab21b4f6604637e793d283ea3",
+      "day96__paper15__b1002__reference__v0005__N96": "a4bac7e8dfb3d2eac01792e8e27a6abaa9471c6ffd63014bcf374ab09486ef8f",
+      "day96__paper15__b1002__reference__v0010__N96": "eb54d002704e2bef195bbc0db2a65b6b3ccff948b24bbd316a4fbf411a535883",
+      "day96__paper15__b1003__reference__v0002__N96": "16ce2a7a24f11939fa1f1069f5589ec8366ddb852734c77ea23d0a201f071c67",
+      "day96__paper15__b1003__reference__v0005__N96": "e86b200b611b4335d3d7a71f9322474bc726c8bebbde5fd41d8302d943550043",
+      "day96__paper15__b1003__reference__v0010__N96": "789868a994ddacaff5b4fcd7481edcf187adef9ac1fcadcc0febecb87de709cd",
+      "day96__soumalas11__b1000__reference__v0002__N96": "d3a92cbaaf42d6b996a6d80149a8a9d1a66f05c322fd99ab9a0d9cca1b2f9f02",
+      "day96__soumalas11__b1000__reference__v0005__N96": "e9f296f6f2c24f05b889c657f69da2006381a919543300ebea1999ab02aece34",
+      "day96__soumalas11__b1000__reference__v0010__N96": "fda080e88792ff78b8396d93a9e581ee6c5209cfa8b19107fc62f9094ff39771",
+      "day96__soumalas11__b1001__reference__v0002__N96": "312fb21599efee2b13303f8519df517a33a0b1f8b72625f42d6a2f7126350691",
+      "day96__soumalas11__b1001__reference__v0005__N96": "d6922befb6659dcbf413f7a6a2927dfda1ac7dabec40509a7151189cde3cecbc",
+      "day96__soumalas11__b1001__reference__v0010__N96": "a672b4ed9064c26703dfe8358c0c3ca0a364e9fd9d68c38d13334602b28ad061",
+      "day96__soumalas11__b1002__reference__v0002__N96": "82b71d6e35e86a2ca78e08224ef73ff72b87cbb06c1153e2b72049e0d181bce1",
+      "day96__soumalas11__b1002__reference__v0005__N96": "e354c2d4f24b3256e32c2be483099bd98a53cb5bfbe70733ed613905ce4d66f4",
+      "day96__soumalas11__b1002__reference__v0010__N96": "5d6e67cb93df0e59d23a87c0e907bac49c93f7c2a901306da50cbc418e3c299f",
+      "day96__soumalas11__b1003__reference__v0002__N96": "32119a955c5caf2b6975deda896f874fdf85a41eaa3fa16bc9153c3e4f632672",
+      "day96__soumalas11__b1003__reference__v0005__N96": "61ec42a4031d5e301e613b4dbc10e7e6c6bef5fbfe91131da233386be3986343",
+      "day96__soumalas11__b1003__reference__v0010__N96": "7fc124457a62e0fcc568923a39451db8df66804fc9b1b071a258547f39416f63",
+      "day96__flynn16__b1000__reference__v0002__N96": "03c9ec3c2bd03f981dcb7dd8bc41be4199b6b7ff82e1d841c9d063ab4c8219fa",
+      "day96__flynn16__b1000__reference__v0005__N96": "08d22d9c6657aa98d3ba8bfa747e8a7c92de70776ffec3c434e07ecf41204f86",
+      "day96__flynn16__b1000__reference__v0010__N96": "e0bc6370ba6e4e1b2973c770a5188b682a7df9dbbadfe15e837e4c1532881d71",
+      "day96__flynn16__b1001__reference__v0002__N96": "36a35b94143fd66101cf06cbc400e0cb3c12fbb5bbd71eb120db6e08b3795ee7",
+      "day96__flynn16__b1001__reference__v0005__N96": "80e0537b22109379efd5f0b5bc92483c6bb07c8b6bc6768bd7204d2a3e0aa204",
+      "day96__flynn16__b1001__reference__v0010__N96": "b214a1f858dd0ac93463d6de82e3b5c21c76e76a447bbd7f1ee9d810ea3038c1",
+      "day96__flynn16__b1002__reference__v0002__N96": "93d03599d338d75d5efbb3e4f3a34108eab00dcc7ab2a56fefffa64cb5b666d1",
+      "day96__flynn16__b1002__reference__v0005__N96": "969c6e920db2b8cc10fbd2af6bc6e8cb4d9d15126326e2b5deb8363e3d5dd999",
+      "day96__flynn16__b1002__reference__v0010__N96": "44003269892c8085268d593edb4eade1bc9ff28738facbe69d3df991df1bf764",
+      "day96__flynn16__b1003__reference__v0002__N96": "2ce7de5ec8dbd22a747730075f89c65be3fc7234332e35b0fd74747f84464dbd",
+      "day96__flynn16__b1003__reference__v0005__N96": "15c61faaabffa46a40557d4ec5c49421fb3980b7c302e4dd9a481e28a5394612",
+      "day96__flynn16__b1003__reference__v0010__N96": "cfd4a33272e42c0544bb903d4b8edaf2d1beda4600624d5a8ae0e90134dc22c9",
+      "day96__pengwah18__b1000__reference__v0002__N96": "4fb127eb45b62d3149580ad43eccfbce1ef40ba5915e5adfb85ca981ba554657",
+      "day96__pengwah18__b1000__reference__v0005__N96": "f0323f7d142a21e01812bcfca46680995daae8e7d80d8c854100b7f0e9d52430",
+      "day96__pengwah18__b1000__reference__v0010__N96": "a1cfa416dc9a30246e615800e0850972f84dbf6b546bdc144d1ca82b9812b528",
+      "day96__pengwah18__b1001__reference__v0002__N96": "d706e2fec82c9d7b197e882c6bed5c82401003194135703896d8737e989cfc65",
+      "day96__pengwah18__b1001__reference__v0005__N96": "3849dc3b388c1d9d969bf6c704c254f84d90c48d3fae650e13aaa69582705449",
+      "day96__pengwah18__b1001__reference__v0010__N96": "258b2f2f3c245a7d19ad79055d6b954cda4da9bf95f6cd31bfe40aa24198059b",
+      "day96__pengwah18__b1002__reference__v0002__N96": "6cb27f44b1e36ed0c526d62292969c6b88d34b09a0c02f99cdf4c2e0fac09079",
+      "day96__pengwah18__b1002__reference__v0005__N96": "56e978576f7d8ba0aca144c02dee1779c85e05fdbe67f718b3745e8ee5cde53a",
+      "day96__pengwah18__b1002__reference__v0010__N96": "66927f68184b103803ea528ba46b6104b88875c0c5408699a49cdeeca6518fdc",
+      "day96__pengwah18__b1003__reference__v0002__N96": "818afbf8a441475c48ad114ac073a5f99b7f3c30bfa18308fa4d1b17d1c2e837",
+      "day96__pengwah18__b1003__reference__v0005__N96": "51f5d7017379c3af65236b36037df5cd0ea26bf0e44bedef6e58bb31ef067dd9",
+      "day96__pengwah18__b1003__reference__v0010__N96": "b2239a8ec087fba1dd853b7fa5b1883c515716c960c5340dd8bfa5ecd7a338b5"
+    },
+    "historical_input_sha256": {
+      "day96__paper15__b1000__reference__v0002__N96": {
+        "train": "041aaeebc85667f7f932873ef6097b0a295258b411b5a8fa9c5526ac8cc9b437",
+        "validation": "8976af5b622ffbd2b6e701763650d6827c759a3b23e32a3d029adaad161fbde2"
+      },
+      "day96__paper15__b1000__reference__v0005__N96": {
+        "train": "5b29ac0d75e78cf34cb74ea58aab5f6f8662eedc226d971f8b123134608012e7",
+        "validation": "34308bb9ae2543b87fb8de2f019a1f94862cc65c586b07b7b26f1f365d402a88"
+      },
+      "day96__paper15__b1000__reference__v0010__N96": {
+        "train": "03f0d5a58a5ec63b10d3381487d5beb36cba72a3a230850807b73e239ad2c7cc",
+        "validation": "38128eb1988e51c1642bbe287c5b56d28a2646b0376c3af1f69f81b0244a20b6"
+      },
+      "day96__paper15__b1001__reference__v0002__N96": {
+        "train": "01d641cd2f0418f6f0d333c26a079f8985840fa8b6a3c63e9c033a1f173dcdaa",
+        "validation": "0e80bfb88adc84f400637f94b9300defee826c8c908417545cae71c85227a095"
+      },
+      "day96__paper15__b1001__reference__v0005__N96": {
+        "train": "00c13047f0edc07b0cfb81981634cd13e338a19c40b7e4e567c50f6ac9687fa6",
+        "validation": "5606fb5988cd26cd861254c223d423b4ecf2e434947d185dcf719bdbe5a8709e"
+      },
+      "day96__paper15__b1001__reference__v0010__N96": {
+        "train": "ea93f55b5ddfa3bc391bb7fb35ad455f22d56f92c8c445a57c232e518f47ff8c",
+        "validation": "fcf0ba502bc3ab7fc2f6544638ad1c349480466fb27a72121a33c914e54f2e05"
+      },
+      "day96__paper15__b1002__reference__v0002__N96": {
+        "train": "37b36eb8d864193ec6b2e8dd016f0e92dfa762c8585f9161e1be8a2b2be05e16",
+        "validation": "af09c4702de4feb350b7e0d4ec46422bc0d7b88869c993772ac53fa19e053d6e"
+      },
+      "day96__paper15__b1002__reference__v0005__N96": {
+        "train": "7132560b69e37dc54894fdfa5d5eb64d99391b3ce6047622036214af7091a82a",
+        "validation": "fbf3962eb3e59f6a390870c1bd88207c72340536cf52903399729ad1d6c432be"
+      },
+      "day96__paper15__b1002__reference__v0010__N96": {
+        "train": "adf3d3e98ea0c7e81d24dee7508af0b1bb1c421d169c86301f5e71ba80a5c33c",
+        "validation": "87c8afe6fd3c4894d9a0e1982a9ce9296486b98380f48eb6620d7905b1af1fcd"
+      },
+      "day96__paper15__b1003__reference__v0002__N96": {
+        "train": "fa7fb26bcabc409df5b9dbc78f942482b05b225240efe4d50d7a5e3cffd7061b",
+        "validation": "a9925f6768db1664fcf98f3dc0e2dfee6f733403931fe7e68b7c7786384073e2"
+      },
+      "day96__paper15__b1003__reference__v0005__N96": {
+        "train": "0af3fc6935b0da8d1aabee95d55f0f4600e82208f7cae01a9a36cb7a72ad7810",
+        "validation": "ab32c9bf206e1d4bdcd61223e6cf4c75181479fb551d25b35af7a588fb6f9ac2"
+      },
+      "day96__paper15__b1003__reference__v0010__N96": {
+        "train": "412442368ad343e9fde1593f1f291429704ca4b80aecc8ddba469ef2561c9b14",
+        "validation": "ef32f8def738e65b45bdb9f7b7afd719fe53201f2f284b72955b188284886f29"
+      },
+      "day96__soumalas11__b1000__reference__v0002__N96": {
+        "train": "944423ce7cde9ee89d05887aaaff107e5ec1e298812b5f3380864d30f8d4381b",
+        "validation": "112c5a5dfed6e56c46bc9aaf2b36416ec0b5d14dd68482f1cc64c348e650f06c"
+      },
+      "day96__soumalas11__b1000__reference__v0005__N96": {
+        "train": "0d66c919f1c0ab83354d73724b1e61ef0aefba5b50ca939ab3c153baf12b4183",
+        "validation": "d06c4ba9631c9a6910346f99f62ce78084da1b8c8008e380a9dfc32092678fd4"
+      },
+      "day96__soumalas11__b1000__reference__v0010__N96": {
+        "train": "bf65499a1bf6bd635ee7497508de46f8ccb866f475e6c5e1a9575ce23bbc82ec",
+        "validation": "dc7288a6fa95e49bbc224ea92f7a86a0215f5f3b528fa2dff778719ec1951f3c"
+      },
+      "day96__soumalas11__b1001__reference__v0002__N96": {
+        "train": "f27a98fe214f00d4d003af35b5856fcec8a513b904d675ad91e9ebf067ef3fd6",
+        "validation": "b07be3cc3ce63d31c13d7d77a4c78e95292ebcf4128de67a33afbc04a7d86114"
+      },
+      "day96__soumalas11__b1001__reference__v0005__N96": {
+        "train": "fde03734c560106bb8e03d4f238cad62b3b7eba72a89d2d4843f16244bc744fd",
+        "validation": "1591ae9ce3386784cd0d33267e39d6dd70c9d313ce6a256a24867ca58370278e"
+      },
+      "day96__soumalas11__b1001__reference__v0010__N96": {
+        "train": "b35de52330509808751998e97cdc92d6866675c48a0c106b8f92369334dc42db",
+        "validation": "8382452b668c8f8fe0b3e57059b4efa79774db3a777f34de1e6264fd6c77e7b5"
+      },
+      "day96__soumalas11__b1002__reference__v0002__N96": {
+        "train": "3564f913c2de10fc8465fb22fcbfd381a7c3c0ec1fe981bcf749ffe547a244e2",
+        "validation": "fc2e08c30f43831de628b99b85f30b034cc43ab0e252037dc62d63919b2f9c1c"
+      },
+      "day96__soumalas11__b1002__reference__v0005__N96": {
+        "train": "ce3d4bd12dd0cc32e58111843ee75a554d47c576d28317408590def775fb707a",
+        "validation": "92551ae3995af56346fe5e8b6ecdaa153a7827385a678b13611de23aeaf55edd"
+      },
+      "day96__soumalas11__b1002__reference__v0010__N96": {
+        "train": "5674cb06d8dc91ae71ec329e8ed5543277646b5b3ac4658c1a28c8cbb5238847",
+        "validation": "6731cce8cb3d9b17525a4d3a993e2c595e0dc4f19e7d26563247c269cb7ab8ad"
+      },
+      "day96__soumalas11__b1003__reference__v0002__N96": {
+        "train": "a0dd77527fcc94c2de2483bb9050d8956ed569eca897e03ccbe3400ba2e32a21",
+        "validation": "0e0a6559abb5dcc057c4b71c6cc554c9a327ceb47acff3e47ed0a99b9ed70e11"
+      },
+      "day96__soumalas11__b1003__reference__v0005__N96": {
+        "train": "a7f472960d5cd8b14cdaf3df946cb7d2fcc0bdcd9ec2158c97c513b747caff7a",
+        "validation": "950f755f88775833a06b70dd8431e0526570e38ae72a880eeb7d1ce3a3f28a74"
+      },
+      "day96__soumalas11__b1003__reference__v0010__N96": {
+        "train": "fee94c1f5f7a3f79c06bfe5b139efa1da02adf76a2adc28b2ecc8a343d17f9de",
+        "validation": "d03a9d137ff280deff0c0c204a10047268c9c94abe4d5649dd070817ae3e7efb"
+      },
+      "day96__flynn16__b1000__reference__v0002__N96": {
+        "train": "cc122c126713a95ecadf1c5e2b44bb79b7134f6509c25e44f806bb56d7dca5e6",
+        "validation": "a2f9ba4a7c00f9435487f1e226e471718a14f0b3e5ce3f722e43c217ca7a98fa"
+      },
+      "day96__flynn16__b1000__reference__v0005__N96": {
+        "train": "f99e7671a96070ba390f39225c41198ebf87d9851251de34a3721fd81ac36c12",
+        "validation": "d2fa68be140c52de763702f5b1c2c60bead188126bf1f2b4998dfee947c13811"
+      },
+      "day96__flynn16__b1000__reference__v0010__N96": {
+        "train": "218abdd2659fa2f55e68d7f7da264849877a34392f3df75bb00bae2e7fa0ddc1",
+        "validation": "13a49f878a530dbc8278263dc2a0cb7ed6816dd2405ba2251fa22e94194d03f6"
+      },
+      "day96__flynn16__b1001__reference__v0002__N96": {
+        "train": "a3452cb009b9a7d4dd9fc4cd3d66a1d949392202f8c1a9de55ee1584859cdac3",
+        "validation": "2d6920090d656290c8a251be51a0da6a89f0119a344674aafe2df7195bedce55"
+      },
+      "day96__flynn16__b1001__reference__v0005__N96": {
+        "train": "c29f9cabbf0362972c5aad11e8aa0481a8e2e137f3c90f54d3baffd03e2107f8",
+        "validation": "619d0b3168d2e68959164a4b26bccca72d745406c9d6aa9bd36a0e71bda853d8"
+      },
+      "day96__flynn16__b1001__reference__v0010__N96": {
+        "train": "18668582c5a347749fab9ef509bf92e75cf5ca6b160fcc79b39cae86a6482f92",
+        "validation": "818bc3a2cc0da4e12e196463c62d5a3b7d41b1ffa99bf0a5cec1813e8270abab"
+      },
+      "day96__flynn16__b1002__reference__v0002__N96": {
+        "train": "3360fb7fe05c7c6032f6ab74a7b00bbaf7a39cb94559ba0da45f2a9a0c25784c",
+        "validation": "1bee5ad36e23d84b31c3b8b0821c4c631106dec59e9bbd7c586b7a29d1c92e90"
+      },
+      "day96__flynn16__b1002__reference__v0005__N96": {
+        "train": "997f51b19b53beb680ab57d0b0c4a05efa4b47ac6fe7cdf746b41ebe33d6e41f",
+        "validation": "fdd3581a63a34b9f27b75e881b939a6481effa1d63c2a69a762a93d931b675c4"
+      },
+      "day96__flynn16__b1002__reference__v0010__N96": {
+        "train": "c47760b1c0bcb1012e0d766980f1294bea5ea7354c9a47e3e620c50d414e1ad9",
+        "validation": "bb13443f86aa0b9385a17fd72f5e9fe87c872ecbaf9ab4f8a398165be4aa1291"
+      },
+      "day96__flynn16__b1003__reference__v0002__N96": {
+        "train": "2f1eba00e781f796e43322be09bef81c088410c47ec654f915846294d80ba1ef",
+        "validation": "39ab5815e4c861dbacee19c126a8f3d1fd5a6e2e656e513fcb229067095befb3"
+      },
+      "day96__flynn16__b1003__reference__v0005__N96": {
+        "train": "5f02a8a77a6f32ee8bb83ceb7cf878ab6c92d9e85c061a81072493a6a339ab75",
+        "validation": "f3a54f9ddfc9a23d2e9793b3866ac78060cd2adef2c3a2ac942a4eec4b4d03b2"
+      },
+      "day96__flynn16__b1003__reference__v0010__N96": {
+        "train": "8d1c3a93a077afb1512684c941e66a11615e774de595bd3d1139dc2eaf2c6d11",
+        "validation": "5f9880558c3030cfa283a6746d8d1af709711a7c421a4b8dbb8b348c2ac64717"
+      },
+      "day96__pengwah18__b1000__reference__v0002__N96": {
+        "train": "6e48937d71d83012b82f4cf0a1afb323ddfef5e6dab91f29fb53183f6c35b0b5",
+        "validation": "7804429fdc43b7477401eecd2f1674d223fe7beed4f0596d88fe9e6e90473784"
+      },
+      "day96__pengwah18__b1000__reference__v0005__N96": {
+        "train": "ebef82bf0bddb7fdee8654ef51969e3cef6463d988b519925a43edf990ccc115",
+        "validation": "1eb2c8eadba8cf367fb6e202f51b5400e5cca574194d94881d46883e08e9a431"
+      },
+      "day96__pengwah18__b1000__reference__v0010__N96": {
+        "train": "d8e381887595a315170d2cb6b6de435fa3fa7da756b304b8334aa73408acd83a",
+        "validation": "3fb31fd395d649ae793f1158c0596258ce65bda6cf0d7f8e50c155664815ad35"
+      },
+      "day96__pengwah18__b1001__reference__v0002__N96": {
+        "train": "2d62ecdfd281815800b45ebef3569fcbc978e35ac99562ccb516fa8ec15f90f8",
+        "validation": "593eed0658b3a24ce729e41704d91c2abb226021b34a9cd7d4653a25e1b5c252"
+      },
+      "day96__pengwah18__b1001__reference__v0005__N96": {
+        "train": "edac0473a604c85c48e970f8557e3908495200fe846339b22dd3130b99cdd66e",
+        "validation": "a47776d7dd4b755ff6e9e6dcbe001615315ed452adde9da55806c54a942c1c0f"
+      },
+      "day96__pengwah18__b1001__reference__v0010__N96": {
+        "train": "f847df5c7cdcd2238a1304b742360cae2f2ad34456604662f75273a55821391b",
+        "validation": "2dbf55091601061ffebf60af7ec618dd0d6c07a20b7f88d25b4dd3a7e0bd2dac"
+      },
+      "day96__pengwah18__b1002__reference__v0002__N96": {
+        "train": "1273b7ad439c5aa8faafe66d4420f15d6a4d4931224f0ef5de2f4bc8aea6b78b",
+        "validation": "4220a32f351c9788e36adf5bb3e5fdbc93e918c518aa5de71953e27a7edcc776"
+      },
+      "day96__pengwah18__b1002__reference__v0005__N96": {
+        "train": "520f3e3d6884557ef57b101990370f9c606ca3008dfd3ae0665096eb284553c7",
+        "validation": "bcde9847a734fddcc5c6c7b8ad92ea4584aabf5abdf2970cfb9fe91a12aa2d99"
+      },
+      "day96__pengwah18__b1002__reference__v0010__N96": {
+        "train": "b5a2611bbbe9315f5997fe9135ad9526f480951430fbad8cb2fe896a036b73cf",
+        "validation": "4e05077ed14b03ff6c0dc20ee9b5e02a1219c4a11b514525bd48caf66f224280"
+      },
+      "day96__pengwah18__b1003__reference__v0002__N96": {
+        "train": "96b16ce80441d828735b73d927cbd7bd85e0477d864812eb278597fc99bf87c8",
+        "validation": "18ca432f08bdeb968d315b8eda2b4cbd8d6347cc1b7a3948bd4a035db696db7e"
+      },
+      "day96__pengwah18__b1003__reference__v0005__N96": {
+        "train": "5f47e5027ce52ca7fe6fb260225c0174c28ee433859389917a6ddce5ad32a3fe",
+        "validation": "505a8445ea9dc6d4b9823541bf7418f3c3200922c214052b5da4f1f7e0e10a9d"
+      },
+      "day96__pengwah18__b1003__reference__v0010__N96": {
+        "train": "0129299af81814b1dfa0f7970af95c6c438eece66d24aa204a4352001dfe25de",
+        "validation": "53a2ec9ddc2d0537abf50f473cd0a6c8fb2f541cfe299626a6718326731635b1"
+      }
+    },
+    "analyzer_sha256": "da3847016724b1b842f0f0f369767473639344042fa4f40d890967efc5f59fcc",
+    "independent_helper_sha256": "0f2af5e75f57339b8912bf84036a48ba1aaa387fb4e981d1351d4546a45fcc92",
+    "gate_sha256": "78b60764be36122e396d33ea98f5a7b7211f401485b115037f690c23c61ff1e1"
+  },
+  "interpretation": "historical validation calibration and four-shared-seed cross-fitting; no new prospective test panel",
+  "selection_sha256": "5e697028beb78863bec0375dc8c5caa5a7c21df2c94a37d7701bc87748fd3359"
+}
