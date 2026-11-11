@@ -1,7 +1,7 @@
 ## 相对损失条件的IEEE方法短稿，2026-11-11
 
-- dr_pricing/bayes_qcqp/relative_gate_paper保存main.tex/method.pdf及核验记录；当前/备选改用0/1，正文直接以物理电压差d(u)ᵀWd(u)≥h规划，不再展开Q/g/c。W/h从原Tκ精确移项和坐标换算得到，独立审查通过；1/2来源和无需新增矩估计均已说明。证明在附录。
-- 私有wzzt_relative_gate_paper_v1保存初版构建与两页PNG；wzzt_relative_gate_plain_v2保存本次简化稿的构建、核验与两页PNG。旧main.pdf被阅读器占用，本地不删/不关闭阅读器，以method.pdf作为唯一新输出。仅文档，无新数值；旧固定F结果及源码冻结均不变。新Tκ不冒称已实现概率优化器。
+- dr_pricing/bayes_qcqp/relative_gate_paper保存main.tex/method_appendix.pdf及核验记录；当前/备选采用0/1，正文d(u)ᵀWd(u)≥h、W/h均未改。附录改为整理形式、上界选择、参数选择、逐层积分、回代五步，给出正态密度/换元及行列式依据，独立审查通过。
+- 私有wzzt_relative_gate_paper_v1和wzzt_relative_gate_plain_v2保留旧稿；wzzt_relative_gate_appendix_v3保存本次构建、正文未改比对、三页PNG、publication与核验记录。旧main.pdf/method.pdf被阅读器占用，本地不删/不关闭阅读器，以method_appendix.pdf作为新输出。仅文档，无新数值；旧固定F结果及源码冻结均不变。新Tκ不冒称已实现概率优化器。
 
 ## 固定F概率充分条件，2026-11-11
 

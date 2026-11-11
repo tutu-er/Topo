@@ -115,90 +115,222 @@ $d(u)$对$u$为线性加常数，$W,h$在规划前固定，因此约束已经是
 
 \clearpage
 \appendices
-\section{概率条件的计算依据}
-以下仅给出式\eqref{eq:condition}所需的积分。记$\Delta H=H_1-H_0$，并将残差按电压误差尺度换算：
+\section{概率条件的推导}
+
+\subsection{整理损失差}
+记$\Delta H=H_1-H_0$。规划时$V=H_1P+\varepsilon$，
+所以两模型的残差分别为
+\[
+V-H_1P=\varepsilon,\qquad
+V-H_0P=\varepsilon+\Delta H P.
+\]
+为按同一电压误差尺度计算平方损失，令
 \begin{equation}
 e=\Sigma_V^{-1/2}\varepsilon,\qquad
-Z=\Sigma_V^{-1/2}\Delta H P.
+Z=\Sigma_V^{-1/2}\Delta H P, \label{eq:app_ez}
 \end{equation}
-则$e\sim\mathcal N(0,I_m)$，且$Z\sim\mathcal N(a,C)$与$e$独立，其中
+其中$\Sigma_V^{-1/2}$取对称正定平方根的逆。
+由正文的正态模型，
+\[
+e\sim\mathcal N(0,I_m),\quad Z\sim\mathcal N(a,C),\quad e\perp Z,
+\]
+且
 \[
 a=\Sigma_V^{-1/2}d(u),\qquad
 C=\Sigma_V^{-1/2}\Sigma_D\Sigma_V^{-1/2}.
 \]
-因此
-\begin{equation}
-L=\|Z\|^2+2e^\top Z-(\kappa-1)\|e\|^2.
-\end{equation}
-固定$\lambda=1/(4\kappa)$，并记
-\[
-b=1-2\lambda(\kappa-1)=\frac{\kappa+1}{2\kappa},
-\qquad
-\gamma=\frac1{4(\kappa+1)}.
-\]
-给定$Z$，对正态误差$e$积分：
+在给定$u$时，$a,C$均已知。于是
 \begin{align}
-\E_1[e^{-\lambda L}\mid Z]
-={}&(2\pi)^{-m/2}e^{-\lambda\|Z\|^2}\notag\\
-&\cdot\int_{\R^m}
-e^{-b\|e\|^2/2-2\lambda e^\top Z}\,de\\
-={}&b^{-m/2}e^{-\gamma\|Z\|^2}.
+S_1&=\|e\|^2,\qquad S_0=\|e+Z\|^2,\notag\\
+L:=S_0-\kappa S_1
+&=\|Z\|^2+2e^\top Z-(\kappa-1)\|e\|^2. \label{eq:app_L}
 \end{align}
-第二步由配方
-\begin{equation*}
-\begin{split}
--\frac b2\|e\|^2-2\lambda e^\top Z
-={}&-\frac b2\left\|e+\frac{2\lambda}{b}Z\right\|^2\\
-&+\frac{2\lambda^2}{b}\|Z\|^2
-\end{split}
-\end{equation*}
-及$\lambda-2\lambda^2/b=\gamma$得到。
+需要控制的失败事件是$L\le\delta$。
 
-为继续对$Z$积分，可写$Z=a+F\xi$，
-其中$FF^\top=C$、$\xi\sim\mathcal N(0,I_s)$。
-令$D=I_s+2\gamma F^\top F$、
-$t=2\gamma F^\top a$。完成平方得
+\subsection{选择概率上界}
+直接计算$\Prob_1(L\le\delta)$，需要在式\eqref{eq:app_L}
+给出的二次边界内积分；该边界还会随DR计划$u$改变。
+为得到可预计算的二次约束，本文选择一个易于解析计算的概率上界。
+
+由于$L$可能为负，先对任意$\lambda>0$定义非负随机量
+$X=e^{-\lambda L}$。指数函数的单调性给出
+\[
+L\le\delta\quad\Longleftrightarrow\quad
+X\ge e^{-\lambda\delta}.
+\]
+任意非负$X$与$\tau>0$满足
+$\E_1X\ge\tau\Prob_1(X\ge\tau)$。
+取$\tau=e^{-\lambda\delta}$，得到
+\begin{equation}
+\Prob_1(L\le\delta)
+\le e^{\lambda\delta}\E_1e^{-\lambda L}. \label{eq:app_bound}
+\end{equation}
+因此，只需使右端不超过$1-\beta$。
+使用式\eqref{eq:app_bound}是为保留可求解的二次形式所作的选择；
+它给出充分条件，并非成功概率的精确表达。
+
+\subsection{选择参数}
+$\lambda$是证明和规划中由我们固定的数，不是待估计的负荷参数。
+将正态密度中的$-\|e\|^2/2$与$-\lambda L$相加，
+配方后会出现
+\begin{equation}
+b(\lambda)=1-2\lambda(\kappa-1),\qquad
+\gamma(\lambda)
+=\frac{\lambda(1-2\kappa\lambda)}{b(\lambda)}. \label{eq:app_general}
+\end{equation}
+取充分范围
+\begin{equation}
+0<\lambda<\frac1{2\kappa} \label{eq:app_range}
+\end{equation}
+可保证$b(\lambda)>0,\gamma(\lambda)>0$：
+第一次积分有界，第二次积分对任意$C\succeq0$均有界，
+并保留对模型电压差的正权重。式\eqref{eq:app_range}
+是便于统一设计的充分范围，不是积分存在的必要范围。
+
+本文采用固定值
+\begin{equation}
+\lambda=\frac1{4\kappa},\qquad
+b=\frac{\kappa+1}{2\kappa},\qquad
+\gamma=\frac1{4(\kappa+1)}. \label{eq:app_fixed}
+\end{equation}
+它位于式\eqref{eq:app_range}内，使后续公式简洁，
+并避免在DR优化中再同时选择$\lambda$。
+其他固定的合法取值也可形成二次约束；
+式\eqref{eq:app_fixed}不保证上界最紧。
+
+\subsection{计算右侧期望}
+按全期望公式，可先固定$Z$、对电压误差$e$计算，
+再对由功率误差引起的$Z$计算：
+\begin{equation}
+\E_1e^{-\lambda L}
+=\E_Z\!\left[\E_e(e^{-\lambda L}\mid Z)\right]. \label{eq:app_tower}
+\end{equation}
+两次积分分别处理两种误差，不会重复计入同一误差。
+
+\subsubsection{先对电压误差积分}
+给定$Z=z$时，$z$是常数；被积变量只有$e$。
+由于$e$与$Z$独立，$e$的条件密度仍为
+\[
+\phi_m(e)=(2\pi)^{-m/2}e^{-\|e\|^2/2}.
+\]
+期望就是函数乘以该密度后积分：
 \begin{align}
-\E_1e^{-\gamma\|Z\|^2}
-={}&(2\pi)^{-s/2}e^{-\gamma a^\top a}\notag\\
-&\cdot\int_{\R^s}e^{-\xi^\top D\xi/2-t^\top\xi}\,d\xi\notag\\
-={}&|D|^{-1/2}
-e^{-\gamma a^\top a+t^\top D^{-1}t/2}\\
-={}&|I_m+2\gamma C|^{-1/2}
-e^{-\gamma a^\top(I_m+2\gamma C)^{-1}a}.
+\E_e(e^{-\lambda L}\mid Z=z)
+&=\int_{\R^m}
+ e^{-\lambda L(e,z)}\phi_m(e)\,de\notag\\
+&=(2\pi)^{-m/2}e^{-\lambda\|z\|^2}\notag\\
+&\quad\cdot\int_{\R^m}
+ e^{-b\|e\|^2/2-2\lambda e^\top z}\,de. \label{eq:app_e_integral}
 \end{align}
-这里使用了
-\begin{equation*}
+其中$b=1-2\lambda(\kappa-1)$正是合并正态密度后的平方项系数。
+完成平方：
+\begin{equation}
+\begin{split}
+-\frac b2\|e\|^2-2\lambda e^\top z
+={}&-\frac b2\left\|e+\frac{2\lambda}{b}z\right\|^2\\
+&+\frac{2\lambda^2}{b}\|z\|^2.
+\end{split} \label{eq:app_e_square}
+\end{equation}
+令$y=\sqrt b\,(e+2\lambda z/b)$，
+则$de=b^{-m/2}dy$，积分区域仍为$\R^m$。
+利用标准正态密度的积分为1，即
+\[
+(2\pi)^{-m/2}\int_{\R^m}e^{-\|y\|^2/2}\,dy=1,
+\]
+式\eqref{eq:app_e_integral}便成为
+\begin{equation}
+\E_e(e^{-\lambda L}\mid Z=z)
+=b^{-m/2}e^{-\gamma\|z\|^2}, \label{eq:app_e_result}
+\end{equation}
+这里$\gamma=\lambda-2\lambda^2/b$，
+与式\eqref{eq:app_general}一致。
+因子$b^{-m/2}$来自换元时的体积变化。
+
+\subsubsection{再对功率误差积分}
+由式\eqref{eq:app_tower}和式\eqref{eq:app_e_result}，
+剩下的计算是
+\begin{equation}
+\E_1e^{-\lambda L}=b^{-m/2}\E_Z e^{-\gamma\|Z\|^2}. \label{eq:app_remaining}
+\end{equation}
+为同时允许$C$奇异，取$F\in\R^{m\times s}$使$FF^\top=C$，
+写成$Z=a+F\xi$，其中$\xi\sim\mathcal N(0,I_s)$。
+此时被积变量为$\xi$，$a,F$均固定。将函数与$\xi$的正态密度相乘：
+\begin{align}
+\E_Ze^{-\gamma\|Z\|^2}
+={}&(2\pi)^{-s/2}\int_{\R^s}
+e^{-\gamma\|a+F\xi\|^2-\|\xi\|^2/2}\,d\xi\notag\\
+={}&(2\pi)^{-s/2}e^{-\gamma a^\top a}\notag\\
+&\cdot\int_{\R^s}
+e^{-\xi^\top D\xi/2-t^\top\xi}\,d\xi, \label{eq:app_xi_integral}
+\end{align}
+其中
+\[
+D=I_s+2\gamma F^\top F\succ0,\qquad t=2\gamma F^\top a.
+\]
+再次完成平方：
+\begin{equation}
 \begin{split}
 -\tfrac12\xi^\top D\xi-t^\top\xi
 ={}&-\tfrac12(\xi+D^{-1}t)^\top D(\xi+D^{-1}t)\\
-&+\tfrac12t^\top D^{-1}t
+&+\tfrac12t^\top D^{-1}t.
 \end{split}
-\end{equation*}
-以及
-\begin{align*}
-|D|&=|I_m+2\gamma C|,\\
-(I_m+2\gamma C)^{-1}&=I_m-2\gamma FD^{-1}F^\top.
-\end{align*}
-将结果与$e$的积分合并：
+\end{equation}
+换元$w=D^{1/2}(\xi+D^{-1}t)$，有
+$d\xi=|D|^{-1/2}dw$。
+剩余标准正态密度的积分同样为1，故
+\begin{equation}
+\E_Ze^{-\gamma\|Z\|^2}
+=|D|^{-1/2}
+e^{-\gamma a^\top a+t^\top D^{-1}t/2}. \label{eq:app_xi_result}
+\end{equation}
+行列式因子$|D|^{-1/2}$同样来自换元，
+不是额外加入的惩罚。
+
+\subsection{整理为正文的二次条件}
+令$M=I_m+2\gamma C$。利用
+\[
+|D|=|M|,\qquad
+M^{-1}=I_m-2\gamma FD^{-1}F^\top,
+\]
+将式\eqref{eq:app_remaining}和式\eqref{eq:app_xi_result}合并，得到
 \begin{equation}
 \begin{split}
 -\log\E_1e^{-\lambda L}
-={}&\gamma a^\top(I_m+2\gamma C)^{-1}a\\
-&+\tfrac12\log|I_m+2\gamma C|+\tfrac m2\log b.
-\end{split}
+={}&\gamma a^\top M^{-1}a\\
+&+\frac12\log|M|+\frac m2\log b.
+\end{split} \label{eq:app_closed}
 \end{equation}
-最后利用
-\begin{gather*}
-\Sigma_V^{-1/2}(I_m+2\gamma C)^{-1}\Sigma_V^{-1/2}\\
-=(\Sigma_V+2\gamma\Sigma_D)^{-1},\\
-|I_m+2\gamma C|=\frac{|\Sigma_V+2\gamma\Sigma_D|}{|\Sigma_V|}.
-\end{gather*}
-任意非负随机量$X$和$t>0$满足$\E_1X\ge t\Prob_1(X\ge t)$。取$X=e^{-\lambda L}$、$t=e^{-\lambda\delta}$，并代入上述积分及式\eqref{eq:h}，得
-\begin{align*}
-\Prob_1(L\le\delta)
-&\le e^{\lambda\delta}\E_1e^{-\lambda L}\\
-&=(1-\beta)e^{h-d(u)^\top Wd(u)}.
-\end{align*}
-当式\eqref{eq:condition}成立时，右端不超过$1-\beta$，从而证明命题。
+上述两个矩阵恒等式分别由$|I+AB|=|I+BA|$
+以及直接相乘验证。此处计算的只是给定正态分布下的期望，
+没有新增参数估计。
+
+令$G=\Sigma_V+2\gamma\Sigma_D$。由$a,C$的定义，
+\[
+M=\Sigma_V^{-1/2}G\Sigma_V^{-1/2}.
+\]
+因此
+\[
+\gamma a^\top M^{-1}a=d(u)^\top Wd(u),
+\qquad |M|=\frac{|G|}{|\Sigma_V|},
+\]
+其中$W=\gamma G^{-1}$，正是正文式\eqref{eq:weight}。
+式\eqref{eq:app_closed}可写为
+\begin{equation}
+-\log\E_1e^{-\lambda L}
+=d(u)^\top Wd(u)
++\frac12\log\frac{|G|}{|\Sigma_V|}
++\frac m2\log b. \label{eq:app_physical}
+\end{equation}
+要求式\eqref{eq:app_bound}的右端不超过$1-\beta$，
+取对数并代入式\eqref{eq:app_physical}，即
+\begin{equation}
+\begin{split}
+d(u)^\top Wd(u)\ge{}&
+\lambda\delta+\log\frac1{1-\beta}\\
+&-\frac12\log\frac{|G|}{|\Sigma_V|}-\frac m2\log b.
+\end{split} \label{eq:app_final}
+\end{equation}
+最后代入式\eqref{eq:app_fixed}，右端就是正文式\eqref{eq:h}的$h$，
+从而得到$d(u)^\top Wd(u)\ge h$。
+正态积分的计算是精确的；概率保证的保守性来自所选上界及$\lambda$的取值。
 \end{document}
