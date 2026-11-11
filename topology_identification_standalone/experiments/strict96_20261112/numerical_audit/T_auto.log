@@ -1,0 +1,91 @@
+
+Gurobi 13.0.3 (win64) logging started Thu Nov 12 02:23:41 2026
+
+Set parameter LogFile to value "D:\0-github_workspace\Topo\topology_identification_standalone\outputs\t_qp_audit_20261112_001\T_auto.log"
+Gurobi Optimizer version 13.0.3 build v13.0.3rc0 (win64 - Windows 11+.0 (26200.2))
+
+CPU model: Intel(R) Core(TM) i9-14900HX, instruction set [SSE2|AVX|AVX2]
+Thread count: 24 physical cores, 32 logical processors, using up to 1 threads
+
+Non-default parameters:
+TimeLimit  300
+FeasibilityTol  1e-09
+IntFeasTol  1e-09
+MIPGapAbs  1e-07
+OptimalityTol  1e-09
+LogToConsole  0
+NonConvex  0
+Seed  20261111
+Threads  1
+
+Optimize a model with 3539 rows, 1894 columns and 120242 nonzeros (Min)
+Model fingerprint: 0x56dcb75f
+Model has 108 linear objective coefficients
+Model has 1536 quadratic objective terms
+Variable types: 1786 continuous, 108 integer (108 binary)
+Coefficient statistics:
+  Matrix range     [8e-02, 6e+02]
+  Objective range  [3e-03, 3e-03]
+  QObjective range [1e-03, 1e-03]
+  Bounds range     [1e+00, 2e+00]
+  RHS range        [1e+00, 6e+01]
+
+Loaded user MIP start with objective 1.1133
+
+Presolve removed 1469 rows and 1 columns
+Presolve time: 0.42s
+Presolved: 2070 rows, 1893 columns, 118620 nonzeros
+Presolved model has 1536 quadratic objective terms
+Variable types: 1786 continuous, 107 integer (107 binary)
+Warning: 1 variables dropped from basis
+Warning: 1 variables dropped from basis
+Warning: 4 variables dropped from basis
+Warning: 3 variables dropped from basis
+Warning: 1 variables dropped from basis
+Warning: switch to quad precision
+Warning: 1 variables dropped from basis
+Warning: 1 variables dropped from basis
+Warning: 1 variables dropped from basis
+Warning: 9 variables dropped from basis
+Warning: 1 variables dropped from basis
+Warning: 2 variables dropped from basis
+Warning: 7 variables dropped from basis
+Warning: 1 variables dropped from basis
+Warning: 2 variables dropped from basis
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    7293    9.8497225e-01   5.919183e+01   0.000000e+00      5s
+Warning: 1 variables dropped from basis
+    8364    9.8976870e-01   0.000000e+00   0.000000e+00      6s
+
+Root relaxation: objective 9.897687e-01, 8364 iterations, 5.77 seconds (4.62 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0    0.98977    0   55    1.11330    0.98977  11.1%     -    6s
+     0     0    0.98979    0   55    1.11330    0.98979  11.1%     -    7s
+     0     2    0.98980    0   55    1.11330    0.98980  11.1%     -    7s
+    54    40     cutoff   42         1.11330    0.99703  10.4%  35.4   10s
+   167   112    1.03526   10   36    1.11330    1.00330  9.88%  52.3   16s
+   240   166    1.10857   34   20    1.11330    1.00332  9.88%  43.8   20s
+   328   213    1.07157   30   18    1.11330    1.00562  9.67%  61.8   25s
+H  395   260                       1.1111979    1.00577  9.49%  54.4   27s
+H  396   259                       1.1083888    1.00577  9.26%  54.2   27s
+*  399   256              40       1.1083886    1.00577  9.26%  53.8   27s
+   448   277    1.02080   14   39    1.10839    1.00732  9.12%  52.5   30s
+H  472   210                       1.0652512    1.00732  5.44%  51.7   32s
+H  472   208                       1.0622729    1.00732  5.17%  51.7   32s
+H  472   201                       1.0592987    1.00732  4.91%  51.7   32s
+H  505    25                       1.0193047    1.00933  0.98%  50.6   34s
+   528    10     cutoff    4         1.01930    1.01329  0.59%  49.3   35s
+
+Explored 539 nodes (34460 simplex iterations) in 35.39 seconds (71.87 work units)
+Thread count was 1 (of 32 available processors)
+
+Solution count 7: 1.0193 1.0593 1.06227 ... 1.1133
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.019304749918e+00, best bound 1.019304749918e+00, gap 0.0000%

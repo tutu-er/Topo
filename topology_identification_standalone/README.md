@@ -6,6 +6,16 @@
 
 ## 快速运行
 
+严格96点总预算使用独立入口，不调用旧多日benchmark：
+
+```powershell
+python -I -B tools/strict96.py freeze outputs/strict96_new
+python -I -B tools/strict96.py run outputs/strict96_new
+python -I -B tools/strict96.py grade outputs/strict96_new
+```
+
+该开发回放每例只读取一个96时点观测文件，前64点训练、后32点选择，不读取旧validation/test观测，不再全96重拟合。固定四输入与kappa=0/.001/.003，采用101；没有独立预测测试集。数据职责和拒绝规则见[计划](experiments/strict96_20261112/PLAN.md)。
+
 需要Python 3.10以上。完整运行安装：
 
 ```powershell
@@ -57,6 +67,8 @@ $$
 
 每个结构先QP重拟合并在允许范围清零，再检查J是否超过数值容差下降。没有额外相对改善门槛、最近邻修复窗或最终0.24收缩。T块宽上限为5；R仍公开保留三种R/X几何与五档RNJ分组容差。全部有效参数写入每次实验的`plan.json`。
 
+默认relative_gain=0保持上述规则；严格96试验增加可选kappa：普通结构需`J_old-J_new > max(1e-10, kappa*J_old)`。保持活动拓扑和拟合不劣的纯数值零块删除不受相对门槛阻挡。结果新增`competition`，引用实际主选及有限库中第二个不同活动拓扑；没有统计置信度或全局唯一性声明。
+
 完整定义见[MODEL.md](MODEL.md)，对话中旧算法与当前代码的对应关系见[ALGORITHMS.md](ALGORITHMS.md)。旧小种子、旧L1-MILP及整树组合等探索版保留为历史谱系和结果快照，不继续堆进当前运行引擎。
 
 ## 使用附带的四网络数据
@@ -81,6 +93,7 @@ python run.py demo --case pengwah18 --seed 9 --points 96 --time-limit 300 --outp
 ```text
 run.py                 命令入口
 experiment.py          数据划分、逐方法运行、评分与完整消融统计
+competition.py         不重新拟合的双候选比较、结构差异与显式分块损失
 algorithm.py           唯一的R/W/T/E搜索流程及开关
 optimization.py        固定族QP、未知支持W、共同T/E选择模型
 trees.py               灵敏度估计、RNJ、NJ、层级与全部有界切面
@@ -100,6 +113,8 @@ check.py               数据、测试、复制改名后隔离运行的检查
 验证MSE版本的48输入完整测试已经完成：480/480通过独立复核，2840次MIQP均达到设定gap，无失败或超时。完整111的F1为0.936734、完整恢复38/48；本批八格中101（R＋W＋E）为0.940355、39/48。主比较、全部消融、实际耗时和负效应解释见[完整报告](experiments/full48_mse/CONCLUSIONS.md)。`rnj_wzzt`对应100（只开R），`rte`对应111，101用三位编号直接运行。
 
 原始结果包`experiments/full48_mse/records.zip`包含冻结源码、观测、全部原生记录和后处理证据。便携目录ZIP排除嵌套ZIP；重新运行算法所需的全部本地代码与数据仍随目录提供。
+
+后续数值检查发现原48输入中4次T的reported lower bound被同域合法QP点推翻，已复现。原最终模型使用QP闭合，F1不变；但这4次的gap不构成有效最优证据。见[补充核查](experiments/full48_mse/ERRATA_QP_20261112.md)。新代码记录`bound_consistent_with_fixed_family_qp`和冲突计数，不静默改写原始界。
 
 输出保留逐输入/逐方法的计划分母、F1、完整恢复、MAE/MSE、耗时、求解状态和上下界。完整八格还能直接生成条件边际、二/三阶交互、Shapley及六种模块加入顺序表。负效应、失败、超预算和缺失格都会保留。
 

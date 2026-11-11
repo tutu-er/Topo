@@ -10,9 +10,11 @@ import numpy as np
 
 if __package__:
     from . import trees
+    from .competition import competition
     from .optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices
 else:
     import trees
+    from competition import competition
     from optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices
 
 
@@ -32,10 +34,13 @@ class SearchConfig:
     mip_abs_gap: float = 1e-7
     validation_tie: float = 1e-12
     forward_fraction: float = .5
+    relative_gain: float = 0.
 
     def validate(self):
         if self.alpha < 0 or not np.isfinite(self.alpha):
             raise ValueError("alpha must be finite and nonnegative")
+        if not np.isfinite(self.relative_gain) or not 0 <= self.relative_gain < 1:
+            raise ValueError("relative_gain must be finite and in [0, 1)")
         if not isinstance(self.block_limit, int) or self.block_limit < 3:
             raise ValueError("block_limit must be an integer at least three")
         positive = (self.response_bound, self.total_seconds, self.per_mip_seconds, self.qp_seconds)
@@ -106,11 +111,46 @@ def _clean(fitter, point, config, *, protected=()):
 def _accept(current, proposal, fitter, config, *, stage, solver, zeros=(), **extra):
     before = criterion(current, fitter.data.n, config.alpha)
     after = criterion(proposal, fitter.data.n, config.alpha)
-    accepted = before-after > config.gain_tol
+    old = {tuple(C): max(r, x) for C, r, x in
+           zip(current["supports"], current["r"], current["x"], strict=True)}
+    new = set(map(tuple, proposal["supports"]))
+    removed = set(old)-new
+    # An already-zero temporary support is a representation cleanup. A
+    # relative improvement gate must not make that restriction permanent.
+    zero_only = bool(removed) and new <= set(old) and all(old[C] <= config.zero_tol for C in removed)
+    active_old = {C for C, value in old.items() if 1 < len(C) < fitter.data.n and value > config.zero_tol}
+    active_new = {tuple(C) for C, r, x in zip(proposal["supports"], proposal["r"], proposal["x"], strict=True)
+                  if 1 < len(C) < fitter.data.n and max(r, x) > config.zero_tol}
+    zero_only = zero_only and active_old == active_new
+    zero_only = zero_only and proposal["objective"] <= current["objective"]+config.gain_tol
+    required = config.gain_tol if zero_only else max(config.gain_tol, config.relative_gain*before)
+    accepted = before-after > required
     return (proposal if accepted else current), dict(
         stage=stage, accepted=bool(accepted), before_score=before, after_score=after, gain=before-after,
-        numerical_threshold=config.gain_tol, point=proposal, solver=solver,
+        numerical_threshold=config.gain_tol, required_gain=required, relative_gain=config.relative_gain,
+        acceptance_rule="numerical_zero_cleanup" if zero_only else "relative_regularized_training_gain",
+        point=proposal, solver=solver,
         zero_events=list(zeros), closure_before_acceptance=True, **extra)
+
+
+def _close_native(raw, fitter, config, native, *, protected=()):
+    """One fixed-family fit, bound consistency check, and zero cleanup.
+
+    Check the original decoded family before cleanup changes its count. A
+    feasible QP point below the reported native lower bound contradicts that
+    bound, even when the solver reported an optimal status or zero gap.
+    """
+    closed = fitter.fit(raw["supports"])
+    score = criterion(closed, fitter.data.n, config.alpha)
+    native["fixed_family_qp_objective"] = score
+    lower = native.get("bound")
+    if lower is not None:
+        tolerance = 1e-7*(1+abs(score))
+        native["bound_consistency_tolerance"] = tolerance
+        native["bound_consistent_with_fixed_family_qp"] = bool(lower <= score+tolerance)
+        if lower > score+tolerance:
+            native["bound_warning"] = "reported_lower_bound_exceeds_a_feasible_fixed_family_QP_point"
+    return _clean(fitter, closed, config, protected=protected)
 
 
 def _any_extension(family, n, rnj_pool):
@@ -145,7 +185,7 @@ def _forward(current, fitter, solver, config, pool, deadline):
         raw, native = solver.extend(current, candidate, best,
                                     deadline=min(deadline, perf_counter()+config.per_mip_seconds))
         if raw is not None:
-            q, zeros = _clean(fitter, fitter.fit(raw["supports"]), config)
+            q, zeros = _close_native(raw, fitter, config, native)
             if criterion(q, n, config.alpha) < criterion(best, n, config.alpha):
                 best, best_zeros = q, zeros
     else:
@@ -171,7 +211,7 @@ def _reconstruct(current, fitter, solver, config, *, pool, keep, deadline, stage
     if deadline-perf_counter() > .01:
         raw, native = solver.select(pool, keep, best, deadline=deadline)
         if raw is not None:
-            q, zeros = _clean(fitter, fitter.fit(raw["supports"]), config, protected=keep)
+            q, zeros = _close_native(raw, fitter, config, native, protected=keep)
             if criterion(q, fitter.data.n, config.alpha) < criterion(best, fitter.data.n, config.alpha):
                 best, best_zeros = q, zeros
     else:
@@ -299,13 +339,16 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
         output_path = [*path, star]
     ping("output_started")
     selected, mae_view, candidates = _output(output_path, train, validation, common["reference_mse"], config)
-    fresh_seconds = perf_counter()-fresh_started
-    return dict(method=method, selected=selected, selected_mse_view=selected,
+    result = dict(method=method, selected=selected, selected_mse_view=selected,
                 selected_mae_view=mae_view, selection_metric="validation_mse", path=path, events=events,
                 frozen_candidates=candidates, stop_reason=reason, config=asdict(config),
                 reference_mse=common["reference_mse"], common_seconds=common["seconds"],
-                fresh_seconds=fresh_seconds, total_seconds=fresh_seconds+common["seconds"],
-                total_cap_exceeded=fresh_seconds+common["seconds"] > config.total_seconds,
                 QP=fitter.records, MIQP=native_records, output_contraction=None,
+                native_bound_conflicts=sum(r.get("bound_consistent_with_fixed_family_qp") is False for r in native_records),
                 complete_RNJ_output_fallback=False, truth_used=False, test_used=False,
-                guarantee_scope="each declared conditional MIQP domain; whole-tree global optimality not claimed")
+                guarantee_scope="native bounds require consistency with feasible fixed-family fits; no whole-tree optimality claim")
+    result["competition"] = competition(result, validation)
+    fresh_seconds = perf_counter()-fresh_started
+    result.update(fresh_seconds=fresh_seconds, total_seconds=fresh_seconds+common["seconds"],
+                  total_cap_exceeded=fresh_seconds+common["seconds"] > config.total_seconds)
+    return result

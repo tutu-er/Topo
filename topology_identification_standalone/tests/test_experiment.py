@@ -134,7 +134,8 @@ class ExperimentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="standalone-relocation-", dir=ROOT.parent) as temporary:
             temporary = Path(temporary)
             copied = temporary/"renamed_package"
-            shutil.copytree(ROOT, copied, ignore=shutil.ignore_patterns("results", "__pycache__", ".pytest_cache"))
+            shutil.copytree(ROOT, copied, ignore=shutil.ignore_patterns(
+                "results", "outputs", "tmp", "__pycache__", ".pytest_cache"))
             output = temporary/"results"
             code = r'''
 import importlib.abc, pathlib, sys
