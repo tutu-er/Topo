@@ -1,0 +1,193 @@
+{
+  "passed": true,
+  "created_utc": "2026-11-11T12:56:35.588324+00:00",
+  "scope": "Standalone runtime and model-interface verification; not a historical score reproduction or a full 48-input accuracy benchmark",
+  "source_sha256": {
+    "__init__.py": "3fb944385f785d05b19c3300e4a769c74dbce93a8bca305c05cf9f3469f834b6",
+    "__main__.py": "22f1e926bbe557930ca69ff5f128c395a56bd9089e7b328957cf3e3456e69894",
+    "algorithm.py": "7193485113497cd565ed49e4fb6a575ba0abf03088bc9da214cba2e9c616cf38",
+    "check.py": "e4868c73289e3d9b69058eb0290975c89adb9e4868c61f951b3f020247636cf0",
+    "data.py": "d8aa83f32a7001f7289ada4bb93ecfbc612a17bd64da44b048917139bc2cbfa3",
+    "experiment.py": "d752caeae5e87f12300730910df21ff6cfb1408da25b3100ec5cc38d7fb05d49",
+    "optimization.py": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
+    "run.py": "67593ee682dfb7610a78d6786af52aa8d3a11691ce9a5d003e1f9b58a837d7a0",
+    "trees.py": "82501475348a0aee575270440d712cdc49f20e112f45b543f7623b520ef0ae44"
+  },
+  "test_source_sha256": "2fb48f3eff61f001453dbda38ee902c3ad9a323d4561611e1897538be22097f7",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "gurobipy": "13.0.3"
+    }
+  },
+  "unit_tests": {
+    "command": "python -B -m unittest discover -s tests -p test_experiment.py -v",
+    "passed": 8,
+    "failed": 0,
+    "checks": [
+      "failure denominator",
+      "over-budget exclusion with full result preservation",
+      "negative module effects",
+      "missing interaction cells",
+      "copied and renamed folder with Python -I and blocked parent imports",
+      "all local bundle hashes and catalog/observed/truth reads"
+    ]
+  },
+  "toy_ablation": {
+    "input": "linear_toy6 seed7; 96 train, 288 validation, 96 test",
+    "physical_AC_case": false,
+    "planned": 10,
+    "completed": 10,
+    "failed": 0,
+    "budget_exceeded": 0,
+    "pending": 0,
+    "all_F1": 1.0,
+    "all_exact": true,
+    "per_method_seconds": 30,
+    "native_MIQPs": 28,
+    "native_statuses": [
+      2
+    ],
+    "native_max_gap": 8.532827814198365e-05,
+    "native_timeouts": 0,
+    "reported_method_seconds_sum": 9.889421900028537,
+    "config": {
+      "alpha": 0.003,
+      "block_limit": 5,
+      "response_bound": 2.0,
+      "total_seconds": 30.0,
+      "per_mip_seconds": 30.0,
+      "qp_seconds": 7.5,
+      "output_reserve_seconds": 3.0,
+      "zero_tol": 1e-09,
+      "gain_tol": 1e-10,
+      "mip_gap": 0.0001,
+      "mip_abs_gap": 1e-07,
+      "validation_tie": 1e-12,
+      "forward_fraction": 0.5
+    },
+    "plan_sha256": "c69ad12b61a0a38bfa2cee0d74a6eb870ffb612935efe66fc193874e4584b85c"
+  },
+  "bundled_baselines": {
+    "jobs": [
+      "day96__paper15__b1000__reference__v0005__N96",
+      "day96__soumalas11__b1000__reference__v0005__N96",
+      "day96__flynn16__b1000__reference__v0005__N96",
+      "day96__pengwah18__b1000__reference__v0005__N96"
+    ],
+    "methods": [
+      "rnj",
+      "nj"
+    ],
+    "planned": 8,
+    "completed": 8,
+    "failed": 0,
+    "budget_exceeded": 0,
+    "pending": 0,
+    "per_method_seconds": 300,
+    "native_MIQPs": 0,
+    "metrics": [
+      {
+        "method": "rnj",
+        "planned": 4,
+        "completed": 4,
+        "failed": 0,
+        "budget_exceeded": 0,
+        "pending": 0,
+        "F1_completed_mean": 0.6699754901960785,
+        "exact": 0,
+        "exact_rate_planned": 0.0,
+        "total_seconds_completed": 0.9592649999976857
+      },
+      {
+        "method": "nj",
+        "planned": 4,
+        "completed": 4,
+        "failed": 0,
+        "budget_exceeded": 0,
+        "pending": 0,
+        "F1_completed_mean": 0.7426739926739927,
+        "exact": 0,
+        "exact_rate_planned": 0.0,
+        "total_seconds_completed": 0.9441534999787109
+      }
+    ],
+    "config": {
+      "alpha": 0.003,
+      "block_limit": 5,
+      "response_bound": 2.0,
+      "total_seconds": 300.0,
+      "per_mip_seconds": 300.0,
+      "qp_seconds": 75.0,
+      "output_reserve_seconds": 30.0,
+      "zero_tol": 1e-09,
+      "gain_tol": 1e-10,
+      "mip_gap": 0.0001,
+      "mip_abs_gap": 1e-07,
+      "validation_tie": 1e-12,
+      "forward_fraction": 0.5
+    },
+    "plan_sha256": "5efb1ada2bd0a3636aef81924ca7085df9f5d5974cd73b28552da141e9aa42bd",
+    "input_sha256": {
+      "day96__paper15__b1000__reference__v0005__N96": {
+        "train": "5b29ac0d75e78cf34cb74ea58aab5f6f8662eedc226d971f8b123134608012e7",
+        "validation": "34308bb9ae2543b87fb8de2f019a1f94862cc65c586b07b7b26f1f365d402a88",
+        "test": "95b0c121468cbea223ec0a77c3f0539e42106321ebf0b6c9cd059047144f48be"
+      },
+      "day96__soumalas11__b1000__reference__v0005__N96": {
+        "train": "0d66c919f1c0ab83354d73724b1e61ef0aefba5b50ca939ab3c153baf12b4183",
+        "validation": "d06c4ba9631c9a6910346f99f62ce78084da1b8c8008e380a9dfc32092678fd4",
+        "test": "b4c777c3a8333256795f9e439c7e71f05dcba39c09a04923113044df3f7e4c76"
+      },
+      "day96__flynn16__b1000__reference__v0005__N96": {
+        "train": "f99e7671a96070ba390f39225c41198ebf87d9851251de34a3721fd81ac36c12",
+        "validation": "d2fa68be140c52de763702f5b1c2c60bead188126bf1f2b4998dfee947c13811",
+        "test": "1978ab524876fbf97a472610ca51a5384f1eb9033b35f17c2408ca3df0abb141"
+      },
+      "day96__pengwah18__b1000__reference__v0005__N96": {
+        "train": "ebef82bf0bddb7fdee8654ef51969e3cef6463d988b519925a43edf990ccc115",
+        "validation": "1eb2c8eadba8cf367fb6e202f51b5400e5cca574194d94881d46883e08e9a431",
+        "test": "00ee68bcef225295b8e0c6e46007dd690b885feb645b02ae19836e66f9161afc"
+      }
+    },
+    "bundled_manifest_sha256": "e5ef034fe4ad165e10f10cf9042e96b8f12ecce8c0c1a35d7319fdc64d331f71"
+  },
+  "ablation_postprocessing": {
+    "effects_rows": 12,
+    "addition_order_step_rows": 18,
+    "addition_orders": 6,
+    "shapley_rows": 3,
+    "interaction_rows": 7,
+    "new_fit_calls": 0,
+    "orders_are_views_of_same_factorial_cells": true
+  },
+  "development_failures": [
+    {
+      "working_directory": "outputs/experiment_baseline_smoke",
+      "planned": 2,
+      "completed": 0,
+      "failed": 2,
+      "reason": "normalized bounded-QP floating-point certificate; corrected without changing alpha"
+    },
+    {
+      "working_directory": "outputs/toy_ablation",
+      "planned": 10,
+      "completed": 2,
+      "failed": 8,
+      "reason": "unsupported Gurobi MLinExpr.reshape; corrected with an equivalent prediction variable"
+    }
+  ],
+  "raw_runtime_records": "Full native records remain under working outputs/ and are not required by the independently copied runtime",
+  "artifacts_sha256": {
+    "toy_ablation_summary.json": "baaf9f1bc265ca91d58927fee8cd150e36f9e5dbc3ec69bf710752920505d837",
+    "toy_ablation_results.csv": "e45cab2edf551eb51a4c65704b86eacd54a33d7aff51009716b0da0729d624b1",
+    "toy_ablation_effects.csv": "6e51149ac996a8dc0eed08f36054f598f834462d7c61b0c2f8e7005b72c541b4",
+    "toy_module_addition_orders.csv": "bce4d54bc13570f50449b16da3e140a4a8c22cbf214be85149685f6db7169035",
+    "toy_shapley.csv": "a66728ee766e9d0e06d28bf6a439230faec1a79859643542af4394d5dbf0903f",
+    "toy_interactions.csv": "1c5dcf133a2649f1d5442cde28801f0d7a2f483230e5fce44c0da1159a663190",
+    "bundled_baselines_summary.json": "23104b76c0c5ce603fe7507acf8d6662b218bc7a92f579d3132325751bcd5dd6",
+    "bundled_baselines_results.csv": "5c9240cf7cd11c44b74e69f8dee2aa0ed1cccc9b0118b5957d8d473184b8b752"
+  }
+}
