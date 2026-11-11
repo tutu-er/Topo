@@ -1,5 +1,7 @@
 # 平方残差证据的二次DR规划
 
+新增[IEEE方法短稿](relative_gate_paper/README.md)：将相对平方损失规则直接作为概率事件，正文给一个充分命题及二次规划，积分细节移入附录。该Tκ扩展为已推导、未实现；与下列已测试fixed_f后验分支分开。
+
 新增[固定F概率分支](FIXED_F_REPORT.md)：分别实现平均后验和后验过线率的充分二次条件，完整推导见[LaTeX](fixed_f_theory/main.tex)。原期望log odds模式保留，不能把其指标解释为下面的新概率保证。
 
 ```text

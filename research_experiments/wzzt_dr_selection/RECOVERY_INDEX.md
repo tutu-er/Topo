@@ -1,3 +1,8 @@
+## 相对损失条件的IEEE方法短稿，2026-11-11
+
+- dr_pricing/bayes_qcqp/relative_gate_paper保存main.tex/main.pdf及核验记录；贝叶斯关系一式、实际相对规则、Tκ命题/短证明与二次优化放正文，完整配方放附录。
+- 私有wzzt_relative_gate_paper_v1保存XeLaTeX构建与两页PNG；首次桌面字体名检索失败修正为TeX字体文件名，后续编译过。仅文档，无新数值；旧固定F结果及源码冻结均不变。新Tκ不冒称已实现概率优化器。
+
 ## 固定F概率充分条件，2026-11-11
 
 - 活动入口dr_pricing/bayes_qcqp/{fixed_f.py,fixed_f_run.py,FIXED_F_REPORT.md,FIXED_F_PROTOCOL.json,FIXED_F_RESULTS.json}；fixed_f_theory保存完整推导，example/fixed_f.json和fixed_f_arrays.npz为纯合成安装输入。原solver只增加稠密跨时二次接口，保留原设备图，不重写RNJ/WZZT。

@@ -1,3 +1,7 @@
+## 相对损失概率条件的IEEE短稿，2026-11-11
+
+按用户要求交付[IEEE双栏短稿](dr_pricing/bayes_qcqp/relative_gate_paper/README.md)：正文一页、积分附录第二页。直接针对Sc−κSf>δn给出固定F的Tκ充分条件；贝叶斯仅保留一式解释，删除无计算价值的随机后验阈值换元。独立数学核验通过。该相对规则扩展未实现/未测试，不把已有fixed_f后验测试改写成其效果。本次仅文档，没有新优化/拟合/AC或辨识代码改动。
+
 ## 固定F的平均后验与过线率，2026-11-11
 
 完成用户指定的两个充分门槛，见[报告](dr_pricing/bayes_qcqp/FIXED_F_REPORT.md)、[完整LaTeX](dr_pricing/bayes_qcqp/fixed_f_theory/main.tex)及FIXED_F_RESULTS.json。固定背景F，保留原时空相关；两模式复用原设备及Gurobi接口，0新拟合/辨识/AC。4正式计划完成，3合格、1充分程序证明不可行、0超时。
