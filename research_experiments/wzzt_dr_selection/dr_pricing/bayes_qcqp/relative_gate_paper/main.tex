@@ -1,7 +1,7 @@
 % !TeX program = xelatex
 \RequirePackage[T1]{fontenc}
 \documentclass[journal,10pt]{IEEEtran}
-\usepackage{amsmath,amssymb,bm}
+\usepackage{amsmath,amssymb}
 \usepackage{xeCJK}
 \setmainfont{texgyretermes-regular.otf}[BoldFont=texgyretermes-bold.otf,ItalicFont=texgyretermes-italic.otf,BoldItalicFont=texgyretermes-bolditalic.otf]
 \setCJKmainfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf,ItalicFont=FandolKai-Regular.otf,BoldItalicFont=FandolKai-Regular.otf,SmallCapsFont=FandolSong-Regular.otf]
@@ -14,179 +14,191 @@
 \renewcommand{\IEEEproofname}{证明}
 \setlength{\emergencystretch}{1.5em}
 \begin{document}
-\title{面向拓扑辨识的概率需求响应设计}
+\title{面向拓扑辨识的需求响应设计}
 \author{}
 \maketitle
 \begin{abstract}
-针对历史拟合后冻结的两个拓扑候选，本文将辨识器的相对平方损失规则直接作为需求响应的激励事件。在固定Gaussian功率协方差和共同电压误差下，构造该事件的概率充分条件，并保留可由全局求解器处理的二次约束结构。
+给定当前模型和备选模型，需求响应应使两者的电压解释能力产生足以改变选模结果的差别。本文直接采用辨识器的损失改善条件，给出正态预测误差下满足该条件的概率保证，并将DR规划写为最小费用的二次约束问题。
 \end{abstract}
 
-\section{模型与辨识判据}
-设$u\in\R^r$为名义DR调节量，$P\in\R^d$、$V\in\R^m$分别为新一天的功率和电压响应向量。细、粗候选$\mathcal H_f,\mathcal H_c$的响应矩阵$H_f,H_c\in\R^{m\times d}$在历史拟合后固定。采用
+\section{预测、损失与选模}
+模型0表示当前选中的模型，模型1表示待比较的备选模型。两者均由历史数据拟合，之后固定参数，以$H_0,H_1\in\R^{m\times d}$将功率$P\in\R^d$映射为电压响应$V\in\R^m$。模型1可以增线、删线或改变连接，不预设两个模型之间的包含关系。
+
+令$u\in\R^r$为DR计划调节量，功率预测为
+\begin{equation}
+P(u)\sim\mathcal N(\widehat p+Bu,\Sigma_P). \label{eq:power}
+\end{equation}
+其中$\widehat p$为无DR的功率预测均值，$B$将调节量转为节点P/Q变化，$\Sigma_P$为给定的功率预测误差协方差。电压误差采用共同模型
+\begin{equation}
+V\mid P,\text{模型}~k
+\sim\mathcal N(H_kP,\Sigma_V),\quad k=0,1. \label{eq:voltage}
+\end{equation}
+$\Sigma_V\succ0$描述给定功率后剩余的电压误差，与功率预测误差独立。两项协方差均不随报价变化，可由预测器提供，也可作为假设给定。
+
+用同一观测评价两个模型，定义平方损失
+\begin{equation}
+S_k=(V-H_kP)^\top\Sigma_V^{-1}(V-H_kP). \label{eq:loss}
+\end{equation}
+这里按电压误差大小对残差加权，并对全部观测求和。正态密度为
+\begin{equation}
+f_k(V\mid P)
+=\frac{\exp(-S_k/2)}
+{(2\pi)^{m/2}|\Sigma_V|^{1/2}}. \label{eq:density}
+\end{equation}
+设$q_h\in(0,1)$为历史更新后模型1的概率，$q_1$为加入新观测后的概率。两模型采用相同的功率预测分布，贝叶斯公式给出
+\begin{equation}
+\frac{q_1}{1-q_1}
+=\frac{q_h}{1-q_h}\exp\!\left(\frac{S_0-S_1}{2}\right). \label{eq:bayes}
+\end{equation}
+式\eqref{eq:bayes}中的$1/2$来自正态密度\eqref{eq:density}。若把损失定义为$J_k=S_k/2$，指数即可写成$J_0-J_1$；相应的算法容差也应除以2。
+
+辨识器采用的改善条件统一写为
+\begin{equation}
+S_0-\kappa S_1>\delta,\qquad \kappa\ge1. \label{eq:gate}
+\end{equation}
+$\kappa$由选模规则规定，$\delta$为新日需要补足的损失差。保留完整历史时，
+\begin{equation}
+\delta=\delta_{\rm all}-(S_0^h-\kappa S_1^h), \label{eq:history}
+\end{equation}
+其中$S_k^h$为历史损失，$\delta_{\rm all}$为合并数据的容差。平均损失应先按观测数换算到式\eqref{eq:loss}的总和口径。
+
+规划时以模型1作为电压预测参考，即$V=H_1P+\varepsilon$、$\varepsilon\sim\mathcal N(0,\Sigma_V)$。以下$\Prob_1,\E_1$均指这一假设及给定历史下的概率和期望。要求
+\begin{equation}
+\Prob_1(S_0-\kappa S_1>\delta)\ge\beta,\qquad 0<\beta<1. \label{eq:chance}
+\end{equation}
+例如$\beta=0.9$表示在该预测模型下，至少90\%的执行满足改善条件。
+
+\section{DR需要产生多大的电压差}
+两个模型的预测电压之差及其协方差为
 \begin{align}
-P(u)&=\bar p+B_pu+L_p\xi,\quad \xi\sim\mathcal N(0,I_s), \label{eq:power}\\
-V\mid P,\mathcal H_k&\sim\mathcal N(H_kP,\Sigma_v),\quad k\in\{f,c\}, \label{eq:voltage}
+d(u)&=(H_1-H_0)(\widehat p+Bu), \label{eq:d}\\
+\Sigma_D&=(H_1-H_0)\Sigma_P(H_1-H_0)^\top. \label{eq:cov}
 \end{align}
-其中$\bar p,B_p,L_p$为给定预测参数，$\Sigma_v\succ0$为共同剩余电压协方差。功率预测分布对两候选相同，且$L_p,\Sigma_v$不随报价改变。功率预测误差通过式\eqref{eq:power}传递，不在$\Sigma_v$中重复计入。
+$d(u)$直接表示DR后两模型的平均预测差，$\Sigma_D$表示功率预测误差使该差异如何波动。
 
-定义标准化平方残差总和
+给定上述误差假设，预先计算固定权重
 \begin{equation}
-S_k=(V-H_kP)^\top\Sigma_v^{-1}(V-H_kP). \label{eq:loss}
+W=\frac{1}{4(\kappa+1)}
+\left(\Sigma_V+\frac{\Sigma_D}{2(\kappa+1)}\right)^{-1} \label{eq:weight}
 \end{equation}
-记$q_f$为该双候选工作模型下加入新观测后的细候选后验，$\ell_h$为历史更新后的细/粗对数赔率。共同Gaussian似然给出
-\begin{equation}
-\log\frac{q_f}{1-q_f}=\ell_h+\frac{S_c-S_f}{2}. \label{eq:bayes}
-\end{equation}
-式\eqref{eq:bayes}说明平方损失差的统计含义。相对改善系数$\kappa$仍由辨识算法指定，其接受规则为
-\begin{equation}
-L_\kappa(u):=S_c-\kappa S_f>\delta_n,\qquad \kappa\ge1. \label{eq:gate}
-\end{equation}
-若全历史与新日合并后的门槛为$\delta_{\rm all}$，则
-\begin{equation}
-\delta_n=\delta_{\rm all}-(S_c^h-\kappa S_f^h), \label{eq:history}
-\end{equation}
-其中$S_k^h$为固定的历史损失。平均损失规则应先按观测数换算为式\eqref{eq:loss}的总和口径。
-
-以下以细候选为条件生成模型，即
-$V=H_fP+\varepsilon$，其中
-$\varepsilon\sim\mathcal N(0,\Sigma_v)$、$\varepsilon\perp\xi$；
-$\Prob_f,\E_f$表示该模型及给定历史下的概率与期望。DR规划要求
-\begin{equation}
-\Prob_f\{L_\kappa(u)>\delta_n\}\ge\beta,\qquad 0<\beta<1. \label{eq:chance}
-\end{equation}
-$\beta$是相对损失规则的通过概率。该事件使用$\kappa,\delta_n$，无需另设固定后验门槛。
-
-\section{可计算的概率充分条件}
-令$A=\Sigma_v^{-1/2}(H_f-H_c)$，并定义
-\begin{equation}
-a(u)=A(\bar p+B_pu),\qquad F=AL_p,\qquad C=FF^\top. \label{eq:diff}
-\end{equation}
-$a(u)$为白化候选电压均值差，$C\succeq0$为其固定随机协方差，包含既定时空相关性。给定$\kappa$，预先计算
-\begin{equation}
-b=\frac{\kappa+1}{2\kappa},\qquad
-\gamma=\frac1{4(\kappa+1)},\qquad
-M_\kappa=I_m+2\gamma C. \label{eq:constants}
-\end{equation}
-
-\begin{proposition}
-在式\eqref{eq:power}--\eqref{eq:diff}的固定参数模型下，定义
+及所需门槛
 \begin{equation}
 \begin{split}
-T_\kappa(u)
-={}&\gamma a(u)^\top M_\kappa^{-1}a(u)\\
-&+\frac12\log|M_\kappa|+\frac m2\log b.
-\end{split} \label{eq:T}
+h={}&\frac{\delta}{4\kappa}+\log\frac1{1-\beta}\\
+&-\frac12\log
+\frac{\left|\Sigma_V+\Sigma_D/[2(\kappa+1)]\right|}{|\Sigma_V|}\\
+&-\frac m2\log\frac{\kappa+1}{2\kappa}.
+\end{split} \label{eq:h}
 \end{equation}
-若
+$W$按误差大小衡量电压差；$h$同时计入选模门槛和要求的成功比例。
+
+\begin{proposition}
+在式\eqref{eq:power}--\eqref{eq:chance}的固定参数模型下，
 \begin{equation}
-\boxed{T_\kappa(u)\ge
-\frac{\delta_n}{4\kappa}+\log\frac1{1-\beta},} \label{eq:condition}
+\boxed{d(u)^\top Wd(u)\ge h} \label{eq:condition}
 \end{equation}
-则式\eqref{eq:chance}成立。
+是式\eqref{eq:chance}的充分条件。
 \end{proposition}
+证明见附录。正文只需计算$d(u)$并与固定的$W,h$组合，无需在每次优化迭代中计算概率积分。
 
-\begin{IEEEproof}
-令$e=\Sigma_v^{-1/2}\varepsilon$、
-$Z=A P=a(u)+F\xi$，则$e\sim\mathcal N(0,I_m)$且$e\perp Z$。展开两候选损失得
+设$K(u)$为合同费用，$\mathcal U$为设备功率、能量和可用时段允许的调节范围。DR规划直接写为
 \begin{equation}
-L_\kappa=\|Z\|^2+2e^\top Z-(\kappa-1)\|e\|^2. \label{eq:expand}
-\end{equation}
-固定$\lambda=1/(4\kappa)$。对$e$和$\xi$依次作Gaussian积分（见附录），得到
-\begin{equation}
-\E_f e^{-\lambda L_\kappa(u)}=e^{-T_\kappa(u)}. \label{eq:mgf}
-\end{equation}
-对失败事件使用Markov不等式，
-\begin{align}
-\Prob_f\{L_\kappa(u)\le\delta_n\}
-&\le e^{\lambda\delta_n}\E_f e^{-\lambda L_\kappa(u)} \notag\\
-&=e^{\lambda\delta_n-T_\kappa(u)}. \label{eq:markov}
-\end{align}
-式\eqref{eq:condition}使右端不超过$1-\beta$，故得结论。
-\end{IEEEproof}
-
-式\eqref{eq:mgf}为精确指数矩，概率保守性来自式\eqref{eq:markov}及固定$\lambda$的选择。$C$可奇异，因为$M_\kappa\succ0$。当$\kappa=1$时，式\eqref{eq:T}退回加性平方损失差的表达；当$\kappa>1$时，负常数$(m/2)\log b$保留相对门槛所需跨越的共同误差项。
-
-\section{DR优化形式}
-写$a(u)=a_0+Bu$。式\eqref{eq:T}可预计算为
-\begin{equation}
-T_\kappa(u)=u^\top Q u+g^\top u+c, \label{eq:quadratic}
-\end{equation}
-其中
-\begin{align}
-Q&=\gamma B^\top M_\kappa^{-1}B,\qquad
-g=2\gamma B^\top M_\kappa^{-1}a_0, \notag\\
-c&=\gamma a_0^\top M_\kappa^{-1}a_0
-+\tfrac12\log|M_\kappa|+\tfrac m2\log b. \label{eq:coeff}
-\end{align}
-设$K(u)$为既定合同费用，$\mathcal U$为既定设备功率、能量与可用时段约束给出的可行调节域。规划问题为
-\begin{equation}
+\boxed{
 \begin{aligned}
 \min_{u\in\mathcal U}\quad &K(u),\\
-\mathrm{s.t.}\quad
-&u^\top Qu+g^\top u+c
- \ge \frac{\delta_n}{4\kappa}+\log\frac1{1-\beta}.
-\end{aligned} \label{eq:optimization}
+\mathrm{s.t.}\quad &d(u)^\top Wd(u)\ge h.
+\end{aligned}} \label{eq:optimization}
 \end{equation}
-当$K$为二次费用、$\mathcal U$为线性约束域时，该问题为非凸QCQP；保留原分段设备控制图时采用MIQCP。系数仅需在报价优化前计算一次，概率条件本身无需抽样或逐报价数值积分。
+$d(u)$对$u$为线性加常数，$W,h$在规划前固定，因此约束已经是二次形式，无需再引入一组展开系数。二次费用和线性设备约束对应非凸QCQP；原设备控制中的离散选择按原接口保留。
 
-本结论对应冻结候选的平方损失比较。重新调权的训练搜索及最终输出收缩，由实际辨识流程单独核验；若保留MAE损失，应使用与MAE一致的概率模型。
+本节不新增矩估计步骤。均值和协方差是预测输入，证明中的期望在正态假设下直接计算。式\eqref{eq:condition}用一个可计算的上界控制失败概率，因此可能多要求一些调节量。它针对冻结模型的比较，重新调权与最终输出仍按实际辨识流程检验。
 
+\clearpage
 \appendices
-\section{Gaussian指数矩的计算}
-设$\lambda=1/(4\kappa)$，则
-$b=1-2\lambda(\kappa-1)>0$。
-给定$Z$，将式\eqref{eq:expand}代入指数矩，得到
+\section{概率条件的计算依据}
+以下仅给出式\eqref{eq:condition}所需的积分。记$\Delta H=H_1-H_0$，并将残差按电压误差尺度换算：
+\begin{equation}
+e=\Sigma_V^{-1/2}\varepsilon,\qquad
+Z=\Sigma_V^{-1/2}\Delta H P.
+\end{equation}
+则$e\sim\mathcal N(0,I_m)$，且$Z\sim\mathcal N(a,C)$与$e$独立，其中
+\[
+a=\Sigma_V^{-1/2}d(u),\qquad
+C=\Sigma_V^{-1/2}\Sigma_D\Sigma_V^{-1/2}.
+\]
+因此
+\begin{equation}
+L=\|Z\|^2+2e^\top Z-(\kappa-1)\|e\|^2.
+\end{equation}
+固定$\lambda=1/(4\kappa)$，并记
+\[
+b=1-2\lambda(\kappa-1)=\frac{\kappa+1}{2\kappa},
+\qquad
+\gamma=\frac1{4(\kappa+1)}.
+\]
+给定$Z$，对正态误差$e$积分：
 \begin{align}
-\E_f[e^{-\lambda L_\kappa}\mid Z]
+\E_1[e^{-\lambda L}\mid Z]
 ={}&(2\pi)^{-m/2}e^{-\lambda\|Z\|^2}\notag\\
 &\cdot\int_{\R^m}
-e^{-b\|e\|^2/2-2\lambda e^\top Z}\,de. \label{eq:eintegral}
+e^{-b\|e\|^2/2-2\lambda e^\top Z}\,de\\
+={}&b^{-m/2}e^{-\gamma\|Z\|^2}.
 \end{align}
-指数中的配方恒等式为
-\begin{equation}
+第二步由配方
+\begin{equation*}
 \begin{split}
 -\frac b2\|e\|^2-2\lambda e^\top Z
 ={}&-\frac b2\left\|e+\frac{2\lambda}{b}Z\right\|^2\\
-&+\frac{2\lambda^2}{b}\|Z\|^2.
-\end{split} \label{eq:esquare}
-\end{equation}
-积分得到
-\begin{equation}
-\E_f[e^{-\lambda L_\kappa}\mid Z]
-=b^{-m/2}e^{-\gamma\|Z\|^2},\quad
-\gamma=\lambda-\frac{2\lambda^2}{b}. \label{eq:efinal}
-\end{equation}
-代入$\lambda,b$即得式\eqref{eq:constants}中的$\gamma$。
+&+\frac{2\lambda^2}{b}\|Z\|^2
+\end{split}
+\end{equation*}
+及$\lambda-2\lambda^2/b=\gamma$得到。
 
-再对$Z=a+F\xi$积分，记$a=a(u)$、
-$D=I_s+2\gamma F^\top F$、$h=2\gamma F^\top a$。于是
+为继续对$Z$积分，可写$Z=a+F\xi$，
+其中$FF^\top=C$、$\xi\sim\mathcal N(0,I_s)$。
+令$D=I_s+2\gamma F^\top F$、
+$t=2\gamma F^\top a$。完成平方得
 \begin{align}
-\E_f e^{-\gamma\|Z\|^2}
+\E_1e^{-\gamma\|Z\|^2}
 ={}&(2\pi)^{-s/2}e^{-\gamma a^\top a}\notag\\
-&\cdot\int_{\R^s}e^{-\xi^\top D\xi/2-h^\top\xi}\,d\xi\notag\\
+&\cdot\int_{\R^s}e^{-\xi^\top D\xi/2-t^\top\xi}\,d\xi\notag\\
 ={}&|D|^{-1/2}
- e^{-\gamma a^\top a+h^\top D^{-1}h/2}. \label{eq:zintegral}
+e^{-\gamma a^\top a+t^\top D^{-1}t/2}\\
+={}&|I_m+2\gamma C|^{-1/2}
+e^{-\gamma a^\top(I_m+2\gamma C)^{-1}a}.
 \end{align}
-其中第二步使用配方
+这里使用了
+\begin{equation*}
+\begin{split}
+-\tfrac12\xi^\top D\xi-t^\top\xi
+={}&-\tfrac12(\xi+D^{-1}t)^\top D(\xi+D^{-1}t)\\
+&+\tfrac12t^\top D^{-1}t
+\end{split}
+\end{equation*}
+以及
+\begin{align*}
+|D|&=|I_m+2\gamma C|,\\
+(I_m+2\gamma C)^{-1}&=I_m-2\gamma FD^{-1}F^\top.
+\end{align*}
+将结果与$e$的积分合并：
 \begin{equation}
 \begin{split}
--\tfrac12\xi^\top D\xi-h^\top\xi
-={}&-\tfrac12(\xi+D^{-1}h)^\top
- D(\xi+D^{-1}h)\\
-&+\tfrac12h^\top D^{-1}h.
+-\log\E_1e^{-\lambda L}
+={}&\gamma a^\top(I_m+2\gamma C)^{-1}a\\
+&+\tfrac12\log|I_m+2\gamma C|+\tfrac m2\log b.
 \end{split}
 \end{equation}
-由
-\[
-|D|=|M_\kappa|,\qquad
-M_\kappa^{-1}=I_m-2\gamma F D^{-1}F^\top,
-\]
-得到
-\begin{equation}
-\E_f e^{-\gamma\|Z\|^2}
-=|M_\kappa|^{-1/2}
- e^{-\gamma a^\top M_\kappa^{-1}a}. \label{eq:zfinal}
-\end{equation}
-合并式\eqref{eq:efinal}与式\eqref{eq:zfinal}，
-即得式\eqref{eq:mgf}及$T_\kappa$的表达式。
+最后利用
+\begin{gather*}
+\Sigma_V^{-1/2}(I_m+2\gamma C)^{-1}\Sigma_V^{-1/2}\\
+=(\Sigma_V+2\gamma\Sigma_D)^{-1},\\
+|I_m+2\gamma C|=\frac{|\Sigma_V+2\gamma\Sigma_D|}{|\Sigma_V|}.
+\end{gather*}
+任意非负随机量$X$和$t>0$满足$\E_1X\ge t\Prob_1(X\ge t)$。取$X=e^{-\lambda L}$、$t=e^{-\lambda\delta}$，并代入上述积分及式\eqref{eq:h}，得
+\begin{align*}
+\Prob_1(L\le\delta)
+&\le e^{\lambda\delta}\E_1e^{-\lambda L}\\
+&=(1-\beta)e^{h-d(u)^\top Wd(u)}.
+\end{align*}
+当式\eqref{eq:condition}成立时，右端不超过$1-\beta$，从而证明命题。
 \end{document}
