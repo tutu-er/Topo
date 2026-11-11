@@ -91,10 +91,18 @@ def figures(output):
         changes.append(sum(int(r["selected_index"])!=int(view_map[r["job"],loss_name,method,"secondary_mse"]["selected_index"]) for r in matching))
     fig,axes=plt.subplots(1,3,figsize=(12.2,4.3),layout="constrained");x=np.arange(4)
     for ax,field,label,fmt in ((axes[0],"F1","Mean clade F1",".3f"),(axes[1],"exact","Exact topology / 48 inputs",".0f")):
+        paired_values=[]
         for i,(view,color,view_label) in enumerate((("primary_mae","#4477aa","MAE validation"),("secondary_mse","#cc6677","MSE validation"))):
             values=[float(summary[l,m,view][field]) for l,m in cells]
-            bars=ax.bar(x+(i-.5)*width,values,width=width,color=color,label=view_label)
-            ax.bar_label(bars,labels=[format(v,fmt) for v in values],fontsize=7.5,padding=3)
+            paired_values.append(values)
+            ax.bar(x+(i-.5)*width,values,width=width,color=color,label=view_label)
+        pad=.012 if field=="F1" else .6
+        for j,(a,b) in enumerate(zip(*paired_values)):
+            if abs(a-b)<1e-12:
+                ax.text(x[j],max(a,b)+pad,format(a,fmt),ha="center",va="bottom",fontsize=8)
+            else:
+                for i,value in enumerate((a,b)):
+                    ax.text(x[j]+(i-.5)*width,value+pad,format(value,fmt),ha="center",va="bottom",fontsize=7,rotation=90)
         ax.set(ylabel=label,xticks=x,xticklabels=labels,ylim=(0,1.08 if field=="F1" else 52))
     bars=axes[2].bar(x,changes,width=.6,color="#aa4499")
     axes[2].bar_label(bars,labels=list(map(str,changes)),padding=3,fontsize=8)
