@@ -54,3 +54,19 @@ python run.py demo --case paper15 --seed 9 --points 96 --time-limit 300 --output
 所有方法先用相同训练/验证观测拟合。全部方法对一个输入拟合完毕后，才读取该输入的测试观测与物理真树评分；二者不传入算法。按同一命令再次运行会跳过已完成、失败或超预算的记录；不会自动给方法重置预算。改变参数或源码时应选择新的输出目录。
 
 `tests/test_experiment.py`包含十种方法映射、分母保留、预算默认值、真假信息边界，以及复制并改名后以隔离Python路径、禁止父项目导入的实际RNJ/NJ运行检查；复制目录的全部本地哈希与内置观测读取也会核对。完整MIQP正确性与求解证据由共享求解器验证覆盖。
+
+## 冻结的48输入并行完整批次
+
+```powershell
+python tools/full_benchmark.py freeze outputs/full48_mse_20261111 --workers 8
+python tools/full_benchmark.py run outputs/full48_mse_20261111 --workers 8
+python tools/full_benchmark.py status outputs/full48_mse_20261111
+
+# 等480项全部终态后，独立审计、评分和绘图
+python tools/analyze_full.py outputs/full48_mse_20261111
+python tools/plot_full.py outputs/full48_mse_20261111
+```
+
+该入口计算48份全新公共预处理及480个全新方法配置，最终选择严格使用验证MSE。每输入每方法配置预算14400秒，最多8个单线程worker；1920方法小时是名义上限，不是实际耗时。公共计算物理上每输入一次、逻辑上每方法各记一次。详情见full48_mse/PLAN.md。
+
+运行源与全部数据复制到新输出目录的runtime内，原始记录不可覆盖；存在没有终态的attempt时必须审计，不自动重置预算。独立后处理源码另外记录哈希，不在计算期间修改冻结模型。绘图额外需要requirements-plot.txt中的Matplotlib。
