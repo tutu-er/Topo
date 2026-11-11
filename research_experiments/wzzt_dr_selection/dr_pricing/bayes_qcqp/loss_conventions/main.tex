@@ -1,0 +1,688 @@
+% !TeX program = xelatex
+\documentclass[UTF8,11pt,a4paper,fontset=fandol]{ctexart}
+\usepackage[left=24mm,right=24mm,top=23mm,bottom=24mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,booktabs,tabularx,longtable,array}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor,hyperref,enumitem}
+\hypersetup{unicode,colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black,
+ urlcolor=blue!50!black,pdftitle={RNJ与WZZT需求响应设计的损失口径与概率推导}}
+\setlength{\parskip}{.35em}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.14}
+\setlist[itemize]{nosep,leftmargin=2em}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\logit}{\operatorname{logit}}
+\newcommand{\IG}{\operatorname{IG}}
+\newcommand{\R}{\mathbb R}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newtheorem{proposition}{命题}[section]
+\newtheorem{lemma}[proposition]{引理}
+\renewcommand{\proofname}{证明}
+\numberwithin{equation}{section}
+\setcounter{tocdepth}{1}
+\makeatletter
+\renewcommand{\l@section}{\@dottedtocline{1}{0em}{2.3em}}
+\makeatother
+\begin{document}
+\begin{center}
+{\LARGE\bfseries RNJ＋WZZT需求响应设计}\par\vspace{5pt}
+{\Large 损失口径、后验门槛与二次规划}\par\vspace{5pt}
+{\large 完整背景、逐步推导和现有代码对应}\par\vspace{5pt}
+2026年11月11日
+\end{center}
+
+\begin{abstract}
+本文解决一个具体问题：怎样选择拓扑辨识与需求响应（DR）设计的损失，使统计解释、算法接受和最终评价具有清楚的关系。建议保留现有RNJ＋WZZT联合流程的平均绝对误差作为主评价；将Gaussian平方残差设计列为另一个明确命名的统计版本。固定协方差的Gaussian后验对应加性平方残差差，不能直接等价当前相对MAE门槛。若共同噪声尺度未知，对尺度积分可导出带正偏移的相对残差条件；Gaussian版本保留二次结构，Laplace版本与原MAE同源。文中分别推导两者，说明协方差、共同误差、历史计数和概率要求如何处理。所有未知尺度结果属于本次理论推导；现有实现仍采用固定对角Gaussian似然。本文不改变代码或开展新的辨识实验。
+\end{abstract}
+\tableofcontents
+\newpage
+
+\section{先确定评价任务，再确定损失}
+\label{sec:choice}
+\subsection{当前任务与信息边界}
+研究目标是：在相同可调资源和执行条件下，用DR价格引起的新观测，减少联合辨识算法最终输出的错漏，或降低达到相同结果所需的费用。最终错漏由实际观测进入既定选模和收缩流程之后计算。训练损失、预测分离和模型内后验是解释这一结果的中间量。
+
+本报告的理论比较以\emph{历史已拟合并冻结参数的候选}为对象。令$H_f$表示细候选，$H_c$表示粗候选，字母$f,c$不表示已知真伪。规划只能使用历史、已发布预测和预先声明的误差模型；实际新日P/Q/V与真拓扑用于冻结后的评价。分析中若假设$H_f$为生成模型，将在公式前明确声明。
+
+训练候选的参数重估与冻结候选的新日评分是不同步骤。原逐线路搜索允许全部保留块共同调权；本文某个冻结候选通过证据门槛，不自动证明重新调权后的竞争族被排除。
+
+\subsection{推荐的损失合同}
+一个清楚的研究版本应同时固定三件事：拟合损失、DR规划条件、最终选择规则。建议按表\ref{tab:versions}整理，不让相同字母$J$在不同地方暗中改变含义。
+\begin{table}[htbp]\centering\small
+\caption{建议保留的版本与作用}\label{tab:versions}
+\begin{tabularx}{\linewidth}{p{27mm}XXX}\toprule
+版本&历史拟合&DR规划&最终评价\\\midrule
+主评价A：现有联合流程&原始MAE，共同调权&尽量直接针对相同MAE的退出裕量&原接受、3\%验证带、输出收缩与完整错漏\\
+对照B：固定候选Gaussian版本&沿用历史冻结候选，注明来自L1拟合&Gaussian证据或相对平方裕量，二次规划&单列Gaussian选择结果；同时回评原MAE流程\\
+统计解释C：Laplace同源版本&原始MAE可解释为条件极大似然&相对绝对残差条件&与MAE门槛同源；求解仍含绝对值\\\bottomrule
+\end{tabularx}
+\end{table}
+
+选择顺序是：先固定需要改善的最终决策，再检查历史残差对误差假设的支持，最后选择求解形式。若目标是保留现有算法，A是主终点；B回答另一种评价模型能否提供有用规划；C提供原L1口径的概率解释。C在本文是推导，不是已实现的新算法。没有必要在证据不足时再增加第三种稳健损失。
+
+如果将B作为论文主方法，应正式声明新的候选选择器，而不把它称为原WZZT验证规则的等价改写。Gaussian似然只用于新日固定预测器评分，且参数仍来自L1训练时，应称为\emph{冻结预测器的Gaussian评分}，而非整个流程都进行了Gaussian极大似然估计。
+
+\section{统一符号、数据计数与物理响应}
+\label{sec:notation}
+\subsection{节点、时段与标量观测数}
+设有$N$个被观测节点、$T$个时段。将电压响应按固定顺序堆叠为$v\in\R^m$，其中$m=TN$。响应可以是电压平方降
+\begin{equation}
+Y_{tn}=V_{0,t}^2-V_{n,t}^2.
+\label{eq:physicalY}
+\end{equation}
+这里$V_{0,t}$为同槽根节点电压，$V_{n,t}$为末端节点电压。堆叠功率$p\in\R^q$同时包括全部时段的有功和无功；例如每槽$N$节点，则$q=2TN$。
+
+候选响应矩阵$H_k\in\R^{m\times q}$由冻结的$R_k,X_k$组成，时间独立的静态网络可用分块对角矩阵表示。残差统一定义为
+\begin{equation}
+r_k=v-H_kp\in\R^m,\qquad k\in\{c,f\}.
+\label{eq:residual}
+\end{equation}
+所有候选使用相同观测位置、单位和预处理。根电压变化若已通过式\eqref{eq:physicalY}纳入目标，不应再作为独立功率误差重复添加。
+
+\begin{longtable}{p{28mm}p{\dimexpr\linewidth-28mm-4\tabcolsep\relax}}
+\toprule 记号&含义\\\midrule\endhead
+$A_k=\|r_k\|_1$&绝对残差总和，单位与$v$相同。\\
+$J_k=A_k/m$&平均绝对误差（MAE），原联合流程使用的损失。\\
+$S_k=r_k^\top Wr_k$&加权平方残差总和；$W$必须在使用前说明。\\
+$\eta\in(1/2,1)$&后验概率阈值，例如0.9。原图的$p_0$在本文记为$\eta$。\\
+$\beta\in(0,1)$&实际随机执行达到指定激励条件的目标概率，区别于$\eta$。\\
+$\kappa>0$&相对损失乘数；验证规则的当前值为1.03。\\
+$\epsilon$&与平均损失同单位的数值／选择容差。\\
+$u\in\R^d$&全部资源、时段的名义交付，正号表示增加取电，单位kW。\\
+$x$&原设备接口中的归一化小时请求。\\
+$\Pi$&已有确定性设备控制映射，处理功率、效率、能量和截止任务。\\
+$\xi\sim N(0,I_s)$&共享的$s$维标准Gaussian因素；$I_s$为单位矩阵。\\
+$\ell_\pi$&未包含当前这批评分观测的先验细／粗对数赔率。\\
+$\ell_h$&固定似然下，已经正确计入历史后的对数赔率。\\\bottomrule
+\end{longtable}
+
+\subsection{WZZT的结构与冻结}
+对每个支撑块$C$，令$z_C$为节点属于$C$的0/1指示向量。现有物理线性模型为
+\begin{equation}
+R=\sum_{C\in\mathcal F}r_Cz_Cz_C^\top,\qquad
+X=\sum_{C\in\mathcal F}x_Cz_Cz_C^\top,\qquad
+y_t=Rp_t+Xq_t.
+\label{eq:laminar}
+\end{equation}
+$\mathcal F$为层状支撑族：任意两个块包含或不相交。R/X共用支撑，权重独立。固定族下的拟合对权重线性，允许零权重；没有用正阻抗下界强迫候选分离。
+
+候选生成时，添加块可以删除交叉块，并对保留族全部$r_C,x_C$共同重估。冻结后，$H_c,H_f$作为给定预测器，DR设计不再更改其权重。二者的理论结论应各自使用正确的量词。
+
+\section{L1、L2与似然的基础知识}
+\label{sec:loss}
+\subsection{损失首先规定了什么误差更重要}
+绝对损失$|r|$随幅值线性增长，平方损失$r^2$随幅值二次增长。因此L2更强调较大的残差，L1对个别大残差的权重增长较慢。这个区别在误差中有异常点、线性化偏差或表计偏差时会改变候选排序；基本范数拟合背景见\citet[第6章]{boyd2004}。
+
+两者对应不同的统计目标。设随机量$Y$有有限二阶矩，对任何常数$a$，
+\begin{equation}
+\E(Y-a)^2=\Var(Y)+(\E Y-a)^2.
+\label{eq:mean}
+\end{equation}
+故平方损失的最优常数预测是均值。若$Y$连续，绝对损失的导数为
+\begin{equation}
+\frac{d}{da}\E|Y-a|=2F_Y(a)-1,
+\label{eq:median}
+\end{equation}
+其中$F_Y$为分布函数；最优点为中位数。一般分布使用次梯度得到相同的中位数结论。这说明损失的选择应服务于误差与决策，不由求解器能接受什么单独决定。
+
+\subsection{Gaussian误差为何对应平方损失}
+若标量残差独立、均值0、已知标准差$\sigma_i>0$，则
+\begin{equation}
+f(r_i)=\frac{1}{\sqrt{2\pi}\sigma_i}
+\exp\!\left(-\frac{r_i^2}{2\sigma_i^2}\right).
+\end{equation}
+独立观测的联合密度是乘积，负对数为
+\begin{equation}
+-\log\mathcal L_k
+=\frac12\sum_{i=1}^m\frac{r_{ki}^2}{\sigma_i^2}
++\sum_{i=1}^m\log(\sqrt{2\pi}\sigma_i).
+\label{eq:gaussnll}
+\end{equation}
+当全部候选的标准差相同时，第二项对比较不变。最小化负对数似然等价于最小化加权平方残差\emph{总和}。有相关性时，同一结论改写为$r_k^\top\Sigma^{-1}r_k$。
+
+\subsection{Laplace误差为何对应绝对损失}
+若残差独立、共同尺度$s>0$，Laplace密度为
+\begin{equation}
+f(r_i\mid s)=\frac{1}{2s}\exp(-|r_i|/s).
+\end{equation}
+于是
+\begin{equation}
+-\log\mathcal L_k=\frac{A_k}{s}+m\log(2s).
+\label{eq:lapnll}
+\end{equation}
+在固定共同尺度下，最小化似然负对数等价于最小化$A_k$，也等价于最小化$J_k=A_k/m$。这是原MAE的一种工作模型解释，并非已经证明现场误差服从Laplace分布。
+
+\subsection{总和、平均与单位不能互换}
+对给定同一数据集，$A_k$与$J_k$给出相同最小点；但在后验中，把$\log\mathcal L$除以$m$等于用$\mathcal L^{1/m}$代替联合似然，改变证据强度。算法为了可比性使用平均损失，与Bayesian证据需要乘全部观测，是两件事。
+
+若电压单位整体乘$c>0$，则MAE乘$c$，原始SSE乘$c^2$。Gaussian标准差也须乘$c$，从而标准化平方和不变。未知尺度先验的量纲也应同步改变：原始Gaussian方差的$b$乘$c^2$，Laplace尺度的$b$乘$c$。否则后验会随单位改变。
+
+\section{现有代码到底使用什么判据}
+\label{sec:code}
+\subsection{当前DR联合适配器的训练与接受}
+当前\code{dr_pool_v2}对固定族优化
+\begin{equation}
+J^{\rm train}(\mathcal F)
+=\min_{\theta\in\Theta(\mathcal F)}
+\frac{1}{TN}\sum_{t,n}|Y_{tn}-\widehat Y_{tn}(\theta)|.
+\label{eq:train}
+\end{equation}
+$\theta$包括全部保留块的R/X权重。代码域为$[0,2]$，允许从零起共同调权；这是一项已有算法设置，不是本文的物理正下界。
+
+\code{engine.py:54}给每个绝对残差变量目标系数$1/\code{self.y.size}$，即$1/(TN)$。当前接受条件为
+\begin{equation}
+J_{\rm old}-J_{\rm new}>\epsilon_{\rm tr}+\rho J_{\rm old},
+\quad\rho=0.001,\quad\epsilon_{\rm tr}=10^{-10}.
+\end{equation}
+精确等价于
+\begin{equation}
+J_{\rm old}-\kappa_{\rm tr}J_{\rm new}>
+\frac{\epsilon_{\rm tr}}{1-\rho},
+\qquad\kappa_{\rm tr}=\frac{1}{1-\rho}.
+\label{eq:trainkappa}
+\end{equation}
+这里$\kappa_{\rm tr}\approx1.001001$，与3\%验证带不是同一个门槛。墙限停止也应与完整扫描后无改善区分。
+
+\subsection{验证选模与收缩}
+对候选点集合$\mathcal K$，定义验证MAE最小值$J_{\min}=\min_{k\in\mathcal K}J_k$。当前保留集合为
+\begin{equation}
+\mathcal E=\{k:J_k\le1.03J_{\min}+10^{-12}\}.
+\label{eq:band}
+\end{equation}
+在此集合中优先选支撑数少的候选。\code{selection.py:7--12,27}在选点后还执行RX75强度收缩。因此过带与最终块族恢复分别核算。式\eqref{eq:band}的$10^{-12}$使用原物理残差单位；若残差整体乘$10^6$显示，容差也须同步改为$10^{-6}$。
+
+在闭合的粗、细两个候选内，粗候选退出的精确条件是
+\begin{equation}
+J_c-\kappa J_f>\epsilon,\qquad\kappa=1.03.
+\label{eq:maegate}
+\end{equation}
+它自动要求细候选损失较低。在更大的候选池内，式\eqref{eq:maegate}是粗候选退出的充分条件；必要且充分的条件应使用全池$J_{\min}$。即使粗候选退出，另一个错误候选或输出收缩仍可能影响最终块族。
+
+\subsection{完整历史与新增一天}
+令历史、新日时段数分别为$T_h,T_n$，每槽节点集合相同。显式新日权重为$w>0$，定义
+\begin{equation}
+\alpha=\frac{wT_n}{T_h+wT_n},\qquad
+J_k^{\rm comb}=(1-\alpha)J_k^h+\alpha J_k^n.
+\end{equation}
+将其代入式\eqref{eq:maegate}，逐项移项得
+\begin{align}
+J_c^{\rm comb}-\kappa J_f^{\rm comb}-\epsilon
+&=\alpha\left[J_c^n-\kappa J_f^n-h_\star\right],\\
+h_\star&=\frac{T_h}{wT_n}(\kappa J_f^h-J_c^h)
++\frac{T_h+wT_n}{wT_n}\epsilon.
+\label{eq:historygate}
+\end{align}
+这正是父层\code{problem.py:300--316,422--438}的门槛。若各日节点数相同，按时段质量与按标量残差数量加权等价；节点集合改变时须重新按实际观测数计算。
+
+本文不设新日权重2。旧实验的$w=2$只保留为已标注历史结果；新模型应显式选择并冻结$w$。将某段似然幂次设为2属于额外的权重似然设置，不能解释为又观察了一段独立数据。
+
+\subsection{通用核心与当前适配器的区别}
+通用\code{laminar_l1_milp.py}的默认相对改善容差为$10^{-8}$，最终\code{\_choose_path_point}使用最小验证MAE加该点自身标准误，再选较少支撑；当前适配器则采用式\eqref{eq:trainkappa}与3\%带。本文所有数值规则都明确指向具体入口，不把一套实验设置称为整个WZZT通用默认。
+
+\section{固定噪声尺度：后验对应加性损失差}
+\label{sec:fixed}
+\subsection{Bayes公式与对数赔率}
+令$\pi_f,\pi_c>0$且和为1，表示当前这批观测之前的候选先验。两候选后验为
+\begin{equation}
+P_f=\frac{\pi_f\mathcal L_f}{\pi_f\mathcal L_f+\pi_c\mathcal L_c},
+\qquad
+\frac{P_f}{1-P_f}=\frac{\pi_f}{\pi_c}\frac{\mathcal L_f}{\mathcal L_c}.
+\label{eq:bayes}
+\end{equation}
+后验赔率等于先验赔率乘Bayes因子；背景见\citet{KassRaftery1995}。定义$\logit(z)=\log[z/(1-z)]$。由于此函数严格递增，$P_f\ge\eta$等价于对数赔率至少为$\logit(\eta)$。
+
+\subsection{共同固定协方差Gaussian模型}
+假设
+\begin{equation}
+v\mid p,H_k\sim N(H_kp,\Sigma),\qquad \Sigma\succ0\text{固定且共同}.
+\end{equation}
+完整密度为
+\begin{equation}
+\mathcal L_k=(2\pi)^{-m/2}|\Sigma|^{-1/2}
+\exp[-r_k^\top\Sigma^{-1}r_k/2].
+\end{equation}
+共同归一化项消去。若$\ell_h$已包含不重复的历史证据，定义$W=\Sigma^{-1}$，有
+\begin{equation}
+\ell=\ell_h+\tfrac12(S_c-S_f),\qquad S_k=r_k^\top Wr_k.
+\label{eq:fixedodds}
+\end{equation}
+故
+\begin{equation}
+\boxed{P_f\ge\eta\iff S_c-S_f\ge2[\logit(\eta)-\ell_h].}
+\label{eq:fixedgate}
+\end{equation}
+后验门槛是加性常数，不能把$\eta$直接乘到两个RSS前。
+
+若使用不同的固定协方差$\Sigma_c,\Sigma_f$，则对数Bayes因子为
+\begin{equation}
+\tfrac12\left[r_c^\top\Sigma_c^{-1}r_c-r_f^\top\Sigma_f^{-1}r_f
++\log|\Sigma_c|-\log|\Sigma_f|\right].
+\end{equation}
+此时共同电压平方项不再普遍抵消。若协方差随决策变化，其逆和行列式也随决策变化，通常超出QCQP。
+
+\subsection{与MAE不能直接换算的反例}
+取两个标量观测，$r_f=(2,0)^\top$，$r_c=(1.1,1.1)^\top$，共同单位方差。MAE分别为1和1.1，故$J_c-1.03J_f=0.07>0$；但$S_f=4>S_c=2.42$，Gaussian平方证据偏向粗候选。相同数据的排序可以相反，因此不存在仅用一个固定后验阈值把两种规则普遍等价起来的方法。
+
+即使两边都采用SSE，固定尺度后验比较$S_c-S_f$，相对规则比较$S_c-S_f>(\kappa-1)S_f$；右端依赖当前残差，固定$\eta$仍不普遍对应固定$\kappa$。
+
+\subsection{固定尺度Laplace版本}
+由式\eqref{eq:lapnll}和Bayes公式，
+\begin{equation}
+\ell=\ell_h+\frac{A_c-A_f}{s}
+=\ell_h+\frac{m}{s}(J_c-J_f).
+\end{equation}
+这与原绝对损失同源，但后验阈值仍对应加性差$J_c-J_f$，尚不是相对差$J_c-\kappa J_f$。
+
+\section{未知共同尺度：相对门槛的完整推导}
+\label{sec:scale}
+\subsection{为何积分尺度，积分什么}
+已知误差的相对形状、未知整体尺度，是一种可检查的简化：例如给定节点和时段的相对波动轮廓，但允许整体误差水平未知。我们只积分这个共同尺度；线路权重仍被冻结，候选参数积分、模型池外结构和候选筛选效应没有因此解决。
+
+一个共同尺度必须覆盖本次似然中全部观测。若为每个单元分别设置独立随机尺度，边际似然会成为逐项因子的乘积，不再得到下面单一RSS比值。即使给定尺度时残差独立，积分同一个随机尺度后，它们通常也不再边际独立；共同尺度造成统计依赖，但对角形状下的线性协方差仍可为零。
+
+\subsection{反Gamma分布与积分恒等式}
+对$x>0$，本文采用形状$a$、尺度参数$b$的定义
+\begin{equation}
+f(x)=\frac{b^a}{\Gamma(a)}x^{-a-1}\exp(-b/x),\quad a,b>0.
+\label{eq:ig}
+\end{equation}
+其中$\Gamma(c)=\int_0^\infty t^{c-1}e^{-t}\,dt$为Gamma函数。不同资料有不同参数化，本文固定使用式\eqref{eq:ig}；Gaussian共轭背景和这一参数化可见\citet[第10.2节]{murphy2007}。
+
+\begin{lemma}\label{lem:integral}
+对$c,d>0$，
+\begin{equation}
+\int_0^\infty x^{-c-1}e^{-d/x}\,dx=\frac{\Gamma(c)}{d^c}.
+\label{eq:integral}
+\end{equation}
+\end{lemma}
+\begin{proof}
+令$t=d/x$，则$x=d/t$、$dx=-d\,dt/t^2$。积分上下限由$0,\infty$变为$\infty,0$，所以原式等于
+\[
+\int_\infty^0(d/t)^{-c-1}e^{-t}(-d/t^2)\,dt
+=d^{-c}\int_0^\infty t^{c-1}e^{-t}\,dt.
+\]
+按Gamma函数定义即得结论。
+\end{proof}
+
+同一换元还能给出$X\sim\IG(a,b)$的矩：$\E X=b/(a-1)$要求$a>1$，$\E X^2=b^2/[(a-1)(a-2)]$要求$a>2$。采用尺度先验预测分布计算平方残差期望时，需要检查相应矩存在。
+
+\subsection{Gaussian未知方差的边际似然}
+现在假设
+\begin{equation}
+v\mid p,H_k,\lambda\sim N(H_kp,\lambda\Omega),\quad
+\lambda\sim\IG(a,b),\quad \Omega\succ0\text{固定}.
+\label{eq:gaussscale}
+\end{equation}
+$\lambda=s^2$是未知共同方差；令$W=\Omega^{-1}$、$S_k=r_k^\top Wr_k$。条件密度为
+\begin{equation}
+p(v\mid p,H_k,\lambda)
+=(2\pi)^{-m/2}|\Omega|^{-1/2}\lambda^{-m/2}
+\exp[-S_k/(2\lambda)].
+\end{equation}
+乘以先验并积分：
+\begin{align}
+p(v\mid p,H_k)
+&=C\int_0^\infty
+\lambda^{-(a+m/2)-1}
+\exp[-(b+S_k/2)/\lambda]\,d\lambda\\
+&=C\frac{\Gamma(a+m/2)}{(b+S_k/2)^{a+m/2}},
+\label{eq:marggauss}
+\end{align}
+其中$C=(2\pi)^{-m/2}|\Omega|^{-1/2}b^a/\Gamma(a)$，与候选无关。这个积分没有优化变量，只有尺度的解析边际化。
+
+\begin{proposition}\label{prop:gaussratio}
+令$c_G=a+m/2$、$\ell_\pi=\log(\pi_f/\pi_c)$。在式\eqref{eq:gaussscale}的共同尺度和共同先验下，定义
+\begin{equation}
+\kappa_G=\exp\!\left(\frac{\logit(\eta)-\ell_\pi}{c_G}\right).
+\end{equation}
+则
+\begin{equation}
+\boxed{P_f\ge\eta\iff S_c-\kappa_GS_f\ge2b(\kappa_G-1).}
+\label{eq:gaussratio}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由式\eqref{eq:marggauss}，
+\[
+\log\frac{P_f}{1-P_f}
+=\ell_\pi+c_G\log\frac{b+S_c/2}{b+S_f/2}.
+\]
+要求其至少为$\logit(\eta)$，先除以正数$c_G$再取指数，得
+$b+S_c/2\ge\kappa_G(b+S_f/2)$。展开即为式\eqref{eq:gaussratio}。
+\end{proof}
+
+若$\logit(\eta)>\ell_\pi$，则$\kappa_G>1$，对应需要新证据的常见情形。先验已经很强时，$\kappa_G$可能不超过1，应如实保留，不强行制造付费需求。若定义平均平方损失$J_k^{(2)}=S_k/m$，右端相应除以$m$。
+
+\subsection{Laplace未知尺度与原MAE}
+假设给定共同尺度$s$时，各原始残差独立Laplace，并取$s\sim\IG(a,b)$。则
+\begin{align}
+p(v\mid p,H_k)
+&=\frac{2^{-m}b^a}{\Gamma(a)}
+\int_0^\infty s^{-(a+m)-1}\exp[-(b+A_k)/s]\,ds\\
+&=\frac{2^{-m}b^a\Gamma(a+m)}{\Gamma(a)}(b+A_k)^{-(a+m)}.
+\end{align}
+同样推导得
+\begin{equation}
+\boxed{
+J_c-\kappa_LJ_f\ge\frac{b}{m}(\kappa_L-1),\qquad
+\kappa_L=\exp\!\left[\frac{\logit(\eta)-\ell_\pi}{a+m}\right].}
+\label{eq:lapratio}
+\end{equation}
+这与原MAE的损失形态一致，但相对门槛仍带正偏移。若采用相关Laplace模型并先做线性白化，损失变成$\|L^{-1}r\|_1$，通常不再是代码的原始MAE。
+
+\subsection{与固定3\%规则的准确关系}
+给定$a,b,m,\ell_\pi$，式\eqref{eq:gaussratio}或\eqref{eq:lapratio}提供从后验门槛到相对系数的关系。反向解也成立，例如Gaussian版本有
+\begin{equation}
+\eta=\frac{1}{1+\exp[-\ell_\pi-c_G\log\kappa_G]}.
+\label{eq:reverseeta}
+\end{equation}
+所以固定$\kappa=1.03$在不同观测数下对应不同的模型内赔率。它本身不是90\%的概率标签。
+
+原规则的数值容差$\epsilon$与式\eqref{eq:lapratio}的$b(\kappa_L-1)/m$也不是同一来源。不能为复现一个极小数值容差而反向挑选不合理的先验；也不能直接取$b=0$来消掉偏移，因为式\eqref{eq:ig}此时不再是适当先验。适当先验及其敏感性在模型证据比较中有实质作用\cite{KassRaftery1995}。
+
+\subsection{历史怎么计入，为什么不能重复}
+一种最清楚的做法，是把原历史验证与新日验证残差全部放入$S_k$或$A_k$一次，使用这些观测之前的基础先验$\ell_\pi$。历史拟合训练数据继续用于冻结参数，不再次混入验证似然。
+
+若希望分阶段计算，在条件独立且块对角$\Omega$的情况下，Gaussian候选$k$在历史后有
+\begin{equation}
+\lambda\mid H_k,\mathcal D_h\sim
+\IG\left(a+\frac{m_h}{2},\ b+\frac{S_k^h}{2}\right).
+\end{equation}
+两个候选的第二参数一般不同。新日预测密度应分别使用各自尺度后验，并乘正确历史模型赔率；这样与全历史一次积分等价。不能把旧固定尺度模型产生的$\ell_h$直接搬来，再叠加全历史积分后的证据。
+
+若历史与新日的误差本身相关，联合协方差不再块对角，分阶段必须使用对应条件分布；直接把两个独立似然相乘会改变模型。
+
+\section{共同误差、功率随机性与协方差}
+\label{sec:cov}
+\subsection{四类误差的放置}
+规划时先声明功率分布，再声明给定功率后的剩余电压误差。例如
+\begin{equation}
+p(u)=\mu_p(u)+L_p(u)\xi_p,\qquad
+v=H_fp+e.
+\label{eq:powernoise}
+\end{equation}
+这里$H_f$作为生成结构仅用于条件分析，部署时仍未知真伪。$L_p$可以共同描述自然功率预测误差和DR交付误差；若分开两个因素，应声明其交叉协方差。
+
+电压量测创新与未被功率解释的模型余差放在$e$。固定系统偏差进入$\mu_e=\E e$。线路参数误差例如$(H_{\rm true}-H_f)p$一般随$p$变化；它可能与功率相关。两个Gaussian变量相乘一般不再Gaussian，需明确一阶近似或直接使用其二阶矩。
+
+实际评价若条件于\emph{记录的}P/Q而这些表计本身有误差，残差还含候选相关的$-H_k\epsilon_P$；共同固定协方差只是工作近似。DR交付误差已通过实际功率记录进入预测时，不应再次完整加入同一项电压噪声。
+
+\subsection{相对平方裕量的精确展开}
+令$\Delta=H_f-H_c$、$\delta=\Delta p$，则$r_f=e,r_c=e+\delta$。定义
+\begin{equation}
+M_\kappa=S_c-\kappa S_f.
+\end{equation}
+逐项展开得到
+\begin{align}
+M_\kappa
+&=(e+\delta)^\top W(e+\delta)-\kappa e^\top We\\
+&=\delta^\top W\delta+2e^\top W\delta
+-(\kappa-1)e^\top We.
+\label{eq:expand}
+\end{align}
+当$\kappa=1$，共同误差平方精确抵消；当$\kappa>1$，它成为要求超越的误差底。系数2来自两个对称交叉项，不能省略。
+
+\subsection{二次型期望恒等式}
+\begin{lemma}\label{lem:moment}
+若随机向量$z$具有均值$\mu$和有限协方差$\Sigma_z$，对任意对称矩阵$W$，
+\begin{equation}
+\E[z^\top Wz]=\mu^\top W\mu+\tr(W\Sigma_z).
+\label{eq:moment}
+\end{equation}
+该式不要求$z$服从Gaussian分布。
+\end{lemma}
+\begin{proof}
+写$z=\mu+\widetilde z$，其中$\E\widetilde z=0$。展开后二个一次交叉项期望为0；利用标量等于其迹及迹的线性性，
+$\E[\widetilde z^\top W\widetilde z]=\tr(W\E[\widetilde z\widetilde z^\top])$。
+\end{proof}
+
+令$\Sigma_p=\Cov(p)$、$\Sigma_e=\Cov(e)$、$C_{pe}=\Cov(p,e)$，并令$B=\Delta^\top W\Delta$。由式\eqref{eq:expand}、引理\ref{lem:moment}和交叉项的迹表示，
+\begin{align}
+\E M_\kappa
+={}&\mu_p^\top B\mu_p+\tr(B\Sigma_p)
++2\mu_e^\top W\Delta\mu_p
++2\tr(W\Delta C_{pe})\notag\\
+&-(\kappa-1)
+\left[\mu_e^\top W\mu_e+\tr(W\Sigma_e)\right].
+\label{eq:generalmean}
+\end{align}
+在零均值剩余误差、$C_{pe}=0$时，式\eqref{eq:generalmean}才可简化为
+\begin{equation}
+\boxed{\E M_\kappa
+=\mu_p^\top B\mu_p+\tr(B\Sigma_p)
+-(\kappa-1)\tr(W\Sigma_e).}
+\label{eq:simplemean}
+\end{equation}
+增加功率随机性可能使正迹项增大，但这只说明期望裕量改变，不能据此推断下尾或达成率改善。
+
+\subsection{固定相关协方差的处理与估计边界}
+对固定$\Omega=LL^\top\succ0$，Cholesky白化$\widetilde r=L^{-1}r$给出$S=\|\widetilde r\|_2^2$。数值上使用三角方程求解，不必显式形成逆矩阵。节点相关和时间相关均可保留；代价是系数矩阵更稠密。
+
+若把一日1440维轨迹当作一个向量，而只有3个训练日，样本协方差秩至多2，不能直接求逆。需要预先声明低维共同因素、对角加低秩或其他正定结构，并与独立评价区分。当前代码只有对角似然实现，本报告没有把一般协方差扩展写成已完成。
+
+\section{如何得到真正交给求解器的二次式}
+\label{sec:quadratic}
+\subsection{共享Gaussian因素的仿射模型}
+用$u\in\R^d$表示全部交付，假设两个候选的规划残差为
+\begin{equation}
+r_k(u,\xi)=a_k+B_ku+L_k(u)\xi,\qquad
+L_k(u)=L_{k0}+\sum_{j=1}^d u_jL_{kj},\qquad
+\xi\sim N(0,I_s).
+\label{eq:affinefactor}
+\end{equation}
+$a_k\in\R^m$为零调节残差均值，$B_k\in\R^{m\times d}$为交付影响矩阵，$L_{kj}\in\R^{m\times s}$为已知随机响应系数。两个候选共享同一个$\xi$，从而保持同一实际观测和执行路径的相关性。固定相关因素可先吸收到$L_{kj}$，并未强制原始误差独立。
+
+这里的Gaussian因素是\emph{规划参考分布}的一种声明；它与第\ref{sec:scale}节积分尺度后的边际分布需要区分。未知Gaussian方差积分后得到尺度混合分布，通常不是Gaussian。以下期望二次式实际上只使用$\E\xi=0$与$\Cov(\xi)=I_s$，因此匹配二阶矩的尺度混合参考也适用；若按Gaussian方差先验求误差二阶矩，要求$a>1$。第\ref{sec:probability}节的Gaussian方差和精确概率公式则使用各自明确声明的Gaussian条件，不能直接套到尺度混合分布。
+
+若本次似然包含已知历史验证残差与随机未来残差，可将两部分一起堆叠：历史残差放入$a_k$的对应行，历史行的$B_k$及所有$L_{kj}$设为零。于是历史只作为常数进入一次，不被重新随机化；未来行才随决策和随机因素变化。
+
+由引理\ref{lem:moment}，
+\begin{equation}
+\E S_k=(a_k+B_ku)^\top W(a_k+B_ku)
++\tr[WL_k(u)L_k(u)^\top].
+\end{equation}
+将确定项和随机系数项各自展开并收集幂次，得到
+\begin{equation}
+\boxed{\E M_\kappa=c+g^\top u+u^\top Qu.}
+\label{eq:quadratic}
+\end{equation}
+每个系数都由输入直接计算：
+\begin{align}
+Q_{ij}={}&(B_c^\top WB_c-\kappa B_f^\top WB_f)_{ij}\notag\\
+&+\tr\!\left[W(L_{ci}L_{cj}^\top-\kappa L_{fi}L_{fj}^\top)\right],\\
+g_j={}&2(B_c^\top Wa_c-\kappa B_f^\top Wa_f)_j\notag\\
+&+2\tr\!\left[W(L_{c0}L_{cj}^\top-\kappa L_{f0}L_{fj}^\top)\right],\\
+c={}&a_c^\top Wa_c-\kappa a_f^\top Wa_f\notag\\
+&+\tr\!\left[W(L_{c0}L_{c0}^\top-\kappa L_{f0}L_{f0}^\top)\right].
+\label{eq:coefficients}
+\end{align}
+$Q$在数学上对称，浮点计算可用$(Q+Q^\top)/2$对称化。梯度为$g+2Qu$。现有\code{core.build_expected}是固定对角似然、$\kappa=1$再乘$1/2$的一个特例；本文一般$\kappa$及相关因子尚未接入该函数。
+
+\subsection{一个完整、但只要求期望裕量的规划问题}
+设资源$r$、物理槽$t$的正负功率能力为$A^+_{rt},A^-_{rt}$，满响应费用系数为$c_{rt}>0$，槽长$\Delta t$。原合同费用为
+\begin{equation}
+K(u)=\Delta t\sum_{r,t}c_{rt}
+\left[\frac{(u_{rt})_+^2}{A^+_{rt}}+
+\frac{(-u_{rt})_+^2}{A^-_{rt}}\right],
+\label{eq:cost}
+\end{equation}
+其中$(z)_+=\max(z,0)$；零能力方向固定零，对应项不参与求和。当前金额仍是合成合同单位。
+
+令$x$属于原小时请求盒$\mathcal X$，固定映射$D$将请求展开到物理时段的原始kW请求，原设备控制器为$\Pi$。本文保持
+\begin{equation}
+u=\Pi(Dx),\quad x\in\mathcal X.
+\end{equation}
+该映射依次处理功率限制$-A^-\le u\le A^+$、能量状态
+\begin{equation}
+e_t=e_{t-1}+\Delta t\,[\zeta(u_t)_+-(-u_t)_+/\zeta],
+\end{equation}
+及预设能量界、可用时段、重置和截止任务；$\zeta\in(0,1]$为设备效率。使用父层既有控制器的精确图，不能只留下这些物理盒约束便声称与原小时请求映射等价。
+
+Gaussian未知尺度版本的期望设计可写为
+\begin{equation}
+\boxed{\begin{aligned}
+\min_{x,u}\quad &K(u),\\
+\text{s.t.}\quad &x\in\mathcal X,\quad u=\Pi(Dx),\\
+&c+g^\top u+u^\top Qu\ge h_\kappa,
+\qquad h_\kappa=2b(\kappa-1).
+\end{aligned}}
+\label{eq:opt}
+\end{equation}
+式\eqref{eq:opt}要求期望相对平方裕量超过积分后门槛。若使用固定尺度Gaussian证据，则取$\kappa=1$，将右端改为式\eqref{eq:fixedgate}中的常数。这是另一个统计模型，不混合使用两套历史赔率。
+
+\subsection{非凸性和求解质量从哪里来}
+差二次型$Q$可能不定；即使$Q\succeq0$，超水平约束$u^\top Qu\ge h$通常也非凸。一个简单例子是$x^2\ge1$：$x=1,-1$可行而其中点0不可行。正负响应与设备控制的分段图又会引入离散变量。
+
+因此只保留线性资源约束时是QCQP；保留原设备图后为MIQCP。Gurobi的\code{NonConvex=2}采用全局分支框架处理非凸二次项\cite{gurobiNonConvex}。对最小化费用，核验过的可行报价给上界$U$，求解器有效下界给$L$，
+\begin{equation}
+L\le K^\star\le U.
+\end{equation}
+超时无报价只有下界，不证明不可行。若零合同满足门槛且$K\ge0$，则可直接证明$K^\star=0$。相关协方差不改变这一逻辑，但稠密系数可能增加计算代价。
+
+\section{后验阈值与执行概率：两个不同要求}
+\label{sec:probability}
+\subsection{期望不保留原概率事件}
+后验阈值是$P_f\ge\eta$；在规划时要求这一事件以至少$\beta$概率发生，是
+\begin{equation}
+\Prob\{P_f(v,p)\ge\eta\}\ge\beta.
+\label{eq:chance}
+\end{equation}
+这里外层概率针对未来功率、DR执行和量测，内层后验针对两个工作模型。把事件等价改写成$M_\kappa\ge h_\kappa$是准确的；再取期望成为$\E M_\kappa\ge h_\kappa$，则改变了要求。
+
+反例：若$\ell\sim N(\logit(\eta),s^2)$、$s>0$，则$\E\ell=\logit(\eta)$，但
+\begin{equation}
+\Prob\{P_f\ge\eta\}=\Prob\{\ell\ge\logit(\eta)\}=1/2.
+\end{equation}
+现有解析例的期望解正体现这一情况。
+
+\subsection{为什么相对平方裕量一般不是Gaussian}
+将式\eqref{eq:affinefactor}代入裕量后，给定$u$可写成
+\begin{equation}
+M_\kappa=\xi^\top A(u)\xi+2d(u)^\top\xi+c_0(u),
+\label{eq:randomquad}
+\end{equation}
+其中$A$为对称矩阵，$d,c_0$为展开得到的一次系数和常数。它是Gaussian变量的二次函数，通常不是Gaussian。若$A=U\Lambda U^\top$做正交分解，$U^\top\xi$仍为标准Gaussian，各特征值会加权其平方；负特征值还会形成平方差。两个RSS共享同一个$v$，所以其比值通常也不是标准F分布。
+
+直接使用Gaussian矩可得
+\begin{equation}
+\E M_\kappa=\tr A+c_0,\qquad
+\Var(M_\kappa)=2\tr(A^2)+4d^\top d.
+\label{eq:quadvar}
+\end{equation}
+证明可在特征坐标中逐项计算：$\Var(Z_i^2)=2$，不同标准Gaussian分量独立，三阶奇数矩为0，所以二次项与一次项协方差为0。式\eqref{eq:quadvar}给均值、方差，但把两者代入正态分位数不自动得到精确概率。$A(u)$通常含$u$的二次项，方差会出现四次项，不能一概称为SOCP。
+
+\subsection{一个真正可精确算概率的特殊情况}
+回到固定协方差、给定\emph{确定实际功率}$p$的模型。在$H_f$为生成模型且$e\sim N(0,\Sigma)$时，令
+\begin{equation}
+S=(\Delta p)^\top\Sigma^{-1}(\Delta p).
+\end{equation}
+由共同误差展开，
+\begin{equation}
+\ell\mid H_f,p\sim N(\ell_h+S/2,S),\qquad
+\ell\mid H_c,p\sim N(\ell_h-S/2,S).
+\end{equation}
+令$\Phi$为标准正态分布函数、$\tau=\logit(\eta)$。$S>0$时，正确候选自己的后验达标概率分别为
+\begin{equation}
+p_f(S)=\Phi\!\left(\frac{S/2+\ell_h-\tau}{\sqrt S}\right),\quad
+p_c(S)=\Phi\!\left(\frac{S/2-\ell_h-\tau}{\sqrt S}\right).
+\end{equation}
+要求二者均至少为$\beta$，令$z_\beta=\Phi^{-1}(\beta)$，等价于
+\begin{equation}
+\boxed{S\ge
+\left[z_\beta+\sqrt{z_\beta^2+2(\tau+|\ell_h|)}\right]^2.}
+\label{eq:nominal}
+\end{equation}
+证明是取两种状态的较小值，令$v=\sqrt S$，解
+$v^2-2z_\beta v-2(\tau+|\ell_h|)\ge0$的正根。$S=0$时分别按确定历史赔率判断，两种正确置信事件无法同时成立。
+
+这就是现有\code{pair_event_nominal}的适用域。功率随机后不能简单用$\E S$代替$S$继续声称式\eqref{eq:nominal}精确成立。
+
+\section{如何组织比较，避免把选模变化当成DR效果}
+\label{sec:comparison}
+\subsection{分开固定三个环节}
+建议在每批实验协议中单列：
+\begin{enumerate}[leftmargin=2em]
+\item 候选来源与参数：完整历史、训练拟合、候选池、R/X是否冻结。
+\item 价格设计：使用MAE退出概率、期望Gaussian证据或相对平方裕量；门槛与误差假设各是什么。
+\item 实际评价：对每条相同新日观测分别运行原MAE选择和声明的替代选择，随后计算最终块族错漏与费用。
+\end{enumerate}
+在规划和评价之间冻结报价；不使用测试真支持挑选候选方向或修改先验。不同选择器都应有各自的无奖励自然新增对照。
+
+\subsection{如何比较损失而不预设哪一种更好}
+若以后要选择统计损失，先在训练期内分拆拟合与验证：检查偏差、异方差、尾部和时空相关；用没有参与拟合的历史数据检查预测误差与候选排序的稳定性。只有具备完整密度和相同单位时，才能比较预测对数得分；MAE与MSE的原始数值不可直接相减评价优劣。
+
+拓扑方法的主比较仍应报告最终完整错漏、完整恢复、费用和计算状态。若新Gaussian选择器在无DR时已经选对，那么付费方案提高后验或平方分离不等于增加拓扑恢复收益。若有DR与无DR都失败，则区分执行条件没有达到、冻结候选不含所需结构，以及接受／验证／收缩丢失收益。
+
+\subsection{现有证据的准确读法}
+本表来自已有\code{bayes_qcqp/REPORT.md}，本次没有重新运行。
+\begin{table}[htbp]\centering\small
+\caption{已有同一观测上的选择器差别}
+\begin{tabular}{lrrr}\toprule
+冻结政策&合同费用&原3\%完整恢复&新Gaussian选择完整恢复\\\midrule
+无DR&0&0/32&32/32\\
+旧AB&43.4019&32/32&32/32\\
+仅A&24.9588&32/32&32/32\\\bottomrule
+\end{tabular}
+\end{table}
+这些是一个已见自然日、32条配对执行／量测随机路径，共96个保存观测；没有新AC、新拟合或新W搜索。该差别说明选择器口径会实质改变结果，不能把右列的零DR恢复计为本轮DR创新。
+
+旧固定Gaussian模型的完整历史log BF为112.067035，无DR新日期望证据为40.861341，主期望问题最小费用为0。较强名义概率问题120秒无可行报价、下界0，保留未决。两个合成例全局最小费用分别为4.394449和13.976729，理论后验过线率分别为50\%和90\%；每个报价已用32768路径核验。它们证明计算链和概率区别，不证明跨算例效果。
+
+\section{代码索引、实施状态与建议}
+\label{sec:implementation}
+\subsection{可定位的代码合同}
+以下路径相对仓库根；源基准为提交\code{14853527}。
+\begin{longtable}{p{70mm}p{\dimexpr\linewidth-70mm-4\tabcolsep\relax}}
+\toprule 文件与位置&核实的作用\\\midrule\endhead
+\path{dr_pool_v2/engine.py:44--87}&特征、MAE总归一化、固定族共同调权及原目标核验。\\
+\path{dr_pool_v2/engine.py:158--171}&交叉删除、共同拟合、0.1\%接受与墙限。\\
+\path{dr_pool_v2/selection.py:7--32}&3\%验证带、复杂度优先、之后输出收缩。\\
+\path{dr_pricing/problem.py:300--316}&历史与新日权重及退出门槛。\\
+\path{dr_pricing/problem.py:422--438}&同一冻结候选的实际MAE选择与恒等式。\\
+\path{bayes_qcqp/core.py:119--155}&固定对角Gaussian的期望log BF二次系数。\\
+\path{bayes_qcqp/core.py:173--199}&共同标准差、平方和对数后验。\\
+\path{bayes_qcqp/core.py:209--249}&名义双候选精确概率条件。\\
+\path{bayes_qcqp/solver.py:220--280}&零费证书、全局MIQCP、原设备重放和界。\\\bottomrule
+\end{longtable}
+表中\code{dr_pool_v2}位于\path{research_experiments/wzzt_dr_selection/}，其余\code{dr_pricing}与\code{bayes_qcqp}分别位于同研究目录及其报价子目录。通用WZZT核心位于\path{rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py}，规则与当前适配器的差别见第\ref{sec:code}节。
+
+\subsection{已推导与已实现分开记录}
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\linewidth}{XX}\toprule
+内容&状态\\\midrule
+原MAE接受、3\%验证和收缩&既有实现，本文只读核对。\\
+固定对角Gaussian期望QCQP/MIQCP&已有实现和26测试；不是执行概率90\%保证。\\
+名义确定功率的双候选概率条件&已有实现；paper15有界求解仍未决。\\
+共同未知尺度的Gaussian/Laplace比值门槛&本文完整推导，尚未实现。\\
+一般相关因子的式\eqref{eq:coefficients}&本文推导，当前代码只有声明的独立响应特例。\\
+后验真实性校准、全体树覆盖&当前有限冻结候选结果没有完成这些任务。\\\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{建议采用的论文表述}
+原联合辨识器的主要损失保留MAE。DR主效果按原完整流程的最终输出评价。Gaussian平方残差路线作为明确声明的替代规划与评分模型，其优点是共享误差可以解析展开、协方差能通过二阶矩保留，并可使用非凸二次求解器报告费用界。未知共同尺度提供相对平方门槛的统计来源；这一共轭积分是基础工具，不应单独包装为方法创新。
+
+若希望后验与原相对MAE严格同源，优先研究式\eqref{eq:lapratio}，并接受它含绝对值的实际求解结构。若优先追求QCQP，就明确比较不同评分口径，不把两者混写成同一个停止条件。任何后续实施应先锁定版本与门槛，再独立比较无奖励、简单探索和优化DR；本报告没有启动该新实验。
+
+\appendix
+\section{原图中各步应如何替换}
+\begin{enumerate}[leftmargin=2em]
+\item 等先验只在基础先验确实相同且历史未使其改变时使用；完整历史要正确计入一次。
+\item Gaussian似然先取对数，得到式\eqref{eq:fixedgate}的加性平方差；不能直接用后验门槛加权RSS。
+\item 若需要$J_c-\kappa J_f$形态，明确使用未知共同尺度模型，得到式\eqref{eq:gaussratio}或\eqref{eq:lapratio}。
+\item 平方展开的交叉项系数是2；共同噪声在$\kappa=1$与$\kappa>1$下的作用不同，见式\eqref{eq:expand}。
+\item 取期望时保留均值、协方差和必要的交叉协方差，见式\eqref{eq:generalmean}。
+\item 原后验事件、事件的执行概率和期望裕量分别报告，见第\ref{sec:probability}节。
+\end{enumerate}
+
+\section{文献使用范围}
+\citet{boyd2004}用于第6章范数拟合与损失背景；\citet{murphy2007}用于反Gamma参数化和Gaussian共轭背景；\citet{KassRaftery1995}用于Bayes因子与先验解释；Gurobi官方文档用于求解范围。上述公开全文／官方文档的相关章节已核对，非逐页通读全部书籍。本文的WZZT门槛代数、共同误差展开、完整二次系数及代码对应为本报告自行推导或源码核对，未把这些结论归给所引文献。公开版本已足够，本次无需订阅全文访问。
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+\end{document}

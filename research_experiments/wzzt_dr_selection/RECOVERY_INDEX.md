@@ -1,3 +1,9 @@
+## 损失口径完整推导，2026-11-11
+
+- dr_pricing/bayes_qcqp/loss_conventions保存main.tex、references.bib、README和编译核验记录。原MAE与Gaussian平方评分分版本，当前DR适配器0.1%接受/3%验证与通用核心规则明确分开。
+- 私有wzzt_loss_conventions_v1保存首次标题分隔符错误日志、最终XeLaTeX/BibTeX构建、全部页面PNG、文本/标签核验和独立审查。PDF哈希与源哈希见BUILD.json。无新求解/模拟/拟合。
+- 新共同尺度IG推导、Laplace同源解释、一般相关因子二次式均未接入代码；不能将该理论写成已运行的新90%优化器。
+
 ## Bayesian平方残差二次规划，2026-11-11
 
 - 活动入口dr_pricing/bayes_qcqp/{README,MODEL,REPORT}.md、PROTOCOL.json、RESULTS.json；3计算文件core/solver/run，复用父problem/solve。26测试通过，独立审查通过。新模式expected_either是绝对期望log odds，不是达成率；pair_event_nominal仅闭合两模型与名义功率。

@@ -5,6 +5,7 @@
 **取期望得到的是期望对数证据约束。它不等价于90%的后验过线概率。** 实现同时给出一个名义功率、闭合双候选下的精确概率对照，便于检查这一区别。
 
 - [MODEL.md](MODEL.md)：完整符号、推导、设备约束、求解界和适用条件。
+- [LaTeX理论文档](loss_conventions/README.md)：如何确定损失口径、L1/L2基础、未知尺度相对门槛及协方差的完整推导；未知尺度尚未实现。
 - [REPORT.md](REPORT.md)：解析示例、paper15和保存AC观测的实际结果。
 - [PROTOCOL.json](PROTOCOL.json)：事前设置；[RESULTS.json](RESULTS.json)：无轨迹的聚合结果。
 

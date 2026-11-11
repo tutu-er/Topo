@@ -1,3 +1,7 @@
+## 损失口径与概率理论文档，2026-11-11
+
+已整理[独立LaTeX文档](dr_pricing/bayes_qcqp/loss_conventions/README.md)：原MAE作为主评价，Gaussian平方损失单列规划/评分版本，明确训练接受、验证和收缩。完整推导固定尺度后验、反Gamma共同尺度积分、Gaussian/Laplace相对门槛、相关二阶矩与二次系数，以及期望与执行概率的区别。数学与代码归一化经独立审查；未知尺度和一般相关因子均为已推导、未实现。此次只新增文档，未改辨识/报价代码、未跑新实验，旧结果和未决分母不变。
+
 ## Bayesian平方残差二次规划，2026-11-11
 
 已实现[独立二次分支](dr_pricing/bayes_qcqp/README.md)，核心3文件复用原设备及费用，不改RNJ/WZZT或旧3%默认。[MODEL.md](dr_pricing/bayes_qcqp/MODEL.md)给后验平方差、随机响应二阶矩及全局界；[REPORT.md](dr_pricing/bayes_qcqp/REPORT.md)和RESULTS.json给完整结果。26/26测试与独立数学/设备图审查通过。主问题是期望log odds门槛，非90%事件保证；公开解析小例全局费用4.394449对应50%达成，较强名义双状态90%对照费用13.976729，均全局界吻合，独立32768路径各核验。
