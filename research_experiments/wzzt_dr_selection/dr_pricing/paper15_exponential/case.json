@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "case_id": "paper15_exponential_full60_weight1",
+  "pricing_case": "inputs/pricing.json",
+  "model_arrays": "inputs/models.npz",
+  "candidate_file": "inputs/candidates.json",
+  "history_training_slots": 288,
+  "planning": {
+    "beta": 0.9,
+    "kappa": 1.03,
+    "absolute_squared_tolerance": 0.0,
+    "lambda": "1/(4*kappa)",
+    "reference": "historically fitted model1, not test topology or test voltage",
+    "forecast": "existing issued forecast.npy, used as the power mean without reconditioning it on test observations",
+    "power_error": "existing training RMS, offpeak4percent/peak8percent, timeAR0.8, channel correlation0.25; fixed additive Gaussian covariance",
+    "voltage_error": "existing likelihood_sd from the historical input; independent remaining Gaussian error conditional on power",
+    "dr_in_planning": "original deterministic nominal delivery; multiplicative correlated and saturated delivery is independently evaluated as model mismatch",
+    "resources": "all original 60 resources on all 15 nodes; no reallocation or enlargement",
+    "history_training_slots": 288,
+    "history_validation_slots": 288,
+    "new_slots": 96,
+    "dt_hours": 0.25,
+    "solver": {
+      "seconds": 120.0,
+      "mip_gap": 0.02,
+      "threads": 1,
+      "seed": 0
+    },
+    "cost": "original nonnegative prepaid quadratic contract fee; no imposed total fee upper bound",
+    "zero_rule": "If zero delivery passes the sufficient condition, certify global minimum fee0; do not force paid DR"
+  },
+  "evaluation": {
+    "policies": [
+      "optimized",
+      "zero",
+      "rotation"
+    ],
+    "rotation": "prespecified resource-phase hourly alternation, scaled before evaluation to the optimized prepaid fee; feasible original device projection",
+    "working_model_paths": 32768,
+    "working_model_seed": 2026111801,
+    "actual_paths": 32,
+    "response_seed": 2026111802,
+    "meter_seed": 2026111803,
+    "response": "original Devices.draw(main) correlated whole-path Gaussian multipliers, followed by original device projection",
+    "ac": "original radial AC producer and original P/Q/root/terminal meter observer",
+    "physical_voltage_sigma": 0.0005,
+    "physical_pq_sigma": 0.005,
+    "selection": "original frozen-pair MAE common3percent plus original .16 output map; new day weight1 as previously requested, no refit",
+    "history_weight": 1,
+    "new_day_weight": 1,
+    "failures": "Retain each failure/timeout/unresolved; report planned denominator, never drop/renormalize",
+    "identical_contracts": "Reuse an identical physical observation for aliases within a path, explicitly report unique AC count",
+    "truth_gate": "Freeze all observed selections before computing true support errors"
+  }
+}

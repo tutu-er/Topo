@@ -1,0 +1,247 @@
+{
+  "status": "complete",
+  "case": "paper15",
+  "historical_slots": {
+    "training": 288,
+    "validation": 288
+  },
+  "resources": 60,
+  "new_slots": 96,
+  "new_day_weight": 1,
+  "validation_band": 0.03,
+  "output_contraction": 0.16,
+  "planning": {
+    "status": "complete",
+    "qualified": true,
+    "solver": {
+      "status": "CERTIFIED_COST_ZERO",
+      "objective": 0.0,
+      "lower_bound": 0.0,
+      "gap": 0.0,
+      "qualified": true,
+      "global_gap_target_met": true,
+      "solver_performed": false,
+      "certificate": "All original fees nonnegative; zero delivery feasible in the full60-resource domain"
+    },
+    "planning_bound": {
+      "score": 11.369606985291831,
+      "threshold": -10.839341012522157,
+      "margin": 22.208947997813986,
+      "log_failure_upper": -24.511533090808033,
+      "failure_upper": 2.263478823319537e-11,
+      "success_lower": 0.9999999999773652,
+      "sufficient_condition_met": true
+    },
+    "h_upper_without_covariance_determinant": -10.22149568073982,
+    "history_squared": {
+      "S0": 4524.707629288944,
+      "S1": 4300.573558867287,
+      "remaining_delta": -95.11686365563855
+    },
+    "fees": {
+      "optimized": 0.0,
+      "zero": 0.0,
+      "rotation": 0.0
+    },
+    "rotation": {
+      "scale": 0.0,
+      "cost": 0.0
+    },
+    "device_audits": {
+      "optimized": {
+        "power_violation_kw": 0.0,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 0.0,
+        "passed": true,
+        "absolute_DR_kwh": 0.0,
+        "net_DR_kwh": 0.0,
+        "max_sum_abs_kw": 0.0
+      },
+      "zero": {
+        "power_violation_kw": 0.0,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 0.0,
+        "passed": true,
+        "absolute_DR_kwh": 0.0,
+        "net_DR_kwh": 0.0,
+        "max_sum_abs_kw": 0.0
+      },
+      "rotation": {
+        "power_violation_kw": 0.0,
+        "energy_violation_kwh": 0.0,
+        "deadline_violation_kwh": 0.0,
+        "passed": true,
+        "absolute_DR_kwh": 0.0,
+        "net_DR_kwh": 0.0,
+        "max_sum_abs_kw": 0.0
+      }
+    },
+    "resource_count": 60,
+    "seconds": 1.0842921000003116,
+    "unique_contracts": 1,
+    "probability_scope": "conditional on frozen model1 and declared fixed Gaussian errors; sufficient lower bound",
+    "original_final_selection": "MAE common3percent, new day weight1, frozen original outputs"
+  },
+  "working_model": {
+    "status": "complete",
+    "independent_random_paths": 32768,
+    "independent_natural_days": 0,
+    "rows": {
+      "optimized": {
+        "planned": 32768,
+        "completed": 32768,
+        "successes": 32768,
+        "fraction": 1.0,
+        "mean_L": 56.71773681666424,
+        "min_L": -29.03039340582817
+      },
+      "zero": {
+        "planned": 32768,
+        "completed": 32768,
+        "successes": 32768,
+        "fraction": 1.0,
+        "mean_L": 56.71773681666424,
+        "min_L": -29.03039340582817
+      },
+      "rotation": {
+        "planned": 32768,
+        "completed": 32768,
+        "successes": 32768,
+        "fraction": 1.0,
+        "mean_L": 56.71773681666424,
+        "min_L": -29.03039340582817
+      }
+    }
+  },
+  "actual": {
+    "status": "complete",
+    "unique_AC_records": 32,
+    "planned_unique_AC": 32,
+    "labelled_policy_outputs": 96,
+    "independent_random_paths": 32,
+    "independent_natural_days": 1,
+    "rows": {
+      "optimized": {
+        "planned": 32,
+        "completed": 32,
+        "failed": 0,
+        "unresolved": 0,
+        "squared_successes": 32,
+        "original_MAE_exclusions": 0,
+        "complete_recoveries": 0,
+        "missing": 32,
+        "extra": 0,
+        "total_errors": 32,
+        "prepaid_fee": 0.0,
+        "mean_actual_absolute_DR_kwh": 0.0,
+        "mean_squared_L": 38.29497497232668,
+        "mean_MAE_margin": -5.704848746134206,
+        "aliases_observations_of": "optimized"
+      },
+      "zero": {
+        "planned": 32,
+        "completed": 32,
+        "failed": 0,
+        "unresolved": 0,
+        "squared_successes": 32,
+        "original_MAE_exclusions": 0,
+        "complete_recoveries": 0,
+        "missing": 32,
+        "extra": 0,
+        "total_errors": 32,
+        "prepaid_fee": 0.0,
+        "mean_actual_absolute_DR_kwh": 0.0,
+        "mean_squared_L": 38.29497497232668,
+        "mean_MAE_margin": -5.704848746134206,
+        "aliases_observations_of": "optimized"
+      },
+      "rotation": {
+        "planned": 32,
+        "completed": 32,
+        "failed": 0,
+        "unresolved": 0,
+        "squared_successes": 32,
+        "original_MAE_exclusions": 0,
+        "complete_recoveries": 0,
+        "missing": 32,
+        "extra": 0,
+        "total_errors": 32,
+        "prepaid_fee": 0.0,
+        "mean_actual_absolute_DR_kwh": 0.0,
+        "mean_squared_L": 38.29497497232668,
+        "mean_MAE_margin": -5.704848746134206,
+        "aliases_observations_of": "optimized"
+      }
+    },
+    "candidate_errors": {
+      "coarse": {
+        "missing": 1,
+        "extra": 0,
+        "errors": 1
+      },
+      "refined": {
+        "missing": 0,
+        "extra": 0,
+        "errors": 0
+      }
+    },
+    "new_fit_calls": 0,
+    "new_W_search_calls": 0,
+    "evaluation": "original frozen historical RNJ+WZZT pair final validation and output map; not a new search"
+  },
+  "actual_ranges": {
+    "new_squared_L": [
+      8.084539515018832,
+      78.44470957096678
+    ],
+    "new_MAE_D": [
+      -19.17299144714889,
+      14.477652078035362
+    ],
+    "required_MAE_D": 18.358381376818
+  },
+  "physical": {
+    "converged_slots": 3072,
+    "planned_slots": 3072,
+    "voltage_violation_cells": 0,
+    "resource_passes": 32,
+    "thermal_checked": false
+  },
+  "audits": {
+    "physical_audit_file_sha256": "0a78d39173da2e04670f665a890d8a8134a0717a1f3822d15205cc3d7d008351",
+    "relocation": {
+      "status": "passed",
+      "extra_deterministic_replay_slots": 96,
+      "new_independent_paths": 0,
+      "original_observation_bitwise_equal": true
+    },
+    "mathematical_and_selection_checks": 142,
+    "independent_math_receipt_sha256": "45ea2198dd74f942d8d054aeb3b30a1f0520d92f7df965b9e6599dec5e2e2b3f"
+  },
+  "preparation_failures": [
+    {
+      "stage": "initial case load",
+      "error": "missing explicit information declarations",
+      "AC": 0
+    },
+    {
+      "stage": "evaluator numeric export",
+      "error": "RangeIndex was assumed to be a DatetimeIndex",
+      "AC": 0
+    },
+    {
+      "stage": "original runtime initialization",
+      "error": "missing lazy validate_scenario dependency",
+      "AC": 0
+    }
+  ],
+  "environment": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandas": "3.0.3",
+    "networkx": "3.6.1"
+  },
+  "conclusion": "Zero globally minimizes the new squared-loss planning problem, but all32 original MAE selections retain one missing block; no new DR recovery benefit",
+  "model_scope": "Frozen model1 Gaussian reference; actual evaluation retains original MAE3percent; no new fitting or W search"
+}

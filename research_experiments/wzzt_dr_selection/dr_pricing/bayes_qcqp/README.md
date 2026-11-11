@@ -1,5 +1,7 @@
 # 平方残差证据的二次DR规划
 
+paper15实际接入及独立可运行文件夹见[paper15_exponential](../paper15_exponential/README.md)。完整历史下当前指数条件全局费用0；32条新AC平方过线32/32，但原MAE3%完整恢复0/32，详见[报告](../paper15_exponential/REPORT.md)。两种损失的错配已实际核验，未得到新的DR收益。
+
 当前相对损失版本集中在单文件[exponential_dr.py](exponential_dr.py)，代码开头包含符号、假设、公式、输入输出和接入说明，对应[IEEE方法短稿](relative_gate_paper/README.md)。固定λ=1/(4κ)，计算W/h，最小化费用并要求d(u)ᵀWd(u)≥h；保留指数充分条件，不增加另一种概率近似。直接执行`python exponential_dr.py`运行纯合成安装例。
 
 `build_gate`预计算条件，`solve_continuous`求解二次费用和线性可行域的QCQP，`probability_bound`输出概率下界，`observed_loss`重算固定模型的实际平方损失。原小时设备直接把gate传给已有`solver.solve(problem, gate, gate.h, out)`，不复制设备图或辨识器。25项独立数学/求解/迁移检查通过；当前κ>1版本没有新增paper15、AC或最终恢复实验，与下列旧fixed_f后验结果分开。

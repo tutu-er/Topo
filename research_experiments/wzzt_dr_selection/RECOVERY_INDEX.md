@@ -1,3 +1,10 @@
+## paper15指数条件实际测试，2026-11-11
+
+- 活动独立目录dr_pricing/paper15_exponential：README/PROTOCOL/case、run.py、ac.py、原vendor/vendor_ac、SOURCE_MANIFEST和RESULTS/REPORT齐。inputs在本机完整保存并Git忽略；拓扑/候选/预测/AC接口在README。vendor_ac以本地.gitattributes保留原字节换行哈希。
+- 私有wzzt_paper15_exponential_v1：prepare.py/prepared/protocol_frozen为完整历史+已发布预测导出；plan初次声明失败、plan_v2零费原记录保留，plan_v3为最终冻结。sample保存32768×3配对L输出。export_physical在plan_v3冻结后开放原自然日，原RangeIndex导出失败及修复保留；ac初始化lazy-import失败0AC保留，ac_v2为新32独特观察/3072时点，predictions冻结后才评分真支持。
+- independent_audit_gate.py/json为142项独立数学和原weighted_selection交叉核验；independent_physical_audit.py/json为来源/新种子/噪声/自然负荷审计，无新AC。portability复制至portable_case、portable_plan及原第0路径96时点逐位重放，0新独立路径。
+- 当前主结果：平方充分条件最小费0；新AC平方32/32，原MAE恢复0/32/每路径漏1，三策略为同一零合同。下一步须解决损失口径对应，不能靠改历史或人工增加门槛制造DR。主批完成，不重复运行；恢复优先读complete、计划冻结和scored_rows。完整本机交付ZIP/索引见该私有目录delivery。
+
 ## 指数概率条件单文件，2026-11-11
 
 - 活动实现及说明仅dr_pricing/bayes_qcqp/exponential_dr.py，对应relative_gate_paper/main.tex；旧fixed_f/core/solver和原设备默认不变。build_gate返回原solver兼容二次接口，连续线性域另可单文件直接求解。
