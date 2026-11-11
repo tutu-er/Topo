@@ -17,6 +17,7 @@
 - [9. 全部文献逐篇记录](#review-records)
 - [10. 库外补充文献](#review-supplemental)
 - [11. 版本合并与书目修正](#review-bibliography)
+- [12. 外部补检结果与新增文献](#review-search-update)
 
 <a id="review-scope"></a>
 
@@ -32,7 +33,10 @@
 | 初步归并 | 按同DOI或同题名合并为142组；其中仍有题名变化的预印本与正式版，例如R039与R045，应合引 |
 | 正文定向阅读 | 136组；阅读具体问题设定、方法、假设、定理条件或结论，实际范围列于各项记录 |
 | 摘要及概述筛选 | 6组：R007、R011、R012、R027、R030、R086；其中R086未取得全文，其余主要为外围文献筛选 |
-| 库外补查 | 2篇：SUP01读到方法正文；SUP02仅读官方摘要 |
+| 首轮库外补查 | 2篇：SUP01读到方法正文；SUP02仅读官方摘要 |
+| 本轮外部补检 | 25项（SUP03–SUP27）：11项正文定向阅读，8项摘要或部分预览，6项仅书目待取原文，见第12节 |
+
+原142组的136/6阅读统计不包含本轮外部增补；新增项分别标明阅读层级。
 
 “142组”是本次记录组织单位，不能直接写成142篇相互独立的研究。R001等通用理论、窃电、安全和机器学习综述保留在逐篇记录中，但主文应按实际论证需要取舍。
 
@@ -239,6 +243,14 @@ Park的方法明确以跨节点二阶统计条件隔离内部注入；Pengwah/Fa
 PLC提供传播距离，逆变器提供已知P/Q扰动，Wallbox提供充电事件的电流阶跃，结构分解方法使用幅值和相角的联合协方差。它们改变了可用信息，不应只按“额外设备贵”归为一类。
 
 R020在部分电压观测下明确讨论可辨内部点和约化树；R049/R056的主保证则采用全节点电压，观测条件要按具体论文说明。SUP01的符号关系定理以正确分解分量为前提，其结论仍把分解恢复的理论条件列为未来工作；应把结构关系与算法整体保证分别报告。
+
+### 5.6 外部补检后需要加入的比较
+
+- **非零隐藏注入**：在Park之外，Li2021的FOLS/RG、Benzerga和Marulli2021的低压部分量测方法也值得比较；前者采用hidden负荷相对平稳条件，后两者分别使用地理/RX先验或隐藏点分隔等条件。[SUP03](#sup03)、[SUP04](#sup04)、[SUP05](#sup05)
+- **约化后恢复原树**：Yuan等在零注入、树结构、hidden度数等条件下由约化导纳反推物理内部结构，并允许hidden相邻。应将其与仅输出约化模型的方法分开。[SUP08](#sup08)
+- **近期末端数据与异步问题**：马尚2024、Zhang2026和Gao2026分别提供免阈值RG、末端幅值/功率、异步AMI的直接路线；本轮对应证据为摘要或预览，详细条件仍待正文。[SUP09](#sup09)、[SUP10](#sup10)、[SUP11](#sup11)
+- **度2恢复的额外先验**：Mohammadi2025采用相同且已知段电阻，其度2节点处理与未知串联阻抗的等效性问题有不同信息前提。[SUP12](#sup12)
+- **工程先验和数据质量**：GIS与幅值融合、精度/采样敏感性研究适合补一般方法段，不能直接算作纯端点未知节点算法。[SUP13](#sup13)、[SUP14](#sup14)
 
 <a id="review-ev"></a>
 
@@ -609,7 +621,7 @@ EV目录主要为两处论证服务：局部低压约束的重要性，以及可
 
 **书目信息**：Sejun Park; Deepjyoti Deka; Scott Backhaus; Michael Chertkov。日期/年份：2020-03-01。
 
-**来源**：[DOI：10.48550/arXiv.1803.04812](https://doi.org/10.48550/arXiv.1803.04812)。
+**来源**：[正式发表DOI：10.1109/TCNS.2020.2979882](https://doi.org/10.1109/TCNS.2020.2979882)；[DOI：10.48550/arXiv.1803.04812](https://doi.org/10.48550/arXiv.1803.04812)。
 
 - **方法**：统一两条叶端学习路线：电压统计+已知候选阻抗的三元组搜索；以及V/P/Q交叉矩→电阻/电抗距离→RG联合拓扑参数恢复，并分析样本复杂度。
 - **输入与设备**：算法1需叶端V、注入统计、候选边/阻抗；算法3只需叶端V/P/Q样本。
@@ -620,6 +632,9 @@ EV目录主要为两处论证服务：局部低压约束的重要性，以及可
 **阅读依据**：正文定向阅读；部分正文：两个算法、假设、RG、degree2扩展、样本定理和实验设置；未逐页阅读全文。
 
 **原文定位**：PDF pp.3–8，Assumptions1–3、Algorithms1–3、§IV扩展与Theorem3；p.8实验设置。
+
+
+**本轮书目补充**：正式版为IEEE TCNS7(3):1428–1440(2020)。本项阅读页码仍指所读作者稿，引用正式版时核对最终分页。
 
 <a id="r056"></a>
 
@@ -952,7 +967,7 @@ EV目录主要为两处论证服务：局部低压约束的重要性，以及可
 
 **书目信息**：Christian Hotz; Sergej Baum; Eberhard Waffenschmidt; Ingo Stadler。日期/年份：2022（CIRED作者存档）。
 
-**来源**：[稳定来源](https://zenodo.org/records/10046340/files/2022%20CIRED%20Porto%20Topology%20Estimation.pdf)。
+**来源**：[正式发表DOI：10.1049/icp.2022.0823](https://doi.org/10.1049/icp.2022.0823)；[稳定来源](https://zenodo.org/records/10046340/files/2022%20CIRED%20Porto%20Topology%20Estimation.pdf)。
 
 - **方法**：识别EV充电启停电流阶跃，以ΔU/ΔI估计端点共同路径阻抗矩阵，逐次合并共享最长公共路径的节点并插入分支点，重构二叉径向树及阻抗。
 - **输入与设备**：各wallbox协调电压和电流记录、足够多充电开关事件、通信；推导采用复电压变化。
@@ -965,6 +980,9 @@ EV目录主要为两处论证服务：局部低压约束的重要性，以及可
 **原文定位**：PDF pp.1–4,8（switch events、common lines、reconstruction、Conclusion）。
 
 **版本与书目说明**：原PDF题名拼作TOPLOGY；公开自存来源为2022 CIRED Porto，Zotero日期为空。
+
+
+**本轮书目补充**：TH Köln机构出版清单列正式题名 *Estimating Topologies of Low Voltage Grids from Electric Vehicle Charging Point Measurement Data*，CIRED Porto Workshop2022，804–808页。现有Wallbox稿与该条同作者/方法发展，不新增独立方法计数；本项技术定位仍对应已读Wallbox稿。[机构清单](https://www.th-koeln.de/mam/downloads/deutsch/forschung/projekte___publikationen_2023.pdf)。
 
 <a id="r008"></a>
 
@@ -3214,7 +3232,8 @@ EV目录主要为两处论证服务：局部低压约束的重要性，以及可
 | R086 | 作者为Zhou、Liang、Zou、Ding；Hu、Cao为书籍编辑 | Springer官方章节页 |
 | R039 | 预印本首页第一作者写Satya Jayadev P；正式版规范姓名见R045 | 预印本与正式版首页 |
 | R004 | 补DOI 10.3390/en17092060、年份2024 | 原PDF首页 |
-| R006 | CIRED2022作者存档；原题拼写为TOPLOGY，库中为TOPOLOGY | 作者Zenodo PDF |
+| R006 | 补正式题名Estimating Topologies…、CIRED2022 804–808页及DOI10.1049/icp.2022.0823；原Wallbox稿题名拼写另保留 | 作者Zenodo稿、TH Köln机构出版清单 |
+| R055 | 补正式DOI10.1109/TCNS.2020.2979882、7(3):1428–1440(2020)；阅读定位仍为作者稿 | 正式书目及LANL机构报告 |
 | R029 | 补DOI 10.1137/050645452 | 原PDF |
 | R054 | 补DOI 10.1073/pnas.1922664117 | 原PDF |
 | R148 | 已读本地arXiv v1；另核正式DOI 10.1109/LCSYS.2026.3711602 | 本地稿及作者机构研究记录 |
@@ -3239,3 +3258,529 @@ EV目录主要为两处论证服务：局部低压约束的重要性，以及可
 4. 按第6节选择少量EV实证和响应模型，Wallbox放入直接拓扑相关工作。
 5. 按第7节将候选缺口与本文实际结果对齐，再改写第8节段落。
 6. 按本节修正作者、合并版本，并补齐会影响最终结论的全文与书目缺口。
+
+<a id="review-search-update"></a>
+
+## 12. 外部补检结果与新增文献
+
+### 12.1 检索范围与纳入方式
+
+本轮在2026-11-11按中英文主题、已知作者及原文参考文献补检，覆盖低压隐藏节点、末端幅值/功率、非零未测注入、逆潮流、异步AMI、EV事件、GIS和数据精度。优先使用出版社、作者、大学/实验室仓储及官方期刊平台；聚合页只用于发现线索。与原文档按题名和DOI去重后新增25项，保留不同版本和相近发展线的说明。这是定向查漏，未声称穷尽。
+
+| 阅读状态 | 数量 | 可用于的论述 |
+| --- | --- | --- |
+| 正文定向阅读 | 11 | 所列章节的方法、输入、明确条件及相应证据边界 |
+| 摘要或部分预览 | 8 | 摘要/预览明确陈述的路线；未见公式或假设留待正文 |
+| 仅书目 | 6 | 确认研究存在及优先取文，不据题名补写算法 |
+
+公开全文不足的高优先级项保留访问缺口。本地Zotero全库题名关键词检索未命中数篇近期英文候选；本轮浏览器访问未能启动，HKU路径未完成。没有修改Zotero或导入新条目。
+
+### 12.2 优先级总览
+
+| 编号 | 文献 | 建议用途 | 阅读层级 |
+| --- | --- | --- | --- |
+| [SUP03](#sup03) | Distribution grid impedance & topology estimation with limited or no micro-PMUs | 补入带非零注入、相关性与误差量化路线。 | 正文定向阅读 |
+| [SUP04](#sup04) | Low-voltage network topology and impedance identification using smart meter measurements | 比较地理/参数先验与缺表能力的取舍。 | 正文定向阅读 |
+| [SUP05](#sup05) | Reconstruction of Low-Voltage Networks with Limited Observability | 与Benzerga2021相邻介绍，保留不同会议版本。 | 正文定向阅读 |
+| [SUP06](#sup06) | Joint Estimation of Topology and Injection Statistics in Distribution Grids With Missing Nodes | 补充已知缺测节点集合与未知隐点数的任务差别。 | 正文定向阅读 |
+| [SUP07](#sup07) | Learning partially observed meshed distribution grids | 补非径向hidden路线，避免把voltage-only译成仅幅值。 | 正文定向阅读 |
+| [SUP08](#sup08) | Inverse Power Flow Problem | 补齐从端口等效反推物理隐藏树的条件性结果。 | 正文定向阅读 |
+| [SUP09](#sup09) | 基于智能电表数据的低压配电网拓扑与线路参数联合辨识 | 直接加入中文hidden相关工作，详细比较待正文。 | 摘要或部分预览 |
+| [SUP10](#sup10) | A data-driven method for joint estimation of topology and impedance in distribution networks using end-user voltage magnitude and power data | 与Park、Pengwah、Guo等直接对齐信息条件。 | 摘要或部分预览 |
+| [SUP11](#sup11) | Robust coupling impedance-based topology identification method for asynchronous low-voltage distribution networks | 异步普通表计hidden主线；作者报告114表硬件原型。 | 摘要或部分预览 |
+| [SUP12](#sup12) | A Novel Topology Recovery Method for Low Voltage Distribution Networks | 应补入端点方法，具体说明其degree2与模型条件。 | 正文定向阅读 |
+| [SUP13](#sup13) | Information-theoretic grid topology reconstruction using low-precision smart meter data | 用于设备/数据要求段，不作为普遍精度下限。 | 正文定向阅读 |
+| [SUP14](#sup14) | Data-Driven Topology Generation with Physics-Guidance in LV Distribution Networks | 补GIS与工程先验融合路线。 | 正文定向阅读 |
+| [SUP15](#sup15) | A data-driven topology identification method for low-voltage distribution networks based on the wavelet transform | 一般低压低硬件输入方法对照。 | 摘要或部分预览 |
+| [SUP16](#sup16) | A review of topology identification methods and applications for low voltage distribution networks | 补近期低压专门综述和引用追踪入口。 | 摘要或部分预览 |
+| [SUP17](#sup17) | 基于虚拟阻抗的低压配电网拓扑识别方法 | 一般低压连接纠错的中文代表。 | 摘要或部分预览 |
+| [SUP18](#sup18) | 基于分时感知与分块回溯的低压配电网线路阻抗辨识方法 | 可选参数/数据质量背景。 | 摘要或部分预览 |
+| [SUP19](#sup19) | Identification of Distribution Network Topology and Line Parameter Based on Smart Meter Measurements | 一般非相量联合估计对照。 | 正文定向阅读 |
+| [SUP20](#sup20) | 基于改进相关熵匹配追踪的配电网拓扑与线路参数辨识方法 | 可选鲁棒估计背景，非hidden主线。 | 正文定向阅读 |
+| [SUP21](#sup21) | 基于稀疏回归与聚类修正的配电网拓扑与线路参数联合辨识方法研究 | 近期一般方法，可按篇幅选择。 | 摘要或部分预览 |
+| [SUP22](#sup22) | A Heuristic-Search-Based Topology Identification and Parameter Estimation Method in Low Voltage Distribution Grids With Low Observability | R015的同作者前作，应优先取得全文。 | 仅书目 |
+| [SUP23](#sup23) | Low-Voltage Distribution Grid Topology Identification and Parameter Estimation with Heterogeneous Cable Sizes and Dense Noise: A Prior Knowledge-Guided Adaptive Search Approach | 对相关缺口有影响，先核日期和独立贡献。 | 仅书目 |
+| [SUP24](#sup24) | 基于非线性回归的含隐节点低压配电网参数和拓扑联合辨识 | 中文非线性hidden方向的优先全文项。 | 仅书目 |
+| [SUP25](#sup25) | Topology Identification of Low-Voltage Distribution Networks with Latent Nodes Considering Impedance Parameter Constraints | 近期直接主题，取原文后再比较。 | 仅书目 |
+| [SUP26](#sup26) | Topology and Parameter Joint Identification in Imbalanced Low-Voltage Distribution Networks Based on Load Characteristic Propagation | 高优先级三相hidden原文核对项。 | 仅书目 |
+| [SUP27](#sup27) | A Data-Driven Topology and Parameter Joint Estimation Method in Non-PMU Distribution Networks | 追溯TLM相关方法来源，优先核原文。 | 仅书目 |
+
+### 12.3 直接相关增补
+
+<a id="sup03"></a>
+
+#### SUP03 Distribution grid impedance & topology estimation with limited or no micro-PMUs
+
+**书目信息**：Haoran Li; Yang Weng; Yizheng Liao; Brian Keel; Kenneth E. Brown。International Journal of Electrical Power & Energy Systems 129, 106794, July 2021。
+
+**来源**：[DOI](https://doi.org/10.1016/j.ijepes.2021.106794)；[来源1](https://yzliao.github.io/pub/2021IJPES-Top.pdf)；[来源2](https://doi.org/10.1016/j.ijepes.2021.106794)。
+
+- **方法与对象**：OLS/FOLS估计端口阻抗并分析未测注入误差，再用RG恢复内部结构。
+- **量测与隐藏节点**：平衡网可用V幅值/P/Q，三相情形用相量；hidden负荷可非零但相对平稳。
+- **关键条件与证据边界**：误差定理针对特定相关模型的未测注入误差，未覆盖全部噪声及线性化误差。
+- **综述用途**：补入带非零注入、相关性与误差量化路线。
+
+**阅读层级与范围**：正文定向阅读；正文定向：§1–4模型、观测划分、OLS/FOLS、Cholesky与误差条件、RG；§5讨论误差超界的三相案例。
+
+**定位**：作者PDF pp.3–4（观测/hidden负荷设置），pp.7–8（式1–3输入），pp.12–15（Theorems1–2及误差来源），pp.15–19（RG），pp.23–25（误差界与三相线性化）。
+
+**版本**：作者公开36页稿，首页Preprint submitted to Elsevier / March 7, 2021；正式书目由出版社页核对。
+
+**前序版本**：2019稿 *Robust Hidden Topology Identification in Distribution Systems*，arXiv:1902.01365。与2021文同五作者及相近发展线，存在题名和误差分析变化，主引2021文，保留版本差异。[作者预印本](https://arxiv.org/abs/1902.01365)。
+
+<a id="sup04"></a>
+
+#### SUP04 Low-voltage network topology and impedance identification using smart meter measurements
+
+**书目信息**：Amina Benzerga; Daniele Maruli; Antonio Sutera; Alireza Bahmanyar; Sébastien Mathieu; Damien Ernst。2021 IEEE Madrid PowerTech, June 2021。
+
+**来源**：[DOI](https://doi.org/10.1109/PowerTech46648.2021.9495093)；[来源1](https://orbi.uliege.be/bitstream/2268/258890/1/three_phases_lv_id.pdf)；[来源2](https://orbi.uliege.be/handle/2268/258890)。
+
+- **方法与对象**：电压相关MST给初树，以阻抗恒定性检验选择局部插点构型。
+- **量测与隐藏节点**：V/I幅值、坐标、相别、变压器量测、已知R/X；可有非零hidden注入。
+- **关键条件与证据边界**：要求每相每馈线有量测；复杂缺表情形含几何与默认阻抗回退。隐藏叶节点的电压及对应支路阻抗不可估，使用辅助节点或合并电流处理。
+- **综述用途**：比较地理/参数先验与缺表能力的取舍。
+
+**阅读层级与范围**：正文定向阅读；正文§III–IV全部输入、假设、三种hidden构型优化、失败回退和三相合并；摘要与结论。
+
+**定位**：PDF p.2 §III；pp.2–4 §IV-A式(1)–(10)；pp.4–5 §IV-B；p.6结论。
+
+**版本**：机构仓储6页会议稿；首页第二作者拼写Maruli，机构题录同，相关另一篇使用Marulli。
+
+<a id="sup05"></a>
+
+#### SUP05 Reconstruction of Low-Voltage Networks with Limited Observability
+
+**书目信息**：Daniele Marulli; Sébastien Mathieu; Amina Benzerga; Antonio Sutera; Damien Ernst。2021 IEEE PES Innovative Smart Grid Technologies Europe (ISGT Europe), 18–21 October 2021。
+
+**来源**：[DOI](https://doi.org/10.1109/ISGTEurope52324.2021.9640163)；[来源1](https://orbi.uliege.be/bitstream/2268/238913/1/2021165122.pdf)；[来源2](https://orbi.uliege.be/handle/2268/238913)。
+
+- **方法与对象**：相关MST与支路检验后，在局部比较缺节点构型，估hidden电流和阻抗。
+- **量测与隐藏节点**：部分SM V/I幅值、相别与变压器量测；hidden可带注入。
+- **关键条件与证据边界**：任意两hidden至少相隔3边；30节点模拟的80%覆盖表现属于经验范围。隐藏叶节点的电压及对应支路阻抗不可估，迭代以辅助节点处理。
+- **综述用途**：与Benzerga2021相邻介绍，保留不同会议版本。
+
+**阅读层级与范围**：正文定向阅读；§III问题设定、§IV模型/hidden假设和构型优化，摘要与结论。
+
+**定位**：PDF pp.1–2 §III–IV，p.2 Assumption1，pp.2–3插点，p.5 §VI。
+
+**版本**：ORBi author preprint v2，5页、五作者；v1为四作者，机构记录说明早期版本2019。DOI/作者/题名由Crossref出版社登记核准。
+
+**相关发展线**：与[SUP04](#sup04)作者群和思路相近，但会刊、题名与所列假设不同，保留独立记录并相邻介绍。
+
+<a id="sup06"></a>
+
+#### SUP06 Joint Estimation of Topology and Injection Statistics in Distribution Grids With Missing Nodes
+
+**书目信息**：Deepjyoti Deka; Michael Chertkov; Scott Backhaus。IEEE Transactions on Control of Network Systems 7(3):1391–1403, September 2020。
+
+**来源**：[DOI](https://doi.org/10.1109/TCNS.2020.2977365)；[来源1](https://arxiv.org/pdf/1804.04742)；[来源2](https://experts.arizona.edu/en/publications/joint-estimation-of-topology-and-injection-statistics-in-distribu/)。
+
+- **方法与对象**：电压差二阶矩构观测MST，再补missing点并估其注入统计。
+- **量测与隐藏节点**：所读missing算法用V幅值/相角、注入统计、已知missing集合及候选阻抗。
+- **关键条件与证据边界**：LC-PF、跨节点注入不相关、hidden度>2及分隔条件。
+- **综述用途**：补充已知缺测节点集合与未知隐点数的任务差别。
+
+**阅读层级与范围**：正文定向阅读；§III注入条件，§IV Assumptions2–3与Algorithms2–3输入/原理，有限样本阈值与结论。
+
+**定位**：PDF p.3 Assumption1；pp.4–7 §IV，p.6 Algorithm2及p.7 Algorithm3；p.10结论。
+
+**版本**：arXiv1804.04742v2（2020-01-02），12页；正式书目由作者机构记录核对。
+
+**前序会议**：2017 *Estimating topology and injection statistics in distribution grids with hidden nodes*，DOI10.1109/SmartGridComm.2017.8340739。2020文明确为扩展版，本轮不另计独立方法。[会议书目](https://experts.arizona.edu/en/publications/estimating-topology-and-injection-statistics-in-distribution-grid/)。
+
+<a id="sup07"></a>
+
+#### SUP07 Learning partially observed meshed distribution grids
+
+**书目信息**：Harish Doddi; Deepjyoti Deka; Murti Salapaka。2020 International Conference on Probabilistic Methods Applied to Power Systems (PMAPS), August 2020。
+
+**来源**：[DOI](https://doi.org/10.1109/PMAPS47429.2020.9183648)；[来源1](https://salapakalab.ece.umn.edu/data/31abede1ef8f5a599568.pdf)；[来源2](https://salapakalab.ece.umn.edu/publications/doddi-2020-learning-partially-observed-meshed-distribution-grids/)。
+
+- **方法与对象**：观测电压联合逆协方差作稀疏/低秩分解，再按符号和二跳结构插点。
+- **量测与隐藏节点**：电压幅值与相角；含内部hidden。
+- **关键条件与证据边界**：跨节点注入不相关、girth≥5、hidden间隔≥3hop；径向可放宽至2hop。分解成功须另评价。
+- **综述用途**：补非径向hidden路线，避免把voltage-only译成仅幅值。
+
+**阅读层级与范围**：正文定向阅读；§II–IV统计模型、隐藏位置条件、稀疏低秩估计与Algorithm1；模拟和结论。
+
+**定位**：PDF pp.2–3 Assumptions1–3；pp.3–5 inverse covariance/SDP/Algorithm1，p.5阈值与数值设置。
+
+**版本**：作者实验室6页IEEE会议PDF；DOI、作者、题名由Crossref出版社登记核准。
+
+<a id="sup08"></a>
+
+#### SUP08 Inverse Power Flow Problem
+
+**书目信息**：Ye Yuan; Steven H. Low; Omid Ardakanian; Claire J. Tomlin。IEEE Transactions on Control of Network Systems 10(1):261–273, March 2023；2022接受/在线DOI。
+
+**来源**：[DOI](https://doi.org/10.1109/TCNS.2022.3199084)；[来源1](https://webdocs.cs.ualberta.ca/~oardakan/files/tcns2023.pdf)；[来源2](https://authors.library.caltech.edu/records/99twq-8jn27)。
+
+- **方法与对象**：先辨识Kron约化导纳，再以团结构与递归代数恢复原径向网络。
+- **量测与隐藏节点**：同步V/I相量；hidden零注入，可彼此相邻。
+- **关键条件与证据边界**：树、hidden度≥3、无shunt及测量秩等条件；正文Remark3将无shunt条件的放宽指向full version，未据此放宽树结构或节点度数条件。
+- **综述用途**：补齐从端口等效反推物理隐藏树的条件性结果。
+
+**阅读层级与范围**：正文定向阅读；§III最小二乘/满秩条件、§IV-A零注入与Kron约化、§IV-B Assumption3和clique分解/递归恢复框架，结论。
+
+**定位**：作者PDF p.3 §III；pp.4–5 §IV-A Assumptions1–2；pp.5–7 Assumption3及Theorem1；pp.7–10恢复原Y。
+
+**版本**：作者公开12页接受稿，版权页2022；正式2023书目由Caltech作者仓储核对。原2016预印本题名On the Inverse Power Flow Problem，arXiv1610.06631。
+
+**前序版本**：2016 *On the Inverse Power Flow Problem*，arXiv:1610.06631；正式2023文为本项技术依据。[预印本](https://arxiv.org/abs/1610.06631)。
+
+<a id="sup09"></a>
+
+#### SUP09 基于智能电表数据的低压配电网拓扑与线路参数联合辨识
+
+**书目信息**：马尚；卫志农；黄蔓云；郑玉平；孙国强。电力系统自动化，2024，48(2)：60–70。
+
+**来源**：[DOI](https://doi.org/10.7500/AEPS20230720002)；[来源1](https://doi.org/10.7500/AEPS20230720002)；[来源2](https://opaj.napstic.cn/periodicalArticle/0120240200054088)；[来源3](https://coaa.istic.ac.cn/openjournal/periodicalArticle/0120240200054088)。
+
+- **方法与对象**：功率—电压比逆潮流回归得到阻抗距离，再用免判定阈值的改进RG。
+- **量测与隐藏节点**：摘要明确无相角、未知数量零注入隐点；具体量测向量待全文。
+- **关键条件与证据边界**：径向线性模型；度数、覆盖和源电压条件未在摘要说明。
+- **综述用途**：直接加入中文hidden相关工作，详细比较待正文。
+
+**阅读层级与范围**：摘要或部分预览；中英文摘要及书目；未读算法、公式、假设与实验正文。
+
+**定位**：官方平台摘要与引用信息。
+
+<a id="sup10"></a>
+
+#### SUP10 A data-driven method for joint estimation of topology and impedance in distribution networks using end-user voltage magnitude and power data
+
+**书目信息**：Hengfeng Zhang; Wei Sun; Zhiqiang Zhang; Fei Lin; Qiyue Li; Daoming Mu; Jinzhu Yu。Sustainable Energy, Grids and Networks 47 (September 2026), 102385。
+
+**来源**：[DOI](https://doi.org/10.1016/j.segan.2026.102385)；[来源1](https://www.sciencedirect.com/science/article/pii/S2352467726002675)；[来源2](https://api.crossref.org/works/10.1016/j.segan.2026.102385)。
+
+- **方法与对象**：末端V幅值/P/Q作受物理约束矩阵回归，再全分支分组和非线性潮流精化。
+- **量测与隐藏节点**：用户端幅值与功率；内部注入、度数和覆盖条件待全文。
+- **关键条件与证据边界**：本次仅官方摘要/引言预览，不能据此写整体恢复保证。
+- **综述用途**：与Park、Pengwah、Guo等直接对齐信息条件。
+
+**阅读层级与范围**：摘要或部分预览；官方摘要及可读引言预览；未读方法公式、算法正文和实验表。
+
+**定位**：官方摘要及可读引言预览；未读方法公式、算法正文和实验表。
+
+<a id="sup11"></a>
+
+#### SUP11 Robust coupling impedance-based topology identification method for asynchronous low-voltage distribution networks
+
+**书目信息**：Peng Gao; Gaofeng Zhao; Yang Hu; Yang Li; Rui Liu。Sustainable Energy, Grids and Networks 47 (September 2026), 102509。
+
+**来源**：[DOI](https://doi.org/10.1016/j.segan.2026.102509)；[来源1](https://www.sciencedirect.com/science/article/pii/S2352467726003917)；[来源2](https://api.crossref.org/works/10.1016/j.segan.2026.102509)；[来源3](https://ssrn.com/abstract=6750574)。
+
+- **方法与对象**：对耦合阻抗作对称约束正则化估计，再层次聚类恢复内部分支。
+- **量测与隐藏节点**：异步AMI的V/I变化，无新增分支传感器。
+- **关键条件与证据边界**：具体异步误差、零注入/度数条件仍待方法正文；凸拟合最优与拓扑正确分别评价。
+- **综述用途**：异步普通表计hidden主线；作者报告114表硬件原型。
+
+**阅读层级与范围**：摘要或部分预览；官方摘要、完整可读引言与System model、robust method、simulation、conclusion节预览；无完整核心公式与定理。
+
+**定位**：官方摘要、完整可读引言与System model、robust method、simulation、conclusion节预览；无完整核心公式与定理。
+
+<a id="sup12"></a>
+
+#### SUP12 A Novel Topology Recovery Method for Low Voltage Distribution Networks
+
+**书目信息**：Sina Mohammadi; Van-Hai Bui; Wencong Su。arXiv:2502.18939v1，2025-02-26；作者稿注明获PESGM2025接受，作者出版清单亦列该会议。
+
+**来源**：[DOI](https://doi.org/10.48550/arXiv.2502.18939)；[来源1](https://arxiv.org/html/2502.18939v1)；[来源2](https://arxiv.org/abs/2502.18939)；[来源3](https://sites.google.com/site/wencongsu/Home/publication)。
+
+- **方法与对象**：电压增量精度矩阵构距离，以阈值分组，再用电流和段电阻递推隐点电压。
+- **量测与隐藏节点**：全部叶端V/I；零注入内部点；各段相同已知电阻，近似纯电阻。
+- **关键条件与证据边界**：阈值由四个模拟网络调得；度2恢复使用额外分段先验，未知阻抗列为后续方向。
+- **综述用途**：应补入端点方法，具体说明其degree2与模型条件。
+
+**阅读层级与范围**：正文定向阅读；v1全文的§II-A/B、Algorithm1、§III设置和§IV结论定向阅读；公式及表格仅用于核对模型，不复现算法。
+
+**定位**：§II-B式(1)–(5)、Algorithm1；§III；§IV。
+
+
+### 12.4 一般方法与综述
+
+<a id="sup13"></a>
+
+#### SUP13 Information-theoretic grid topology reconstruction using low-precision smart meter data
+
+**书目信息**：Daniel T. Speckhard。Scientific Reports16,20547；出版社2026-07-03；所读作者稿arXiv:2505.11517v4，2026-05-11。
+
+**来源**：[DOI](https://doi.org/10.1038/s41598-026-54490-4)；[来源1](https://arxiv.org/html/2505.11517v4)；[来源2](https://www.nature.com/articles/s41598-026-54490-4)；[来源3](https://arxiv.org/abs/2505.11517)。
+
+- **方法与对象**：固定Chow–Liu算法，比较量化、精度、采样和时间窗，并合并重复量测节点。
+- **量测与隐藏节点**：建模节点的电压增量；MATPOWER/GridLAB-D数据。
+- **关键条件与证据边界**：无未知内部点插入；数据质量结果为所用模拟设置的敏感性证据。
+- **综述用途**：用于设备/数据要求段，不作为普遍精度下限。
+
+**阅读层级与范围**：正文定向阅读；作者v4 §2.1、Algorithm1、§2.5–2.7、§3.3–3.4及§4；出版社书目、摘要与方法前段。
+
+**定位**：arXiv v4 §2.1、Algorithm1、§2.5–2.7、§3.3–3.4、§4。
+
+<a id="sup14"></a>
+
+#### SUP14 Data-Driven Topology Generation with Physics-Guidance in LV Distribution Networks
+
+**书目信息**：Dong Liu; Juan S. Giraldo; Peter Palensky; Pedro P. Vergara。ISGT Europe2024，5页；会议2024-10-14至17。
+
+**来源**：[DOI](https://doi.org/10.1109/ISGTEUROPE62998.2024.10863141)；[来源1](https://palensky.org/pdf/Liu2024b.pdf)；[来源2](https://research.tudelft.nl/en/publications/data-driven-topology-generation-with-physics-guidance-in-lv-distr/)。
+
+- **方法与对象**：电压聚类划台变边界，GIS最短路/容量修正生成树，再识别馈线端点。
+- **量测与隐藏节点**：V幅值、道路/建筑、变压器位置和馈线数等先验。
+- **关键条件与证据边界**：真实网拓扑配仿真电压；输出近似地理电气模型，非纯端点任意hidden恢复。
+- **综述用途**：补GIS与工程先验融合路线。
+
+**阅读层级与范围**：正文定向阅读；作者公开5页原文§II三个阶段/Algorithms1–2、§III案例与鲁棒性、§IV结论；机构页核书目。
+
+**定位**：PDF pp.2–3 §II，pp.3–5 §III，p.5 §IV。
+
+<a id="sup15"></a>
+
+#### SUP15 A data-driven topology identification method for low-voltage distribution networks based on the wavelet transform
+
+**书目信息**：Sebastián García; Matteo Fresia; J.M. Mora-Merchán; Alejandro Carrasco; Enrique Personal; Carlos León。Electric Power Systems Research 243 (June 2025), 111517；机构PDF首页Available online 16 February 2025。
+
+**来源**：[DOI](https://doi.org/10.1016/j.epsr.2025.111517)；[来源1](https://www.sciencedirect.com/science/article/pii/S0378779625001099)；[来源2](https://idus.us.es/server/api/core/bitstreams/41a40142-e7e6-43ac-a19c-302fc743094e/content)。
+
+- **方法与对象**：智能表电量的小波时频特征用于馈线和相别归属。
+- **量测与隐藏节点**：SM电量；具体方法章未读。
+- **关键条件与证据边界**：目标为feeder/phase topology，未知物理接点能力未核。
+- **综述用途**：一般低压低硬件输入方法对照。
+
+**阅读层级与范围**：摘要或部分预览；官方摘要/Highlights及机构原PDF首页与引言片段；完整方法章本次未读。
+
+**定位**：官方摘要/Highlights及机构原PDF首页与引言片段；完整方法章本次未读。
+
+<a id="sup16"></a>
+
+#### SUP16 A review of topology identification methods and applications for low voltage distribution networks
+
+**书目信息**：作者全表待核。Energy Reports 15 (June 2026), 108914。
+
+**来源**：[DOI](https://doi.org/10.1016/j.egyr.2025.12.051)；[来源1](https://www.sciencedirect.com/science/article/pii/S2352484725007899)。
+
+- **方法与对象**：按低压层级任务、物理/数据路线和数据可用性整理方法与应用。
+- **量测与隐藏节点**：综述；本次仅读官方摘要/Highlights。
+- **关键条件与证据边界**：具体方法与保证仍追溯原始论文，作者全表待核。
+- **综述用途**：补近期低压专门综述和引用追踪入口。
+
+**阅读层级与范围**：摘要或部分预览；官方摘要与Highlights；未读完整综述章节与135篇引文原文。
+
+**定位**：官方摘要与Highlights；未读完整综述章节与135篇引文原文。
+
+<a id="sup17"></a>
+
+#### SUP17 基于虚拟阻抗的低压配电网拓扑识别方法
+
+**书目信息**：殷涵；宣羿；黄怡；孙智卿；赵健；鲍若愚。电力系统保护与控制，2024，52(3)：83–93。
+
+**来源**：[DOI](https://doi.org/10.19783/j.cnki.pspc.230902)；[来源1](https://doi.org/10.19783/j.cnki.pspc.230902)；[来源2](https://opaj.napstic.cn/periodicalArticle/0120240301653962)。
+
+- **方法与对象**：虚拟阻抗岭回归筛错，再以DDTW校验/纠正设备连接。
+- **量测与隐藏节点**：既有单相电表与总表量测，具体配置待全文。
+- **关键条件与证据边界**：摘要未报告未知数量内部点插入。
+- **综述用途**：一般低压连接纠错的中文代表。
+
+**阅读层级与范围**：摘要或部分预览；摘要及书目；期刊官网打开超时，未读正文。
+
+**定位**：官方平台Abstract及引用文本。
+
+<a id="sup18"></a>
+
+#### SUP18 基于分时感知与分块回溯的低压配电网线路阻抗辨识方法
+
+**书目信息**：王炜韬；赵健；王小宇；边晓燕。现代电力，2023，40(4)：614–622。
+
+**来源**：[DOI](https://doi.org/10.19725/j.cnki.1007-2322.2021.0361)；[来源1](https://doi.org/10.19725/j.cnki.1007-2322.2021.0361)；[来源2](https://xddl.ncepujournal.com/cn/article/pdf/preview/10.19725/j.cnki.1007-2322.2021.0361.pdf)。
+
+- **方法与对象**：拓扑分块、模糊熵校验、量测筛选及含边界的非线性阻抗估计。
+- **量测与隐藏节点**：用户SM时序；完整覆盖和先验待全文。
+- **关键条件与证据边界**：主要为参数估计与已有结构校验，不能据零注入缺测表述当作从零重建。
+- **综述用途**：可选参数/数据质量背景。
+
+**阅读层级与范围**：摘要或部分预览；官方PDF首页摘要、引言及检索返回的式(19)–(22)/算例段片段；未成功打开连续全文。
+
+**定位**：原PDF p.1摘要/引言；式(19)–(22)及§3.1检索片段。
+
+<a id="sup19"></a>
+
+#### SUP19 Identification of Distribution Network Topology and Line Parameter Based on Smart Meter Measurements
+
+**书目信息**：Chong Wang; Zheng Lou; Ming Li; Chaoyang Zhu; Dongsheng Jing。Energies，2024，17(4)：830；2024-02-09。
+
+**来源**：[DOI](https://doi.org/10.3390/en17040830)；[来源1](https://www.mdpi.com/1996-1073/17/4/830)。
+
+- **方法与对象**：线性初值、阈值消边，再以AC迭代和自适应岭回归精化导纳。
+- **量测与隐藏节点**：各节点V/P/Q；§5.1实验明确全母线SM。
+- **关键条件与证据边界**：给定节点集，无未知内部点生成；相角在模型中恢复。
+- **综述用途**：一般非相量联合估计对照。
+
+**阅读层级与范围**：正文定向阅读；摘要、§1、§2约束与消边、§4.1–4.2回归精化、§5.1实验量测设定及参考文献；非逐段精读全部结果。
+
+**定位**：HTML §2式(6)–(9)后阈值消边；§4.1式(31)–(38)；§5.1全母线SM设定。
+
+<a id="sup20"></a>
+
+#### SUP20 基于改进相关熵匹配追踪的配电网拓扑与线路参数辨识方法
+
+**书目信息**：孙蒙恩；龚海明；赵杰；孙蓉蓉；卢慧文；王辉。电气传动，2025，55(6)：81–88；2025-06-20。
+
+**来源**：[DOI](https://doi.org/10.19457/j.1001-2095.dqcd25650)；[来源1](https://castjournals.cast.org.cn/joweb/dqcd/CN/1190568678979678408)。
+
+- **方法与对象**：相关熵损失与改进匹配追踪估导纳，处理模拟高斯/非高斯噪声。
+- **量测与隐藏节点**：P/Q、V和相角历史序列。
+- **关键条件与证据边界**：固定节点/参数域；有限噪声仿真不构成任意分布保证。
+- **综述用途**：可选鲁棒估计背景，非hidden主线。
+
+**阅读层级与范围**：正文定向阅读；摘要、§1式(9)–(13)观测模型、§2求解与相关熵定义、参考文献；未精读全部仿真。
+
+**定位**：HTML §1式(9)–(13)，§2及§2.1，摘要。
+
+<a id="sup21"></a>
+
+#### SUP21 基于稀疏回归与聚类修正的配电网拓扑与线路参数联合辨识方法研究
+
+**书目信息**：张瑞峰；李波；廖凯；叶学顺；周俊；吴磊。电力科学与技术学报，2026，41(4)：38–50。
+
+**来源**：[DOI](https://doi.org/10.19781/j.issn.1673-9140.2026.04.004)；[来源1](https://dlkjxb.csust.edu.cn/dlgcjs/article/issue/2026_41_4)；[来源2](https://dlkjxb.csust.edu.cn/)。
+
+- **方法与对象**：电压预辨识、稀疏回归与聚类修正三步估计连接和参数。
+- **量测与隐藏节点**：摘要仅称量测数据，具体配置待正文。
+- **关键条件与证据边界**：未知物理hidden恢复未在摘要说明。
+- **综述用途**：近期一般方法，可按篇幅选择。
+
+**阅读层级与范围**：摘要或部分预览；官方摘要及书目。
+
+**定位**：官方2026年第41卷第4期目录38–50条目及摘要。
+
+
+### 12.5 已核书目待取原文
+
+<a id="sup22"></a>
+
+#### SUP22 A Heuristic-Search-Based Topology Identification and Parameter Estimation Method in Low Voltage Distribution Grids With Low Observability
+
+**书目信息**：Nan Feng; Yaping Du; Yuxuan Ding。IEEE Transactions on Smart Grid 15(6), 5826–5839, November 2024。
+
+**来源**：[DOI](https://doi.org/10.1109/TSG.2024.3435069)；[来源1](https://ieeexplore.ieee.org/document/10612997/)；[来源2](https://api.crossref.org/works/10.1109/TSG.2024.3435069)；[来源3](https://orcid.org/0009-0009-5129-9392)。
+
+- **方法与对象**：主源书目已核，原文方法待取。
+- **量测与隐藏节点**：题名直接针对低可观测LV联合辨识。
+- **关键条件与证据边界**：不将转引摘要中的DTM/随机搜索细节当已核原文。
+- **综述用途**：R015的同作者前作，应优先取得全文。
+
+**阅读层级与范围**：仅书目；主源书目；官方IEEE页面要求JS/机器人验证，未读官方摘要或正文。
+
+**定位**：主源书目；官方IEEE页面要求JS/机器人验证，未读官方摘要或正文。
+
+**待补**：原文摘要/全文、具体输入、隐藏节点类型及恢复保证；不得用其他版本或专利无标识替代。
+
+<a id="sup23"></a>
+
+#### SUP23 Low-Voltage Distribution Grid Topology Identification and Parameter Estimation with Heterogeneous Cable Sizes and Dense Noise: A Prior Knowledge-Guided Adaptive Search Approach
+
+**书目信息**：Nan Feng; Yaping Du; Yuxuan Ding; Qianchao Wang。IEEE Transactions on Smart Grid，作者ORCID列2026；准确上线日待核。
+
+**来源**：[DOI](https://doi.org/10.1109/TSG.2026.3738092)；[来源1](https://doi.org/10.1109/TSG.2026.3738092)；[来源2](https://orcid.org/0009-0009-5129-9392)。
+
+- **方法与对象**：作者ORCID/Crossref关联题录可核，原文待取。
+- **量测与隐藏节点**：题名涉及电缆异质性、密集噪声和先验搜索。
+- **关键条件与证据边界**：具体上线日尚未primary核准，暂作候选，不认定截至本日已正式发表。
+- **综述用途**：对相关缺口有影响，先核日期和独立贡献。
+
+**阅读层级与范围**：仅书目；作者ORCID/Crossref关联书目；未读官方摘要或正文。
+
+**定位**：作者ORCID/Crossref关联书目；未读官方摘要或正文。
+
+**待补**：原文摘要/全文、具体输入、隐藏节点类型及恢复保证；不得用其他版本或专利无标识替代。
+
+<a id="sup24"></a>
+
+#### SUP24 基于非线性回归的含隐节点低压配电网参数和拓扑联合辨识
+
+**书目信息**：梁栋；张煜堃；王守相；孙智卿。电力系统及其自动化学报，2021，33(11)：28–36。
+
+**来源**：[来源1](https://ee.hebut.edu.cn/szdw/jsml/L/3c786d6fd3364eb0b31c9ffd7f75cc61.html)；[来源2](https://teacher.hebut.edu.cn/publish/201714757ea7fb8c11edab95286ed488d6f1044/lwcg/%E7%A7%91%E7%A0%94%E8%AE%BA%E6%96%871.html)。
+
+- **方法与对象**：作者大学已核非线性回归联合辨识书目，方法待原文。
+- **量测与隐藏节点**：题名含隐节点，具体输入和注入类型未核。
+- **关键条件与证据边界**：相关专利不能代替论文正文或证明方法完全相同。
+- **综述用途**：中文非线性hidden方向的优先全文项。
+
+**阅读层级与范围**：仅书目；题名、四作者、期刊、卷期页码已核；尚无论文摘要或正文。
+
+**定位**：大学官方作者页科研论文[15]；作者个人站科研论文[9]。
+
+**待补**：原文摘要/全文、具体输入、隐藏节点类型及恢复保证；不得用其他版本或专利无标识替代。
+
+<a id="sup25"></a>
+
+#### SUP25 Topology Identification of Low-Voltage Distribution Networks with Latent Nodes Considering Impedance Parameter Constraints
+
+**书目信息**：Ruiyao Jia; Wenpeng Luan; Bo Liu; Yang Han; Bowei Hu。2026 IEEE PES International Meeting (PES IM)，会议总目录起页768（书目库另记单篇1–5页）。
+
+**来源**：[DOI](https://doi.org/10.1109/PESIM67009.2026.11439036)；[来源1](https://ieeexplore.ieee.org/document/11439036)；[来源2](https://www.proceedings.com/content/084/084963webtoc.pdf)。
+
+- **方法与对象**：出版目录已核latent nodes与阻抗约束主题，方法待原文。
+- **量测与隐藏节点**：量测和隐藏节点条件未核。
+- **关键条件与证据边界**：IEEE验证阻挡，第三方摘要只作线索。
+- **综述用途**：近期直接主题，取原文后再比较。
+
+**阅读层级与范围**：仅书目；书目与目录；未读原始摘要或正文。
+
+**定位**：PES IM2026会议目录p.768条目；IEEE document11439036入口。
+
+**待补**：原文摘要/全文、具体输入、隐藏节点类型及恢复保证；不得用其他版本或专利无标识替代。
+
+<a id="sup26"></a>
+
+#### SUP26 Topology and Parameter Joint Identification in Imbalanced Low-Voltage Distribution Networks Based on Load Characteristic Propagation
+
+**书目信息**：Yanan Zhang; Gan Zhou; Huan Mao; Wei Gu; Yanjun Feng; Rui Bo。IEEE Transactions on Smart Grid17(2),1680–1692，2026；作者机构记录给2025版权年份。
+
+**来源**：[DOI](https://doi.org/10.1109/TSG.2025.3632927)；[来源1](https://mst.elsevierpure.com/en/publications/topology-and-parameter-joint-identification-in-imbalanced-low-vol/)；[来源2](https://doi.org/10.1109/TSG.2025.3632927)。
+
+- **方法与对象**：作者机构书目与hidden nodes关键词已核，原文方法待取。
+- **量测与隐藏节点**：题名涉及三相不平衡、负荷特征传播与参数。
+- **关键条件与证据边界**：不据第三方摘要补写算法或假设。
+- **综述用途**：高优先级三相hidden原文核对项。
+
+**阅读层级与范围**：仅书目；作者大学研究记录的书目与keywords；IEEE正文未取得。
+
+**定位**：作者大学研究记录的书目与keywords；IEEE正文未取得。
+
+**待补**：原文摘要/全文、具体输入、隐藏节点类型及恢复保证；不得用其他版本或专利无标识替代。
+
+<a id="sup27"></a>
+
+#### SUP27 A Data-Driven Topology and Parameter Joint Estimation Method in Non-PMU Distribution Networks
+
+**书目信息**：Xiaoxue Wang; Yikang Zhao; Yue Zhou。IEEE Transactions on Power Systems39(1),1681–1692，2024；DOI登记年份2023。
+
+**来源**：[DOI](https://doi.org/10.1109/TPWRS.2023.3242458)；[来源1](https://ee.hebut.edu.cn/szdw/jsml/W/884dcd321f2244a18ef3ffe205ccb5ca.html)。
+
+- **方法与对象**：具体模型与算法待原文；R015的相关矩阵方法引用指向此文。
+- **量测与隐藏节点**：非PMU联合估计；具体观测和hidden能力待核。
+- **关键条件与证据边界**：当前只采用作者机构书目。
+- **综述用途**：追溯TLM相关方法来源，优先核原文。
+
+**阅读层级与范围**：仅书目；作者大学官网代表性论文[1]核对题名、三作者、期刊、2024与DOI；原文尚未取得。
+
+**定位**：河北工业大学王笑雪教师页“代表性论文”[1]。
+
+**待补**：原文摘要/全文、具体输入、隐藏节点类型及恢复保证；不得用其他版本或专利无标识替代。
+
+### 12.6 暂不扩展为核心基线的线索
+
+- 同作者NAPS2025 *An Efficient Voltage-Based Topology Recovery Method for Distribution Networks* 已见作者出版清单；与SUP12的关系及方法未核，不另计已读独立方法。[作者清单](https://sites.google.com/site/wencongsu/Home/publication)。
+- *On Identification of Distribution Grids*（10.1109/TCNS.2019.2891002）的主方案采用全观测，应与SUP08的零注入hidden逆潮流恢复分开。
+- 2019三相统计拓扑/相别（10.1049/iet-stg.2018.0291）、2026混合信号相别/概率连通（10.1016/j.epsr.2025.112591）可作一般方法线索，未知物理节点能力尚未核定。
+- 新近监督学习、一般电压控制和充电优化只在直接服务论证时纳入；检索到新题名不自动增加隐藏节点算法数量。
+
+### 12.7 对综述论证的实际影响
+
+1. 把“隐藏点必须零注入”改成方法分型：已有允许非零未测负荷的方案，同时具有平稳性、地理/RX或空间分隔等条件。
+2. 将普通智能表的数据项目、精度、同步与覆盖分开；已有免相角、异步和精度敏感性研究，应比较具体条件。
+3. 将Kron端口等效与在条件下反推原树分开；也把已知段阻抗支持的度2恢复与任意未知串联结构分开。
+4. 近期Feng、梁栋、Wang、Jia和三相瞬态论文仍有全文缺口。它们是优先核对清单，不据当前书目认定已解决所有相关问题。
+5. 原第8节段落可继续使用，但正式写研究缺口前应把这些最接近文献与本文的实际信息契约逐项对齐。
