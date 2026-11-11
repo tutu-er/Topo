@@ -183,12 +183,37 @@ def validate(output, report):
         verified_file(local(analysis, name), expected, "Figure analysis input")
     analyzer = local(output, verification["analyzer_source_archive"])
     verified_file(analyzer, verification["analyzer_sha256"], "Actual independent analyzer")
+    diagnostician, oracle_metadata = None, None
+    oracle_file = analysis/"oracle_metadata.json"
+    if oracle_file.exists():
+        oracle_metadata = read(oracle_file)
+        if (oracle_metadata.get("protocol_sha256") != verification["protocol_sha256"]
+                or oracle_metadata.get("analysis_verification_sha256") != sha(analysis/"verification.json")
+                or oracle_metadata.get("helper_source_sha256") != verification["analyzer_sha256"]):
+            raise ValueError("The optional oracle diagnostic belongs to a different protocol or main audit")
+        if (oracle_metadata.get("used_by_algorithm") is not False
+                or oracle_metadata.get("native_solver_calls") != 0
+                or oracle_metadata.get("oracle_family_fits_planned") != 48):
+            raise ValueError("The optional oracle must be a 48-family post-fit diagnostic without native solves")
+        if oracle_metadata["oracle_family_fits_verified"]+oracle_metadata["oracle_family_fits_failed"] != 48:
+            raise ValueError("The optional oracle fit counts do not retain their planned denominator")
+        verified_file(local(output, oracle_metadata["helper_source_archive"]),
+                      verification["analyzer_sha256"], "Actual oracle analysis helper")
+        diagnostician = local(output, oracle_metadata["source_archive"])
+        verified_file(diagnostician, oracle_metadata["diagnostic_source_sha256"], "Actual post-fit diagnostic source")
+        if not {"true_family_oracles.json", "objective_decomposition.csv"} <= set(oracle_metadata["artifacts"]):
+            raise ValueError("The optional oracle metadata omits a declared diagnostic artifact")
+        for name, expected in oracle_metadata["artifacts"].items():
+            verified_file(local(analysis, name), expected, "Post-fit oracle artifact")
+    elif any((analysis/name).exists() for name in ("true_family_oracles.json", "objective_decomposition.csv")):
+        raise ValueError("Oracle outputs exist without their source/policy metadata; finish the diagnostic before delivery")
     plotter = source_with_hash(plot["plot_source_sha256"],
         [ROOT/"tools/plot_full.py", output/"post_source/plot_full.py", report/"post_source/plot_full.py"], "plotter")
     if not (report/"CONCLUSIONS.md").is_file() or not (report/"CONCLUSIONS.md").stat().st_size:
         raise ValueError("Write the final root-reviewed CONCLUSIONS.md before archiving")
     return dict(protocol=protocol, completion=completion, verification=verification, counts=checked_counts,
                 timing=read(analysis/"timing.json"), plot=plot, analyzer=analyzer, plotter=plotter,
+                diagnostician=diagnostician, oracle_metadata=oracle_metadata,
                 policy_violations=policy_violations)
 
 
@@ -196,7 +221,11 @@ def collect_run(output):
     return {file.relative_to(output).as_posix(): file for file in sorted(output.rglob("*")) if allowed(file)}
 
 
-def reproduce_text(name):
+def reproduce_text(name, *, oracle=False):
+    optional = ("\nOptional post-fit true-family diagnostic (does not change the algorithms):\n\n"
+                "```text\npython -I post_source/diagnose_full.py .\n```\n"
+                "This optional calculation uses SciPy bounded least squares, with no MIQP and no model-selection feedback.\n"
+                if oracle else "")
     return f"""# Recompute this self-contained archive
 
 Extract the entire `{name}/` folder. All observed arrays and physical cases are
@@ -210,6 +239,7 @@ From inside this extracted folder, replay the numerical audit and plots:
 python -I post_source/analyze_full.py . --bootstrap 2000
 python -I post_source/plot_full.py .
 ```
+{optional}
 
 The audit uses NumPy and the standard library, without a native optimizer.
 Plotting additionally needs Matplotlib. Existing archived report and figures
@@ -247,9 +277,13 @@ def deliver(output, *, report=None, archive=None, estimate=False):
         raise ValueError("Publication files must stay outside the immutable original run")
     evidence = validate(output, report)
     run_files = collect_run(output)
-    copy_sources = [p for p in (output/"analysis").iterdir() if p.is_file() and p.suffix in {".csv", ".json"}]
+    copy_sources = [p for p in (output/"analysis").rglob("*") if allowed(p) and p.suffix in {".csv", ".json"}]
     copy_sources += [output/"figures"/name for name in [*evidence["plot"]["outputs"], "plot_manifest.json"]]
-    copy_sources += [evidence["analyzer"], evidence["plotter"], Path(__file__).resolve()]
+    post_sources = {"analyze_full.py": evidence["analyzer"], "plot_full.py": evidence["plotter"],
+                    "deliver_full.py": Path(__file__).resolve()}
+    if evidence.get("diagnostician") is not None:
+        post_sources["diagnose_full.py"] = evidence["diagnostician"]
+    copy_sources += list(post_sources.values())
     preflight = dict(raw_run_files=len(run_files), raw_run_bytes=sum(p.stat().st_size for p in run_files.values()),
                      publication_copy_bytes=sum(p.stat().st_size for p in copy_sources),
                      runtime_npz_files=sum(name.startswith("runtime/") and name.endswith(".npz") for name in run_files),
@@ -266,26 +300,28 @@ def deliver(output, *, report=None, archive=None, estimate=False):
     published = {}
 
     def copy(source, relative):
+        if not allowed(source):
+            raise ValueError("Refusing to publish a prohibited source file: "+str(source))
         target = local(report, relative); target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
         if sha(source) != sha(target):
             raise RuntimeError("A publication copy differs from its raw source")
         published[str(relative).replace("\\", "/")] = target
 
-    for source in (output/"analysis").iterdir():
-        if source.is_file() and source.suffix in {".csv", ".json"}:
-            copy(source, source.name)
+    for source in (output/"analysis").rglob("*"):
+        if allowed(source) and source.suffix in {".csv", ".json"}:
+            copy(source, source.relative_to(output/"analysis").as_posix())
     for name in ("protocol.json", "catalog.json", "state.json", "completion.json"):
         copy(output/name, name)
     for name in [*evidence["plot"]["outputs"], "plot_manifest.json"]:
         copy(output/"figures"/name, "figures/"+name)
-    for name, source in (("analyze_full.py", evidence["analyzer"]), ("plot_full.py", evidence["plotter"]),
-                         ("deliver_full.py", Path(__file__).resolve())):
+    for name, source in post_sources.items():
         copy(source, "post_source/"+name)
     for name in ("PLAN.md", "CONCLUSIONS.md", "RUN_STATUS.json", "README.md", "MODEL.md", "PARAMETERS.json"):
         if (report/name).is_file():
             published[name] = report/name
-    (report/"REPRODUCE.md").write_text(reproduce_text(output.name), encoding="utf-8", newline="\n")
+    (report/"REPRODUCE.md").write_text(reproduce_text(output.name, oracle="diagnose_full.py" in post_sources),
+                                        encoding="utf-8", newline="\n")
     published["REPRODUCE.md"] = report/"REPRODUCE.md"
     metadata = dict(recorded_utc=datetime.now(timezone.utc).isoformat(),
         protocol_sha256=sha(output/"protocol.json"), verification_sha256=sha(output/"analysis/verification.json"),
@@ -298,13 +334,15 @@ def deliver(output, *, report=None, archive=None, estimate=False):
         timing=evidence["timing"], nominal_method_hours=evidence["protocol"]["nominal_method_hours"],
         manager_log_available=(output/"manager.log").is_file(), manager_stdout_complete_capture=False,
         manager_log_note="The original manager had no complete stdout redirection; no complete manager log is claimed. All available logs, manager attempts and terminal records are preserved.",
-        actual_post_sources={name: sha(published["post_source/"+name]) for name in ("analyze_full.py", "plot_full.py", "deliver_full.py")},
+        actual_post_sources={name: sha(published["post_source/"+name]) for name in post_sources},
+        postfit_oracle_included="diagnose_full.py" in post_sources,
+        oracle_metadata=evidence["oracle_metadata"],
         policy_violations_in_nonverified_records=evidence["policy_violations"], preflight=preflight,
         source_data_included=True, original_run_modified=False, mock_scores_included=False)
     write(report/"delivery_metadata.json", metadata); published["delivery_metadata.json"] = report/"delivery_metadata.json"
     files = {output.name+"/"+name: source for name, source in run_files.items()}
     files.update({output.name+"/report/"+name: source for name, source in published.items()})
-    for name in ("analyze_full.py", "plot_full.py", "deliver_full.py"):
+    for name in post_sources:
         files[output.name+"/post_source/"+name] = published["post_source/"+name]
     files[output.name+"/REPRODUCE.md"] = published["REPRODUCE.md"]
     hashes = {name: sha(source) for name, source in sorted(files.items())}
@@ -333,6 +371,11 @@ def deliver(output, *, report=None, archive=None, estimate=False):
         all_models_verified=evidence["verification"]["all_models_verified"],
         native_queue_complete=True, planned_methods=480, planned_inputs=48, planned_common=48,
         counts=evidence["counts"], pending=0, native_timeouts=metadata["native_timeouts"],
+        postfit_oracle_included=metadata["postfit_oracle_included"],
+        oracle_family_fits_verified=(evidence["oracle_metadata"]["oracle_family_fits_verified"]
+                                    if evidence["oracle_metadata"] else None),
+        oracle_family_fits_failed=(evidence["oracle_metadata"]["oracle_family_fits_failed"]
+                                  if evidence["oracle_metadata"] else None),
         timing=evidence["timing"], manager_log_available=metadata["manager_log_available"],
         manager_stdout_complete_capture=False, runtime_npz_files=preflight["runtime_npz_files"],
         external_project_or_data_required=False, Gurobi_license_bundled=False,

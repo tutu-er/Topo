@@ -29,31 +29,32 @@
     "methods": {
       "planned": 480,
       "complete": 0,
-      "fitted": 38,
+      "fitted": 342,
       "failed": 0,
       "interrupted": 0,
       "budget_exceeded": 0,
-      "pending": 442,
-      "attempts_without_result": 8
+      "pending": 138,
+      "attempts_without_result": 7
     },
     "manager_lock": true,
     "completion": false,
     "active": {
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__flynn16__b1001__reference__v0005__N96\\011\\result.json": 14956,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1000__reference__v0005__N96\\101\\result.json": 47560,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1000__reference__v0010__N96\\011\\result.json": 9168,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1001__reference__v0002__N96\\111\\result.json": 58168,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1002__reference__v0002__N96\\000\\result.json": 59692,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1002__reference__v0005__N96\\100\\result.json": 43052,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1002__reference__v0010__N96\\010\\result.json": 46608,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__pengwah18__b1003__reference__v0002__N96\\001\\result.json": 58144
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1001__reference__v0010__N96\\000\\result.json": 56832,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1002__reference__v0002__N96\\100\\result.json": 49908,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1002__reference__v0005__N96\\010\\result.json": 25992,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1002__reference__v0010__N96\\001\\result.json": 58788,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1003__reference__v0002__N96\\110\\result.json": 30772,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1003__reference__v0005__N96\\101\\result.json": 31328,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1003__reference__v0010__N96\\011\\result.json": 51424
     },
-    "queued": 434,
-    "updated_utc": "2026-11-11T13:44:38.238292+00:00"
+    "queued": 131,
+    "updated_utc": "2026-11-11T14:41:01.473120+00:00"
   },
   "post_tools": [
     "tools/analyze_full.py",
-    "tools/plot_full.py"
+    "tools/plot_full.py",
+    "tools/diagnose_full.py",
+    "tools/deliver_full.py"
   ],
   "pending": [
     "complete all480 terminal records",
@@ -63,5 +64,12 @@
     "archive full results and refresh portable package",
     "commit and push final results"
   ],
-  "interruption_rule": "do not terminate/restart existing workers or reset attempt budgets without audit"
+  "interruption_rule": "do not terminate/restart existing workers or reset attempt budgets without audit",
+  "post_source_sha256": {
+    "tools/analyze_full.py": "432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9",
+    "tools/plot_full.py": "4c536b0f7e862314cb762f512a5e3291ea5ff9fac1ab60504902c30ca429276c",
+    "tools/diagnose_full.py": "765e31673eb068f4afd6b309bdef292a12352a88bcd083e15113676ee8e86b04",
+    "tools/deliver_full.py": "ff69e8aa5277fb0b02ddb39fa44471879d84977f8b0633f5300126606b23e558"
+  },
+  "snapshot_note": "Live progress snapshot only; final truth/test metrics have not been computed. Native runtime remains frozen."
 }

@@ -1,0 +1,75 @@
+{
+  "scope": "Independent static review of final postprocessing source and an existing synthetic schema receipt; not an audit of actual 480 native results.",
+  "reviewed_source": "tools/analyze_full.py",
+  "source_sha256": "432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9",
+  "reviewer": "standalone_data agent, separate from analyzer author",
+  "source_modified_by_reviewer": false,
+  "project_programs_or_solvers_run_by_this_review": 0,
+  "actual_run_truth_or_test_arrays_opened_by_reviewer": false,
+  "actual_run_partial_F1_computed_by_reviewer": false,
+  "actual_480_results_verified_by_this_review": false,
+  "conclusion": "No remaining blocking issue found in the reviewed MSE selection, planned denominators, failure accounting, timing components, or actual-source provenance logic. Actual numerical results require the complete terminal-run audit.",
+  "checks": [
+    {
+      "claim": "Final selection is normalized validation MSE; MAE does not enter the primary selector.",
+      "evidence_lines": [251, 260, 409, 440],
+      "detail": "Replays each frozen candidate from P,Q,Y and coefficients; checks saved physical and normalized validation MSE. Eligible candidates are within validation_tie of the minimum MSE/reference, then ranked by internal support count, MSE/reference, and index. Both selected and selected_mse_view must reproduce that result.",
+      "boundary": "selected_mae_view is used only for a diagnostic difference flag; its secondary MAE ranking is not independently re-audited here. The independent primary MSE check does not rely on that flag."
+    },
+    {
+      "claim": "All 48 planned inputs per method remain in exact-recovery and status denominators.",
+      "evidence_lines": [238, 242, 458, 482, 626, 637, 703, 765],
+      "detail": "The full four-case/four-shared-seed/three-noise grid and ten methods are required. Each planned job/method creates a row, including failed, interrupted, budget_exceeded, and invalid outcomes. Exact recovery is equality of proper internal support families; exact_rate_planned divides verified exact recoveries by all planned rows.",
+      "boundary": "F1_verified_mean is the macro mean over verified models only, not an all-48 mean when failures exist; report verified/48 and all status counts alongside it. Pair and factorial effects use their disclosed eligible paired counts."
+    },
+    {
+      "claim": "Failed and unsuccessful method costs are retained when valid; missing components remain unknown.",
+      "evidence_lines": [712, 730, 834, 851],
+      "detail": "All wrapper statuses receive finite/nonnegative component checks and, whenever all components exist, total=fresh+common reconciliation. Common charges are checked against shared worker time when available. Bad timing becomes invalid and is excluded from numeric subtotals while original reported_* values survive. Missing total, fresh, common-charge, physical-common-worker, and prepare components have separate unknown counts.",
+      "boundary": "Recorded subtotals sum known values; an unknown component is not evidence of zero runtime. Logical method totals charge one common preprocessing per method; physical effort charges that shared work once per input. These are process wall-time sums, not CPU time. Calendar time is read from the manager completion record."
+    },
+    {
+      "claim": "Common preprocessing and method results are tied to frozen inputs and actual source receipts.",
+      "evidence_lines": [88, 93, 655, 701, 733, 746, 853, 888],
+      "detail": "Validates frozen catalog/runtime hashes and common protocol/train-input/source receipts. Model-bearing records additionally validate common-record SHA, train/validation hashes, before/after native sources, and forbidden-information flags. The actual analyzer is archived by its own SHA; analyzer_pre_run_frozen explicitly distinguishes it from the native frozen snapshot.",
+      "boundary": "Failed records that never produced a model can lack native loaded-source receipts; they remain unsuccessful outcomes, not verified model evidence. Postprocessing source changes do not alter the recorded native source or grant a new solver budget."
+    },
+    {
+      "claim": "Evaluation waits for every planned method to be terminal, and certificate scopes remain explicit.",
+      "evidence_lines": [639, 654, 766, 786, 863, 889],
+      "detail": "Pending runs return or raise before observation decoding or physical-truth access. Model replay uses training and validation; test/truth decoding starts only after all planned runs are terminal and selection has been replayed. Empty native ledgers yield all_native_gap_met=null with native_gap_evidence_available=false.",
+      "boundary": "verification.passed means no detected audit inconsistency, not that every run succeeded. Report all_models_verified, verified/48, and failure counts. Native gaps cover available subproblem ledgers only; they do not certify the full tree search."
+    },
+    {
+      "claim": "Declared budget and uncertainty descriptions match inspected source defaults.",
+      "evidence": ["algorithm.py:20-34", "algorithm.py:244-248", "optimization.py:60-61", "optimization.py:108-115", "optimization.py:151-172", "tools/analyze_full.py:580-595", "tools/analyze_full.py:880-883"],
+      "detail": "Source defaults are total 14400 s per method, native MIQP cap 3600 s, fixed-family QP soft cap 300 s, output reserve 600 s. E-on reserves half of available structural time for its final solve; E-off can spend that structural allowance on W/T. SciPy QP time is checked after fitting and can overrun its soft cap; native MIQP uses TimeLimit. Resampling uses four shared seed clusters and is labelled descriptive sensitivity.",
+      "boundary": "This is a source-default review, not a new verification of the live protocol or hard process interruption guarantee. Factorial effects include the declared E-on/E-off allocation difference."
+    }
+  ],
+  "reported_gaps_addressed_in_final_source": [
+    "All-status wrapper timing and shared-common reconciliation, including failed/interrupted outcomes.",
+    "Missing component timings disclosed independently instead of silently defaulting to zero.",
+    "Common protocol, train-input, and before/after loaded-source provenance checks.",
+    "Empty native ledger no longer produces a vacuous true gap claim.",
+    "Main artifact hashes include only the main audit products, so optional oracle/plot outputs do not create a circular re-audit dependency."
+  ],
+  "existing_synthetic_evidence": {
+    "receipt": "validation/full_analysis_schema_receipt.json",
+    "receipt_sha256": "8d64b54ea47adb1815d3818bd3556290839ba73c9dc79a3f76babe202ac59daf",
+    "receipt_source_sha256_matches_reviewed_source": true,
+    "receipt_author": "standalone_trees agent",
+    "receipt_read_by_reviewer": true,
+    "fixture_reexecuted_by_reviewer": false,
+    "passed": true,
+    "synthetic_models_verified": 480,
+    "factorial_telescoping_checks": 288,
+    "failure_fixture_statuses": {"verified": 476, "failed": 1, "budget_exceeded": 1, "interrupted": 1, "invalid": 1},
+    "all_status_timing_and_missing_component_guards_passed": true,
+    "common_protocol_input_and_source_guards_passed": true,
+    "pending_information_boundary_guard_passed": true,
+    "empty_native_ledger_gap_guard_passed": true,
+    "native_solver_calls": 0,
+    "interpretation": "Synthetic schema and fault-injection evidence only; the 480 count here is not actual benchmark completion or recovery."
+  }
+}

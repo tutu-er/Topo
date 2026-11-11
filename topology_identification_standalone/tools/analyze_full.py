@@ -76,6 +76,23 @@ def close(actual, saved, name, *, atol=1e-10, rtol=1e-7):
         raise ValueError(f"{name} does not reproduce: {actual!r} != {saved!r}")
 
 
+def finite_time(value):
+    if value is None:
+        return None
+    value = float(value)
+    if not math.isfinite(value) or value < 0.:
+        raise ValueError("A runtime cost is negative or nonfinite")
+    return value
+
+
+def source_receipt(receipt, hashes, *, required):
+    if required and not {"algorithm", "optimization", "trees", "data"} <= set(receipt):
+        raise ValueError("The loaded-source receipt omits an expected native module")
+    for source in receipt.values():
+        if source["sha256"] != hashes.get(source["relative_path"]):
+            raise ValueError("A loaded native source differs from the frozen manifest")
+
+
 def canonical(family, n=None, *, laminar=True):
     rows = []
     for support in family:
@@ -234,6 +251,8 @@ def direct_children(family, n):
 def verify_record(wrapper, common, train, validation, config, method, *, budget_tolerance=.05,
                   allow_budget_exceeded=False):
     """Replay every saved closed model and its actual MSE selection event."""
+    if common.get("status", "complete") != "complete":
+        raise ValueError("A fitted method uses unsuccessful common preprocessing")
     result = wrapper["result"]; n = train["n"]; bound = float(config["response_bound"])
     reference, alpha = float(common["reference_mse"]), float(config["alpha"])
     if not reference > 0. or not math.isfinite(reference):
@@ -650,6 +669,14 @@ def analyze(output, *, bootstrap=2000, allow_incomplete=False):
     for job in jobs:
         meta = catalog[job]; common_file = output/"common"/job/"common.json"
         common = read(common_file); common_cache[job] = common; common_hashes[job] = sha(common_file)
+        successful_common = common.get("status", "complete") == "complete"
+        if common.get("protocol_sha256") != sha(output/"protocol.json"):
+            raise ValueError("Common preprocessing belongs to another protocol")
+        if successful_common or "train_input_sha256" in common:
+            if common.get("train_input_sha256") != protocol["input_hashes"][job]["train"]:
+                raise ValueError("Common preprocessing has different training-input provenance")
+        for phase in ("runtime_sources_before", "runtime_sources_after"):
+            source_receipt(common.get(phase, {}), protocol["source_hashes"], required=successful_common)
         splits = {name: load_observations(local(runtime, meta[name])) for name in ("train", "validation")}
         if splits["train"]["labels"] != splits["validation"]["labels"] or tuple(meta["labels"]) != splits["train"]["labels"]:
             raise ValueError("Train/validation labels are not aligned")
@@ -677,18 +704,33 @@ def analyze(output, *, bootstrap=2000, allow_incomplete=False):
         job, method, wrapper = item["job"], item["method"], item["wrapper"]; meta = catalog[job]
         row = dict(job=job, method=method, case=meta["case"], seed_index=int(meta["seed_index"]),
                    voltage_sigma=float(meta["voltage_sigma"]), status=item["status"],
+                   reported_status=item["status"],
                    returned=wrapper is not None, F1=None, exact=None, total_seconds=None,
                    fresh_seconds=None, common_seconds=None, native_timeouts=0,
-                   optimizer_ledger_available=False, model_audit_error=None)
+                   optimizer_ledger_available=False, model_audit_error=None,
+                   timing_identity_checked=False, common_charge_checked=False)
         if wrapper is not None:
             result_hashes[job+"/"+method] = sha(item["file"])
-            for name in ("total_seconds", "fresh_seconds", "common_seconds"):
-                if wrapper.get(name) is not None:
-                    value = float(wrapper[name])
-                    if not math.isfinite(value) or value < 0.:
-                        raise ValueError("A runtime cost is negative or nonfinite")
-                    row[name] = value
-            if (wrapper.get("job") != job or wrapper.get("method") != method
+            timing_error = None
+            try:
+                for name in ("total_seconds", "fresh_seconds", "common_seconds"):
+                    row["reported_"+name] = wrapper.get(name)
+                    row[name] = finite_time(wrapper.get(name))
+                if all(row[name] is not None for name in ("total_seconds", "fresh_seconds", "common_seconds")):
+                    close(row["total_seconds"], row["fresh_seconds"]+row["common_seconds"], "all-status timing identity")
+                    row["timing_identity_checked"] = True
+                shared = common_cache[job]
+                common_cost = finite_time(shared.get("seconds", shared.get("fresh_seconds")))
+                if common_cost is not None and row["common_seconds"] is not None:
+                    close(row["common_seconds"], common_cost, "all-status common charge")
+                    row["common_charge_checked"] = True
+            except Exception as exc:
+                timing_error = str(exc); row.update(status="invalid", timing_error=timing_error,
+                    total_seconds=None, fresh_seconds=None, common_seconds=None)
+                error_rows.append(dict(job=job, method=method, error=timing_error, traceback=traceback.format_exc()))
+            if timing_error:
+                pass
+            elif (wrapper.get("job") != job or wrapper.get("method") != method
                     or wrapper.get("protocol_sha256") != sha(output/"protocol.json")):
                 row.update(status="invalid", error="result provenance mismatch")
                 error_rows.append(dict(job=job, method=method, error="result provenance mismatch", traceback=None))
@@ -699,11 +741,7 @@ def analyze(output, *, bootstrap=2000, allow_incomplete=False):
                     if wrapper.get("truth_used") is not False or wrapper.get("test_opened") is not False:
                         raise ValueError("The native worker opened forbidden evaluation information")
                     for phase in ("runtime_sources_before", "runtime_sources_after"):
-                        if not {"algorithm", "optimization", "trees", "data"} <= set(wrapper[phase]):
-                            raise ValueError("The loaded-source receipt omits an expected native module")
-                        for source in wrapper[phase].values():
-                            if source["sha256"] != protocol["source_hashes"].get(source["relative_path"]):
-                                raise ValueError("A loaded native source differs from the frozen manifest")
+                        source_receipt(wrapper.get(phase, {}), protocol["source_hashes"], required=True)
                     if wrapper.get("train_val_input_hashes") != {s: input_hashes[job][s] for s in ("train", "validation")}:
                         raise ValueError("Method train/validation provenance changed")
                     checked = verify_record(wrapper, common_cache[job], observations[job]["train"],
@@ -793,18 +831,23 @@ def analyze(output, *, bootstrap=2000, allow_incomplete=False):
         write_csv(target/(name+".csv"), table)
     for name, fields in groups.items():
         write_csv(target/name, grouped(rows, fields))
-    physical_common = sum(float(c.get("seconds", c.get("fresh_seconds", 0.))) for c in common_cache.values())
-    physical_prepare = sum(float(c.get("prepare_seconds", 0.)) for c in common_cache.values())
+    common_worker_costs = [finite_time(c.get("seconds", c.get("fresh_seconds"))) for c in common_cache.values()]
+    prepare_costs = [finite_time(c.get("prepare_seconds")) for c in common_cache.values()]
+    physical_common = sum(value for value in common_worker_costs if value is not None)
+    physical_prepare = sum(value for value in prepare_costs if value is not None)
     logical_common = sum(r["common_seconds"] for r in rows if r["common_seconds"] is not None)
     fresh = sum(r["fresh_seconds"] for r in rows if r["fresh_seconds"] is not None)
     completion = read(output/"completion.json") if (output/"completion.json").exists() else {}
     timing = dict(logical_method_seconds_recorded=sum(r["total_seconds"] for r in rows if r["total_seconds"] is not None),
         logical_common_charges=logical_common, sum_method_worker_seconds=fresh,
         physical_common_worker_seconds=physical_common, physical_common_native_prepare_seconds=physical_prepare,
-        physical_common_native_prepare_unknown=sum("prepare_seconds" not in c for c in common_cache.values()),
+        physical_common_worker_unknown=sum(value is None for value in common_worker_costs),
+        physical_common_native_prepare_unknown=sum(value is None for value in prepare_costs),
         physical_process_wall_effort_recorded=fresh+physical_common,
         native_batch_calendar_seconds=completion.get("manager_elapsed_seconds_all_invocations", completion.get("manager_elapsed_seconds")),
         method_timing_unknown=sum(r["total_seconds"] is None for r in rows),
+        method_fresh_timing_unknown=sum(r["fresh_seconds"] is None for r in rows),
+        method_common_charge_unknown=sum(r["common_seconds"] is None for r in rows),
         scope="logical methods each charge one common; actual shared common is physically performed once per input; sums are process wall effort, not CPU seconds")
     write_json(target/"timing.json", timing)
     for name in ("gurobipy", "algorithm", "optimization", "trees"):
@@ -812,7 +855,10 @@ def analyze(output, *, bootstrap=2000, allow_incomplete=False):
             raise RuntimeError("The independent analysis imported a native optimizer/helper: "+name)
     if sha(own) != own_hash:
         raise RuntimeError("The independent analyzer source changed while it was running")
-    artifacts = {p.name: sha(p) for p in target.glob("*.csv")}
+    # Optional oracle/plot outputs are independent postprocessing, not inputs
+    # to this main audit. Rerunning it must not absorb their mutable products.
+    own_csv = [name+".csv" for name in tables] + list(groups)
+    artifacts = {name: sha(target/name) for name in own_csv}
     artifacts["timing.json"] = sha(target/"timing.json")
     passed = not error_rows and all(r["status"] != "invalid" for r in rows)
     verification = dict(passed=passed, complete=True, planned=480, returned=sum(r["returned"] for r in rows),
@@ -822,12 +868,15 @@ def analyze(output, *, bootstrap=2000, allow_incomplete=False):
         interrupted=sum(r["status"] == "interrupted" for r in rows),
         budget_exceeded=sum(r["status"] == "budget_exceeded" for r in rows),
         invalid=sum(r["status"] == "invalid" for r in rows), pending=0,
-        numerically_invalid_returned_results=len(error_rows),
+        invalid_audit_results=len(error_rows),
+        numerically_invalid_returned_results=sum(r["model_audit_error"] is not None for r in rows),
         all_planned_denominators_preserved=True, selection_metric="normalized validation MSE",
         MAE_used_for_final_selection=False, native_optimizer_imported=False,
         independent_QP_certificates=len(certificate_rows), native_MIQP_records=len(native_rows),
         native_optimizer_ledgers_unavailable=sum(not r["optimizer_ledger_available"] for r in rows),
-        native_timeouts=sum(r["timeout"] for r in native_rows), all_native_gap_met=all(r["gap_met"] or r["absolute_gap_met"] for r in native_rows),
+        native_timeouts=sum(r["timeout"] for r in native_rows), native_gap_evidence_available=bool(native_rows),
+        all_native_gap_met=all(r["gap_met"] or r["absolute_gap_met"] for r in native_rows) if native_rows else None,
+        native_gap_scope="available native ledgers only; missing ledgers and whole-tree search are not certified",
         main_methods=("rnj", "nj", "000", "100", "111"), clusters=4, bootstrap_draws=bootstrap,
         resampling_interpretation="four shared physical seed groups, not 48 independent repetitions; percentile ranges are sensitivity summaries",
         module_effect_scope="conditional factorial comparisons include the declared E-on/E-off budget allocation",
