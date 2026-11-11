@@ -1,6 +1,8 @@
 # 平方残差证据的二次DR规划
 
-新增[IEEE方法短稿](relative_gate_paper/README.md)：将相对平方损失规则直接作为概率事件，正文给一个充分命题及二次规划，积分细节移入附录。该Tκ扩展为已推导、未实现；与下列已测试fixed_f后验分支分开。
+当前相对损失版本集中在单文件[exponential_dr.py](exponential_dr.py)，代码开头包含符号、假设、公式、输入输出和接入说明，对应[IEEE方法短稿](relative_gate_paper/README.md)。固定λ=1/(4κ)，计算W/h，最小化费用并要求d(u)ᵀWd(u)≥h；保留指数充分条件，不增加另一种概率近似。直接执行`python exponential_dr.py`运行纯合成安装例。
+
+`build_gate`预计算条件，`solve_continuous`求解二次费用和线性可行域的QCQP，`probability_bound`输出概率下界，`observed_loss`重算固定模型的实际平方损失。原小时设备直接把gate传给已有`solver.solve(problem, gate, gate.h, out)`，不复制设备图或辨识器。25项独立数学/求解/迁移检查通过；当前κ>1版本没有新增paper15、AC或最终恢复实验，与下列旧fixed_f后验结果分开。
 
 新增[固定F概率分支](FIXED_F_REPORT.md)：分别实现平均后验和后验过线率的充分二次条件，完整推导见[LaTeX](fixed_f_theory/main.tex)。原期望log odds模式保留，不能把其指标解释为下面的新概率保证。
 

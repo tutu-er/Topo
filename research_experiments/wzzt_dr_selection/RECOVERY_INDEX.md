@@ -1,3 +1,9 @@
+## 指数概率条件单文件，2026-11-11
+
+- 活动实现及说明仅dr_pricing/bayes_qcqp/exponential_dr.py，对应relative_gate_paper/main.tex；旧fixed_f/core/solver和原设备默认不变。build_gate返回原solver兼容二次接口，连续线性域另可单文件直接求解。
+- 私有wzzt_exponential_single_file_v1保存protocol.json、test_single_file.py、attempt_1/source.py、pytest.log、junit.xml与临时原设备日志/MPS；continuous_results/scalar_probability/existing_device_result/relocation.json保存完整小核验结果。25/25过，无失败重试；缓存权限警告保留。
+- 使用D:/apps/miniconda3/envs/Topo/python.exe；单文件可独立复制直接运行。只验证当前冻结Gaussian相对平方损失的数学和求解链，未跑新paper15/AC或改原最终选模。固定加性协方差不涵盖原乘性/饱和响应的价格相关方差。
+
 ## 相对损失条件的IEEE方法短稿，2026-11-11
 
 - dr_pricing/bayes_qcqp/relative_gate_paper保存main.tex/method_appendix.pdf及核验记录；当前/备选采用0/1，正文d(u)ᵀWd(u)≥h、W/h均未改。附录改为整理形式、上界选择、参数选择、逐层积分、回代五步，给出正态密度/换元及行列式依据，独立审查通过。
