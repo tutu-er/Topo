@@ -1,0 +1,188 @@
+% !TeX program = xelatex
+\RequirePackage[T1]{fontenc}
+\documentclass[journal,10pt]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\usepackage{xeCJK}
+\setmainfont{texgyretermes-regular.otf}[BoldFont=texgyretermes-bold.otf,ItalicFont=texgyretermes-italic.otf,BoldItalicFont=texgyretermes-bolditalic.otf]
+\setCJKmainfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf,ItalicFont=FandolKai-Regular.otf,BoldItalicFont=FandolKai-Regular.otf,SmallCapsFont=FandolSong-Regular.otf]
+\setCJKsansfont{FandolHei-Regular.otf}[BoldFont=FandolHei-Bold.otf]
+\usepackage[unicode,hidelinks]{hyperref}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\R}{\mathbb R}
+\newtheorem{proposition}{命题}
+\renewcommand{\IEEEproofname}{证明}
+\setlength{\emergencystretch}{1.5em}
+\begin{document}
+\title{通用电压预测下的需求响应设计}
+\author{}
+\maketitle
+\begin{abstract}
+需求响应设计需要预测新观测如何区分已有拓扑候选。本文使用历史电压预测器生成新观测的工作分布，允许其与两个候选都不同。在冻结参数及固定高斯误差下，将实际平方损失改善事件写成高斯二次式，通过一次配方得到概率充分条件。该条件对调节均值保持二次形式，可与原设备可行域和费用联合优化。
+\end{abstract}
+
+\section{预测参考与选模目标}
+模型0为历史选中的输出，模型1为待比较输出。两者的响应矩阵$H_0,H_1\in\R^{m\times d}$在规划前冻结。把模型1直接作为新日电压生成器，所得保证便条件于该候选成立。为区分候选解释和观测预测，另用历史建立电压预测器$\bar H$及截距$b$：
+\begin{align}
+P(u)&=\widehat p+Bu+\xi_P, \label{eq:power}\\
+V&=\bar H P(u)+b+e. \label{eq:reference}
+\end{align}
+$\widehat p\in\R^d$为无DR的功率预测均值，$u\in\R^r$为名义DR交付，$B\in\R^{d\times r}$将其映射为节点P/Q变化。预测矩阵$\bar H\in\R^{m\times d}$和截距$b\in\R^m$与候选分开确定。基本工作模型取$\xi_P\sim N(0,\Sigma_P)$、$e\sim N(0,\Sigma_e)$且相互独立，协方差在规划前固定。若保留两者相关性，以下直接采用相应联合协方差即可。预测器、截距及误差输入都由历史确定。
+
+本文采用物理残差的普通平方和。令$r_k=V-H_kP$，$S_k^h$为全部旧验证观测的平方和，$m_h$为其标量残差数，新日有$m$个标量残差。合并后的MSE为
+\begin{equation}
+M_k=\frac{S_k^h+\|r_k\|^2}{m_h+m}. \label{eq:mse}
+\end{equation}
+设$\epsilon_{\rm mse}$为同一物理MSE单位的并列容差。要求模型1比模型0低出该容差，等价于
+\begin{align}
+L&:=\|r_0\|^2-\|r_1\|^2>\delta, \label{eq:loss}\\
+\delta&=(m_h+m)\epsilon_{\rm mse}-(S_0^h-S_1^h). \label{eq:history}
+\end{align}
+例如严格$K_h\,\mathrm{MSE}$规则使用$\epsilon_{\rm mse}=10^{-12}/K_h$，其中$K_h>0$为已冻结的公共尺度。训练观测仍用于已有拟合及预测器；式\eqref{eq:history}只把原评分历史计入一次。该事件排除模型0的数值并列资格，最终输出仍由完整候选库决定。
+
+规划要求
+\begin{equation}
+\Prob_h(L>\delta)\ge\beta,\qquad 0<\beta<1. \label{eq:chance}
+\end{equation}
+$\Prob_h$表示给定历史、式\eqref{eq:reference}及误差法则后的工作概率。预测器在实际DR下的准确性须由独立观测检验。
+
+\section{把损失差写成一个高斯二次式}
+把功率和剩余电压误差堆叠为
+\begin{equation}
+w=\begin{pmatrix}P\\e\end{pmatrix}
+=\mu(u)+U\xi,\qquad \xi\sim N(0,I_s), \label{eq:stack}
+\end{equation}
+其中$\mu(u)=(\widehat p+Bu,0)^\top$，$UU^\top=\operatorname{Cov}(w)$。允许协方差奇异；取任一精确因子$U$即可，无需对该协方差求逆。定义
+\[
+D_k=(\bar H-H_k,\ I_m),\qquad r_k=D_kw+b.
+\]
+展开两项平方，得到
+\begin{equation}
+L=w^\top Aw+2a^\top w+c, \label{eq:quadratic}
+\end{equation}
+其中
+\begin{equation}
+A=D_0^\top D_0-D_1^\top D_1,\quad
+a=(D_0-D_1)^\top b,\quad c=0. \label{eq:coefficients}
+\end{equation}
+共同截距的平方项抵消，线性项$a$仍须保留。若两个残差带有不同的已知偏移，其平方差进入$c$；以下推导同样适用。$A$可以不定，这正是预测器与候选分离后需要保留的结构。
+
+给定固定$\lambda>0$，预计算
+\begin{align}
+J&=I_s+2\lambda U^\top AU, \label{eq:J}\\
+v(u)&=U^\top[A\mu(u)+a], \label{eq:v}\\
+g(u)&=\mu(u)^\top A\mu(u)+2a^\top\mu(u)+c. \label{eq:g}
+\end{align}
+选择使$J\succ0$的$\lambda$，定义
+\begin{equation}
+\begin{split}
+T(u)={}&\lambda g(u)-2\lambda^2v(u)^\top J^{-1}v(u)\\
+&+\tfrac12\log|J|.
+\end{split} \label{eq:T}
+\end{equation}
+
+\begin{proposition}
+在冻结模型和式\eqref{eq:stack}的工作分布下，若$J\succ0$，则
+\begin{equation}
+\boxed{T(u)\ge\lambda\delta+\log\frac1{1-\beta}} \label{eq:certificate}
+\end{equation}
+保证式\eqref{eq:chance}成立。$T(u)$是关于$u$的二次函数。
+\end{proposition}
+附录给出配方过程。$T=-\log\E_h e^{-\lambda L}$中的期望是精确计算；保守性来自指数概率上界和$\lambda$的选择。
+
+\section{最小费用规划与使用范围}
+令$C(u)$为合同费用，$\mathcal U$为原功率、能量和可用时段允许的交付范围。价格设计为
+\begin{equation}
+\boxed{
+\begin{aligned}
+\min_{u\in\mathcal U}\quad&C(u),\\
+\mathrm{s.t.}\quad&T(u)\ge\lambda\delta+\log\frac1{1-\beta}.
+\end{aligned}} \label{eq:planning}
+\end{equation}
+价格到名义交付的设备映射按原合同接入。二次费用及线性设备域给出非凸QCQP；原设备图中的整数选择按原接口保留。二次型不定时，整项切线未必是下界，计算时应直接保留原二次约束，或采用有下界保证的分解。
+
+固定协方差适用于所声明的加性工作误差。乘性随机交付、饱和和AC偏差需在实际执行中另行核验；功率表误差与剩余电压误差须按联合法则处理，同一误差只计一次。历史预测准确性不由配方过程自动给出。
+
+早期paper15的冻结争议中，定向DR曾拉开模型预测差，并改善原3\% MAE回选。这说明特定参考和选择边界下存在有效动作。本文采用通用预测器和严格MSE事件，两者的适用条件随之明确；本推导不新增AC效果结论。实际评价继续报告完整错漏、恢复、费用及未决，并区分指定模型被排除与最终结构恢复。
+
+\appendices
+\section{指数条件的逐步推导}
+
+\subsection{从残差到二次式}
+对一般已知偏移$b_0,b_1$，写$r_k=D_kw+b_k$。直接展开得
+\begin{align*}
+A&=D_0^\top D_0-D_1^\top D_1,\\
+a&=D_0^\top b_0-D_1^\top b_1,\\
+c&=b_0^\top b_0-b_1^\top b_1.
+\end{align*}
+正文的$b_0=b_1=b$给出式\eqref{eq:coefficients}。代入$w=\mu+U\xi$，并利用$A=A^\top$：
+\begin{equation}
+L=g+2\xi^\top v+\xi^\top U^\top AU\xi, \label{eq:expanded}
+\end{equation}
+$g,v$分别由式\eqref{eq:g}、\eqref{eq:v}给出。截距已包含在$g$和$v$中。
+
+\subsection{指数上界及一次配方}
+失败事件$L\le\delta$等价于$e^{-\lambda L}\ge e^{-\lambda\delta}$。由非负随机量的Markov不等式，
+\begin{equation}
+\Prob_h(L\le\delta)
+\le e^{\lambda\delta}\E_h e^{-\lambda L}. \label{eq:markov}
+\end{equation}
+用标准高斯密度及式\eqref{eq:expanded}计算右侧期望：
+\begin{equation}
+\begin{split}
+\E_h e^{-\lambda L}
+={}&e^{-\lambda g}(2\pi)^{-s/2}\\
+&\cdot\int_{\R^s}
+e^{-\xi^\top J\xi/2-2\lambda\xi^\top v}\,d\xi.
+\end{split} \label{eq:integral}
+\end{equation}
+当$J\succ0$时，完成平方：
+\begin{equation}
+\begin{split}
+-\tfrac12\xi^\top J\xi-2\lambda\xi^\top v
+={}&-\tfrac12(\xi+2\lambda J^{-1}v)^\top
+J(\xi+2\lambda J^{-1}v)\\
+&+2\lambda^2v^\top J^{-1}v.
+\end{split} \label{eq:square}
+\end{equation}
+令$y=J^{1/2}(\xi+2\lambda J^{-1}v)$，则
+$d\xi=|J|^{-1/2}dy$。剩余标准高斯密度积分为1，故
+\begin{equation}
+\E_h e^{-\lambda L}
+=|J|^{-1/2}e^{-\lambda g+2\lambda^2v^\top J^{-1}v}.
+\label{eq:moment}
+\end{equation}
+取负对数即式\eqref{eq:T}。要求式\eqref{eq:markov}右端不超过$1-\beta$，便得到式\eqref{eq:certificate}。奇异协方差已由因子$U$表示，因此全过程只对标准因素$\xi$积分。
+
+\subsection{二次系数与合法参数}
+令$R=UJ^{-1}U^\top$。将$v$代入式\eqref{eq:T}，有
+\begin{equation}
+T=\mu^\top Q\mu+\ell^\top\mu+c_T, \label{eq:explicit}
+\end{equation}
+其中
+\begin{align}
+Q&=\lambda A-2\lambda^2ARA, \notag\\
+\ell&=2\lambda a-4\lambda^2ARa, \notag\\
+c_T&=\lambda c-2\lambda^2a^\top Ra+\tfrac12\log|J|.
+\label{eq:expanded_coefficients}
+\end{align}
+这些系数在规划前固定。若作$Q=Q_+-Q_-$、$Q_\pm\succeq0$，只将正项$\mu^\top Q_+\mu$线性化、保留$-\mu^\top Q_-\mu$，才能得到用于内近似的全局下界。
+
+由于$J(0)=I_s$，总存在足够小的正$\lambda$使$J\succ0$。可从预定$\lambda_0$开始，Cholesky检查失败即将其减半；这只选择指数参数，不改变误差法则或设备域。也可预先列出有限个合法$\lambda$，分别求解式\eqref{eq:planning}并比较可行费用。每个解均由其自身的充分界核验；某个充分域不可行，只说明该指数条件未提供可行方案。
+
+\subsection{退回原候选参考及一个边界}
+取$\bar H=H_1,b=0$，则$V=H_1P+e$，恢复原模型1参考。特别在共同单位方差$\Sigma_e=I_m$下，令$\lambda=1/4$、$d=\Delta H(\widehat p+Bu)$、$\Sigma_D=\Delta H\Sigma_P\Delta H^\top$。消去误差因素后，式\eqref{eq:T}化为
+\begin{equation}
+\begin{split}
+T={}&\tfrac18d^\top(I_m+\Sigma_D/4)^{-1}d\\
+&+\tfrac12\log|I_m+\Sigma_D/4|.
+\end{split} \label{eq:old}
+\end{equation}
+将行列式项移到门槛，正是此前$\kappa=1$的指数条件。一般异方差下使用本文的联合二次式，保留物理不加权MSE。若采用旧文的$\Sigma_e^{-1}$加权损失，应先对两个残差作相同线性变换，并同步换算历史与容差。
+
+通用参考也能显示目标本身的边界。若$\bar H=(H_0+H_1)/2,b=0$且$e$与$P$独立，则
+\[
+L=2e^\top\Delta HP.
+\]
+它在给定$P$下对称，$\delta\ge0$时成功率至多为$1/2$。因此中立预测器不会自动支持90\%地排除某一候选；应保留这种未获得足够方向性证据的结果。
+\end{document}

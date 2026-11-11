@@ -1,0 +1,306 @@
+{
+  "status": "complete",
+  "scope": "synthetic fixed-covariance reference-direction check",
+  "protocol": {
+    "scope": "synthetic direction positive/negative control; not a grid or topology recovery experiment",
+    "voltage_dimension": 1,
+    "time_slots": 1,
+    "power_dimension": 2,
+    "true_reference": [
+      1.0,
+      1.0
+    ],
+    "H0": [
+      1.0,
+      0.0
+    ],
+    "H1": [
+      0.0,
+      1.0
+    ],
+    "intercept": 0.0,
+    "mean_power": [
+      1.0,
+      0.8
+    ],
+    "control_lower": [
+      0.0,
+      0.0
+    ],
+    "control_upper": [
+      3.0,
+      3.0
+    ],
+    "power_covariance": [
+      [
+        0.0025000000000000005,
+        0.0
+      ],
+      [
+        0.0,
+        0.0025000000000000005
+      ]
+    ],
+    "remaining_voltage_sd": 0.1,
+    "cost": "u1^2+u2^2",
+    "delta": 0.0,
+    "beta": 0.9,
+    "lambda_": 0.5,
+    "cases": [
+      "old_reference_H1",
+      "general_true_reference"
+    ],
+    "optimizer": {
+      "NonConvex": 2,
+      "TimeLimit": 15.0,
+      "Threads": 1,
+      "MIPGap": 1e-06,
+      "Seed": 0,
+      "FeasibilityTol": 1e-09,
+      "OptimalityTol": 1e-09,
+      "NumericFocus": 2
+    },
+    "evaluation": {
+      "samples": 32768,
+      "seed": 2026111209,
+      "shared_joint_Gaussian_stream": true,
+      "truth_used_only_for_explicit_oracle_general_case": true
+    },
+    "sources": {
+      "quadratic": "a85a19dfb8f6e8b556769f08aaea55300765c2c4753abe28f26d0e8caed60dfc",
+      "driver": "fef3c60c2fee27040613a33bb1d336f6e53d9911edc14b5642b4a5cbb35612df"
+    },
+    "environment": {
+      "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+      "numpy": "2.4.6",
+      "gurobi": [
+        13,
+        0,
+        3
+      ],
+      "platform": "Windows-10-10.0.26200-SP0"
+    }
+  },
+  "optimization": [
+    {
+      "case": "old_reference_H1",
+      "status": 2,
+      "reference": [
+        0.0,
+        1.0
+      ],
+      "J_eigenvalues": [
+        0.995,
+        0.9999999999999994,
+        1.0099999999999993
+      ],
+      "Q": [
+        [
+          0.49256181899596996,
+          -0.49256181899596996
+        ],
+        [
+          -0.49256181899596996,
+          0.49256181899596996
+        ]
+      ],
+      "q": [
+        0.19702472759838793,
+        -0.19702472759838793
+      ],
+      "const": 0.022171367274650654,
+      "h": 2.302585092994046,
+      "zero_bound": {
+        "score": 0.022171367274650654,
+        "h": 2.302585092994046,
+        "margin": -2.280413725719395,
+        "log_failure_upper": -0.022171367274650654,
+        "failure_upper": 0.9780726110512199,
+        "success_lower": 0.02192738894878006,
+        "sufficient": false
+      },
+      "has_solution": true,
+      "seconds": 0.4096921000018483,
+      "lower_bound": 3.8453204456930976,
+      "objective": 3.8453209574201854,
+      "gap": 1.330778609852461e-07,
+      "solver_constraint_violation": 0.0,
+      "u": [
+        1.9609489940893887,
+        0.0
+      ],
+      "replayed_cost": 3.8453209574201854,
+      "bound": {
+        "score": 2.302585094079657,
+        "h": 2.302585092994046,
+        "margin": 1.0856111565260562e-09,
+        "log_failure_upper": -2.302585094079657,
+        "failure_upper": 0.09999999989143886,
+        "success_lower": 0.9000000001085612,
+        "sufficient": true
+      },
+      "polynomial_score": 2.3025850940796566,
+      "score_expansion_error": 4.440892098500626e-16,
+      "independently_derived_global_lower_bound": 3.845320955420161,
+      "analytic_proof": {
+        "two_nonnegative_axis_minima": [
+          1.9609489935794253,
+          2.3609489935794254
+        ],
+        "reason": "Old score depends only on .2+u1-u2; each sign branch is minimized on one coordinate axis."
+      }
+    },
+    {
+      "case": "general_true_reference",
+      "reference": [
+        1.0,
+        1.0
+      ],
+      "status": 2,
+      "status_source": "saved Gurobi log: Barrier solved model; Optimal objective",
+      "has_solution": true,
+      "u": [
+        1.1312111607299827e-07,
+        1.5749682673243144
+      ],
+      "objective": 2.4805252185602367,
+      "replayed_cost": 2.4805250430785657,
+      "objective_replay_difference": 1.7548167097203304e-07,
+      "lower_bound": null,
+      "solver_lower_bound_status": "continuous-QCP ObjBound returned -infinity; not treated as a finite bound",
+      "gap": null,
+      "gap_status": "MIPGap unavailable for this continuous QCP",
+      "printed_final_barrier_dual": 2.48052453,
+      "independently_derived_global_lower_bound": 2.4805248329902265,
+      "verified_gap_against_analytic_bound": 1.5543885918064914e-07,
+      "analytic_proof": {
+        "dT_du1_box_upper": -0.9745548187085524,
+        "reason": "T strictly decreases as u1 increases over [0,3]^2, while cost increases. Thus u1=0 globally; solve the increasing scalar quadratic in u2.",
+        "exact_scalar_root_u2": 1.5749682006282624
+      },
+      "J_eigenvalues": [
+        0.9925000000000002,
+        1.0000000000000004,
+        1.0075
+      ],
+      "Q": [
+        [
+          -0.5062784781643968,
+          0.0050002812658212015
+        ],
+        [
+          0.0050002812658212015,
+          0.49377777499984377
+        ]
+      ],
+      "q": [
+        -1.0045565063034796,
+        0.8000450025313924
+      ],
+      "const": -0.18228837793022795,
+      "h": 2.302585092994046,
+      "zero_bound": {
+        "score": -0.18228837793022795,
+        "h": 2.302585092994046,
+        "margin": -2.4848734709242737,
+        "log_failure_upper": 0.18228837793022795,
+        "failure_upper": 1.0,
+        "success_lower": -0.0,
+        "sufficient": false
+      },
+      "bound": {
+        "score": 2.3025851382359983,
+        "h": 2.302585092994046,
+        "margin": 4.5241952406627206e-08,
+        "log_failure_upper": -2.3025851382359983,
+        "failure_upper": 0.09999999547580483,
+        "success_lower": 0.9000000045241952,
+        "sufficient": true
+      },
+      "polynomial_score": 2.302585138235998,
+      "score_expansion_error": 4.440892098500626e-16,
+      "model_sha256": "9eb60a70b9b89ba08a8fbbf4f090cacfd2480bc7b9375aeb86c97ba2bdef057b",
+      "solution_sha256": "3039b71ac5afc0296663330dc845c431b91d3b30d7f911bc175a783afce5417b",
+      "log_sha256": "4e6cd6ff92c2dd57fe0272f8c4d6087c197210726ec4b6dc034c6d8b8864a640"
+    }
+  ],
+  "evaluation": [
+    {
+      "case": "zero",
+      "u": [
+        0.0,
+        0.0
+      ],
+      "cost": 0.0,
+      "samples": 32768,
+      "event_S0_greater_S1_count": 75,
+      "event_rate": 0.002288818359375,
+      "model0_selected_count": 32693,
+      "model1_selected_count": 75,
+      "model1_not_selected_rate": 0.997711181640625,
+      "tie_count": 0,
+      "mean_L": -0.36059495551938653,
+      "mean_S0": 0.6515609694693063,
+      "mean_S1": 1.012155924988693,
+      "candidates_are_both_structurally_wrong": true
+    },
+    {
+      "case": "old_reference_H1",
+      "u": [
+        1.9609489940893887,
+        0.0
+      ],
+      "cost": 3.8453209574201854,
+      "samples": 32768,
+      "event_S0_greater_S1_count": 0,
+      "event_rate": 0.0,
+      "model0_selected_count": 32768,
+      "model1_selected_count": 0,
+      "model1_not_selected_rate": 1.0,
+      "tie_count": 0,
+      "mean_L": -8.127248589269602,
+      "mean_S0": 0.6515609694693063,
+      "mean_S1": 8.778809558738908,
+      "candidates_are_both_structurally_wrong": true
+    },
+    {
+      "case": "general_true_reference",
+      "u": [
+        1.1312111607299827e-07,
+        1.5749682673243144
+      ],
+      "cost": 2.4805250430785657,
+      "samples": 32768,
+      "event_S0_greater_S1_count": 32768,
+      "event_rate": 1.0,
+      "model0_selected_count": 0,
+      "model1_selected_count": 32768,
+      "model1_not_selected_rate": 0.0,
+      "tie_count": 0,
+      "mean_L": 4.637970965665006,
+      "mean_S0": 5.650127116863333,
+      "mean_S1": 1.0121561511983266,
+      "candidates_are_both_structurally_wrong": true
+    }
+  ],
+  "denominators": {
+    "planned_models": 2,
+    "retained_solved_models": 2,
+    "evaluation_joint_paths": 32768,
+    "evaluation_policies": 3,
+    "builder_failures_before_optimizer": 2,
+    "actual_optimizer_calls": 3,
+    "general_model_repeated_after_log_attribute_error": 1
+  },
+  "technical_failures": [
+    "Initial two MVar quadratic expressions were passed to addQConstr: build-time API failure, no optimization.",
+    "Attempt2 general solve reached optimality, but MIPGap is unavailable for a continuous QCP; u was not retained.",
+    "Attempt3 retained .sol before metadata access, then JSON rejected nonfinite ObjBound. Final values recovered without another solve."
+  ],
+  "interpretation": "General reference fixes the direction in this oracle-reference toy. Both candidate H matrices omit a true input; these rates concern their relative SSE, not true topology recovery. No physical grid claim.",
+  "no_grid_fits": true,
+  "no_AC": true,
+  "protocol_sha256": "383c98b2eed4449d0eedb85fe4509bb44f5569be24eded03db9cd5de730ffadc",
+  "quote_freeze_sha256": "6d1d8fb0876dc1e3664802be5bb1284dc0008eb7532b32201d266fdfeb46ee55",
+  "recovery_source_sha256": "e99df37375d988235473ec942e5aa5914652c083f8f5a2defb6aad5d94fe19c3"
+}

@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "labels": 36,
+  "unique_AC": 12,
+  "alias_labels": 24,
+  "unique_timepoints": 1152,
+  "max_errors": {
+    "raw_reference_matrix_replay": 0.0,
+    "response_multiplier_replay": 0.0,
+    "causal_delivery_replay": 0.0,
+    "physical_P_increment": 0.0,
+    "physical_Q_increment": 0.0,
+    "saved_power_scene": 0.0,
+    "saved_drop_scene": 0.0,
+    "P_meter_replay": 0.0,
+    "Q_meter_replay": 0.0,
+    "V_meter_replay": 0.0,
+    "root_meter_replay": 0.0,
+    "drop_formula": 0.0,
+    "branch_power_loss": 5.427252273956367e-17,
+    "DistFlow_pu2": 1.1102230246251565e-15,
+    "branch_current_pu": 8.326672684688674e-17,
+    "KCL_nonroot_pu": 6.124241426041359e-12,
+    "MSE_score_replay": 0.0,
+    "new_QP_training_MSE": 1.6940658945086007e-21,
+    "output_QP_KKT_physical": 1.9219947603152124e-19
+  },
+  "independent_actual_audit": true,
+  "actual_new_AC": 0,
+  "theory": {
+    "status": "passed",
+    "check_count": 31
+  },
+  "sparse": {
+    "status": "passed",
+    "passed": 447,
+    "total": 447
+  },
+  "physics": {
+    "converged": 1152,
+    "voltage_violation_cells": 0,
+    "thermal_checked": false
+  },
+  "postrun_patch": {
+    "status": "metadata_and_completed-cache_patch_after_all_observations",
+    "old_source_sha256": "8e16e5ce78596bd70f92e67cb5ee89e3e62cdbe28aadb58209a2b730a64ebf4d",
+    "new_source_sha256": "fb2664310eaa6d7aa6be7dc8f672449147e6773e1d4119f9a6989d800cd06e44",
+    "changes": [
+      "future protocol describes historical RMS not inherited5percent",
+      "historical QP fits counted explicitly; test fits zero",
+      "future protocol describes no-purchase fallback",
+      "completed plan/actual reads return saved receipts without repeating work",
+      "nonzero external intercept explicitly rejected by zero-intercept sparse case branch; generic gate supports bias"
+    ],
+    "numeric_formulas_or_results_changed": false,
+    "exact_run_source": "run_v1/repair_sources.zip"
+  },
+  "cache_replay": {
+    "returned_saved_summary": true,
+    "new_AC": 0,
+    "new_fit": 0
+  }
+}

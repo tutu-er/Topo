@@ -1,0 +1,106 @@
+{
+  "status": "effective_protocol_documentation",
+  "id": "general_reference_QCQP_v1",
+  "created_utc": "2026-11-11T18:53:25.919923+00:00",
+  "scope": "retrospectively selected existing error cases, not an unbiased benchmark",
+  "cases": [
+    [
+      "pengwah18",
+      1000,
+      "v0005"
+    ],
+    [
+      "soumalas11",
+      1002,
+      "v0010"
+    ]
+  ],
+  "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+  "candidate_rule": ".24 contracted, training-QP output library; tau .001 historical view",
+  "pool": "retain every unique output model in source order; R/X frozen",
+  "pair": "historical strict-MSE winner versus nearest different support family by validation MSE",
+  "case_selection_uses_saved_truth": true,
+  "price_uses_truth": false,
+  "selection": "strict physical K*MSE, scaled tie tolerance1e-12; full old validation plus new day w1",
+  "resources": "unchanged all-node heterogeneous inventory, original causal power/state projection",
+  "forecast": "mean of all four already-observed complete days; no future data",
+  "working_law": "historical measured-power forecast RMS; shared P/Q node factors, independent nodes, exact temporal AR1 .7; separate historical raw voltage reference",
+  "actual_law": "original correlated continuous resource response, causal device clipping, original AC and original P/Q/V noise",
+  "probability_scope": "90% sufficient bound conditional on the chosen frozen reference model and working Gaussian law; not topology correctness",
+  "optimizer": {
+    "seconds_per_lambda": 90,
+    "mip_gap": 0.02,
+    "threads": 1
+  },
+  "fallback": "no_purchase when no probability-feasible quote is found",
+  "policies": [
+    "zero",
+    "optimized",
+    "rotation"
+  ],
+  "no_cost_upper_bound": true,
+  "paths": [
+    {
+      "day": 0,
+      "profile": 0,
+      "replicate": 1140000,
+      "response_seed": 2026111400
+    },
+    {
+      "day": 1,
+      "profile": 1,
+      "replicate": 1140173,
+      "response_seed": 2026111401
+    },
+    {
+      "day": 2,
+      "profile": 2,
+      "replicate": 1140346,
+      "response_seed": 2026111402
+    },
+    {
+      "day": 3,
+      "profile": 0,
+      "replicate": 1140519,
+      "response_seed": 2026111403
+    },
+    {
+      "day": 4,
+      "profile": 1,
+      "replicate": 1140692,
+      "response_seed": 2026111404
+    },
+    {
+      "day": 5,
+      "profile": 2,
+      "replicate": 1140865,
+      "response_seed": 2026111405
+    }
+  ],
+  "actual_future_opened_at_freeze": false,
+  "new_fits": 4,
+  "new_topology_search": 0,
+  "reference": "existing raw path model, minimum first192 historical validation MSE; no parameter refit",
+  "reference_audit": "last96 historical validation, already seen development data; not a new global holdout",
+  "primary_planning_pool": "original output library; local additions are a separate same-observation diagnostic",
+  "power_covariance": "four historical daily forecast residual RMS per channel; same-node P/Q factor; preserve original AR1 .7 and independent nodes",
+  "voltage_covariance": "same fixed diagonal SD as previous H1 benchmark; changing the reference does not reduce uncertainty; no duplicate PQ meter term",
+  "lambda_grid": [
+    0.25,
+    0.125,
+    0.0625
+  ],
+  "beta": 0.9,
+  "no_feasible_quote": "return zero with no_purchase status; do not pay an unqualified fallback",
+  "original_frozen_protocol_sha256": "2607365ab234c429b5b0ee8ade99b82cfc4a730c5cbdd3509deb4b5fade2a0a6",
+  "new_historical_QP_calls": 4,
+  "new_test_fits": 0,
+  "run_snapshot": "private run_v1/repair_sources.zip and source_snapshot.zip",
+  "current_source_sha256": {
+    "local_candidates.py": "18bba18187fa73116f2ce7b09528961b1fe0741d0893736bcb7da9333d7f4d13",
+    "nominal_solver.py": "52a75c14e4b47c6667f7f448405c08b1e974194d24379281168feac5211ab72c",
+    "quadratic.py": "a85a19dfb8f6e8b556769f08aaea55300765c2c4753abe28f26d0e8caed60dfc",
+    "study.py": "fb2664310eaa6d7aa6be7dc8f672449147e6773e1d4119f9a6989d800cd06e44"
+  },
+  "metadata_clarifications_preserved": true
+}

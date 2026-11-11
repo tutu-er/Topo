@@ -1,3 +1,12 @@
+## 一般电压参考QCQP修补，2026-11-12
+
+- public dr_pricing/mse_reference_repair：quadratic.py为可独立调用的高斯二次式→固定Q/q/const/h；study.py复用原设备与AC、保留AR.7相关性；local_candidates.py有限历史族补充；nominal_solver.py原能力内无名义投影的内域计算。theory/main.tex、reference_repair.pdf及BUILD为两页完整推导，旧H1是特例。README/REPORT/PROTOCOL/RESULTS/AUDIT和POSITIVE_CONTROL全为源码/无轨迹汇总。
+- private wzzt_reference_repair_v1：reference_qualification为28个历史ridge拟合的失败开发核查；raw_reference_*为原路径model004的历史选择(0新ref拟合)，ref_actual_projection_check为旧6日方向事后诊断。theory_audit31、sparse_audit447独立核验，pdf_qa保存两页渲染。合成正控完整技术失败及3次小求解按POSITIVE_CONTROL.json的来源指针恢复，不当配网恢复。
+- run_v1已完成prepare/plan/actual：4历史QP、5个90s无解λ分支/1PD失效、两网各6新日/12unique AC/36labels，complete已写。所有合同0，24别名不作独立样本；SOU补充库local000真族6/6恢复来自候选库，不是DR。repair_actual_audit.py/json保存原/扩库MSE、物理、交付、量测及时间顺序独立重放。不要重启重复。
+- reachability_v1为一次SOU同旧费的60s裕量最大化，未解；reachability_bound_review补入预先已知较好可行seed，原求解器只留zero；裕量[-8.5514,28.8918]仍跨0。inner_protocol/inner_v1只一次60s名义可行子域求解，状态3约29s，不推出原域infeasible。不继续刷λ/迭代或付费fallback。
+- run_v1/source_snapshot.zip(旧设备/物理)和repair_sources.zip(本轮精确源)为复现入口；原冻结协议三处继承文字勘误在PROTOCOL_CLARIFICATION.json。postrun_source_patch记录未来metadata、缓存和非零bias保护修改，数值函数未改。当前源码重新调用完成态只读回执，不重跑AC；重放原未完成阶段须用对应源快照。非零截距通用quadratic支持，当前AR案例入口仅零bias并显式拒绝非零。
+- 下一有意义阶段是历史资格筛查，保留两旧零收益/覆盖不足控制。须在原信息时序下有更正确候选可比较、参考预测方向可信、实际优化有可核验可行点，才开新AC；有限参考仍非全参数覆盖。当前没证实非零严格MSE配网DR收益，不把合成过线或零费候选修复改写成该收益。
+
 ## 已有错误MSE算例DR，2026-11-12
 
 - public dr_pricing/mse_existing_cases/{core.py,run.py,README.md,REPORT.md,PROTOCOL.json,RESULTS.json,AUDIT.json}。历史MSE族/资源独立接口，不经旧MAE资格；完整输出库固定，参数不在新日重拟合，主评分strict物理MSE。原代码/默认不改。
