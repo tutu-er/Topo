@@ -1,0 +1,157 @@
+{
+  "kind": "strict96_64_32_development_replay",
+  "created_utc": "2026-11-11T18:49:34.188912+00:00",
+  "method": "101",
+  "kappas": [
+    0.0,
+    0.001,
+    0.003
+  ],
+  "config": {
+    "alpha": 0.003,
+    "block_limit": 5,
+    "response_bound": 2.0,
+    "total_seconds": 14400.0,
+    "per_mip_seconds": 3600.0,
+    "qp_seconds": 300.0,
+    "output_reserve_seconds": 600.0,
+    "zero_tol": 1e-09,
+    "gain_tol": 1e-10,
+    "mip_gap": 0.0001,
+    "mip_abs_gap": 1e-07,
+    "validation_tie": 1e-12,
+    "forward_fraction": 0.5,
+    "relative_gain": 0.0
+  },
+  "inputs": {
+    "input00": {
+      "path": "inputs/input00.npz",
+      "sha256": "5b29ac0d75e78cf34cb74ea58aab5f6f8662eedc226d971f8b123134608012e7",
+      "labels": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115
+      ],
+      "training_sha256": "e72112ed78da6918502ced32376a810bda7f76d450af93f68c8ff57d747e98d9",
+      "selection_sha256": "1da95922fd9e16ad780813f85d21311f8ecbf5d6508275978da908f3a07f228d"
+    },
+    "input01": {
+      "path": "inputs/input01.npz",
+      "sha256": "0d66c919f1c0ab83354d73724b1e61ef0aefba5b50ca939ab3c153baf12b4183",
+      "labels": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111
+      ],
+      "training_sha256": "350b5709a35cf81ccb9b3ca7f5b30d5e24de25c5bfc6ebb06eb6987b1824e62f",
+      "selection_sha256": "ed7669ef40627db4965f24d494679cef936aae4044c5742e4ca725c082582666"
+    },
+    "input02": {
+      "path": "inputs/input02.npz",
+      "sha256": "f99e7671a96070ba390f39225c41198ebf87d9851251de34a3721fd81ac36c12",
+      "labels": [
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216
+      ],
+      "training_sha256": "aee966fdee08a3bc19281a84c8138c7a5b5c518aa26319d90dcdb613f4396664",
+      "selection_sha256": "e27db2115e2c07735f8ac46504608e0b56e66104a23661efdcc85a32d9fb0b42"
+    },
+    "input03": {
+      "path": "inputs/input03.npz",
+      "sha256": "ebef82bf0bddb7fdee8654ef51969e3cef6463d988b519925a43edf990ccc115",
+      "labels": [
+        301,
+        302,
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309,
+        310,
+        311,
+        312,
+        313,
+        314,
+        315,
+        316,
+        317,
+        318
+      ],
+      "training_sha256": "bfea29bb43fa72df729e732768363b3ce3fe9bb8ca7d9341ea95e374e2317705",
+      "selection_sha256": "1e9a5ef32172e9c1faf8d3588540b39fb90e57d65ee25ff8daed7e6d3f7ddb07"
+    }
+  },
+  "source_sha256": {
+    "algorithm.py": "0cc4143d8245a72a202ab1a96db7ffcec92adbb5e3ba38a199a3394c654f5af7",
+    "optimization.py": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
+    "trees.py": "82501475348a0aee575270440d712cdc49f20e112f45b543f7623b520ef0ae44",
+    "data.py": "d8aa83f32a7001f7289ada4bb93ecfbc612a17bd64da44b048917139bc2cbfa3",
+    "competition.py": "d1c22d783697c1aa414a23ff8c5a6ea5e53fb2ac402c46b3da318bcc951669ff",
+    "tools/strict96.py": "3a3198df0d622f99160caf10f36c47c63fe1d421ac76cc79b6aa39fbef0be610"
+  },
+  "split": {
+    "total": 96,
+    "train": [
+      0,
+      64
+    ],
+    "selection": [
+      64,
+      96
+    ],
+    "shuffle": false
+  },
+  "workers": 4,
+  "project_root": "D:\\0-github_workspace\\Topo",
+  "historical_truth_seen": true,
+  "independent_blind_evaluation": false,
+  "information_policy": "sole train96 only; train64 fits; final32 selects frozen models; no validation/test NPZ reads",
+  "common_charge": "one common64 preparation per input, charged once to every kappa",
+  "timing_scope": "worker import/load/common and per-fit work; final atomic writes/spawn/manager overhead excluded",
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "executable": "D:\\apps\\miniconda3\\envs\\Topo\\python.exe",
+    "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "gurobipy": "13.0.3"
+    }
+  },
+  "evaluation_map_sha256": "ccda55e9ff4af53495bb9283f885b088fe50400ff7000223742f0f85b3eff450"
+}

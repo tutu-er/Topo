@@ -2,6 +2,20 @@
 
 本目录的实验调用共享的可读算法实现，不导入原项目包。48组历史观测已随上一级目录携带；新生成数据使用本目录自身的生成器。新运行结果属于独立重构版本，不应直接作为历史120输入或旧48输入分数的重复。
 
+## 总96点的独立入口
+
+```powershell
+python -I -B tools/strict96.py freeze outputs/strict96_new
+python -I -B tools/strict96.py run outputs/strict96_new
+# 等12项终态、封存和边界检查之后才评分
+python -I -B tools/strict96.py grade outputs/strict96_new
+python -I -B tools/analyze_strict96.py outputs/strict96_new
+```
+
+严格入口固定四输入、101和κ=0/.001/.003。每输入仅一个96点文件，前64训练、后32选择；不同输入互不参与κ选择。不读取旧验证/测试观测，不全96重拟合，没有独立预测测试集。已完成12/12拟合及独立复核，结果见[strict96报告](strict96_20261112/CONCLUSIONS.md)。该目录的records.zip只包含两次strict96原始尝试和分析源码，保留首次方法前失败，不含旧验证/测试观测。
+
+下文benchmark/full_benchmark是历史多日接口，使用96训练＋288验证＋96测试，不能用于宣称总96点的结果。便携整包仍带其数据用于历史复现；严格运行由冻结白名单限制输入。
+
 ## 方法与消融
 
 三位数字依次表示R、T、E开关。全部八格与两个树基线构成十种方法：

@@ -99,7 +99,8 @@ def python_read_guard(runtime, project_root, allowed_npz):
         if event != "open" or isinstance(args[0], int):
             return
         path = Path(os.fsdecode(args[0])).resolve(); mode, flags = args[1], args[2]
-        reading = ("r" in mode or "+" in mode) if isinstance(mode, str) else (flags & os.O_ACCMODE) != os.O_WRONLY
+        access_mask = os.O_WRONLY | os.O_RDWR  # O_ACCMODE is not exposed on Windows.
+        reading = ("r" in mode or "+" in mode) if isinstance(mode, str) else (flags & access_mask) != os.O_WRONLY
         if not reading:
             return
         if path.suffix.lower() == ".npz" and path not in allowed:

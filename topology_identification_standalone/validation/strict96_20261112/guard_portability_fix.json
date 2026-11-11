@@ -1,0 +1,17 @@
+{
+  "scope": "Windows audit-hook portability fix after preserved preprocessing failure",
+  "failed_output": "outputs\\strict96_20261112_001",
+  "failed_records": 12,
+  "method_started_count": 0,
+  "errors": [
+    "AttributeError(\"module 'os' has no attribute 'O_ACCMODE'\")"
+  ],
+  "old_protocol_sha256": "97e0fcf2966ada677ba799fb0966c91b835eefcb5da064cc0d7ced4560609b87",
+  "fix": "Use O_WRONLY | O_RDWR rather than unavailable Windows O_ACCMODE; exercise os.open as well as Python open",
+  "targeted_tests": 6,
+  "passed": true,
+  "new_runner_sha256": "3a3198df0d622f99160caf10f36c47c63fe1d421ac76cc79b6aa39fbef0be610",
+  "new_test_sha256": "3f356275183463f1ce814db566fb8ab17dc2355cc3052d395f38eb684735d3b0",
+  "old_attempts_modified": false,
+  "new_output": "outputs/strict96_20261112_002"
+}

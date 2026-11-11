@@ -154,15 +154,23 @@ class Strict96Tests(unittest.TestCase):
             own, other = runtime/"own.npz", runtime/"other.npz"
             own.write_bytes(b"a"); other.write_bytes(b"b"); secret = project/"case.json"; secret.write_text("secret")
             code = '''
-import importlib.util, pathlib, sys
+import importlib.util, pathlib, sys, os
 spec=importlib.util.spec_from_file_location('guard',sys.argv[1]); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
 runtime,project,own,other,secret=map(pathlib.Path,sys.argv[2:])
 module.python_read_guard(runtime,project,[own])
 assert own.read_bytes()==b'a'
+descriptor=os.open(own,os.O_RDONLY)
+assert os.read(descriptor,1)==b'a'
+os.close(descriptor)
 for path in (other,secret):
     try: path.read_bytes()
     except PermissionError: pass
     else: raise AssertionError('unapproved read succeeded')
+    try: descriptor=os.open(path,os.O_RDONLY)
+    except PermissionError: pass
+    else:
+        os.close(descriptor)
+        raise AssertionError('unapproved descriptor read succeeded')
 '''
             result = subprocess.run([sys.executable, "-I", "-B", "-c", code, str(ROOT/"tools/strict96.py"),
                                      str(runtime), str(project), str(own), str(other), str(secret)], capture_output=True, text=True)
