@@ -1,0 +1,545 @@
+{
+  "study": "fixed_f_probability_v1",
+  "targets": {
+    "q_star": 0.9,
+    "eta": 0.9,
+    "beta": 0.9
+  },
+  "scope": "Conditional frozen fine/coarse Gaussian pair; fixed background power covariance; deterministic nominal DR in planning. Sufficient conditions, not exact probability constraints.",
+  "paper15": {
+    "history_log_odds": 112.06703521082892,
+    "history_training_rows": 288,
+    "history_validation_rows": 288,
+    "zero_T": 12.166446024067351,
+    "covariance_shape": [
+      1440,
+      1440
+    ],
+    "minimum_covariance_eigenvalue": -1.2862000334349086e-16,
+    "covariance_roundoff_repair_max": 1.2862000334349086e-16,
+    "plans": {
+      "mean": {
+        "mode": "mean",
+        "qualified": true,
+        "initial_log_odds": 112.06703521082892,
+        "q_star": 0.9,
+        "eta": 0.9,
+        "beta": 0.9,
+        "threshold": -54.42407969298036,
+        "solver": {
+          "objective": 0.0,
+          "objbound": 0.0,
+          "mipgap": 0.0,
+          "solver_status": "CERTIFIED_COST_ZERO",
+          "solver_performed": false,
+          "optimal_for_model": true,
+          "has_solution": true,
+          "qualified": true,
+          "global_gap_target_met": true,
+          "verified_relative_gap": 0.0,
+          "evidence": 12.16644602406736,
+          "threshold": -54.42407969298036,
+          "model_evidence": 12.16644602406736,
+          "replay_delivery_error": 0.0,
+          "fee_error": 0.0,
+          "evidence_replay_error": 0.0,
+          "device_audit": {
+            "power_violation_kw": 0.0,
+            "energy_violation_kwh": 0.0,
+            "deadline_violation_kwh": 0.0,
+            "passed": true,
+            "absolute_DR_kwh": 0.0,
+            "net_DR_kwh": 0.0,
+            "max_sum_abs_kw": 0.0
+          },
+          "certificate": "Nonnegative fees and a zero-fee feasible point; no Gurobi optimization run",
+          "seconds": 0.009054800000740215
+        },
+        "seconds": 1.8703268999961438,
+        "covariance_shape": [
+          1440,
+          1440
+        ],
+        "covariance_sha256": "4dbf61ef3944eec2799b3b6d016df1e496998047dc4a372dee2b5c14b61fe216",
+        "statistical_scope": "conditional on fine frozen Gaussian candidate, sufficient guarantee only",
+        "fixed_F_scope": "Fixed background forecast error only: training RMS, declared4/8percent profile, fullAR0.8/spatial0.25. Nominal DR deterministic in plan; actual clipped random DR is a separate mismatch test.",
+        "fee": 0.0,
+        "T": 12.16644602406736,
+        "guarantees": {
+          "mean_posterior_lower_bound": 1.0,
+          "posterior_event_lower_bound": 1.0,
+          "log_mean_failure_upper_bound": -68.89311081004176,
+          "log_event_failure_upper_bound": -67.10135134081371
+        },
+        "nominal_device": {
+          "power_violation_kw": 0.0,
+          "energy_violation_kwh": 0.0,
+          "deadline_violation_kwh": 0.0,
+          "passed": true,
+          "absolute_DR_kwh": 0.0,
+          "net_DR_kwh": 0.0,
+          "max_sum_abs_kw": 0.0
+        }
+      },
+      "probability": {
+        "mode": "probability",
+        "qualified": true,
+        "initial_log_odds": 112.06703521082892,
+        "q_star": 0.9,
+        "eta": 0.9,
+        "beta": 0.9,
+        "threshold": -52.63232022375231,
+        "solver": {
+          "objective": 0.0,
+          "objbound": 0.0,
+          "mipgap": 0.0,
+          "solver_status": "CERTIFIED_COST_ZERO",
+          "solver_performed": false,
+          "optimal_for_model": true,
+          "has_solution": true,
+          "qualified": true,
+          "global_gap_target_met": true,
+          "verified_relative_gap": 0.0,
+          "evidence": 12.16644602406736,
+          "threshold": -52.63232022375231,
+          "model_evidence": 12.16644602406736,
+          "replay_delivery_error": 0.0,
+          "fee_error": 0.0,
+          "evidence_replay_error": 0.0,
+          "device_audit": {
+            "power_violation_kw": 0.0,
+            "energy_violation_kwh": 0.0,
+            "deadline_violation_kwh": 0.0,
+            "passed": true,
+            "absolute_DR_kwh": 0.0,
+            "net_DR_kwh": 0.0,
+            "max_sum_abs_kw": 0.0
+          },
+          "certificate": "Nonnegative fees and a zero-fee feasible point; no Gurobi optimization run",
+          "seconds": 0.009568800000124611
+        },
+        "seconds": 1.8994310000052792,
+        "covariance_shape": [
+          1440,
+          1440
+        ],
+        "covariance_sha256": "4dbf61ef3944eec2799b3b6d016df1e496998047dc4a372dee2b5c14b61fe216",
+        "statistical_scope": "conditional on fine frozen Gaussian candidate, sufficient guarantee only",
+        "fixed_F_scope": "Fixed background forecast error only: training RMS, declared4/8percent profile, fullAR0.8/spatial0.25. Nominal DR deterministic in plan; actual clipped random DR is a separate mismatch test.",
+        "fee": 0.0,
+        "T": 12.16644602406736,
+        "guarantees": {
+          "mean_posterior_lower_bound": 1.0,
+          "posterior_event_lower_bound": 1.0,
+          "log_mean_failure_upper_bound": -68.89311081004176,
+          "log_event_failure_upper_bound": -67.10135134081371
+        },
+        "nominal_device": {
+          "power_violation_kw": 0.0,
+          "energy_violation_kwh": 0.0,
+          "deadline_violation_kwh": 0.0,
+          "passed": true,
+          "absolute_DR_kwh": 0.0,
+          "net_DR_kwh": 0.0,
+          "max_sum_abs_kw": 0.0
+        }
+      }
+    },
+    "conditional_sampling": {
+      "status": "complete",
+      "unique_random_paths": 16384,
+      "policy_outputs": 49152,
+      "independent_event_days": 0,
+      "synthetic_working_model": true,
+      "seed": 2026111501,
+      "seconds": 1.962752499995986,
+      "expected_targets": {
+        "mean": 0.9,
+        "posterior_eta": 0.9,
+        "event": 0.9
+      },
+      "metrics": {
+        "mean": {
+          "count": 16384,
+          "mean_posterior_F": 1.0,
+          "mean_posterior_standard_error": 0.0,
+          "log_mean_one_minus_posterior": -128.17527991864245,
+          "posterior_event_successes": 16384,
+          "posterior_event_fraction": 1.0,
+          "voltage_integrated_event_estimate": 1.0,
+          "mean_S": 99.99222905056213,
+          "mean_log_odds": 162.24017336519526
+        },
+        "probability": {
+          "count": 16384,
+          "mean_posterior_F": 1.0,
+          "mean_posterior_standard_error": 0.0,
+          "log_mean_one_minus_posterior": -128.17527991864245,
+          "posterior_event_successes": 16384,
+          "posterior_event_fraction": 1.0,
+          "voltage_integrated_event_estimate": 1.0,
+          "mean_S": 99.99222905056213,
+          "mean_log_odds": 162.24017336519526
+        },
+        "natural_zero": {
+          "count": 16384,
+          "mean_posterior_F": 1.0,
+          "mean_posterior_standard_error": 0.0,
+          "log_mean_one_minus_posterior": -128.17527991864245,
+          "posterior_event_successes": 16384,
+          "posterior_event_fraction": 1.0,
+          "voltage_integrated_event_estimate": 1.0,
+          "mean_S": 99.99222905056213,
+          "mean_log_odds": 162.24017336519526
+        }
+      },
+      "no_actual_AC_or_truth_read": true
+    },
+    "actual": {
+      "new_AC_calls": 0,
+      "new_fit_calls": 0,
+      "unique_actual_observations": 32,
+      "distinct_nominal_contracts": 1,
+      "independent_random_paths": 32,
+      "natural_days": 1,
+      "already_seen_natural_day": true,
+      "mode_results": {
+        "mean": {
+          "reused_from": "same_saved_zero_contract_32_paths",
+          "physical_contracts": 1,
+          "paths": 32,
+          "failures": 0,
+          "mean_posterior_F": 1.0,
+          "mean_one_minus_posterior_F": 2.0384093608924843e-63,
+          "posterior_eta": 0.9,
+          "posterior_threshold_successes": 32,
+          "posterior_threshold_denominator": 32,
+          "log_odds_min": 141.47361870927747,
+          "log_odds_mean": 154.75224624448524,
+          "legacy_selector": {
+            "complete_paths": 32,
+            "resolved": 32,
+            "undecided": 0,
+            "full_error_sum": 32,
+            "exact": 0,
+            "selected_counts": {
+              "coarse": 32,
+              "refined": 0,
+              "undecided": 0
+            }
+          },
+          "bayes_MAP": {
+            "complete_paths": 32,
+            "resolved": 32,
+            "undecided": 0,
+            "full_error_sum": 0,
+            "exact": 32,
+            "selected_counts": {
+              "coarse": 0,
+              "refined": 32,
+              "undecided": 0
+            }
+          },
+          "bayes_confidence": {
+            "complete_paths": 32,
+            "resolved": 32,
+            "undecided": 0,
+            "full_error_sum": 0,
+            "exact": 32,
+            "selected_counts": {
+              "coarse": 0,
+              "refined": 32,
+              "undecided": 0
+            }
+          },
+          "fee": 0.0,
+          "absolute_DR_kwh": 0.0
+        },
+        "probability": {
+          "reused_from": "same_saved_zero_contract_32_paths",
+          "physical_contracts": 1,
+          "paths": 32,
+          "failures": 0,
+          "mean_posterior_F": 1.0,
+          "mean_one_minus_posterior_F": 2.0384093608924843e-63,
+          "posterior_eta": 0.9,
+          "posterior_threshold_successes": 32,
+          "posterior_threshold_denominator": 32,
+          "log_odds_min": 141.47361870927747,
+          "log_odds_mean": 154.75224624448524,
+          "legacy_selector": {
+            "complete_paths": 32,
+            "resolved": 32,
+            "undecided": 0,
+            "full_error_sum": 32,
+            "exact": 0,
+            "selected_counts": {
+              "coarse": 32,
+              "refined": 0,
+              "undecided": 0
+            }
+          },
+          "bayes_MAP": {
+            "complete_paths": 32,
+            "resolved": 32,
+            "undecided": 0,
+            "full_error_sum": 0,
+            "exact": 32,
+            "selected_counts": {
+              "coarse": 0,
+              "refined": 32,
+              "undecided": 0
+            }
+          },
+          "bayes_confidence": {
+            "complete_paths": 32,
+            "resolved": 32,
+            "undecided": 0,
+            "full_error_sum": 0,
+            "exact": 32,
+            "selected_counts": {
+              "coarse": 0,
+              "refined": 32,
+              "undecided": 0
+            }
+          },
+          "fee": 0.0,
+          "absolute_DR_kwh": 0.0
+        }
+      },
+      "denominators": "Both zero plans and the no-reward control reuse the SAME 32 observations; do not add mode denominators.",
+      "execution_law": "Saved original projected heterogeneous response and P/Q/V metering; not a new fixed-F physical generator.",
+      "posterior_scope": "Fixed pair and the same conditional Gaussian working likelihood.",
+      "original_physical_seeds": {
+        "response": 2026111303,
+        "meter": 2026111304
+      }
+    }
+  },
+  "toy": {
+    "plans": {
+      "mean": {
+        "mode": "mean",
+        "qualified": true,
+        "initial_log_odds": 0.0,
+        "q_star": 0.9,
+        "eta": 0.9,
+        "beta": 0.9,
+        "threshold": 1.6094379124341005,
+        "solver": {
+          "solver_status": 2,
+          "solver_performed": true,
+          "has_solution": true,
+          "solver_objective": 13.164912970334738,
+          "objbound": 13.164912970334738,
+          "mipgap": 0.0,
+          "optimal_for_model": false,
+          "global_gap_target_met": true,
+          "threshold": 1.6094379124341005,
+          "variables": 16,
+          "binary_variables": 2,
+          "general_constraints": 2,
+          "nodes": 3.0,
+          "qualified": true,
+          "objective": 13.164912970334738,
+          "evidence": 1.6094379124440512,
+          "model_evidence": 1.6094379124440512,
+          "replay_delivery_error": 0.0,
+          "request_bound_repair_max": 0.0,
+          "fee_error": 0.0,
+          "evidence_replay_error": 0.0,
+          "device_audit": {
+            "power_violation_kw": 0.0,
+            "energy_violation_kwh": 0.0,
+            "deadline_violation_kwh": 0.0,
+            "passed": true,
+            "absolute_DR_kwh": 2.565629841806368,
+            "net_DR_kwh": 0.0,
+            "max_sum_abs_kw": 2.565629841806368
+          },
+          "verified_relative_gap": 0.0,
+          "optimality_scope": "Global solver bounds to requested relative gap, subject to numerical tolerances",
+          "seconds": 0.11567179999838118
+        },
+        "seconds": 0.13454510000156006,
+        "covariance_shape": [
+          2,
+          2
+        ],
+        "covariance_sha256": "3d8f6bf2f0066088d9c7bd5133cad358e96f5db9ca45ecd6ede40d236bceacc7",
+        "statistical_scope": "conditional on fine frozen Gaussian candidate, sufficient guarantee only",
+        "fixed_F_scope": "Pure synthetic installation: fixed white difference covariance0.25I2, original capability and energy constraints unchanged.",
+        "fee": 13.164912970334738,
+        "T": 1.6094379124440512,
+        "guarantees": {
+          "mean_posterior_lower_bound": 0.9000000000009951,
+          "posterior_event_lower_bound": 0.40000000000597047,
+          "log_mean_failure_upper_bound": -2.3025850930039966,
+          "log_event_failure_upper_bound": -0.5108256237759414
+        },
+        "nominal_device": {
+          "power_violation_kw": 0.0,
+          "energy_violation_kwh": 0.0,
+          "deadline_violation_kwh": 0.0,
+          "passed": true,
+          "absolute_DR_kwh": 2.565629841806368,
+          "net_DR_kwh": 0.0,
+          "max_sum_abs_kw": 2.565629841806368
+        }
+      },
+      "probability": {
+        "mode": "probability",
+        "qualified": false,
+        "initial_log_odds": 0.0,
+        "q_star": 0.9,
+        "eta": 0.9,
+        "beta": 0.9,
+        "threshold": 3.401197381662156,
+        "solver": {
+          "solver_status": 3,
+          "solver_performed": true,
+          "has_solution": false,
+          "solver_objective": null,
+          "objbound": null,
+          "mipgap": null,
+          "optimal_for_model": false,
+          "global_gap_target_met": false,
+          "threshold": 3.401197381662156,
+          "variables": 16,
+          "binary_variables": 2,
+          "general_constraints": 2,
+          "nodes": 0.0,
+          "qualified": false,
+          "objective": null,
+          "seconds": 0.08619829999952344
+        },
+        "seconds": 0.10465939999994589,
+        "covariance_shape": [
+          2,
+          2
+        ],
+        "covariance_sha256": "3d8f6bf2f0066088d9c7bd5133cad358e96f5db9ca45ecd6ede40d236bceacc7",
+        "statistical_scope": "conditional on fine frozen Gaussian candidate, sufficient guarantee only",
+        "fixed_F_scope": "Pure synthetic installation: fixed white difference covariance0.25I2, original capability and energy constraints unchanged."
+      }
+    },
+    "analytic": {
+      "S_required_mean": 13.164912970250157,
+      "max_S": 18.0,
+      "max_T": 2.1782716806399645,
+      "hE": 1.6094379124341003,
+      "hP": 3.401197381662156,
+      "event_required_S": 28.394868458688627,
+      "solver_mean_fee_error": 8.458123090804293e-11,
+      "deterministic_power_mean_exact_S90": 8.911544527571596
+    },
+    "exact_and_sample": {
+      "natural_zero": {
+        "nominal_S": 0.0,
+        "T": 0.060624621816434854,
+        "theoretical_bounds": {
+          "mean_posterior_lower_bound": 0.5294117647058824,
+          "posterior_event_lower_bound": -0.0,
+          "log_mean_failure_upper_bound": -0.7537718023763802,
+          "log_event_failure_upper_bound": 1.037987666851675
+        },
+        "exact_mean_posterior": 0.5518464319262341,
+        "exact_posterior_event_probability": 0.02009920033507824,
+        "mean_quadrature_error": 8.681761008579416e-11,
+        "event_quadrature_error": 4.7991248879795145e-11,
+        "monte_carlo": {
+          "count": 16384,
+          "mean_posterior_F": 0.550446973442797,
+          "mean_posterior_standard_error": 0.0011902325119696913,
+          "log_mean_one_minus_posterior": -0.7995014641589293,
+          "posterior_event_successes": 315,
+          "posterior_event_fraction": 0.01922607421875,
+          "voltage_integrated_event_estimate": 0.01969824039549871,
+          "mean_S": 0.4964446402960711,
+          "mean_log_odds": 0.24317707764032653
+        },
+        "event_binomial_95_interval": [
+          0.017178588047472503,
+          0.02144665142864551
+        ]
+      },
+      "mean": {
+        "nominal_S": 13.164912970250157,
+        "T": 1.6094379124341003,
+        "theoretical_bounds": {
+          "mean_posterior_lower_bound": 0.9,
+          "posterior_event_lower_bound": 0.3999999999999999,
+          "log_mean_failure_upper_bound": -2.3025850929940455,
+          "log_event_failure_upper_bound": -0.5108256237659905
+        },
+        "exact_mean_posterior": 0.9437899216355201,
+        "exact_posterior_event_probability": 0.8762098157413073,
+        "mean_quadrature_error": 2.0389349497597347e-10,
+        "event_quadrature_error": 1.026614503901847e-11,
+        "monte_carlo": {
+          "count": 16384,
+          "mean_posterior_F": 0.9431269236247264,
+          "mean_posterior_standard_error": 0.0012363139342706937,
+          "log_mean_one_minus_posterior": -2.8669332242562104,
+          "posterior_event_successes": 14311,
+          "posterior_event_fraction": 0.87347412109375,
+          "voltage_integrated_event_estimate": 0.8751194431762772,
+          "mean_S": 13.60310197605967,
+          "mean_log_odds": 6.756037986591164
+        },
+        "event_binomial_95_interval": [
+          0.8682868265215995,
+          0.8785284291655108
+        ]
+      },
+      "boundary": {
+        "nominal_S": 18.0,
+        "T": 2.1782716806399645,
+        "theoretical_bounds": {
+          "mean_posterior_lower_bound": 0.9433814642819298,
+          "posterior_event_lower_bound": 0.6602887856915787,
+          "log_mean_failure_upper_bound": -2.87141886119991,
+          "log_event_failure_upper_bound": -1.0796593919718547
+        },
+        "exact_mean_posterior": 0.9712478554409999,
+        "exact_posterior_event_probability": 0.938270637276425,
+        "mean_quadrature_error": 1.2094162869424972e-10,
+        "event_quadrature_error": 1.20315917949214e-11,
+        "monte_carlo": {
+          "count": 16384,
+          "mean_posterior_F": 0.9709488986916457,
+          "mean_posterior_standard_error": 0.0009151516479614663,
+          "log_mean_one_minus_posterior": -3.538698885616089,
+          "posterior_event_successes": 15358,
+          "posterior_event_fraction": 0.9373779296875,
+          "voltage_integrated_event_estimate": 0.9376605135333558,
+          "mean_S": 18.428326121846673,
+          "mean_log_odds": 9.161798725530657
+        },
+        "event_binomial_95_interval": [
+          0.9335592408703207,
+          0.9410404233737687
+        ]
+      }
+    },
+    "no_AC_or_grid_recovery_claim": true,
+    "probability_infeasibility": "Sufficient bound needs nominal S28.3948684587; unchanged capability permits18. Exact original posterior-event target is feasible at predeclared full-capacity benchmark."
+  },
+  "development_failures": [
+    {
+      "kind": "test_expectation",
+      "detail": "A synthetic prior3 did not suffice for analytical zero event bound; test fixture corrected to4, no scientific inputs changed."
+    },
+    {
+      "kind": "CLI_import",
+      "detail": "Standalone entry imported nested package without parent; fixed and regression test added before scientific planning."
+    }
+  ],
+  "completed_planning_attempts": 4,
+  "qualified_plans": 3,
+  "certified_infeasible_sufficient_programs": 1,
+  "timeouts": 0,
+  "new_AC_calls": 0,
+  "private_recovery_root": "wzzt_fixed_f_probability_v1",
+  "new_identification_or_refitting_calls": 0
+}

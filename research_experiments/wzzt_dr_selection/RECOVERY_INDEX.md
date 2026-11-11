@@ -1,3 +1,11 @@
+## 固定F概率充分条件，2026-11-11
+
+- 活动入口dr_pricing/bayes_qcqp/{fixed_f.py,fixed_f_run.py,FIXED_F_REPORT.md,FIXED_F_PROTOCOL.json,FIXED_F_RESULTS.json}；fixed_f_theory保存完整推导，example/fixed_f.json和fixed_f_arrays.npz为纯合成安装输入。原solver只增加稠密跨时二次接口，保留原设备图，不重写RNJ/WZZT。
+- 私有wzzt_fixed_f_probability_v1：prepared/protocol_frozen保存完整288/288历史和固定fullC来源；paper_mean/paper_probability均解析全局零费；toy_mean全局上下界吻合，toy_probability保存INFEASIBLE，toy_boundary为事前固定诊断而非优化解。4计划均完成，勿重跑。
+- paper_sample/toy_sample各16384条CRN工作模型路径，三个策略输出不相加分母；actual_reuse验证双新合同均零后复用同一旧自然日32观察，0新AC/fit/W。Bayesian32/32与原MAE0/32属于判据对照，不是DR收益。
+- independent_audit.py/json保存fullC矩阵直接解、toy解析费用与非中心χ²确定积分、开发测试/CLI初次失败说明。test_run_integration初次测试失败与v2、test_cli_fix留存。运行源快照/种子/输入hash齐，报价与轨迹私有。
+- 两条件仅为细候选生成的固定Gaussian模型下充分保证：均值例有效；事件界保守到原程序不可行而精确概率可行。当前paper15零收益结论不改旧MAE的付费效果。没有新增预算/设备能力/噪声/先验调整。
+
 ## 损失口径完整推导，2026-11-11
 
 - dr_pricing/bayes_qcqp/loss_conventions保存main.tex、references.bib、README和编译核验记录。原MAE与Gaussian平方评分分版本，当前DR适配器0.1%接受/3%验证与通用核心规则明确分开。

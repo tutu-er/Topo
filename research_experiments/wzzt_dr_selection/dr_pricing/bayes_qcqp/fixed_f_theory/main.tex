@@ -1,0 +1,465 @@
+% !TeX program = xelatex
+\documentclass[UTF8,11pt,a4paper,fontset=fandol]{ctexart}
+\usepackage[left=24mm,right=24mm,top=23mm,bottom=24mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,booktabs,tabularx,longtable,array}
+\usepackage{xcolor,hyperref,enumitem}
+\hypersetup{unicode,colorlinks,linkcolor=blue!50!black,urlcolor=blue!50!black,
+ pdftitle={固定协方差下的贝叶斯DR概率约束}}
+\setlength{\parskip}{.35em}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.14}
+\setlist[itemize]{nosep,leftmargin=2em}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\logit}{\operatorname{logit}}
+\newcommand{\R}{\mathbb R}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newtheorem{lemma}{引理}[section]
+\newtheorem{proposition}[lemma]{命题}
+\renewcommand{\proofname}{证明}
+\numberwithin{equation}{section}
+\setcounter{tocdepth}{1}
+\makeatletter
+\renewcommand{\l@section}{\@dottedtocline{1}{0em}{2.3em}}
+\makeatother
+\begin{document}
+\begin{center}
+{\LARGE\bfseries 固定协方差下的贝叶斯DR概率约束}\par\vspace{5pt}
+{\large 平均后验、后验过线率及其QCQP充分条件}\par\vspace{5pt}
+2026年11月11日
+\end{center}
+\begin{abstract}
+本文使用固定的双候选Gaussian工作模型，将DR设计中的平均对数证据增强为平均后验概率或后验过线率的充分保证。预测功率的随机载荷不随报价变化，电压剩余误差协方差也固定；完整节点、时段相关性保留。通过一次Gaussian指数积分，两个概率要求转化为同一个二次函数超过不同常数。连续资源域下是非凸QCQP，保留原设备控制图后是MIQCP。全文逐步说明符号、后验、指数上界、积分、二次系数和实际评价边界，不增加未知尺度或额外先验层。
+\end{abstract}
+\tableofcontents
+\newpage
+
+\section{目标、信息顺序与固定F的含义}
+\label{sec:task}
+历史RNJ＋WZZT产生候选后，冻结两个候选及全部R/X参数。记细候选为$H_f$、粗候选为$H_c$；下标表示候选身份，不表示已知真伪。规划使用历史、已发布预测和预先声明的资源与误差模型；报价冻结后，才读取实际新日P/Q/V并评价。
+
+本轮分别考虑
+\begin{equation}
+\boxed{\E[q_f\mid H_f,u]\ge q_\star,}
+\qquad
+\boxed{\Prob(q_f\ge\eta\mid H_f,u)\ge\beta.}
+\label{eq:targets}
+\end{equation}
+$q_f$是未来细候选后验，$u$是名义DR交付。前者要求平均后验至少为$q_\star$；后者要求后验达到$\eta$的随机执行比例至少为$\beta$。本批分别取$q_\star=0.9$，以及$\eta=0.9,\beta=0.9$。
+
+这两项均条件于细候选成立，是声明的双候选模型结论，不是全体未知拓扑完整恢复90\%的保证，也不是原MSE接受事件的概率。实际最终错漏、原接受和选模结果另行核验。
+
+本轮固定的功率随机性来自\emph{背景预测误差}。$F$不随报价变化，不是将付费DR的价格相关误差冻结在事后优化点。规划中DR通过均值调节；原随机交付、设备截断、P/Q与电压量测误差和AC非线性在实际评价中作为模型失配保留。
+
+\section{符号、维度和基础模型}
+\label{sec:model}
+设$N$为观测节点数，$T$为物理时段数，$R$为资源数。电压响应$v\in\R^m$按时段优先排列，$m=TN$，第$t$槽第$n$节点对应行$(t-1)N+n$。响应沿用电压平方降$V_{0,t}^2-V_{n,t}^2$。功率$p\in\R^q$包含同一范围的全部P/Q通道，冻结响应矩阵$H_k\in\R^{m\times q}$包含R/X、单位及基准换算。paper15新日15节点、96槽，故$m=1440$，P/Q共有2880通道。
+
+资源交付先保存为$R\times T$数组，向量化采用资源优先：第$r$资源第$t$槽对应$(r-1)T+t$。仍记向量为$u\in\R^d$，$d=RT$；正值增加取电，单位kW。
+
+电压平方降、候选残差和似然标准差采用相同单位；若沿用paper15的$10^{-6}\,\mathrm{p.u.}^2$显示，三者同步缩放。白化后的$a,F$、$T(u)$、对数赔率和两个门槛均无量纲。功率通道先按输入声明的基准换算，$B_p$包含资源kW到这些通道的换算，避免把交付增量加入两次。
+
+\begin{longtable}{p{30mm}p{\dimexpr\linewidth-30mm-4\tabcolsep\relax}}
+\toprule 记号&含义\\\midrule\endhead
+$\bar p,B_p$&日前功率均值及资源交付到功率通道的线性映射。\\
+$L_p,\xi$&固定功率随机载荷与标准Gaussian因素，$\xi\sim N(0,I_s)$。\\
+$\Sigma_v,W$&共同固定剩余电压协方差及权重$W=\Sigma_v^{-1}$。\\
+$\pi_f,\pi_c$&历史观测之后、未来观测之前的候选概率，正且和为1。\\
+$\ell_h$&历史细／粗对数赔率$\log(\pi_f/\pi_c)$。\\
+$q_f,\ell$&未来细候选后验及对数赔率$\ell=\log[q_f/(1-q_f)]$。\\
+$\Delta$&冻结候选响应差$H_f-H_c$。\\
+$a(u),F$&白化后的候选均值差和固定随机载荷。\\
+$C=FF^\top$&白化候选差的协方差，半正定且价格无关。\\
+$M=I_m+C/4$&用于积分的正定矩阵，不表示训练MSE。\\
+$\mathcal B(u)$&Gaussian二次指数的期望。\\
+$T(u)$&负对数指数期望$-\log\mathcal B(u)$；函数始终带$(u)$，区别于时段数$T$。\\
+$h_E,h_P$&平均后验与后验过线率的两个充分门槛。\\
+$x,\Pi,D$&原小时请求、原设备控制器和请求的小时到物理槽映射。\\
+$K(u)$&原预付合同费用，仍用原合成合同单位。\\\bottomrule
+\end{longtable}
+
+功率模型为
+\begin{equation}
+P(u)=\bar p+B_pu+L_p\xi,\qquad \xi\sim N(0,I_s).
+\label{eq:power}
+\end{equation}
+$L_p$固定，故$\Cov(P)=L_pL_p^\top$不随报价变化。它可保留节点、时间及P/Q通道之间的既定相关性，不要求原始功率单元独立。
+
+电压条件模型为
+\begin{equation}
+V\mid P,H_k\sim N(H_kP,\Sigma_v),\qquad\Sigma_v\succ0.
+\label{eq:voltage}
+\end{equation}
+在$H_f$成立的条件分析中，$V=H_fP+\varepsilon$，其中$\varepsilon\sim N(0,\Sigma_v)$且$\varepsilon\perp\xi$。功率预测误差已在式\eqref{eq:power}中，不再通过$H_f$重复加入$\Sigma_v$。若系统或参数偏差使$\E[\varepsilon\mid P]\ne0$，需要另行修正，不能直接套用以下保证。
+
+推导允许固定正定$\Sigma_v$；当前程序沿用对角似然，以每个节点时段的标准差作白化。完整相关性在功率引起的候选差协方差$C$中保留，未实现一般相关电压似然接口。
+
+paper15保留原已发布预测均值和偏差轮廓。功率误差尺度由训练期通道RMS固定；采用既定时间AR系数0.8、空间相关系数0.25、非峰段4\%与17--22时峰段8\%的误差轮廓，形成完整时空协方差。这是本轮声明的工作分布，不称为实测行为校准。所有协方差、候选差、似然标准差、历史赔率、目标和种子均在优化前冻结，不根据实际未来重新调整。
+
+\section{从Gaussian似然到随机后验}
+\label{sec:posterior}
+\subsection{平方残差与历史一次计入}
+对相同实际观测定义$r_k=V-H_kP$、$J_k=r_k^\top Wr_k$。$J_k$是标准化平方残差\emph{总和}，不除以$m$。共同Gaussian归一化项在似然比中消去，所以
+\begin{equation}
+\frac{q_f}{1-q_f}=\frac{\pi_f}{\pi_c}\exp[(J_c-J_f)/2].
+\end{equation}
+取对数即得
+\begin{equation}
+\boxed{\ell=\ell_h+\tfrac12(J_c-J_f),\qquad q_f=(1+e^{-\ell})^{-1}.}
+\label{eq:posterior}
+\end{equation}
+若基础先验为$\omega_f,\omega_c$、历史验证的对数Bayes因子为$\mathcal B_h$，则$\ell_h=\log(\omega_f/\omega_c)+\mathcal B_h$。历史只计一次，未来$J_k$仅含未来观测；不能把MAE指数化当成Gaussian证据，也不能将同一历史再次加入未来损失。
+
+\subsection{白化表达及四个不同量}
+取$A=\Sigma_v^{-1/2}\Delta$，平方根选对称正定形式；代码可用等价Cholesky求解。定义
+\begin{equation}
+Z=AP(u)=a(u)+F\xi,\qquad
+a(u)=A(\bar p+B_pu),\quad F=AL_p.
+\label{eq:whiten}
+\end{equation}
+$e=\Sigma_v^{-1/2}\varepsilon\sim N(0,I_m)$且$e\perp\xi$。由$r_f=\varepsilon$、$r_c=\varepsilon+\Delta P$，
+\begin{align}
+J_c-J_f
+&=(\varepsilon+\Delta P)^\top W(\varepsilon+\Delta P)-\varepsilon^\top W\varepsilon\\
+&=\|Z\|^2+2e^\top Z.
+\end{align}
+所以
+\begin{equation}
+\boxed{\ell=\ell_h+\tfrac12\|Z\|^2+e^\top Z.}
+\label{eq:ellrandom}
+\end{equation}
+共同电压误差平方抵消，随机交叉项仍存在，两个候选必须使用同一电压误差实现。
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{lX}\toprule
+量&准确含义\\\midrule
+$\E G$&平均算法接受裕量；$G$是原辨识器的实际接受裕量。\\
+$\E\ell$&平均后验对数赔率，即平均证据。\\
+$\E q_f$&细候选成立时，执行后细候选的平均后验概率。\\
+$\Prob(q_f\ge\eta)$&细候选成立时，后验达到$\eta$的执行比例。\\\bottomrule
+\end{tabularx}
+\end{center}
+原期望模型控制
+\begin{equation}
+\E\ell=\ell_h+\tfrac12(\|a(u)\|^2+\tr C),\qquad C=FF^\top.
+\end{equation}
+一般$\E q_f\ne[1+\exp(-\E\ell)]^{-1}$。如果对候选身份也按先验预测平均，则$\E q_f=\pi_f$；本文要求的是条件于$H_f$的均值和概率，不能混为一谈。
+
+\section{从指数期望得到两个充分保证}
+\label{sec:bounds}
+\subsection{Gaussian指数矩}
+若$X\sim N(0,1)$，完成平方给出
+\begin{equation}
+\E e^{tX}=(2\pi)^{-1/2}\int_{-\infty}^{\infty}e^{-x^2/2+tx}\,dx=e^{t^2/2}.
+\end{equation}
+给定$Z$，$e^\top Z\sim N(0,\|Z\|^2)$。代入式\eqref{eq:ellrandom}，
+\begin{align}
+\E[e^{-\ell/2}\mid Z]
+&=e^{-\ell_h/2-\|Z\|^2/4}\E[e^{-e^\top Z/2}\mid Z]\\
+&=e^{-\ell_h/2-\|Z\|^2/4+\|Z\|^2/8}
+=e^{-\ell_h/2-\|Z\|^2/8}.
+\end{align}
+定义
+\begin{equation}
+\mathcal B(u)=\E e^{-\|Z\|^2/8},
+\qquad
+\boxed{\E e^{-\ell/2}=e^{-\ell_h/2}\mathcal B(u).}
+\label{eq:expidentity}
+\end{equation}
+后续两个目标共用这一积分，不需要分别构造两套随机模型。
+
+\subsection{平均后验的充分条件}
+由$e^{\ell/2}+e^{-\ell/2}\ge2$，
+\begin{equation}
+1-q_f=\frac{e^{-\ell/2}}{e^{\ell/2}+e^{-\ell/2}}
+\le\tfrac12e^{-\ell/2}.
+\end{equation}
+取期望并使用式\eqref{eq:expidentity}：
+\begin{equation}
+\boxed{\E q_f\ge1-\tfrac12e^{-\ell_h/2}\mathcal B(u).}
+\label{eq:meanbound}
+\end{equation}
+要使右端至少为$q_\star$，等价于$\mathcal B(u)\le2(1-q_\star)e^{\ell_h/2}$。定义$T(u)=-\log\mathcal B(u)$后，得到
+\begin{equation}
+\boxed{T(u)\ge h_E,
+\qquad h_E=\log\frac{1}{2(1-q_\star)}-\frac{\ell_h}{2}.}
+\label{eq:hE}
+\end{equation}
+满足式\eqref{eq:hE}保证平均后验目标；这是充分条件，不是原目标的等价式。
+
+\subsection{后验过线率的充分条件}
+记$\tau=\logit(\eta)=\log[\eta/(1-\eta)]$。后验函数递增，所以$q_f<\eta$等价于$\ell<\tau$。对非负$X$，由$\E X\ge a\Prob(X\ge a)$得到Markov不等式。取$X=e^{-\ell/2}$，
+\begin{align}
+\Prob(q_f<\eta)
+&=\Prob(e^{-\ell/2}>e^{-\tau/2})\\
+&\le e^{\tau/2}\E e^{-\ell/2}
+=e^{(\tau-\ell_h)/2}\mathcal B(u).
+\end{align}
+故
+\begin{equation}
+\boxed{\Prob(q_f\ge\eta)\ge1-e^{(\tau-\ell_h)/2}\mathcal B(u).}
+\label{eq:eventbound}
+\end{equation}
+使右端至少为$\beta$，得到
+\begin{equation}
+\boxed{T(u)\ge h_P,
+\qquad h_P=\frac{\logit(\eta)-\ell_h}{2}+\log\frac{1}{1-\beta}.}
+\label{eq:hP}
+\end{equation}
+$\eta$是后验值门槛，$\beta$是随机执行比例。二者不是同一个概率层。
+
+\section{固定F积分的逐步计算}
+\label{sec:integral}
+\subsection{在标准因素空间完成平方}
+由$Z=a+F\xi$，定义$K_s=I_s+F^\top F/4\succ0$、$g=F^\top a/4$。将Gaussian密度乘入积分：
+\begin{align}
+\mathcal B
+&=(2\pi)^{-s/2}\int_{\R^s}e^{-\|a+F\xi\|^2/8-\xi^\top\xi/2}\,d\xi\\
+&=(2\pi)^{-s/2}e^{-\|a\|^2/8}
+\int_{\R^s}e^{-\xi^\top K_s\xi/2-g^\top\xi}\,d\xi.
+\end{align}
+配方为
+\begin{equation}
+-\tfrac12\xi^\top K_s\xi-g^\top\xi
+=-\tfrac12(\xi+K_s^{-1}g)^\top K_s(\xi+K_s^{-1}g)
++\tfrac12g^\top K_s^{-1}g.
+\end{equation}
+正定Gaussian积分等于$(2\pi)^{s/2}|K_s|^{-1/2}$，可将$K_s$作Cholesky分解并换元验证。因此
+\begin{equation}
+\mathcal B=|K_s|^{-1/2}
+\exp\!\left[-\frac18a^\top a+\frac1{32}a^\top FK_s^{-1}F^\top a\right].
+\label{eq:Bfactor}
+\end{equation}
+
+\subsection{转为固定观测协方差}
+令$C=FF^\top$、$M=I_m+C/4$。矩阵恒等式
+\begin{equation}
+M^{-1}=I_m-\tfrac14FK_s^{-1}F^\top,
+\qquad |M|=|K_s|
+\end{equation}
+分别可通过左右相乘，以及$|I+AB|=|I+BA|$验证。代入式\eqref{eq:Bfactor}，得到
+\begin{equation}
+\boxed{\mathcal B(u)=|M|^{-1/2}
+\exp[-a(u)^\top M^{-1}a(u)/8].}
+\label{eq:Bclosed}
+\end{equation}
+$C$可奇异，但$M=I+C/4$始终正定。若$M=RR^\top$，计算使用三角方程，且$\log|M|=2\sum_i\log R_{ii}$，无需显式求逆。
+
+最终交给规划的共同函数为
+\begin{equation}
+\boxed{T(u)=\frac18a(u)^\top M^{-1}a(u)+\frac12\log|M|.}
+\label{eq:Tclosed}
+\end{equation}
+$F$固定，因此$M$、其分解和对数行列式只在优化前计算一次。这里没有频率积分、抽样或逐价格重算概率积分。概率上界的保守性，与浮点分解和优化容差造成的数值误差应分别报告。
+
+\section{完整二次问题与原设备接口}
+\label{sec:optimization}
+\subsection{完整时空二次系数}
+写$a(u)=a_0+Bu$，其中$a_0=A\bar p$、$B=AB_p$。展开式\eqref{eq:Tclosed}：
+\begin{equation}
+\boxed{T(u)=c+\lambda^\top u+u^\top Qu,}
+\end{equation}
+系数是
+\begin{align}
+Q&=\tfrac18B^\top M^{-1}B,\\
+\lambda&=\tfrac14B^\top M^{-1}a_0,\\
+c&=\tfrac18a_0^\top M^{-1}a_0+\tfrac12\log|M|.
+\label{eq:coefficients}
+\end{align}
+$Q\succeq0$。完整$C$含跨时相关时，$Q$也通常跨时耦合，不能只存各时段的对角块。浮点计算可使用$(Q+Q^\top)/2$对称化。
+
+paper15的白化均值可由冻结候选残差均值之差$a_c^0-a_f^0$和资源影响差$G_c-G_f$得到；共享历史参考项在差中抵消。若似然标准差为$\sigma_{tn}$，均值矩阵的资源优先索引为
+\begin{equation}
+B_{(t-1)N+n,\,(r-1)T+t}
+=\frac{(G_c-G_f)_{nr}}{\sigma_{tn}}.
+\end{equation}
+跨槽直接影响可为零，跨槽协方差仍由完整$M^{-1}$保留。
+
+\subsection{原合同与设备}
+对资源$r$、槽$t$，$A^+_{rt},A^-_{rt}\ge0$为增减取电能力，$c_{rt}>0$为满响应奖励系数，$\Delta t$为槽长。费用沿用
+\begin{equation}
+K(u)=\Delta t\sum_{r,t}c_{rt}
+\left[\frac{(u_{rt})_+^2}{A^+_{rt}}+
+\frac{(-u_{rt})_+^2}{A^-_{rt}}\right],
+\label{eq:cost}
+\end{equation}
+其中$(v)_+=\max(v,0)$；零能力方向只能零交付，不参与该项求和。这里不新增总预算上限，直接最小化满足要求的合同费用。
+
+当前价格输出是单位交付奖励$\rho_{rt}\ge0$，沿用父模型\code{unit_reward}的规则：正交付时$\rho_{rt}=c_{rt}u_{rt}/A^+_{rt}$，负交付时$\rho_{rt}=c_{rt}(-u_{rt})/A^-_{rt}$，零交付时奖励0。因此
+\begin{equation}
+K(u)=\Delta t\sum_{r,t}\rho_{rt}|u_{rt}|.
+\end{equation}
+它是随调用量线性增加的单位补偿，得到二次总费用。报价由名义交付与既定成本曲线反算；小时请求$x$是无量纲控制量，不是货币价格。这个简化合同采用既定名义响应曲线，没有新增价格弹性或个体参与的实证校准。实际响应随机、截断时，沿用原预付合同费用核算，不根据结果事后重新挑选报价。
+
+原小时请求及控制映射为$x\in\mathcal X$、$u=\Pi(Dx)$。控制器处理功率截断、能量界、效率、可用时段、重置和截止任务，基本能量更新为
+\[
+E_t=E_{t-1}+\Delta t[\zeta(u_t)_+-(-u_t)_+/\zeta],\qquad\zeta\in(0,1].
+\]
+保留原映射，不改成自由15分钟调度，也不重分配节点资源。
+
+\subsection{分别求两个常数门槛}
+两个模式统一为
+\begin{equation}
+\boxed{\begin{aligned}
+\min_{x,u}\quad &K(u),\\
+\text{s.t.}\quad &x\in\mathcal X,\quad u=\Pi(Dx),\\
+&c+\lambda^\top u+u^\top Qu\ge h,\\
+&h=h_E\quad\text{或}\quad h=h_P.
+\end{aligned}}
+\label{eq:optimization}
+\end{equation}
+同一数据、固定协方差、资源、费用和控制器，只更换平均后验或后验过线率门槛。每项都是原概率目标的充分条件；不满足充分条件，不证明原概率要求不可达到。
+
+虽然$Q\succeq0$，约束要求二次函数高于常数，通常非凸。例如$u^2\ge1$的可行点$\pm1$之间，中点0不可行。连续线性资源域下是非凸QCQP；保留原分段控制图后为MIQCP。求解状态、可行费用上界、有效下界、gap和原设备重放误差分别记录。超时无报价不证明不可行。
+
+若原控制器的零请求满足目标且费用0，由$K\ge0$直接证明全局最优费用0。强历史赔率可能使$h_E,h_P$为负；这时应保留零费用结论，不重新设置先验制造DR需求。
+
+数值实现宜保留对数失败上界：平均后验的失败均值上界对数为$-\log2-\ell_h/2-T(u)$，后验未过线的概率上界对数为$(\logit\eta-\ell_h)/2-T(u)$。这样历史赔率很大时无需先计算接近1的后验并误写为严格100\%。展示的概率下界可截到$[0,1]$，原对数值仍保存。
+
+\section{精确参照、保守性与测试解释}
+\label{sec:evaluation}
+\subsection{确定功率时的独立参照}
+若功率确定，令$S=\|AP\|^2$，则$F=0$，$\ell\sim N(\ell_h+S/2,S)$。后验过线率有精确式
+\begin{equation}
+\Prob(q_f\ge\eta\mid H_f,P)
+=\Phi\!\left(\frac{\ell_h+S/2-\logit(\eta)}{\sqrt S}\right),\quad S>0,
+\end{equation}
+其中$\Phi$是标准正态分布函数；$S=0$时按确定历史后验判断。
+
+平均后验可用一维确定性积分核验：
+\begin{equation}
+\E[q_f\mid H_f,P]
+=\int_{-\infty}^{\infty}
+\frac{\phi(z)}{1+\exp[-\ell_h-S/2-\sqrt S\,z]}\,dz,
+\end{equation}
+$\phi(z)=e^{-z^2/2}/\sqrt{2\pi}$。这些是小例参照，不替代随机功率工作模型的完整核验。
+
+\subsection{充分条件会多要求多少分离}
+等先验、确定功率时$\ell_h=0$、$T=S/8$。平均后验0.9的充分门槛为$S\ge8\log5\approx12.8755$，精确积分门槛约8.9115。后验达到0.9的概率至少0.9，充分门槛为
+\begin{equation}
+S\ge4\log9+8\log10\approx27.2096,
+\end{equation}
+精确Gaussian门槛约13.9767。这说明上界可能明显保守。这些是公式参照，不是新物理仿真结果。
+
+固定非零$C$时，式\eqref{eq:Tclosed}保留完整行列式，没有使用丢行列式的更保守版本。纯合成两槽例若原能力为$\pm3$，应保持不变：充分约束可能不可行，而精确概率目标仍可行。此时应报告保守性代价，不抬高能力掩盖。
+
+\subsection{工作模型与原AC分别核验}
+工作模型评价在报价冻结后，用独立随机流生成功率及共同电压误差，再计算实际后验。平均后验模式报告样本平均后验与理论下界；过线率模式报告达标次数、完整分母与理论下界。费用与求解界同时保留，未达标路径不删。
+
+原AC执行保持原实际响应、截断和表计噪声。用冻结参数及实际P/Q/V评分，先保存选择，再读真支持计算完整错漏。新Gaussian规则与原MAE规则分开报告，选择器变化的收益不归给DR。固定F只覆盖背景预测工作分布，实际随机交付、P/Q误差和AC偏差可能使保证失配，因此模型内与AC达成率分别列出。
+
+若两个新模式都得到零报价，且与已保存零合同逐项相同，可以核对合同后复用已有AC观测，避免重复模拟；应明确是已有自然日和既有随机路径，而不是新独立事件日。
+
+\section{实现对应与范围}
+固定协方差的系数与下界由\code{fixed_f.py}提供；\code{fixed_f_run.py}负责两个模式的规划、冻结与核验；\code{solver.py}复用原设备控制图、费用和全局求解接口。完整时空协方差对应全局耦合二次矩阵，不能默认为按时段独立的三维系数。具体接口、哈希、运行状态和本批结果见同目录实验说明。
+
+这些结论覆盖冻结双候选及共同Gaussian模型，没有进行线路参数积分或池外结构覆盖。改变候选、重新调权或改变最终选模规则时，应重新检查似然与信息时序。本文只说明可计算的概率充分条件；实际效果必须由冻结后的结果给出，失败、超时、不可行和失配保留完整分母。
+
+\section{本批实际计划与独立抽样结果}
+\label{sec:results}
+本节记录已经完成的4个计划问题和2批独立工作模型抽样：paper15两个门槛各一计划，纯合成例两个门槛各一计划。每批抽样为16384条共享随机路径，策略之间配对比较，不将多个策略输出相加当作独立路径。抽样只用于报价冻结后的核验，没有反馈到报价设计。
+
+\subsection{paper15：两个目标都由零费用满足}
+本批保留完整历史及同一冻结候选。历史后对数赔率为$\ell_h=112.06703521$，零合同的二次函数为$T(0)=12.1664460241$。两个门槛是
+\begin{equation}
+h_E=-54.424079693,\qquad h_P=-52.632320224.
+\end{equation}
+因此零合同同时满足两个充分条件。原合同费用非负，零合同费用0，故两个最小费用问题均有全局最优值0，不需要为已经可行的零点再运行一次优化器。
+
+\begin{center}\small
+\begin{tabular}{lrrr}\toprule
+目标&门槛&零合同$T(0)$&最优费用\\\midrule
+平均后验至少0.9&$-54.424079693$&12.1664460241&0\\
+后验至少0.9的概率至少0.9&$-52.632320224$&12.1664460241&0\\\bottomrule
+\end{tabular}
+\end{center}
+平均后验失败均值上界的对数约为$-68.8931$，后验未过线概率上界的对数约为$-67.10135$。双精度显示后验或概率下界为1时，应保留这些对数值，而不是写成真实拓扑概率严格100\%。
+
+零合同和两个模式使用同一个实际合同。16384条共享工作模型路径全部达到$q_f\ge0.9$。这验证了该工作模型下两个门槛都很宽松；它没有产生新的付费DR收益，也不能通过重设历史赔率把该零费用结果改成正收益。
+
+\subsection{两槽合成例：解析解与求解器一致}
+本例只有一个资源、两个时段，保持原能力$[-3,3]$和终端净能量归零。用$s$表示第一槽交付，则
+\begin{equation}
+u=(s,-s),\qquad -3\le s\le3,
+\qquad K(u)=2s^2.
+\end{equation}
+等先验、无历史证据给出$\ell_h=0$。固定功率不确定性对应白化协方差$C=0.25I_2$，白化均值为$a(u)=(s,-s)^\top$。记名义平方分离$S=2s^2$，本例费用恰等于$S$。于是
+\begin{equation}
+M=1.0625I_2=\frac{17}{16}I_2,
+\qquad
+\boxed{T(u)=\frac{S}{8\times1.0625}+\log(1.0625).}
+\label{eq:toyT}
+\end{equation}
+这一例有非零背景随机性，不是固定功率的零方差安装例。背景随机性在零报价时也存在，属于自然功率预测分布，不是未经报价的付费DR交付。
+
+\paragraph{平均后验目标。}
+此时$h_E=\log5$。由式\eqref{eq:toyT}，最小费用的解析值是
+\begin{equation}
+\begin{aligned}
+S_E^*=K_E^*
+&=8(1.0625)\,[\log5-\log(1.0625)]\\
+&=13.1649129703,\qquad
+|s^*|=\sqrt{S_E^*/2}=2.5656298418.
+\end{aligned}
+\end{equation}
+该点在原能力内。Gurobi返回费用上下界一致，与解析最优值吻合。两种正负对称调度具有相同费用与模型表现。
+
+\paragraph{后验过线率目标。}
+此时
+\begin{equation}
+h_P=\tfrac12\log9+\log10=\log30
+=3.40119738166.
+\end{equation}
+原能力限制给出$S\le18$，因此
+\begin{equation}
+T(u)\le\frac{18}{8.5}+\log(1.0625)
+\approx2.17827<h_P.
+\end{equation}
+所以本例的\emph{概率充分约束}在原能力内不可行。更明确地，满足它所需的最小名义平方分离为
+\begin{equation}
+S_P^{\rm suff}=8.5[\log30-\log(1.0625)]
+=28.3948684587>18.
+\end{equation}
+Gurobi也证明不可行，与独立解析界一致。这里证明的是所采用充分约束不可行，不是原始后验过线概率目标必然不可行。
+
+\subsection{合成例的独立执行表现}
+冻结平均后验模式的最优调度后，用16384条独立路径核验；同时报告零合同及事前规定的满幅参照$s=\pm3$。满幅参照费用18，未经过价格优化，不作为概率模式求解出的报价。
+\begin{center}\small
+\begin{tabular}{lrrr}\toprule
+合同&费用&样本平均后验&$q_f\ge0.9$次数／16384\\\midrule
+零合同&0&0.55044697&315／16384\\
+平均后验模式最优合同&13.16491297&0.94312692&14311／16384\\
+预锁满幅参照&18&0.97094890&15358／16384\\\bottomrule
+\end{tabular}
+\end{center}
+平均后验模式的样本均值标准误约为0.0012363，其过线比例为0.87347412；它满足的设计目标是\emph{平均后验至少0.9}，并未要求90\%路径的后验都达到0.9，所以这一过线比例不是该模式的失败。
+
+满幅参照观察到的过线比例为0.93737793，超过0.9；而概率充分约束仍被证明不可行。这一对照直接显示充分界的保守性。不要把不可行的充分问题写成DR无效，也不要把满幅参照写成新优化器找到了概率可行最优解。
+
+\subsection{独立确定积分核验}
+本例$Z\sim N(a,0.25I_2)$，因此随机平方分离$S_{\rm rand}=\|Z\|^2$满足
+\begin{equation}
+S_{\rm rand}/0.25\sim\chi^2_2(4S),
+\end{equation}
+右侧为自由度2、非中心参数$4S$的非中心卡方分布；这里$S=\|a\|^2$是名义平方分离。其来源是将两个独立标准Gaussian平移后的平方相加。给定$S_{\rm rand}$，用前述一维Gaussian后验公式计算平均后验和过线率，再对该非中心卡方分布确定积分，可独立核对Monte Carlo结果。
+
+\begin{center}\small
+\begin{tabular}{lrr}\toprule
+合同&确定积分：平均后验&确定积分：$q_f\ge0.9$概率\\\midrule
+零合同&0.5518464319&0.0200992003\\
+平均后验模式最优合同&0.9437899216&0.8762098157\\
+预锁满幅参照&0.9712478554&0.9382706373\\\bottomrule
+\end{tabular}
+\end{center}
+这些积分结果与独立抽样相容。平均后验模式保守保证0.9，数值积分得到约0.94379；过线概率约0.87621，仍须按该模式真实目标解释。满幅参照的积分过线率约0.93827，进一步支持原概率目标在资源内可达；这是数值积分核验，不把未提供严格误差封套的积分结果冒充统计覆盖证书。
+
+paper15的完整协方差与二次函数也经独立矩阵求解重算，得到$T(0)=12.16644602406735$。协方差的最小浮点特征值约$-1.2862\times10^{-16}$，仅在数值容差内修复为半正定；没有将其作为删去跨时相关性或缩小实质误差的理由。
+
+\subsection{原AC保存观测的零合同回评}
+paper15两个新模式均为零合同，与无DR对照逐项一致，因此复用同一个已见自然日的32条原AC含噪观测。三个合同标签共用这一组观察，不把重复标签评分扩成独立样本。冻结候选的Gaussian后验在32/32条观察达到0.9，最终完整恢复32/32，总错漏0；原MAE的3\%规则在同一组观察完整恢复0/32，总错漏32。
+
+费用和DR交付都为0，没有新增AC、参数拟合或RNJ／WZZT搜索。这个差别来自选择判据改变，不是DR收益。原AC包含的实际随机响应、截断与量测机制继续保留，本次充分条件没有因此成为原辨识接受事件或全体拓扑恢复的概率保证。
+\end{document}

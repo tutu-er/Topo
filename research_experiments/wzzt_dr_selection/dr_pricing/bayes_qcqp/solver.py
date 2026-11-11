@@ -185,7 +185,10 @@ def solve(problem, evidence, threshold, out, *, seconds=120., mip_gap=.02,
         raise ValueError("Invalid finite solver limits")
     Q, linear = np.asarray(evidence.Q,float), np.asarray(evidence.linear,float)
     R,T = problem.device.R,problem.device.T
-    if Q.shape!=(T,R,R) or linear.shape!=(T,R) or not np.isfinite(Q).all() or not np.isfinite(linear).all():
+    dense = Q.ndim == 2
+    valid_shape = ((Q.shape==(R*T,R*T) and linear.shape==(R*T,)) if dense
+                   else (Q.shape==(T,R,R) and linear.shape==(T,R)))
+    if not valid_shape or not np.isfinite(Q).all() or not np.isfinite(linear).all():
         raise ValueError("Evidence dimensions differ from original devices")
     arrays = dict(Q=Q,linear=linear,constant=np.array(evidence.constant))
     arrays.update({key:np.asarray(getattr(problem.device,key)) for key in (
@@ -238,11 +241,20 @@ def solve(problem, evidence, threshold, out, *, seconds=120., mip_gap=.02,
                         FeasibilityTol=1e-8,IntFeasTol=1e-8,OptimalityTol=1e-8,DualReductions=0).items(): model.setParam(key,value)
                     x,u,cost=build_device_graph(model,problem,initial)
                     quadratic=gp.QuadExpr(float(evidence.constant))
-                    for t in range(T):
-                        for r in range(R):
-                            if linear[t,r]!=0: quadratic+=float(linear[t,r])*u[r,t].expr
-                            for s in range(R):
-                                if Q[t,r,s]!=0: quadratic+=float(Q[t,r,s])*u[r,t].expr*u[s,t].expr
+                    if dense:
+                        flat=u.ravel()
+                        for i in range(R*T):
+                            if linear[i]!=0: quadratic+=float(linear[i])*flat[i].expr
+                            for j in range(i,R*T):
+                                coefficient=Q[i,i] if i==j else Q[i,j]+Q[j,i]
+                                if coefficient!=0:
+                                    quadratic+=float(coefficient)*flat[i].expr*flat[j].expr
+                    else:
+                        for t in range(T):
+                            for r in range(R):
+                                if linear[t,r]!=0: quadratic+=float(linear[t,r])*u[r,t].expr
+                                for s in range(R):
+                                    if Q[t,r,s]!=0: quadratic+=float(Q[t,r,s])*u[r,t].expr*u[s,t].expr
                     model.addQConstr(quadratic>=float(threshold),name="expected_log_evidence")
                     model.setObjective(cost,gp.GRB.MINIMIZE);model.update()
                     model.write(str(out/"model.mps.gz"))
@@ -262,8 +274,10 @@ def solve(problem, evidence, threshold, out, *, seconds=120., mip_gap=.02,
                         requests=bounded
                         replay=problem.nominal(problem.requests_to_values(requests))
                         value=float(evidence.value(replay["mean_u"]))
-                        model_value=float(evidence.constant+np.einsum("tr,trs,ts->",delivery.T,Q,delivery.T)
-                                          +np.sum(linear*delivery.T))
+                        model_value=(float(evidence.constant+delivery.ravel()@Q@delivery.ravel()
+                                           +linear@delivery.ravel()) if dense else
+                                     float(evidence.constant+np.einsum("tr,trs,ts->",delivery.T,Q,delivery.T)
+                                           +np.sum(linear*delivery.T)))
                         error=float(np.max(np.abs(delivery-replay["mean_u"])))
                         audit=problem.audit_delivery(replay["mean_u"])
                         result.update(x=requests,mean_u=replay["mean_u"],unit_reward=problem.unit_reward(replay["mean_u"]),

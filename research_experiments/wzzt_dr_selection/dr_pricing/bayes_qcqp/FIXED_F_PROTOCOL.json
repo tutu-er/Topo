@@ -1,0 +1,25 @@
+{
+  "study": "fixed_f_probability_v1",
+  "date": "2026-11-11",
+  "question": "Test two fixed-price-independent-covariance sufficient conditions, not mean-log-odds substitution.",
+  "targets": {"mean_posterior_q_star": 0.9, "posterior_threshold_eta": 0.9, "posterior_event_probability_beta": 0.9},
+  "hypothesis_scope": "Fine frozen candidate as conditional data generator; finite fitted pair, shared fixed diagonal voltage likelihood. Not calibrated full-topology probability.",
+  "paper15": {
+    "input": "Existing bayes_quadratic_v1 case_A; full training288 and validation288, same20 resources101..105, same hourly device graph, prices and costs.",
+    "history": "Keep equal base prior and full historical log Bayes factor112.06703521082892. Unit per-observation Gaussian evidence; no re-fitting or true topology used for design.",
+    "mean": "Keep the existing issued forecast and frozen mean difference; no post-test mean or bias adjustment.",
+    "fixed_power_covariance": "Background forecast uncertainty only. Training-channel RMS times existing assumed4percent offpeak/8percent17..22h profile, spatial correlation0.25 and stationary time AR0.8. Preserve full time and node covariance.",
+    "DR_in_plan": "Deterministic nominal delivery; fixed background covariance does not depend on price. No fixed paid-contract noise injected into zero control.",
+    "actual": "Original clipped random DR, physical AC and P/Q/V measurement processes remain separate model-mismatch evaluation. Identical zero contracts reuse already verified32 zeroAC paths after new freeze. No new physical batch for duplicate inputs."
+  },
+  "synthetic": {
+    "input": "Existing analytic two-slot example, same[-3,3] capability and terminal repayment, no history.",
+    "fixed_covariance": "0.25 times identity in whitened candidate-difference units, a declared installation example only.",
+    "solver": {"seconds": 30.0, "mip_gap": 0.000001, "threads": 1, "seed": 0},
+    "boundary_diagnostic": "Predeclare unchanged full capability request(1,-1); freeze before independent draws, not an optimized or deployment quote.",
+    "infeasibility": "Retain event-bound infeasibility if capability is insufficient; do not increase capacity to create a positive result."
+  },
+  "optimization": {"solver": "existing Gurobi nonconvex solver and exact original device graph", "seconds_per_mode": 120, "MIPGap": 0.02, "Threads": 1, "Seed": 0, "analytic_zero": "Allowed when zero physical quote satisfies T>=h and nonnegative cost gives global zero."},
+  "evaluation": {"conditional_paths": 16384, "seed": 2026111501, "common_random_numbers": true, "physical_unique_paths": 32, "keep_failed_timeout_unresolved": true, "no_selection_on_actual_future": true},
+  "publish": "Source, declared configuration, scalar aggregates, math document. No raw households, history or P/Q/V trajectories."
+}

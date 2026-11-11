@@ -99,3 +99,14 @@ def test_infeasibility_preserved_not_relabelled_success(tmp_path):
     result=solve(p,e,2.,tmp_path/"infeasible",seconds=15)
     assert not result["has_solution"] and not result["qualified"]
     assert result["solver_status"]==3
+
+
+def test_dense_cross_time_evidence_keeps_original_energy_graph(tmp_path):
+    from research_experiments.wzzt_dr_selection.dr_pricing.bayes_qcqp.fixed_f import DenseQuadraticEvidence
+    gurobi();p=problem(slots=2,energy=True)
+    evidence=DenseQuadraticEvidence(np.array([[1.,-1.],[-1.,1.]]),np.zeros(2),0.,1,2)
+    result=solve(p,evidence,.64,tmp_path/"dense_cross_time",seconds=15,mip_gap=1e-7)
+    assert result["qualified"] and result["device_audit"]["passed"]
+    assert abs(result["objective"]-.08)<1e-6
+    assert abs(result["objbound"]-.08)<1e-6
+    assert result["replay_delivery_error"]<1e-8

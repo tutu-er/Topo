@@ -1,5 +1,15 @@
 # 平方残差证据的二次DR规划
 
+新增[固定F概率分支](FIXED_F_REPORT.md)：分别实现平均后验和后验过线率的充分二次条件，完整推导见[LaTeX](fixed_f_theory/main.tex)。原期望log odds模式保留，不能把其指标解释为下面的新概率保证。
+
+```text
+python -B fixed_f_run.py plan --case example --settings example/fixed_f.json --mode mean --out fixed_mean
+python -B fixed_f_run.py plan --case example --settings example/fixed_f.json --mode probability --out fixed_probability
+python -B fixed_f_run.py sample --case example --settings example/fixed_f.json --plan mean=fixed_mean --out fixed_sample
+```
+
+固定分支只增加`fixed_f.py`与`fixed_f_run.py`两个计算文件，复用原设备求解器；`fixed_f_arrays.npz`明确给完整时空白化差协方差，分解一次。`mean`要求E[qF|F]≥qstar，`probability`要求Pr(qF≥eta|F)≥beta；F只表示固定背景误差载荷，名义DR按确定交付规划。原两槽例前者全局费用13.164913，后者充分条件已证明不可行；满幅动作的精确概率却可行，详见报告的保守性核验。paper15两模式均全局费用0，32旧AC观察复用，没有新增DR恢复收益。
+
 这里实现用户提出的“高斯似然 → 后验门槛 → 平方残差差 → 取期望 → 非凸二次约束”。两个候选及其R/X在历史拟合后冻结，复用上层原设备模型，不重新实现RNJ/WZZT。
 
 **取期望得到的是期望对数证据约束。它不等价于90%的后验过线概率。** 实现同时给出一个名义功率、闭合双候选下的精确概率对照，便于检查这一区别。
