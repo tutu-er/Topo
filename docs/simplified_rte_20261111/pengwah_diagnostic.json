@@ -1,0 +1,6769 @@
+{
+  "schema": "simplified_rte_pengwah_postdiagnostic_v1",
+  "created_utc": "2026-11-11T12:00:10.735569+00:00",
+  "job": "day96__pengwah18__b1000__reference__v0005__N96",
+  "case": "pengwah18",
+  "training_rows": 96,
+  "validation_rows": 288,
+  "alpha": 0.003,
+  "reference": 0.001180373947935923,
+  "K": 533.6422887272379,
+  "penalty": 3.541121843807769e-06,
+  "raw_output_no_contraction": true,
+  "score_definitions": {
+    "L": "physical mean squared training residual",
+    "J": "K*L + .003*f0_MAE*retained proper support count",
+    "topology": "proper supports with max(r,x)>1e-9"
+  },
+  "path": [
+    {
+      "path_index": 0,
+      "stage": "basis",
+      "event_index": null,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.0,
+      "exact": false,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 7,
+      "predicted_clades": 0,
+      "true_clades": 7,
+      "R_relative": 1.07614386083687,
+      "X_relative": 1.8876411245947904,
+      "train_mae": 0.0015803085928111072,
+      "train_mse": 4.152803092628435e-06,
+      "train_sse": 0.007176043744061936,
+      "validation_mae": 0.0016598409934962585,
+      "validation_mse": 4.476438124022909e-06,
+      "validation_sse": 0.023205855234934757,
+      "objective_K_MSE": 0.0022161113469837896,
+      "proper_count": 0,
+      "J": 0.0022161113469837896,
+      "parameter_sha256": "ee6a428b5736471023b5993cc20d80f2321b03df11920fd56e10b7f6e67c2ac0",
+      "positive_topology": [],
+      "false_clades": [],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "atoms": []
+    },
+    {
+      "path_index": 1,
+      "stage": "W",
+      "event_index": 0,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.25,
+      "exact": false,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 6,
+      "predicted_clades": 1,
+      "true_clades": 7,
+      "R_relative": 0.6956915950747051,
+      "X_relative": 1.1205218435651858,
+      "train_mae": 0.0013791807585274032,
+      "train_mse": 3.0054918359567055e-06,
+      "train_sse": 0.005193489892533187,
+      "validation_mae": 0.0014117428057603691,
+      "validation_mse": 3.177420504269725e-06,
+      "validation_sse": 0.016471747894134255,
+      "objective_K_MSE": 0.0016038575420909645,
+      "proper_count": 1,
+      "J": 0.0016073986639347723,
+      "parameter_sha256": "8b45c816cd5894ddb069416c190507ece2fc326f1fdcf3c53367fc877c922b2c",
+      "positive_topology": [
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.05930197699496851,
+          "x": 0.016446021258994407,
+          "is_true": true,
+          "positive": true
+        }
+      ]
+    },
+    {
+      "path_index": 2,
+      "stage": "W",
+      "event_index": 1,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.2222222222222222,
+      "exact": false,
+      "true_positive": 1,
+      "false_positive": 1,
+      "false_negative": 6,
+      "predicted_clades": 2,
+      "true_clades": 7,
+      "R_relative": 0.6322381425072511,
+      "X_relative": 1.2742890214563238,
+      "train_mae": 0.001327576711070588,
+      "train_mse": 2.7636053653779948e-06,
+      "train_sse": 0.004775510071373175,
+      "validation_mae": 0.001355993236028919,
+      "validation_mse": 2.891488990366388e-06,
+      "validation_sse": 0.014989478926059356,
+      "objective_K_MSE": 0.0014747766923191876,
+      "proper_count": 2,
+      "J": 0.001481858936006803,
+      "parameter_sha256": "60c71463063959afbfdab0ea2ba68c613a2cf8283ce89b54a064d565148c9d75",
+      "positive_topology": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.05608577667795981,
+          "x": 0.008476884231322299,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.07358463929644858,
+          "x": 0.026228997427259867,
+          "is_true": true,
+          "positive": true
+        }
+      ]
+    },
+    {
+      "path_index": 3,
+      "stage": "W",
+      "event_index": 2,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.4,
+      "exact": false,
+      "true_positive": 2,
+      "false_positive": 1,
+      "false_negative": 5,
+      "predicted_clades": 3,
+      "true_clades": 7,
+      "R_relative": 0.5398636822991035,
+      "X_relative": 0.9322068308671125,
+      "train_mae": 0.0012707065068684959,
+      "train_mse": 2.5335756480305986e-06,
+      "train_sse": 0.004378018719796874,
+      "validation_mae": 0.0013106588504105477,
+      "validation_mse": 2.692889886739645e-06,
+      "validation_sse": 0.013959941172858318,
+      "objective_K_MSE": 0.0013520231074786435,
+      "proper_count": 3,
+      "J": 0.0013626464730100668,
+      "parameter_sha256": "79d149f3d5b06e93a03cf2d0946a2e7dbd422079c70a2dfa978707aabad179a6",
+      "positive_topology": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.05745666224077225,
+          "x": 0.052393257298866784,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.05618235779148053,
+          "x": 0.008405028487057244,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.06017102662664208,
+          "x": 0.03180768825976439,
+          "is_true": true,
+          "positive": true
+        }
+      ]
+    },
+    {
+      "path_index": 4,
+      "stage": "W",
+      "event_index": 3,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.5454545454545454,
+      "exact": false,
+      "true_positive": 3,
+      "false_positive": 1,
+      "false_negative": 4,
+      "predicted_clades": 4,
+      "true_clades": 7,
+      "R_relative": 0.5355514322317385,
+      "X_relative": 0.987789598897752,
+      "train_mae": 0.0012489202930169405,
+      "train_mse": 2.4410322234222537e-06,
+      "train_sse": 0.0042181036820736545,
+      "validation_mae": 0.0012919990107115081,
+      "validation_mse": 2.6178042867642594e-06,
+      "validation_sse": 0.01357069742258592,
+      "objective_K_MSE": 0.0013026380225639898,
+      "proper_count": 4,
+      "J": 0.0013168025099392208,
+      "parameter_sha256": "07b38332957ade082d63b4d3cd84685b0d216f374384da908a45ceb4dd95df70",
+      "positive_topology": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.041026125361521296,
+          "x": 0.07071596062441472,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.05751889648661045,
+          "x": 0.05633434722098857,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.07466876373689982,
+          "x": 0.024158092649353972,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.06952454581544312,
+          "x": 0.04758798721640841,
+          "is_true": true,
+          "positive": true
+        }
+      ]
+    },
+    {
+      "path_index": 5,
+      "stage": "W",
+      "event_index": 4,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.5,
+      "exact": false,
+      "true_positive": 3,
+      "false_positive": 2,
+      "false_negative": 4,
+      "predicted_clades": 5,
+      "true_clades": 7,
+      "R_relative": 0.4291929619196953,
+      "X_relative": 0.619706387963663,
+      "train_mae": 0.0012111242938900204,
+      "train_mse": 2.3084085176130215e-06,
+      "train_sse": 0.003988929918435301,
+      "validation_mae": 0.001242261919432856,
+      "validation_mse": 2.4256265133922453e-06,
+      "validation_sse": 0.012574447845425399,
+      "objective_K_MSE": 0.0012318644046564633,
+      "proper_count": 5,
+      "J": 0.001249570013875502,
+      "parameter_sha256": "797333a72711aefe7a7a2d1af66f707a2cfc4086c80515ddc9e21ffb30369fab",
+      "positive_topology": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.10416383334155427,
+          "x": 0.07092818573878884,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.06092644008058312,
+          "x": 0.054515096663503515,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.0368719608114203,
+          "x": 0.018848980198025254,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.09665325121568288,
+          "x": 0.05768663609587549,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312
+          ],
+          "size": 9,
+          "r": 0.039104210635399796,
+          "x": 0.017600859065803796,
+          "is_true": false,
+          "positive": true
+        }
+      ]
+    },
+    {
+      "path_index": 6,
+      "stage": "T",
+      "event_index": 5,
+      "selected_primary": false,
+      "selected_secondary": false,
+      "clade_f1": 0.5333333333333333,
+      "exact": false,
+      "true_positive": 4,
+      "false_positive": 4,
+      "false_negative": 3,
+      "predicted_clades": 8,
+      "true_clades": 7,
+      "R_relative": 0.34544422219311344,
+      "X_relative": 0.558171733512714,
+      "train_mae": 0.0011939400667083386,
+      "train_mse": 2.245274668664413e-06,
+      "train_sse": 0.0038798346274521054,
+      "validation_mae": 0.0012262220485598435,
+      "validation_mse": 2.3606929985568025e-06,
+      "validation_sse": 0.012237832504518464,
+      "objective_K_MSE": 0.001198173513007368,
+      "proper_count": 8,
+      "J": 0.0012265024877578302,
+      "parameter_sha256": "b29504fcdea29ff819937379a42e468f150f0d0e0fee376f38a46d1c31596f4e",
+      "positive_topology": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "missing_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            2,
+            3
+          ],
+          "terminal_labels": [
+            303,
+            304
+          ],
+          "size": 2,
+          "r": 0.08197658716744154,
+          "x": 0.0,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.10315395304421349,
+          "x": 0.07134566908121336,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            310,
+            311,
+            312
+          ],
+          "size": 3,
+          "r": 0.0696933482662821,
+          "x": 0.0001996335444965409,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.06087858221625292,
+          "x": 0.05454914306902435,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.003992354864911401,
+          "x": 0.01440106229184042,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.09627521358647347,
+          "x": 0.05762863128465907,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305,
+            310,
+            311,
+            312
+          ],
+          "size": 8,
+          "r": 0.011699616888552707,
+          "x": 0.024213881461529238,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312
+          ],
+          "size": 9,
+          "r": 0.029737216797284242,
+          "x": 0.000994121425301553,
+          "is_true": false,
+          "positive": true
+        }
+      ]
+    },
+    {
+      "path_index": 7,
+      "stage": "E",
+      "event_index": 6,
+      "selected_primary": true,
+      "selected_secondary": true,
+      "clade_f1": 0.8571428571428571,
+      "exact": false,
+      "true_positive": 6,
+      "false_positive": 1,
+      "false_negative": 1,
+      "predicted_clades": 7,
+      "true_clades": 7,
+      "R_relative": 0.13955339999702301,
+      "X_relative": 0.35126844260367407,
+      "train_mae": 0.0011764068828752057,
+      "train_mse": 2.183378870441394e-06,
+      "train_sse": 0.0037728786881227284,
+      "validation_mae": 0.0011835735944721467,
+      "validation_mse": 2.1941940810559145e-06,
+      "validation_sse": 0.01137470211619386,
+      "objective_K_MSE": 0.0011651432975810368,
+      "proper_count": 7,
+      "J": 0.0011899311504876913,
+      "parameter_sha256": "e3176736348a3bcefe560555e21945198251e187f605b6e1f72f6fe092192d7d",
+      "positive_topology": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [
+        [
+          2,
+          3
+        ]
+      ],
+      "missing_clades": [
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "atoms": [
+        {
+          "support": [
+            2,
+            3
+          ],
+          "terminal_labels": [
+            303,
+            304
+          ],
+          "size": 2,
+          "r": 0.07230889291037705,
+          "x": 0.016644011511727994,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.09905007355683827,
+          "x": 0.07232167768174239,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            310,
+            311,
+            312
+          ],
+          "size": 3,
+          "r": 0.0784539758923133,
+          "x": 0.06294587734501751,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            309,
+            310,
+            311,
+            312
+          ],
+          "size": 4,
+          "r": 0.07135888004798711,
+          "x": 0.03487034572285271,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.06066304558317194,
+          "x": 0.054702477274736684,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305
+          ],
+          "size": 5,
+          "r": 0.08546017610561103,
+          "x": 0.035523452298913634,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.094572652076115,
+          "x": 0.057367396022975095,
+          "is_true": true,
+          "positive": true
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "event_index": 0,
+      "stage": "W",
+      "accepted": true,
+      "before_path_index": 0,
+      "after_path_index": 1,
+      "before": {
+        "clade_f1": 0.0,
+        "exact": false,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 7,
+        "predicted_clades": 0,
+        "true_clades": 7,
+        "R_relative": 1.07614386083687,
+        "X_relative": 1.8876411245947904,
+        "train_mae": 0.0015803085928111072,
+        "train_mse": 4.152803092628435e-06,
+        "train_sse": 0.007176043744061936,
+        "validation_mae": 0.0016598409934962585,
+        "validation_mse": 4.476438124022909e-06,
+        "validation_sse": 0.023205855234934757,
+        "objective_K_MSE": 0.0022161113469837896,
+        "proper_count": 0,
+        "J": 0.0022161113469837896,
+        "parameter_sha256": "ee6a428b5736471023b5993cc20d80f2321b03df11920fd56e10b7f6e67c2ac0",
+        "positive_topology": [],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.25,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 6,
+        "predicted_clades": 1,
+        "true_clades": 7,
+        "R_relative": 0.6956915950747051,
+        "X_relative": 1.1205218435651858,
+        "train_mae": 0.0013791807585274032,
+        "train_mse": 3.0054918359567055e-06,
+        "train_sse": 0.005193489892533187,
+        "validation_mae": 0.0014117428057603691,
+        "validation_mse": 3.177420504269725e-06,
+        "validation_sse": 0.016471747894134255,
+        "objective_K_MSE": 0.0016038575420909645,
+        "proper_count": 1,
+        "J": 0.0016073986639347723,
+        "parameter_sha256": "8b45c816cd5894ddb069416c190507ece2fc326f1fdcf3c53367fc877c922b2c",
+        "positive_topology": [
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.25,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 6,
+        "predicted_clades": 1,
+        "true_clades": 7,
+        "R_relative": 0.6956915950747051,
+        "X_relative": 1.1205218435651858,
+        "train_mae": 0.0013791807585274032,
+        "train_mse": 3.0054918359567055e-06,
+        "train_sse": 0.005193489892533187,
+        "validation_mae": 0.0014117428057603691,
+        "validation_mse": 3.177420504269725e-06,
+        "validation_sse": 0.016471747894134255,
+        "objective_K_MSE": 0.0016038575420909645,
+        "proper_count": 1,
+        "J": 0.0016073986639347723,
+        "parameter_sha256": "8b45c816cd5894ddb069416c190507ece2fc326f1fdcf3c53367fc877c922b2c",
+        "positive_topology": [
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "removed_clades": [],
+      "added_false_clades": [],
+      "removed_false_clades": [],
+      "candidate_atoms": [
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.05930197699496851,
+          "x": 0.016446021258994407,
+          "is_true": true,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.0016073986639347723,
+        "dual_bound": 0.0016073986639347723,
+        "relative_gap": 0.0,
+        "seconds": 91.494079899996,
+        "requested_seconds": 3600.0
+      },
+      "recorded_gain": 0.0006087126830490173,
+      "numerical_threshold": 1e-10
+    },
+    {
+      "event_index": 1,
+      "stage": "W",
+      "accepted": true,
+      "before_path_index": 1,
+      "after_path_index": 2,
+      "before": {
+        "clade_f1": 0.25,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 6,
+        "predicted_clades": 1,
+        "true_clades": 7,
+        "R_relative": 0.6956915950747051,
+        "X_relative": 1.1205218435651858,
+        "train_mae": 0.0013791807585274032,
+        "train_mse": 3.0054918359567055e-06,
+        "train_sse": 0.005193489892533187,
+        "validation_mae": 0.0014117428057603691,
+        "validation_mse": 3.177420504269725e-06,
+        "validation_sse": 0.016471747894134255,
+        "objective_K_MSE": 0.0016038575420909645,
+        "proper_count": 1,
+        "J": 0.0016073986639347723,
+        "parameter_sha256": "8b45c816cd5894ddb069416c190507ece2fc326f1fdcf3c53367fc877c922b2c",
+        "positive_topology": [
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.2222222222222222,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 1,
+        "false_negative": 6,
+        "predicted_clades": 2,
+        "true_clades": 7,
+        "R_relative": 0.6322381425072511,
+        "X_relative": 1.2742890214563238,
+        "train_mae": 0.001327576711070588,
+        "train_mse": 2.7636053653779948e-06,
+        "train_sse": 0.004775510071373175,
+        "validation_mae": 0.001355993236028919,
+        "validation_mse": 2.891488990366388e-06,
+        "validation_sse": 0.014989478926059356,
+        "objective_K_MSE": 0.0014747766923191876,
+        "proper_count": 2,
+        "J": 0.001481858936006803,
+        "parameter_sha256": "60c71463063959afbfdab0ea2ba68c613a2cf8283ce89b54a064d565148c9d75",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.2222222222222222,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 1,
+        "false_negative": 6,
+        "predicted_clades": 2,
+        "true_clades": 7,
+        "R_relative": 0.6322381425072511,
+        "X_relative": 1.2742890214563238,
+        "train_mae": 0.001327576711070588,
+        "train_mse": 2.7636053653779948e-06,
+        "train_sse": 0.004775510071373175,
+        "validation_mae": 0.001355993236028919,
+        "validation_mse": 2.891488990366388e-06,
+        "validation_sse": 0.014989478926059356,
+        "objective_K_MSE": 0.0014747766923191876,
+        "proper_count": 2,
+        "J": 0.001481858936006803,
+        "parameter_sha256": "60c71463063959afbfdab0ea2ba68c613a2cf8283ce89b54a064d565148c9d75",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "removed_clades": [],
+      "added_false_clades": [
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "removed_false_clades": [],
+      "candidate_atoms": [
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.05608577667795981,
+          "x": 0.008476884231322299,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.07358463929644858,
+          "x": 0.026228997427259867,
+          "is_true": true,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.0014783178141629955,
+        "dual_bound": 0.0014783178141629955,
+        "relative_gap": 0.0,
+        "seconds": 40.27331989999948,
+        "requested_seconds": 3600.0
+      },
+      "recorded_gain": 0.00012553972792796924,
+      "numerical_threshold": 1e-10
+    },
+    {
+      "event_index": 2,
+      "stage": "W",
+      "accepted": true,
+      "before_path_index": 2,
+      "after_path_index": 3,
+      "before": {
+        "clade_f1": 0.2222222222222222,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 1,
+        "false_negative": 6,
+        "predicted_clades": 2,
+        "true_clades": 7,
+        "R_relative": 0.6322381425072511,
+        "X_relative": 1.2742890214563238,
+        "train_mae": 0.001327576711070588,
+        "train_mse": 2.7636053653779948e-06,
+        "train_sse": 0.004775510071373175,
+        "validation_mae": 0.001355993236028919,
+        "validation_mse": 2.891488990366388e-06,
+        "validation_sse": 0.014989478926059356,
+        "objective_K_MSE": 0.0014747766923191876,
+        "proper_count": 2,
+        "J": 0.001481858936006803,
+        "parameter_sha256": "60c71463063959afbfdab0ea2ba68c613a2cf8283ce89b54a064d565148c9d75",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.4,
+        "exact": false,
+        "true_positive": 2,
+        "false_positive": 1,
+        "false_negative": 5,
+        "predicted_clades": 3,
+        "true_clades": 7,
+        "R_relative": 0.5398636822991035,
+        "X_relative": 0.9322068308671125,
+        "train_mae": 0.0012707065068684959,
+        "train_mse": 2.5335756480305986e-06,
+        "train_sse": 0.004378018719796874,
+        "validation_mae": 0.0013106588504105477,
+        "validation_mse": 2.692889886739645e-06,
+        "validation_sse": 0.013959941172858318,
+        "objective_K_MSE": 0.0013520231074786435,
+        "proper_count": 3,
+        "J": 0.0013626464730100668,
+        "parameter_sha256": "79d149f3d5b06e93a03cf2d0946a2e7dbd422079c70a2dfa978707aabad179a6",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.4,
+        "exact": false,
+        "true_positive": 2,
+        "false_positive": 1,
+        "false_negative": 5,
+        "predicted_clades": 3,
+        "true_clades": 7,
+        "R_relative": 0.5398636822991035,
+        "X_relative": 0.9322068308671125,
+        "train_mae": 0.0012707065068684959,
+        "train_mse": 2.5335756480305986e-06,
+        "train_sse": 0.004378018719796874,
+        "validation_mae": 0.0013106588504105477,
+        "validation_mse": 2.692889886739645e-06,
+        "validation_sse": 0.013959941172858318,
+        "objective_K_MSE": 0.0013520231074786435,
+        "proper_count": 3,
+        "J": 0.0013626464730100668,
+        "parameter_sha256": "79d149f3d5b06e93a03cf2d0946a2e7dbd422079c70a2dfa978707aabad179a6",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "removed_clades": [],
+      "added_false_clades": [],
+      "removed_false_clades": [],
+      "candidate_atoms": [
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.05745666224077225,
+          "x": 0.052393257298866784,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.05618235779148053,
+          "x": 0.008405028487057244,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.06017102662664208,
+          "x": 0.03180768825976439,
+          "is_true": true,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.0013555642293224513,
+        "dual_bound": 0.0013555642293224513,
+        "relative_gap": 0.0,
+        "seconds": 15.501660199995968,
+        "requested_seconds": 3600.0
+      },
+      "recorded_gain": 0.00011921246299673627,
+      "numerical_threshold": 1e-10
+    },
+    {
+      "event_index": 3,
+      "stage": "W",
+      "accepted": true,
+      "before_path_index": 3,
+      "after_path_index": 4,
+      "before": {
+        "clade_f1": 0.4,
+        "exact": false,
+        "true_positive": 2,
+        "false_positive": 1,
+        "false_negative": 5,
+        "predicted_clades": 3,
+        "true_clades": 7,
+        "R_relative": 0.5398636822991035,
+        "X_relative": 0.9322068308671125,
+        "train_mae": 0.0012707065068684959,
+        "train_mse": 2.5335756480305986e-06,
+        "train_sse": 0.004378018719796874,
+        "validation_mae": 0.0013106588504105477,
+        "validation_mse": 2.692889886739645e-06,
+        "validation_sse": 0.013959941172858318,
+        "objective_K_MSE": 0.0013520231074786435,
+        "proper_count": 3,
+        "J": 0.0013626464730100668,
+        "parameter_sha256": "79d149f3d5b06e93a03cf2d0946a2e7dbd422079c70a2dfa978707aabad179a6",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.5454545454545454,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 1,
+        "false_negative": 4,
+        "predicted_clades": 4,
+        "true_clades": 7,
+        "R_relative": 0.5355514322317385,
+        "X_relative": 0.987789598897752,
+        "train_mae": 0.0012489202930169405,
+        "train_mse": 2.4410322234222537e-06,
+        "train_sse": 0.0042181036820736545,
+        "validation_mae": 0.0012919990107115081,
+        "validation_mse": 2.6178042867642594e-06,
+        "validation_sse": 0.01357069742258592,
+        "objective_K_MSE": 0.0013026380225639898,
+        "proper_count": 4,
+        "J": 0.0013168025099392208,
+        "parameter_sha256": "07b38332957ade082d63b4d3cd84685b0d216f374384da908a45ceb4dd95df70",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.5454545454545454,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 1,
+        "false_negative": 4,
+        "predicted_clades": 4,
+        "true_clades": 7,
+        "R_relative": 0.5355514322317385,
+        "X_relative": 0.987789598897752,
+        "train_mae": 0.0012489202930169405,
+        "train_mse": 2.4410322234222537e-06,
+        "train_sse": 0.0042181036820736545,
+        "validation_mae": 0.0012919990107115081,
+        "validation_mse": 2.6178042867642594e-06,
+        "validation_sse": 0.01357069742258592,
+        "objective_K_MSE": 0.0013026380225639898,
+        "proper_count": 4,
+        "J": 0.0013168025099392208,
+        "parameter_sha256": "07b38332957ade082d63b4d3cd84685b0d216f374384da908a45ceb4dd95df70",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          5,
+          6,
+          7
+        ]
+      ],
+      "removed_clades": [],
+      "added_false_clades": [],
+      "removed_false_clades": [],
+      "candidate_atoms": [
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.041026125361521296,
+          "x": 0.07071596062441472,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.05751889648661045,
+          "x": 0.05633434722098857,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.07466876373689982,
+          "x": 0.024158092649353972,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.06952454581544312,
+          "x": 0.04758798721640841,
+          "is_true": true,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.0013061791444077978,
+        "dual_bound": 0.0013061791444077978,
+        "relative_gap": 0.0,
+        "seconds": 15.242336800001794,
+        "requested_seconds": 3600.0
+      },
+      "recorded_gain": 4.5843963070846e-05,
+      "numerical_threshold": 1e-10
+    },
+    {
+      "event_index": 4,
+      "stage": "W",
+      "accepted": true,
+      "before_path_index": 4,
+      "after_path_index": 5,
+      "before": {
+        "clade_f1": 0.5454545454545454,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 1,
+        "false_negative": 4,
+        "predicted_clades": 4,
+        "true_clades": 7,
+        "R_relative": 0.5355514322317385,
+        "X_relative": 0.987789598897752,
+        "train_mae": 0.0012489202930169405,
+        "train_mse": 2.4410322234222537e-06,
+        "train_sse": 0.0042181036820736545,
+        "validation_mae": 0.0012919990107115081,
+        "validation_mse": 2.6178042867642594e-06,
+        "validation_sse": 0.01357069742258592,
+        "objective_K_MSE": 0.0013026380225639898,
+        "proper_count": 4,
+        "J": 0.0013168025099392208,
+        "parameter_sha256": "07b38332957ade082d63b4d3cd84685b0d216f374384da908a45ceb4dd95df70",
+        "positive_topology": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.5,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 2,
+        "false_negative": 4,
+        "predicted_clades": 5,
+        "true_clades": 7,
+        "R_relative": 0.4291929619196953,
+        "X_relative": 0.619706387963663,
+        "train_mae": 0.0012111242938900204,
+        "train_mse": 2.3084085176130215e-06,
+        "train_sse": 0.003988929918435301,
+        "validation_mae": 0.001242261919432856,
+        "validation_mse": 2.4256265133922453e-06,
+        "validation_sse": 0.012574447845425399,
+        "objective_K_MSE": 0.0012318644046564633,
+        "proper_count": 5,
+        "J": 0.001249570013875502,
+        "parameter_sha256": "797333a72711aefe7a7a2d1af66f707a2cfc4086c80515ddc9e21ffb30369fab",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.5,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 2,
+        "false_negative": 4,
+        "predicted_clades": 5,
+        "true_clades": 7,
+        "R_relative": 0.4291929619196953,
+        "X_relative": 0.619706387963663,
+        "train_mae": 0.0012111242938900204,
+        "train_mse": 2.3084085176130215e-06,
+        "train_sse": 0.003988929918435301,
+        "validation_mae": 0.001242261919432856,
+        "validation_mse": 2.4256265133922453e-06,
+        "validation_sse": 0.012574447845425399,
+        "objective_K_MSE": 0.0012318644046564633,
+        "proper_count": 5,
+        "J": 0.001249570013875502,
+        "parameter_sha256": "797333a72711aefe7a7a2d1af66f707a2cfc4086c80515ddc9e21ffb30369fab",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ]
+      ],
+      "removed_clades": [],
+      "added_false_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ]
+      ],
+      "removed_false_clades": [],
+      "candidate_atoms": [
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.10416383334155427,
+          "x": 0.07092818573878884,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.06092644008058312,
+          "x": 0.054515096663503515,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.0368719608114203,
+          "x": 0.018848980198025254,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.09665325121568288,
+          "x": 0.05768663609587549,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312
+          ],
+          "size": 9,
+          "r": 0.039104210635399796,
+          "x": 0.017600859065803796,
+          "is_true": false,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.0012354055265002713,
+        "dual_bound": 0.0012354055265002713,
+        "relative_gap": 0.0,
+        "seconds": 10.959052600002906,
+        "requested_seconds": 3600.0
+      },
+      "recorded_gain": 6.723249606371872e-05,
+      "numerical_threshold": 1e-10
+    },
+    {
+      "event_index": 5,
+      "stage": "T",
+      "accepted": true,
+      "before_path_index": 5,
+      "after_path_index": 6,
+      "before": {
+        "clade_f1": 0.5,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 2,
+        "false_negative": 4,
+        "predicted_clades": 5,
+        "true_clades": 7,
+        "R_relative": 0.4291929619196953,
+        "X_relative": 0.619706387963663,
+        "train_mae": 0.0012111242938900204,
+        "train_mse": 2.3084085176130215e-06,
+        "train_sse": 0.003988929918435301,
+        "validation_mae": 0.001242261919432856,
+        "validation_mse": 2.4256265133922453e-06,
+        "validation_sse": 0.012574447845425399,
+        "objective_K_MSE": 0.0012318644046564633,
+        "proper_count": 5,
+        "J": 0.001249570013875502,
+        "parameter_sha256": "797333a72711aefe7a7a2d1af66f707a2cfc4086c80515ddc9e21ffb30369fab",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.5333333333333333,
+        "exact": false,
+        "true_positive": 4,
+        "false_positive": 4,
+        "false_negative": 3,
+        "predicted_clades": 8,
+        "true_clades": 7,
+        "R_relative": 0.34544422219311344,
+        "X_relative": 0.558171733512714,
+        "train_mae": 0.0011939400667083386,
+        "train_mse": 2.245274668664413e-06,
+        "train_sse": 0.0038798346274521054,
+        "validation_mae": 0.0012262220485598435,
+        "validation_mse": 2.3606929985568025e-06,
+        "validation_sse": 0.012237832504518464,
+        "objective_K_MSE": 0.001198173513007368,
+        "proper_count": 8,
+        "J": 0.0012265024877578302,
+        "parameter_sha256": "b29504fcdea29ff819937379a42e468f150f0d0e0fee376f38a46d1c31596f4e",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.5333333333333333,
+        "exact": false,
+        "true_positive": 4,
+        "false_positive": 4,
+        "false_negative": 3,
+        "predicted_clades": 8,
+        "true_clades": 7,
+        "R_relative": 0.34544422219311344,
+        "X_relative": 0.558171733512714,
+        "train_mae": 0.0011939400667083386,
+        "train_mse": 2.245274668664413e-06,
+        "train_sse": 0.0038798346274521054,
+        "validation_mae": 0.0012262220485598435,
+        "validation_mse": 2.3606929985568025e-06,
+        "validation_sse": 0.012237832504518464,
+        "objective_K_MSE": 0.001198173513007368,
+        "proper_count": 8,
+        "J": 0.0012265024877578302,
+        "parameter_sha256": "b29504fcdea29ff819937379a42e468f150f0d0e0fee376f38a46d1c31596f4e",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          9,
+          10,
+          11
+        ]
+      ],
+      "removed_clades": [],
+      "added_false_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "removed_false_clades": [],
+      "candidate_atoms": [
+        {
+          "support": [
+            2,
+            3
+          ],
+          "terminal_labels": [
+            303,
+            304
+          ],
+          "size": 2,
+          "r": 0.08197658716744154,
+          "x": 0.0,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.10315395304421349,
+          "x": 0.07134566908121336,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            310,
+            311,
+            312
+          ],
+          "size": 3,
+          "r": 0.0696933482662821,
+          "x": 0.0001996335444965409,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.06087858221625292,
+          "x": 0.05454914306902435,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            303,
+            304,
+            310,
+            311,
+            312
+          ],
+          "size": 5,
+          "r": 0.003992354864911401,
+          "x": 0.01440106229184042,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.09627521358647347,
+          "x": 0.05762863128465907,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305,
+            310,
+            311,
+            312
+          ],
+          "size": 8,
+          "r": 0.011699616888552707,
+          "x": 0.024213881461529238,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312
+          ],
+          "size": 9,
+          "r": 0.029737216797284242,
+          "x": 0.000994121425301553,
+          "is_true": false,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.00122650248775783,
+        "dual_bound": 0.0012264194875563441,
+        "relative_gap": 6.767226509055435e-05,
+        "seconds": 41.279818299997714,
+        "requested_seconds": 6582.223592350012
+      },
+      "recorded_gain": 2.3067526117671877e-05,
+      "numerical_threshold": 1e-10,
+      "native_raw_proposal": {
+        "clade_f1": 0.5333333333333333,
+        "exact": false,
+        "true_positive": 4,
+        "false_positive": 4,
+        "false_negative": 3,
+        "predicted_clades": 8,
+        "true_clades": 7,
+        "R_relative": 0.34544422219309423,
+        "X_relative": 0.5581717335128096,
+        "train_mae": 0.0011939400667083397,
+        "train_mse": 2.2452746686644126e-06,
+        "train_sse": 0.0038798346274521046,
+        "validation_mae": 0.0012262220485598524,
+        "validation_mse": 2.3606929985568347e-06,
+        "validation_sse": 0.01223783250451863,
+        "objective_K_MSE": 0.0011981735130073678,
+        "proper_count": 8,
+        "J": 0.00122650248775783,
+        "parameter_sha256": "3cd56444620f2fcc8728b3d816c0da2e1a7da2263625e702238dc963bafbae06",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "pool_count": 129,
+      "keep_count": 22
+    },
+    {
+      "event_index": 6,
+      "stage": "E",
+      "accepted": true,
+      "before_path_index": 6,
+      "after_path_index": 7,
+      "before": {
+        "clade_f1": 0.5333333333333333,
+        "exact": false,
+        "true_positive": 4,
+        "false_positive": 4,
+        "false_negative": 3,
+        "predicted_clades": 8,
+        "true_clades": 7,
+        "R_relative": 0.34544422219311344,
+        "X_relative": 0.558171733512714,
+        "train_mae": 0.0011939400667083386,
+        "train_mse": 2.245274668664413e-06,
+        "train_sse": 0.0038798346274521054,
+        "validation_mae": 0.0012262220485598435,
+        "validation_mse": 2.3606929985568025e-06,
+        "validation_sse": 0.012237832504518464,
+        "objective_K_MSE": 0.001198173513007368,
+        "proper_count": 8,
+        "J": 0.0012265024877578302,
+        "parameter_sha256": "b29504fcdea29ff819937379a42e468f150f0d0e0fee376f38a46d1c31596f4e",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        ],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      "QP_closed_candidate": {
+        "clade_f1": 0.8571428571428571,
+        "exact": false,
+        "true_positive": 6,
+        "false_positive": 1,
+        "false_negative": 1,
+        "predicted_clades": 7,
+        "true_clades": 7,
+        "R_relative": 0.13955339999702301,
+        "X_relative": 0.35126844260367407,
+        "train_mae": 0.0011764068828752057,
+        "train_mse": 2.183378870441394e-06,
+        "train_sse": 0.0037728786881227284,
+        "validation_mae": 0.0011835735944721467,
+        "validation_mse": 2.1941940810559145e-06,
+        "validation_sse": 0.01137470211619386,
+        "objective_K_MSE": 0.0011651432975810368,
+        "proper_count": 7,
+        "J": 0.0011899311504876913,
+        "parameter_sha256": "e3176736348a3bcefe560555e21945198251e187f605b6e1f72f6fe092192d7d",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3
+          ]
+        ],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ]
+        ]
+      },
+      "after_retained": {
+        "clade_f1": 0.8571428571428571,
+        "exact": false,
+        "true_positive": 6,
+        "false_positive": 1,
+        "false_negative": 1,
+        "predicted_clades": 7,
+        "true_clades": 7,
+        "R_relative": 0.13955339999702301,
+        "X_relative": 0.35126844260367407,
+        "train_mae": 0.0011764068828752057,
+        "train_mse": 2.183378870441394e-06,
+        "train_sse": 0.0037728786881227284,
+        "validation_mae": 0.0011835735944721467,
+        "validation_mse": 2.1941940810559145e-06,
+        "validation_sse": 0.01137470211619386,
+        "objective_K_MSE": 0.0011651432975810368,
+        "proper_count": 7,
+        "J": 0.0011899311504876913,
+        "parameter_sha256": "e3176736348a3bcefe560555e21945198251e187f605b6e1f72f6fe092192d7d",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3
+          ]
+        ],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ]
+        ]
+      },
+      "added_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ]
+      ],
+      "removed_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "added_false_clades": [],
+      "removed_false_clades": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          10,
+          11
+        ],
+        [
+          2,
+          3,
+          9,
+          10,
+          11
+        ]
+      ],
+      "candidate_atoms": [
+        {
+          "support": [
+            2,
+            3
+          ],
+          "terminal_labels": [
+            303,
+            304
+          ],
+          "size": 2,
+          "r": 0.07230889291037705,
+          "x": 0.016644011511727994,
+          "is_true": false,
+          "positive": true
+        },
+        {
+          "support": [
+            5,
+            6,
+            7
+          ],
+          "terminal_labels": [
+            306,
+            307,
+            308
+          ],
+          "size": 3,
+          "r": 0.09905007355683827,
+          "x": 0.07232167768174239,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            310,
+            311,
+            312
+          ],
+          "size": 3,
+          "r": 0.0784539758923133,
+          "x": 0.06294587734501751,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "terminal_labels": [
+            309,
+            310,
+            311,
+            312
+          ],
+          "size": 4,
+          "r": 0.07135888004798711,
+          "x": 0.03487034572285271,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 4,
+          "r": 0.06066304558317194,
+          "x": 0.054702477274736684,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "terminal_labels": [
+            301,
+            302,
+            303,
+            304,
+            305
+          ],
+          "size": 5,
+          "r": 0.08546017610561103,
+          "x": 0.035523452298913634,
+          "is_true": true,
+          "positive": true
+        },
+        {
+          "support": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "terminal_labels": [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "size": 6,
+          "r": 0.094572652076115,
+          "x": 0.057367396022975095,
+          "is_true": true,
+          "positive": true
+        }
+      ],
+      "solver": {
+        "status": 2,
+        "objective": 0.0011899311504876913,
+        "dual_bound": 0.0011898717887095884,
+        "relative_gap": 4.988673342866149e-05,
+        "seconds": 58.447987899999134,
+        "requested_seconds": 13418.223426000019
+      },
+      "recorded_gain": 3.65713372701389e-05,
+      "numerical_threshold": 1e-10,
+      "native_raw_proposal": {
+        "clade_f1": 0.8571428571428571,
+        "exact": false,
+        "true_positive": 6,
+        "false_positive": 1,
+        "false_negative": 1,
+        "predicted_clades": 7,
+        "true_clades": 7,
+        "R_relative": 0.13955339999697694,
+        "X_relative": 0.3512684426036485,
+        "train_mae": 0.001176406882875203,
+        "train_mse": 2.1833788704413935e-06,
+        "train_sse": 0.0037728786881227275,
+        "validation_mae": 0.001183573594472149,
+        "validation_mse": 2.194194081055925e-06,
+        "validation_sse": 0.011374702116193916,
+        "objective_K_MSE": 0.0011651432975810366,
+        "proper_count": 7,
+        "J": 0.001189931150487691,
+        "parameter_sha256": "bfcf50b99d79369c4a4cfcd9d725fd3ab4f9920ef633a5272faf6b2ea23bb082",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [
+          [
+            2,
+            3
+          ]
+        ],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ]
+        ]
+      },
+      "pool_count": 269,
+      "keep_count": 19
+    }
+  ],
+  "truth_connection_domain_membership": [
+    {
+      "support": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "terminal_labels": [
+        301,
+        302,
+        303,
+        304,
+        305
+      ],
+      "size": 5,
+      "in_R": true,
+      "in_T_pool": false,
+      "in_T_candidates": false,
+      "in_E": true,
+      "ever_in_path_family": true,
+      "ever_positive_in_path": true,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": false,
+      "in_old_E_pool": true
+    },
+    {
+      "support": [
+        2,
+        3,
+        4
+      ],
+      "terminal_labels": [
+        303,
+        304,
+        305
+      ],
+      "size": 3,
+      "in_R": false,
+      "in_T_pool": false,
+      "in_T_candidates": false,
+      "in_E": false,
+      "ever_in_path_family": false,
+      "ever_positive_in_path": false,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": true,
+      "in_old_E_pool": true
+    },
+    {
+      "support": [
+        5,
+        6,
+        7
+      ],
+      "terminal_labels": [
+        306,
+        307,
+        308
+      ],
+      "size": 3,
+      "in_R": true,
+      "in_T_pool": true,
+      "in_T_candidates": true,
+      "in_E": true,
+      "ever_in_path_family": true,
+      "ever_positive_in_path": true,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": false,
+      "in_old_E_pool": true
+    },
+    {
+      "support": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "terminal_labels": [
+        309,
+        310,
+        311,
+        312
+      ],
+      "size": 4,
+      "in_R": true,
+      "in_T_pool": false,
+      "in_T_candidates": false,
+      "in_E": true,
+      "ever_in_path_family": true,
+      "ever_positive_in_path": true,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": true,
+      "in_old_E_pool": true
+    },
+    {
+      "support": [
+        9,
+        10,
+        11
+      ],
+      "terminal_labels": [
+        310,
+        311,
+        312
+      ],
+      "size": 3,
+      "in_R": true,
+      "in_T_pool": true,
+      "in_T_candidates": true,
+      "in_E": true,
+      "ever_in_path_family": true,
+      "ever_positive_in_path": true,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": false,
+      "in_old_E_pool": true
+    },
+    {
+      "support": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "terminal_labels": [
+        313,
+        314,
+        315,
+        316,
+        317,
+        318
+      ],
+      "size": 6,
+      "in_R": true,
+      "in_T_pool": true,
+      "in_T_candidates": true,
+      "in_E": true,
+      "ever_in_path_family": true,
+      "ever_positive_in_path": true,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": false,
+      "in_old_E_pool": true
+    },
+    {
+      "support": [
+        14,
+        15,
+        16,
+        17
+      ],
+      "terminal_labels": [
+        315,
+        316,
+        317,
+        318
+      ],
+      "size": 4,
+      "in_R": true,
+      "in_T_pool": true,
+      "in_T_candidates": false,
+      "in_E": true,
+      "ever_in_path_family": true,
+      "ever_positive_in_path": true,
+      "in_parent_Bank_column_container": true,
+      "in_old_T_joint_candidates": false,
+      "in_old_E_pool": true
+    }
+  ],
+  "new_primary": {
+    "index": 7,
+    "clade_f1": 0.8571428571428571,
+    "exact": false,
+    "true_positive": 6,
+    "false_positive": 1,
+    "false_negative": 1,
+    "predicted_clades": 7,
+    "true_clades": 7,
+    "R_relative": 0.13955339999702301,
+    "X_relative": 0.35126844260367407,
+    "train_mae": 0.0011764068828752057,
+    "train_mse": 2.183378870441394e-06,
+    "train_sse": 0.0037728786881227284,
+    "validation_mae": 0.0011835735944721467,
+    "validation_mse": 2.1941940810559145e-06,
+    "validation_sse": 0.01137470211619386,
+    "objective_K_MSE": 0.0011651432975810368,
+    "proper_count": 7,
+    "J": 0.0011899311504876913,
+    "parameter_sha256": "e3176736348a3bcefe560555e21945198251e187f605b6e1f72f6fe092192d7d",
+    "positive_topology": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        5,
+        6,
+        7
+      ],
+      [
+        8,
+        9,
+        10,
+        11
+      ],
+      [
+        9,
+        10,
+        11
+      ],
+      [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      [
+        14,
+        15,
+        16,
+        17
+      ]
+    ],
+    "false_clades": [
+      [
+        2,
+        3
+      ]
+    ],
+    "missing_clades": [
+      [
+        2,
+        3,
+        4
+      ]
+    ],
+    "atoms": [
+      {
+        "support": [
+          2,
+          3
+        ],
+        "terminal_labels": [
+          303,
+          304
+        ],
+        "size": 2,
+        "r": 0.07230889291037705,
+        "x": 0.016644011511727994,
+        "is_true": false,
+        "positive": true
+      },
+      {
+        "support": [
+          5,
+          6,
+          7
+        ],
+        "terminal_labels": [
+          306,
+          307,
+          308
+        ],
+        "size": 3,
+        "r": 0.09905007355683827,
+        "x": 0.07232167768174239,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          310,
+          311,
+          312
+        ],
+        "size": 3,
+        "r": 0.0784539758923133,
+        "x": 0.06294587734501751,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          309,
+          310,
+          311,
+          312
+        ],
+        "size": 4,
+        "r": 0.07135888004798711,
+        "x": 0.03487034572285271,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 4,
+        "r": 0.06066304558317194,
+        "x": 0.054702477274736684,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "terminal_labels": [
+          301,
+          302,
+          303,
+          304,
+          305
+        ],
+        "size": 5,
+        "r": 0.08546017610561103,
+        "x": 0.035523452298913634,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          313,
+          314,
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 6,
+        "r": 0.094572652076115,
+        "x": 0.057367396022975095,
+        "is_true": true,
+        "positive": true
+      }
+    ]
+  },
+  "new_secondary": {
+    "index": 7,
+    "clade_f1": 0.8571428571428571,
+    "exact": false,
+    "true_positive": 6,
+    "false_positive": 1,
+    "false_negative": 1,
+    "predicted_clades": 7,
+    "true_clades": 7,
+    "R_relative": 0.13955339999702301,
+    "X_relative": 0.35126844260367407,
+    "train_mae": 0.0011764068828752057,
+    "train_mse": 2.183378870441394e-06,
+    "train_sse": 0.0037728786881227284,
+    "validation_mae": 0.0011835735944721467,
+    "validation_mse": 2.1941940810559145e-06,
+    "validation_sse": 0.01137470211619386,
+    "objective_K_MSE": 0.0011651432975810368,
+    "proper_count": 7,
+    "J": 0.0011899311504876913,
+    "parameter_sha256": "e3176736348a3bcefe560555e21945198251e187f605b6e1f72f6fe092192d7d",
+    "positive_topology": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        5,
+        6,
+        7
+      ],
+      [
+        8,
+        9,
+        10,
+        11
+      ],
+      [
+        9,
+        10,
+        11
+      ],
+      [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      [
+        14,
+        15,
+        16,
+        17
+      ]
+    ],
+    "false_clades": [
+      [
+        2,
+        3
+      ]
+    ],
+    "missing_clades": [
+      [
+        2,
+        3,
+        4
+      ]
+    ],
+    "atoms": [
+      {
+        "support": [
+          2,
+          3
+        ],
+        "terminal_labels": [
+          303,
+          304
+        ],
+        "size": 2,
+        "r": 0.07230889291037705,
+        "x": 0.016644011511727994,
+        "is_true": false,
+        "positive": true
+      },
+      {
+        "support": [
+          5,
+          6,
+          7
+        ],
+        "terminal_labels": [
+          306,
+          307,
+          308
+        ],
+        "size": 3,
+        "r": 0.09905007355683827,
+        "x": 0.07232167768174239,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          310,
+          311,
+          312
+        ],
+        "size": 3,
+        "r": 0.0784539758923133,
+        "x": 0.06294587734501751,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          309,
+          310,
+          311,
+          312
+        ],
+        "size": 4,
+        "r": 0.07135888004798711,
+        "x": 0.03487034572285271,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 4,
+        "r": 0.06066304558317194,
+        "x": 0.054702477274736684,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "terminal_labels": [
+          301,
+          302,
+          303,
+          304,
+          305
+        ],
+        "size": 5,
+        "r": 0.08546017610561103,
+        "x": 0.035523452298913634,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          313,
+          314,
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 6,
+        "r": 0.094572652076115,
+        "x": 0.057367396022975095,
+        "is_true": true,
+        "positive": true
+      }
+    ]
+  },
+  "MAE_MSE_selectors_same_parameters": true,
+  "MAE_MSE_selectors_same_topology": true,
+  "primary_is_final_endpoint": true,
+  "coverage": {
+    "new_any_full_path_exact": false,
+    "new_any_full_model_contains_all_true_connections": false,
+    "new_union_contains_all_true_connections": false,
+    "true_family_feasible_in_R": false,
+    "true_family_feasible_in_T": false,
+    "true_family_feasible_in_E": false,
+    "old_any_raw_path_exact": true,
+    "old_any_output24_exact": false,
+    "feasibility_field_scope": "R/T/E booleans test connection availability, not sufficiency of the fixed T skeleton; negative E availability is sufficient to rule out the true family in that E domain."
+  },
+  "old_parent": {
+    "output_policy": "saved .24-contracted/QP-refitted final library; no further mapping here",
+    "primary": {
+      "clade_f1": 0.9230769230769231,
+      "exact": false,
+      "true_positive": 6,
+      "false_positive": 0,
+      "false_negative": 1,
+      "predicted_clades": 6,
+      "true_clades": 7,
+      "R_relative": 0.17006137970378268,
+      "X_relative": 0.49699659402741275,
+      "train_mae": 0.0011827660903187553,
+      "train_mse": 2.2032856837375412e-06,
+      "train_sse": 0.003807277661498471,
+      "validation_mae": 0.001190816408569583,
+      "validation_mse": 2.216974491106672e-06,
+      "validation_sse": 0.011492795761896988,
+      "objective_K_MSE": 0.0011757664149896587,
+      "proper_count": 6,
+      "J": 0.0011970131460525054,
+      "parameter_sha256": "b361977f4604baf8e37d4d3078d7b76db0b04522d136541c2cf295e971de1396",
+      "positive_topology": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [],
+      "missing_clades": [
+        [
+          2,
+          3,
+          4
+        ]
+      ]
+    },
+    "primary_atoms": [
+      {
+        "support": [
+          5,
+          6,
+          7
+        ],
+        "terminal_labels": [
+          306,
+          307,
+          308
+        ],
+        "size": 3,
+        "r": 0.10759532059442217,
+        "x": 0.0695096128924906,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          310,
+          311,
+          312
+        ],
+        "size": 3,
+        "r": 0.07843192352392146,
+        "x": 0.06273982590592692,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          309,
+          310,
+          311,
+          312
+        ],
+        "size": 4,
+        "r": 0.07637370390332987,
+        "x": 0.03798962951011015,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 4,
+        "r": 0.06108905702818775,
+        "x": 0.05439940987681021,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "terminal_labels": [
+          301,
+          302,
+          303,
+          304,
+          305
+        ],
+        "size": 5,
+        "r": 0.09702669131893052,
+        "x": 0.025539563086965714,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          313,
+          314,
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 6,
+        "r": 0.09793779088751514,
+        "x": 0.05788373150492129,
+        "is_true": true,
+        "positive": true
+      }
+    ],
+    "raw_final_endpoint": {
+      "clade_f1": 1.0,
+      "exact": true,
+      "true_positive": 7,
+      "false_positive": 0,
+      "false_negative": 0,
+      "predicted_clades": 7,
+      "true_clades": 7,
+      "R_relative": 0.10593655474451918,
+      "X_relative": 0.2566504753834826,
+      "train_mae": 0.0011736240392013905,
+      "train_mse": 2.1756621735196074e-06,
+      "train_sse": 0.0037595442358418813,
+      "validation_mae": 0.001181892187956563,
+      "validation_mse": 2.181923381966646e-06,
+      "validation_sse": 0.011311090812115093,
+      "objective_K_MSE": 0.0011610253417742803,
+      "proper_count": 7,
+      "J": 0.0011858131946809348,
+      "parameter_sha256": "6cb948976b147d62100c8b911f371df3cdb846e7ab4bcff806fa7947a00b6204",
+      "positive_topology": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [],
+      "missing_clades": []
+    },
+    "raw_final_atoms": [
+      {
+        "support": [
+          2,
+          3,
+          4
+        ],
+        "terminal_labels": [
+          303,
+          304,
+          305
+        ],
+        "size": 3,
+        "r": 0.03246738628389684,
+        "x": 0.03214282561789409,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          5,
+          6,
+          7
+        ],
+        "terminal_labels": [
+          306,
+          307,
+          308
+        ],
+        "size": 3,
+        "r": 0.10084210734062433,
+        "x": 0.07207095658785465,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          310,
+          311,
+          312
+        ],
+        "size": 3,
+        "r": 0.07844883847095713,
+        "x": 0.06289787465230265,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "terminal_labels": [
+          309,
+          310,
+          311,
+          312
+        ],
+        "size": 4,
+        "r": 0.07252715652112998,
+        "x": 0.035597028447276975,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 4,
+        "r": 0.06076229117241989,
+        "x": 0.05463187329721321,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "terminal_labels": [
+          301,
+          302,
+          303,
+          304,
+          305
+        ],
+        "size": 5,
+        "r": 0.08313884923091265,
+        "x": 0.03902476061461786,
+        "is_true": true,
+        "positive": true
+      },
+      {
+        "support": [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "terminal_labels": [
+          313,
+          314,
+          315,
+          316,
+          317,
+          318
+        ],
+        "size": 6,
+        "r": 0.09535661031983887,
+        "x": 0.05748768391607057,
+        "is_true": true,
+        "positive": true
+      }
+    ],
+    "path": [
+      {
+        "path_index": 0,
+        "selected_parent_index": false,
+        "clade_f1": 0.4444444444444444,
+        "exact": false,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 5,
+        "predicted_clades": 2,
+        "true_clades": 7,
+        "R_relative": 1.052230519437861,
+        "X_relative": 1.891007580785477,
+        "train_mae": 0.001545781321601074,
+        "train_mse": 4.033076371689246e-06,
+        "train_sse": 0.006969155970279017,
+        "validation_mae": 0.001623266005399979,
+        "validation_mse": 4.304121252552493e-06,
+        "validation_sse": 0.022312564573232125,
+        "objective_K_MSE": 0.002152220105599994,
+        "proper_count": 2,
+        "J": 0.0021593023492876093,
+        "parameter_sha256": "f9e3b6ea6de0cef7757f0404589e66c01656e042b1012c74afba50433d71030f",
+        "positive_topology": [
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      {
+        "path_index": 1,
+        "selected_parent_index": false,
+        "clade_f1": 0.6,
+        "exact": false,
+        "true_positive": 3,
+        "false_positive": 0,
+        "false_negative": 4,
+        "predicted_clades": 3,
+        "true_clades": 7,
+        "R_relative": 0.6312729229885702,
+        "X_relative": 1.132372086874356,
+        "train_mae": 0.0013252788604800002,
+        "train_mse": 2.7750481501294915e-06,
+        "train_sse": 0.004795283203423761,
+        "validation_mae": 0.0013459919256441784,
+        "validation_mse": 2.8613176222212533e-06,
+        "validation_sse": 0.014833070553594977,
+        "objective_K_MSE": 0.0014808830461633894,
+        "proper_count": 3,
+        "J": 0.0014915064116948127,
+        "parameter_sha256": "245e3b50d8f1fb8bf4a489c4e16a92c6ad724a318228752e419bfea0c813b36c",
+        "positive_topology": [
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      {
+        "path_index": 2,
+        "selected_parent_index": false,
+        "clade_f1": 0.7272727272727273,
+        "exact": false,
+        "true_positive": 4,
+        "false_positive": 0,
+        "false_negative": 3,
+        "predicted_clades": 4,
+        "true_clades": 7,
+        "R_relative": 0.4548751025789684,
+        "X_relative": 1.0267428624605117,
+        "train_mae": 0.0012491377213752373,
+        "train_mse": 2.4676427556079796e-06,
+        "train_sse": 0.004264086681690589,
+        "validation_mae": 0.0012685320268410016,
+        "validation_mse": 2.538558080791883e-06,
+        "validation_sse": 0.013159885090825121,
+        "objective_K_MSE": 0.0013168385278638304,
+        "proper_count": 4,
+        "J": 0.0013310030152390614,
+        "parameter_sha256": "829ddd66889bc54c77b8b423185e49c7e7286dd1e999cf64fcd935e1441d3dca",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      {
+        "path_index": 3,
+        "selected_parent_index": false,
+        "clade_f1": 0.8333333333333334,
+        "exact": false,
+        "true_positive": 5,
+        "false_positive": 0,
+        "false_negative": 2,
+        "predicted_clades": 5,
+        "true_clades": 7,
+        "R_relative": 0.3209062960525813,
+        "X_relative": 0.5176683994841776,
+        "train_mae": 0.001190318957486769,
+        "train_mse": 2.2343344468825903e-06,
+        "train_sse": 0.0038609299242131157,
+        "validation_mae": 0.001218487642412306,
+        "validation_mse": 2.3272242247096253e-06,
+        "validation_sse": 0.012064330380894698,
+        "objective_K_MSE": 0.0011923353480165326,
+        "proper_count": 5,
+        "J": 0.0012100409572355715,
+        "parameter_sha256": "92f2aca033a0705de3415e8a7a90642e9d8c8d89ef7b3a2b101ebd8b8fa953de",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      {
+        "path_index": 4,
+        "selected_parent_index": true,
+        "clade_f1": 1.0,
+        "exact": true,
+        "true_positive": 7,
+        "false_positive": 0,
+        "false_negative": 0,
+        "predicted_clades": 7,
+        "true_clades": 7,
+        "R_relative": 0.10593655474451918,
+        "X_relative": 0.2566504753834826,
+        "train_mae": 0.0011736240392013905,
+        "train_mse": 2.1756621735196074e-06,
+        "train_sse": 0.0037595442358418813,
+        "validation_mae": 0.001181892187956563,
+        "validation_mse": 2.181923381966646e-06,
+        "validation_sse": 0.011311090812115093,
+        "objective_K_MSE": 0.0011610253417742803,
+        "proper_count": 7,
+        "J": 0.0011858131946809348,
+        "parameter_sha256": "6cb948976b147d62100c8b911f371df3cdb846e7ab4bcff806fa7947a00b6204",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": []
+      }
+    ],
+    "output24_library": [
+      {
+        "index": 0,
+        "clade_f1": 0.25,
+        "exact": false,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 6,
+        "predicted_clades": 1,
+        "true_clades": 7,
+        "R_relative": 1.9562211682739015,
+        "X_relative": 3.4103412952838945,
+        "train_mae": 0.0021874129946252794,
+        "train_mse": 8.976054664787318e-06,
+        "train_sse": 0.015510622460752486,
+        "validation_mae": 0.0022341303205202535,
+        "validation_mse": 8.978492990019316e-06,
+        "validation_sse": 0.04654450766026013,
+        "objective_K_MSE": 0.004790002355057905,
+        "proper_count": 1,
+        "J": 0.0047935434769017125,
+        "parameter_sha256": "cd3e4425a3071bc4ab324b3a5e4ac9c14b74f431a40745f2795919681b1cfbe8",
+        "positive_topology": [
+          [
+            9,
+            10,
+            11
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      {
+        "index": 1,
+        "clade_f1": 0.4444444444444444,
+        "exact": false,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 5,
+        "predicted_clades": 2,
+        "true_clades": 7,
+        "R_relative": 1.1009177613280343,
+        "X_relative": 2.550682764161881,
+        "train_mae": 0.0015958737766907341,
+        "train_mse": 4.272553623051538e-06,
+        "train_sse": 0.007382972660633058,
+        "validation_mae": 0.0016228137153089864,
+        "validation_mse": 4.349203538092938e-06,
+        "validation_sse": 0.02254627114147379,
+        "objective_K_MSE": 0.002280015294115075,
+        "proper_count": 2,
+        "J": 0.0022870975378026905,
+        "parameter_sha256": "2ac0bd782bab854233d29f46f326e867e9e4ea17ac35268359aa3793dbfedce8",
+        "positive_topology": [
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      {
+        "index": 2,
+        "clade_f1": 0.7272727272727273,
+        "exact": false,
+        "true_positive": 4,
+        "false_positive": 0,
+        "false_negative": 3,
+        "predicted_clades": 4,
+        "true_clades": 7,
+        "R_relative": 0.48916202561217587,
+        "X_relative": 1.0292978453094785,
+        "train_mae": 0.0012515467517546913,
+        "train_mse": 2.478448948019732e-06,
+        "train_sse": 0.004282759782178097,
+        "validation_mae": 0.0012747744659996581,
+        "validation_mse": 2.560947295948632e-06,
+        "validation_sse": 0.01327595078219771,
+        "objective_K_MSE": 0.0013226051691148648,
+        "proper_count": 4,
+        "J": 0.0013367696564900958,
+        "parameter_sha256": "8b4a305ec1972446e80e3a8b05581150b305296ce80ec826a45444ee7f76e08b",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      },
+      {
+        "index": 3,
+        "clade_f1": 0.8333333333333334,
+        "exact": false,
+        "true_positive": 5,
+        "false_positive": 0,
+        "false_negative": 2,
+        "predicted_clades": 5,
+        "true_clades": 7,
+        "R_relative": 0.3681810238872578,
+        "X_relative": 0.5211804713632641,
+        "train_mae": 0.0011922994955405799,
+        "train_mse": 2.2438970296877958e-06,
+        "train_sse": 0.0038774540673005113,
+        "validation_mae": 0.0012232885039420941,
+        "validation_mse": 2.3455354636172395e-06,
+        "validation_sse": 0.012159255843391769,
+        "objective_K_MSE": 0.0011974383465908462,
+        "proper_count": 5,
+        "J": 0.001215143955809885,
+        "parameter_sha256": "5dd31b4bc526ce012ee067c33b7588b266bfd25d75ef876500e4360dc9644463",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ]
+        ]
+      },
+      {
+        "index": 4,
+        "clade_f1": 0.9230769230769231,
+        "exact": false,
+        "true_positive": 6,
+        "false_positive": 0,
+        "false_negative": 1,
+        "predicted_clades": 6,
+        "true_clades": 7,
+        "R_relative": 0.17006137970378268,
+        "X_relative": 0.49699659402741275,
+        "train_mae": 0.0011827660903187553,
+        "train_mse": 2.2032856837375412e-06,
+        "train_sse": 0.003807277661498471,
+        "validation_mae": 0.001190816408569583,
+        "validation_mse": 2.216974491106672e-06,
+        "validation_sse": 0.011492795761896988,
+        "objective_K_MSE": 0.0011757664149896587,
+        "proper_count": 6,
+        "J": 0.0011970131460525054,
+        "parameter_sha256": "b361977f4604baf8e37d4d3078d7b76db0b04522d136541c2cf295e971de1396",
+        "positive_topology": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            2,
+            3,
+            4
+          ]
+        ]
+      },
+      {
+        "index": 5,
+        "clade_f1": 0.0,
+        "exact": false,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 7,
+        "predicted_clades": 0,
+        "true_clades": 7,
+        "R_relative": 2.1450583666769285,
+        "X_relative": 3.864907662289555,
+        "train_mae": 0.002417038472313232,
+        "train_mse": 1.0389981620673152e-05,
+        "train_sse": 0.017953888240523207,
+        "validation_mae": 0.0025367933454848307,
+        "validation_mse": 1.10982814554326e-05,
+        "validation_sse": 0.0575334910649626,
+        "objective_K_MSE": 0.005544533571889957,
+        "proper_count": 0,
+        "J": 0.005544533571889957,
+        "parameter_sha256": "15305494afabbf6a2a2b4083cb874f9acfdc2a080f492ca7b87daf4493243c49",
+        "positive_topology": [],
+        "false_clades": [],
+        "missing_clades": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11
+          ],
+          [
+            9,
+            10,
+            11
+          ],
+          [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          [
+            14,
+            15,
+            16,
+            17
+          ]
+        ]
+      }
+    ]
+  },
+  "true_family_oracle": {
+    "posthoc_only": true,
+    "used_in_model_generation": false,
+    "used_in_selection": false,
+    "added_to_candidate_export": false,
+    "native_solver_calls": 0,
+    "independent_SciPy_profiles": 1,
+    "profile": {
+      "supports": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ],
+        [
+          4
+        ],
+        [
+          5
+        ],
+        [
+          6
+        ],
+        [
+          7
+        ],
+        [
+          8
+        ],
+        [
+          9
+        ],
+        [
+          10
+        ],
+        [
+          11
+        ],
+        [
+          12
+        ],
+        [
+          13
+        ],
+        [
+          14
+        ],
+        [
+          15
+        ],
+        [
+          16
+        ],
+        [
+          17
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "theta": [
+        0.005539715627668299,
+        0.004082086449535085,
+        0.0,
+        0.04099805003542513,
+        0.06377265270518309,
+        0.037913495924431315,
+        0.06445222990520226,
+        0.04454464397790431,
+        0.0853384417064303,
+        0.03248057729735542,
+        0.0752064296700633,
+        0.08193856445920884,
+        0.073707353389501,
+        0.07840143144819607,
+        0.005172809050706738,
+        0.04716593822683688,
+        0.062166980498762875,
+        0.0541934796335959,
+        0.03246738628389394,
+        0.10084210734062453,
+        0.07844883847095753,
+        0.07252715652112986,
+        0.06076229117242014,
+        0.08313884923091479,
+        0.09535661031983898,
+        0.0010159432339243292,
+        0.0,
+        0.06588264749342655,
+        0.15437376723932827,
+        0.060680064146161554,
+        0.04714515847720678,
+        0.0,
+        0.0,
+        0.010113511251901505,
+        0.0,
+        0.0,
+        0.0,
+        0.012126899515485226,
+        0.019048436401747908,
+        0.020833472991834783,
+        0.05976597864642778,
+        0.02955299711101291,
+        0.0,
+        0.019632613413750926,
+        0.032142825617898295,
+        0.0720709565878561,
+        0.06289787465230313,
+        0.03559702844727757,
+        0.05463187329721272,
+        0.03902476061461528,
+        0.05748768391607098,
+        0.0
+      ],
+      "status": 1,
+      "message": "The first-order optimality measure is less than `tol`.",
+      "iterations": 5,
+      "rank": 52,
+      "features": 52,
+      "observations": 1728,
+      "seconds": 0.016069400000560563,
+      "solver": "SciPy lsq_linear BVLS; physical bounded squared loss",
+      "mse": 2.175662173519607e-06,
+      "lower_bound": 2.1756621735188565e-06,
+      "gap": 7.504711912673101e-19,
+      "projected_gradient_max": 1.8648277366750676e-17,
+      "bound_violation": -0.0
+    },
+    "point": {
+      "supports": [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ],
+        [
+          4
+        ],
+        [
+          5
+        ],
+        [
+          6
+        ],
+        [
+          7
+        ],
+        [
+          8
+        ],
+        [
+          9
+        ],
+        [
+          10
+        ],
+        [
+          11
+        ],
+        [
+          12
+        ],
+        [
+          13
+        ],
+        [
+          14
+        ],
+        [
+          15
+        ],
+        [
+          16
+        ],
+        [
+          17
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "r": [
+        0.005539715627668299,
+        0.004082086449535085,
+        0.0,
+        0.04099805003542513,
+        0.06377265270518309,
+        0.037913495924431315,
+        0.06445222990520226,
+        0.04454464397790431,
+        0.0853384417064303,
+        0.03248057729735542,
+        0.0752064296700633,
+        0.08193856445920884,
+        0.073707353389501,
+        0.07840143144819607,
+        0.005172809050706738,
+        0.04716593822683688,
+        0.062166980498762875,
+        0.0541934796335959,
+        0.03246738628389394,
+        0.10084210734062453,
+        0.07844883847095753,
+        0.07252715652112986,
+        0.06076229117242014,
+        0.08313884923091479,
+        0.09535661031983898,
+        0.0010159432339243292
+      ],
+      "x": [
+        0.0,
+        0.06588264749342655,
+        0.15437376723932827,
+        0.060680064146161554,
+        0.04714515847720678,
+        0.0,
+        0.0,
+        0.010113511251901505,
+        0.0,
+        0.0,
+        0.0,
+        0.012126899515485226,
+        0.019048436401747908,
+        0.020833472991834783,
+        0.05976597864642778,
+        0.02955299711101291,
+        0.0,
+        0.019632613413750926,
+        0.032142825617898295,
+        0.0720709565878561,
+        0.06289787465230313,
+        0.03559702844727757,
+        0.05463187329721272,
+        0.03902476061461528,
+        0.05748768391607098,
+        0.0
+      ]
+    },
+    "metrics": {
+      "clade_f1": 1.0,
+      "exact": true,
+      "true_positive": 7,
+      "false_positive": 0,
+      "false_negative": 0,
+      "predicted_clades": 7,
+      "true_clades": 7,
+      "R_relative": 0.10593655474452333,
+      "X_relative": 0.25665047538348146,
+      "train_mae": 0.0011736240392013907,
+      "train_mse": 2.1756621735196074e-06,
+      "train_sse": 0.0037595442358418817,
+      "validation_mae": 0.0011818921879565643,
+      "validation_mse": 2.181923381966652e-06,
+      "validation_sse": 0.011311090812115124,
+      "objective_K_MSE": 0.0011610253417742803,
+      "proper_count": 7,
+      "J": 0.0011858131946809348,
+      "parameter_sha256": "8123349dfa90531bba5844fc2fab10b17a195e30707d087754ac319790329a99",
+      "positive_topology": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ],
+        [
+          5,
+          6,
+          7
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11
+        ],
+        [
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        [
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "false_clades": [],
+      "missing_clades": []
+    },
+    "settings": {
+      "solver": "scipy.optimize.lsq_linear",
+      "method": "bvls",
+      "bounds": [
+        0.0,
+        2.0
+      ],
+      "tol": 1e-12,
+      "max_iter": 20000,
+      "ridge": 0.0,
+      "features": "fixed union atoms for physical truth clades plus singleton/full basis",
+      "objective": "unweighted physical mean squared residual",
+      "support_count_penalty": "same .003*f0_MAE times declared proper family count",
+      "SciPy_version": "1.17.1",
+      "NumPy_version": "2.4.6"
+    }
+  },
+  "objective_comparisons": {
+    "new_primary_minus_true_oracle": {
+      "train_mse": 7.716696921786514e-09,
+      "validation_mse": 1.2270699089262434e-08,
+      "validation_mae": 1.6814065155823857e-06,
+      "J": 4.117955806756538e-06
+    },
+    "new_final_endpoint_minus_true_oracle": {
+      "train_mse": 7.716696921786514e-09,
+      "validation_mse": 1.2270699089262434e-08,
+      "validation_mae": 1.6814065155823857e-06,
+      "J": 4.117955806756538e-06
+    },
+    "old_primary_minus_true_oracle": {
+      "train_mse": 2.7623510217933854e-08,
+      "validation_mse": 3.505110914001993e-08,
+      "validation_mae": 8.924220613018737e-06,
+      "J": 1.1199951371570647e-05
+    }
+  },
+  "provenance": {
+    "protocol_sha256": "3ea760fd5a98b7bb66c7090f11805c097efd9aa144ff6232d0c18005403389d0",
+    "native_verification_sha256": "9ec5585df6a96dd25b97cd049be771d9b2a7ef1af520b6f373604bfae027bd6f",
+    "native_result_sha256": "44b1bba66f7a420c978baba49b0987659436efb217c5bf7ff16889485df9a000",
+    "parent_result_sha256": "f0323f7d142a21e01812bcfca46680995daae8e7d80d8c854100b7f0e9d52430",
+    "common_sha256": "e1db5f94aa03900a944f49ab7cf7b98393c20d183dbae1701f67ee0c9d12358d",
+    "input_hashes": {
+      "train": "ebef82bf0bddb7fdee8654ef51969e3cef6463d988b519925a43edf990ccc115",
+      "validation": "1eb2c8eadba8cf367fb6e202f51b5400e5cca574194d94881d46883e08e9a431"
+    },
+    "engine_sha256": "96b0dacc82aae829e06a3809361544d0676a883999efd7c6057bf34022b88fd6",
+    "independent_helper_sha256": "0f2af5e75f57339b8912bf84036a48ba1aaa387fb4e981d1351d4546a45fcc92",
+    "original_analysis_artifact_hashes": {
+      "per_model.csv": "98931ac0fa989a77902c3202a493fe55b6adcbb59dd93a506ee5bf3d8314c032",
+      "summary.csv": "32dbb449b57d529f16577c3b60c35c56d7d1987cfdcf555f2b2808ecbef654ba",
+      "paired_inputs.csv": "393aed15c10bd1f06e5cc443f9a5a4f3639756e9efb327d6ea7526d16e565edc",
+      "solver.csv": "4dda8a3b933f7b23fb3e926449e59201761930a76d1815c5d3395c48d14ff1dc",
+      "path_scores.csv": "d09d1cb257c2c12fdc92ff238da13a5a31e3f18c1f88b5c35ed22ca097cfde2a",
+      "events.csv": "fc23eaf5eade7e090eabbc6caae1611123cddbd5527cd7457bbee1821d51fac9",
+      "fixed_QP_checks.csv": "49be57956ac4f9704efc96fb6fb5e9a63263dec868ae0e46669134398b96697b",
+      "failures.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "source_function_sha256": {
+      "family": "3dea48a7f9c12a705d6518aaca40bb477832c8e7cbfda06bd056721f62cc8316",
+      "matrices": "a0e1aa9716fb5224983e222c1403cff6c5ad53838ab7abdb33d8c6f75d27fd44",
+      "scores": "ac09d33043089063f2af8de1d4656da18f850f3012277197aebbef4017deda08",
+      "topology": "0b5764cefc8fb1933b0ad1c61613171b941a8c741f21a5f6399a8ec263b2484e",
+      "metrics": "207f2df78f37aac93e68f13ee4530ff1f053db362e5679f454d9d671229dbbab",
+      "features": "0f0b5b5dab8f0df58bac8834c5aac5f178639b41c280df3f37540358d7db2be3",
+      "box_certificate": "325cce3514c858776849e95be2082425cd4cab51f2daf0249d6311d5ed9ef7cf",
+      "independent_qp": "6bc7526ce2e1802ad34bf3d1ced272943c5facb1c88bc3af384ef2b7a742c726",
+      "physical_truth": "e34fa38bd294b93e135cbbdd5374764fc973bf2f2370a4dfcfb4320981913981"
+    },
+    "frozen_driver_sha256": "b271d4aa9c3bbbb2903dde453e1173a3cd37dc4f4a81a51be8a0c0a9b7e1c37e",
+    "physical_truth_helper_sha256": "84e57112086f0e7319d644433c27f02ca4d416f6e59383fe8ecc65795db7152f",
+    "candidate_source_pointers": [
+      {
+        "file": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\wzzt_retune\\engine.py",
+        "line": 104,
+        "sha256": "ce183890c1a6091c9bdec7fc45274b3d3888a94186a0d9b50a15a79be188fb20"
+      },
+      {
+        "file": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\wzzt_refine\\core.py",
+        "line": 71,
+        "sha256": "9a51c1e9b9991e5a06fcc13b5397c3c6e383fac1efe15335ee1008d503a8be79"
+      },
+      {
+        "file": "D:\\0-github_workspace\\Topo\\outputs\\miqp_loss_benchmark_20261111\\source\\research_experiments\\day96_t_benchmark_20261110\\run.py",
+        "line": 109,
+        "sha256": "65fe4b28098f6e7db8c7fa452a9de4dbdcaa2d1d7ecf732ab05d19be749f7468"
+      },
+      {
+        "file": "outputs\\simplified_rte_20261111\\source\\research_experiments\\simplified_rte_20261111\\engine.py",
+        "line": 260,
+        "sha256": "96b0dacc82aae829e06a3809361544d0676a883999efd7c6057bf34022b88fd6"
+      }
+    ]
+  },
+  "existing_model_or_parameter_or_selection_changed": false,
+  "existing_verification_and_artifact_hashes_unchanged": true,
+  "new_native_optimizer_calls": 0,
+  "test_arrays_opened": false,
+  "diagnostic_recipe": "For each saved point: form R=sum_C r_C z_C z_C.T and X similarly; residual=Y-P@R.T-Q@X.T; L=mean(residual**2); J=K*L+.003*reference*number_of_retained_proper_supports. Score clades with max(r,x)>1e-9 against saved physical truth. Trace accepted event path indices, never nearest-loss matching. Oracle family=canonical(singletons + fullset + true proper clades); profile=independent_qp(train, family); r=profile.theta[:m],x=profile.theta[m:]; replay train and validation predictions only. The oracle is post-hoc, is never exported and never changes selection.",
+  "diagnostic_recipe_sha256": "41995833d89619746e5bd633bcebbaafe302b9f05056ae46b1d9fd29b43d1005",
+  "parent_common_pool_contains_target": true,
+  "diagnosis": {
+    "target_support": [
+      2,
+      3,
+      4
+    ],
+    "target_terminal_labels": [
+      303,
+      304,
+      305
+    ],
+    "parent_common_pool_count": 126,
+    "parent_common_pool_contains_target": true,
+    "new_R_count": 54,
+    "new_R_contains_target": false,
+    "new_T_contains_target": false,
+    "new_E_contains_target": false,
+    "realized_W_path_ever_contains_target": false,
+    "primary_observed_boundary": "The simplified actual R domain retains initial plus parent raw-RNJ warm support families, not the larger parent common.pool. The target was lost by that intentional candidate-rule narrowing, and the realized W/T path did not restore it.",
+    "T_scope": "This is a property of this realized guidance domain and path; it is not a proof that every block-limit-five frontier model necessarily misses the true support.",
+    "data_scope": "The true-family oracle has lower training J and validation error here. This observation does not support calling this case intrinsically data-insufficient.",
+    "implementation_scope": "Native code implements the frozen simplified rule; no implementation patch, preprocessing rerun, native re-solve, parameter change or candidate insertion was performed.",
+    "parent_pool_construction": "build_bank raw/demean x R/RX75/X x tolerance0/.04/.08/.16/.24 x NJ/RNJ, augmented by regularized_pool ridge strengths .001/.01",
+    "new_R_construction": "common.initial plus support families supplied in common.bank (15 raw RNJ QP families) plus basis; common.pool remains a Bank column container only"
+  }
+}
