@@ -194,10 +194,13 @@ def _output(path, train, validation, reference, config):
         best = min(row[key] for row in rows)
         return min((row for row in rows if row[key] <= best+config.validation_tie),
                    key=lambda row: (row["internal"], row[key], row["index"]))
-    return choose("validation_mae"), choose("validation_scaled_mse"), candidates
+    # The common positive training reference changes units, not MSE ordering.
+    # Its dimensionless tie tolerance corresponds to reference*validation_tie
+    # in physical MSE units. MAE is a diagnostic view only.
+    return choose("validation_scaled_mse"), choose("validation_mae"), candidates
 
 
-def fit(train, validation, method="111", config=None, common=None):
+def fit(train, validation, method="111", config=None, common=None, heartbeat=None):
     """Fit a baseline or R/T/E cell, with no truth/test inputs in the API."""
     config = config or SearchConfig(); config.validate()
     method = ALIASES.get(method, method)
@@ -219,6 +222,14 @@ def fit(train, validation, method="111", config=None, common=None):
     fresh_started = perf_counter()
     overall_deadline = fresh_started+config.total_seconds-common["seconds"]
     guidance, events, reason = common["guidance"], [], "baseline"
+    path = []
+
+    def ping(stage, **extra):
+        if heartbeat is not None:
+            heartbeat(dict(stage=stage, elapsed_seconds=perf_counter()-fresh_started,
+                           path=path, point=path[-1] if path else None, **extra))
+
+    ping("initialized")
     if method in {"rnj", "nj"}:
         family = guidance["reference_family"] if method == "rnj" else trees.nj(
             guidance["shared"], guidance["depth"], collapse_factor=.16)
@@ -243,24 +254,30 @@ def fit(train, validation, method="111", config=None, common=None):
             while prefix_deadline-perf_counter() > .01:
                 if T_on and trees.max_direct_blocks(current["supports"], train.n) <= config.block_limit:
                     reason = "tail_eligible"; break
+                ping("W_started", iteration=len(events))
                 proposed, event = _forward(current, fitter, solver, config, pool, prefix_deadline)
                 events.append(event)
                 if not event["accepted"]:
                     reason = "structurally_complete" if event.get("structurally_complete") else "no_gain_or_unresolved"
+                    ping("W_stopped", event=event)
                     break
                 signature = trees.canonical(proposed["supports"])
                 if signature in visited:
                     event.update(accepted=False, numerical_gain_passed=True, repeated_family=True)
                     reason = "numerical_repeated_family"; break
                 current = proposed; path.append(current); visited.add(signature)
+                ping("W_complete", event=event)
             if T_on and trees.max_direct_blocks(current["supports"], train.n) <= config.block_limit and prefix_deadline-perf_counter() > .01:
+                ping("T_started")
                 tail = trees.frontier_candidates(current["supports"], train.n, block_limit=config.block_limit)
                 current, event = _reconstruct(current, fitter, solver, config, pool=tail["pool"], keep=tail["keep"],
                                                deadline=prefix_deadline, stage="T")
                 event.update(frontiers=tail["frontiers"], released=tail["released"]); events.append(event)
                 if event["accepted"]:
                     path.append(current)
+                ping("T_complete", event=event)
             if E_on and structural_deadline-perf_counter() > .01:
+                ping("E_started")
                 e_pool = trees.canonical([*pool, *(C for p in path for C in p["supports"]),
                                           *tail["pool"], *combinations(range(train.n), 2)])
                 current, event = _reconstruct(current, fitter, solver, config, pool=e_pool, keep=trees.basis(train.n),
@@ -268,6 +285,7 @@ def fit(train, validation, method="111", config=None, common=None):
                 events.append(event)
                 if event["accepted"]:
                     path.append(current)
+                ping("E_complete", event=event)
             elif E_on:
                 events.append(dict(stage="E", accepted=False, solver=dict(solve_started=False), skipped="budget"))
         finally:
@@ -279,9 +297,11 @@ def fit(train, validation, method="111", config=None, common=None):
     if method not in {"rnj", "nj"}:
         star = fitter.fit([(i,) for i in range(train.n)])
         output_path = [*path, star]
-    selected, secondary, candidates = _output(output_path, train, validation, common["reference_mse"], config)
+    ping("output_started")
+    selected, mae_view, candidates = _output(output_path, train, validation, common["reference_mse"], config)
     fresh_seconds = perf_counter()-fresh_started
-    return dict(method=method, selected=selected, selected_mse_view=secondary, path=path, events=events,
+    return dict(method=method, selected=selected, selected_mse_view=selected,
+                selected_mae_view=mae_view, selection_metric="validation_mse", path=path, events=events,
                 frozen_candidates=candidates, stop_reason=reason, config=asdict(config),
                 reference_mse=common["reference_mse"], common_seconds=common["seconds"],
                 fresh_seconds=fresh_seconds, total_seconds=fresh_seconds+common["seconds"],
