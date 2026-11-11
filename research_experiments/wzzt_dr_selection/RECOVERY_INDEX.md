@@ -1,3 +1,10 @@
+## MIQP物理MSE诊断，2026-11-11
+
+- public dr_pricing/paper15_exponential/{MIQP_PROTOCOL,MIQP_REPORT,MIQP_RESULTS}及miqp_mse.py、miqp_mse_refine.py、miqp_mse_score.py；vendor/miqp_gate.py为隔壁研究原门槛逐字副本。原算法/旧零费批未改。新本机miqp_case含training_drop补充和原warm；数值输入Git忽略。
+- private wzzt_paper15_miqp_gate_v1：prepare/protocol_frozen/case只历史预测；native为τ.001零费，diagnostic为5%非凸120秒（未证最优），refinement_protocol在新未来打开前锁一次60秒切线，refined为最终报价冻结。physical_open之后sample32768与actual96观察；mse_predictions freeze后才合并真值评分。sample使用新1901，实际响应/量测1902/1903；完整自然日不变。
+- mse_actual_summary/scored_rows为新物理MSE主结果；actual/summary的squared_successes只是旧标准化事件，勿混作5%过线。public_scorer独立新入口重放96观察，与私有评分一致，并给直接预测差平方均值。theory_audit74、independent_result_audit718及independent_physical_audit通过，均无新AC/拟合。
+- 当前可行方案费用24.351，global bound0/gap100%；inner bound9.09855不适用于全域。MSE5%过线32/16/16，原3%恢复17/0/0（各32）；1日32配对流、96观察，不能称96独立日或完整MIQP算法收益。原.001零费保留；该批完成，后续先读complete/summary/source，不重跑或追加τ试探。
+
 ## paper15指数条件实际测试，2026-11-11
 
 - 活动独立目录dr_pricing/paper15_exponential：README/PROTOCOL/case、run.py、ac.py、原vendor/vendor_ac、SOURCE_MANIFEST和RESULTS/REPORT齐。inputs在本机完整保存并Git忽略；拓扑/候选/预测/AC接口在README。vendor_ac以本地.gitattributes保留原字节换行哈希。
