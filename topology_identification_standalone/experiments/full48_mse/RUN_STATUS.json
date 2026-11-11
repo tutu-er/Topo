@@ -1,11 +1,8 @@
 {
   "task": "fresh full48 MSE benchmark; continue through independent analysis, plots, report and archive",
-  "status": "running",
+  "status": "computation_analysis_figures_complete",
   "output": "topology_identification_standalone\\outputs\\full48_mse_20261111",
   "manager_exec_session": 50742,
-  "core_commit": "3467697d",
-  "runner_commit": "c49166df",
-  "commits_pushed": true,
   "primary_selection": "validation_mse",
   "do_not_reuse_historical_MAE_results": true,
   "protocol_sha256": "42e009af458ab0b90bc9f63b200f55c91fcc13dc547aecc91ebd12302f2df571",
@@ -15,7 +12,7 @@
   "planned_common": 48,
   "nominal_method_hours": 1920,
   "snapshot": {
-    "stage": "methods",
+    "stage": "finished",
     "common": {
       "planned": 48,
       "complete": 48,
@@ -29,26 +26,16 @@
     "methods": {
       "planned": 480,
       "complete": 0,
-      "fitted": 342,
+      "fitted": 480,
       "failed": 0,
       "interrupted": 0,
       "budget_exceeded": 0,
-      "pending": 138,
-      "attempts_without_result": 7
+      "pending": 0,
+      "attempts_without_result": 0
     },
-    "manager_lock": true,
-    "completion": false,
-    "active": {
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1001__reference__v0010__N96\\000\\result.json": 56832,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1002__reference__v0002__N96\\100\\result.json": 49908,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1002__reference__v0005__N96\\010\\result.json": 25992,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1002__reference__v0010__N96\\001\\result.json": 58788,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1003__reference__v0002__N96\\110\\result.json": 30772,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1003__reference__v0005__N96\\101\\result.json": 31328,
-      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\full48_mse_20261111\\runs\\day96__paper15__b1003__reference__v0010__N96\\011\\result.json": 51424
-    },
-    "queued": 131,
-    "updated_utc": "2026-11-11T14:41:01.473120+00:00"
+    "manager_lock": false,
+    "completion": true,
+    "updated_utc": "2026-11-11T15:02:52.772173+00:00"
   },
   "post_tools": [
     "tools/analyze_full.py",
@@ -56,14 +43,7 @@
     "tools/diagnose_full.py",
     "tools/deliver_full.py"
   ],
-  "pending": [
-    "complete all480 terminal records",
-    "independent MSE selector/numerical/topology audit",
-    "plots PNG SVG PDF and visual review",
-    "full RTE factorial statistics and report",
-    "archive full results and refresh portable package",
-    "commit and push final results"
-  ],
+  "pending": [],
   "interruption_rule": "do not terminate/restart existing workers or reset attempt budgets without audit",
   "post_source_sha256": {
     "tools/analyze_full.py": "432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9",
@@ -71,5 +51,63 @@
     "tools/diagnose_full.py": "765e31673eb068f4afd6b309bdef292a12352a88bcd083e15113676ee8e86b04",
     "tools/deliver_full.py": "ff69e8aa5277fb0b02ddb39fa44471879d84977f8b0633f5300126606b23e558"
   },
-  "snapshot_note": "Live progress snapshot only; final truth/test metrics have not been computed. Native runtime remains frozen."
+  "snapshot_note": "Final native state. Independent main and true-family audits and all actual figures are complete; archive receipt is generated separately after this report.",
+  "source_commits": [
+    "3467697d",
+    "c49166df",
+    "08d2e1ec"
+  ],
+  "source_commits_pushed": true,
+  "independent_audit": {
+    "verified": 480,
+    "all_models_verified": true,
+    "native_MIQP_records": 2840,
+    "native_timeouts": 0,
+    "all_native_gap_met": true,
+    "MAE_used_for_final_selection": false
+  },
+  "oracle": {
+    "protocol_sha256": "42e009af458ab0b90bc9f63b200f55c91fcc13dc547aecc91ebd12302f2df571",
+    "analysis_verification_sha256": "650bc13367fc59e39d5b91d12aff89f9ce84fb98cdba404ddcf8598bc139d1ab",
+    "diagnostic_source_sha256": "765e31673eb068f4afd6b309bdef292a12352a88bcd083e15113676ee8e86b04",
+    "source_archive": "analysis_source/765e31673eb068f4afd6b309bdef292a12352a88bcd083e15113676ee8e86b04/diagnose_full.py",
+    "helper_source_sha256": "432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9",
+    "helper_source_archive": "analysis_source/432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9/analyze_full.py",
+    "artifacts": {
+      "true_family_oracles.json": "81bad7842a3c7daf0c107102107412cc006e767b04d611a12a566c0ccb62dbb6",
+      "objective_decomposition.csv": "691beae3ee981d7e9ce2189d43f37c599a0e8fd7d39bef6ffd847a56afa403a0"
+    },
+    "used_by_algorithm": false,
+    "native_solver_calls": 0,
+    "oracle_family_fits_planned": 48,
+    "oracle_family_fits_verified": 48,
+    "oracle_family_fits_failed": 0,
+    "final_rows": 480,
+    "all_rows": 864,
+    "total_diagnostic_seconds": 6.140715200002887,
+    "oracle_fit_seconds": 1.3649760999978753,
+    "continuous_BVLS_calls_verified_oracles": 96,
+    "sign_convention": "delta_J = J_point - J_true_upper; positive favours the feasible true-family oracle",
+    "preference_scope": "point-vs-true-fixed-family box certificate; raw E incumbents need not be QP-optimal",
+    "causal_noise_bias_attribution_attempted": false,
+    "alpha_retuned": false,
+    "primary_selection_unchanged": true
+  },
+  "timing": {
+    "logical_method_seconds_recorded": 39817.44100550021,
+    "logical_common_charges": 555.9357650002494,
+    "sum_method_worker_seconds": 39261.50524049996,
+    "physical_common_worker_seconds": 55.59357650002494,
+    "physical_common_native_prepare_seconds": 7.658135299992864,
+    "physical_common_worker_unknown": 0,
+    "physical_common_native_prepare_unknown": 0,
+    "physical_process_wall_effort_recorded": 39317.098816999984,
+    "native_batch_calendar_seconds": 5050.9422567,
+    "method_timing_unknown": 0,
+    "method_fresh_timing_unknown": 0,
+    "method_common_charge_unknown": 0,
+    "scope": "logical methods each charge one common; actual shared common is physically performed once per input; sums are process wall effort, not CPU seconds"
+  },
+  "figure_files": 24,
+  "delivery_evidence": "See archive_receipt.json and delivery_metadata.json, generated after final report review. Final results commit is recorded by Git history."
 }

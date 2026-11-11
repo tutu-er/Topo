@@ -1,0 +1,380 @@
+{
+  "recorded_utc": "2026-11-11T15:25:30.779625+00:00",
+  "passed": true,
+  "scope": "Safe fresh extraction and independent main audit replay only; no topology search or oracle rerun.",
+  "archive": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\experiments\\full48_mse\\records.zip",
+  "archive_bytes": 26540342,
+  "archive_sha256": "7493b827f2012068c65ff75c0c509d67bfe4a516a4f96971259d579811ed0a74",
+  "extraction": {
+    "extraction_directory": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud",
+    "extracted_output": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\full48_mse_20261111",
+    "archive": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\experiments\\full48_mse\\records.zip",
+    "archive_sha256": "7493b827f2012068c65ff75c0c509d67bfe4a516a4f96971259d579811ed0a74",
+    "archive_bytes": 26540342,
+    "zip_members": 4554,
+    "zip_uncompressed_bytes": 188573940,
+    "safe_member_paths": true,
+    "zip_crc_passed": true,
+    "unique_directory": true,
+    "expected_summary_sha256": "1b9c23873b8984b181a1397346b3779c32da745dfb5ce13009ffd3f373ba8658",
+    "analyzer_sha256": "432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9",
+    "formal_verification_sha256": "650bc13367fc59e39d5b91d12aff89f9ce84fb98cdba404ddcf8598bc139d1ab"
+  },
+  "execution": {
+    "command": [
+      "D:\\apps\\miniconda3\\python.exe",
+      "-I",
+      "-B",
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\full48_mse_20261111\\post_source\\analyze_full.py",
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\full48_mse_20261111"
+    ],
+    "cwd": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\full48_mse_20261111",
+    "started_utc": "2026-11-11T15:22:06.734910+00:00",
+    "finished_utc": "2026-11-11T15:22:45.314462+00:00",
+    "elapsed_seconds": 38.57954579999932,
+    "returncode": 0
+  },
+  "verified": 480,
+  "all_models_verified": true,
+  "failed": 0,
+  "invalid": 0,
+  "budget_exceeded": 0,
+  "native_timeouts": 0,
+  "native_MIQP_records_reaudited": 2840,
+  "independent_QP_certificates_replayed": 3420,
+  "selection_metric": "normalized validation MSE",
+  "summary_byte_identical": true,
+  "summary_sha256": "1b9c23873b8984b181a1397346b3779c32da745dfb5ce13009ffd3f373ba8658",
+  "compared_analysis_artifact_count": 29,
+  "byte_identical_artifact_count": 25,
+  "nonidentical_artifacts": [
+    "interactions.csv",
+    "interactions_summary.csv",
+    "shapley.csv",
+    "shapley_summary.csv"
+  ],
+  "maximum_absolute_numeric_difference": 5.684341886080802e-14,
+  "numeric_tolerance": 1e-12,
+  "all_nonnumeric_cells_identical": true,
+  "all_numeric_differences_within_tolerance": true,
+  "artifact_comparisons": {
+    "per_model.csv": {
+      "expected_sha256": "be6975a8970747a9854f9095cec02855e15558a3577f49f201f104dae2e128ec",
+      "replayed_sha256": "be6975a8970747a9854f9095cec02855e15558a3577f49f201f104dae2e128ec",
+      "byte_identical": true
+    },
+    "summary.csv": {
+      "expected_sha256": "1b9c23873b8984b181a1397346b3779c32da745dfb5ce13009ffd3f373ba8658",
+      "replayed_sha256": "1b9c23873b8984b181a1397346b3779c32da745dfb5ce13009ffd3f373ba8658",
+      "byte_identical": true
+    },
+    "main_methods.csv": {
+      "expected_sha256": "818c88dfdb7756492cf1eb16c4cd85742f2af0f9f487864b015cd94aebc89aae",
+      "replayed_sha256": "818c88dfdb7756492cf1eb16c4cd85742f2af0f9f487864b015cd94aebc89aae",
+      "byte_identical": true
+    },
+    "paired_summary.csv": {
+      "expected_sha256": "0dd9bccb812e8a346ffeb90a87d427d02b43a5ba9a2f4248da9aa96d78604a9a",
+      "replayed_sha256": "0dd9bccb812e8a346ffeb90a87d427d02b43a5ba9a2f4248da9aa96d78604a9a",
+      "byte_identical": true
+    },
+    "paired_inputs.csv": {
+      "expected_sha256": "88616c0a72761109ad2ce28a54555eb4d8f5c2570eba4606ed4dd5614d38dacc",
+      "replayed_sha256": "88616c0a72761109ad2ce28a54555eb4d8f5c2570eba4606ed4dd5614d38dacc",
+      "byte_identical": true
+    },
+    "conditional_marginals.csv": {
+      "expected_sha256": "adaaefeca10cef43ce1206c791a2e000c58b584acd2263344f4d16aa3e26d70c",
+      "replayed_sha256": "adaaefeca10cef43ce1206c791a2e000c58b584acd2263344f4d16aa3e26d70c",
+      "byte_identical": true
+    },
+    "conditional_marginals_summary.csv": {
+      "expected_sha256": "3eb9902ac5f5c95515b9996153e47486d512bee3f01c55534f71cf032c808fbe",
+      "replayed_sha256": "3eb9902ac5f5c95515b9996153e47486d512bee3f01c55534f71cf032c808fbe",
+      "byte_identical": true
+    },
+    "interactions.csv": {
+      "expected_sha256": "2fdf2a01ac9f80c6a6b3ef6a9bfc9a75442b7260343d0fcc4cb98e771fd2d7ee",
+      "replayed_sha256": "8e6ed5e4c1efc6dfdfb43e73fdf0b7d267c68f8a0ae015822a0050aa05b2efad",
+      "byte_identical": false,
+      "rows": 336,
+      "changed_numeric_cells": 26,
+      "maximum_absolute_difference": 2.220446049250313e-16,
+      "same_nonnumeric_cells": true,
+      "numeric_difference_examples": [
+        {
+          "row_index": 1,
+          "column": "delta_F1",
+          "original": "-0.02499999999999991",
+          "replayed": "-0.025000000000000022",
+          "absolute_difference": 1.1102230246251565e-16
+        },
+        {
+          "row_index": 6,
+          "column": "delta_F1",
+          "original": "-0.02499999999999991",
+          "replayed": "-0.025000000000000022",
+          "absolute_difference": 1.1102230246251565e-16
+        },
+        {
+          "row_index": 8,
+          "column": "delta_F1",
+          "original": "-0.17142857142857126",
+          "replayed": "-0.17142857142857137",
+          "absolute_difference": 1.1102230246251565e-16
+        }
+      ],
+      "all_numeric_differences_within_tolerance": true
+    },
+    "interactions_summary.csv": {
+      "expected_sha256": "0189483bf98f1f2d77621283d69c5648a10da6dc5a5060dfc1ea7af22cf0d229",
+      "replayed_sha256": "1a7b4d1e3fc5473797baab4fb8c6597d611d10e3201e996be51af68cc406709d",
+      "byte_identical": false,
+      "rows": 7,
+      "changed_numeric_cells": 3,
+      "maximum_absolute_difference": 8.673617379884035e-18,
+      "same_nonnumeric_cells": true,
+      "numeric_difference_examples": [
+        {
+          "row_index": 1,
+          "column": "delta_F1_mean",
+          "original": "0.013514807632454703",
+          "replayed": "0.013514807632454695",
+          "absolute_difference": 8.673617379884035e-18
+        },
+        {
+          "row_index": 4,
+          "column": "delta_F1_mean",
+          "original": "0.0182218720821662",
+          "replayed": "0.018221872082166194",
+          "absolute_difference": 6.938893903907228e-18
+        },
+        {
+          "row_index": 6,
+          "column": "delta_F1_mean",
+          "original": "0.013514807632454688",
+          "replayed": "0.013514807632454695",
+          "absolute_difference": 6.938893903907228e-18
+        }
+      ],
+      "all_numeric_differences_within_tolerance": true
+    },
+    "module_addition_orders.csv": {
+      "expected_sha256": "e53b5e5a0ab7641f4907e953e0739c9028d0af469d6b804d892e05c99723e2ee",
+      "replayed_sha256": "e53b5e5a0ab7641f4907e953e0739c9028d0af469d6b804d892e05c99723e2ee",
+      "byte_identical": true
+    },
+    "shapley.csv": {
+      "expected_sha256": "74574a8bc738b49857b38b38016af541e70026ed4c8f03c82ec1e4da9b4f0653",
+      "replayed_sha256": "cacb7f5f973ed4b319748e165f40c3c486bfc78ab5e43191410695dec866e4dc",
+      "byte_identical": false,
+      "rows": 144,
+      "changed_numeric_cells": 31,
+      "maximum_absolute_difference": 5.684341886080802e-14,
+      "same_nonnumeric_cells": true,
+      "numeric_difference_examples": [
+        {
+          "row_index": 2,
+          "column": "delta_seconds",
+          "original": "12.58315438333011",
+          "replayed": "12.583154383330111",
+          "absolute_difference": 1.7763568394002505e-15
+        },
+        {
+          "row_index": 4,
+          "column": "delta_seconds",
+          "original": "-20.95653339999747",
+          "replayed": "-20.956533399997472",
+          "absolute_difference": 3.552713678800501e-15
+        },
+        {
+          "row_index": 8,
+          "column": "delta_seconds",
+          "original": "29.554785566663966",
+          "replayed": "29.55478556666397",
+          "absolute_difference": 3.552713678800501e-15
+        }
+      ],
+      "all_numeric_differences_within_tolerance": true
+    },
+    "shapley_summary.csv": {
+      "expected_sha256": "f5680459a74418adf467160c60724e3b89d41eeac5015dc97ab7f94fdfdd4d3e",
+      "replayed_sha256": "ef90e14c73e7fc3c2edf26ef8a1c8ce5c8ef0335278492522b49a9e0461c105a",
+      "byte_identical": false,
+      "rows": 3,
+      "changed_numeric_cells": 1,
+      "maximum_absolute_difference": 1.7763568394002505e-15,
+      "same_nonnumeric_cells": true,
+      "numeric_difference_examples": [
+        {
+          "row_index": 1,
+          "column": "delta_seconds_mean",
+          "original": "13.579796731597119",
+          "replayed": "13.57979673159712",
+          "absolute_difference": 1.7763568394002505e-15
+        }
+      ],
+      "all_numeric_differences_within_tolerance": true
+    },
+    "solver.csv": {
+      "expected_sha256": "0e888295c8d3df493ccbc1d6bf5b1f9dbb9716e4d88f6c1c0dee258d766c047d",
+      "replayed_sha256": "0e888295c8d3df493ccbc1d6bf5b1f9dbb9716e4d88f6c1c0dee258d766c047d",
+      "byte_identical": true
+    },
+    "QP_ledger.csv": {
+      "expected_sha256": "b29ae45683b62a235d5343848062f6e2ce0a1c73da19cca3b5d7a10e1aef59b1",
+      "replayed_sha256": "b29ae45683b62a235d5343848062f6e2ce0a1c73da19cca3b5d7a10e1aef59b1",
+      "byte_identical": true
+    },
+    "independent_QP_certificates.csv": {
+      "expected_sha256": "fce1d380830feb7e9214bb6f486e2a6a2ff55a395db4e47c5d9333430bede5e2",
+      "replayed_sha256": "fce1d380830feb7e9214bb6f486e2a6a2ff55a395db4e47c5d9333430bede5e2",
+      "byte_identical": true
+    },
+    "events.csv": {
+      "expected_sha256": "0482f8deecffb10fe86f85003ba5d8c5e4717f7c3845716870352b63b62787f7",
+      "replayed_sha256": "0482f8deecffb10fe86f85003ba5d8c5e4717f7c3845716870352b63b62787f7",
+      "byte_identical": true
+    },
+    "coverage.csv": {
+      "expected_sha256": "418e38a9620fdd3e937bde6222bd8ee9e1689c56af7d2c7b5bac31d33371f744",
+      "replayed_sha256": "418e38a9620fdd3e937bde6222bd8ee9e1689c56af7d2c7b5bac31d33371f744",
+      "byte_identical": true
+    },
+    "wrong_clades.csv": {
+      "expected_sha256": "dc248349d85270e1c807d2b120d7c45f04c75daf1b2b364751df3549c96196ae",
+      "replayed_sha256": "dc248349d85270e1c807d2b120d7c45f04c75daf1b2b364751df3549c96196ae",
+      "byte_identical": true
+    },
+    "failures.csv": {
+      "expected_sha256": "7703741f562b3f2c276fc35a9aba6f2de114df21e80f56ebf257cdb5ea03115c",
+      "replayed_sha256": "7703741f562b3f2c276fc35a9aba6f2de114df21e80f56ebf257cdb5ea03115c",
+      "byte_identical": true
+    },
+    "errors_by_size.csv": {
+      "expected_sha256": "11453b872acaec3b3d2cbbccd736dab3245f6bd5213c10597e599ae57fbba604",
+      "replayed_sha256": "11453b872acaec3b3d2cbbccd736dab3245f6bd5213c10597e599ae57fbba604",
+      "byte_identical": true
+    },
+    "coverage_summary.csv": {
+      "expected_sha256": "c98ff3d896df0eaad97f4c41858506fb94102ca553fad678c893b4fb5abb11aa",
+      "replayed_sha256": "c98ff3d896df0eaad97f4c41858506fb94102ca553fad678c893b4fb5abb11aa",
+      "byte_identical": true
+    },
+    "stages.csv": {
+      "expected_sha256": "271d386204bc93af27866eae482f1df523aee5f98517887a41f7a6b2447feb58",
+      "replayed_sha256": "271d386204bc93af27866eae482f1df523aee5f98517887a41f7a6b2447feb58",
+      "byte_identical": true
+    },
+    "four_cluster_sensitivity.csv": {
+      "expected_sha256": "e9b16770b9c19d75928110e49ef9d15595dae1f9d30b178c8803da3549a3a7fb",
+      "replayed_sha256": "e9b16770b9c19d75928110e49ef9d15595dae1f9d30b178c8803da3549a3a7fb",
+      "byte_identical": true
+    },
+    "by_case.csv": {
+      "expected_sha256": "e928eb40c8a776bd278ec71ba06eb3c4c065da45ee03733fee22a8d5bd17cd02",
+      "replayed_sha256": "e928eb40c8a776bd278ec71ba06eb3c4c065da45ee03733fee22a8d5bd17cd02",
+      "byte_identical": true
+    },
+    "by_noise.csv": {
+      "expected_sha256": "f9f4e2b200eeba3340b5659c3e6eb863a584bbb767568c8323a965a29e011551",
+      "replayed_sha256": "f9f4e2b200eeba3340b5659c3e6eb863a584bbb767568c8323a965a29e011551",
+      "byte_identical": true
+    },
+    "by_seed.csv": {
+      "expected_sha256": "c7597f958d5dedd950577df573cc1d083908d62d07a90e9fc044c44888344783",
+      "replayed_sha256": "c7597f958d5dedd950577df573cc1d083908d62d07a90e9fc044c44888344783",
+      "byte_identical": true
+    },
+    "by_case_noise.csv": {
+      "expected_sha256": "e196f780c914e2be5688d2f121640f4c45fd8537576f0093b2fec0172452551f",
+      "replayed_sha256": "e196f780c914e2be5688d2f121640f4c45fd8537576f0093b2fec0172452551f",
+      "byte_identical": true
+    },
+    "by_case_noise_seed.csv": {
+      "expected_sha256": "35265a29d4a1ddeb6b4a82130d34a2f9c59f3c7b407b65ca0e718e39dc2d844b",
+      "replayed_sha256": "35265a29d4a1ddeb6b4a82130d34a2f9c59f3c7b407b65ca0e718e39dc2d844b",
+      "byte_identical": true
+    },
+    "timing.json": {
+      "expected_sha256": "164cb54a62b99d3f4cf8e24950419424e8b3c98206937c76f9247b8445da5d9d",
+      "replayed_sha256": "164cb54a62b99d3f4cf8e24950419424e8b3c98206937c76f9247b8445da5d9d",
+      "byte_identical": true
+    }
+  },
+  "protocol_sha256": "42e009af458ab0b90bc9f63b200f55c91fcc13dc547aecc91ebd12302f2df571",
+  "analyzer_sha256": "432529ffbf65664fcb4bb24c6de93d3927212be8b26c796677da81fd7a8a51a9",
+  "replay_verification_sha256": "45f9d945e0849a10fa9b324d160cea3bb1df334ab028f9ade8a2a82155434fb1",
+  "formal_verification_sha256": "650bc13367fc59e39d5b91d12aff89f9ce84fb98cdba404ddcf8598bc139d1ab",
+  "verification_bytes_expected_to_differ": "The audit records its own elapsed wall time and hashes of replayed statistics. Four interaction/Shapley CSVs have only final floating arithmetic digits differing; their precise environment-level cause was not isolated. Main per-model scores and summary reproduce byte for byte.",
+  "native_result_hashes_identical": true,
+  "common_hashes_identical": true,
+  "runtime_hashes_identical": true,
+  "input_hashes_identical": true,
+  "original_output_modified": false,
+  "archive_modified": false,
+  "native_solver_calls": 0,
+  "oracle_solver_calls": 0,
+  "external_dependency_boundary": {
+    "required": [
+      "installed Python standard library",
+      "installed NumPy",
+      "files included in records.zip"
+    ],
+    "not_required": [
+      "original Topo checkout source or original OUTPUT",
+      "external datasets",
+      "Gurobi or Gurobi license",
+      "SciPy",
+      "network"
+    ],
+    "dependency_probe": {
+      "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:05:56) [MSC v.1942 64 bit (AMD64)]",
+      "executable": "D:\\apps\\miniconda3\\python.exe",
+      "isolated": 1,
+      "dont_write_bytecode": 1,
+      "numpy_version": "2.4.4",
+      "numpy_file": "D:\\apps\\miniconda3\\Lib\\site-packages\\numpy\\__init__.py",
+      "sys_path": [
+        "D:\\apps\\miniconda3\\python313.zip",
+        "D:\\apps\\miniconda3\\DLLs",
+        "D:\\apps\\miniconda3\\Lib",
+        "D:\\apps\\miniconda3",
+        "D:\\apps\\miniconda3\\Lib\\site-packages",
+        "D:\\0-github_workspace\\TDM\\src"
+      ],
+      "analyzer_imports": [
+        "__future__",
+        "argparse",
+        "csv",
+        "hashlib",
+        "itertools",
+        "json",
+        "math",
+        "numpy",
+        "os",
+        "pathlib",
+        "sys",
+        "time",
+        "traceback"
+      ],
+      "third_party_imports": [
+        "numpy"
+      ],
+      "no_Gurobi_or_SciPy_required_for_replay": true,
+      "runtime_source_only_hashed_not_imported": true,
+      "external_project_or_dataset_required": false
+    },
+    "import_probe_workspace_modules": {},
+    "native_import_guard_passed": true,
+    "note": "Installed site configuration appends an unrelated TDM/src path; no workspace package was imported in the dependency probe. The analyzer imports only standard library and NumPy, and explicitly excludes native helper/optimizer modules. -I removes current-directory/PYTHONPATH imports but not installed .pth configuration."
+  },
+  "replay_local_logs": {
+    "extraction_receipt.json": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\extraction_receipt.json",
+    "replay_process.json": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\replay_process.json",
+    "replay_stdout.json": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\replay_stdout.json",
+    "replay_stderr.log": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\replay_stderr.log",
+    "dependency_probe.json": "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\tmp\\full48_archive_replay_g3nto_ud\\dependency_probe.json"
+  },
+  "bootstrap_draws": 2000
+}

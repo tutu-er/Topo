@@ -65,8 +65,12 @@ python tools/full_benchmark.py status outputs/full48_mse_20261111
 # 等480项全部终态后，独立审计、评分和绘图
 python tools/analyze_full.py outputs/full48_mse_20261111
 python tools/plot_full.py outputs/full48_mse_20261111
+# 可选事后真族拟合诊断，不反馈算法或参数
+python tools/diagnose_full.py outputs/full48_mse_20261111
 ```
 
 该入口计算48份全新公共预处理及480个全新方法配置，最终选择严格使用验证MSE。每输入每方法配置预算14400秒，最多8个单线程worker；1920方法小时是名义上限，不是实际耗时。公共计算物理上每输入一次、逻辑上每方法各记一次。详情见full48_mse/PLAN.md。
 
 运行源与全部数据复制到新输出目录的runtime内，原始记录不可覆盖；存在没有终态的attempt时必须审计，不自动重置预算。独立后处理源码另外记录哈希，不在计算期间修改冻结模型。绘图额外需要requirements-plot.txt中的Matplotlib。
+
+该完整批次已完成，480/480独立验证通过；[结果报告](full48_mse/CONCLUSIONS.md)包含主比较、全部八格、R×E配合、T两例负效应及真族目标分解。原始记录见`full48_mse/records.zip`，便携算法包排除此嵌套ZIP。复跑完整实验时使用新的输出目录；重建现有图与审计见`full48_mse/REPRODUCE.md`。
