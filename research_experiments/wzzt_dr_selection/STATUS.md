@@ -1,3 +1,11 @@
+## MSE最终选模核算及新案例清单，2026-11-11
+
+新增[选模规范](dr_pricing/paper15_exponential/MSE_SELECTION_PLAN.md)与selection_mse接口：主规则为输出收缩→原训练QP→冻结输出R/X→完整历史验证+新日w1物理MSE→严格K*MSE选模，scaled并列容差1e−12、物理1e−12/K，按proper内部块/分数/原顺序破并列。训练E τ.001、旧5%诊断不混入最终规则；未来strict pair的新日SSE排除门槛已用同一容差/历史平方和写成接口（κ1）。新case未来评分池不得因历史strict winner而提前删光其他合法解释。
+
+96旧AC仅MSE重评分，无新拟合/AC：strict及3% MSE三策略均32/32恢复。旧3%MAE的17/0/0改善不作为MSE下DR收益；旧H仍L1拟合、.16输出，属于scoring消融，不称全MSE辨识。8单位/门槛检查、100组原choose严格函数兼容核对过，原实验/默认不覆盖。
+
+历史只读筛选已锁.24后QP、τ.001研究输出库：pengwah18/b1000/v0005最近不同族MSE+5.80%、72资源；soumalas11/b1002/v0005+9.11%、44；flynn16/b1000/v0005+325.53%、64作明确控制。各组完整96训练+288验证，原σV.0005/PQ.005。已有v0010压力组单列，不替代主组；.16原导出池不混入.24/QP评分。六组训练/验证MSE由原R/X重算误差0，未读test/truth筛例。私有wzzt_mse_selection_review_v1保存完整refs/哈希和资格；公开MSE_CASE_INVENTORY仅摘要。新日预测/真实日封存及generic AC加载边界尚需准备，本轮0新DR/0新AC/0新拟合，先完成用户要求的选模核算。
+
 ## MIQP物理MSE指标与非零DR诊断，2026-11-11
 
 只读核对隔壁MIQP：平方训练目标含计数罚，研究版最终E纯MSE门槛为M0−M1>1e−10/K+τM0（推荐τ.001），最终仍strict MAE/.24，不是旧DR3%/.16。已按原函数代数做[冻结候选诊断](dr_pricing/paper15_exponential/MIQP_REPORT.md)，用统一标量单位保留物理不加权MSE与原异方差/背景相关协方差，κ=1/(1−τ)，两次指数高斯积分仍为二次条件。288训练用于拟合/K，288验证+96新日评分；所有资源/历史/参数/噪声保留，无新E/MIQP拓扑提议或W搜索。

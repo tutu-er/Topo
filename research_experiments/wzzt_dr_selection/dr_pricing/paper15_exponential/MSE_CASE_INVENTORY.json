@@ -1,0 +1,366 @@
+{
+  "status": "historical_inventory_complete",
+  "new_DR_runs": 0,
+  "new_AC": 0,
+  "new_fit": 0,
+  "main_contract": {
+    "source": "D:\\0-github_workspace\\Topo\\outputs\\mse_exit_tuning_20261111",
+    "variant": "tau_0.001",
+    "output_resolution": 0.24,
+    "weights": "QP after contraction; frozen",
+    "selector": "strict_scaled_mse",
+    "topology_target": "declared post-.24/QP output support family"
+  },
+  "selection_rule": {
+    "original_noise": 0.0005,
+    "eligible_networks": [
+      "pengwah18",
+      "soumalas11",
+      "flynn16"
+    ],
+    "eligible_bundles": [
+      1000,
+      1001,
+      1002,
+      1003
+    ],
+    "ranking": "For each network, nearest different declared output family relative to its strict-MSE selected model, using only saved historical validation MSE. Tie by bundle ascending. No requirement that gap be small or that paid DR win.",
+    "zero_gain_controls_retained": true,
+    "pressure": "Existingv0010 histories ranked separately; never substituted for original-noise main histories to manufacture DR space",
+    "statistical_scope": "Strict-MSE numerical tie and historical prediction gaps are diagnostics, not confidence intervals or structural truth probabilities"
+  },
+  "main_cases": [
+    {
+      "case": "pengwah18",
+      "bundle": 1000,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "history_counts": {
+        "train": 96,
+        "validation": 288
+      },
+      "selected_model": "model_009",
+      "selected_validation_mse": 2.216974491106672e-06,
+      "nearest_model": "model_008",
+      "nearest_validation_mse": 2.3455354636172395e-06,
+      "historical_gap": {
+        "absolute_mse": 1.2856097251056755e-07,
+        "relative_ratio": 1.0579893783290182,
+        "relative_increase_percent": 5.798937832901818,
+        "output_symmetric_difference_absolute_labels": [
+          [
+            309,
+            310,
+            311,
+            312
+          ]
+        ],
+        "interpretation": "Historical ranking/availability diagnostic only; neither strict-MSE confidence nor a probability of correct structure"
+      },
+      "nodes": 18,
+      "resources": 72,
+      "source_result_sha256": "e998ffb0083413a3189b785054e84cc48b4fa9452cc897fb723cf2866d152760",
+      "selected_parameter_sha256": "b361977f4604baf8e37d4d3078d7b76db0b04522d136541c2cf295e971de1396",
+      "nearest_parameter_sha256": "5dd31b4bc526ce012ee067c33b7588b266bfd25d75ef876500e4360dc9644463",
+      "train_source_sha256": "ebef82bf0bddb7fdee8654ef51969e3cef6463d988b519925a43edf990ccc115",
+      "validation_source_sha256": "1eb2c8eadba8cf367fb6e202f51b5400e5cca574194d94881d46883e08e9a431",
+      "scope": "historical diagnostics, not evidence of DR value or topology confidence"
+    },
+    {
+      "case": "soumalas11",
+      "bundle": 1002,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "history_counts": {
+        "train": 96,
+        "validation": 288
+      },
+      "selected_model": "model_008",
+      "selected_validation_mse": 2.1176739620869944e-06,
+      "nearest_model": "model_007",
+      "nearest_validation_mse": 2.3106815789178407e-06,
+      "historical_gap": {
+        "absolute_mse": 1.9300761683084635e-07,
+        "relative_ratio": 1.0911413278371873,
+        "relative_increase_percent": 9.11413278371873,
+        "output_symmetric_difference_absolute_labels": [
+          [
+            101,
+            102,
+            103
+          ]
+        ],
+        "interpretation": "Historical ranking/availability diagnostic only; neither strict-MSE confidence nor a probability of correct structure"
+      },
+      "nodes": 11,
+      "resources": 44,
+      "source_result_sha256": "763766a91b289a5103f63e6ab27f3640efc9953f41f34009092c886971877917",
+      "selected_parameter_sha256": "6f75e2c19ae0ab2281957bdff09de6c26c13f62afd16c172811ad813551b651f",
+      "nearest_parameter_sha256": "20c53f17c69ca521502d98e05123e6c98b9267edfaeee76d91fd42f83f7eb370",
+      "train_source_sha256": "ce3d4bd12dd0cc32e58111843ee75a554d47c576d28317408590def775fb707a",
+      "validation_source_sha256": "92551ae3995af56346fe5e8b6ecdaa153a7827385a678b13611de23aeaf55edd",
+      "scope": "historical diagnostics, not evidence of DR value or topology confidence"
+    },
+    {
+      "case": "flynn16",
+      "bundle": 1000,
+      "voltage_sigma": 0.0005,
+      "pq_sigma": 0.005,
+      "history_counts": {
+        "train": 96,
+        "validation": 288
+      },
+      "selected_model": "model_015",
+      "selected_validation_mse": 2.128849649384545e-06,
+      "nearest_model": "model_013",
+      "nearest_validation_mse": 9.058922517953879e-06,
+      "historical_gap": {
+        "absolute_mse": 6.930072868569333e-06,
+        "relative_ratio": 4.255313436800401,
+        "relative_increase_percent": 325.53134368004015,
+        "output_symmetric_difference_absolute_labels": [
+          [
+            204,
+            206
+          ],
+          [
+            201,
+            202,
+            203
+          ],
+          [
+            201,
+            203,
+            205,
+            215
+          ],
+          [
+            204,
+            205,
+            206,
+            215
+          ],
+          [
+            201,
+            202,
+            203,
+            204,
+            205,
+            206,
+            213,
+            215
+          ],
+          [
+            207,
+            208,
+            209,
+            210,
+            211,
+            212,
+            214,
+            216
+          ]
+        ],
+        "interpretation": "Historical ranking/availability diagnostic only; neither strict-MSE confidence nor a probability of correct structure"
+      },
+      "nodes": 16,
+      "resources": 64,
+      "source_result_sha256": "c2d4a71541f42f58f77a962173ee270b1b26d5c9bf3afcc443855ce6e3a11044",
+      "selected_parameter_sha256": "53c1cb939b2b943482790a55d48c1f30a777700c3692169509d9aa342486a822",
+      "nearest_parameter_sha256": "ea58ce83bdd9c26efc5c6f05afc6ac8d8be801e4f56a20155eb54fb9d344ced4",
+      "train_source_sha256": "f99e7671a96070ba390f39225c41198ebf87d9851251de34a3721fd81ac36c12",
+      "validation_source_sha256": "d2fa68be140c52de763702f5b1c2c60bead188126bf1f2b4998dfee947c13811",
+      "scope": "historical diagnostics, not evidence of DR value or topology confidence"
+    }
+  ],
+  "pressure_cases": [
+    {
+      "case": "pengwah18",
+      "bundle": 1001,
+      "voltage_sigma": 0.001,
+      "pq_sigma": 0.005,
+      "history_counts": {
+        "train": 96,
+        "validation": 288
+      },
+      "selected_model": "model_013",
+      "selected_validation_mse": 8.75815925936715e-06,
+      "nearest_model": "model_012",
+      "nearest_validation_mse": 8.865287766571948e-06,
+      "historical_gap": {
+        "absolute_mse": 1.0712850720479856e-07,
+        "relative_ratio": 1.0122318519259879,
+        "relative_increase_percent": 1.2231851925987858,
+        "output_symmetric_difference_absolute_labels": [
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            309,
+            310,
+            311,
+            312
+          ]
+        ],
+        "interpretation": "Historical ranking/availability diagnostic only; neither strict-MSE confidence nor a probability of correct structure"
+      },
+      "nodes": 18,
+      "resources": 72,
+      "source_result_sha256": "4ca93b82bfe77f61ce0c8418a8ae028da4eee051ba3d658a02d402f5fd1e2b57",
+      "selected_parameter_sha256": "6ea663d6ad04da9a4f91bfdfa60a0ce807ddf477accaac9fc019b866710afa93",
+      "nearest_parameter_sha256": "56a746b7517dce899bffe6433b4dcf2323b88538150b4b343cb9f568720d9ca5",
+      "train_source_sha256": "f847df5c7cdcd2238a1304b742360cae2f2ad34456604662f75273a55821391b",
+      "validation_source_sha256": "2dbf55091601061ffebf60af7ec618dd0d6c07a20b7f88d25b4dd3a7e0bd2dac",
+      "scope": "historical diagnostics, not evidence of DR value or topology confidence"
+    },
+    {
+      "case": "soumalas11",
+      "bundle": 1002,
+      "voltage_sigma": 0.001,
+      "pq_sigma": 0.005,
+      "history_counts": {
+        "train": 96,
+        "validation": 288
+      },
+      "selected_model": "model_009",
+      "selected_validation_mse": 8.653337999846837e-06,
+      "nearest_model": "model_008",
+      "nearest_validation_mse": 8.836630404807547e-06,
+      "historical_gap": {
+        "absolute_mse": 1.832924049607094e-07,
+        "relative_ratio": 1.0211816994741167,
+        "relative_increase_percent": 2.1181699474116744,
+        "output_symmetric_difference_absolute_labels": [
+          [
+            101,
+            102
+          ],
+          [
+            101,
+            102,
+            103
+          ],
+          [
+            109,
+            110,
+            111
+          ]
+        ],
+        "interpretation": "Historical ranking/availability diagnostic only; neither strict-MSE confidence nor a probability of correct structure"
+      },
+      "nodes": 11,
+      "resources": 44,
+      "source_result_sha256": "2f56e8fb126589d1680d9f9f15b65c88349be7228e16b31f32e040ce085a6344",
+      "selected_parameter_sha256": "ba971021360cfc65245e6f069862e57fcc046784afb82634803e8ce29896b439",
+      "nearest_parameter_sha256": "e899017aca427e718080d06ca09bf648b8f0d6d9d40b142b849f2162ee430804",
+      "train_source_sha256": "5674cb06d8dc91ae71ec329e8ed5543277646b5b3ac4658c1a28c8cbb5238847",
+      "validation_source_sha256": "6731cce8cb3d9b17525a4d3a993e2c595e0dc4f19e7d26563247c269cb7ab8ad",
+      "scope": "historical diagnostics, not evidence of DR value or topology confidence"
+    },
+    {
+      "case": "flynn16",
+      "bundle": 1001,
+      "voltage_sigma": 0.001,
+      "pq_sigma": 0.005,
+      "history_counts": {
+        "train": 96,
+        "validation": 288
+      },
+      "selected_model": "model_009",
+      "selected_validation_mse": 8.782870012955179e-06,
+      "nearest_model": "model_007",
+      "nearest_validation_mse": 1.890778314209029e-05,
+      "historical_gap": {
+        "absolute_mse": 1.0124913129135112e-05,
+        "relative_ratio": 2.1528023429927066,
+        "relative_increase_percent": 115.28023429927066,
+        "output_symmetric_difference_absolute_labels": [
+          [
+            207,
+            208
+          ],
+          [
+            210,
+            211
+          ],
+          [
+            201,
+            202,
+            203
+          ],
+          [
+            207,
+            208,
+            209
+          ],
+          [
+            204,
+            205,
+            206,
+            215
+          ],
+          [
+            210,
+            211,
+            212,
+            216
+          ],
+          [
+            201,
+            203,
+            204,
+            205,
+            215
+          ],
+          [
+            201,
+            202,
+            203,
+            204,
+            205,
+            206,
+            213,
+            215
+          ],
+          [
+            207,
+            208,
+            209,
+            210,
+            211,
+            212,
+            214,
+            216
+          ]
+        ],
+        "interpretation": "Historical ranking/availability diagnostic only; neither strict-MSE confidence nor a probability of correct structure"
+      },
+      "nodes": 16,
+      "resources": 64,
+      "source_result_sha256": "91305247d94043bae1679be5f7f894897c89ec1b50d0c5379905f6a1e167f39d",
+      "selected_parameter_sha256": "279f37d9d59ccd458cac1b7c752d0389413d945936ad79f088d549c1077370e0",
+      "nearest_parameter_sha256": "15082f740653b7632decbaf8a82ad9550fd02cd7ef25cd702257117cc374d12c",
+      "train_source_sha256": "18668582c5a347749fab9ef509bf92e75cf5ca6b160fcc79b39cae86a6482f92",
+      "validation_source_sha256": "818bc3a2cc0da4e12e196463c62d5a3b7d41b1ffa99bf0a5cec1813e8270abab",
+      "scope": "historical diagnostics, not evidence of DR value or topology confidence"
+    }
+  ],
+  "raw_inventory_sha256": "0eba648c22a261576993e2a4bb7cf7a1d95e033f72f4dbf403aee78e10c736d9"
+}

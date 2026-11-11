@@ -1,3 +1,9 @@
+## MSE最终选模与案例准备，2026-11-11
+
+- public dr_pricing/paper15_exponential/selection_mse.py、MSE_SELECTION_PLAN.md、MSE_SELECTION_AUDIT.json、MSE_CASE_INVENTORY.json。严格MSE为新实验规范，旧MIQP_DR和原run冻规则不覆盖；3% MSE仅敏感性。selector接口含strict数值并列及required_new_sse_gap，不使用训练E门槛作最终选择。
+- private wzzt_mse_selection_review_v1：summary/scored_rows为96保存观察重评分，pair_threshold_check与native_selector_comparison保存8基础检查+100组原choose兼容。case_inventory.json完整引用.24后QP结果的六组主/压力历史数据、参数指针/哈希与资源；只读MSE复算误差0，不读test/truth选例。complete标记本轮仅核算，0新DR/AC/fit。
+- 主组peng18 b1000/soum11 b1002/flynn16 b1000均v0005，96train/288val；压力v0010另列。后续先冻结主MSE基线、准备预测/自然日与通用加载边界，不把.16导出旧池或L1点MSE重评分当新全MSE算法。不要求筛出付费必胜例，paper15原MSE零收益对照保留。
+
 ## MIQP物理MSE诊断，2026-11-11
 
 - public dr_pricing/paper15_exponential/{MIQP_PROTOCOL,MIQP_REPORT,MIQP_RESULTS}及miqp_mse.py、miqp_mse_refine.py、miqp_mse_score.py；vendor/miqp_gate.py为隔壁研究原门槛逐字副本。原算法/旧零费批未改。新本机miqp_case含training_drop补充和原warm；数值输入Git忽略。
