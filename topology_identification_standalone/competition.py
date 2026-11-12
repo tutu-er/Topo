@@ -23,8 +23,30 @@ def _hash(value):
                                      allow_nan=False).encode()).hexdigest()
 
 
-def competition(result, validation, *, blocks=None):
-    """Return actual primary and best distinct alternative, with frozen weights.
+def ambiguity_gate(primary, alternative, *, kappa=.003, tie=1e-12):
+    """Retain a distinct alternative only for a small relative MSE advantage.
+
+    Scores are MSE divided by the same positive training reference. kappa uses
+    the worse/alternative score as denominator: primary >= (1-kappa)*alternative.
+    tie is the existing numerical ranking tolerance, not a confidence level.
+    """
+    values = (primary, alternative, kappa, tie)
+    if (not all(np.isfinite(v) for v in values) or min(primary, alternative, tie) < 0
+            or not 0 <= kappa < 1):
+        raise ValueError("MSE scores/tie must be nonnegative and ambiguity kappa in [0, 1)")
+    gap = alternative-primary
+    if primary > alternative+tie:
+        raise ValueError("Primary must be MSE-best up to the declared numerical tie")
+    threshold = max(tie, kappa*alternative)
+    # Addition matches the ranking tie rule at floating-point boundary values.
+    return dict(ambiguous=bool(alternative <= primary+threshold), kappa=float(kappa),
+                score_gap=float(gap), score_threshold=float(threshold),
+                relative_mse_gap=float(max(0., gap)/alternative) if alternative else 0.,
+                denominator="best_distinct_alternative_selection_mse")
+
+
+def competition(result, validation, *, blocks=None, kappa=None):
+    """Return one model, or two when the best distinct topology is near tied.
 
     Models are referenced by index in result['frozen_candidates']. Numerical
     zero auxiliary clades do not create a second topology. Their original
@@ -34,6 +56,8 @@ def competition(result, validation, *, blocks=None):
     reference = float(result["reference_mse"])
     config = result["config"]
     tie, zero = float(config["validation_tie"]), float(config["zero_tol"])
+    kappa = float(config.get("ambiguity_kappa", .003) if kappa is None else kappa)
+    ambiguity_gate(0., 0., kappa=kappa, tie=tie)  # Validate even without alternatives.
     labels, n = tuple(validation.labels), validation.n
     if not bank or not np.isfinite(reference) or reference <= 0:
         raise ValueError("A nonempty frozen library and positive reference are required")
@@ -83,7 +107,10 @@ def competition(result, validation, *, blocks=None):
     if choose(rows)["index"] != primary["index"]:
         raise ValueError("The actual primary does not follow the declared validation-MSE rule")
     alternatives = [c for c in rows if c["topology_id"] != primary["topology_id"]]
-    secondary = choose(alternatives) if alternatives else None
+    best_distinct = choose(alternatives) if alternatives else None
+    gate = ambiguity_gate(primary["validation_scaled_mse"], best_distinct["validation_scaled_mse"],
+                          kappa=kappa, tie=tie) if best_distinct else None
+    secondary = best_distinct if gate and gate["ambiguous"] else None
     compared = [primary] + ([secondary] if secondary else [])
     block_rows = []
     if blocks is not None:
@@ -100,8 +127,10 @@ def competition(result, validation, *, blocks=None):
                                    delta_mse=second-first if secondary else None))
         if not np.all(occupied == 1):
             raise ValueError("Explicit blocks must partition validation exactly once")
-    if secondary is None:
+    if best_distinct is None:
         stability = "no_distinct_saved_alternative"
+    elif secondary is None:
+        stability = "best_saved_alternative_separated_by_mse"
     elif len(block_rows) < 2:
         stability = "insufficient_blocks_for_stability_assessment"
     else:
@@ -113,6 +142,11 @@ def competition(result, validation, *, blocks=None):
     crossings = [(list(C), list(D)) for C in first_set for D in second_set
                  if set(C) & set(D) and set(C)-set(D) and set(D)-set(C)] if secondary else []
     return dict(primary_index=primary["index"], secondary_index=secondary["index"] if secondary else None,
+                selection_rule="relative_selection_mse_ambiguity_v1", ambiguity_kappa=kappa,
+                decision="two_near_tied" if secondary else "single_separated" if best_distinct else "single_no_saved_alternative",
+                output_count=len(compared), dr_candidate_indices=[c["index"] for c in compared] if secondary else [],
+                ambiguity_gate=gate, best_distinct_index=best_distinct["index"] if best_distinct else None,
+                best_distinct_validation_mse=best_distinct["validation_mse"] if best_distinct else None,
                 distinct_topologies=len({c["topology_id"] for c in rows}), models=compared,
                 scope="saved_training_fitted_candidates_only", library_scan_complete=True,
                 topology_identity="proper_clades_with_response_weight_above_numerical_zero_tolerance",

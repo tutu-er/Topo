@@ -86,6 +86,28 @@ def choose(rows, tie):
                key=lambda row: (row["internal"], row["selection_scaled_mse"], row["index"]))
 
 
+def verify_competition(saved, primary, best_distinct, config):
+    """Independently check legacy top-two and conditional-ambiguity output."""
+    rule = saved.get("selection_rule")
+    secondary = best_distinct
+    if rule is not None:
+        require(rule == "relative_selection_mse_ambiguity_v1", "Unknown competition rule")
+        kappa, tie = config["ambiguity_kappa"], config["validation_tie"]
+        require(np.isfinite(kappa) and 0 <= kappa < 1, "Invalid ambiguity kappa")
+        require(saved["ambiguity_kappa"] == kappa, "Ambiguity config changed")
+        require(saved["best_distinct_index"] == (best_distinct["index"] if best_distinct else None), "Diagnostic alternative changed")
+        if best_distinct:
+            score1, score2 = primary["selection_scaled_mse"], best_distinct["selection_scaled_mse"]
+            near = score2 <= score1+max(tie, kappa*score2)
+            secondary = best_distinct if near else None
+            require(saved["ambiguity_gate"]["ambiguous"] == near, "Ambiguity decision changed")
+        expected = [primary["index"]]+([secondary["index"]] if secondary else [])
+        require(saved["output_count"] == len(expected) and [r["index"] for r in saved["models"]] == expected, "Returned models changed")
+        require(saved["dr_candidate_indices"] == (expected if secondary else []), "DR pair differs from returned pair")
+    require(saved["secondary_index"] == (secondary["index"] if secondary else None), "Secondary differs from declared selection rule")
+    return secondary
+
+
 def write_csv(path, rows):
     fields = list(dict.fromkeys(key for row in rows for key in row))
     with path.open("w", newline="", encoding="utf-8-sig") as stream:
@@ -143,7 +165,7 @@ def analyze(output):
             primary = choose(bank, tie); alternatives = [c for c in bank if c["topology_sha256"] != primary["topology_sha256"]]
             secondary = choose(alternatives, tie) if alternatives else None; saved = result["competition"]
             require(primary["index"] == result["selected"]["index"] == saved["primary_index"], "Primary does not follow MSE rule")
-            require((secondary["index"] if secondary else None) == saved["secondary_index"], "Secondary differs from best distinct active family")
+            secondary = verify_competition(saved, primary, secondary, cfg)
             require(model_signature(result["selected"]["point"]) == primary["model_sha256"], "Selected point differs from indexed model")
             for model in bank:
                 model.update(primary=model is primary, secondary=model is secondary); candidates.append(model)

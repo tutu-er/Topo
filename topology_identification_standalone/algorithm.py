@@ -35,12 +35,15 @@ class SearchConfig:
     validation_tie: float = 1e-12
     forward_fraction: float = .5
     relative_gain: float = 0.
+    ambiguity_kappa: float = .003
 
     def validate(self):
         if self.alpha < 0 or not np.isfinite(self.alpha):
             raise ValueError("alpha must be finite and nonnegative")
         if not np.isfinite(self.relative_gain) or not 0 <= self.relative_gain < 1:
             raise ValueError("relative_gain must be finite and in [0, 1)")
+        if not np.isfinite(self.ambiguity_kappa) or not 0 <= self.ambiguity_kappa < 1:
+            raise ValueError("ambiguity_kappa must be finite and in [0, 1)")
         if not isinstance(self.block_limit, int) or self.block_limit < 3:
             raise ValueError("block_limit must be an integer at least three")
         positive = (self.response_bound, self.total_seconds, self.per_mip_seconds, self.qp_seconds)

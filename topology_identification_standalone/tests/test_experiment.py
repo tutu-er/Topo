@@ -51,6 +51,11 @@ class ExperimentTests(unittest.TestCase):
         bundled = args_for(None, command="benchmark", time_limit=None)
         self.assertEqual(experiment.experiment_config(bundled).total_seconds, 14400.)
 
+    def test_ambiguity_output_setting_does_not_change_search_gate(self):
+        config = experiment.experiment_config(args_for(None, ambiguity_kappa=.03))
+        self.assertEqual(config.ambiguity_kappa, .03)
+        self.assertEqual(config.relative_gain, 0.)
+
     def test_factorial_effects_preserve_negative_T_and_all_orders(self):
         rows = []
         for method in experiment.FACTORIAL:

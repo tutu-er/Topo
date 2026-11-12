@@ -171,6 +171,7 @@ def experiment_config(args):
     if not np.isfinite(seconds) or seconds <= 0:
         raise ValueError("--time-limit must be positive and finite")
     return algorithm.SearchConfig(alpha=args.alpha, block_limit=args.block_limit, total_seconds=seconds,
+        ambiguity_kappa=getattr(args, "ambiguity_kappa", .003),
         per_mip_seconds=min(3600., seconds), qp_seconds=min(300., max(1., seconds/4)),
         output_reserve_seconds=min(600., seconds/10))
 
@@ -415,6 +416,8 @@ def main(argv=None):
     parser.add_argument("--time-limit", type=float, help="seconds per method/input; default demo=30, bundled=14400")
     parser.add_argument("--alpha", type=float, default=.003)
     parser.add_argument("--block-limit", type=int, default=5)
+    parser.add_argument("--ambiguity-kappa", type=float, default=.003,
+                        help="relative selection-MSE ambiguity threshold; larger retains more pairs for DR")
     args = parser.parse_args(argv)
     if args.points < 8:
         parser.error("--points must be at least eight")

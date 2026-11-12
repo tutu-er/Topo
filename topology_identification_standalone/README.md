@@ -14,7 +14,7 @@ python -I -B tools/strict96.py run outputs/strict96_new
 python -I -B tools/strict96.py grade outputs/strict96_new
 ```
 
-该开发回放每例只读取一个96时点观测文件，前64点训练、后32点选择，不读取旧validation/test观测，不再全96重拟合。固定四输入与kappa=0/.001/.003，采用101；没有独立预测测试集。12/12拟合已完成，三档各4/4完整恢复，最终模型相同；本轮没有增加κ的最终质量收益，默认仍为0。数据职责、拒绝规则、QP反例及耗时见[完整报告](experiments/strict96_20261112/CONCLUSIONS.md)。四例开发回放不代替48输入全面测试。
+该开发回放每例只读取一个96时点观测文件，前64点训练、后32点选择，不读取旧validation/test观测，不再全96重拟合。固定四输入与搜索接收参数relative_gain=0/.001/.003，采用101；没有独立预测测试集。12/12拟合已完成，三档各4/4完整恢复，最终模型相同；没有增加搜索门槛的最终质量收益，relative_gain默认仍为0。数据职责、拒绝规则、QP反例及耗时见[原始报告](experiments/strict96_20261112/CONCLUSIONS.md)。四例开发回放不代替48输入全面测试。当前输出另用ambiguity_kappa决定是否返回第二拓扑，见下文。
 
 需要Python 3.10以上。完整运行安装：
 
@@ -67,7 +67,9 @@ $$
 
 每个结构先QP重拟合并在允许范围清零，再检查J是否超过数值容差下降。没有额外相对改善门槛、最近邻修复窗或最终0.24收缩。T块宽上限为5；R仍公开保留三种R/X几何与五档RNJ分组容差。全部有效参数写入每次实验的`plan.json`。
 
-默认relative_gain=0保持上述规则；严格96试验增加可选kappa：普通结构需`J_old-J_new > max(1e-10, kappa*J_old)`。保持活动拓扑和拟合不劣的纯数值零块删除不受相对门槛阻挡。结果新增`competition`，引用实际主选及有限库中第二个不同活动拓扑；没有统计置信度或全局唯一性声明。
+默认relative_gain=0保持上述规则；严格96试验增加可选搜索门槛：普通结构需`J_old-J_new > max(1e-10, relative_gain*J_old)`。保持活动拓扑和拟合不劣的纯数值零块删除不受相对门槛阻挡。
+
+当前仅在难以区分时返回两个拓扑：取实际主选MSE为M1、最佳不同拓扑的选择MSE为M2；当`M2-M1 <= max(reference_MSE*validation_tie, ambiguity_kappa*M2)`时返回两者，否则只返回主选。`ambiguity_kappa`默认.003，CLI可用`--ambiguity-kappa .01`放宽；它只影响输出和DR候选对，不改变训练搜索、系数或第一名，也不代表统计置信度。无不同备选时只输出一个，标记库内无备选。详见[条件双候选说明与回放](experiments/ambiguity_20261112/CONCLUSIONS.md)。
 
 完整定义见[MODEL.md](MODEL.md)，对话中旧算法与当前代码的对应关系见[ALGORITHMS.md](ALGORITHMS.md)。旧小种子、旧L1-MILP及整树组合等探索版保留为历史谱系和结果快照，不继续堆进当前运行引擎。
 
@@ -93,7 +95,7 @@ python run.py demo --case pengwah18 --seed 9 --points 96 --time-limit 300 --outp
 ```text
 run.py                 命令入口
 experiment.py          数据划分、逐方法运行、评分与完整消融统计
-competition.py         不重新拟合的双候选比较、结构差异与显式分块损失
+competition.py         MSE相对分离判别，条件输出一/两个拓扑与DR候选索引
 algorithm.py           唯一的R/W/T/E搜索流程及开关
 optimization.py        固定族QP、未知支持W、共同T/E选择模型
 trees.py               灵敏度估计、RNJ、NJ、层级与全部有界切面
