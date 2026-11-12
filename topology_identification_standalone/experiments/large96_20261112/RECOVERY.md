@@ -26,10 +26,10 @@ truth仅从冻结evaluation_cases生成proper clades；独立分析在pre_truth_
 
 ## 预定压力扩展
 
-先核对父目录7份运行源码/物理case仍与主协议一致；若漂移，隔离恢复冻结副本，而非覆盖其他任务改动。压力配置按PLAN提前固定，不按主试验成绩挑选。
+压力面板已在主试验评分前冻结，目录outputs/large96_pressure_20261112_001，协议SHA为20877c32c732d5083c2765908ccd37701251bc23bf40a23f6aa5a49de2016ec8。160输入生成均成功，7源码与物理case字节均与主协议一致，独立核查在pressure_preflight_data_review.json。不要重复freeze或覆盖。压力经理已排队在桌面exec session12248：等待main的run.lock退出并核对completion后自动运行冻结压力经理；当前尚未原生求解，勿再手工启动第二个压力经理。压力配置按PLAN提前固定，不按主试验成绩挑选。
 
 ```powershell
-python -I -B tools/large96.py freeze outputs/large96_pressure_20261112_001 --cohort pressure --workers 8
+# 以下仅为恢复命令；已有session12248排队时不要重复执行。
 python -I -B tools/large96.py run outputs/large96_pressure_20261112_001 --workers 8
 # 全部640项封存后，同样truth、analyze、plot、diagnose。
 ```
