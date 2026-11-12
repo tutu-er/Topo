@@ -2,6 +2,12 @@
 
 本轮严格采用：真实新日功率→加预测误差→规划→真实网络AC→表计误差→完整历史加新日后验。候选和R/X冻结，评价电压只来自原AC网络。旧的`Y=HtP+e`抽样不参与本轮效果评价。
 
+正式测试已完成：[总体与独立复验结果](results/REPORT.md)、[建模与强度核查](results/MODEL_REVIEW.md)、[全部分组](results/overall_and_groups.csv)、[复验案例](results/confirmation_cases.csv)。主体400输入×4新日，另锁12输入×64独立新日复验；不把7种配对策略当成7倍独立样本。
+
+当前线性QCQP不需要ADMM：主体4800次规划全部可行，4325次闭合费用上下界，475次未证明全局最优，5次保留输入初值；核内平均约0.016秒。原库含真拓扑150/400，含真库的平均真后验96.17%→98.34%，全体完整恢复578/1600→591/1600。独立复验既有明显改善，也有一个下降例；主体强度4有1次AC失败和7个电压越限日。
+
+强度核查结论：这批是理想可控净注入参考。强度4的最大单节点请求达到历史峰值21.19倍，40/1600日有局部净注入；几个主要改善例也存在40%—56%的局部峰值请求。因此不能仅凭费用低或AC收敛解释为实际负荷DR可执行。有限幅度的线性DR应另锁测试，本批极端和失败记录全部保留。
+
 使用当前较简洁主线101的400份冻结库：RNJ引导、WZZT逐步加线、结束前联合重选；111另加末端局部重选，不混入本次DR总体分母。没有重新拟合辨识器。
 
 ## 设备和指标
@@ -37,3 +43,5 @@ G_j(u)=[\|D(\widehat P+Bu)\|^2-\|D\widehat P\|^2]/(2\sigma^2).
 入口：`python -X utf8 -B -m rnj_wzzt_dr.experiments.linear_ac_population_20261113.study --output outputs/a_new_run --stage prepare|pilot|population|select|confirmation`。各阶段完成标记阻止重复运行；阶段有锁而未完成时先检查实际进程与断点。
 
 开发v1已完整保存：400输入中3个新日因原生求解器未提供ObjBound而中断评价，共21条记录；其余11179行独立复算通过。修复仅涉及缺失界值安全读取和逐计划失败隔离。正式v2在准备时显式指定`--study-seed 2026111306 --development outputs/linear_ac_population_20261113_v1/development_failure.json`，不覆盖v1，也不将v1混入正式总体统计。
+
+`solver.py`为解析单对及原生联合QCQP，`study.py`为锁定与实际AC执行，`audit.py`为独立复算，`analyze.py`为总体统计，`strength.py`只分析已保存动作。6项求解／预测检查和2项费用／失败分母检查通过。原始数据、真实状态和动作在忽略的`outputs/linear_ac_population_20261113_v2/`；公开文件哈希见`results/RECEIPT.json`。已完成阶段不要重复运行。

@@ -14,8 +14,8 @@ from ..expected_logodds_admm_20261113.run import REFERENCE
 def run(out,phase,shard=0,shards=1):
     protocol=io.read(out/'protocol.json');inputs={x['request']['id']:x for x in io.read(out/'inputs.json')}
     require((out/phase/'complete.json').exists(),'Finish phase before auditing')
-    target=out/phase/('independent_audit.json' if shards==1 else f'audit_part{shard}.json')
-    require(not target.exists(),'Keep prior audit')
+    audit_target=out/phase/('independent_audit.json' if shards==1 else f'audit_part{shard}.json')
+    require(not audit_target.exists(),'Keep prior audit')
     for rel,ref in protocol['sources'].items():require(sha(ROOT/rel)==ref['sha256'],'Source changed: '+rel)
     truth={x['id']:x for x in io.read(REFERENCE/'evaluation.json')};modules={}
     max_meter=max_forecast=max_probability=max_gain=max_ac=0.;rows_checked=contexts=plans_checked=ac_replays=0;failures=0
@@ -101,12 +101,28 @@ def run(out,phase,shard=0,shards=1):
                         error=float(np.max(abs(voltage-physical['V'][i])));max_ac=max(max_ac,error)
                         require(error<1e-10,'Saved voltage is not original AC output');ac_replays+=1
                 contexts+=1
+        # An AC failure still has a frozen quote. Check its original QCQP
+        # independently, without fabricating a missing voltage/posterior.
+        for row in rows:
+            if row['status']!='AC_or_scoring_failed' or not row['strategy'].startswith('optimized_'):continue
+            d=directory/f"day{row['day']:03d}";label=row['strategy'].split('_',1)[1];plan=io.read(d/'plans.json')[label]
+            with np.load(d/'planner.npz',allow_pickle=False) as packet:
+                x=packet[row['strategy']];dp=np.repeat(x,4,axis=0)*scale
+                shift=np.column_stack((dp,protocol['qratio']*dp));H=np.array([p['H'] for p in score['parameters']]);full=[]
+                for j in entry['competitors']:
+                    D=H[target]-H[j];base=packet['forecast']@D.T;delta=shift@D.T
+                    full.append(float(np.sum(2*base*delta+delta*delta)/(2*score['sigma2'])))
+                gamma=next(g for g in protocol['gamma'] if f'g{g:.6g}'==label)
+                error=float(np.max(abs(np.array(full)-plan['gains'])));max_gain=max(max_gain,error)
+                require(min(full)>=gamma-1e-8 and error<1e-6*max(1.,max(abs(np.array(full)))),'Failed-AC quote fails QCQP gain')
+                require(abs(float(np.mean(x*x))-row['cost'])<1e-12,'Failed-AC quote fee differs')
+                plans_checked+=1
     receipt=dict(status='passed',created_utc=utc(),phase=phase,contexts_checked=contexts,rows_checked=rows_checked,
         failed_rows_retained=failures,plans_checked=plans_checked,maximum_forecast_error=max_forecast,
         maximum_meter_error=max_meter,maximum_probability_error=max_probability,maximum_gain_error=max_gain,
         maximum_AC_replay_error=max_ac,AC_replay_calls=ac_replays,new_independent_days=0,
         all_consumed_source_hashes_unchanged=True,source=io.ref(__file__),audited_inputs=audited)
-    io.write(target,receipt);print({k:v for k,v in receipt.items() if k not in ('source','audited_inputs')},flush=True)
+    io.write(audit_target,receipt);print({k:v for k,v in receipt.items() if k not in ('source','audited_inputs')},flush=True)
     return receipt
 
 
