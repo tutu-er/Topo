@@ -1,0 +1,89 @@
+\section{跨文献联系、当前项目接口与可检验问题}
+\subsection{将22篇文献放回同一条推断链}
+这些文献可以放在“获取信息、估计响应、恢复结构、表达不确定性、支撑运行”的链条中阅读。S1说明信息配置；S2、S3侧重响应与分组，S4侧重潜变量表示；S5、S6讨论标签可靠性，S7处理量测精度；S8、S9把算法放在现场核验任务中；S10、S11讨论运行包络；S12、S13和P1--P5改变激励或观测机制；S14--S17提供不同的统计接口。不是每篇都覆盖整个链条，各阶段的结论不能自动传递到下一阶段。
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.35cm,box/.style={draw,rounded corners,align=center,font=\small,minimum height=1.05cm,text width=2.55cm},>=Stealth]
+\node[box] (a) {数据与激励\\S7、S12、P1--P5};
+\node[box,right=of a] (b) {响应与结构\\S2--S4、S13};
+\node[box,right=of b] (c) {不确定性\\S5--S6、S14--S17};
+\node[box,right=of c] (d) {核验与运行\\S8--S11};
+\draw[->](a)--(b);\draw[->](b)--(c);\draw[->](c)--(d);
+\end{tikzpicture}
+\end{center}
+
+\paragraph{本文推导：一个端到端保证需要连接哪些事件}
+设 $\mathcal M(D)$ 是结构与参数的联合集合，$m_\star$ 是真实模型。假设已经证明
+\begin{equation}
+ \Prob\{m_\star\in\mathcal M(D)\}\geq1-\alpha.
+\end{equation}
+再假设确定性控制计算得到 $\mathcal U(D)$，且对所有 $m\in\mathcal M(D)$、$u\in\mathcal U(D)$ 都有 $g_m(u)\leq0$。在真实模型确被包含的事件上，所有包络内动作满足约束，所以
+\begin{equation}
+ \Prob\{\forall u\in\mathcal U(D),\ g_{m_\star}(u)\leq0\}\geq1-\alpha.
+ \label{eq:end-to-end}
+\end{equation}
+这里集合和动作域可以都依赖同一数据，因为第二步是在每个得到的集合上作全域鲁棒约束。困难在于第一步必须覆盖真实模型，第二步必须真的对整个集合和整个动作域成立。如果仅验证一个控制点，或只对RNJ候选中的几个模型检查，上式的逻辑前提就不满足。若另有随机模型失配事件，需将其概率单独纳入，例如用并集界给出 $1-\alpha-\beta$ 的下界，而非悄悄忽略。
+
+\subsection{当前代码中哪些对象可以对应，哪些需要新方法}
+以下接口来自本次静态读取的当前文件。它们用于帮助定位，并不表示本报告已经更改算法。
+
+\begin{longtable}{p{0.25\linewidth}p{0.40\linewidth}p{0.26\linewidth}}
+\toprule 数学对象 & 当前文件或接口（相对仓库根） & 与文献关系及边界\\\midrule\endhead
+共同路径 $R/X$ & \path{rnj_wzzt_core/rnj_wzzt/models/lin_distflow.py}，\path{build_reduced_sensitivity_matrices} & 第18行起；平方电压分支第57行乘2\\
+树距离 & 同文件，\path{impedance_distance_from_reduced_R} & 使用对角和减两倍交叉项；对应矩阵尺度\\
+对称/非负/有序回归 & \path{rnj_wzzt_core/rnj_wzzt/estimation/constrained_least_squares.py} & 连续凸约束不等价于完整树集合\\
+RNJ及bootstrap & \path{rnj_wzzt_core/rnj_wzzt/graph/} & 候选与稳定性不能直接充当S15覆盖集合\\
+层状原子拟合 & \path{rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py} & 文件开头明确单步有界扩展与贪心外层的区别\\
+先验支持入口 & 上述文件，\path{initial_supports} / \path{candidate_supports} & 固定结构块与允许探索的候选不同\\
+流程与候选池 & \path{rnj_wzzt_core/rnj_wzzt/pipeline.py}，\texttt{\_prepare\_case} 与约549--587行 & 数据处理、收缩与结构选择须分层记录\\
+\bottomrule
+\end{longtable}
+
+\paragraph{两种阻抗系数的对应}
+物理边阻抗 $r_e$ 在平方电压模型中贡献 $2r_ew_ew_e^\top$。MILP实现记 $R=\sum_k a_kz_kz_k^\top$ 时，$a_k$ 已吸收尺度因子，不应再把 $a_k$ 直接当未缩放的欧姆值。若归一化到标幺，还需恢复 $Z_{\rm base}=V_{\rm base}^2/S_{\rm base}$。比较文献的相量电流灵敏度、幅值功率灵敏度和当前平方电压灵敏度时，应先对齐单位和符号，再讨论参数误差。
+
+\paragraph{候选域与求解证书的对应}
+设完整声明模型域为 $\mathcal T$，RNJ得到 $\mathcal T_c\subseteq\mathcal T$。则
+\begin{equation}
+ \min_{T\in\mathcal T_c,\theta}L(T,\theta)
+ \ \geq\ \min_{T\in\mathcal T,\theta}L(T,\theta).
+\end{equation}
+候选域最优解是完整最小化问题的一个可行上界，不是全域下界。S15若需要全域似然上界（等价于负对数似然下界），则仅用候选最优值方向相反。对于一个已经编码的有界MILP，求解器对偶界仍可有效约束该MILP；但不能越过“编码域小于声明域”的缺口。这是候选截断、逐步贪心与超时三个独立问题。
+
+\subsection{可迁移研究问题：明确命题，而非宣称文献空白}
+\paragraph{问题一：短边条件下可以确认多少结构。}
+给定观测误差和回归设计，构造同时有效的响应集合 $\mathcal C_{RX}$，再定义
+\begin{equation}
+ \mathcal T_{\rm comp}=\{T:\exists(r,x)\text{ 使 }(R(T,r),X(T,x))\in\mathcal C_{RX}\}.
+\end{equation}
+若真实响应以至少 $1-\alpha$ 的概率落入集合，且优化没有漏掉兼容树，则所有兼容树共有的clade在同一事件上都正确。这是集合逻辑；新增研究难点在有效半径、EIV、根公共误差以及组合域的保守求解。失败判据是集合虽覆盖，却长期包含几乎全部树而无分辨力。
+
+\paragraph{问题二：什么新增观测真正打破歧义。}
+若两模型 $m_1,m_2$ 在既有观测下等价，选择新动作 $a$，考虑其预测分布的可分程度，例如
+\begin{equation}
+ \mathcal I(a;m_1,m_2)=D_{\rm KL}\{p_{m_1}(Z\mid a)\Vert p_{m_2}(Z\mid a)\}.
+\end{equation}
+仅当该量为正且效应足够超过噪声时，新动作才可能区别两者。准稳态末端功率扰动不能分开相同端口矩阵的隐藏串联细分；局部电流传感器、高频通道或物理接线核查则改变观测算子。若只在当前候选之间最大化分歧，所有候选共有的错误仍可能永远不被检查，需要明确候选扩展或探索规则。
+
+\paragraph{问题三：结构未知是否已经影响运行任务。}
+定义模型集合在动作域上的输出直径
+\begin{equation}
+ \Delta_{\mathcal U}(\mathcal M)=
+ \sup_{m,m'\in\mathcal M,\,u\in\mathcal U}
+ \norm{f_m(u)-f_{m'}(u)}_\infty.
+\end{equation}
+若该直径及模型偏差均有可信上界，可与电压裕度比较，判断继续辨识的运行价值。端口等价模型对电压任务可能等价，但对支路载流量、保护和设备归属不等价；这类约束需要真实额定值和内部电流信息。因而模型直径应按具体任务定义，不能简单用拓扑编辑距离替代。
+
+\paragraph{问题四：共同数据源如何影响融合与概率解释。}
+R-RNJ、X-RNJ、RX75与MILP若来自同一批数据，算法意见通常相关。可把相互独立的数据窗口、不同设备或不同物理频段作为新的证据来源，但独立性需验证；改变算法名称不创造独立样本。由S5到S14的可迁移问题是如何对这种依赖建立观测模型或校准机制。可检验指标应包括可靠性曲线、结构同时错误率以及候选外错误发现率，而不仅是平均分类准确率。
+
+\subsection{按问题安排阅读顺序与复现控制}
+若重点是当前算法数学基础，依次阅读本报告统一模型、S1、S3、S12、S13，再读S4；S2需待获得全文后完成真正算法对照。若重点是概率化，先读S14与S15，理解权重和置信集合的不同，再读S17，最后读S16的树空间和后验计算。若重点是信号注入，先读S12的共同路径，再读P2的电流通道、P3的传播与反射、P4的缺失记录，最后用P5理解编码和系统辨识。DOE方向由S10建立数据接口，用S11辨别全包络鲁棒性，再回到式\eqref{eq:end-to-end}审查识别误差如何传播。
+
+复现时应把四类改变隔离：固定数据比较连续估计器；固定估计矩阵比较候选生成；固定候选比较选择规则；固定识别输出比较运行风险。配对实验至少保存真实观测配置、原始数据划分、量纲、噪声相关、候选覆盖、搜索超时和拒判结果。对隐藏节点标签不一致的输出，应比较终端分裂或clade，而非直接比较隐藏节点编号。局部矩阵反例是逻辑验证，不能被报告为原论文的复现实验。
+
+\subsection{交付文件与后续补全文接口}
+主文件为 \path{docs/literature_detailed_20260910/main.tex}；各专题分置 \path{sections/}，书目分置四个 \path{refs_*.bib}，来源审计为四个 \path{sources_*.md}。这些审计记录保存访问URL、实际版本、公式定位与无法获取全文的说明，便于以后补充，不把暂时的访问障碍说成论文没有证明。
+
+报告最终PDF为 \path{output/pdf/topology_literature_detailed_20260910.pdf}。本次交付是文献解析和数学审查；未购买文献、未运行原文算法，也未修改当前拓扑辨识实现。若后续取得S2、S4、S6全文，可以在保持编号的前提下替换对应的受限小节，补齐实际目标函数、假设和实验协议。
+

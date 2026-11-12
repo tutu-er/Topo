@@ -1,0 +1,99 @@
+{
+  "cases": [
+    {
+      "case": "paper15",
+      "nodes": 22,
+      "edges": 21,
+      "terminals": 15,
+      "hidden": 6,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 5.0,
+      "violations": []
+    },
+    {
+      "case": "soumalas11",
+      "nodes": 16,
+      "edges": 15,
+      "terminals": 11,
+      "hidden": 4,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 5.2,
+      "violations": []
+    },
+    {
+      "case": "flynn16",
+      "nodes": 23,
+      "edges": 22,
+      "terminals": 16,
+      "hidden": 6,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 4.8,
+      "violations": []
+    },
+    {
+      "case": "pengwah18",
+      "nodes": 26,
+      "edges": 25,
+      "terminals": 18,
+      "hidden": 7,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 4.5,
+      "violations": []
+    }
+  ],
+  "row_alignment": {
+    "aligned_mae": 0.0,
+    "same_labeled_rows_reversed_mae": 2.6666666666666665,
+    "interpretation": "L1 direct callers must synchronize row order; labels alone do not align time rows."
+  },
+  "noncore_imports": [],
+  "smoke": [
+    {
+      "case": "soumalas11",
+      "initializer": "rx75_rnj_contracted_plus_milp",
+      "rnj_initial_supports": "",
+      "frozen_support_count": 11,
+      "frozen_leaf_singleton_count": 11,
+      "frozen_rnj_block_count": 0,
+      "candidate_pool_mode": "rnj",
+      "candidate_pool_count": 6,
+      "candidate_pool_only_truth_recall": 0.0,
+      "candidate_pool_plus_frozen_truth_recall": 0.0,
+      "candidate_pool_clades": "101,104;105,107;109,111;102,103,110;105,106,107;101,104,105,106,107,108",
+      "milp_terminal_count": 11,
+      "elapsed_seconds": 0.4533559999981662,
+      "support_count": 14,
+      "nontrivial_support_count": 3,
+      "clade_precision": 0.0,
+      "clade_recall": 0.0,
+      "clade_f1": 0.0,
+      "train_mae": 0.0002982039686629404,
+      "validation_mae": 0.000588244232453924,
+      "stop_reason": "no_significant_one_atom_gain",
+      "attempt_count": 6,
+      "selected_path_index": 3,
+      "path_length": 6,
+      "path_support_counts": "11;12;13;14;15;16",
+      "path_validation_mae": "0.000767829867778;0.000662757850989;0.000641136244234;0.000588244232454;0.000631549357305;0.000612497312535",
+      "attempt_statuses": "0;0;0;0;0;0",
+      "attempts_proven_optimal": 6,
+      "attempt_runtimes": "0.170409;0.0734124;0.0467432;0.0339466;0.0365352;0.0189259",
+      "attempt_objectives": "0.000342249234965;0.000309504385077;0.000298203968663;0.000287454813871;0.000279894559897;0.000279894559897",
+      "attempt_dual_bounds": "0.000342249234965;0.000309504385077;0.000298203968663;0.000287454813871;0.000279894559897;0.000279894559897",
+      "attempt_mip_gaps": "0;0;0;0;0;0",
+      "attempt_messages": "Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "predicted_clades": "102,103,110;105,106,107;101,104,105,106,107,108",
+      "true_clades": "101,102,103;106,107,108;109,110,111;104,105,106,107,108",
+      "missing_clades": "101,102,103;106,107,108;109,110,111;104,105,106,107,108",
+      "extra_clades": "102,103,110;105,106,107;101,104,105,106,107,108"
+    }
+  ]
+}
+HighsMipSolverData::transformNewIntegerFeasibleSolution tmpSolver.run();
+HighsMipSolverData::transformNewIntegerFeasibleSolution tmpSolver.run();
+HighsMipSolverData::transformNewIntegerFeasibleSolution tmpSolver.run();
+HighsMipSolverData::transformNewIntegerFeasibleSolution tmpSolver.run();

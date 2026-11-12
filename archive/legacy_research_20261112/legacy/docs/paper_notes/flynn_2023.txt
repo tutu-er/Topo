@@ -1,0 +1,849 @@
+3850                                                                                IEEE TRANSACTIONS ON SMART GRID, VOL. 14, NO. 5, SEPTEMBER 2023
+
+
+
+
+An Improved Algorithm for Topology Identification
+of Distribution Networks Using Smart Meter Data
+     and Its Application for Fault Detection
+                Cassidy Flynn, Student Member, IEEE, Abu Bakr Pengwah , Student Member, IEEE,
+             Reza Razzaghi , Senior Member, IEEE, and Lachlan L. H. Andrew , Senior Member, IEEE
+
+
+
+   Abstract—This paper proposes a new method for estimating                      network service providers (DNSPs) continually require better
+the topology of radial distribution networks and a novel data-                   visibility into their networks, so they are able to maximize the
+driven fault detection technique using smart meter data. An                      capacity of LV networks to host these new technologies and
+improved method to estimate voltage sensitivity coefficients from
+smart meter data is proposed that takes into account the variabil-               maintain a safe and reliable electricity supply. Given the size
+ity of the transformer voltage. These coefficients are used in both              and complexity of LV grids, it is impractical to manually map
+the topology estimation and the fault detection algorithms. In the               these networks. Hence, recent studies have proposed methods
+topology estimation algorithm, an improved graph learning algo-                  to estimate the topology and parameters of LV networks.
+rithm, which iteratively constructs the network graph, is devised.
+In the fault detection algorithm, the objective is to look for
+sudden changes in the estimated voltage sensitivity coefficients.
+                                                                                 A. Prior Art
+The performance of the proposed methods is first assessed on
+randomly generated topologies under various noise conditions.                       In general, there are two classes of approaches for topology
+Then, the performance of the algorithms is validated using real                  estimation of LV grids. The first class makes use of extra
+smart meter measurements obtained from Australian distribu-                      measurement devices such as switch status (e.g., [1], [2]), line
+tion networks. The results show a significant improvement in the
+accuracy of estimated topologies compared to the state-of-the-                   current sensors [3] or phasor measurement units (PMUs) [4],
+art methods while the fault detection technique is successful in                 [5], [6]. These techniques can be impractical due to their cost
+detecting faults using real smart meter data.                                    and the complexity in determining the optimal positions of the
+   Index Terms—Topology estimation, smart meter, fault detec-                    required measurement tools.
+tion, low-voltage distribution networks.                                            The more practical class of approaches uses data from
+                                                                                 existing measurement devices in the network. Distribution
+                                                                                 networks are commonly equipped with smart meters to report
+                          I. I NTRODUCTION                                       consumer’s consumption and other network applications. The
+    OW VOLTAGE (LV) distribution networks are under-                             widespread adoption of smart meters has facilitated novel tech-
+L   going unprecedented changes due to the rapid uptake
+of Distributed Energy Resources (DERs). Hence, distribution
+                                                                                 niques that estimate the topology of LV networks from load
+                                                                                 measurements.
+                                                                                    Correlation analysis has been used in [7], [8], [9], [10],
+   Manuscript received 1 August 2022; revised 3 December 2022; accepted 10       [11], [12] to estimate minimum spanning tree representations
+January 2023. Date of publication 25 January 2023; date of current version       of distribution networks. In [7], voltage covariance coefficients
+23 August 2023. This work was supported by the Centre for New Energy
+Technologies (C4NET). The work of Cassidy Flynn was supported by the             are used to cluster meters close to each other. Energy mea-
+Australian Government Research Training Program (RTP) Scholarship. The           surements are transformed into a connectivity matrix through
+work of Reza Razzaghi was supported by the Australian Research Council           principle component analysis in [8]. A Markov Random Field
+under Grant IC200100009. The work of Lachlan L. H. Andrew was sup-
+ported by the Australian Research Council under Grant DP190102134 and            probabilistic model, which clusters meters using voltage cor-
+Grant IC200100009. Paper no. TSG-01105-2022. (Corresponding author:              relation analysis, is proposed in [9]. An optimization problem
+Reza Razzaghi.)                                                                  that seeks to match the load demands with the supplied power
+   Cassidy Flynn and Abu Bakr Pengwah are with the Department of Electrical
+and Computer Systems Engineering, Monash University, Melbourne,                  of transformers is proposed in [10]. A greedy approach that
+VIC 3800, Australia (e-mail: cassidyflynn271@gmail.com; abu.pengwah@             makes use of the variances of voltage differences to estimate
+monash.edu).                                                                     the phase grouping and three phase topology of distribution
+   Reza Razzaghi is with Monash University, Melbourne, VIC 3800, Australia,
+and also with the ARC Training Centre in Optimisation Technologies,              networks is presented in [11]. In [12], a two-stage approach
+Integrated Methodologies, and Applications, Melbourne, VIC 3800, Australia       that estimates the topology and associated line parameters
+(e-mail: reza.razzaghi@monash.edu).                                              from a weighted Laplacian matrix is presented.
+   Lachlan L. H. Andrew is with the School of Computing and Information
+Systems and the ARC Training Centre in Optimisation Technologies,                   Recent papers have focused on mapping the full distribu-
+Integrated Methodologies, and Applications, University of Melbourne,             tion network using data-driven techniques. In [13], a Prüfer
+Melbourne, VIC 3010, Australia (e-mail: lachlan.andrew@unimelb.edu.au).          decoding method based on smart meter data, is presented.
+   Color versions of one or more figures in this article are available at
+https://doi.org/10.1109/TSG.2023.3239650.                                        It’s limitation is its reliance on the network being homoge-
+   Digital Object Identifier 10.1109/TSG.2023.3239650                            neous and the lengths of lines being similar. The constraint of
+                      1949-3053 
+                                c 2023 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                    See https://www.ieee.org/publications/rights/index.html for more information.
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+FLYNN et al.: IMPROVED ALGORITHM FOR TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS                                                                3851
+
+
+
+constant length constraint is overcome in [14] with a recur-                     4) A novel data-driven fault detection algorithm that can
+sive grouping learning algorithm [15] that estimates the full                        detect a fault using a few samples of smart meter data
+network using a bottom-up approach. Pairs of nodes whose                             (Section V).
+distances are below a heuristically chosen tolerance factor are                  The new algorithms are evaluated on synthetic data in
+grouped as either parent-child or children to a common parent                  Section VI and measured data in Section VII. Section VIII
+node. A similar concept is presented in [16], which uses PMU                   provides concluding remarks.
+measurements and a modified recursive grouping algorithm
+that groups the nodes based on latent variables of the complex                        II. VOLTAGE S ENSITIVITY M ATRIX E STIMATION
+impedance matrix. An improved recursive grouping algorithm
+                                                                                  The voltage sensitivity matrix refers to the matrix of
+that does not require the tolerance factor used in [14], [16]
+                                                                               coefficients that relate changes in voltage at each node due
+is presented in [17]. All these papers ([13], [14], [16], [17])
+                                                                               to a change in power or current at each other nodes. In this
+employ voltage sensitivity equations that assume the distri-
+                                                                               paper, the sensitivity of node voltages with respect to changes
+bution transformer voltage is constant. This is typically not
+                                                                               in currents is considered. In [17], [22], these coefficients are
+the case in power distribution networks where there will be
+                                                                               approximated by
+natural variations in the transformer voltage. To remove this
+assumption, in this paper, the variability of distribution trans-                                V = Sr Re(Ic ) + Sx Im(Ic ),                     (1)
+former voltage has been incorporated. This has been shown
+to reduce error by about 50% compared to [17] in synthetic                     where Sr and Sx are the real and complex sensitivity
+networks.                                                                      coefficients, respectively; V is a matrix of voltage magnitudes;
+   In addition to topological information, smart meter mea-                    Ic is a matrix of complex currents; and  denotes the differ-
+surements open up avenues for various applications with                        ence between measurements in two points in time, e.g., V
+one being fault detection. Fault detection has always been                     denotes the incremental change in voltage magnitude. Both
+an area of interest for network operators. With the large                      V and Ic are N × T matrices, where N denotes the number
+scale deployment of smart meters, new studies have been                        of measured nodes, and T + 1 denotes the number of sampled
+proposed, in which, data-driven techniques are used to detect                  measurements. From this, Sr and Sx are both N × N matrices.
+faults. In [18], faulty meters are flagged by injecting a high                 This can be rewritten as
+frequency test signal and then comparing the measured volt-
+                                                                                                              V = SI,                              (2)
+ages with estimated ones obtained from a load flow analysis.
+                                                                                                               Re(Ic )
+Even harmonic distortion [19] calculated by specialized smart                  where S = [Sr , Sx ] and I = [ Im(Ic)
+                                                                                                                        ].
+meters has been used to flag fault events. New emerging
+methods also involve learning processes to detect incipient
+                                                                               A. Estimation of Transformer Voltage
+faults [20], [21]. The main drawback of learning meth-
+ods is the need for prior training of the classifiers. The                        Weckx et al. [23] present a method of estimating voltage
+training process requires detailed models of the distribution                  sensitivity coefficients as a least squares problem in terms of
+network and known fault parameters, which are not always                       real and reactive power consumption of measured nodes. They
+available.                                                                     take into account the effect of the transformer voltage on the
+                                                                               network; however, they use measurements of the voltage of the
+                                                                               secondary winding of the transformer, which are typically not
+B. Contributions                                                               available. The method proposed in [17] ignores the variation
+   Some of the main limitations of the methods presented in                    of the transformer voltage in the voltage sensitivity estimation.
+the literature include inaccurate modelling of branching points                As will be demonstrated in Section VI-A, this assumption can
+in distribution networks [10], the need for expensive PMU                      introduce errors in the estimated sensitivity coefficients, and
+devices [16], the assumption of a constant LV transformer                      hence the estimated network topology.
+voltage [17] and access to trained databases [21]. This paper                     To alleviate the limitations of the previous methods, in this
+overcomes these limitations, by proposing novel algorithms                     paper, a new variable, Vtr is introduced that corresponds to the
+for both topology estimation and fault detection. The main                     time varying transformer voltage. The variable Vtr is posed as
+contributions of this paper are:                                               a 1 × T vector, such that all nodes have access to the same
+   1) An improved algorithm to estimate voltage sensitiv-                      transformer voltage. Hence, (2) is replaced by a more accurate
+       ity coefficients from smart meter measurements whilst                   model given by
+       accounting for variations in the transformer voltage                                          V = JN,1 ⊗ Vtr + SI.                         (3)
+       (Section II),
+   2) An improved topology estimation algorithm that                           Here, JN,1 is an N × 1 matrix of ones, and ⊗ denotes the
+       imposes physical constraints on the line parameters,                    Kronecker product. The use of the Kronecker product is
+       thereby always generating suitable pairings of metered                  because Vtr is a 1 × T matrix, which is repeated N times
+       nodes (Section III),                                                    such that all nodes observe the same changing transformer.
+   3) A novel graph similarity measure that captures                           The method of calculating S proposed in [17] is
+       global changes more accurately than existing metrics
+       (Section IV),                                                                                    min (||V − SI||F ),                        (4)
+                                                                                                          S
+
+         Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+3852                                                                                 IEEE TRANSACTIONS ON SMART GRID, VOL. 14, NO. 5, SEPTEMBER 2023
+
+
+
+under additional constraints, details of which are found in [17].                 causes the distances to be inexact, and so criteria 2.a and 2.b
+The use of (3) instead of (2) leads to a similar optimization                     do not apply exactly. Methods in [14] and [17] outline how
+of the form of                                                                    to perform a similar process in noisy conditions using the
+                                                                                quantities
+            min ||V − JN,1 ⊗ Vtr − SI||F ,                 (5)                                                                
+                S,Vtr
+                                                                                             Tnoise (i, j) = max i,j,k − min i,j,k ,        (9)
+                                                                                                                  k∈K               k∈K
+under the same constraints as (4). This optimization is with
+                                                                                                                           1 
+respect to both the transformer voltage variation and sensitivity                                 Tpar (i, j) = d(i, j) −      i,j,k .                 (10)
+matrix S.                                                                                                                 |K|
+                                                                                                                                  k∈K
+   The above formulation allows Vtr to vary freely. However,                      When nodes (i, j) are siblings or parent/child, (9) and (10) are
+the transformer voltage is highly correlated in time due to                       close to 0. In [17], the most suitable parent/child and siblings
+loading conditions, and so a more likely estimate is obtained                     pairs are chosen as
+by imposing a regularizing term with weight α as                                                           
+                                                                                                   ip , jp = arg min Tpar (i, j),           (11)
+      min ||V − JN,1 ⊗ Vtr − SI||F + α||Vtr ||F . (6)                                                           (i,j)∈vpar
+       S,Vtr
+                                                                                                        (is , js ) = arg min Tnoise (i, j),             (12)
+The effect of α is evaluated in Section VI-A.                                                                        (i,j)∈vsib
+
+                                                                                  with choice vsib = vpar = Y 2 , which will be later investi-
+  III. I MPROVED R ECURSIVE G ROUPING A LGORITHM TO                               gated. The procedure is to combine (ip , jp ) as parent/child if
+           E STIMATE THE N ETWORK T OPOLOGY                                       Tpar (ip , jp ) < Tsib (is , js ), else to combine (is , js ) as siblings
+   The recursive grouping algorithm is a graph learning algo-                     with a newly constructed node parent node h. Finally, due
+rithm that estimates a full radial network topology from a                        to noise in the system, it’s possible to combine (i, j) as sib-
+distance matrix. The sensitivity matrix is transformed into the                   lings rather than parent/child or vise versa. Thus, given a third
+corresponding distance matrix, d, as detailed in [17], where                      parameter
+d(i, j) is the estimated impedance between nodes i and j.                                             1      Tpar (i, j)
+                                                                                                         <                < κ,               (13)
+                                                                                                      κ     Tnoise (i, j)
+A. Existing Pair Grouping Algorithm
+                                                                                  a candidate is generated by combining (i, j) in both ways, fol-
+   The process of recursive grouping was first described in                       lowed by selection of the optimal candidate once all candidates
+the context of estimating so called latent tree graphical mod-                    are produced. A full discussion can be found in [17].
+els in [15]. This algorithm was adapted in [14] for the
+purpose of estimating distribution grid topologies given end
+                                                                                  B. Improved Candidate Graphs Generation
+user measurements. These algorithms require the distances
+between two nodes. Note that −Si,j corresponds to the sum                            The method of reconstructing the topology in [17]
+of impedance values found in the common path linking cus-                         is to take the pair of nodes (i, j) that minimizes
+tomers i and j to the low voltage transformer; hence with                         min(Tpar (i, j), Tnoise (i, j)). However, it may not be possible
+most recent common ancestor k, d(i, j) = d(i, k) + d(j, k),                       to pair specific nodes (i, j); for example, two metered nodes
+and d(i, k) = S(i, j) − S(i, i); hence,                                           cannot be parent and child. With additional constraints on
+                                                                                  when nodes are combined, more favourable topologies can
+                         d(i, j) = 2Si,j − Si,i − Sj,j .                   (7)    be generated.
+In brief, the algorithm is as follows:                                               In essence, it would be redundant to proceed with joining
+  1) Begin with a set Y of subtrees (called the active set), ini-                 nodes (i, j) given knowledge that the final topology does not
+      tially containing the metered nodes and the transformer                     contain an (i, j) connection. It is preferable to consider only
+      node, and the known distance between any two nodes i                        the pairs (i, j) which could possibly be in the final topology.
+      and j of d(i, j).                                                              In general, there are consistent situations when nodes (i, j)
+  2) Repeat the following until there is only one subtree.                        should not be combined. The set of observed nodes (cus-
+      Merge each pair (i, j) of subtrees in Y if, for each subtree                tomers) is denoted V, and the parent node introduced during
+      k ∈ K := Y − {i, j}, the difference                                         a sibling combination as h.
+                                                                                     A combination (i, j) is only valid if it is a parent/child
+                             i,j,k := d(i, k) − d(j, k)                   (8)    combination, and
+       is independent of k. This difference will be constant for                                                / V or j ∈
+                                                                                                               i∈        / V,                           (14)
+       all k if and only if
+                                                                                  or it is a sibling combination and both of the following
+         a) i and j are siblings with parent node h. In which
+             case, i,j,h = d(i, h) − d(j, h),                                                           min (d(i, h)) ≥ 0,                             (15)
+                                                                                                         i∈Y
+         b) i and j are parent/child pairs. In which case
+                                                                                                         min (d(i, h), d(j, h)) > s .                  (16)
+             |i,j,k | = d(i, j).
+Evaluating when d(i, k) − d(j, k) is constant and checking the                       From (14), two metered nodes are restricted from being
+conditions 2.a and 2.b gives a simple method of reconstructing                    directly connected via an edge as this does not occur in prac-
+the tree given only distance values. However, noise in the data                   tice. From (15), all updated distances are forced to be positive.
+
+            Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+FLYNN et al.: IMPROVED ALGORITHM FOR TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS                                                                         3853
+
+
+
+Finally, given (16), nodes are prevented from being classed as
+siblings when one of those nodes is too close to it’s parent (in
+which case, they are essentially parent/child).
+   The sets vpar and vsib , used in (11) and (12) are now updated
+to enforce these additional requirements, such that
+                                                
+      vpar = (i, j) ∈ Y 2 : (i, j) satisfies (14) ,
+                                                          
+      vsib = (i, j) ∈ Y 2 : (i, j) satisfies (15) and (16) .
+
+  Similarly, (13) is constrained such that no pairs combined
+will violate any of these constraints. This can be implemented
+by checking the additional property holds
+                        (i, j) ∈ vpar ∩ vsib .                        (17)
+
+               IV. G RAPH S IMILARITY S CORE                                   Fig. 1. Four sample topologies for discussion. (a) ground truth, (b) fine
+                                                                               structure error, (c) large scale error and (d) node reordering. DeltaCon
+   In order to effectively evaluate the performance of the topol-              score between (a) and (b) vs (a) and (c) is 0.7894 vs 0.7835; show-
+ogy estimation algorithm, a metric is required that is able to                 ing the poor separation ability of DeltaCon with regards to fine vs large
+                                                                               scale structures. Similarity of (a) and (b) vs (a) and (c) is 0.9851 vs
+assess the similarity between two graphs (the estimate and                     0.8112 with the proposed method. Comparing (a) and (d) highlights the
+the ground truth). Prior methods have used the normalized                      requirement for Restricted Arboreal matchings, without which the pairs
+Robinson Foulds metric [16] or DeltaCon and centrality met-                    ({2, 3, 5, 7, 9, 11}, {1, 2, 4, 5, 8, 12}) ({2, 5}, {2, 5}) are allowed, even though
+                                                                               the intersection of the first pair is equal to the second pair.
+rics [17]. The Robinson Foulds metric has the drawback of
+over-weighting small errors in topology [24]. In this paper,
+it will be demonstrated that the DeltaCon metric is poor
+                                                                               mr , such that for each distinct (Y1 , Y1 ), (Y2 , Y2 ) ∈ mr , at least
+for evaluating distribution network topologies, due to having
+                                                                               one of the following holds:
+similar weighting for fine structure errors against large scale
+                                                                                  1) Y1 ⊂ Y2 and Y1 ⊂ Y2 . Additionally, |Y1 ∩Y1 | < |Y2 ∩Y2 |
+errors. Figures 1 (a), (b) and (c) show such an example where
+                                                                                  2) Y1 ⊃ Y2 and Y1 ⊃ Y2 . Additionally, |Y1 ∩Y1 | > |Y2 ∩Y2 |
+DeltaCon considers a minor error significant and a major error
+                                                                                  3) Y1 ∩ Y2 = ∅ and Y1 ∩ Y2 = ∅.
+to be of similar significance. For distribution network topology
+                                                                                  This differs from an arboreal matching by the additional
+estimation, correct large scale structure has higher importance
+                                                                               constraints |Y1 ∩ Y1 | < |Y2 ∩ Y2 | and |Y1 ∩ Y1 | > |Y2 ∩ Y2 |.
+than detailed separation of customers (small scale structure).
+                                                                                  The additional requirement that |Y1 ∩ Y1 | < |Y2 ∩ Y2 | is to
+Hence, in this paper, a new similarity score between two
+                                                                               prevent additional, redundant matching of clades. By defini-
+graphs, based on the Generalized Robinson Foulds metric [24]
+                                                                               tion, |Y1 ∩Y1 | ≤ |Y2 ∩Y2 | due to Y1 ⊂ Y2 and Y1 ⊂ Y2 . As such,
+is proposed.
+                                                                               without the strict <, any and all supersets should be matched.
+   Given two rooted trees T and T  , with the same number of
+                                                                               It is beneficial to prevent this property by requiring superset
+(labelled) leaf nodes, but varying internal nodes, the aim is
+                                                                               pairs share more in common than their subset counterparts.
+to describe how similar the two trees are (based on their leaf
+                                                                               For example, consider Fig. 1 (a) and Fig. 1 (d). Without the
+node locations). The trees can be broken down into sets of
+                                                                               restriction a matching may contain ({2, 5}, {2, 5}); as well as
+so called “clades” C and C , with individual clades denoted
+                                                                               ({2, 5, 7}, {2, 5, 1}) and ({2, 5, 7, 3, 9, 11}, {2, 5, 1, 4, 8, 12}).
+Yn ∈ C or Yn ∈ C , respectively. Any node induces a clade
+                                                                               However, these last 2 pairs are disjoint except for the initial
+consisting of the set of all its descendants that are leaf nodes,
+                                                                               pair ({2, 5}, {2, 5}).
+provided that set has at least two elements. For example, from
+                                                                                  In summary, consider two trees T and T  that are decom-
+Fig. 1 (a), {2, 5} and {2, 5, 7} are clades, both elements of C.
+                                                                               posed into various clades, the whole set of which are denoted
+Note that {2} is not a clade as it has size 1.
+                                                                               C such that Y1 , . . . , Yn ∈ C and Y1 , . . . , Yk ∈ C . Then, the
+   As in [25], the aim is to find a matching, m ⊂ C × C ,
+                                                                               set of restricted arboreal matchings Mr between the two sets
+which maps clades from C into clades in C . Here, (Y, Y  ) ∈ m
+                                                                               C and C is calculated. The goal is to define a function, such
+implies Y ∈ C is mapped to Y  ∈ C . The similarity between
+                                                                               as (18), to return the similarity between the two trees based on
+two trees can then be evaluated as some function maximized
+                                                                               this decomposition, where several choices of g(mr ) will now
+over all matchings,
+                                                                               be considered. One method would be to measure how many
+                           
+                    f T, T  = max g(mr ),                   (18)              clades are shared by both trees, namely,
+                                  mr ∈Mr                                                                                          
+                                                                                              g(mr ) = | Y, Y  ∈ mr : Y = Y  |,                   (19)
+where several choices of g(mr ) will be considered. The set of
+all considered matchings, Mr is restricted such that it corre-                 which can be considered as how many clades are identical
+sponds to a natural way of matching the two trees. While the                   between the two topologies.
+method of [25] finds an arboreal matching for use in a sim-                      Instead of measuring how many clades are perfectly
+ilar minimization problem, it is beneficial to restrict further.               matched, which would penalize even single metered nodes
+Define a restricted arboreal matching as an arborial matching,                 being missing, it is considered how frequently labeled nodes
+
+         Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+3854                                                                              IEEE TRANSACTIONS ON SMART GRID, VOL. 14, NO. 5, SEPTEMBER 2023
+
+
+
+appear in both clades for each pair in m:                                                      V. FAULT D ETECTION A LGORITHM
+                                                                                 One of the important applications of the sensitivity esti-
+                 g(mr ) =         |Y ∩ Y  |,                         (20)     mation algorithm is to detect faults using already available
+                               (Y,Y  )∈mr                                     smart meter measurements. The method proposed in this paper
+                                                                               relies on the estimated sensitivity matrix and corresponding
+where (20) is the sum over all pairings, of the number
+                                                                               residuals, obtained by substituting new data into the estimated
+of labeled nodes appearing in both Y and Y  . This can
+                                                                               sensitivity model, to detect sudden changes in the distribution
+alternatively be written as
+                                                                               model. It is expected that the estimated sensitivities Ŝ should
+                                                                        remain constant over short time periods. The estimated sensi-
+         g(mr ) =       Y, Y  ∈ mr : i ∈ Y ∩ Y  , (21)
+                   i∈L
+                                                                               tivities are used to produce an estimated voltage, and a sudden
+                                                                               departure between the estimated voltage and measured voltage
+which is interpreted as the sum over all meters of the number                  would then indicate a fault.
+of pairs (Y, Y  ) there are in mr such that the meter appears in                 Fault detection can be viewed as a change-point detection
+both Y and Y  .                                                               problem. Given historic data containing no fault, and a set of
+   However, using this approach, nodes deep in the tree are                    new measurements, the set of new measurements are examined
+given greater weight than nodes higher in the tree (as they                    to determine if they come from the same system that produced
+appear in more clades). To alleviate this, it is possible to sum               the prior measurements. However, there are a range of prob-
+a positive, concave increasing function of the cardinality of the              lems that make traditional change point detection algorithms
+sets. This function should be chosen to prevent nodes deep in                  unsuitable for fault detection. For example, applying change-
+the tree from dominating the score. Consider the formulation                   point detection directly on measured voltages will provide poor
+of weighting function as p(x) given by                                         results, as it could be challenging to distinguish voltage vari-
+                                                                         ations associated with faults from other variations due to load
+          s(mr , i) =     Y, Y  ∈ mr : i ∈ Y ∩ Y  ,        (22)              or generation fluctuations. Instead, in this paper the network is
+                       
+            g(mr ) =       p(s(mr , i)).                     (23)              modelled so as to provide an estimate of voltage given loading
+                         i∈L                                                   conditions, the result of the model is then compared with the
+                                                                               measured voltage values. This can be considered as the error
+In this paper, p(x) is chosen as the sum of the first x terms of               between the measured voltage, V, and the predicted voltage, V̂.
+a geometric series with ratio r. Using this, r is interpreted as a             The error between these values is consistent in the absence of
+parameter that governs the importance of multiple successful                   a fault, and as such a sudden increase in error is typically due
+pairings. When r = 1, no scaling is applied (p(x) = x), and                    to a fault. This approach requires estimates V̂, which has been
+this reduces to (20).                                                          enabled by the improved accuracy in the estimated sensitivity
+   The maximum f of a tree T will occur at f (T, T); as such,                  matrix, as well as the newly estimated transformer voltage.
+the function f (T, T  ) will be bounded by the minimum of the                    In previous sections, the sensitivity matrix S represented
+self-matching of each tree. That is,                                           only the voltage sensitivity with respect to current at the
+                                                                         observed nodes. However, the idea can be extended to unob-
+              f T, T  ≤ min f (T, T), f T  , T  .          (24)             served nodes. In particular, consider a section of line which
+                                                                               will, at some point, contain a line-to-ground fault. Prior to
+To facilitate comparison with other similarity metrics, this can               the fault occurrence, the fault current is If = 0, and hence,
+be normalized so that the maximum score is 1, as                               it has no effect on the sensitivity matrix. Equation (2) can be
+                                                                             reformulated given the additional node as
+                   
+                               f T, T 
+              S T, T =                                .     (25)
+                        max(f (T, T), f (T  , T  ))
+                                                                                                     V            S     Sf     I
+                                                                                                              =                     ,                (27)
+   It is offered without proof that the minimum S(T, T  ) over                                      Vf           Sf   SF     If
+all T, T  with n labeled nodes (with all n appearing in both
+trees) is                                                                      where Sf and SF are N × 2 and 2 × 2 matrices. Of particular
+                                    n                                      note, with the fault absent, If = 0 and this reduces to the
+           min S T, T  =            n  n−i  ≥ 1 − r.               (26)     original (2).
+                                     i=2 ir
+                                                                                   Using the pre-fault data, an estimate Ŝ of S can be calcu-
+   The above metric formulation has only been described in                     lated as in Section II. The errors between the predicted and
+detail under the assumption that both trees contain all labeled                measured voltages during the fault are then observed, with
+nodes as leaf nodes. However, the algorithm of Section III-A                   Ŝf = 0, Îf = 0 due to the fault being estimated not to exist,
+may occasionally fail this requirement. As such, it is proposed                giving
+that both trees are modified prior to evaluation such that any
+labeled node nl that is not a leaf node is transformed into                                                    I            I
+one by adding an unlabeled node nu and then performing                                    V − V̂ = S            Sf   − Ŝ 0
+                                                                                                                   If           0
+the operations neighbours(nu ) := neighbours(nl ) {nl }, then,                                                    
+neighbours(nl ) := {nu }.                                                                               = I S − Ŝ + Sf If .                       (28)
+
+         Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+FLYNN et al.: IMPROVED ALGORITHM FOR TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS                                                                  3855
+
+
+
+A more complete model, with additional voltage noise, as well
+as error in the estimated transformer voltage is
+                               
+  V − V̂ = N + I S − Ŝ + Sf If + Vtr − V̂tr , (29)
+         EV = N + ES + Etr + Ef ,                                     (30)
+
+where ES = (S−Ŝ)I is the sensitivity error, Etr = Vtr −V̂tr
+is the transformer error, N is the measurement noise error and
+lastly Ef = Sf If is the error introduced by the fault. Let
+us then assume ES , N , Etr , Ef are random variables. Then EV                 Fig. 2. Comparison of various α on different amounts of transformer voltage
+is also random variable. Notice that the distribution of Ef is                 variation, implemented as (32). Note with α = 0 we over-fit, and α >> 0 we
+                                                                               under-fit. With no transformer voltage variation (σ 2 = 0) we perform best by
+dependent on whether or not the evaluation period is during a                  under-fitting.
+fault, with Ef = 0 except during faults.
+   Let σn2 denote the variance of the voltage error of the nth
+node. The pre-fault data is also used to compute the estimate Ŝ.
+From the appendix, an estimate of the transformer voltage for
+the new, potentially faulted times can be evaluated as
+                            λ             
+                   V̂tr = J1,N V − ŜI ,                   (31)
+                            n
+where λ is a coefficient described in the appendix. The aim is
+to determine whether the new data is likely to come from the N
+distributions previously generated. If no fault occurs, the new
+data is expected to be similarly distributed. However, if a fault              Fig. 3. Mean absolute error of transformer voltage estimate with different
+                                                                               loading conditions with varying α.
+does occur, the new values are expected to be significantly
+different from the surrounding data.                                                                        TABLE I
+                                                                                   RMS OF E RROR IN P REDICTED T RANSFORMER VARIATION U SING
+                                                                                               M ODEL (32), VTR − V̂TR (VOLTS )
+              VI. S IMULATION C ASE S TUDIES
+   The performance of different proposed algorithms are first
+evaluated using synthetic data considering various network
+sizes and different noise levels. The size of the networks
+ranged from 20 nodes to 30 nodes, and the SNR is varied
+from 35 dB to 10 dB. The average branching factor of the
+internal nodes of these networks was 3.13. The load profiles
+are sampled from independent normal distributions with mean
+                                                                               acceptable performance across different levels of transformer
+50 W and standard deviation 1450 W. The line parameters
+                                                                               variability. A value of 10−1 was selected for further analyses
+were sampled from independent uniform distributions bounded
+                                                                               in the paper.
+by the minimum and maximum impedance values of the IEEE
+                                                                                  Analysis of experimental data in Section VII led to a choice
+European Low Voltage network. A load flow analysis is per-
+                                                                               of σ 2 = 37.28. Table I shows the RMS of the error in Vtr
+formed on the network and the loads’ voltages, currents and
+                                                                               given different levels of measurement noise, and shows that,
+power factor are recorded.
+                                                                               particularly for low to moderate noise scenarios, this produces
+                                                                               an accurate estimate of the transformer voltage. Furthermore,
+A. Transformer Voltage Estimation                                              simulations are performed on a 20-node network with 15 dB
+   Simulated data was generated across three sizes of networks                 SNR to determine the effect of network loading. The loading
+(20, 25, 30 nodes), and with an SNR of 30 dB for the                           is varied between 50% and 150% of typical loading. As shown
+measurement noise. Ten randomly generated topologies were                      in Fig. 3, the same range of α between 10−4 − 100 results in
+considered per evaluation. Equation (6) is used to estimate the                the minimum mean absolute error of the estimated transformer
+transformer voltage of the various networks.                                   voltage regardless of loading conditions.
+   The transformer voltage was modelled in simulation case
+studies as a first order auto-regressive model, with Vtr being                 B. Improved Sensitivity Estimate
+the difference between the transformer voltage and the nominal
+                                                                                  Synthetic data obtained from load flow analysis is fed
+line voltage,
+                                                                             into (6) to estimate the sensitivity matrix of various networks.
+           Vtr (t + 1) = 0.87Vtr (t) + 0.13N 0, σ 2 .      (32)                The networks consisted of 10 different networks across three
+                                                                               sizes (20, 25, 30 nodes) at 30 dB measurement noise. The
+   A sensitivity analysis is performed on α from (6) to select                 variance of the relative errors in the sensitivity matrix, eval-
+an appropriate value for estimating Vtr . Figure 2 shows that                 uated as Var[(Ŝ − S)/S], is measured. The reason variance is
+for value of α between 10−4 and 100 , the algorithm provides                   selected rather than mean square error is that the mean error
+
+         Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+3856                                                                                IEEE TRANSACTIONS ON SMART GRID, VOL. 14, NO. 5, SEPTEMBER 2023
+
+
+                                                                                                                 TABLE II
+                                                                                            F EASIBILITY OF [17] O UTPUTS (H IGHER I S B ETTER )
+
+
+
+
+                                                                                                               TABLE III
+Fig. 4. Variance of relative errors in sensitivity matrix estimates with and     C OMPARISON OF THE P ROPOSED M ETHOD W ITH THE S TATE - OF - THE -A RT
+without additional Vtr term. The transformer voltage varies according to (32)     U SING D ETLTAC ON M ETRIC AND FOR VARIOUS N ETWORK S IZES AND
+with the specified σ 2 .                                                                           N OISE L EVELS (H IGHER I S B ETTER )
+
+
+
+has little effect on the outputs of the topology estimation algo-
+rithm. To further examine this, assume the estimated sensitivity
+matrix Ŝ is estimated with a constant relative error; and hence
+d̂(i, j) = md(i, j). The recursive algorithm operates identically
+down to (16), with
+
+                            T̂noise = mTnoise ,
+                              T̂par = mTpar .
+
+Hence, the same nodes will be chosen to be combined in the
+same manner. The only departure is in (16), where a scal-
+ing factor may prevent some nodes from combining given the
+distance is below a threshold. In contrast, a high variability
+of estimated sensitivities causes substantial errors in the esti-
+mated topologies. As such, the variance of the relative error
+of the estimated sensitives is compared between the proposed
+and the state-of-the-art method, shown in Fig. 4. The proposed
+method outperforms [17] in reducing the relative error in sen-                   D. Topology Estimation Improvements
+sitivity matrix estimation with varying levels of transformer                       The same dataset as in Section VI-C is used to evaluate
+variations.                                                                      the improvements made to topology estimation. The com-
+                                                                                 parison between the performance of the proposed methods
+                                                                                 and other state of the art methods ([14], [16], [17]) is tabu-
+C. Recursive Topology Estimation Algorithm                                       lated in Table III and Table IV. Note that [16] uses additional
+   To assess the improved topology estimation algorithm,                         data that is not accessible in typical low voltage distribution
+10 randomly generated topologies, across six noise levels                        networks (the transformer voltage and the synchronized volt-
+(10–35 dB) and three network sizes (20, 25, 30 nodes includ-                     age angles of measured nodes). Nonetheless, the proposed
+ing internal nodes) are used. All simulation case studies                        method is able to outperform [16] using only smart meter
+include a transformer voltage varying according to (32) with                     data. The improvements are a result of increased accuracy of
+σ 2 = 37.28. The estimated sensitivity matrices are given                        sensitivity estimation, as well as the modifications made to
+as input to the recursive grouping algorithm presented in                        the recursive topology estimation algorithm. The performance
+Section III as well as that of [17].                                             was evaluated using both DeltaCon and the newly proposed
+   It is found that [17] results in infeasible topologies — not                  similarity metric.
+satisfying (14) — in 25% of cases. Furthermore, prior to topol-                     The compared DeltaCon metrics show a noticeable improve-
+ogy selection, 25% of all generated candidates by [17] are                       ment across nearly all test cases. While the DeltaCon and
+infeasible, with the majority of these occurring in high noise                   similarity metrics are always at least as high for the proposed
+scenarios. Other methods could be attempted to resolve this                      method as for [17], DeltaCon suggests that for 10 SNR and
+(e.g., eliminating infeasible results from the candidate list).                  30 node networks, all methods exhibit significant errors. The
+However, due to the iterative nature of the algorithm, an infea-                 new similarity metric clarifies this — The proposed method
+sible error introduced early in the recursive grouping process                   and [16] obtain high similarity scores, which, as shown in
+can have detrimental effects on all future iterations, affecting                 Section IV and Figure 1, suggests that the errors in estimated
+the overall quality of the estimation algorithm. Data pertaining                 topologies are local errors, which are not considered signifi-
+to the infeasibility of the outputs are shown in Table II. Note                  cant for network topology estimation. DeltaCon does not make
+that the proposed algorithm only generated feasible candidates,                  the distinction between small scale and large scale errors. The
+and hence is not directly compared.                                              proposed algorithm correctly estimates all 10 test cases for
+
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+FLYNN et al.: IMPROVED ALGORITHM FOR TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS                                                                 3857
+
+
+                               TABLE IV                                                                        TABLE VII
+C OMPARISON OF THE P ROPOSED M ETHOD W ITH THE S TATE - OF - THE -A RT                       P ERCENT R EDUCTION IN E RROR FOR D ELTAC ON
+  U SING S IMILARITY M ETRIC AND FOR VARIOUS N ETWORK S IZES AND                                 S CORE W ITH M ODIFICATIONS F ROM [17]
+             N OISE L EVELS (r = 0.75) (H IGHER I S B ETTER )
+
+
+
+
+                                                                                                           TABLE VIII
+                                                                                C OMPARISON OF THE P ROPOSED M ETHOD W ITH THE S TATE - OF - THE -A RT
+                                                                                 U SING DC AND S IMILARITY M ETRICS FOR R EAL S MART M ETER DATA .
+                                                                                      O UTPUTS M ARKED W ITH ∗ D ENOTE AN I NFEASIBLE O UTPUT
+
+
+
+
+                              TABLE V
+          D ELTAC ON M ETRIC OF D IFFERENT N ETWORK S IZES
+              W ITH M EASUREMENT N OISE OF 30 dB SNR
+
+
+                                                                                significant improvement than the recursive grouping improve-
+                                                                                ments. However, the recursive grouping improvement reduces
+                                                                                the computational requirements, making it feasible to be used
+                                                                                on large networks.
+
+                             TABLE VI                                                              VII. E XPERIMENTAL R ESULTS
+          D ELTAC ON M ETRIC OF D IFFERENT N ETWORK S IZES
+                   W ITH N O M EASUREMENT N OISE                                A. Topology Estimation
+                                                                                   While the proposed algorithm shows improvements using
+                                                                                simulated networks; experimental data can often contain more
+                                                                                noise and erroneous behaviour. As such, in addition to synthe-
+                                                                                sized data, the performances of the topology estimation and
+                                                                                fault detection algorithms are assessed using real smart meter
+                                                                                data from a Distribution Network Service Provider (DNSP)
+four of the noise/size pairs. The proposed method estimated                     in Victoria, Australia. Data from customers supplied by four
+73% of all topologies correctly, compared to 27% by [17].                       three-phase transformers is used. In total, 12 networks are
+   Additional simulations are performed for larger networks,                    analysed and each network contained between 14 and 29 cus-
+between 50-80 vertices. These tests are done in two scenarios:                  tomers, all of which had smart meters. These networks are all
+(i) no noise is present or (ii) measurements are contaminated                   unbalanced three-phase low-voltage distribution networks.
+with 30 dB SNR noise. These results are presented in Table V                       The accuracy of the proposed method is compared with [17]
+and Table VI. Of particular note is that [17] was unable to                     using both DeltaCon (DC) and the proposed (Similarity) met-
+complete the 50-Node case within 24 hours (denoted by –                         rics. An approximately 1 month – 10, 000 sample – set of data
+in the Tables). Thanks to the proposed improved recursive                       was provided for both algorithms.
+grouping method, the network topology can be estimated for                         The similarity measures for all 12 networks are given in
+large networks. Furthermore, the proposed algorithm is nearly                   Table VIII, with the number of customers in parentheses. A
+always able to generate the correct topology in the no noise                    visual representation is shown in Fig. 5. As it can be seen,
+condition.                                                                      the proposed method outperforms [17] in the majority of the
+   The improvements provided by the proposed methods are                        studied networks. There is a considerable improvement in
+further analyzed in Table VII, using 100 simulated test cases                   networks 6, 8, 10, 11, 12 for both evaluation metrics. The
+for a 30-node network with 15dB SNR. The DeltaCon metric                        new similarity measure indicates that the proposed method
+is used to assess the impacts of improved methods individu-                     performs particularly better for networks 9, 10, 11 and 12
+ally and together. Both modifications improve the performance                   while DeltaCon only indicates that 11 performs significantly
+of the topology estimation method (shown by a reduction in                      better.
+mean DeltaCon error of 23%, 50.5% and 53.0% compared                               In the following, networks 7, 9 and 11 are explained in
+to [17]). The transformer voltage estimation results in a more                  further details and visual representations of the networks
+
+          Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+3858                                                                                IEEE TRANSACTIONS ON SMART GRID, VOL. 14, NO. 5, SEPTEMBER 2023
+
+
+
+
+Fig. 5. Comparison of the similarity scores of each test networks, obtained
+using [17] (red) and the proposed method (blue), with r = 0.75. Higher is
+better.
+
+
+                                                                                 Fig. 8.   Network 11 Topologies: (a) Estimated using proposed method,
+                                                                                 (b) Ground-truth topology provided by DNSP, (c) Estimated using [17].
+
+
+                                                                                 clustered and the other being more dispersed. The proposed
+                                                                                 algorithm correctly identifies the two branches, and is moder-
+                                                                                 ately able to estimate the correct arrangement of the second
+                                                                                 branch. By comparison, [17] also generates the two distinct
+                                                                                 branches, however, it is unable to correctly arrange these
+                                                                                 nodes, with nodes 12 and 13 being estimated closer to the
+                                                                                 transformer, and 18 estimated clustered along with 10, 17,
+                                                                                 7, 11.
+                                                                                    2) Network 9: Network 9 is shown in Fig. 7. The ground-
+                                                                                 truth shows two distinct branches, with nodes 20, 23 forming
+                                                                                 an additional small branch. While the proposed topology cor-
+                                                                                 rectly generates two large branches, [17] generates a single
+Fig. 6.   Network 7 Topologies: (a) Estimated using proposed method,             large branch, with high clustering of meters.
+(b) Ground-truth topology provided by DNSP, (c) Estimated using [17].
+                                                                                    3) Network 11: Network 11 can be visualized in Fig. 8.
+                                                                                 It can be seen that the topology estimated by the proposed
+                                                                                 method closely follows the ground-truth topology with the
+                                                                                 only changes being the omission of internal nodes connected
+                                                                                 to nodes 3 and 8. The topology estimated using [17] deviates
+                                                                                 significantly from the ground-truth topology. The downstream
+                                                                                 metered node 3 is incorrectly connected to an upstream
+                                                                                 internal node and the metered nodes 6 and 7 are not joined as
+                                                                                 siblings. Furthermore, nodes 2, 9, 14, 3 are clustered together
+                                                                                 near the transformer, not correctly separated.
+
+                                                                                 B. Fault Detection
+                                                                                    In this paper, the 10 most recent data points are used to
+                                                                                 estimate the sample standard deviation, σ̂n , which is normal-
+                                                                                 ized using the historic standard deviation σn . A moving mean
+                                                                                 over period of time is then taken (selected as 24 hours for this
+Fig. 7.   Network 9 Topologies: (a) Estimated using proposed method,             paper) to smooth out disturbances. The resultant values are
+(b) Ground-truth topology provided by DNSP, (c) Estimated using [17].            then normalized by the average of all metered nodes at that
+                                                                                 time step and compared to a threshold.
+                                                                                    The performance of fault detection was evaluated on two
+are plotted in Fig. 6–8. The estimated topologies using the                      fault scenarios. The fault information was provided by the
+proposed method and the algorithm in [17] are shown on the                       DNSP.
+left and right, respectively, while the ground-truth topology,                      1) Faults Case 1: The moving mean of σ̂n /σn as a func-
+provided by the DNSP, is shown in the middle. Neighbouring                       tion of time is shown in Fig. 9. In this figure, the red dashed
+metered and internal nodes are colored in a similar fashion for                  vertical lines indicate the instance that the fault was detected
+the sake of comparison.                                                          by the DNSP. As can be seen, the proposed fault detection
+   1) Network 7: Network 7 is shown in Fig. 6. The ground-                       method is able to detect the fault approximately 1 day prior
+truth topology shows 2 main branches, one being highly                           to the DNSP’s detection time by tracking the variations in the
+
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+FLYNN et al.: IMPROVED ALGORITHM FOR TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS                                                                  3859
+
+
+
+                                                                                 time. However, the KS test had false positives, hence our test
+                                                                                 is more conservative.
+
+                                                                                                           VIII. C ONCLUSION
+                                                                                    This paper proposed novel topology estimation and fault
+                                                                                 detection algorithms. To this end, four new algorithms were
+                                                                                 devised. The first estimates the voltage sensitivity coefficients
+                                                                                 of distribution networks more accurately by considering vari-
+                                                                                 ability in the transformer voltage. This is shown to increase the
+                                                                                 accuracy of the sensitivity coefficients. The second algorithm
+                                                                                 uses these sensitivity coefficients to estimate the topology of
+                                                                                 the network. It improves on previous algorithms by placing
+Fig. 9. Moving mean of σ̂n /σn as a function of time for fault case 1. Phase     additional constraints on the solution reflecting the physical
+A (top), Phase B (middle) and Phase C (bottom). Red vertical lines indicate      constraints that line lengths are always positive, and customers
+the fault detection day provided by the DNSP. The fault development few
+days before the detection date can be clearly seen.                              are always connected by service lines. This new algorithm
+                                                                                 reduces the suboptimality according to the DeltaCon metric.
+                                                                                 The third algorithm is a new tree similarity metric that is
+                                                                                 shown to capture global structure better than metrics such as
+                                                                                 DeltaCon. The global changes it notices, such as swapping
+                                                                                 meters between feeders, is more important than small scale
+                                                                                 structure, such as swapping the order of meters along a feeder.
+                                                                                 Finally, a new fault detection algorithm is proposed that allows
+                                                                                 for online fault detection, and has been shown to estimate
+                                                                                 faults earlier than other methods. The sensitivity estimation
+                                                                                 works for arbitrary networks with meters at every load and
+                                                                                 generator, however further work would be required to extend
+                                                                                 the recursive grouping and similarity estimation algorithms
+                                                                                 to meshed networks. The simulation case studies confirm the
+                                                                                 superior performance of the proposed algorithms compared to
+Fig. 10. Moving mean of σ̂n /σn against time. Phase A (Top), Phase B             the state-of-the-art methods. In addition, further assessments
+(middle) and Phase C (bottom). Red vertical lines indicate date of fault as      have been done using real smart meter data.
+determined by DNSP.
+
+                                                                                                                  A PPENDIX
+estimated voltage errors. This information can be very useful                                               E VALUATING VTR
+for network operators to perform preventive measures before                         Consider the situation when S is known, and it is desired to
+a hard fault happens. This fault affected one meter, including                   estimate the optimal Vtr , such as in the fault detection pro-
+all 3 phases of that meter, and as such, the detection occurred                  cess. Substituting the estimated S into (6) means it is required
+on all 3 phases, with some being more apparent than others.                      to solve
+   2) Fault Case 2: This case was determined as a partially                                                                       
+                                                                                           min ||g − JN,1 ⊗ Vtr ||F + α||Vtr ||F ,         (33)
+melted fuse at the base of a pillar by the DNSP. A fault was                                  Vtr
+detected to occur at the specified time. This is illustrated in
+                                                                                 with g = V − SI. Since the Frobenius norm is taken, one
+Fig. 10. The proposed method correctly identifies the fault
+                                                                                 can consider the equivalent vectorized format
+at virtually the same time the DNSP detected it. Four cus-                                                                      
+tomers seemed to be affected in total, all of which were in                                   min ||b − EVtrT ||2 + α||VtrT ||2 ,   (34)
+                                                                                                  Vtr
+close proximity, and the fault can be detected on all 3 phases.
+This experimental test case also exhibits the capability of                      with corresponding vectorized matrix b = vec(g), taken as the
+the proposed method to detect various types of fault in the                                            √ and E = JN,1 ⊗ IT,T .
+                                                                                 row-wise column vector;
+network.                                                                           Since ||EVtrT ||2 = n||VtrT ||2 , this is equivalent to
+   To assess the robustness of the fault location algorithm, a                                                                   
+                                                                                             min ||b − EVtrT ||2 + k||EVtrT ||2 ,          (35)
+step change of 50% is applied to the load profiles of three                                      Vtr
+customers. This step change does not result in a change in the                               √
+                                                                                 with k = α/ n.
+distribution of decision statistic, and hence is not flagged as
+                                                                                    Minimization with respect to EVtrT gives a solution of the
+a fault. Additionally, although the proposed decision rule is
+                                                                                 form λPb, where P = E(ET E)−1 ET = 1n (JN,N ⊗ IT ), is the
+not in the form of a hypothesis test, a Kolmogorov-Smirnov
+                                                                                 projection matrix of the span of E.
+(KS) test at α = 0.05 performed on data that is flagged by
+                                                                                    The optimization can then be considered
+our rule at a threshold of 2, rejects the hypothesis that the
+distribution matches the non-fault distribution 100% of the                                   ||(I − λP)b||2 + kλ||Pb||2                               (36)
+
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+3860                                                                                IEEE TRANSACTIONS ON SMART GRID, VOL. 14, NO. 5, SEPTEMBER 2023
+
+                                               √
+            =       b∗ (I − λP)∗ (I − λP)b + kλ b∗ P∗ Pb                (37)      [8] S. J. Pappu, N. Bhatt, R. Pasumarthy, and A. Rajeswaran, “Identifying
+                                                   √                                 topology of low voltage distribution networks based on smart meter
+            =       bT b − 2λbT Pb + λ2 bT P2 b + kλ a,                 (38)          data,” IEEE Trans. Smart Grid, vol. 9, no. 5, pp. 5113–5122, Sep. 2018.
+                                                                                  [9] J. Zhao, L. Li, Z. Xu, X. Wang, H. Wang, and X. Shao, “Full-scale
+with a = bT PT Pb. Setting the derivative w.r.t. λ to 0 gives                         distribution system topology identification using Markov random field,”
+                                                                                      IEEE Trans. Smart Grid, vol. 11, no. 6, pp. 4714–4726, Nov. 2020.
+               2λbT P2 b − 2bT Pb           √                                    [10] G. Cavraro and A. Bernstein, “Bus clustering for distribution grid
+            √                            + k a = 0.                     (39)          topology identification,” IEEE Trans. Smart Grid, vol. 11, no. 5,
+           2 bT b − 2λbT Pb + λ2 bT P2 b                                              pp. 4080–4089, Sep. 2020.
+                                                                                 [11] M. Bariya, D. Deka, and A. von Meier, “Guaranteed phase & topology
+  Solving for λ, noting that P2 = P = PT , and taking the                             identification in three phase distribution grids,” IEEE Trans. Smart Grid,
+solution restricted to λ ∈ [0, 1] gives                                               vol. 12, no. 4, pp. 3605–3612, Jul. 2021.
+                                                                                [12] Y. Guo, Y. Yuan, and Z. Wang, “Distribution grid modeling using smart
+                      √            bT (I − P)b                                        meter data,” IEEE Trans. Power Syst., vol. 37, no. 3, pp. 1995–2004,
+           λ = 1 − k a − T 2                   .   (40)                             May 2022.
+                              b ak P − PbbT P b                                  [13] K. Soumalas, G. Messinis, and N. Hatziargyriou, “A data driven
+                                                                                      approach to distribution network topology identification,” in Proc. IEEE
+Then, replacing P = E(ET E)−1 ET , and noting that ET E =                             Manchester PowerTech, 2017, pp. 1–6.
+                                                                                 [14] S. Park, D. Deka, S. Backhaus, and M. Chertkov, “Learning with end-
+nIn,n gives                                                                           users in distribution grids: Topology and parameter estimation,” IEEE
+                                                                                     Trans. Control Netw. Syst., vol. 7, no. 3, pp. 1428–1440, Sep. 2020.
+                      √       n(nB − S)                                          [15] M. J. Choi, V. Y. F. Tan, A. Anandkumar, and A. S. Willsky,
+              λ=1−k a − 2                ,            (41)                            “Learning latent tree graphical models,” J. Mach. Learn. Res., vol. 12,
+                             ak nS − S2                                               pp. 1771–1812, Jul. 2011.
+                                                                                 [16] K. Moffat, M. Bariya, and A. Von Meier, “Unsupervised impedance and
+with w1 = bT b, w2 = ssT , s = bT E.                                                  topology estimation of distribution networks—Limitations and tools,”
+   These values are defined in terms of V, I and S as fol-                          IEEE Trans. Smart Grid, vol. 11, no. 1, pp. 846–856, Jan. 2020.
+lows. w2 = |J1,N (V − SI)|2 , w1 = |V − SI|2F . This also                    [17] A. B. Pengwah, L. Fang, R. Razzaghi, and L. L. H. Andrew, “Topology
+                                                                                      identification of radial distribution networks using smart meter data,”
+yields a = w2 /n and                                                                  IEEE Syst. J., vol. 16, no. 4, pp. 5708–5719, Dec. 2022.
+                                                                                [18] A. M. Pasdar, Y. Sozer, and I. Husain, “Detecting and locating faulty
+                               nw1 − w2
+                  λ=1−k                   .              (42)                         nodes in smart grids based on high frequency signal injection,” IEEE
+                               w2 − k2 w2                                             Trans. Smart Grid, vol. 4, no. 2, pp. 1067–1075, Jun. 2013.
+                                                                                 [19] S. Chakraborty and S. Das, “Application of smart meters in high
+The last step is to extract Vtr from EVtrT = λPb which can                           impedance fault detection on distribution systems,” IEEE Trans. Smart
+                                                                                      Grid, vol. 10, no. 3, pp. 3465–3473, May 2019.
+be shown to have the solution                                                    [20] Z. Lin et al., “One-class classifier based fault detection in distribution
+                         λ                                                            systems with varying penetration levels of distributed energy resources,”
+                 Vtr = J1,N (V − SI).               (43)                           IEEE Access, vol. 8, pp. 130023–130035, 2020.
+                          n                                                      [21] R. Moghaddass and J. Wang, “A hierarchical framework for smart grid
+                                                                                      anomaly detection using large-scale smart meter data,” IEEE Trans.
+                         ACKNOWLEDGMENT                                               Smart Grid, vol. 9, no. 6, pp. 5820–5830, Nov. 2018.
+                                                                                 [22] W. H. Kersting, Distribution System Modeling and Analysis, 4th ed.
+   C4NET acknowledges the major funding contribution of                               Boca Raton, FL, USA: CRC Press, 2006.
+the Victorian Department of Environment, Land, Water and                         [23] S. Weckx, R. D’Hulst, and J. Driesen, “Voltage sensitivity analysis of
+                                                                                      a laboratory distribution grid with incomplete data,” IEEE Trans. Smart
+Planning and its Core Participants. The authors would also                            Grid, vol. 6, no. 3, pp. 1271–1280, May 2015.
+like to thank T. de Villiers and J. Theunissen for their valuable                [24] M. R. Smith, “Information theoretic generalized Robinson–Foulds met-
+insights.                                                                             rics for comparing phylogenetic trees,” Bioinformatics, vol. 36, no. 20,
+                                                                                      pp. 5007–5013, 2020.
+                                                                                 [25] S. Böcker, S. Canzar, and G. W. Klau, “The generalized Robinson–
+                             R EFERENCES                                              Foulds metric,” in Proc. Int. Workshop Algorithms Bioinf., 2013,
+                                                                                      pp. 156–169.
+ [1] L. Chen, M. Farajollahi, M. Ghamkhari, W. Zhao, S. Huang, and
+     H. Mohsenian-Rad, “Switch status identification in distribution networks
+     using harmonic synchrophasor measurements,” IEEE Trans. Smart Grid,                                   Cassidy Flynn (Student Member, IEEE) received
+     vol. 12, no. 3, pp. 2413–2424, May 2021.                                                              the B.Sc. degree in mathematics and the B.E. degree
+ [2] H. S. Karimi and B. Natarajan, “Joint topology identification and state                               in electrical engineering from Monash University,
+     estimation in unobservable distribution grids,” IEEE Trans. Smart Grid,                               Melbourne, Australia, in 2021. She is currently pur-
+     vol. 12, no. 6, pp. 5299–5309, Nov. 2021.                                                             suing the Ph.D. degree in electrical engineering.
+ [3] M. Farajollahi, A. Shahsavari, and H. Mohsenian-Rad, “Topology iden-                                     Her research interests include distribution network
+     tification in distribution systems using line current sensors: An MILP                                topology mapping, data analysis, and fault location
+     approach,” IEEE Trans. Smart Grid, vol. 11, no. 2, pp. 1159–1170,                                     techniques for power networks.
+     Mar. 2020.
+ [4] L. Ma, L. Wang, and Z. Liu, “Topology identification of distribution
+     networks using a split-EM based data-driven approach,” IEEE Trans.
+     Power Syst., vol. 37, no. 3, pp. 2019–2031, May 2022.
+                                                                                                           Abu Bakr Pengwah (Student Member, IEEE)
+ [5] L. Zhang et al., “Distribution network topology identification consider-
+                                                                                                           received the B.E. degree in electrical engineer-
+     ing nonsynchronous multi-prosumer data measurement,” IEEE Access,
+                                                                                                           ing from Monash University, Victoria, Australia,
+     vol. 10, pp. 72785–72793, 2021.
+                                                                                                           in 2019, where he is currently pursuing the Ph.D.
+ [6] G. S. Dua, B. Tyagi, and V. Kumar, “A novel approach for configuration
+                                                                                                           degree.
+     identification of distribution network utilizing μPMU data,” IEEE Trans.
+                                                                                                               His research interests include modelling and iden-
+     Ind. Appl., vol. 57, no. 1, pp. 857–868, Jan./Feb. 2021.
+                                                                                                           tification of distribution networks, smart grids, and
+ [7] S. Bolognani, N. Bof, D. Michelotti, R. Muraro, and L. Schenato,
+                                                                                                           data analysis.
+     “Identification of power distribution network topology via voltage cor-
+     relation analysis,” in Proc. 52nd IEEE Conf. Decis. Control, 2013,
+     pp. 1659–1664.
+
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+FLYNN et al.: IMPROVED ALGORITHM FOR TOPOLOGY IDENTIFICATION OF DISTRIBUTION NETWORKS                                                                     3861
+
+
+
+                      Reza Razzaghi (Senior Member, IEEE) received                                         Lachlan L. H. Andrew (Senior Member, IEEE)
+                      the Ph.D. degree in electrical engineering from the                                  received the B.Sc. degree in computer science, and
+                      Swiss Federal Institute of Technology of Lausanne,                                   the B.E. and Ph.D. degrees in electrical engineering
+                      Lausanne, Switzerland, in 2016.                                                      from the University of Melbourne, Melbourne, VIC,
+                         In 2017, he joined Monash University, Melbourne,                                  Australia, in 1992, 1993, and 1997, respectively.
+                      Australia, where he is currently a Senior Lecturer                                      Since 2019, he has been with the University
+                      with the Department of Electrical and Computer                                       of Melbourne. He was with Monash University,
+                      Systems Engineering. His research interests include                                  Melbourne, from 2014 to 2018, and the Swinburne
+                      distributed energy resources, microgrids, power                                      University of Technology, Melbourne from 2008 to
+                      system protection, dynamics, and transients.                                         2014. From 2010 to 2014, he was an ARC Future
+                         Dr. Razzaghi was the recipient of the 2019                                        Fellow. He was a Senior Research Fellow with the
+Best Paper Award of the IEEE T RANSACTIONS ON E LECTROMAGNETIC                   University of Melbourne and a Lecturer with the Royal Melbourne Institute of
+C OMPATIBILITY and the 2013 Basil Papadias Best Paper Award from the             Technology. From 2005 to 2008, he was a Senior Research Engineer with the
+IEEE PowerTech Conference.                                                       Department of Computer Science, Caltech, Pasadena, CA, USA. His research
+                                                                                 interests include algorithmic aspects of energy management and performance
+                                                                                 analysis of network resource allocation algorithms.
+                                                                                    Dr. Andrew was the co-recipient of the IEEE Mobile Adhoc and
+                                                                                 Sensor Systems 2007, the IEEE International Conference on Computer
+                                                                                 Communications 2011, the Best Paper Award at International Green
+                                                                                 Construction Code 2012, the IEEE William R. Bennett Prize in 2014, and
+                                                                                 the ACM SIGMETRICS Test of Time Award in 2021. He is a member of the
+                                                                                 ACM.
+
+
+
+
+           Authorized licensed use limited to: Tsinghua University. Downloaded on July 06,2026 at 12:55:32 UTC from IEEE Xplore. Restrictions apply.
+

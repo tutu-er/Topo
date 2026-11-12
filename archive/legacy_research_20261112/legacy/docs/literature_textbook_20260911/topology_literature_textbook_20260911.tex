@@ -1,0 +1,4041 @@
+% Standalone: repeat XeLaTeX until references stabilize; bibliography and all chapters are embedded.
+\documentclass[UTF8,11pt,fontset=fandol,openany,oneside]{ctexbook}
+\usepackage[a4paper,margin=2.2cm,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array,tabularx,longtable,multirow}
+\usepackage{enumitem,graphicx,xcolor,fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage{algorithm,algpseudocode}
+\floatname{algorithm}{算法}
+\algrenewcommand\algorithmicrequire{\textbf{输入：}}
+\algrenewcommand\algorithmicensure{\textbf{输出：}}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=teal!65!black,urlcolor=blue!60!black,bookmarksnumbered=true]{hyperref}
+\hypersetup{pdftitle={配电网文献算法：教材式解析与完整性审查},pdfauthor={Topo 研究文档}}
+\setlist{nosep,leftmargin=2em}
+\setlength{\parskip}{0.25em}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small 配电网文献算法：教材式解析}
+\fancyhead[R]{\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\chaptermark}[1]{\markboth{第\thechapter 章}{} }
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{proposition}[theorem]{命题}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{定义}
+\newtheorem{example}[theorem]{例}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{说明}
+\numberwithin{equation}{chapter}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{2}
+\title{配电网文献算法\\[0.6em]\Large 教材式解析与完整性审查\\[0.8em]\large 从观测模型、算法步骤到算例、证明与复现边界}
+\author{Topo 研究文档}
+\date{2026年9月11日}
+\begin{document}
+\frontmatter
+\hypersetup{pageanchor=false}
+\maketitle
+\hypersetup{pageanchor=true}
+
+% BEGIN preface.tex
+\chapter*{如何使用本书，以及旧稿是否完善}
+\addcontentsline{toc}{chapter}{如何使用本书，以及旧稿是否完善}
+本书整理此前调研的 S1--S17 与主动注入补充文献 P1--P5，共22项。编号沿用原调研，章节按照学习依赖重新排列。S1是教程，S14--S17是统计推断方法或教程，S10--S11是运行域应用；因此，22项文献不能表述为22种可直接比较的拓扑恢复算法。
+
+对上一版《配电网拓扑辨识文献逐篇解析》的审查结论是：\textbf{它适合研究选题和数学边界审阅，但作为算法教材还不完善。}旧稿已经解释共同路径模型、隐藏节点、主动探测和统计保证之间的区别，也标出了全文访问限制。然而，读者仍需自行补全若干关键连接：一个量测文件怎样变成设计矩阵，目标函数怎样变成逐步更新，分组后哪些矩阵和节点集合发生变化，以及什么情况下应当停止并返回“不确定”。本版围绕这些连接重写，保留上一版以便对照。
+
+\begin{longtable}{p{0.17\textwidth}p{0.34\textwidth}p{0.39\textwidth}}
+\toprule 审查维度 & 旧稿的实际缺口 & 本版的处理方式\\\midrule
+\endhead
+算法入口 & 不同论文的量测、符号及未知量分散在段落中 & 在各方法中明确输入、输出、参数和适用数据；先统一物理符号，再说明论文局部符号。\\
+步骤闭合 & 若干条目止于目标函数或概念路线 & 补充状态变量、逐步更新、候选管理、停止条件；缺原文细节时显式标注。\\
+推导连续性 & 有边界反例，但部分核心更新未从目标导出 & 补充最小二乘、树距离、EM、ADMM、MH、分位数及鲁棒几何的中间推导。\\
+算例可操作性 & 数值例子较少，读者不易手算一轮 & 增加贯穿三叶树，以及与各算法匹配的小规模数值轨迹。\\
+结论归属 & 独立审查与原文结论在连续段落中交替 & 明确区分原文流程、等价代数整理和教学变体；把访问与公式审计集中到附录。\\
+复现证据 & 没有独立重跑论文实验 & 本版验证教学公式与排版，仍不声称复现实验；全文缺口继续保留。\\
+\bottomrule
+\end{longtable}
+
+\section*{三种算法说明必须分别理解}
+\textbf{原文流程重述}意味着已有正文足以核对该步骤的来源，仍可能统一变量名、调整叙述顺序。\textbf{等价代数整理}意味着从已核对的模型或目标推导出便于实现的形式；它并不等于作者公开代码的逐行复现。\textbf{教学变体或背景模块}意味着为解释共同原理而明确选择了模型、求解器或停止准则；它可以独立实现，但不能用对应论文名称冒充论文基线。
+
+本版尤其不能填平 S2、S4、S6 的正文证据缺口。对 S2 和 S4，能做的是身份核实、已确认路线、公共机制教学和待核对清单。S6无法仅由题名补出神经网络层数、训练损失或数据划分。其余条目也必须按各节的来源说明理解，不能因为出现了伪代码就认为已经独立复现。
+
+\section*{建议的阅读路径}
+首次学习可先读第1章，亲手验证共同路径矩阵和距离；再读第2章 S3 的矩阵估计、分组与回溯；随后按数据条件进入数据质量、主动探测和统计推断章节。若研究目标是末端 P/Q/V 与隐藏零注入节点，首先掌握“回归可辨性”和“树表示可辨性”这两个不同问题。若研究目标是可信决策，再学习统计覆盖与运行域几何，避免把预测误差小直接解释为拓扑正确或运行安全。
+
+每节的数值例均为教学构造，除非明确写作原文实验。公式中的充分条件只在列出的模型假设下成立。本版不新增原论文实验成绩，不把经验优势改写成普遍定理，也不把有限候选最优写成全结构域最优。
+
+% END preface.tex
+
+\tableofcontents
+\mainmatter
+
+% BEGIN foundations.tex
+\chapter{共同基础：从配电网到可学习的数学对象}
+\label{ch:foundations}
+\section{先固定任务、符号和单位}
+\begin{definition}[观测树与目标树]
+设物理配电网为有根径向树 $T=(V,E)$，根为0，观测节点集合为 $O$，未观测节点为 $H$。隐藏零注入节点不在任何时刻产生额外净功率。若隐藏的度2节点仅连接两条串联线路，端口量测通常只能识别其阻抗和；本书把压缩这些节点后、保留根和可见分叉的树称为最简目标树。
+\end{definition}
+需要分别输出三种对象：物理设备连接图、可由当前端口区分的最简树，以及端口等效矩阵。后两者的正确性不自动决定第一种对象。拓扑估计 $\widehat T$、阻抗估计 $\widehat\theta$、候选集合 $\mathcal C$ 和置信集合 $\mathcal T_\alpha$ 也不是同一输出。
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lXl}
+\toprule 符号 & 本书共同模型含义 & 维数或单位\\\midrule
+$n,m$ & 观测非根节点数、样本数 & 整数\\
+$p_t,q_t$ & 正值表示消耗的有功、无功 & $\R^n$；统一标幺\\
+$v_t,u_t$ & 电压幅值、平方电压 $u_t=v_t\odot v_t$ & $\R^n$\\
+$y_t$ & 平方电压降 $u_{0,t}\mathbf1-u_t$ & $\R^n$\\
+$K_r,K_x$ & 电阻、电抗共同路径矩阵 & $\R^{n\times n}$\\
+$R,X$ & 本书平方电压灵敏度 $R=2K_r,X=2K_x$ & $\R^{n\times n}$\\
+$\mathcal P_i$ & 根到 $i$ 的边集 & 集合\\
+$w_e$ & 边 $e$ 下游观测节点的0/1向量 & $\{0,1\}^n$\\
+$d_{ij}$ & 电阻路径距离，非欧氏空间坐标距离 & 电阻单位\\
+\bottomrule
+\end{tabularx}
+\caption{共同符号。文献的电压幅值灵敏度可能记作 $R=K_r$；必须先换算，不能直接复制数值。}
+\end{table}
+
+\section{从支路压降推导共同路径矩阵}
+在线性 DistFlow 中忽略线路损耗，以消耗为正，边 $e$ 的下游总功率为 $P_e=w_e^\top p$、$Q_e=w_e^\top q$，边两端平方电压降近似为 $2r_eP_e+2x_eQ_e$。沿根到节点 $i$ 累加：
+\begin{align}
+ y_i&=2\sum_{e\in\mathcal P_i}(r_ew_e^\top p+x_ew_e^\top q),\\
+ y&=Rp+Xq,\qquad
+ R=2\sum_{e\in E}r_ew_ew_e^\top,\quad
+ X=2\sum_{e\in E}x_ew_ew_e^\top.\label{eq:tb-base-rx}
+\end{align}
+于是 $K_{r,ij}=\sum_{e\in\mathcal P_i\cap\mathcal P_j}r_e$。这个量记录两条根路径重合了多长的电阻，通常不是 $i,j$ 之间直接线路的阻抗。模型基础及与幅值线性化的关系见 S1 第II节\citep{S1}；此处采用统一消耗正号重新推导。
+
+\begin{example}[贯穿全书的三叶树]\label{ex:tb-tree}
+取边 $0h,ha,hg,gb,gc$ 的电阻分别为 $1,2,3,4,5$，数值是为手算选择的任意一致单位。
+\begin{center}
+\begin{tikzpicture}[every node/.style={circle,draw,minimum size=7mm},>=Latex]
+\node (r) at (0,0) {0};\node (h) at (2,0) {$h$};
+\node (a) at (4,1) {$a$};\node (g) at (4,-1) {$g$};
+\node (b) at (6,0) {$b$};\node (c) at (6,-2) {$c$};
+\draw (r)--node[above,draw=none]{1}(h);
+\draw (h)--node[above,draw=none]{2}(a);
+\draw (h)--node[above,draw=none]{3}(g);
+\draw (g)--node[above,draw=none]{4}(b);
+\draw (g)--node[below,draw=none]{5}(c);
+\end{tikzpicture}
+\end{center}
+按 $a,b,c$ 排列，五个下游指示向量依次为
+$(1,1,1)^\top,(1,0,0)^\top,(0,1,1)^\top,(0,1,0)^\top,(0,0,1)^\top$。
+因此
+\begin{equation}
+ K_r=\begin{bmatrix}3&1&1\\1&8&4\\1&4&9\end{bmatrix},\qquad
+ R=\begin{bmatrix}6&2&2\\2&16&8\\2&8&18\end{bmatrix}.
+ \label{eq:tb-toy-k}
+\end{equation}
+例如 $b,c$ 共用 $0h$ 和 $hg$，所以 $K_{r,bc}=1+3=4$；$b$ 的根路径长为8，所以对角元为8。若只有 $b$ 增加单位有功且无功不变，平方压降的变化为 $R_{:b}=(2,16,8)^\top$。
+\end{example}
+
+\section{最小二乘究竟识别什么}
+把每个时刻放在一行，令 $P,Q,Y\in\R^{m\times n}$，定义
+\begin{equation}
+ A=[P\ Q]\in\R^{m\times2n},\quad
+ \Theta=\begin{bmatrix}R^\top\\X^\top\end{bmatrix}\in\R^{2n\times n},
+ \qquad Y=A\Theta+E.
+\end{equation}
+无约束最小二乘为 $\widehat\Theta=A^\dagger Y$。当 $A$ 满列秩时参数解唯一，且
+\begin{equation}
+ \norm{\widehat\Theta-\Theta}_F
+ \leq\frac{\norm{E}_F}{\sigma_{\min}(A)}.
+ \label{eq:tb-ls-bound}
+\end{equation}
+证明只需将误差写为 $A^\dagger E$，利用矩阵算子范数。这里的 $m\geq2n$ 只是必要的计数条件；所有列几乎同向时，即使 $m$ 很大也会不稳定。对称约束可能减少未知维数，但应检查受约束设计算子在可行差分方向上的零空间，不能把 $2n$ 的计数不加修改当成所有模型的门槛。
+
+\begin{example}[功率因数固定时的不可分辨]
+若所有时刻 $q_t=\kappa p_t$，则 $y_t=(R+\kappa X)p_t$。任意允许的矩阵扰动 $\Delta$ 都给出同一预测：
+$R'=R+\kappa\Delta$、$X'=X-\Delta$。足够变化的 $p_t$ 仍只能识别组合矩阵；物理先验可能选择一个解，却不是新增了独立的数据方向。
+\end{example}
+
+若输入自身也有误差，$\widetilde A=A+U$，普通最小二乘中的残差包含 $-U\Theta$，与 $\widetilde A$ 相关，式\eqref{eq:tb-ls-bound}不能被直接解释为无偏估计保证。时间差分可以消除恒定截距，却把独立测量噪声 $\epsilon_t$ 变为 $\epsilon_t-\epsilon_{t-1}$：方差翻倍，相邻差分协方差为 $-\sigma^2$。因此，差分既不是免费降噪，也不自动产生独立样本。
+
+\begin{algorithm}[htbp]
+\caption{教学模块：从 P/Q/V 数据到可审查的灵敏度估计}
+\begin{algorithmic}[1]
+\Require 时间对齐的 $P,Q,V$，根平方电压序列或明确的根模型，训练/验证划分
+\Ensure $\widehat R,\widehat X$，奇异值、残差和未识别方向报告
+\State 统一标幺、功率正号；按同一量测定义计算 $Y=u_0\mathbf1^\top-V\odot V$
+\State 在训练集上固定中心化/差分规则，将同一变换用于验证集
+\State 形成 $A=[P\ Q]$，用 QR 或 SVD 检查秩和条件数
+\State 求解最小二乘或已声明的受约束二次规划
+\State 在独立工况计算预测残差，并检查残差与输入、时间及节点的关系
+\State 返回矩阵和诊断；秩不足时明确返回可识别的组合量
+\end{algorithmic}
+\end{algorithm}
+该流程是公共教学模块，不代替 S2 或 S3 的原始模型。QR/SVD 避免显式求逆 $A^\top A$ 所造成的条件数平方。稠密 QR 的主要成本量级为 $O(mn^2+n^3)$，这里仅指该无约束求解模块。
+
+\section{从共同路径矩阵到加性树距离}
+两条根路径中的公共部分在下式中被消去：
+\begin{equation}
+ d_{ij}=K_{r,ii}+K_{r,jj}-2K_{r,ij}
+       =\frac{R_{ii}+R_{jj}-2R_{ij}}2,
+ \qquad d_{0i}=K_{r,ii}.\label{eq:tb-distance}
+\end{equation}
+例\ref{ex:tb-tree}给出 $d_{ab}=9,d_{ac}=10,d_{bc}=9$ 和 $d_{0a}=3,d_{0b}=8,d_{0c}=9$。特别地，只看三叶间距离时，共同干线 $0h$ 的电阻完全消失；根距离或其他根信息是定位这一段的必要补充。
+
+\begin{proposition}[四点条件与短内边的难度]
+一棵正权树上四个端点分裂为 $ab\mid cd$，内路径长度为 $\ell>0$，则
+\begin{equation}
+ d_{ab}+d_{cd}<d_{ac}+d_{bd}=d_{ad}+d_{bc},
+ \quad (d_{ac}+d_{bd})-(d_{ab}+d_{cd})=2\ell.
+\end{equation}
+若每个距离的估计误差绝对值不超过 $\varepsilon_d$，则 $\ell>2\varepsilon_d$ 足以保持这一严格分裂次序。若 $\norm{\widehat R-R}_{\max}\leq\varepsilon_R$，式\eqref{eq:tb-distance}给出 $\varepsilon_d\leq2\varepsilon_R$，因此 $\ell>4\varepsilon_R$ 是相应充分条件。
+\end{proposition}
+\begin{proof}
+每条末端枝在三个和式中均出现一次，两个跨分裂的和额外穿过内路径两次。两个距离和之差的误差最多为 $4\varepsilon_d$，只要 $2\ell>4\varepsilon_d$ 就不会变号。矩阵到距离的误差界由三角不等式得出。
+\end{proof}
+这个证明说明短内边为何难恢复，而不是给任意带噪分组算法颁发整体正确性证明。零长边使不同拓扑表示合并，不能要求数据恢复一个不可区分的二叉细化。
+
+\section{隐藏节点：Kron矩阵与物理邻接的区别}
+对相量电路扣除根参考后，隐藏节点零注入给出
+\begin{equation}
+ \begin{bmatrix}i_O\\0\end{bmatrix}
+ =\begin{bmatrix}Y_{OO}&Y_{OH}\\Y_{HO}&Y_{HH}\end{bmatrix}
+ \begin{bmatrix}v_O\\v_H\end{bmatrix},\quad
+ Y_{\rm red}=Y_{OO}-Y_{OH}Y_{HH}^{-1}Y_{HO}.
+\end{equation}
+以一个隐藏星形中心连接三个端口为例，三条支路电导都为1。中心消元后端口矩阵是
+\begin{equation}
+ Y_{\rm red}=I_3-\tfrac13\mathbf1\mathbf1^\top
+ =\begin{bmatrix}2/3&-1/3&-1/3\\-1/3&2/3&-1/3\\-1/3&-1/3&2/3\end{bmatrix}.
+\end{equation}
+三个端口两两有有效耦合，但物理图仍是三条线接一个中心。这个示例是未接地的端口网络，整体常数电位自由度使矩阵奇异；加上根参考后的子系统可正定，稠密化现象不变。将 $Y_{\rm red}$ 的非零非对角元直接作为真实边会输出错误的三角形。
+
+\section{贯穿各章的三条检查线}
+\textbf{数据到参数：}设计矩阵是否有足够独立方向，测量误差如何进入？\textbf{参数到结构：}树度量、隐藏节点最简性、候选覆盖是否满足？\textbf{结构到结论：}返回的是一个拟合解、候选内最优、置信集合还是运行约束保证？后续各章都沿这三条线解释，但先给操作方法，再讨论保证边界。
+
+% END foundations.tex
+
+
+% BEGIN passive.tex
+\chapter{被动量测与隐藏树：S1--S4}
+\label{ch:passive}
+\section{S1：先选择可识别的对象，再选择算法}
+\subsection{教程的角色和方法接口}
+Deka、Kekatos、Cavraro 的教程\citep{S1}按相量量测、智能表量测、已知基础设施的状态检测，以及多相和网状扩展组织已有方法。本节把该分类改写为读者可执行的问题选择步骤，并给两个公共模型的完整演算；这些步骤是教程内容的教学组织，不是一项名为“S1算法”的新估计器。
+
+\begin{enumerate}
+\item 先列观测：是否有同步复电压与电流，是否只有幅值，是否同时有 P/Q，是否量测所有非根节点。
+\item 再列未知：只判断已知线路开关，还是线路全集、阻抗及隐藏节点数都未知。
+\item 固定可辨目标：完整物理图、压缩隐藏串联节点后的树，或端口等效矩阵。
+\item 根据模型选择相量回归、功率灵敏度估计、统计结构方法或主动探测；不在比较中偷偷增加原始数据没有的相角或内部电流。
+\item 输出结构结果时同时报告输入配置、候选域、阻抗误差和预测误差。
+\end{enumerate}
+
+\subsection{公共模块A：全节点相量回归}
+本小节使用向网络注入为正的复电流，扣除已知根相量后 $\widetilde v_t=v_t-v_{0,t}\mathbf1$。若测量所有非根节点，模型为 $i_t=Y\widetilde v_t$。堆叠 $I,\widetilde V\in\mathbb C^{n\times m}$ 后求解
+\begin{equation}
+ \widehat Y=\arg\min_Y\norm{I-Y\widetilde V}_F^2
+ =I\widetilde V^{\mathrm H}(\widetilde V\widetilde V^{\mathrm H})^{-1},
+ \label{eq:tb-phasor-ls}
+\end{equation}
+右式要求 $\widetilde V$ 满行秩，实现宜用 QR/SVD。再根据已声明的电路约束识别非零非对角元：$Y_{ij}=-y_{ij}$，根边导纳为第 $i$ 行之和。若只测端口且其他节点零注入，估到的是第1章的 $Y_{\rm red}$，此时不能沿用同一稀疏模式解释物理边。
+
+\begin{example}[两节点精确求解]
+根0到1的电导为2，1到2的电导为1，则
+$Y=\left[\begin{smallmatrix}3&-1\\-1&1\end{smallmatrix}\right]$。
+两个工况取 $\widetilde V=\left[\begin{smallmatrix}1&1\\0&1\end{smallmatrix}\right]$，则
+$I=Y\widetilde V=\left[\begin{smallmatrix}3&2\\-1&0\end{smallmatrix}\right]$。
+因为 $\widetilde V$ 可逆，$I\widetilde V^{-1}=Y$。非对角元给出1到2的电导1，行和 $(2,0)^\top$ 给出只有节点1直接连根。若只观测第二个相同方向的工况，回归秩变为1，就不能由该公式唯一识别四个矩阵项。
+\end{example}
+逐列构建设计、求解及提取邻接后，应检查矩阵对称性、物理符号、连通性和留出工况残差。阈值选择依噪声尺度而定；任意固定阈值不构成恢复定理。稠密求解的代数量级约为 $O(mn^2+n^3)$，阈值扫描为 $O(n^2)$。
+
+\subsection{公共模块B：为什么电压相关性会混合两种机制}
+对 $y=Rp+\epsilon$，若输入与噪声独立，
+\begin{equation}
+ \Sigma_y=R\Sigma_pR^\top+\Sigma_\epsilon.
+\end{equation}
+取 $R=\left[\begin{smallmatrix}2&1\\1&2\end{smallmatrix}\right]$、
+$\Sigma_p=\left[\begin{smallmatrix}1&\rho\\\rho&1\end{smallmatrix}\right]$ 且无测量噪声，有
+\begin{equation}
+ \Sigma_y=\begin{bmatrix}5+4\rho&4+5\rho\\4+5\rho&5+4\rho\end{bmatrix}.
+\end{equation}
+当 $\rho=0$，电压相关系数为 $4/5$；当 $\rho=0.9$，系数为 $8.5/8.6\approx0.9884$。线路没变化，只是负荷更同步。因此“高相关”可以用于匹配的经验特征，但从统计量到拓扑的定理需要负荷分布、观测覆盖和模型假设。S1的最大教学价值就是把这些条件放在算法之前。
+
+\section{S2：末端P/Q/V联合估计路线与目前的证据缺口}
+\subsection{哪些内容能够归于原论文}
+Hengfeng Zhang 等的2026年论文\citep{S2}已核实题名、作者、卷期和 DOI。此前调研记录保留了“物理约束矩阵估计、全分支迭代分组、非线性潮流修正”的出版预览路线；本次仍未取得完整正文，该预览本身也未重新取得。因此，本节\textbf{不提供冒称原文复现的伪代码}，而是把这类路线依赖的三个标准模块完整解释。原始 full-branch iterative grouping 的分支规则、回溯机制、阈值和结束条件仍待全文核验。
+
+\subsection{背景模块1：连续矩阵的凸估计}
+以第1章模型为例，可以解
+\begin{align}
+ \min_{R,X}\;&\tfrac12\norm{Y-PR^\top-QX^\top}_F^2,\\
+ \text{s.t. }&R=R^\top,\ X=X^\top,
+ \quad0\leq R_{ij}\leq\min(R_{ii},R_{jj}),
+ \quad0\leq X_{ij}\leq\min(X_{ii},X_{jj}).
+ \label{eq:tb-s2-generic}
+\end{align}
+把上三角独立元素堆为 $\theta$，预测可写为 $B\theta$。目标 Hessian 为 $B^\top B\succeq0$，约束都是线性，所以这是凸二次规划；全局最优指的是这一连续问题，而不是全局最优树。
+
+\begin{example}[满足简单物理不等式仍不一定是共同路径矩阵]
+矩阵 $K=\left[\begin{smallmatrix}3&1&1.5\\1&3&2\\1.5&2&3\end{smallmatrix}\right]$ 对称、正定、非负，且非对角元小于对角元。正定可由三个顺序主子式 $3,8,11.25$ 验证。然而三个不同非对角共同深度为 $1,1.5,2$。有根树上任意三个端点的三个共同祖先深度，最小值至少出现两次；此矩阵不满足该条件。它说明简单凸约束尚未编码全部树组合条件。
+\end{example}
+
+\subsection{背景模块2：距离分组与候选结构}
+由 $R/2$ 构造距离后，对活动端点 $i,j$ 定义
+$\phi_{ijk}=d_{ik}-d_{jk}$。当它们是同一分叉的两个末端时，
+\begin{equation}
+ d_{ih}=\tfrac12(d_{ij}+\bar\phi_{ij}),\qquad
+ d_{jh}=\tfrac12(d_{ij}-\bar\phi_{ij}).
+ \label{eq:tb-limb}
+\end{equation}
+各外部 $k$ 的差值应一致；这才是分组测试的信息。若仅余3个活动端点，外部集合只有一个元素，一致性检查成为恒真，必须使用三点收尾及非负枝长，而不能把零离散度解释为强证据。下节将用已取得全文的 S3 详细解释评分、更新与回溯。
+
+\subsection{背景模块3：固定结构上的非线性参数修正}
+候选树 $T$ 固定后，令 $f_T(\theta;p_t,q_t)$ 为交流潮流输出的平方电压，$r_t=u_t-f_T(\theta;p_t,q_t)$，$J_t=\partial f_T/\partial\theta$。线性化残差为 $r_t-J_t\delta$，加阻尼后求
+\begin{equation}
+ \left(\sum_tJ_t^\top W_tJ_t+\lambda I\right)\delta
+ =\sum_tJ_t^\top W_tr_t.\label{eq:tb-gn}
+\end{equation}
+这是局部二次模型的正规方程。每轮计算潮流与 Jacobian，解方程，选择满足参数范围的步长，重新计算真实目标；若真实目标下降才接受，否则缩短步长或增大阻尼。以相对目标下降、步长和迭代上限结束，并检查潮流是否收敛。这里是标准教学求解步骤，\textbf{不是已核实的 S2 原始迭代}。
+
+\begin{example}[为什么需要重新计算真实目标]
+取一维教学模型 $f(\theta)=\theta+0.1\theta^2$，观测为2，初值 $\theta_0=1$。残差为0.9，Jacobian为1.2，无阻尼步长 $\delta=0.75$。新预测为 $f(1.75)=2.05625$，残差变为 $-0.05625$，平方残差从0.81降为约0.003164。这个例子显示局部更新如何工作；它不是配电网潮流实例，也不证明任意初值都收敛。
+\end{example}
+
+\subsection{完整复现仍缺哪些不可省略的接口}
+在得到正文前，至少缺少原始变量/约束、根电压处理、分组候选分支、阈值零值处理、AC阶段是否允许换树、阻抗边界、停止准则，以及实验噪声和划分设置。三个公共模块可帮助理解潜在路线，但不能据此宣称完成该论文的算法复现，更不能以其名称报告对比成绩。
+
+\section{S3：三相电流灵敏度、递归分组与回溯选树}
+\subsection{整体计算图与输入输出}
+Fang 等\citep{S3}的正文已取得并核对。算法计算图为
+\begin{equation*}
+ (|V|,|I|,\text{相别},\text{功率方向},\text{超前滞后})
+ \longrightarrow(\widehat S,\widehat v_s)
+ \longrightarrow\widehat D
+ \longrightarrow\{T_1,\ldots,T_c\}
+ \longrightarrow\widehat T.
+\end{equation*}
+前半段对应原文第2节式(1)--(21)，后半段对应第3节式(22)--(32)及 Algorithm 1。$n$ 个单相用户分布在三相线路上，共 $m$ 个样本；$S\in\mathbb C^{n\times n}$ 是\textbf{电流}到复电压降的灵敏度，$v_s\in\R^m$ 是根电压幅值。它不是平方电压对 P/Q 的 $R,X$。拓扑阶段还输入相对分支阈值 $T_c$、候选上限 $N_c$ 和学习得到的评分系数 $\beta$。
+
+\subsection{步骤一：由智能表通道构造近似复电流}
+对用户 $i$，标称相角 $\varphi_i$ 为 $0,-2\pi/3,2\pi/3$。设 $C_1$ 的绝对值是电流幅值，正号表示吸收有功；$C_2$ 的绝对值是功率因数，正号表示原文定义的电压超前电流。令 $\gamma=\arccos|C_2|$，原文四象限关系重写为
+\begin{equation}
+ \psi=\angle I-\angle V=
+ \begin{cases}
+ -\gamma,&C_1>0,C_2>0,\\
+ \gamma,&C_1>0,C_2<0,\\
+ -\pi+\gamma,&C_1<0,C_2>0,\\
+ \pi-\gamma,&C_1<0,C_2<0.
+ \end{cases}\label{eq:tb-s3-angle}
+\end{equation}
+因此 $\widetilde I_{it}=|I_{it}|\exp[\mathrm j(\varphi_i+\psi_{it})]$。零电流时相角无关紧要；功率因数通道越界应先识别测量异常或按已声明规则处理，不能直接对大于1的数取实反余弦。表计的“超前/滞后”编码必须对应式\eqref{eq:tb-s3-angle}，不能只按软件中通道名称猜测。
+
+例如相A、吸收功率、滞后功率因数0.8、电流10时，$\psi=-36.8699^\circ$，$\widetilde I=8-6\mathrm j$；保持 $C_2>0$ 而转为注入，得到 $\psi=-143.1301^\circ$、$\widetilde I=-8-6\mathrm j$。仅保留功率因数幅值会把不同象限误写为同一输入。
+
+\subsection{步骤二：投影模型怎样形成实二次规划}
+在原文的阻抗电路模型中，隐藏节点零注入且没有未建模非线性元件时，
+\begin{equation}
+ e v_s^\top-V=SI,\qquad e_i=\exp(\mathrm j\varphi_i).
+\end{equation}
+定义 $D_\varphi=\diag(e^{-\mathrm j\varphi_i})$。先用标称角近似实际电压角，再对每个输出沿自己的相位投影：
+\begin{equation}
+ |V_{it}|\simeq v_{s,t}
+ -\Re\!\left[e^{-\mathrm j\varphi_i}\sum_kS_{ik}\widetilde I_{kt}\right].
+ \label{eq:tb-s3-proj}
+\end{equation}
+求和仍包含\emph{所有相}的用户。投影操作不等于把跨相耦合置零。
+
+令 $c_{ikt}=e^{-\mathrm j\varphi_i}\widetilde I_{kt}=a_{ikt}+\mathrm j b_{ikt}$，$S_{ik}=s^r_{ik}+\mathrm j s^x_{ik}$。由于
+$\Re(S_{ik}c_{ikt})=s^r_{ik}a_{ikt}-s^x_{ik}b_{ikt}$，观测 $(i,t)$ 对设计矩阵的一行贡献为
+\begin{equation}
+ |V_{it}|=\sum_k(-a_{ikt})s^r_{ik}
+ +\sum_k b_{ikt}s^x_{ik}+v_{s,t}+\epsilon_{it}.
+ \label{eq:tb-s3-row}
+\end{equation}
+将全部实部、虚部及 $m$ 个根电压堆为 $x\in\R^{2n^2+m}$，就得到 $b=Hx+\epsilon$，其中 $H\in\R^{nm\times(2n^2+m)}$。利用复对称性后可只保存上三角，自由变量数降为 $n(n+1)+m$。本书给出的按行构造形式与原文向量化形式等价，便于检查每个系数的正负号。
+
+\begin{example}[一行回归的数值检查]
+在同相单输入情况下，$I=8-6\mathrm j$、$S=r+\mathrm j x$，故实电压降为 $8r+6x$。若 $r=0.2,x=0.1,v_s=230$，预测幅值为 $227.8$。对应设计行在 $(r,x,v_s)$ 三列为 $(-8,-6,1)$，点乘即为 $227.8$。若误把第二个系数写为 $+6$，计算将得到 $229.0$，这类单行检查能直接发现共轭或符号错误。
+\end{example}
+
+原文 Proj 解 $\min_x\norm{b-Hx}_2^2$，并施加 $\Re S\geq0$、$S=S^\top$、$\Re S_{ij}\leq\Re S_{ii}$、路径实部非负及根电压范围等线性约束。Ignore 同时拟合投影实部与正交分量，Oracle 使用实际相角，仅用于基准对照。原式(19)出现 $\sqrt2V_{\rm tr}$，与所选幅值口径有关；实现必须统一峰值与有效值，不能把有效值230直接与峰值上下界混用。
+
+投影理由可由 $V_i=|V_i|e^{\mathrm j(\varphi_i+\delta_i)}$ 看出：电压实轴误差为 $|V_i|(\cos\delta_i-1)=O(\delta_i^2)$，正交分量为 $O(\delta_i)$。但近似电流的相角误差进入 $SI$ 后仍可能是一阶项；不能由这一局部展开断言整个回归误差全部二阶。联合根电压优化也不会自动消除零空间：若 $\Delta S I_t=e c_t$，同步改动 $v_{s,t}$ 可保持预测。
+
+\subsection{步骤三：得到适合分组的共同阻抗与距离}
+对同相共同路径矩阵可写 $D_{ij}=S_{ii}+S_{jj}-2S_{ij}$、$D_{0i}=S_{ii}$。原文全三相重建还在第5.2节构造中性线矩阵 $S_N$：同相项包含相线与中性线，跨相项含共同中性线；在相线与中性线阻抗相等的假设下，同相项减半得到中性线贡献。\textbf{未经此转换的全三相矩阵不能直接当作一棵单权重树的共同路径矩阵。}
+
+接下来先用正实加性距离推导几何，随后说明原文对复距离的评分。令活动集合为 $A$，$K_{ij}=A\setminus\{i,j\}$，$\phi_k=D_{ik}-D_{jk}$。如果 $i,j$ 共父 $h$，所有外部路径经过 $h$，所以 $\phi_k=D_{ih}-D_{jh}$。解这条式子与 $D_{ij}=D_{ih}+D_{jh}$ 即得式\eqref{eq:tb-limb}。更新新节点到外部的距离为
+\begin{equation}
+ D_{hk}=\tfrac12\{D_{ik}-D_{ih}+D_{jk}-D_{jh}\}.
+ \label{eq:tb-s3-distance-update}
+\end{equation}
+理想父子关系是其中一条枝长为零。按本书固定的差值定义：若所有外部路径从子 $i$ 经过父 $j$，则 $\phi_k=+D_{ij}$，即 $i$ 是子；若 $\phi_k=-D_{ij}$，则 $i$ 是父。复数不能直接比较正负；实际可以比较 $\bar\phi-D_{ij}$ 与 $\bar\phi+D_{ij}$ 的残差，并用根方向及叶节点不可为父等规则限制。原文父子方向的文字与其差值定义存在相反符号，已作页面核验，见附录。
+
+\subsection{步骤四：原文评分、候选栈和回溯}
+原文式(23)--(25)的主要评分结构为
+\begin{equation}
+ E_{s,ij}=\max_{k\in K_{ij}}|\phi_k|-\min_{k\in K_{ij}}|\phi_k|,
+ \qquad E_{p,ij}=|D_{ij}|-\operatorname{mean}_{k\in K_{ij}}|\phi_k|.
+ \label{eq:tb-s3-scores}
+\end{equation}
+原文平均分母的印刷索引不统一；本式用明确的外部集合均值表达其文字含义。此选择是实现需要注明的解释。正实精确树距离下 $E_p\geq0$；带噪或复距离下不能先验保证，因此原文相对比值 $E/E_{\min}$ 的零值或负值约定需要单独确定，不能直接除以零。
+
+每个候选决策是 $(\text{关系类型},i,j)$。先排除让原始叶节点成为父节点、让根成为子节点的决策，然后选最小评分。同一节点对的另一关系若通过相对阈值 $T_c$ 则入队；只有首选为兄弟时，再保存与该对共享节点的其他兄弟决策。原文 Algorithm 1的这两个分支条件必须分别保留。一次合并将两个活动节点替换为一个，或删除父子对中的子，因此每步减少一个活动节点。
+
+\begin{algorithm}[htbp]
+\caption{S3：回溯分组的状态级重述（平均、方向及零值约定须显式记录）}
+\begin{algorithmic}[1]
+\Require 共同阻抗矩阵，根与原始叶标签，$T_c,N_c$
+\Ensure 候选库 $\mathcal C$ 及各候选的边、阻抗和决策轨迹
+\State 由共同阻抗构造 $D$；初始化活动节点 $A$、空图 $G$、空候选库和决策栈
+\While{$|\mathcal C|<N_c$}
+\State 将本分支失败标记设为假
+\While{$|A|>2$}
+\State 计算合法决策评分
+\If{无合法决策}
+\State 将本分支标为失败，\textbf{break} 跳出内层循环
+\EndIf
+\State 选择首选决策，按原分支规则保存近分竞争决策与当前 $(A,D,G)$ 状态
+\State 兄弟合并：新建 $h$、添两条边，用式\eqref{eq:tb-limb}和\eqref{eq:tb-s3-distance-update}更新
+\State 父子合并：添一条边、移除子节点；检查叶和根方向限制
+\EndWhile
+\State 仅当本分支未失败且剩余两节点可合法连接时，完成树、去重并入库
+\State 找到最近仍有未访问竞争决策的栈层；若不存在则结束
+\State 恢复该层状态，弹出已访问决策，执行下一个决策并继续
+\EndWhile
+\State 返回候选库；达到 $N_c$ 时记录“候选截断”，不报告穷尽
+\end{algorithmic}
+\end{algorithm}
+伪代码保留原文“局部评分、相关竞争分支、回溯、候选上限”的主干；显式状态快照、失败返回、去重和严格小于上限是便于实现的整理。它不是对含印刷歧义的原伪代码逐字符执行。若实现使用 $E_{\min}+\epsilon$、绝对阈值或截断负分数，应命名为新的约定并做敏感性检查。
+
+\subsection{手算完整分组：从四个端点恢复两层隐藏分叉}
+使用例\ref{ex:tb-tree}，初始端点为 $\{0,a,b,c\}$。对候选 $b,c$，外部端点为 $0,a$：
+\begin{equation}
+ \phi_{bc,0}=8-9=-1,\qquad \phi_{bc,a}=9-10=-1.
+\end{equation}
+于是兄弟一致性成立，$D_{bg}=(9-1)/2=4$、$D_{cg}=(9+1)/2=5$。更新距离：
+\begin{equation}
+ D_{g0}=\tfrac12[(8-4)+(9-5)]=4,\quad
+ D_{ga}=\tfrac12[(9-4)+(10-5)]=5.
+\end{equation}
+现在活动端点为 $\{0,a,g\}$。为避免只剩一个外部点时的恒真测试，采用标准三点教学收尾：
+\begin{equation}
+ D_{0h}=\tfrac12(3+4-5)=1,\quad
+ D_{ah}=\tfrac12(3+5-4)=2,\quad
+ D_{gh}=\tfrac12(4+5-3)=3.
+\end{equation}
+加上已确定的 $gb,gc$，恢复全部五条边。这一收尾是明确的教学组织；原文 Algorithm 1继续成对合并直到两节点，不能将两种控制流程混称为同一实现。
+
+为了理解回溯，设第一次得到两个相互竞争的决策 $d_1,d_2$，评分分别为0.02和0.026，$T_c=1.5$。相对分数为1和1.3，都入队；先完成 $d_1$ 的整棵树，再恢复首次分歧前的 $A,D,G$，执行 $d_2$。若不恢复距离矩阵而仅删除图上的边，之前已估出的隐藏节点距离会污染新分支。这个状态错误会使“回溯”名义存在而实际未探索独立候选。
+
+\subsection{步骤五：对完整候选评分及代价解释}
+原文对每个完整树计算决策平方误差累计、内部线路电阻离散程度和线路 $X/R$ 样本方差，线性组合选择
+\begin{equation}
+ \widehat T=\arg\min_{T\in\mathcal C}
+ \{\beta_sF_s(T)+\beta_{RI}F_{RI}(T)+\beta_{XR}F_{XR}(T)\}.
+\end{equation}
+$F_s$ 来自所做合并的误差，$F_{RI},F_{XR}$ 来自完成后的线路参数；不同量纲需要与训练时一致的尺度，$\beta$ 由有标签训练数据拟合。$F_{RI}$ 的原式是离差平方和样式，不能未经说明替换成另一个分母的方差。没有内部边、线路电阻接近零或样本不足时的特征定义应明示。
+
+每次直接遍历 $k$ 计算所有配对分数是 $O(|A|^3)$；至多 $O(n)$ 次合并，朴素单路径上界为 $O(n^4)$，$N_c$ 个候选可用 $O(N_cn^4)$ 作宽松实现上界。共享状态和增量计算可降低实际成本，这不是论文声称的紧复杂度。前端凸QP的成本另外统计，不能把“分组选树更快”解释为完整流程一定更快。
+
+\subsection{保证与适用范围放在算法之后理解}
+理想等差判别依赖最简加性树与充分外部覆盖。原文对复差值取模的极差只是评分：$\phi_1=1,\phi_2=-1$ 的模长极差为零，差值本身却不相等。复阻抗的模长也一般不沿边相加。候选截断、工程特征和学习权重属于启发式结构选择；原文实验上的有效性不能提升为任意网络精确恢复定理。三相电流共线、根电压自由度、相线/中性线不等、未知内部注入都会影响适用性。复现应分开固定同一 $\widehat S$ 比较分组，以及固定同一分组比较灵敏度估计，才能解释性能差异来自哪里。
+
+\section{S4：潜树、EM和BIC的教材推导}
+\subsection{来源范围与共同概率机制}
+Haipeng Zhang 等\citep{S4}的出版摘要确认末端智能表、潜树概率表示、候选搜索、BIC和EM路线；全文尚未取得。以下选用明确的高斯潜树教学模型，给出可执行的 EM 推导，\textbf{不能归为该论文已核实的具体分布、参数化或结构搜索算子}。
+
+树模型可写 $p_T(z;\theta)=p(z_0)\prod_{v\ne0}p(z_v\mid z_{\mathrm{pa}(v)};\theta)$。端口似然为
+\begin{equation}
+ p_T(z_O;\theta)=\int p_T(z_O,z_H;\theta)\,\mathrm dz_H.
+\end{equation}
+物理图是树并不自动使实际电压按同一树条件独立；负荷统计、功率流与量测误差必须共同支持这个概率假设。
+
+\subsection{固定结构下的EM：为何需要条件方差}
+设一棵两叶潜星形树含隐藏标量 $h$，模型为
+\begin{equation}
+ h\sim\mathcal N(0,1),\qquad z_i=a_i h+\epsilon_i,
+ \quad\epsilon_i\sim\mathcal N(0,\sigma_i^2),\quad i=1,\ldots,n,
+ \label{eq:tb-em-model}
+\end{equation}
+各噪声互相独立并与 $h$ 独立。固定 $\Var h=1$ 用于去除潜变量尺度不辨识。完成平方可得
+\begin{equation}
+ C=\left(1+\sum_i\frac{a_i^2}{\sigma_i^2}\right)^{-1},\qquad
+ m_t=C\sum_i\frac{a_i z_{it}}{\sigma_i^2},\qquad
+ \E[h_t^2\mid z_t]=C+m_t^2.
+ \label{eq:tb-em-estep}
+\end{equation}
+E步计算所有 $m_t,C+m_t^2$。M步最大化完整数据对数似然的条件期望，分别对 $a_i,\sigma_i^2$ 求导，得到
+\begin{align}
+ a_i^{\rm new}&=\frac{\sum_tz_{it}m_t}{\sum_t(C+m_t^2)},\\
+ (\sigma_i^2)^{\rm new}
+ &=\frac1m\sum_t\left[z_{it}^2-2a_i^{\rm new}z_{it}m_t
+ +(a_i^{\rm new})^2(C+m_t^2)\right].\label{eq:tb-em-mstep}
+\end{align}
+这些更新只针对式\eqref{eq:tb-em-model}，不适用于未加推导的任意潜树。
+
+\begin{example}[完整手算一轮EM]
+取 $n=2$、初值 $a_1=a_2=1$、$\sigma_1^2=\sigma_2^2=1$，两个观测分别为 $(1,1)$ 和 $(-1,-1)$。E步给出 $C=1/3$、$m_1=2/3,m_2=-2/3$，每个条件二阶矩为 $1/3+4/9=7/9$。M步于是
+\begin{equation}
+ a_i^{\rm new}=\frac{4/3}{14/9}=\frac67,\qquad
+ (\sigma_i^2)^{\rm new}=1-\frac87+\frac47=\frac37.
+\end{equation}
+若只用隐藏均值填补而忽略 $C$，分母会误变为 $8/9$，得到 $a_i=3/2$ 并把该样本上的残差压至零。这说明“均值填补后回归”与 EM 并不等价。
+\end{example}
+
+\subsection{为什么似然不下降，但仍可能收敛到局部解}
+令 $q_k(h)=p(h\mid z;\theta_k)$。有精确分解
+\begin{equation}
+ \log p_\theta(z)=
+ \underbrace{\E_{q_k}\log p_\theta(z,h)+H(q_k)}_{\mathcal L(q_k,\theta)}
+ +\mathrm{KL}\{q_k\Vert p_\theta(h\mid z)\}.
+\end{equation}
+在 $\theta_k$ 处 KL 为零，因此提高 $\mathcal L$ 就使新似然不低于旧似然。这个论证依赖准确的 E步和不下降的 M步；近似积分或数值失败需要另外检查。它也没有证明全局最大化，更没有同时优化结构。
+
+\begin{algorithm}[htbp]
+\caption{教学算法：固定高斯潜星形模型的EM及外层候选评分}
+\begin{algorithmic}[1]
+\Require 训练数据 $z$，已声明的有限候选结构库，初始化集合，容差与迭代上限
+\Ensure 每个候选的参数、观测似然、收敛标记及BIC分数
+\For{每个候选结构及每组初始化}
+\State 为该结构推导相应E/M步；潜星形时使用式\eqref{eq:tb-em-estep}--\eqref{eq:tb-em-mstep}
+\Repeat
+\State 计算隐藏变量条件一阶和二阶矩
+\State 更新模型参数；处理已声明的方差下界并重新计算观测似然
+\Until{相对似然变化足够小且参数稳定，或达到上限/数值失败}
+\State 保留该结构下已获得的最佳似然及初始化敏感性
+\EndFor
+\State 按自由参数数目计算BIC；返回最低分候选，并报告候选库覆盖限制
+\end{algorithmic}
+\end{algorithm}
+方差下界属于约束模型的选择，使用时必须一致地优化该约束问题。上述外层遍历没有重建 S4 未获得的搜索规则，因此仅可作为独立教学实现。
+
+\subsection{BIC的数值含义与计算成本}
+常用最小化形式为 $\mathrm{BIC}(T)=-2\ell_T(\widehat\theta_T)+k_T\log m$。若 $m=100$，候选A为 $\ell_A=-120,k_A=5$，候选B为 $\ell_B=-118,k_B=7$，则 BIC 分别约为263.026与268.236，A更优。B额外增加两个参数，需要似然改善超过 $\log100\approx4.605$ 才能抵消惩罚；当前仅改善2。样本数应对应模型假设中的独立样本，不能随意把高度重叠的时间窗口当成100个独立馈线。
+
+对本节标量潜星形，E步和M步每轮都为 $O(mn)$。一般高斯潜树若用稠密条件协方差，成本可能包含 $O(n^3)$ 分解；树消息传递可利用稀疏结构，需按具体模型核算。总成本还乘以候选数、初始化数和迭代次数。潜变量模型可能奇异、边界参数可能不辨识，所以传统正则模型下的BIC近似解释需要检查；经验评分用途与渐近后验近似不是同一保证。
+
+\subsection{EM与隐藏物理结构的边界}
+隐藏串联边的独立高斯增量若只以方差和 $a+b$ 进入端口分布，EM/BIC只能选择一个表示，不能证明物理上没有中间设备。S4仍须补查潜变量语义、边条件分布、隐藏节点数、结构邻域、参数计数和停止准则。
+
+% END passive.tex
+
+
+% BEGIN data_quality.tex
+\chapter{从多个判断到可审查证据：标签融合、量化误差与现场核验}
+\label{ch:data_quality}
+
+这一章讨论一个实际问题：已有算法给出的相别、归属或支路判断，怎样变成能够检查、复算和安排现场工作的证据？S5 把多个有误差的标签源合并；S7 把量化误差传递到参数误差；S8 用电压相关性修订相别和馈线记录；S9 用状态估计残差定位可疑记录。S6 暂时只有出版记录，因此保留阅读接口，不补造论文算法。
+
+本章采用四种明确标记。\textbf{原文模型}表示已在来源中核实的定义和计算关系；\textbf{等价整理}表示改用统一符号、但保持数学含义的改写；\textbf{教学实现/本文推导}表示为使算法可以逐步执行而补充的求解细节或证明；\textbf{教学例子}表示本书自造且已核算的数据。后两类不代表论文作者的实验或代码。
+
+\section{S5：先学习每个标签源怎样犯错，再进行证据融合}
+\label{sec:dq_s5}
+
+\subsection{问题直觉与输入输出}
+
+\textbf{文献定位。}\citet{S5} 的 Ca-TI 处理电表所属变压器、相别或分支的离散标签。此次已取得由 MDPI 提供的全文，核查重点为第 3 节、式 (16)--(32) 与算法 1。它的主线是：滑窗标签、EM 误差模型、逐源责任度、可靠性折扣、冲突门控融合，最后输出类别和表级分数。
+
+如果三个方法都给出 A，相互一致是有用信息；但若它们使用同一段电压数据，这种一致也可能来自共同错误。Ca-TI 首先把“某个源习惯把 A 错判成 B”写成混淆矩阵，而不是直接多数投票。随后，它把源的犹豫和缺测转化为“尚不知道”的质量，再决定冲突证据应该被重新归一化还是留作未知。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+符号与维度 & 含义 \\
+\midrule
+$M,K,S,T$ & 电表数、候选标签数、标签源数、窗口数，$K\ge2$ \\
+$Y\in(\{1,\ldots,K\}\cup\{\bot\})^{M\times T\times S}$ & 每个方法对每个电表每个窗口的结果；$\bot$ 表示弃权 \\
+$w_{it}^{(s)}\in[0,1]$ & 标签对应的数据质量权重；弃权不参与似然 \\
+$\Pi^{(s)}\in[0,1]^{K\times K}$ & 行为真实标签、列为观测标签，各行和为 1 \\
+$\pi_i,\gamma_i,\gamma_i^{(s)}\in\R^K$ & 先验、联合责任度、逐源责任度，均为概率向量 \\
+$m_i\in\R^{K+1}$ & 对 $K$ 个单元素假设与全集 $\Theta$ 的证据质量 \\
+输出 & $\hat z_i$、$\operatorname{BetP}_i$、$\operatorname{conf}_i$，以及各源质量和冲突诊断 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+各标签源的内部 TI 算法是这一融合层的输入接口：要先统一类别编码、时间窗和弃权规则。如果源 1 的“1”表示 A 相、源 2 的“1”表示 B 相，统计融合无法自动补救这个语义错误。下文取一个电表在分析期间的真实标签 $Z_i$ 不变。
+
+\subsection{第一层：EM 学习源的混淆矩阵}
+
+\textbf{原文模型的等价整理。}令 $\mathcal O_i^{(s)}$ 为没有弃权的窗口集合，并写
+\begin{equation}
+ \Pi_{jk}^{(s)}=\Pr\{Y^{(s)}=k\mid Z=j\},\qquad
+ L_{ij}=\pi_{ij}\prod_{s=1}^S\prod_{t\in\mathcal O_i^{(s)}}
+       \bigl(\Pi_{j,y_{it}^{(s)}}^{(s)}\bigr)^{w_{it}^{(s)}}.
+ \label{eq:dq_s5_likelihood}
+\end{equation}
+式中幂权重构成加权似然：权重为 0 的窗口不提供证据，权重为 1 的窗口完整计入。统计解释还依赖给定真实类别之后各源及窗口的条件独立近似。对同一电表重复观察不能无条件当作独立新样本。
+
+E 步为
+\begin{equation}
+ \gamma_{ij}=\frac{L_{ij}}{\sum_{h=1}^K L_{ih}}.
+ \label{eq:dq_s5_e}
+\end{equation}
+它回答“若目前认为各方法按 $\Pi$ 犯错，这个电表属于 $j$ 的相对解释力是多少”。数值实现应在对数域累计，再使用 log-sum-exp 归一化，避免多个很小的概率相乘下溢。
+
+M 步为
+\begin{equation}
+ \Pi_{jk}^{(s)}\leftarrow
+ \frac{\displaystyle\sum_i\gamma_{ij}
+       \sum_{t\in\mathcal O_i^{(s)}}w_{it}^{(s)}\mathbf1\{y_{it}^{(s)}=k\}}
+      {\displaystyle\sum_i\gamma_{ij}
+       \sum_{t\in\mathcal O_i^{(s)}}w_{it}^{(s)}}.
+ \label{eq:dq_s5_m}
+\end{equation}
+\textbf{本文推导。}固定 $\gamma$ 后，源 $s$ 的第 $j$ 行需要最大化
+$\sum_k N_{jk}^{(s)}\log\Pi_{jk}^{(s)}$，其中分子就是软计数 $N_{jk}^{(s)}$。
+在 $\sum_k\Pi_{jk}^{(s)}=1$ 下使用拉格朗日乘子，有
+$N_{jk}^{(s)}/\Pi_{jk}^{(s)}=\lambda_j$，求和得 $\lambda_j=\sum_kN_{jk}^{(s)}$，于是得到式~\eqref{eq:dq_s5_m}。分母为零表示这一行没有有效信息，应保留初始化或报告未估计；这是必须写入实现的分支，不能执行 $0/0$。
+
+初始化可取对角元素 $\eta$、非对角元素 $(1-\eta)/(K-1)$，先验均匀。这个初始化赋予标签语义一个“多数方法倾向于正确”的方向；没有锚点时，潜变量模型可能存在标签置换及其他不可辨识性。EM 只保证在适当正则条件和精确更新下不降低所用似然，并不保证找到正确标签或全局最优参数。
+
+\begin{algorithm}[tbp]
+\caption{S5 的 EM 主循环：原算法顺序，数值保护为教学补充}
+\label{alg:dq_s5_em}
+\begin{algorithmic}[1]
+\Require $Y,w,K$，对角初始化 $\eta$，迭代上限 $J$，相对阈值 $\tau$
+\Ensure $\Pi^{(s)}$ 与每个电表的逐源责任度 $\gamma_i^{(s)}$
+\State 对齐各源类别编码；建立 $\mathcal O_i^{(s)}$；初始化 $\pi_i,\Pi^{(s)}$
+\State 计算初始加权对数似然 $\ell_{\rm old}=\sum_i\log\sum_jL_{ij}$
+\For{$k=1,\ldots,J$}
+  \State 用对数域式~\eqref{eq:dq_s5_e} 计算所有 $\gamma_{ij}$
+  \State 用式~\eqref{eq:dq_s5_m} 更新 $\Pi$；零软计数行保留并标记
+  \State 计算新似然 $\ell_{\rm new}$
+  \If{$|\ell_{\rm new}-\ell_{\rm old}|/\max(1,|\ell_{\rm old}|)<\tau$}
+    \State \textbf{break}
+  \EndIf
+  \State $\ell_{\rm old}\gets\ell_{\rm new}$
+\EndFor
+\State 固定最终 $\Pi$，只用源 $s$ 的窗口重新计算 $\gamma_i^{(s)}$，见式~\eqref{eq:dq_s5_single}
+\State 返回估计值、迭代次数、未估计行及停止原因
+\end{algorithmic}
+\end{algorithm}
+
+原文算法收敛后还有关键一步：\emph{重新计算每个源单独支持的责任度}，而不是把联合后验复制给每个源：
+\begin{equation}
+ \gamma_{ij}^{(s)}=
+ \frac{\pi_{ij}\prod_{t\in\mathcal O_i^{(s)}}
+ (\Pi_{j,y_{it}^{(s)}}^{(s)})^{w_{it}^{(s)}}}
+ {\sum_h\pi_{ih}\prod_{t\in\mathcal O_i^{(s)}}
+ (\Pi_{h,y_{it}^{(s)}}^{(s)})^{w_{it}^{(s)}}}.
+ \label{eq:dq_s5_single}
+\end{equation}
+否则，后续融合实际上会把已经合并过的一份证据重复使用 $S$ 次。
+
+\subsection{第二层：把不确定性和缺测放进未知质量}
+
+\textbf{原文模型。}定义熵集中度和有效窗口比例
+\begin{equation}
+ c_i^{(s)}=1-\frac{-\sum_j\gamma_{ij}^{(s)}\log\gamma_{ij}^{(s)}}{\log K},
+ \quad e_i^{(s)}=\frac1T\sum_{t\in\mathcal O_i^{(s)}}w_{it}^{(s)},
+ \quad r_i^{(s)}=\operatorname{clip}(e_i^{(s)}c_i^{(s)},0,1).
+ \label{eq:dq_s5_discount}
+\end{equation}
+令 $0\log0=0$。均匀责任度给出 $c=0$，集中于一个标签给出 $c=1$。证据分配为
+\begin{equation}
+ m_{ij}^{(s)}=r_i^{(s)}\gamma_{ij}^{(s)},\qquad
+ u_i^{(s)}=m_i^{(s)}(\Theta)=1-r_i^{(s)}.
+ \label{eq:dq_s5_bpa}
+\end{equation}
+这里 $\Theta$ 表示“确实在候选标签之中，但暂时不能区分”，不是额外的一种物理相别。各质量非负且总和为 1。全缺测电表的 $e=0$，于是所有质量都落在 $\Theta$。
+
+\subsection{第三层：冲突门控与最终决策}
+
+只允许单元素集合和 $\Theta$ 具有非零质量时，融合不必枚举 $2^K$ 个子集。\textbf{等价整理}为
+\begin{align}
+ U_i&=\prod_su_i^{(s)},&
+ a_{ij}&=\prod_s(m_{ij}^{(s)}+u_i^{(s)})-U_i,\\
+ C_i&=1-U_i-\sum_ja_{ij}.&&
+ \label{eq:dq_s5_conjunctive}
+\end{align}
+其中 $a_{ij}$ 是相交后只剩标签 $j$ 的质量，$U_i$ 是所有源都未知的质量，$C_i$ 是相互矛盾产生的空交集质量。对两个源，冲突量恰为 $\sum_{j\ne k}m_{ij}^{(1)}m_{ik}^{(2)}$。
+
+Dempster 方案把非冲突部分归一化，Yager 方案把冲突转入未知：
+\begin{equation}
+ m_i^D=\frac{(a_{i1},\ldots,a_{iK},U_i)}{1-C_i},\qquad
+ m_i^Y=(a_{i1},\ldots,a_{iK},U_i+C_i).
+ \label{eq:dq_s5_dy}
+\end{equation}
+设 $g_i=\{1+\exp[-a(C_i-C_0)]\}^{-1}$，则原文门控质量为
+\begin{equation}
+ m_i=(1-g_i)m_i^D+g_im_i^Y.
+ \label{eq:dq_s5_gate}
+\end{equation}
+$a$ 控制切换陡峭程度，$C_0$ 控制冲突阈值。它们通过最小化融合结果与各输入质量的平均 Jousselme 距离选择。为明确这一距离的可计算含义，对集合序列
+$\mathcal A=(\{1\},\ldots,\{K\},\Theta)$ 定义
+\begin{equation}
+ D_{uv}=\frac{|\mathcal A_u\cap\mathcal A_v|}{|\mathcal A_u\cup\mathcal A_v|},\quad
+ d_J(m,n)=\sqrt{\tfrac12(m-n)^TD(m-n)},\quad
+ (a,C_0)\in\arg\min\frac1{MS}\sum_{i,s}d_J(m_i,m_i^{(s)}).
+ \label{eq:dq_s5_jousselme}
+\end{equation}
+这是无真值的一致性准则，不是对正确率的监督校准。原文给出连续参数目标；下例的有限网格是为便于复算而选择的教学求解器。
+
+最终输出按原式 (31)--(32) 整理为
+\begin{equation}
+ \operatorname{BetP}_{ij}=m_{ij}+\frac{m_i(\Theta)}K,\quad
+ \hat z_i\in\arg\max_j\operatorname{BetP}_{ij},\quad
+ \operatorname{conf}_i=1-\{\lambda m_i(\Theta)+(1-\lambda)C_i\}.
+ \label{eq:dq_s5_output}
+\end{equation}
+并列最大值需要显式输出“并列/待核验”，不能依靠数组的第一个元素制造确定性。
+
+\begin{algorithm}[tbp]
+\caption{S5 的证据融合：原计算链与可执行边界处理}
+\begin{algorithmic}[1]
+\Require 逐源 $\gamma^{(s)}$、有效窗口权重、$\lambda$、待搜索的门控参数域
+\For{每个电表 $i$ 与源 $s$}
+ \State 用式~\eqref{eq:dq_s5_discount}--\eqref{eq:dq_s5_bpa} 计算 $m_i^{(s)}$
+\EndFor
+\State 对每个电表计算 $U_i,a_{ij},C_i$
+\State 通过式~\eqref{eq:dq_s5_jousselme} 选择门控参数；保存目标值和求解终止状态
+\For{每个电表 $i$}
+ \If{$1-C_i$ 足够大}
+   \State 计算 $m_i^D,m_i^Y,g_i$，再融合为 $m_i$
+ \Else
+   \State 教学保护：返回 $m_i^Y$ 并标记近完全冲突，避免未归一化的结果
+ \EndIf
+ \State 计算 BetP、并列情况、置信度；按分数生成待核验顺序
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{一份可以手算到最终分数的教学例子}
+
+\begin{example}[两源、三电表、一次 EM 更新]
+取 $K=2,S=2,T=1$，全部 $w=1$，标签矩阵和初始化为
+\[
+ Y=\begin{pmatrix}1&1\\2&2\\1&2\end{pmatrix},\qquad
+ \Pi^{(1)}=\Pi^{(2)}=\begin{pmatrix}.8&.2\\.2&.8\end{pmatrix},\qquad
+ \pi_i=(.5,.5).
+\]
+第一行的两个类别似然分别为 $.5(.8)^2=.32$ 与 $.5(.2)^2=.02$。一次 E 步得到类别 1 的责任度
+$\gamma_{11}=16/17,\gamma_{21}=1/17,\gamma_{31}=1/2$。
+例如源 1、真实类别 1、输出 1 的软计数为 $16/17+1/2=49/34$，这一行总计数为 $3/2$。因此一次 M 步给出
+\[
+ \Pi^{(1)}=\frac1{51}\begin{pmatrix}49&2\\19&32\end{pmatrix},\qquad
+ \Pi^{(2)}=\frac1{51}\begin{pmatrix}32&19\\2&49\end{pmatrix}.
+\]
+这是\emph{一次迭代的演示状态，未声称 EM 已收敛}。固定它继续演示下游计算。电表 1 的两个逐源责任度为
+$(49/68,19/68)$ 与 $(16/17,1/17)$；折扣后的质量依次为
+\[
+ m_1^{(1)}=(.104739,.040613,.854648),\qquad
+ m_1^{(2)}=(.637405,.039838,.322757).
+\]
+于是 $U_1=.275844$，$a_1=(.645323,.048773)$，$C_1=.030060$。
+注意第一个源虽然更支持类别 1，却仍有 $.854648$ 的未知质量；这是熵折扣带来的结果。
+
+取教学搜索网格 $\{(5,0),(5,.5),(10,0),(10,.5)\}$。在三个电表、两个源上计算式~\eqref{eq:dq_s5_jousselme} 得
+\[
+ \begin{array}{c|rrrr}
+ (a,C_0)&(5,0)&(5,.5)&(10,0)&(10,.5)\\\hline
+ \text{平均距离}&.155937&.160262&.155596&.161018
+ \end{array}
+\]
+因此在\emph{这个有限网格内}选 $(10,0)$。对电表 1，$g_1=.574588$，
+\[
+ m_1^D=(.665323,.050285,.284392),\quad
+ m_1^Y=(.645323,.048773,.305903),
+\]
+\[
+ m_1=(.653831,.049416,.296752),\quad
+ \operatorname{BetP}_1=(.802207,.197793).
+\]
+当 $\lambda=.5$ 时，$\operatorname{conf}_1=.836594$。电表 2 的结果关于两类对称；电表 3 的 BetP 为 $(.5,.5)$，分数为 $.622938$，应保留并列。全部缺测时未知质量为 1、冲突为 0，式~\eqref{eq:dq_s5_output} 给出的分数是 $1-\lambda$，不是 0。这说明该分数的数值端点不能直接解释成真实正确率。
+\end{example}
+
+\subsection{停止、成本、保证与现场范围}
+
+若按稀疏观测表累计，每次 EM 的主要成本约为 $O(MSTK)$，存储标签为 $O(MST)$、混淆矩阵为 $O(SK^2)$；已经累计好各类加权出现次数时，可减少重复遍历窗口。融合利用式~\eqref{eq:dq_s5_conjunctive} 的结构约需 $O(MSK)$；门控搜索还要乘上目标评估次数。停止应同时报告最大迭代上限和似然变化；超出上限属于未收敛，不应被隐藏成成功。
+
+\textbf{原文证据范围与审查。}全文包含仿真和实际台区案例。其表级分数适合安排核验，但没有自动转成“隐藏零注入树在 $95\%$ 置信水平下正确”的定理。共享特征、重叠窗口及相关源会影响独立模型；候选标签集必须包含真实归属。原文缺失权重的文字与打印表达式存在不一致，教材将 $w\in[0,1]$ 作为输入契约；若以窗口缺失点数 $d$ 实现，则 $(W-d)/W$ 是本书建议的有效比例约定，须与作者代码核对。原文对分数的文字称为乘积，但显示式 (32) 为加权惩罚，本节遵循显示式。极端冲突的回退及并列处理是本书的实现保护。
+
+\section{S6：共形预测论文的已知记录与尚未闭合的算法接口}
+\label{sec:dq_s6}
+
+\textbf{来源状态。}\citet{S6} 的作者、题名、会议和页码已由 Crossref 的出版记录核实。此次再次检查 IEEE 官方页面并定向搜索作者机构的合法公开全文，仍未取得方法正文。因此，无法据题名确认它使用哪些量测、ResNet 层数、输入张量、训练损失、协同训练回合或共形分数。这里不把通用共形步骤冠以 S6 的算法名称。
+
+\subsection{为什么题名不足以复现一个算法}
+
+“残差网络+共形预测”仍留下至少六个会改变结果的选择：样本单位是独立拓扑工况还是同一工况的滑窗；类别是全网开关配置还是单表相别；训练集和校准集怎样分开；分数是 $1-\hat p_y$、累积概率还是其他函数；协同训练新增标签是否污染校准集；输出是单点、集合还是弃权。每一个接口都需要正文证据。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+待补正文对象 & 复现时必须记录的内容 \\
+\midrule
+输入输出与维度 & $X\in\R^{N\times d_1\times\cdots}$ 的轴语义、量测布置、拓扑标签空间 \\
+模型与目标 & 网络结构、损失、优化器、训练停止标准、协同训练的数据流 \\
+不确定性算法 & 分数、校准分位数、随机化及并列规则、类别条件或边际保证 \\
+验证设计 & 按时间/场景/拓扑拆分方式、未知拓扑、覆盖率和集合大小 \\
+成本与停止 & 训练预算、每轮增样/终止条件、单样本推理成本 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{独立教学接口：一组分数怎样变成集合}
+
+以下只解释通用\emph{分割共形}计算接口，与 S6 的实现无对应承诺。设一个已固定的分类器有 $K$ 类，给定独立校准分数 $a_1,\ldots,a_n$，使用
+\begin{equation}
+ k=\lceil(n+1)(1-\alpha)\rceil,\quad
+ q=\begin{cases}a_{(k)},&k\le n,\\+\infty,&k=n+1,\end{cases}
+ \qquad \mathcal C(x)=\{y:a(x,y)\le q\}.
+ \label{eq:dq_generic_cp}
+\end{equation}
+在新样本与校准样本的分数可交换、拟合过程没有用校准标签反复调参等条件下，秩对称性给出边际覆盖率至少 $1-\alpha$。这是跨样本的频率保证，不能自动读作一个具体电表属于某类的后验概率。
+
+\begin{example}[非 S6 实验的九个校准分数]
+取 $n=9,\alpha=.2$，已排序分数为
+\[.05,.10,.12,.20,.25,.30,.40,.55,.80.\]
+由于 $k=\lceil10\times.8\rceil=8$，阈值为 $.55$。
+若三类预测概率是 $(.60,.30,.10)$ 且\emph{自行选择}分数 $1-\hat p_y$，分数为 $(.40,.70,.90)$，集合只有第一类；若概率是 $(.48,.46,.06)$，分数为 $(.52,.54,.94)$，集合含前两类。一次计算只需读取分位数并比较 $K$ 个分数，不能由此推出 S6 正是这样计算。
+\end{example}
+
+\textbf{审查结论。}S6 当前仍属于出版记录级解释，算法完整性没有通过。继续详细阅读的明确停止条件是取得合法正文，而不是用一种常见 ResNet 和一种常见共形方法把空白补满。与 Topo 的可能连接是校准候选集合或弃权策略；具体连接必须先确认样本交换性和标签空间，不能提前声称已在 S6 中实现。
+
+\section{S7：从量化读数到稀疏参数误差，再到边支持}
+\label{sec:dq_s7}
+
+\subsection{直觉、输入输出与全量测模型}
+
+\textbf{文献定位。}\citet{S7} 的 v1 全文给出了量化观测下的约束最小二乘误差界。本文检查第 II 节模型、第 III 节定理及实验。其分析核心是估计稀疏边权；下文的投影梯度法是为解读其估计器而补充的\textbf{教学实现，不是已核实的作者代码}。
+
+把真实树嵌入已知节点集上的完全图：存在的边取正权重，不存在的边取零。这样“找树”暂时变成“估计一个稀疏向量”。有 $n$ 个非根节点时，候选边数为 $d=n(n+1)/2$；每个快照提供 $n$ 条方程，$s$ 个快照共 $m=sn$ 条。
+
+令根电压已参考化，$u_t\in\R^n$ 是电压变化，$p_t\in\R^n$ 是有功注入。固定已知功率因数 $q_t=\kappa p_t$ 时，线性模型可写为
+\begin{equation}
+ u_t=Zp_t,\qquad Z=C^{-1}\diag(r+\kappa x)C^{-T},\qquad
+ w_e=(r_e+\kappa x_e)^{-1}.
+ \label{eq:dq_s7_network}
+\end{equation}
+这是正边权树模型，要求所用方向及 $r+\kappa x$ 的正性一致。对候选边的约化关联向量 $b_e\in\R^n$，有
+\begin{equation}
+ p_t=\sum_{e=1}^d w_eb_eb_e^Tu_t=A_tw,\qquad
+ A_t[:,e]=b_e(b_e^Tu_t),\qquad A\in\R^{m\times d}.
+ \label{eq:dq_s7_design}
+\end{equation}
+这一步把电压读数转换成设计矩阵；未知量是边权，不是电压本身。堆叠后的模拟响应是 $Aw$。
+
+\subsection{量化模型和 oracle 半径}
+
+\textbf{原文模型的统一记号。}量化间隔为 $\Delta>0$，独立抖动
+$\tau_i\sim\mathcal U[-\Delta/2,\Delta/2]$，观测为
+\begin{equation}
+ y_i=\Delta\left(\left\lfloor\frac{a_i^Tw^\star+\tau_i}{\Delta}\right\rfloor+\frac12\right),
+ \qquad
+ \hat w\in\arg\min_{\|w\|_1\le B}\frac{\|Aw-y\|_2^2}{2m},
+ \quad B=\|w^\star\|_1.
+ \label{eq:dq_s7_estimator}
+\end{equation}
+这个 $B$ 是知道真实向量才知道的\emph{oracle 半径}。它不是“求一个 $\ell_1$ 范数”就能从数据中无误地得到的参数。给定替代半径可以运行算法，但原定理对特定半径的结论不能直接沿用。对称 $\ell_1$ 球也允许负数及有环支持；求解器本身没有强制正边权树。
+
+\subsection{教学求解器：投影梯度法和 \texorpdfstring{$\ell_1$}{l1} 球投影}
+
+\textbf{本文推导。}设 $F(w)=\|Aw-y\|^2/(2m)$，则
+\begin{equation}
+ \nabla F(w)=A^T(Aw-y)/m,\qquad
+ L=\|A\|_2^2/m,\qquad
+ w^{k+1}=\operatorname{Proj}_{\|\cdot\|_1\le B}
+                 \{w^k-L^{-1}\nabla F(w^k)\}.
+ \label{eq:dq_s7_pg}
+\end{equation}
+若 $A=0$，梯度恒为零且无法识别边权；不要执行 $L^{-1}$。一般情况下可用精确谱范数、其上界或回溯确定安全步长。
+
+为推导投影，最小化 $\frac12\|w-z\|^2$，约束 $\sum_j|w_j|\le B$。若 $\|z\|_1\le B$，解就是 $z$；否则 KKT 条件给出
+\begin{equation}
+ w_j=\operatorname{sign}(z_j)(|z_j|-\theta)_+,
+ \qquad \sum_j(|z_j|-\theta)_+=B.
+ \label{eq:dq_s7_projection}
+\end{equation}
+将 $|z_j|$ 降序为 $v_1\ge\cdots\ge v_d$，寻找
+$\rho=\max\{k:v_k>(\sum_{j=1}^kv_j-B)/k\}$，再取
+$\theta=(\sum_{j=1}^{\rho}v_j-B)/\rho$。这不是简单地把每个坐标截到 $[-B,B]$；后者投影的是立方体，约束完全不同。
+
+\begin{algorithm}[tbp]
+\caption{S7 约束估计器的教学实现：投影梯度}
+\label{alg:dq_s7_pg}
+\begin{algorithmic}[1]
+\Require $A,y,B$、容差 $\varepsilon_{\rm opt}$、迭代上限 $J$、$L\ge\|A\|_2^2/m>0$
+\State $w^0\gets0$
+\For{$k=0,\ldots,J-1$}
+ \State $z\gets w^k-A^T(Aw^k-y)/(mL)$
+ \If{$\|z\|_1\le B$}
+   \State $w^{k+1}\gets z$
+ \Else
+   \State 排序 $|z|$，计算 $\rho,\theta$，按式~\eqref{eq:dq_s7_projection} 软阈值投影
+ \EndIf
+ \State $g_k\gets L\|w^{k+1}-w^k\|_2$
+ \If{$g_k\le\varepsilon_{\rm opt}$}
+   \State \textbf{break}
+ \EndIf
+\EndFor
+\State 返回 $w$、$F(w)$、$\|w\|_1$、$g_k$、停止原因；需要拓扑时另行设置边阈值
+\end{algorithmic}
+\end{algorithm}
+
+投影非扩张性与二次目标的光滑性使该方法在闭凸球上趋向一个全局最小值；常规 $O(1/k)$ 目标差界需要有限初始距离。这个优化结论与统计估计准确性是两回事。每轮稠密矩阵乘法约 $O(md)$，排序约 $O(d\log d)$；不显式形成 $A$ 时可以用关联向量计算矩阵乘法。
+
+\subsection{两节点、三候选边：从量化到最优解的完整例子}
+
+\begin{example}[有量化偏移的稀疏回归]
+取 $n=2$，候选边为 $(0,1),(0,2),(1,2)$，真实权重
+$w^\star=(1,0,2)^T$，故 $B=3$。两次电压向量为 $(1,2)^T,(2,1)^T$，得到
+\[
+ A=\begin{pmatrix}1&0&-1\\0&2&1\\2&0&1\\0&1&-1\end{pmatrix},\quad
+ Aw^\star=(-1,2,4,-2)^T.
+\]
+为演示量化计算，取 $\Delta=1$，指定本次抖动值均为 $.1$，于是
+$y=(-.5,2.5,4.5,-1.5)^T$。这些小整数是无量纲教学数据，不是现场电压或论文实验。
+\[
+ A^TA=\begin{pmatrix}5&0&1\\0&5&1\\1&1&4\end{pmatrix},\quad
+ A^Ty=(8.5,3.5,9)^T,\quad \lambda_{\max}(A^TA)=6.
+\]
+因此 $L=6/4=1.5$。从零出发，梯度步得到
+$z=(17/12,7/12,3/2)$，其 $\ell_1$ 范数为 $3.5$。三个坐标都需缩小 $1/6$，第一轮投影为
+\[
+ w^1=(5/4,5/12,4/3),\quad
+ Aw^1-y=(5/12,-1/3,-2/3,7/12)^T.
+\]
+目标从 $F(0)=3.625$ 降到 $F(w^1)=.133681$。
+
+无约束最小二乘为 $(4/3,1/3,11/6)$，不满足半径约束。约束最优解为
+\[
+ \hat w=(7/6,1/6,5/3),\quad A\hat w-y=(0,-.5,-.5,0)^T,
+ \quad F(\hat w)=.0625.
+\]
+验证最优性：$\|\hat w\|_1=3$ 且各项为正，
+$A^T(A\hat w-y)=(-1,-1,-1)^T$，故
+$\nabla F(\hat w)+\tfrac14(1,1,1)^T=0$，满足 KKT 条件。参数误差为
+$\|\hat w-w^\star\|_2=\sqrt{1/6}=.408248$。
+若额外选择阈值 $.5$，保留第 1、3 条边，恰好恢复本例的树；优化器本身并没有把第 2 条假边压成严格零。
+\end{example}
+
+\subsection{怎样从误差界推到边支持，哪些条件还要检查}
+
+原文定理给出的标度可用本节符号写成
+\begin{equation}
+ \|\hat w-w^\star\|_2\le
+ C\Delta\sqrt{\frac{2\log((n+1)/2)+3/2}{s}},
+ \qquad s\gtrsim\log n,
+ \label{eq:dq_s7_rate}
+\end{equation}
+并陈述 $0.99$ 的概率水平。常数与设计条件必须一起阅读，不能把数值拟合的 $C$ 当作所有现场数据共享的已知常数。
+
+\begin{proposition}[本文推导：边权误差转换为支持恢复]
+若 $\|\hat w-w^\star\|_2\le\varepsilon$，且最小真实正边权
+$w_{\min}>2\varepsilon$，则任取
+$\varepsilon<t<w_{\min}-\varepsilon$，集合
+$\{e:\hat w_e>t\}$ 恰为真实支持。
+\end{proposition}
+\begin{proof}
+逐坐标误差不超过 $\varepsilon$。零坐标的估计至多为 $\varepsilon$，真实坐标的估计至少为 $w_{\min}-\varepsilon$，阈值把两者分开。
+\end{proof}
+
+\textbf{原文保证与适用范围审查。}v1 有两处需在引用定理前补核。其一，原 Lemma 1 将所有树权重集合包含于真值半径的 $\ell_1$ 球；若没有额外归一化，$2w^\star$ 仍是树权重，却不在该球中。其二，“任意独立同分布次高斯行”的表述还需要非退化设计条件：全零行也是次高斯，却不能识别参数。实际同一电压快照产生的多行共享变量，且有不同稀疏模式，需要核实定理的独立性/协方差假设如何匹配。上述问题已在 HTML 和 PDF 文本交叉检查，不是由公式换行推断出的错误，也不等于否认所有经过补充条件的相关界。
+
+原实验以高斯电压围绕基准工况取样，并通过线性模型生成响应；约为 13、10 的常数来自实验比值。现场电表还有电压量化、不同步、相别错误和时序相关性，不是仅一个有功响应的抖动量化。对 Topo 的末端量测、隐藏零注入节点，消去内部节点后通常得到稠密 Kron 响应，式~\eqref{eq:dq_s7_design} 的“所有物理节点已知且可量测”接口不再成立。可迁移的是误差传播与最小边权分离条件，而不是直接套用全节点稀疏边支持定理。
+
+\section{S8：用参考电压、相关阈值与邻近馈线搜索修订档案}
+\label{sec:dq_s8}
+
+\subsection{直觉、量测和输出}
+
+\textbf{文献定位。}\citet{S8} 的 ORBi 六页作者稿已读，重点为第 2--4 节。输入是已有电表--馈线归属、电压时间序列及线路/地理信息；输出是电表--相别--馈线建议以及无法分类的点。它依赖三相参考，不是仅凭无标号末端数据重建内部树的算法。
+
+同一馈线同一相的电压变化往往共享较强成分。参考相的曲线提供三个可比较方向；距离更远、沿途用户更多时，局部压降会降低相似性，所以用随线路信息变化的接受阈值。相关最高只是候选，必须先通过阈值，才能赋值。
+
+令 $V\in\R^{T\times M}$ 是对齐后的电表电压；馈线 $f$ 的参考为
+$R_f\in\R^{T\times3}$，参考相具有已知语义；$L_{if}$ 为到参考的路径长度，$N_{if}$ 为沿途用户数。有效样本掩码必须随着每一次相关计算保存。
+
+\subsection{参考选取、预处理和匹配规则}
+
+\textbf{原文流程的等价整理。}先使用可获得的变压器三相电压；否则在馈线三相智能电表中按累计相关性选参考。没有合适三相参考时，该馈线不能使用这一路径。异常值转为缺失；长时间缺失记录拒绝使用，较短缺口按论文所述区域信息填补。具体缺口长度、数据频率与完整率阈值应作为数据配置保存，不在教材中替作者固定成通用数值。
+
+对有效共同样本 $\mathcal I$，Pearson 相关为
+\begin{equation}
+ \rho(v,r)=\frac{\sum_{t\in\mathcal I}(v_t-\bar v)(r_t-\bar r)}
+ {\sqrt{\sum_{t\in\mathcal I}(v_t-\bar v)^2}
+  \sqrt{\sum_{t\in\mathcal I}(r_t-\bar r)^2}}.
+ \label{eq:dq_s8_corr}
+\end{equation}
+零方差或有效点不足时返回不可计算，不应输出 0 来伪装成一条正常相关值。先在原归属馈线比较三相，以最大相关相作为候选，接受阈值为
+\begin{equation}
+ C_{if}=\max\{C_{\min},C_{\max}-\alpha L_{if}-\beta N_{if}\}.
+ \label{eq:dq_s8_threshold}
+\end{equation}
+$\alpha$ 的单位是长度单位的倒数，$\beta$ 的单位是每用户；如果 $L$ 从米换成千米而忘了换 $\alpha$，阈值就完全不同。原文使用三个相簇加一个离群组；对离群点再与邻近馈线参考比较，得到可能的档案归属修订。
+
+\begin{algorithm}[tbp]
+\caption{S8 的实际匹配链：原流程整理，异常出口显式化}
+\label{alg:dq_s8}
+\begin{algorithmic}[1]
+\Require 已有归属 $f(i)$、电压 $V$、三相参考候选、$L,N$、阈值参数及邻近馈线表
+\State 对齐时标；标记异常和长缺口；执行已记录的短缺口处理规则
+\For{每条馈线 $f$}
+ \State 优先选择变压器三相参考，否则选累计相关性最大的有效三相电表
+ \State 没有有效参考则标记该馈线不可用
+\EndFor
+\For{每个电表 $i$}
+ \State 在原馈线 $f(i)$ 计算三个有效相关系数和 $C_{i,f(i)}$
+ \If{唯一最高相关相通过阈值}
+   \State 记录原馈线与候选相、相关值、阈值和有效点数
+ \Else
+   \State 将该点列为离群，枚举可用的邻近馈线和三个相参考
+   \State 保留通过各自 $C_{if}$ 的候选，按相关值排序
+   \State 唯一明确候选生成核验建议；并列、无候选或缺参考则保持未决
+ \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{包含参考选择和跨馈线阈值的教学例子}
+
+\begin{example}[最高相关不一定被原馈线接受]
+为演示“累计相关”选参考，假设三个已对齐相别的候选三相电表，成对三相相关和为
+\[
+ S=\begin{pmatrix}0&2.7&2.1\\2.7&0&2.8\\2.1&2.8&0\end{pmatrix}.
+\]
+行和为 $(4.8,5.5,4.9)$，选择第二个参考。这是把原文累计相关准则具体化的\emph{教学约定}；原文未充分明确所有相排列与缺失掩码细节，复现实验需核实这些接口。
+
+取四时刻的三个零均值单位向量
+\[
+ a=\tfrac12(-1,-1,1,1)^T,\quad
+ b=\tfrac12(-1,1,-1,1)^T,\quad
+ c=\tfrac12(-1,1,1,-1)^T.
+\]
+它们两两正交。原馈线三相参考为 $230\boldsymbol1+2a$、
+$230\boldsymbol1+2b$、$230\boldsymbol1+2c$；目标电表为
+\[
+ v=230\boldsymbol1+2(.8a+.6b)=(228.6,229.8,230.2,231.4)^T.
+\]
+由于 $.8^2+.6^2=1$，三个相关系数正好是 $(.8,.6,0)$。
+取 $C_{\max}=.98,C_{\min}=.60,\alpha=.0005\,\mathrm{m}^{-1},\beta=.02$。
+原馈线距离 $200\,\mathrm m$、沿途 3 个用户时，阈值为
+$\max(.60,.98-.10-.06)=.82$；最高 $.8$ 仍不通过。
+
+邻近馈线某相参考恰有单位方向 $.8a+.6b$，于是相关为 1。若该候选路径为 $100\,\mathrm m$、沿途 1 户，其阈值为
+$\max(.60,.98-.05-.02)=.91$，通过并形成跨馈线核验建议。
+这四个时刻仅演示算式；一个实际归属变更不能由四个点的相关 1 单独确认。
+\end{example}
+
+\subsection{停止条件、成本和审查}
+
+该方法是一次有限遍历，停止于全部电表被分类或标为未决。每条曲线与三个参考计算相关约为 $O(T)$，初次匹配约 $O(MT)$；若每个离群点检查 $F_{\rm near}$ 条邻近馈线，增加 $O(M_{\rm out}F_{\rm near}T)$。参考候选两两比较的朴素实现约为 $O(R^2T)$，可以缓存充分统计量。
+
+\textbf{现场范围。}原文 RESA 案例的智能电表覆盖不足 $20\%$，并明确缺少可靠真值来进行完整量化验证。因此，其现场价值是档案筛查和案例解释，不能写成已证明的相别恢复率。\textbf{本文审查。}共同填补值、变压器整体电压变化以及天气驱动的共同负荷会抬高相关；参考自身相别错误会传播。相同相关值必须保持歧义；地理邻近不等于电气相连。对 Topo，经过现场确认的相别/归属可作为约束输入，未经确认的相关结果宜保留为候选及证据分数，不能替代内部树的唯一性证明。
+
+\section{S9：把状态估计残差变成定位线索，再进行人工核验}
+\label{sec:dq_s9}
+
+\subsection{问题、状态与残差}
+
+\textbf{文献定位。}\citet{S9} 的 ORBi 五页全文使用状态估计残差的空间模式检查拓扑记录，已核查第 2 节式 (1)--(2) 和第 3 节现场案例。归一化残差按量测标准差计算，阈值为 3；相别修正、数据问题和馈线重分配均通过具体核验场景讨论。
+
+现有拓扑 $\mathcal T$ 决定量测模型 $h_{\mathcal T}(x)$。量测向量
+$z\in\R^m$ 可含电压、功率等，状态 $x\in\R^q$ 含选定参考后的电压幅值与相角。误差协方差 $\Sigma\in\R^{m\times m}$ 要与不同量测的单位一致。若模型正确且数据正常，同一状态应能大致解释所有量测；若一组地理上聚集的表持续不能被解释，就值得追查其共同档案或设备。
+
+\subsection{WLS 的可执行教学整理}
+
+原文用状态估计器产生 $\hat x$，下述 Gauss--Newton 细节是\textbf{本文提供的标准教学实现}，不声称作者逐条采用。目标和线性化为
+\begin{equation}
+ \hat x\in\arg\min_xJ(x),\qquad
+ J(x)=(z-h_{\mathcal T}(x))^T\Sigma^{-1}(z-h_{\mathcal T}(x)),
+ \quad h(x+\delta)\approx h(x)+H\delta.
+ \label{eq:dq_s9_wls}
+\end{equation}
+令 $r=z-h(x)$，求解加权线性最小二乘
+\begin{equation}
+ \min_\delta\|\Sigma^{-1/2}(r-H\delta)\|^2,
+ \qquad H^T\Sigma^{-1}H\delta=H^T\Sigma^{-1}r.
+ \label{eq:dq_s9_gn}
+\end{equation}
+显示正规方程有利于理解，但实现宜使用 QR 或合适稀疏分解，避免显式求逆及病态条件数平方。秩不足表示状态不可观，不应默默用任意解继续判断拓扑。加入参考相角也是消除规范自由度的必要步骤。
+
+最终按原文定义计算
+\begin{equation}
+ r_i=z_i-h_i(\hat x),\qquad \rho_i=r_i/\sigma_i,\qquad
+ \mathcal B=\{i:|\rho_i|>3\}.
+ \label{eq:dq_s9_normalized}
+\end{equation}
+这里的 3 是诊断阈值；超过它意味着某个数据--模型组合难以协调，不能单独确定是哪一条连接错误。
+
+\begin{algorithm}[tbp]
+\caption{S9 的残差诊断链：现场流程整理，WLS 求解为教学实现}
+\label{alg:dq_s9}
+\begin{algorithmic}[1]
+\Require 现有网络记录 $\mathcal T$、同一时刻量测 $z$、误差尺度、地理映射
+\State 固定状态参考；检查单位、时标、可观性；初始化 $x$
+\For{$k=1,\ldots,J$}
+ \State 计算 $h(x),H,r$，按式~\eqref{eq:dq_s9_gn} 求解 $\delta$
+ \State 回溯选择使 $J$ 下降的步长 $\eta$，令 $x\gets x+\eta\delta$
+ \State 若步长/目标变化满足容差则停止；失败时返回求解失败标签
+\EndFor
+\State 计算 $\rho$，绘制其幅值、符号和地理/馈线位置
+\State 区分孤立表、同相局部簇、整条馈线模式，生成有限的解释候选
+\State 检查相别记录、采集质量和馈线归属；与运维记录/现场信息交叉核验
+\State 对有依据的候选记录重跑相同量测集，保存前后残差和修改依据
+\State 教学补充：使用未参与选择的时刻复核；未确认候选维持待核验状态
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{一组残差怎样指向共同偏移}
+
+\begin{example}[三只电表与一项相别偏移假设]
+使用最简单的单状态模型 $h(x)=(x,x,x)^T$，三只表的标准差均为 $.1\,\mathrm V$，量测为
+$z=(230,230.1,231)^T\,\mathrm V$。WLS 解就是均值
+$\hat x=230.366667$。因此
+\[
+ r=(-.366667,-.266667,.633333)^T,\quad
+ \rho=(-3.666667,-2.666667,6.333333)^T,
+ \quad J=60.666667.
+\]
+第一和第三只表都超过阈值。第三只表是最可疑点，但第一只表也被共同状态的偏移拖出了阈值，因此不能把所有超阈值表都独立判坏。
+
+假设档案核验给出一个\emph{事先有物理根据}的替代模型
+$h'(x)=(x,x,x+.9)^T$。调整后的数据是
+$(230,230.1,230.1)$，新的状态为 $230.066667$，从而
+\[
+ r'=(-.066667,.033333,.033333)^T,\quad
+ \rho'=(-.666667,.333333,.333333)^T,\quad J'=.666667.
+\]
+同一量测集上的残差显著下降，使这个偏移假设更值得核验。这里的 $.9$ 不能是在看过残差之后任意拟合出来、又被当作独立证据。
+
+若直接删除第三只表，前两只的拟合目标降为 $.5$，甚至小于 $.666667$；这不能说明“删除表”比“修正模型”更真实，因为量测数量已改变。另取未参与选择的时刻
+$z_{\rm hold}=(230.2,230.3,231.2)$，两模型的目标仍分别为 $60.666667$ 与 $.666667$，可以作为进一步支持，但仍需排除固定传感偏差等竞争解释。
+\end{example}
+
+\subsection{残差的统计含义与方法边界}
+
+\textbf{本文推导。}在线性化且正确模型下，白化雅可比为
+$\bar H=\Sigma^{-1/2}H$，其列空间投影为 $P_{\bar H}$。白化残差近似为
+\begin{equation}
+ e=\Sigma^{-1/2}r\approx(I-P_{\bar H})\epsilon,
+ \qquad \operatorname{Cov}(e)\approx I-P_{\bar H}.
+ \label{eq:dq_s9_leverage}
+\end{equation}
+即使输入白噪声方差是 1，第 $i$ 个拟合残差的方差也是 $1-h_{ii}$，而非一律为 1。教学例子的投影为 $\boldsymbol1\boldsymbol1^T/3$，所以每个方差为 $2/3$。若要依据残差进行标准统计检验，需要考虑杠杆值、相关性和多重比较；本书不会把原文的 $r_i/\sigma_i$ 偷换成另一种已做杠杆修正的统计量。
+
+同理，若错误拓扑造成的一阶量测偏移 $d$ 落在 $H$ 的列空间内，存在状态变化 $\delta$ 使 $d=H\delta$，那么 $I-P_{\bar H}$ 会把它消掉。小残差只能说明当前量测能被解释，不能证明网络记录唯一正确。
+
+每次稠密 Gauss--Newton 正规方程的朴素成本为 $O(mq^2+q^3)$，实际网络应利用稀疏性；候选网络数会相应放大重估成本。停止至少区分收敛、不可观、数值失败与超迭代上限。原文现场证据来自 RESA 网络的具体工况与人工纠错案例，时序自动诊断是后续方向。对 Topo，WLS 更适合对候选网络作同量测条件下的排查与核验排序；终端等效响应相同的隐藏树可能得到相同残差，这个工具不能替代候选完备性与可辨识性论证。
+
+
+% END data_quality.tex
+
+
+% BEGIN probing.tex
+\chapter{主动探测算法：从可控输入到树结构和端口模型}
+\label{ch:probing}
+
+\section{本章路线与共同实验模型}
+
+本章从一个基本问题开始：如果可以主动改变电网的某个输入，应该记录什么量，再经过哪些计算才能得到拓扑？答案取决于实验的时间尺度。S12、S13、P1把逆变器功率设定值作为输入，把达到新稳态后的电压幅值差作为输出；P2、P4利用特征电流或特征功率形成设备接收记录；P3利用MHz信号的传播和反射；P5利用编码电压恢复入口电流的动态响应。后两类实验不服从同一个静态电阻矩阵模型。
+
+为便于辨认归属，本章使用四种表述。\textbf{原文算法}指已经在相应主文中核查的流程；\textbf{等价代数整理}指在明确假设下重新推导的同一数学问题；\textbf{教材例子}由本章自行构造，不是原文实验数据；\textbf{实现补充}指为使流程可执行而补充的停止检查、数据结构或后处理约定，不冒称作者代码。
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lXXX@{}}
+\toprule
+文献 & 直接输入数据 & 主要计算 & 应交付的对象\\
+\midrule
+S12 & 功率扰动及完整/部分电压响应 & 回归、分层、递归集合运算 & 原树或最小约化树\\
+S13 & 全节点电压、已知扰动、候选线路 & 固定树最小二乘、消元、MILP & 候选域内拟合最好的树及参数\\
+P1 & 同上；另可给已知线路电阻 & 拉普拉斯凸估计、ADMM；状态PGD & 凸估计及经后处理的树\\
+P2 & 各注入点到各检测器的电流记录 & 信号检测、祖先关系、传递约简 & 仪表覆盖范围内的连接\\
+P3 & 高频幅相、到达与反射时间 & 控制方向、检测归属、估计长度 & 被观测线路的归属和长度\\
+P4 & 标识、通信状态、FSR集合 & 垂直闭包、水平补全、包含检测 & 设备层级及未决关系\\
+P5 & 入口编码电压及入口电流 & 相关、Hankel分解、ERA、电路匹配 & 端口动态等效模型\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{静态探测的符号、维度与归一化}
+
+设树有根节点0和$n$个非根节点，$P_i$表示根到节点$i$的边集合。约化关联矩阵$A\in\mathbb R^{n\times n}$每行对应一条边；选定父端为$+1$、子端为$-1$，并删除根的列。边电阻向量$r\in\mathbb R^n_{>0}$对应
+\[
+ G=A^{\mathsf T}\operatorname{diag}(1/r)A,\qquad R=G^{-1}.
+\]
+在本章采用的标幺与线性化约定下，
+\begin{equation}
+ \Delta v=R\Delta p+X\Delta q.
+ \label{eq:tb-probe-forward}
+\end{equation}
+若使用电压平方、不同基准或相反的功率正方向，必须先统一比例和符号；本章所有例子使用式\eqref{eq:tb-probe-forward}。$G$是以电导为权重的约化拉普拉斯，并非交流网络复导纳矩阵的实部在任意模型下都恰好等于此式。
+
+设$k$个节点可探测，其索引集合为$\mathcal P$，选择矩阵$E_{\mathcal P}\in\{0,1\}^{n\times k}$由单位矩阵的对应列组成。$T$轮实验的已知有功变化为$\Delta\in\mathbb R^{k\times T}$，在其他变化可忽略时，
+\begin{equation}
+ V=RE_{\mathcal P}\Delta+N,\qquad P=E_{\mathcal P}\Delta.
+ \label{eq:tb-probe-data}
+\end{equation}
+$V\in\mathbb R^{n\times T}$记录全节点电压差，$P\in\mathbb R^{n\times T}$在未探测节点行为零；若仅$\mathcal O$测压，实际拥有的是$V_{\mathcal O:}$，不能把缺失的行填零后称为全节点数据。
+
+\begin{proposition}[等价代数整理：响应矩阵与共同路径]
+若$F_{ei}=\mathbb I\{e\in P_i\}$，则
+\begin{equation}
+ R=F^{\mathsf T}\operatorname{diag}(r)F,\qquad
+ R_{ij}=\sum_{e\in P_i\cap P_j}r_e.
+ \label{eq:tb-probe-path}
+\end{equation}
+\end{proposition}
+\begin{proof}
+一致定向下$F=-A^{-\mathsf T}$，于是右端等于
+$A^{-1}\operatorname{diag}(r)A^{-\mathsf T}=G^{-1}$。逐元素展开即为两条根路径的公共边电阻之和。
+\end{proof}
+式\eqref{eq:tb-probe-path}把连续数值与树结构连接起来。后面的三篇静态探测文献分别使用其等值集合、逆矩阵稀疏性和候选关联矩阵表示。
+
+\section{S12：先找电压响应的层，再递归找祖先}
+\label{sec:tb-S12}
+
+\subsection{要解决的问题与算法分解}
+
+S12\citep{S12}的原文第III--V节把问题分成三个阶段：估计所探测的响应列；从相同响应值识别层集合；通过层集合递归构造树。全节点测压时，输出带实际节点标签的拓扑和电阻。只在探测点测压时，输出保留可辨识分叉点的约化树，隐藏分叉点的标签是算法创建的符号。
+
+第一阶段由线性回归完成。若$\operatorname{rank}\Delta=k$，
+\begin{equation}
+ \widehat R_{:\mathcal P}
+ =V\Delta^{\mathsf T}(\Delta\Delta^{\mathsf T})^{-1}.
+ \label{eq:tb-S12-ls}
+\end{equation}
+只测探测节点时，把$V$替换为$V_{\mathcal P:}$即可得到$\widehat R_{\mathcal P\mathcal P}$。实现中宜用QR或SVD解最小二乘，不实际形成逆矩阵。这个数值选择不改变原文的回归目标。
+
+\subsection{层集合：一列数为什么可以变成树上的分区}
+
+把根的深度规定为0，$\alpha_j^d$表示$j$的第$d$层祖先，$\mathcal D_u$表示以$u$为根的后代集合，包含$u$。定义
+\begin{equation}
+ \mathcal N_j^d=
+ \begin{cases}
+ \mathcal D_{\alpha_j^d}\setminus\mathcal D_{\alpha_j^{d+1}},&0\leq d<d_j,\\
+ \mathcal D_j,&d=d_j.
+ \end{cases}
+ \label{eq:tb-S12-level}
+\end{equation}
+对于叶$j$，最后一层是$\{j\}$。$i\in\mathcal N_j^d$等价于$i$和$j$的最近公共祖先是$\alpha_j^d$。记根到该祖先的电阻高度为$h_j^d$，式\eqref{eq:tb-probe-path}给出
+\[
+ i\in\mathcal N_j^d\Longrightarrow R_{ij}=h_j^d,\qquad
+ h_j^d-h_j^{d-1}=r_{\alpha_j^{d-1},\alpha_j^d}>0.
+\]
+因此，给响应列补上根的零元素，再将相同数值的索引分组、按值递增排序，即得到
+$(\mathcal N_j^0,\ldots,\mathcal N_j^{d_j})$和
+$(h_j^0,\ldots,h_j^{d_j})$。这里排序的是公共路径电阻高度；当中间有未测节点被压缩时，“第几层”应理解为约化树中的层数，不是原物理线路经过的杆塔数。
+
+\subsection{全测压递归：交集定位，差值定权，分组下钻}
+
+设当前待处理子树包含的探测点集合为$Q$，其根深度为$d$，父节点$p$已知。原文递归依次完成：
+\begin{enumerate}
+ \item 取交集$\bigcap_{j\in Q}\mathcal N_j^d$，其唯一元素就是子树根$u$；
+ \item 若$d>0$，连接$p$和$u$，电阻取任意$j\in Q$的$h_j^d-h_j^{d-1}$；
+ \item 从$Q$删去$u$，把剩余探测点按$\mathcal N_j^d$是否相同分组；每一组对应$u$的一个孩子方向，再递归。
+\end{enumerate}
+为什么第一步能找出唯一祖先？$u$在每个相关层集合中；任何位于$u$某个孩子分支的其他节点，会被该分支中一个已探测叶的层集合排除。所有叶都被探测，正好保证每个非空孩子分支都有这样的排除证据。
+
+\begin{algorithm}[htbp]
+\caption{S12全测压递归：原文Algorithm 1的统一记号重述}
+\label{alg:tb-S12-full}
+\begin{algorithmic}[1]
+\Require 探测集合$\mathcal P$；所有层集合$\mathcal N_j^d$及层高度$h_j^d$
+\Ensure 带标签的边集合及电阻
+\State 初始化空边集合；调用$\operatorname{Visit}(\mathcal P,\varnothing,0)$
+\Function{Visit}{$Q,p,d$}
+ \State $U\gets\bigcap_{j\in Q}\mathcal N_j^d$
+ \State 要求$U=\{u\}$；否则记录当前集合不一致并停止该分支
+ \If{$d>0$}
+  \State 任取$j\in Q$，加入边$(p,u)$及电阻$h_j^d-h_j^{d-1}$
+ \EndIf
+ \State $Q\gets Q\setminus\{u\}$
+ \State 按$j\sim j'\Longleftrightarrow\mathcal N_j^d=\mathcal N_{j'}^d$划分$Q$
+ \For{每个非空等价类$Q_s$}
+  \State $\operatorname{Visit}(Q_s,u,d+1)$
+ \EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+第6行的不一致报告是教材实现补充：理想假设下不会发生；真实数据出现空交集或多元素交集时，不应任意选一个节点并继续。
+
+\begin{example}[教材手算：把三列响应还原为五条边]
+树为$0\!-\!u$、$u\!-\!1$、$u\!-\!w$、$w\!-\!2$、$w\!-\!3$，五条边电阻依次为$1,2,3,4,5$。仅探测叶$\mathcal P=\{1,2,3\}$，取$\Delta=I_3$。按行$(u,w,1,2,3)$记录的电压响应为
+\[
+ V=R_{:\mathcal P}=
+ \begin{pmatrix}
+ 1&1&1\\1&4&4\\3&1&1\\1&8&4\\1&4&9
+ \end{pmatrix}.
+\]
+每列顶部再补根0。第1层分别为
+\[
+ \mathcal N_1^1=\{u,w,2,3\},\quad
+ \mathcal N_2^1=\{u,1\},\quad
+ \mathcal N_3^1=\{u,1\}.
+\]
+三者交集为$\{u\}$，故得到边$0-u$，电阻$1-0=1$。由于后两集合相同，下一层探测分组是$\{1\}$和$\{2,3\}$。
+
+对$\{1\}$，$\mathcal N_1^2=\{1\}$，得到$u-1$，电阻$3-1=2$。对$\{2,3\}$，
+$\mathcal N_2^2=\{w,3\}$、$\mathcal N_3^2=\{w,2\}$，交集为$\{w\}$，得到$u-w$，电阻$4-1=3$。两集合不同，继续分成$\{2\},\{3\}$，最后得到$w-2$的$8-4=4$和$w-3$的$9-4=5$。每个响应层的作用都可在这张小表中追踪。
+\end{example}
+
+\subsection{只测探测点：如何创建而不是定位隐藏祖先}
+
+部分测压只能获得$\mathcal M_j^d=\mathcal N_j^d\cap\mathcal P$。全测压算法中的集合交集可能为空，因为共同祖先本身没有仪表。原文Algorithm 2将第一步改为：当前组为$Q$时，若存在$m\in Q$使$\mathcal M_m^d=Q$，则子树根就是已测节点$m$；否则创建一个隐藏分叉点。随后仍按层集合是否相同分组，按相邻高度差赋权。
+
+\begin{algorithm}[htbp]
+\caption{S12部分测压递归：原文Algorithm 2的统一记号重述}
+\label{alg:tb-S12-partial}
+\begin{algorithmic}[1]
+\Require $R_{\mathcal P\mathcal P}$得到的非空有序层集合$\mathcal M_j^d$及高度$h_j^d$
+\State 调用$\operatorname{VisitP}(\mathcal P,\varnothing,1)$
+\Function{VisitP}{$Q,p,d$}
+ \If{存在$m\in Q$使$\mathcal M_m^d=Q$}
+  \State $u\gets m$
+ \Else
+  \State 创建新的隐藏节点$u$
+ \EndIf
+ \If{$p\ne\varnothing$}
+  \State 任取$j\in Q$，加入边$(p,u)$，权重$h_j^d-h_j^{d-1}$
+ \EndIf
+ \State 按$\mathcal M_j^d$相等与否划分$Q\setminus\{u\}$
+ \For{每个非空分组$Q_s$}
+  \State $\operatorname{VisitP}(Q_s,u,d+1)$
+ \EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+算法\ref{alg:tb-S12-partial}遵循原文“不对第一次调用添加父边”的约定。若工程问题需要保留已知变电站0到约化子树根的共同干线，必须另外保留根参考高度并处理该连接；这个根部锚定不应隐含在叶间距离中。本段的简化初始化以所分析末端共享一个馈线入口为背景；变电站多出线产生零公共响应时，应先按根层分组或显式保留根层，不能机械复用从第1层开始的调用。
+
+在上一例中，末端响应为
+\[
+ R_{\mathcal P\mathcal P}=
+ \begin{pmatrix}3&1&1\\1&8&4\\1&4&9\end{pmatrix}.
+\]
+第一层为$\{2,3\},\{1\},\{1\}$，没有任何一层等于$\{1,2,3\}$，因此创建$u$；下一层的$\{2,3\}$组又创建$w$。可恢复的约化结构仍有$u-1,u-w,w-2,w-3$，但$u,w$没有来自仪表的实际标签。共同干线高度1可由原响应保留；若只传递
+$d_{ij}=R_{ii}+R_{jj}-2R_{ij}$，这一共同量便会抵消。
+
+\subsection{停止、计算量与本节末尾的成立条件}
+
+递归在分组中已无剩余探测点时停止；在全叶覆盖的理想树中，每次调用创建或定位一个节点，因此有限步终止。设全测节点数$n$、探测数$k$，回归的朴素密集计算约需
+$O(nTk+Tk^2+k^3)$，列排序约$O(kn\log n)$。集合递归可用位集或哈希表示加速；直接重复扫描的保守上界为$O(kn^2)$，并非声称原文给出了该最优复杂度。
+
+噪声处理不能用“完全相等”分组。若最小不同层间隔为$\gamma$，且每个响应估计误差小于$\varepsilon$，同层差小于$2\varepsilon$，异层差大于$\gamma-2\varepsilon$。因此$\varepsilon<\gamma/4$时可以选择二者之间的阈值。重复探测的幅值、时间和误差方差共同决定能否达到这个间隔条件；原文第VI节使用零均值独立扰动和高斯近似讨论概率，不是任意系统偏差下的恢复保证。
+
+本节恢复条件包括：径向模型、正边电阻、输入满行秩、全部叶节点被探测，以及对应算法要求的电压覆盖。无测量的二度串联节点可以任意细分而不改变末端响应，部分测压的输出因此必须解释为约化表示。也要区分
+$(R_{\mathcal O\mathcal O})^{-1}$这一Kron约化拉普拉斯与包含隐藏分叉点的树；前者出现的稠密边不等于末端间的实际物理线路。
+
+\section{S13：把“枚举树并拟合”写成MILP}
+\label{sec:tb-S13}
+
+\subsection{问题、数据与最小二乘的未知量}
+
+S13\citep{S13}假设拥有式\eqref{eq:tb-probe-data}的全节点电压$V$和已知功率变化$P$。给定候选边全集$\bar{\mathcal E}$，边数为$m$，其约化关联矩阵$\bar A\in\{0,\pm1\}^{m\times n}$已知。目标是从候选边选出$n$条形成树，并估计这些边的电导$g_e=1/r_e$。
+
+先假设某棵候选树的$A$已知。把$P=GV+E$按边展开，得到
+\[
+ P=\sum_{e=1}^n g_ea_e(a_e^{\mathsf T}V)+E.
+\]
+令$p=\operatorname{vec}P\in\mathbb R^{nT}$、$a_e\in\mathbb R^n$为第$e$行关联向量的转置，定义
+\begin{equation}
+ (H_A)_{:e}=(V^{\mathsf T}a_e)\otimes a_e,\qquad
+ H_A\in\mathbb R^{nT\times n}.
+ \label{eq:tb-S13-H}
+\end{equation}
+那么固定拓扑的估计是
+\begin{equation}
+ \min_g\|p-H_Ag\|_2^2.
+ \label{eq:tb-S13-fixed}
+\end{equation}
+它对电导线性，对电阻本身并不线性。若$H_A$满列秩，最优解和残差为
+\begin{align}
+ \widehat g_A&=(H_A^{\mathsf T}H_A)^{-1}H_A^{\mathsf T}p,\\
+ J(A)&=\|p\|^2-p^{\mathsf T}H_A(H_A^{\mathsf T}H_A)^{-1}H_A^{\mathsf T}p.
+ \label{eq:tb-S13-score}
+\end{align}
+这里是原文采用的无约束最小二乘；加上正电导上下界后，简单消元式通常会改变，不能只在求解后截断负值而宣称原推导仍成立。
+
+
+\paragraph{为什么所有候选树的回归都可满列秩。}
+原文Lemma 1给出比“真树可拟合”更强的结论：在无噪声径向数据、
+真实树全部叶节点已探测且$\Delta$满行秩时，任意候选树对应的$H_A$都满列秩。
+下面给出便于线代读者核对的证明。不同节点$i,j$在所有叶探测下具有不同响应行：
+若一方为祖先，选另一方子树中的叶，公共路径高度严格不同；
+若两者在不同分支，选其中一方子树中的叶，也能将两行分开。
+满行秩$\Delta$保留这种差异。因此，每条候选边的电压差行$a_e^{\mathsf T}V$非零。
+若$H_Ax=0$，反向向量化得到
+$A^{\mathsf T}\operatorname{diag}(x)AV=0$。
+候选树的$A$可逆，故$\operatorname{diag}(x)AV=0$；
+每一行$AV$非零又迫使每个$x_e=0$，所以$H_A$满列秩。
+这是原文结论的等价证明整理；测量噪声或缺失电压时必须重新检查数值秩和条件数。
+
+\subsection{由选边向量替代指数多的树索引}
+
+令$S\in\{0,1\}^{n\times m}$每行选一条不同的边，$b\in\{0,1\}^m$表示选边状态，则
+\[
+ A=S\bar A,\quad S\mathbf1_m=\mathbf1_n,\quad
+ S^{\mathsf T}\mathbf1_n=b,\quad
+ SS^{\mathsf T}=I_n,\quad S^{\mathsf T}S=D_b.
+\]
+其中$D_b=\operatorname{diag}b$。预先为全部候选边构造
+$\bar H\in\mathbb R^{nT\times m}$，列定义同式\eqref{eq:tb-S13-H}，即可有$H_A=\bar H S^{\mathsf T}$。对每棵树反复构造回归矩阵，变成从同一矩阵中选列。
+
+以下为原文消元的等价代数整理。取$\alpha>0$，
+\begin{equation}
+ C=(I_m+\alpha^{-1}\bar H^{\mathsf T}\bar H)^{-1},
+ \qquad \bar p=\bar H^{\mathsf T}p.
+ \label{eq:tb-S13-C}
+\end{equation}
+由于$H_A^{\mathsf T}H_A=\alpha SC^{-1}S^{\mathsf T}-\alpha I_n$，
+矩阵求逆引理将式\eqref{eq:tb-S13-score}中依赖拓扑的部分转换为
+\[
+ \alpha\bigl(J(A)-\|p\|^2\bigr)
+ =\bar p^{\mathsf T}D_b\bar p+
+   \bar p^{\mathsf T}D_b(C-D_b)^{-1}D_b\bar p.
+\]
+引入$z\in\mathbb R^m$使$(C-D_b)z=D_b\bar p$，再引入$w_e=b_ez_e$，便得到线性目标和一个线性方程：
+\begin{equation}
+ \min_{b,z,w}\sum_e\bar p_e^2b_e+\bar p^{\mathsf T}w,
+ \qquad Cz-w=D_b\bar p.
+ \label{eq:tb-S13-objective}
+\end{equation}
+这不是将矩阵逆忽略，而是使用辅助变量表达其作用；$C-D_b$必须可逆，才能把该表达重新解释为原最小二乘评分。这个条件可由行列式恒等式直接核查：
+\[
+ \det(C-D_b)=\det(C)\det(I_n-SC^{-1}S^{\mathsf T})
+ =\det(C)\det(-H_A^{\mathsf T}H_A/\alpha).
+\]
+因此它恰好对应所选回归矩阵满列秩，并非另一个无关的假设。
+
+\subsection{完整列出二值乘积与基础选边约束}
+
+给定有效盒界$\ell_e\leq z_e\leq u_e$，二值乘积由四条线性不等式精确表示：
+\begin{align}
+ \ell_eb_e\leq w_e\leq u_eb_e,\qquad
+ z_e-u_e(1-b_e)\leq w_e\leq z_e-\ell_e(1-b_e).
+ \label{eq:tb-S13-mcc}
+\end{align}
+若$b_e=0$，第一对强制$w_e=0$；若$b_e=1$，第二对强制$w_e=z_e$。因此误差风险不在整数乘积本身，而在盒界是否覆盖需要的解。
+
+记完整候选关联矩阵为$\widetilde{\bar A}\in\mathbb R^{m\times(n+1)}$。原文简化模型再加入
+\begin{equation}
+ b\in\{0,1\}^m,\qquad \mathbf1^{\mathsf T}b=n,\qquad
+ |\widetilde{\bar A}|^{\mathsf T}b\geq\mathbf1_{n+1}.
+ \label{eq:tb-S13-basic}
+\end{equation}
+式\eqref{eq:tb-S13-objective}、\eqref{eq:tb-S13-mcc}和
+\eqref{eq:tb-S13-basic}就给出了第一阶段MILP的目标、变量和主要约束。它要求边数正确且无孤点，但未必连通。
+
+\subsection{第二个模型如何约束树结构}
+
+原文进一步显式引入$S$和路径矩阵$F$。此处$F$的行是节点、列是所选边，与本章开头按边行、节点列定义的路径矩阵互为转置。要求
+\begin{equation}
+ -FS\bar A=I_n,\qquad
+ S\mathbf1_m=\mathbf1_n,\qquad
+ S^{\mathsf T}\mathbf1_n=b.
+ \label{eq:tb-S13-tree-original}
+\end{equation}
+前一个方程意味着选出的$A=S\bar A$可逆；$n$条边在$n+1$个节点上的约化关联矩阵可逆，等价于其为生成树。原文使用$F$的二值表示。这个表示需要与边的根向定向一致，不能对任意预设定向不加条件地宣称$-A^{-1}$都非负。
+
+在该二值定向前提下，可以令
+$U_{ike}=F_{ik}S_{ke}$。利用
+\[
+ 0\leq U_{ike}\leq F_{ik},\quad
+ U_{ike}\leq S_{ke},\quad
+ U_{ike}\geq F_{ik}+S_{ke}-1
+\]
+后，矩阵方程成为
+$-\sum_{k,e}U_{ike}\bar A_{ej}=\mathbb I\{i=j\}$。
+这完整展示了第二个MILP为何更大。共享同一个$U_{ike}$给所有$j$使用是教材的代数整理，并不声称与作者程序的辅助变量存储完全相同。
+
+\begin{remark}[实现补充：不依赖候选边定向的连通性表示]
+若希望使用任意固定候选边定向，可另外引入虚拟流$f\in\mathbb R^m$，
+\begin{equation}
+ \bar A^{\mathsf T}f=\mathbf1_n,\qquad -nb_e\leq f_e\leq nb_e.
+ \label{eq:tb-S13-flow-extra}
+\end{equation}
+每个非根节点获得一个单位的虚拟流，根承担总平衡。没有与根连通的分量，其所有节点平衡方程相加会矛盾，因而选边必连通；再结合$n$条边就得到树。这是本章为解释连通性给出的替代表述，不是S13原文的第二个MILP。使用时应保留相同的评分、盒界和秩条件。
+\end{remark}
+
+\begin{algorithm}[htbp]
+\caption{S13的两阶段求解流程：原文模型加教材核查步骤}
+\label{alg:tb-S13}
+\begin{algorithmic}[1]
+\Require $V,P,\bar A$；$\alpha>0$；声明的$z$盒界；求解器停止容差
+\Ensure 选边$b$、电导$\widehat g$、原评分$J$及计算状态
+\State 构造$p,\bar H,C,\bar p$
+\State 求解式\eqref{eq:tb-S13-objective}、\eqref{eq:tb-S13-mcc}、\eqref{eq:tb-S13-basic}
+\State 记录可行解、目标上下界、gap及是否达到停止标准
+\State 检查选边连通性与$C-D_b$的秩
+\If{第一模型没有给出符合所需秩条件的树}
+ \State 加入式\eqref{eq:tb-S13-tree-original}的有效树编码及其乘积线性化，再求解
+\EndIf
+\If{获得合格候选树}
+ \State 从所选列构造$H_A$，重新解式\eqref{eq:tb-S13-fixed}
+ \State 计算原残差$J=\|p-H_A\widehat g\|^2$，检查电导物理可行性与盒边界
+ \State 输出树、$r_e=1/\widehat g_e$及所有未通过的检查
+\Else
+ \State 输出当前可行候选或“未取得合格解”，不报告已恢复真树
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+连通性、重算原评分、物理符号和求解状态记录属于教材核查步骤，作用是把原模型的数学假设与求解器输出连接起来。
+
+\begin{example}[教材手算：一个三候选边问题]
+真实树是$0-1-2$，电阻为$1,2$，于是
+$R=\left(\begin{smallmatrix}1&1\\1&3\end{smallmatrix}\right)$。
+取$\Delta=I_2$、$V=R$、$P=I_2$。候选边依次为$(0,1),(0,2),(1,2)$，构造
+\[
+ \bar H=
+ \begin{pmatrix}1&0&0\\0&1&0\\1&0&-2\\0&3&2\end{pmatrix},
+ \qquad p=(1,0,0,1)^{\mathsf T}.
+\]
+真树选第1、3列：
+$H_A(1,\tfrac12)^{\mathsf T}=p$，故$\widehat g=(1,\tfrac12)$、$J=0$。
+错误星形选第1、2列，得到$\widehat g=(\tfrac12,\tfrac3{10})$，
+\[
+ p-H_A\widehat g=(\tfrac12,-\tfrac3{10},-\tfrac12,\tfrac1{10})^{\mathsf T},
+ \qquad J=\tfrac35.
+\]
+现在检查MILP消元中的中间量。取$\alpha=1$，
+\[
+ \bar p=(1,3,2)^{\mathsf T},\quad
+ C=\frac1{145}\begin{pmatrix}
+ 63&-12&22\\-12&23&-18\\22&-18&33
+ \end{pmatrix}.
+\]
+真树$b=(1,0,1)$对应$z=(-2,-3,-\tfrac52)^{\mathsf T}$，
+可直接验证$(C-D_b)z=D_b\bar p$。因此$w=(-2,0,-\tfrac52)$，MILP目标为
+$1^2+2^2+(1,3,2)w=5-7=-2$。加回$\|p\|^2=2$得到$J=0$，恰与原回归相同。这个例子同时检验了向量化顺序、$C$的维度和目标常数项。
+\end{example}
+
+\subsection{停止、计算成本与成立边界}
+
+求解器停止可能表示证明最优、达到给定gap、超时或无可行解，四者不能混称“收敛并正确恢复”。前处理形成$\bar H^{\mathsf T}\bar H$的直接代价约为$O(nTm^2)$，形成$C$的密集分解为$O(m^3)$；树编码还可能引入$O(n^2m)$规模的共享乘积变量。组合搜索成本随候选边数和界松紧显著变化，不由一个固定迭代次数描述。
+
+本节末尾保留五个必要条件。第一，原推导采用全节点电压，不能直接用于缺隐藏节点行的数据。第二，候选边域必须包含所需结构。第三，原文使用对称经验盒界$\|z\|_\infty\leq\|\bar p\|_\infty$，并报告在所试$\alpha\leq25$时成立，但未给出覆盖全部候选解的解析证明；在错误盒界内求得零gap，只能证明截断模型的最优性。第四，电压本身含噪声时，$H_A$也是带噪设计矩阵，普通最小二乘无偏性不能直接套用。第五，无孤点加$n$条边不等于树，例如三角形加一个独立两节点分量具有5个节点、4条边且无孤点。原文IEEE 13节点实验中第一模型约90\%的输出已为树，是该实验的频率，不能省略第二模型的必要性。
+
+所核S13版本定理1缺失$G^{-1}$的逆符号、$C$定义的单位阵维度与上下文不一致，已在原PDF中确认；本节采用与式\eqref{eq:tb-probe-forward}及候选边维度一致的表达。它们是记号一致性修正，不代表已复现作者实现。
+
+
+\section{P1：以四个矩阵副本实现拉普拉斯凸估计}
+\label{sec:tb-P1}
+
+\subsection{原问题和凸目标各自要求什么}
+
+P1\citep{P1}先研究未知拓扑与电阻的联合估计，再研究电阻已知时的线路状态检测。前者的核心变量为$\Theta=R^{-1}\in\mathbb R^{n\times n}$。由它重建包含根的完整拉普拉斯：
+\begin{equation}
+ \Phi(\Theta)=
+ \begin{pmatrix}
+ \mathbf1^{\mathsf T}\Theta\mathbf1&-\mathbf1^{\mathsf T}\Theta\\
+ -\Theta\mathbf1&\Theta
+ \end{pmatrix}.
+ \label{eq:tb-P1-full}
+\end{equation}
+设$\Gamma_{ij}=0$表示已知节点$i,j$之间没有可用边，$\Gamma_{ij}=1$表示允许存在，\emph{不是已经确认闭合}。定义两个容易投影的集合：
+\begin{align}
+ \mathcal S&=\{\Theta:\Theta_{ij}=0\text{若}i\ne j,\Gamma_{ij}=0;\
+                  \Theta_{ij}\leq0\text{若}i\ne j,\Gamma_{ij}=1\},\\
+ \mathcal S_0&=\{\Theta:(\Theta\mathbf1)_i=0\text{若}\Gamma_{0i}=0;\
+                  (\Theta\mathbf1)_i\geq0\text{若}\Gamma_{0i}=1\}.
+\end{align}
+$\mathcal S$不限制对角元。结合$\Theta=\Theta^{\mathsf T}$和$\Theta\succ0$，两集合保证其为连接到根的正电导网络拉普拉斯，但没有保证边数恰好为$n$。
+
+原文第III-C节将难处理的树稀疏约束替换为凸惩罚：
+\begin{equation}
+ \min_{\Theta\in\mathcal S\cap\mathcal S_0,\ \Theta=\Theta^{\mathsf T}\succ0}
+ \frac12\|\Theta V-P\|_W^2+
+ \lambda\operatorname{tr}(\Theta\Pi)-\mu\log\det\Theta,
+ \quad \Pi=I_n+\mathbf1\mathbf1^{\mathsf T}.
+ \label{eq:tb-P1-objective}
+\end{equation}
+其中$W\succ0$为$n\times n$权重，$\|E\|_W^2=\operatorname{tr}(E^{\mathsf T}WE)$，$\lambda,\mu>0$。第一项拟合探测方程；迹项等于$\Phi(\Theta)$全部非对角绝对值之和，鼓励稀疏或弱连接；$-\log\det$避免奇异。得到一个好解仍不一定得到树，因此应把连续估计和树后处理分开叙述。
+
+\subsection{四副本分裂：每个困难由一个简单算子负责}
+
+令中心变量$X\in\mathbb R^{n\times n}$承担二次拟合与迹项，三个副本$Z_2,Z_3,Z_4$分别承担正定对数行列式、非对角符号、行和约束。等价约束为$X=Z_j$，$j=2,3,4$。中心变量单独更新时允许为一般实矩阵；最终一致性由$Z_2$带来对称正定性。这是统一记号后的两块ADMM：一块是$X$，另一块是同时更新但可独立计算的三个$Z_j$，不是未经分析的四块顺序ADMM。
+
+令$U_j$是约束$X=Z_j$的缩放对偶变量，$\rho>0$。去掉不影响最小值的常数，增广目标为
+\[
+ \frac12\|XV-P\|_W^2+\lambda\operatorname{tr}(X\Pi)
+ -\mu\log\det Z_2+I_{\mathcal S}(Z_3)+I_{\mathcal S_0}(Z_4)
+ +\frac\rho2\sum_{j=2}^4\|X-Z_j+U_j\|_F^2.
+\]
+$I_{\mathcal S}$在集合内为零、集合外为正无穷。以下更新式从这个目标直接求导或投影得到，便于读者检查每个下标的含义。
+
+\subsection{逐项推出四个更新}
+
+\paragraph{第一步：解一个线性矩阵方程。}
+令$B=VV^{\mathsf T}$。中心变量满足
+\begin{equation}
+ WX^{t+1}B+3\rho X^{t+1}
+ =WPV^{\mathsf T}-\lambda\Pi+
+   \rho\sum_{j=2}^4(Z_j^t-U_j^t)=:C^t.
+ \label{eq:tb-P1-X}
+\end{equation}
+左乘$W^{-1}$后是Sylvester方程
+$X^{t+1}B+3\rho W^{-1}X^{t+1}=W^{-1}C^t$。
+特别地，$W=I$时只需
+\[
+ X^{t+1}=C^t(B+3\rho I)^{-1}.
+\]
+因为$B\succeq0$且$\rho>0$，右侧系数可逆；可以预先分解它并在各轮复用。
+
+\paragraph{第二步：用特征值处理正定性和对数行列式。}
+将$Y_2=X^{t+1}+U_2^t$对称化，得到
+$\tfrac12(Y_2+Y_2^{\mathsf T})=Q\operatorname{diag}(d_i)Q^{\mathsf T}$。
+每个新特征值解标量问题
+$\min_{z>0}\frac\rho2(z-d_i)^2-\mu\log z$。
+求导并取正根：
+\begin{equation}
+ z_i=\frac{d_i+\sqrt{d_i^2+4\mu/\rho}}2,\qquad
+ Z_2^{t+1}=Q\operatorname{diag}(z_i)Q^{\mathsf T}.
+ \label{eq:tb-P1-Z2}
+\end{equation}
+即使$d_i<0$，更新后的$z_i$仍严格为正。对非常负的$d_i$，可用代数等价的
+$z_i=(2\mu/\rho)/(\sqrt{d_i^2+4\mu/\rho}-d_i)$减轻相消误差，这是数值实现补充。
+
+\paragraph{第三步：逐元素投影非对角符号。}
+令$Y_3=X^{t+1}+U_3^t$。允许边的非对角元改为$\min\{(Y_3)_{ij},0\}$，禁止边置零，对角元不变。这就是$Z_3^{t+1}=\operatorname{Proj}_{\mathcal S}(Y_3)$。此副本暂时可以不对称，最终由副本一致性共同满足所有条件。
+
+\paragraph{第四步：逐行投影根连接约束。}
+令$y$为$Y_4=X^{t+1}+U_4^t$的第$i$行转置，$s=\mathbf1^{\mathsf T}y$。若允许$i$与根连接，投影为
+$y-\mathbf1\min(s,0)/n$；若禁止根连接，投影为$y-\mathbf1s/n$。例如行向量$(-0.3,-0.5)$的和为$-0.8$，投影到非负行和半空间后为$(0.1,-0.1)$，和恰好为零。
+
+\paragraph{第五步：累计副本之间的差异。}
+\begin{equation}
+ U_j^{t+1}=U_j^t+X^{t+1}-Z_j^{t+1},\qquad j=2,3,4.
+ \label{eq:tb-P1-U}
+\end{equation}
+下一轮$X$因此会受到各个约束副本的纠正。若中心变量与各副本均已一致，且变量不再显著变化，就达到所写凸问题的数值停止标准。
+
+\begin{algorithm}[htbp]
+\caption{P1拉普拉斯估计：四副本ADMM的等价代数整理}
+\label{alg:tb-P1-ADMM}
+\begin{algorithmic}[1]
+\Require $V,P,W,\Gamma,\lambda,\mu,\rho$；容差$\varepsilon_{\rm p},\varepsilon_{\rm d}$与最大轮数
+\State $Z_2,Z_3,Z_4\gets I_n$，$U_2,U_3,U_4\gets0$；预计算矩阵分解
+\Repeat
+ \State 按式\eqref{eq:tb-P1-X}求$X$
+ \State 按式\eqref{eq:tb-P1-Z2}更新$Z_2$
+ \State 对$X+U_3$执行非对角逐元素投影，得到$Z_3$
+ \State 对$X+U_4$执行逐行和投影，得到$Z_4$
+ \State 按式\eqref{eq:tb-P1-U}更新三个对偶变量
+ \State $r_{\rm p}\gets\bigl(\sum_{j=2}^4\|X-Z_j\|_F^2\bigr)^{1/2}$
+ \State $r_{\rm d}\gets\rho\|\sum_{j=2}^4(Z_j^{\rm new}-Z_j^{\rm old})\|_F$
+\Until{$r_{\rm p}\leq\varepsilon_{\rm p}$且$r_{\rm d}\leq\varepsilon_{\rm d}$，或达到最大轮数}
+\State 保存连续估计及残差；未达容差时明确标为未完成
+\State 如需树，按下文给定权重约定选树并重建拉普拉斯
+\end{algorithmic}
+\end{algorithm}
+原始、对偶残差和最大轮数是教材补充的停止规则，采用本节一致性约束对应的两块ADMM形式。固定绝对容差适合手算；实际不同尺度的数据宜再配相对容差。
+
+\begin{example}[教材手算：ADMM首轮究竟算了什么]
+取$n=1$，$V=(1,-1)$、$P=(2,-2)$、$W=1$，
+$\lambda=0.1,\mu=0.5,\rho=1$，三个副本初值均为1，对偶为0。此时$\Pi=2$、$B=2$，所以
+\[
+ X^1=\frac{4-0.2+3}{2+3}=1.36.
+\]
+正定副本为
+$Z_2^1=(1.36+\sqrt{1.36^2+2})/2\approx1.6610$。
+这里只有对角元，故$Z_3^1=1.36$；行和已经为正，$Z_4^1=1.36$。
+于是$U_2^1\approx-0.3010$，其余对偶仍为零。首轮没有结束，因为中心变量和正定副本仍不一致。
+
+这个标量问题的目标是
+$(\theta-2)^2+0.2\theta-0.5\log\theta$，
+其最优点为
+$\theta=(3.8+\sqrt{18.44})/4\approx2.0235$。
+它和真实无惩罚电导2不同，直观展示了正则项会改变估计值；ADMM精确求解凸目标，不等于自动消除正则偏差。
+\end{example}
+
+\subsection{如何把连续估计转为树}
+
+先计算完整$\Phi(\widehat\Theta)$。允许边$(i,j)$的估计电导为
+$\widehat g_{ij}=-\Phi(\widehat\Theta)_{ij}$。本章明确采用以下权重约定：以$-\widehat g_{ij}$为最小生成树的代价，等价于选估计电导总和最大的生成树。这对应在带符号的拉普拉斯非对角权重上作最小生成树，避免将“最小”误解为选择最弱电导。
+
+选边以后，从选中的非负电导\emph{重新累加完整拉普拉斯的对角项}，再删根的行列。不能仅把原矩阵若干非对角元置零却保持不相容的旧对角项。若需要重新估计树上参数，另解固定树回归；这属于可选实现补充，会改变后处理后的数值。连续凸最优性本身不保证这一树后处理等于全体树上的最优拟合。
+
+\subsection{P1的另一分支：已知电阻时，用PGD估计线路状态}
+
+若候选电阻$r_e$已知，未知变量只有$b\in[0,1]^m$：
+\[
+ \Theta(b)=\bar A^{\mathsf T}\operatorname{diag}(b_e/r_e)\bar A,\quad
+ f(b)=\tfrac12\|\Theta(b)V-P\|_W^2-\mu\log\det\Theta(b).
+\]
+原文把$b\in\{0,1\}^m,\sum b_e=n$放松为
+$\mathcal B=\{0\leq b\leq1,\sum b_e=n\}$。令$E=\Theta(b)V-P$，链式求导给出
+\begin{equation}
+ [\nabla f(b)]_e=
+ \frac{\bar a_e^{\mathsf T}
+ [VE^{\mathsf T}W-\mu\Theta(b)^{-1}]
+ \bar a_e}{r_e}.
+ \label{eq:tb-P1-PGD}
+\end{equation}
+每轮先算$y=b-\eta\nabla f(b)$，再投影：
+\[
+ b_e^{\rm new}=\min\{1,\max\{0,y_e-\tau\}\},\qquad
+ \sum_e b_e^{\rm new}=n.
+\]
+右侧总和随$\tau$单调，可二分求解。原文采用足够小步长；教材实现可回溯缩小$\eta$，直到$\Theta(b^{\rm new})\succ0$且目标达到所选下降条件。回溯是补充，不能把投影到盒单纯形本身误认为已经保证严格正定。
+
+依次执行“初始化正定$b$、求梯度、投影、检查定义域和停止、整数后处理”即可实现该分支。取最大的$n$个分量未必形成树；如必须交付树，可用$b_e$为可信程度选最大权重生成树，并声明这是明确化的后处理选择。它与未知电导的ADMM分支解决不同问题，不能只把参数已知带来的改善归因于算法更快。
+
+
+\begin{algorithm}[htbp]
+\caption{P1已知电阻分支：投影梯度与教材的定义域检查}
+\label{alg:tb-P1-PGD}
+\begin{algorithmic}[1]
+\Require $\bar A,r,V,P,W,\mu$；初始正定$b\in\mathcal B$；步长和停止容差
+\Repeat
+ \State 构造$\Theta(b)$，计算残差$E$及式\eqref{eq:tb-P1-PGD}的梯度
+ \State 取$y=b-\eta\nabla f(b)$；二分$\tau$使截断后的分量和为$n$
+ \State 检查新点正定与下降条件；必要时缩小$\eta$并重做本轮投影
+ \State 接受新$b$；记录目标、步长与投影梯度映射的范数
+\Until{梯度映射范数低于容差，或达到最大迭代数}
+\State 按声明的规则作整数后处理，重新检查连通性和拟合残差
+\end{algorithmic}
+\end{algorithm}
+此处可用梯度映射
+$\eta^{-1}(b-\operatorname{Proj}_{\mathcal B}(b-\eta\nabla f(b)))$
+作为凸约束一阶驻点检查；它比只检查相邻目标值差更能显示是否接近最优性条件。
+
+\begin{example}[教材例子：三条候选边的一次PGD投影]
+取候选边$(0,1),(0,2),(1,2)$，全部电阻为1，$V=P=I_2$，
+$W=I_2$，$\mu=0.1$，初值$b=(2/3,2/3,2/3)$。
+这是一组独立的演示数据。中间量为
+\[
+ \Theta=\begin{pmatrix}4/3&-2/3\\-2/3&4/3\end{pmatrix},\quad
+ E=\begin{pmatrix}1/3&-2/3\\-2/3&1/3\end{pmatrix},\quad
+ \Theta^{-1}=\begin{pmatrix}1&1/2\\1/2&1\end{pmatrix}.
+\]
+因此根边方向的梯度均为$1/3-0.1=7/30$，内边方向为$2-0.1=19/10$。
+若试步长$\eta=0.1$，得到
+$y=(193,193,143)/300$，其分量和为$529/300$，小于要求的2。
+本次投影没有分量触碰0或1，故
+$\tau=(529/300-2)/3=-71/900$，
+\[
+ b^{\rm new}=(13/18,13/18,5/9).
+\]
+三个分量之和为2，新的$\Theta$仍正定。这个例子说明投影会同时修正各分量，
+不能单独截断到$[0,1]$后就认为满足边数约束。
+\end{example}
+
+\subsection{计算成本与版本、保证批注}
+
+密集ADMM每轮主要是Sylvester/线性系统与特征值分解，典型为$O(n^3)$，符号和行投影为$O(n^2)$；$VV^{\mathsf T}$等数据项可预计算。PGD每轮需计算正定矩阵分解和各边方向的二次型，实际代价取决于稀疏结构。树后处理的图算法成本通常远小于矩阵更新，但其统计意义仍须单独审查。
+
+原文第III-D节的局部副本和乘子编号存在交叉，本节固定$U_j$对应$X=Z_j$并从统一增广目标导出，未复制不一致下标。这里没有复现作者代码或宣称作者实现必然有同样问题。原文可辨识性定理要求全部叶节点探测和全节点测压；凸估计收敛、树后处理成功、真实拓扑唯一，是三个不同结论。原文也未给出所用凸松弛必然恢复真树的普遍保证。
+
+\section{P2：从特征电流的检测矩阵到祖先关系}
+\label{sec:tb-P2}
+
+\subsection{输入、输出与电流分流模型}
+
+P2\citep{P2}依次在设备位置注入可与工频区分的特征电流，观察各线路检测点是否出现该特征，再把接收关系化为连接关系。输入是带注入标识的多通道电流记录；输出首先是“哪个检测器处在某个注入点的上游路径”这一关系，而不是已经化简好的邻接矩阵。
+
+在注入频率处，记注入点的上游等效导纳为$Y_{\rm up}$，其余并联通道导纳为$Y_k$。小信号分流为
+\begin{equation}
+ I_{\rm up}=\frac{Y_{\rm up}}{Y_{\rm up}+\sum_kY_k}I_{\rm inj},
+ \qquad
+ I_k=\frac{Y_k}{Y_{\rm up}+\sum_kY_k}I_{\rm inj}.
+ \label{eq:tb-P2-current}
+\end{equation}
+上游等效阻抗足够小时，大部分电流流向电源侧，下游仅有小分量。原文用等效电路和近似分流解释检测方向。因而“下游不受影响”应理解为给定条件下小到难检测，不是基于KCL可证明任意负载下严格为零。
+
+\subsection{原文流程与教材的矩阵约定}
+
+本章固定矩阵方向：
+$B_{ij}=1$表示在设备$j$注入时，检测器$i$检测到特征。这样每列对应一次注入，每行对应一个检测器。原文不同段落的矩阵叙述容易使行列角色混淆，实现前必须固定一种约定，不能一半按注入行、一半按接收行。
+
+原文步骤为：确定待识别设备队列；顺序注入；标记检测到特征的设备；形成接收矩阵；化简为连接矩阵。其“化简”可在理想祖先关系下用传递约简严格解释。先删除$B$对角线，得到严格祖先关系$B^\circ$；若存在中间设备$k$使$B^\circ_{ik}=B^\circ_{kj}=1$，则$i\to j$不是直接边。
+
+\begin{algorithm}[htbp]
+\caption{P2原文流程与教材化的传递约简}
+\label{alg:tb-P2}
+\begin{algorithmic}[1]
+\Require 设备清单、每次注入标识、所有检测点的电流记录、已经标定的检测规则
+\State 初始化$B=0$
+\For{每个注入设备$j$}
+ \State 提取本轮所有检测器的记录，去除工频或对特征频带检测
+ \For{每个检测器$i$}
+  \State 按标定规则决定$B_{ij}$；失败或缺记录另标未知
+ \EndFor
+\EndFor
+\State 对理想完整矩阵删除对角线，得到$B^\circ$
+\State 检查是否出现非平凡双向关系、传递冲突或缺失记录
+\For{每个$B^\circ_{ij}=1$}
+ \State 仅当不存在$k\notin\{i,j\}$使$B^\circ_{ik}B^\circ_{kj}=1$，保留边$i\to j$
+\EndFor
+\State 返回设备覆盖范围内的图；有未知或冲突时保留未决关系
+\end{algorithmic}
+\end{algorithm}
+第10行的冲突检查和第12行的精确定义，是本章对原文“化简矩阵”的数学实现说明，不声称原文给出了同样的逐项代码。原文没有一套可直接适配任意设备的统一检测阈值；第5行需由实际传感器和信噪比标定，不能凭教材任意填值。
+
+\begin{example}[教材手算：明显电流与祖先约简]
+设$Y_{\rm up}=10$、单个下游通道$Y_d=0.1$，注入$5$个电流单位。式\eqref{eq:tb-P2-current}给出
+$I_{\rm up}\approx4.9505$、$I_d\approx0.0495$。本例仅为演示，若取0.5的阈值且噪声远小于此间隔，两者可被区分。
+
+四个设备构成$a\to b$、$b\to c$、$b\to d$。理想接收矩阵按$(a,b,c,d)$排序为
+\[
+ B=\begin{pmatrix}
+ 1&1&1&1\\0&1&1&1\\0&0&1&0\\0&0&0&1
+ \end{pmatrix}.
+\]
+删除对角线后共有五条祖先关系。因为$a\to b\to c$、$a\to b\to d$，删除$a\to c,a\to d$，恰剩三条直接连接。若没有$b$的仪表，则$a\to c,a\to d$会成为观测图中的边，但每条仍可能代表多段实际线路。
+\end{example}
+
+\subsection{停止、成本与模型边界}
+
+采样阶段在清单中所有指定设备完成注入后停止；接收矩阵仅需有限次扫描。对$q$个设备，朴素传递约简检查需$O(q^3)$，矩阵存储为$O(q^2)$；信号提取成本另由每轮采样长度决定。这个计算量是本章给出的直接实现上界。
+
+原文仿真使用220\,Hz、5\,A源，实验室使用240\,Hz方波，且部分实验下游空载；二者不可混同为同一个验证工况。旁支、低阻抗滤波器、负载增量导纳或检测失败均可能破坏理想二值路径模型。未检测到信号不能单独证明设备在下游，也可能处于旁支或缺失状态。末端入户支路传感器与中间干线传感器覆盖不同，不能直接把P2的祖先矩阵当成仅末端电压任务已经拥有的数据。
+
+\section{P3：先控制高频信号方向，再读归属和时延}
+\label{sec:tb-P3}
+
+\subsection{为什么需要分布参数而非静态电阻矩阵}
+
+P3\citep{P3}在低压架空线上使用5--15\,MHz信号，并在注入点上游侧放置约1\,mH电感以抑制该侧信号。输入除了检测点的高频电压、电流和到达时间，还包括当前注入及阻断位置；算法通过移动这一位置逐段识别馈线。
+
+均匀单模传输线满足
+\[
+ \frac{\partial V}{\partial x}=-z(\omega)I,\qquad
+ \frac{\partial I}{\partial x}=-y(\omega)V,\qquad
+ \gamma=\sqrt{zy},\quad Z_c=\sqrt{z/y}.
+\]
+传播长度$\ell$产生$e^{-\gamma\ell}$，终端负载产生反射系数
+\begin{equation}
+ \Gamma_L(\omega)=\frac{Z_L(\omega)-Z_c(\omega)}
+                       {Z_L(\omega)+Z_c(\omega)}.
+ \label{eq:tb-P3-reflect}
+\end{equation}
+于是输出既包含传播路径，又包含频率相关负载及反射；多导体线路还存在模态耦合。这解释了为什么不能把高频幅相直接当成式\eqref{eq:tb-probe-path}的共同电阻。
+
+\subsection{原文操作顺序与可执行的数据整理}
+
+原文第4.3节的操作主线是：从变压器低压侧逐馈线开始；在注入点上游设置电感；观察下游哪些点出现信号；需要辨相时分别注入A、B、C相；分析延时估计长度；对后续监测点重复直至末端。它没有提出一个对任意隐藏分叉、任意反射模式都给出唯一图的统一优化器。
+
+为把这条实验流程写成可复查的数据，记
+$\mathcal D_s^{\rm det}$为在设置$s$下检测到的设备集合，$\tau_{sr}$为到达时间差。理想方向控制下，它们近似表示$s$的后代集合。若所有必要中间设备都能探测，后代集合的最小严格包含关系可组织为设备树；这是本章对记录组织的形式化，不是额外声称原文证明了包含关系恢复定理。
+
+\begin{algorithm}[htbp]
+\caption{P3的实验扫描主线：原文步骤加教材记录格式}
+\label{alg:tb-P3}
+\begin{algorithmic}[1]
+\Require 馈线/监测点清单；注入和阻断位置；每相波形；经过校准的时间基准与传播参数
+\For{每个待分析馈线}
+ \State 在当前注入位置$s$上游设置用于该实验模型的高频阻断
+ \For{需要辨识的相别}
+  \State 施加指定特征信号并记录各点波形
+  \State 提取检测集合$\mathcal D_s^{\rm det}$、首波时差和可辨反射时差
+  \State 单程使用$\ell\approx v\tau$，往返使用$\ell\approx v\tau/2$
+ \EndFor
+ \State 沿监测点清单推进$s$，重复直到待扫描位置完成
+\EndFor
+\State 根据各次检测集合及位置关联建立设备归属；必要时作后代集合包含整理
+\State 对首波不清、相位多解或反射来源不明的长度保留未决标志
+\end{algorithmic}
+\end{algorithm}
+
+\begin{example}[教材手算：区分单程和往返]
+设$a-b$长300\,m，$b-c$长200\,m；仅为本例取传播速度
+$v=3\times10^8$\,m/s，注入频率5\,MHz，周期为$0.2\,\mu$s。
+在$a$注入并阻断上游后，$b$首波比$a$晚$1\,\mu$s，即5个周期，因此
+$\ell_{ab}=v\tau=300$\,m。
+若从末端$c$返回到$a$的反射滞后$3.333\,\mu$s，则总长度约为
+$v\tau/2=500$\,m，而不是1000\,m。
+
+若三次扫描分别得到
+$\mathcal D_a^{\rm det}=\{a,b,c\}$、
+$\mathcal D_b^{\rm det}=\{b,c\}$、
+$\mathcal D_c^{\rm det}=\{c\}$，
+则最小严格包含依次对应$a-b-c$。
+只有一次$a$扫描时，$\{a,b,c\}$本身并不能区分$b,c$的先后顺序；移动注入点增加了新的空间信息。
+\end{example}
+
+\subsection{停止、成本与本节末尾的物理批注}
+
+此方法的停止条件主要是所有所需馈线、相别和监测位置完成扫描，不是某个损失函数降到阈值。若$s$个设置各有$q$个接收点、每点记录$L$个样本，存储和基础提取至少随$sqL$增长；用FFT相关估计时延的教材实现约为$O(sqL\log L)$，但原文并未指定必须使用这个时延估计器。
+
+单频稳态相位只给$\beta\ell$模$2\pi$，即$\ell$与$\ell+k\lambda$可能不可区分；绝对距离需要首波、同步、多频或长度范围。方向性由额外电感和接线位置创造，不能称为原电网天然单向传播。理想1\,mH电感在5\,MHz的阻抗幅值约31.4\,k$\Omega$，但真实元件的寄生参数和自谐振须另行核验。原文在高频负载分析中外推固定$R,L$，验证主要为修改IEEE 13节点的MATLAB仿真。因此本节给出的是该模型下的算法解释，未补足现场硬件标定、复杂负载反射消歧和任意隐藏节点识别的验证。
+
+
+\section{P4：有缺失记录时，如何从特征集合整理供电关系}\label{sec:tb-P4}
+
+\subsection{问题、输入与输出}
+P4 把信号注入得到的记录作为已有输入，研究记录不完整时怎样整理拓扑。\citep{P4}
+一个终端的特征向量写成
+\[
+ C_i=(\mathrm{ID}_i,N_i,S_i,X_i).
+\]
+其中 $\mathrm{ID}_i$ 为身份标识，$X_i$ 为该终端记录到的信号身份集合，
+$N_i=|X_i|$，$S_i$ 是位置标记，用于表示节点的拓扑类型。这里重点是集合及其包含关系，
+而不是重新估计一个连续的阻抗矩阵。输入还包括独立通信获得的终端清单；
+输出是终端之间的上、下游关系及由此形成的分支结构。
+“没有记录”可能来自未装设备、通信中断或检测失败，不能直接解释为电气上不相连。
+
+本节采用便于阅读的方向约定：若 $j\in X_i$，则 $i$ 收到终端 $j$ 的信号，
+在论文使用的传播方向和设备布置假设下，$j$ 位于 $i$ 的下游。
+因此，理想完整数据对应祖先到后代的可达集合。集合含有下游节点，
+不意味着其中每个节点都与 $i$ 直接相连。
+
+\subsection{第一步：恢复自身记录，再做纵向补全}
+\paragraph{原文步骤。}
+“存在性”利用通信清单确认节点确实存在，并把自身标识加入其特征集合。
+“包含性”和“传递性”则规定：若 $j\in X_i$，应把 $j$ 的下游记录并入 $X_i$；
+该操作沿分支递归执行。\citep[第3.1、3.4节]{P4}
+
+\paragraph{等价集合整理。}
+令原始集合为 $X_i^{(0)}$。先设
+\[
+ X_i^{(0)}\leftarrow X_i^{(0)}\cup\{i\}.
+\]
+纵向补全可写成单调迭代
+\begin{equation}\label{eq:tb-P4-closure}
+ X_i^{(t+1)}
+ =X_i^{(t)}\cup\bigcup_{j\in X_i^{(t)}}X_j^{(t)}.
+\end{equation}
+这只是把原文递归的传递操作写成固定点形式。每次只能加入有限清单中的标识，
+所以它必然停止；停止时得到已知记录关系的传递闭包。
+计算上可对每个节点做一次带访问标记的深度优先搜索，避免重复展开。
+
+闭包能够恢复“已经有证据相连的路径”上的漏项。例如已知 $1$ 收到 $2$，
+$2$ 收到 $3$，则可推知 $1$ 的集合应包含 $3$。
+如果某节点既未被听到，也没有可用的接收记录和通信身份，
+闭包没有凭空恢复它的依据。反过来，一个错误的阳性记录也会沿传递操作扩散；
+纵向补全本身没有纠正假阳性的能力。
+
+\subsection{第二步：横向合并交叠记录，并保留方向歧义}
+纵向补全后仍可能出现两个集合部分交叠，但由于缺失尚未形成包含关系。
+论文定义的横向扩展依据集合交叠以及记录数量，
+其核心操作可写为
+\begin{equation}\label{eq:tb-P4-horizontal}
+ f_H(X_i,X_j)=
+ \begin{cases}
+ X_i\cup X_j,&X_i\cap X_j\ne\varnothing,\ X_i\ne X_j,\
+                         |X_i|\ge |X_j|,\\
+ X_i,&\text{其他情况}.
+ \end{cases}
+\end{equation}
+原文用纵向补全后的集合进行两两比较，再汇总更新结果。
+直观理由是：理想树上，上游节点的后代集合通常更大；
+如果两者听到了共同下游节点，记录较多者被当作更可能位于上游的候选。
+这是缺失数据下的补全规则，不能将其改写成无条件的方向定理。
+
+特别地，正式版第3.5节指出某些交叠情形的方向仍不确定，并把相关向量标记后交由主站处理。
+若两个不同集合大小相同，式\eqref{eq:tb-P4-horizontal}的两个方向都可能触发，
+合并之后甚至产生相同集合；相同集合并不能决定谁是父节点。
+因此，教材实现应输出“需消歧的记录组”，保留原始证据，
+而不是凭节点编号任意赋予方向。这个显式的冲突输出属于本教材的实现整理，
+不是原文已经给出一般消歧算法的意思。
+
+\subsection{第三步：由集合包含关系生成分支}
+在补全结果可信且方向可判定时，论文按记录数从小到大排列特征向量：
+只有自身记录的节点作为边缘节点，含多个记录的节点作为通道节点。
+对每个边缘节点，按正式版附录Algorithm A1，从记录数较小的通道开始检查其是否包含该边缘节点，
+依次得到从末端走向上游的分支；最后合并各分支中的公共部分。
+这里的“按数量排序”之所以有效，是因为理想树中严格祖先的完整后代集合严格更大。
+
+\paragraph{教材形式化。}
+若已经得到包含自身的完整后代集合 $D_i$，且这些集合满足树状的
+“互不相交或一方包含另一方”性质，则
+\[
+ i=\operatorname{parent}(j)
+ \quad\Longleftrightarrow\quad
+ D_j\subsetneq D_i,\quad
+ \nexists k:\ D_j\subsetneq D_k\subsetneq D_i.
+\]
+这说明最近祖先对应最小的严格包含集合。该公式是对完整一致数据的数学解释；
+它不负责消除横向合并造成的相等集合或不一致交叠。
+如果若干真实节点未监测，最后的边还可能连接相隔多个物理支路的已知终端。
+
+\begin{algorithm}[htbp]
+\caption{P4 的记录整理主线；歧义与一致性检查为教材显式补充}
+\label{alg:tb-P4}
+\begin{algorithmic}[1]
+\Require 终端通信清单 $\mathcal I$，接收记录集合 $\{X_i\}_{i\in\mathcal I}$
+\Ensure 可辨认的分支、未定位节点、待消歧记录组
+\For{$i\in\mathcal I$}
+ \State 把 $i$ 加入 $X_i$；保存原始记录以便审计
+\EndFor
+\State 按式\eqref{eq:tb-P4-closure}递归展开，直至没有新增标识
+\State 保存纵向结果 $\{X_i'\}$；按式\eqref{eq:tb-P4-horizontal}两两横向比较并汇总
+\State 标记相等集合、方向不明的交叠及循环关系；不把它们强行定向
+\State 在可判定记录上按集合大小升序排列；识别边缘节点与通道节点
+\For{每个边缘节点 $\ell$}
+ \State 依次查找包含 $\ell$ 的通道节点，得到末端到上游的分支
+\EndFor
+\State 合并公共分支；对含歧义节点的部分保留候选关系或未定位状态
+\end{algorithmic}
+\end{algorithm}
+
+\begin{example}[教材例子：一次闭包和一次无法定向的合并]
+有四个终端，原始记录为
+\[
+ X_1=\{2\},\quad X_2=\{2,3,4\},\quad X_3=\{3\},\quad X_4=\{4\}.
+\]
+加入自身后，$X_1=\{1,2\}$。由于 $2\in X_1$，纵向补全给出
+\[
+ X_1'=\{1,2,3,4\},\quad X_2'=\{2,3,4\},\quad
+ X_3'=\{3\},\quad X_4'=\{4\}.
+\]
+记录数依次为 $4,3,1,1$。末端 $3$ 的升序包含链为
+$\{3\}\subset\{2,3,4\}\subset\{1,2,3,4\}$，
+故分支为 $3\to2\to1$；末端 $4$ 给出 $4\to2\to1$。
+合并之后得到边 $1\!-\!2,2\!-\!3,2\!-\!4$。
+
+另看 $X_a=\{a,c\}$ 与 $X_b=\{b,c\}$。
+两者交叠、大小相等，横向合并会使两者都变成 $\{a,b,c\}$。
+但原始缺失记录既可能来自链 $a\to b\to c$，也可能来自链
+$b\to a\to c$。合并没有提供新的方向观测，所以应把 $\{a,b\}$ 标为待消歧。
+\end{example}
+
+\subsection{停止、成本和证据边界}
+纵向闭包在记录不再改变时停止。若共有 $n$ 个终端、$m_o$ 条原始记录，
+逐源图搜索可用 $O(n(n+m_o))$ 时间；朴素集合两两比较约为 $O(n^3)$，
+位集合实现可以降低常数。这些是所述实现的复杂度分析，原论文没有给出统一复杂度定理。
+
+本节已核对 2024 年正式发表的 15 页版本，采用其第3节的小节编号。
+原文现场有27台拓扑识别设备。终端2006既未收信号，也未被其他终端听到，
+现场检查发现其信号处理模块未接好；另有2001、2063、2148因停电无法通信。
+这些结果展示了设备缺失记录的实际原因，也说明最终仍可出现未定位节点。
+“考虑缺失数据”应理解为提出补全与识别流程，不能扩展成任意缺失模式下均可恢复全图的保证。
+阈值标定、同集合节点的普适定向和假阳性鲁棒性没有在本教材中伪装成已复现的算法。
+
+\section{P5：脉冲压缩、ERA 与动态端口模型}\label{sec:tb-P5}
+
+\subsection{问题、输入与输出}
+P5 的目标是在线跟踪配电馈线在注入端看到的动态输入输出模型。\citep{P5}
+在一个注入端叠加已知小电压扰动 $p(t)$，测量该端的电流响应 $y(t)$，
+先从工频背景中提取脉冲响应，再辨识低阶模型。
+本节以单输入单输出为主：离散状态模型的维度为
+\[
+ x_{k+1}=A_dx_k+B_du_k,\qquad y_k=C_dx_k+D_du_k,
+\]
+其中 $x_k\in\mathbb R^r$，$A_d\in\mathbb R^{r\times r}$，
+$B_d\in\mathbb R^{r\times1}$，$C_d\in\mathbb R^{1\times r}$，
+$D_d\in\mathbb R$。
+输出是端口传递函数和可选的等效电路参数，输出项中没有自动包含全馈线邻接矩阵。
+
+\subsection{第一步：用长序列积累能量，再用相关压缩到短脉冲}
+设系统在当前时间窗内近似线性时不变，注入端原有电压为 $u_0(t)$，
+端口脉冲响应为 $h(t)$。测量模型为
+\[
+ y(t)=h*(u_0+p)(t)+n(t).
+\]
+直接施加很窄的大脉冲会要求较大的峰值功率。脉冲压缩改用幅值受控、
+持续较长且已知的伪随机序列，把能量分散到时间轴，再通过相关处理集中回来。
+
+原文采用周期二进制序列和短脉冲形状生成激励，可概括为
+$p=\alpha\,\eta*\sigma$，其中 $\alpha$ 是注入幅值，
+$\eta$ 是比特脉冲，$\sigma$ 是周期序列。
+选取参考序列 $s$，希望归一化后的 $p\otimes s$ 在一个周期内接近单位脉冲。
+相关与线性系统卷积交换，从而
+\begin{equation}\label{eq:tb-P5-correlation}
+ y\otimes s
+ =h*(p\otimes s)+(h*u_0+n)\otimes s
+ \ \approx\ h_{\mathrm{per}}+\text{背景残差}.
+\end{equation}
+这里 $h_{\mathrm{per}}$ 是以序列周期折叠后的响应。
+相关不是无条件地把噪声和工频项变成零：它依赖参考序列、同步、归一化、
+足够长的采样以及对背景的滤除。
+
+序列周期 $T_p$ 要长于希望保留的系统记忆；否则前一个周期的尾部会折回当前响应。
+比特宽度影响可激励和可分辨的带宽，采样频率决定离散化精度。
+若先对输出使用陷波器 $F$，辨识到的是 $FH$ 的响应；
+未补偿的滤波器不能被当作从未存在。尤其不能同时压制工频附近信息、
+又宣称完整恢复该频段的原始端口动态。
+
+\begin{example}[教材例子：相关旁瓣和归一化为何必须计算]
+用周期三序列 $p=[1,1,-1]$，真实离散响应 $h=[2,1,0]$。
+采用循环卷积，输出为
+\[
+ y_t=2p_t+p_{t-1},\qquad y=[1,3,-1].
+\]
+计算归一化循环相关 $c_k=\frac13\sum_{t=0}^{2}y_t p_{t-k}$，
+有
+\[
+ c=\left[\frac53,\frac13,-1\right].
+\]
+因此相关结果并不直接等于 $h$。该序列的自相关为
+$[1,-1/3,-1/3]$，故
+\[
+ c=\frac43h-\frac13(\mathbf1^\mathsf Th)\mathbf1.
+\]
+由于 $\sum_k c_k=1$，可以恢复
+\[
+ h=\frac34\bigl(c+(\mathbf1^\mathsf Tc)\mathbf1\bigr)=[2,1,0].
+\]
+这个短序列例子专门显示基线项和增益修正；它不是原文实验序列，
+也没有声称原文连续时间的归一化常数等于本例中的 $3/4$。
+\end{example}
+
+\subsection{第二步：把脉冲响应排成 Hankel 矩阵}
+设脉冲响应的离散 Markov 参数满足
+\[
+ h_0=D_d,\qquad h_k=C_dA_d^{k-1}B_d\quad(k\ge1).
+\]
+取 $q$ 个块行和 $q$ 个块列，在 SISO 情形下形成
+\[
+ H_0=
+ \begin{bmatrix}
+ h_1&h_2&\cdots&h_q\\
+ h_2&h_3&\cdots&h_{q+1}\\
+ \vdots&\vdots&&\vdots\\
+ h_q&h_{q+1}&\cdots&h_{2q-1}
+ \end{bmatrix},\qquad
+ (H_1)_{ij}=h_{i+j},\quad1\le i,j\le q .
+\]
+为什么这样排？因为无噪声时
+\[
+ H_0=\underbrace{\begin{bmatrix}C_d\\C_dA_d\\\vdots\\C_dA_d^{q-1}\end{bmatrix}}_{\mathcal O_q}
+ \underbrace{\begin{bmatrix}B_d&A_dB_d&\cdots&A_d^{q-1}B_d\end{bmatrix}}_{\mathcal C_q},
+ \qquad H_1=\mathcal O_q A_d\mathcal C_q.
+\]
+Hankel 矩阵的秩因而反映这一端口可控且可观的动态阶数。
+它既不是物理节点数，也不是原电路内部状态的唯一命名。
+
+对 $H_0$ 做截断奇异值分解
+\[
+ H_0\approx U_r\Sigma_rV_r^\mathsf T,\qquad \Sigma_r>0.
+\]
+ERA 用 $\mathcal O_q\approx U_r\Sigma_r^{1/2}$、
+$\mathcal C_q\approx\Sigma_r^{1/2}V_r^\mathsf T$，
+进而得到
+\begin{equation}\label{eq:tb-P5-era}
+ \begin{split}
+ A_d&=\Sigma_r^{-1/2}U_r^\mathsf T H_1V_r\Sigma_r^{-1/2},\\
+ B_d&=\Sigma_r^{1/2}V_r^\mathsf T e_1,\qquad
+ C_d=e_1^\mathsf T U_r\Sigma_r^{1/2},\qquad D_d=h_0.
+ \end{split}
+\end{equation}
+其中 $e_1\in\mathbb R^q$ 选取第一列或第一行。对原文 ERA 公式作这样的维度展开，
+是标准 SISO 实现的等价整理，避免把整块可观测矩阵误写成输出矩阵 $C_d$。
+阶数 $r$ 应依据奇异值衰减、噪声水平和留出响应误差选取；仅保留非零奇异值
+在含噪数据上通常会得到过高阶数。
+
+\begin{example}[教材例子：一次秩一 ERA]
+此例独立于前面的有限脉冲响应例子。令 $h_0=0$、
+$h_k=0.5^{k-1}$，取 $q=2$，则
+\[
+ H_0=\begin{bmatrix}1&0.5\\0.5&0.25\end{bmatrix},\qquad H_1=0.5H_0.
+\]
+唯一非零奇异值为 $\Sigma_1=1.25$，
+$U_1=V_1=(2,1)^\mathsf T/\sqrt5$。
+代入式\eqref{eq:tb-P5-era}有
+$A_d=0.5$，$B_d=C_d=1$，$D_d=0$，因此
+\[
+ G_d(z)=D_d+C_d(zI-A_d)^{-1}B_d=\frac1{z-0.5}.
+\]
+重新展开即得 $h_1=1,h_2=0.5,h_3=0.25$，与输入数据相符。
+\end{example}
+
+\subsection{第三步：由传递函数得到选定的等效电路}
+原文将离散模型转换成连续传递函数，并在算例中使用二阶等效电路。
+离散到连续转换必须指明采样间隔与保持器/变换约定；本次核实的原文没有提供
+足以唯一确定软件选项的细节，故这里不把某一个具体转换命令冒充原算法。
+例如在满足适当矩阵对数与零阶保持假设时可以从 $A_d$ 求 $A_c$，
+但这只是可选的系统辨识实现，不能由一个离散模型无条件推出唯一连续系统。
+
+下面从已得到的连续二阶导纳出发，解释原文电路的参数对应。
+令
+\[
+ G(s)=\frac{as+b}{s^2+cs+d}.
+\]
+采用串联 $R_1+sL$、再串联并联支路 $R_2\parallel1/(sC)$ 的端口电路，
+其导纳为
+\[
+ \frac1{R_1+sL+\frac{R_2}{1+sR_2C}}
+ =
+ \frac{\frac1L s+\frac1{LR_2C}}
+ {s^2+\frac{L+R_1R_2C}{LR_2C}s+\frac{R_1+R_2}{LR_2C}}.
+\]
+逐项比较后，在分母均非零的范围内得到
+\begin{equation}\label{eq:tb-P5-circuit}
+ \begin{aligned}
+ L&=\frac1a,&
+ R_1&=\frac{ac-b}{a^2},\\
+ R_2&=\frac{da^2-abc+b^2}{ba^2},&
+ C&=\frac{a^3}{da^2-abc+b^2}.
+ \end{aligned}
+\end{equation}
+这是所选端口等效电路的代数参数化，不是把四个参数分别分配给真实馈线的四条支路。
+例如 $a=b=1,c=d=2$ 时，得到 $L=R_1=R_2=C=1$，
+代回电路导纳确实等于 $(s+1)/(s^2+2s+2)$。
+若拟合结果导致负参数，需检查物理解释；原文表1中出现负的 $R_1$，
+并明确称该电路为虚拟等效电路。
+
+\begin{algorithm}[htbp]
+\caption{P5 的脉冲压缩到端口模型主线}
+\label{alg:tb-P5}
+\begin{algorithmic}[1]
+\Require 注入幅值、比特宽度、周期序列、采样间隔、采样电压/电流、候选阶数
+\Ensure 端口脉冲响应、离散模型及可解释时的等效电路参数
+\State 设置周期长于目标系统记忆；等待周期响应进入可重复采样的状态
+\State 在端口叠加已知序列，同步记录响应；按实验配置抑制工频背景
+\State 与参考序列相关，完成同步、增益和基线校正，提取一周期响应
+\State 根据有效记忆截取 $h_0,h_1,\ldots$；构造 $H_0,H_1$
+\State 对 $H_0$ 做 SVD；选定阶数 $r$，按式\eqref{eq:tb-P5-era}求状态空间模型
+\State 用模型重建脉冲响应并计算拟合残差；残差不合格则调整窗长、阶数或重新采样
+\State 如需连续模型，明确转换约定；若采用二阶电路，按式\eqref{eq:tb-P5-circuit}换算
+\end{algorithmic}
+\end{algorithm}
+算法中的残差接受阈值和调整策略需要实验者设置；原文没有给出对所有馈线适用的自动停止阈值。
+
+\subsection{成本、实验范围和与拓扑识别的距离}
+长度为 $L_s$ 的循环相关可用 FFT 在 $O(L_s\log L_s)$ 内实现；
+$q\times q$ 稠密 SVD 的常规成本为 $O(q^3)$。
+这些成本对应本节计算步骤，不包括注入硬件、等待系统稳定和多窗口采集。
+单窗口在既定采样结束、阶数及残差检查完成时结束；
+“跟踪”需要重复窗口，且隐含每个窗口内的近似定常性。
+
+原文 IEEE 13 节点 Simulink 算例在调压器650--632所在馈线入口的 A 相施加电压扰动，
+测量入口 A 相电流。其一组配置为 $n=10$ 阶序列、幅值50 V、
+比特宽度 $100\,\mu\mathrm{s}$，
+周期 $(2^{10}-1)100\,\mu\mathrm{s}=0.1023$ s，
+约为6.14个60 Hz周期，目标记忆约50 ms，并使用60 Hz陷波处理。
+这里的 $n=10$ 是序列生成阶数，不是 ERA 模型阶数或节点数。
+
+两个网络可能有相同的端口传递函数。最简单的例子是电阻 $r$ 与两个没有额外可观测端口的
+串联电阻 $r/2+r/2$，在该端口完全等价。因此，P5 可以为状态变化检测提供动态特征，
+却没有证明由单端口模型唯一恢复隐藏树。若要与末端拓扑推断结合，
+还需要多端口布置、跨端口传递关系和独立的可辨识性分析。
+
+\section{本章算法如何衔接，以及读者应交付什么}
+学完本章，首先应按观测机制选择数据模型。S12、S13、P1 使用准稳态功率扰动与电压响应：
+S12 先估计灵敏度再做树的集合分解；S13 在候选边中选择使线性回归最匹配的一棵树；
+P1 从带符号与正定约束的导纳矩阵恢复连接。P2、P3、P4 依赖设备检测与信号身份记录：
+先形成有方向的接收或后代关系，再去除传递边或整理包含链。
+P5 则辨识动态端口模型，需在此基础上另建拓扑逆问题。
+
+对一个具体馈线，最有用的算法复现交付物应至少包括：
+\begin{enumerate}
+ \item 数据表和维度：哪些节点注入、哪些节点测量、哪些候选边与线路参数已知；
+ \item 每个中间量：$R_{\mathcal P}$、分层集合、$H$ 与回归残差、ADMM残差，
+       或接收矩阵、闭包集合、相关响应与Hankel奇异值；
+ \item 输出语义：实际节点树、测量端口的约化树、含待消歧关系的记录图，
+       或仅输入输出等效的动态模型；
+ \item 对失败的可诊断说明：激励不满秩、层间差距小、候选图缺边、未连通解、
+       错误或缺失检测、周期折叠、阶数不足，分别对应不同的修正动作。
+\end{enumerate}
+上面的教材例子验证的是数学步骤在小规模确定性数据上的工作方式；
+没有替代论文数据、设备实验或大规模求解器复现。
+
+
+% END probing.tex
+
+
+% BEGIN statistical.tex
+\chapter{候选树上的信念、置信集合与预测校准：S14--S17}
+\label{chap:statistical-textbook}
+
+本章按“先定义统计对象，再给能执行的步骤，最后解释保证”的顺序学习四篇文献。它们处理的不是同一个问题：S14 把损失变成分布，S15 用正确的概率密度构造置信集合，S16 在树的组合结构与正边长上抽样，S17 校准未来标签或观测的预测集合。读者应先确定需要哪一种输出，再选择方法。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lXXX}
+\toprule
+文献 & 输入的关键对象 & 直接输出 & 不能由该输出直接得到的结论\\
+\midrule
+S14 & 损失、先验、学习率 & 广义后验权重 & 自动的频率覆盖率\\
+S15 & 正确的观测模型、拆分数据 & 参数或拓扑置信集合 & 模型错设下任意适用\\
+S16 & 高斯树协方差模型、树先验 & 树与边长的后验样本 & 有限迭代已遍历全部模式\\
+S17 & 冻结评分函数、可交换校准样本 & 新观测或标签的预测集合 & 单个未知网络的拓扑必然正确\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{算法来源标记。}
+“原算法”指来源明确给出的流程；“等价整理”指在明确条件下保持其数学对象和更新规则；“教学变体”指为了有限计算、拓扑应用或手算而新增的方案。本章数值例子全部自行构造，只检查算法中间量，不是论文实验复现。物理回归示例用净注入为正的 $p,q$，写成 $v=b\mathbf1+Rp+Xq$；采用净负荷为正时应同时改变符号，幅值与平方电压的比例也须一致。
+
+\section{S14：从损失函数到可计算的树权重}
+\label{sec:textbook-S14}
+
+\subsection{先定义要学习的参数，而不是先选一个概率公式}
+
+\citet{S14} 的基本对象是总体损失最小化参数：
+\[
+ \vartheta_\star\in\arg\min_{\vartheta}
+ \mathbb E_{Z\sim F_\star}\ell(\vartheta;Z).
+\]
+这里不必指定完整的 $F_\star$ 似然。例如平方损失对应均值目标，绝对损失对应中位数目标。把 $\vartheta=(T,\theta_T)$ 作为拓扑和边参数的组合，是本章面向 Topo 的教学应用；原论文不为配电树提供专门似然或专门优化器。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+符号 & 本节含义\\
+\midrule
+$\mathcal T=\{T_1,\ldots,T_K\}$ & 本次声明的有限候选树域\\
+$\theta_T\in\Theta_T$ & 树 $T$ 上的连续或离散边参数\\
+$\pi(T),\pi(d\theta\mid T)$ & 树先验与树内参数先验\\
+$D=(z_1,\ldots,z_n)$ & 用于更新的观测数据\\
+$L_D(T,\theta)=\sum_t\ell(T,\theta;z_t)$ & 累积损失，须记录量纲与缩放\\
+$\eta>0$ & 学习率，即数据损失相对先验的权重\\
+$W(T\mid D)$ & 更新后的树边际权重\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+若目的是末端电压预测，可在训练前定义
+\[
+ \ell(T,\theta;z_t)=
+ \left\|S_t^{-1/2}
+ [v_t-b_t\mathbf1-R_Tp_t-X_Tq_t]\right\|_2^2.
+\]
+这里的 $S_t$ 是正定误差尺度矩阵，并不是拓扑。根电压、功率符号和尺度估计方式都是损失定义的一部分。若把它改为稳健损失，学习的总体目标也随之改变。
+
+\subsection{广义后验的变分推导}
+
+原文第 1.1 节式 (7)--(8) 给出损失与 KL 散度组合；第 3 节讨论尺度。下面把其机制以本章记号展开。对满足 $\nu\ll\pi$ 的概率测度，考虑
+\[
+ J_D(\nu)=\eta\int L_D(\vartheta)\nu(d\vartheta)
+               +\mathrm{KL}(\nu\Vert\pi).
+\]
+假设
+\[
+ 0<Z_D=\int \exp[-\eta L_D(\vartheta)]\pi(d\vartheta)<\infty,
+\]
+并令
+\[
+ \pi_D(d\vartheta)=
+ \frac{\exp[-\eta L_D(\vartheta)]\pi(d\vartheta)}{Z_D}.
+\]
+直接代入对数密度比，有
+\[
+ J_D(\nu)=\mathrm{KL}(\nu\Vert\pi_D)-\log Z_D.
+\]
+因而 $\pi_D$ 是该变分问题的唯一最优概率测度。这个计算解释的是“为何采用指数更新”，并不是任意可信区间具有频率覆盖率的证明。
+
+拓扑权重必须先对树内参数积分：
+\begin{equation}
+ Z_T=\int_{\Theta_T}e^{-\eta L_D(T,\theta)}\pi(d\theta\mid T),
+ \qquad
+ W(T\mid D)=\frac{\pi(T)Z_T}{\sum_{S\in\mathcal T}\pi(S)Z_S}.
+ \label{eq:textbook-S14-integral}
+\end{equation}
+若先优化参数再评分，
+\[
+ \widetilde Z_T=\exp[-\eta\min_{\theta}L_D(T,\theta)],
+\]
+所得是 profile 损失评分，通常不等于 $Z_T$。积分会累加整个参数域的先验质量；最小值只记录最好的那个位置。
+
+\subsection{有限参数域上的完整计算：教学变体}
+
+为了把积分步骤完整写出来，暂设树 $T_k$ 的条件先验有有限支持
+$\theta_{kj}$，质量为 $\rho_{kj}>0$ 且 $\sum_j\rho_{kj}=1$。这是原更新规则在离散参数域上的等价计算，也是连续树问题的教学离散化。若这些点由连续先验独立抽样，取 $\rho_{kj}=1/J_k$ 得到的是 Monte Carlo 积分近似，不能再称精确后验。
+
+定义稳定的对数求和函数
+\[
+ \operatorname{LSE}(a_1,\ldots,a_J)
+ =c+\log\sum_{j=1}^J e^{a_j-c},\qquad c=\max_j a_j.
+\]
+公共平移不改变权重，却能避免极小指数下溢。
+
+\begin{algorithm}[htbp]
+\caption{S14：有限候选树与有限条件先验的指数更新（教学离散化）}
+\label{alg:textbook-S14}
+\begin{algorithmic}[1]
+\Require 数据 $D$；树 $T_k$ 与先验 $\pi_k$；参数点 $\theta_{kj}$、质量 $\rho_{kj}$；损失 $\ell$；$\eta>0$
+\Ensure 树权重 $W_k$、树内条件权重 $H_{kj}$、对数归一化常数
+\For{$k=1,\ldots,K$}
+  \For{$j=1,\ldots,J_k$}
+    \State $L_{kj}\gets\sum_{t=1}^n\ell(T_k,\theta_{kj};z_t)$
+    \State $a_{kj}\gets\log\rho_{kj}-\eta L_{kj}$
+  \EndFor
+  \State $b_k\gets\operatorname{LSE}_j(a_{kj})$
+  \State $g_k\gets\log\pi_k+b_k$
+  \State 若 $b_k>-\infty$，置 $H_{kj}\gets e^{a_{kj}-b_k}$
+\EndFor
+\State 若所有 $g_k=-\infty$，报告归一化失败，不输出伪造的均匀权重
+\State $g\gets\operatorname{LSE}_k(g_k)$
+\State $W_k\gets e^{g_k-g}$；零先验树的权重保持为零
+\State \Return $\{W_k,H_{kj}\}$ 与 $\log Z_D=g$
+\end{algorithmic}
+\end{algorithm}
+
+连续积分若采用重要性抽样，$\theta_j\sim q_T$ 时应使用
+$J^{-1}\sum_j e^{-\eta L(T,\theta_j)}\pi(\theta_j\mid T)/q_T(\theta_j)$。
+不同树的积分需要同样明确的测度和归一化。随意把每个树内重要性权重再归一化，通常会改变证据估计；这类数值近似应单独说明。
+
+\subsection{数值例一：损失大到直接指数下溢}
+
+取三棵树、每棵只有一个参数点：
+\[
+ \pi=(0.5,0.3,0.2),\qquad L=(1002,1001,1003),\qquad\eta=1.
+\]
+对数分数为 $g_k=\log\pi_k-L_k$。最大值
+$c=-1002.203973$ 来自第二棵树。逐步计算如下：
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+树 & $\pi_k$ & $g_k$ & $e^{g_k-c}$ & $W_k$\\
+\midrule
+$T_1$ & 0.5 & $-1002.693147$ & 0.613132 & 0.359956\\
+$T_2$ & 0.3 & $-1002.203973$ & 1.000000 & 0.587076\\
+$T_3$ & 0.2 & $-1004.609438$ & 0.090224 & 0.052968\\
+\bottomrule
+\end{tabular}
+\end{center}
+相对指数的和为 $1.703356$，
+$\log Z_D=c+\log(1.703356)=-1001.671372$。
+最终权重可正常计算，不必直接形成 $e^{-1000}$。
+若三棵树的损失同时减去 $1000$，所有权重不变；归一化常数的对数则增加 $1000$。
+
+\subsection{数值例二：积分与最小损失会选不同的树}
+
+现在只有 $T_A,T_B$，树先验相等，每棵树有四个等先验质量的参数点。令
+\[
+ L_A=(0,9,9,9),\qquad L_B=(1,1,1,1),\qquad\eta=1.
+\]
+profile 评分为 $\widetilde Z_A=1$、$\widetilde Z_B=e^{-1}$，偏好 $A$。
+而精确离散积分为
+\[
+ Z_A=\frac{1+3e^{-9}}4=0.250093,\qquad
+ Z_B=e^{-1}=0.367879.
+\]
+因此
+\[
+ W_A=0.404699,\qquad W_B=0.595301.
+\]
+$A$ 的最佳拟合更好，但只有四分之一先验质量位于该优点；$B$ 的参数域处处具有中等损失。连续情形中，类似差别表现为好拟合区域的宽度。本例不表示积分总是优于 profile，而是说明二者回答不同问题，不能混用名称。
+
+\subsection{顺序更新、停止与成本}
+
+固定 $\eta$、损失和参数域时，处理新批次 $B$ 只需把旧对数未归一化权重加上 $-\eta L_B$：
+\[
+ e^{-\eta L_A}e^{-\eta L_B}\pi
+ \propto e^{-\eta(L_A+L_B)}\pi.
+\]
+这是原文所强调的批次相容性。若第二批重选温度或候选域，得到的是另一个更新规则。
+
+有限域算法遍历所有点后即结束；若单个样本损失计算成本为 $C_\ell$，总成本约为
+$O(nC_\ell\sum_kJ_k)$，保存全部条件权重需 $O(\sum_kJ_k)$ 空间。
+它没有额外的“收敛迭代”。连续积分的停止应依据积分误差或有效样本量，而非只看最佳树是否连续几次不变。
+
+\paragraph{保证对象与迁移边界。}
+输入先验必须支持目标树，损失要定义目标参数，归一化常数必须存在。若 RNJ 候选漏掉真树，指数更新无法恢复域外质量；同一数据生成的 cherry 信息若又当独立先验使用，会重复计权。后验集中也不能解决观测等价。学习率的校准、局部 sandwich 协方差以及旧稿中的敏感性讨论保留在审查记录；这些是使用边界，不能代替本节的更新算法。
+
+\section{S15：用训练预测密度反演逐树置信集合}
+\label{sec:textbook-S15}
+
+\subsection{任务、输入和输出}
+
+\citet{S15} 的 split likelihood ratio 使用一部分数据训练分子，在另一部分上计算似然比。第 2 节的 Theorem 1、Theorem 3 是本节的来源，编号指 arXiv v4。下面的“逐树 profile + 求解器界”是把该构造投影到拓扑域的教学整理。
+
+给定树模型族
+\[
+ \mathcal P_T=\{p_{T,\theta}:\theta\in\Theta_T\},\qquad T\in\mathcal T,
+\]
+其中 $\theta$ 包含边参数和必要的噪声参数。目标是输出集合 $\mathcal C_\alpha$，
+使得在声明的统计条件下，真实树 $T_\star$ 至少以 $1-\alpha$ 的概率被保留。
+输出不是一组加总为一的后验概率。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+输入/中间量 & 要求\\
+\midrule
+$D_1,D_0$ & 训练、检验划分；基础版本中两部分独立\\
+$\widehat q_1$ & 仅用 $D_1$ 构造的归一化预测密度\\
+$L_T(\theta;D_0)$ & 原假设下完整的检验数据似然\\
+$\alpha$ & 预先指定的错误水平，$0<\alpha<1$\\
+$\underline F_T,\overline F_T$ & 负对数似然全域最小值的已验证下界、可行上界\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+基础证明依赖正确观测模型和密度归一化；不需要估计器渐近正态，也不要求训练分子为最佳拟合。反过来，即使拟合误差很小，任意未经归一化的分数也不能直接代替概率密度。
+
+\subsection{先构造一个真值处期望不超过一的统计量}
+
+令
+\[
+ Q_1(D_0)=\prod_{i\in D_0}\widehat q_1(Z_i),\qquad
+ L(T,\theta;D_0)=\prod_{i\in D_0}p_{T,\theta}(Z_i).
+\]
+在独立检验样本模型中，条件于训练数据，
+\[
+ \mathbb E_\star\!\left[
+ \frac{Q_1(D_0)}{L(T_\star,\theta_\star;D_0)}\middle|D_1
+ \right]
+ =\int_{\{L_\star>0\}}Q_1(z)\,dz\le1.
+\]
+这一步允许分子模型不准确，因为它仍然积分为一。Markov 不等式随后给出
+\[
+ \mathbb P_\star\left\{
+ \frac{Q_1(D_0)}{L(T_\star,\theta_\star;D_0)}>1/\alpha
+ \right\}\le\alpha.
+\]
+
+要消除边参数 nuisance，对每棵树使用最有利的原假设似然：
+\begin{equation}
+ U_T=\frac{Q_1(D_0)}{\sup_{\theta\in\Theta_T}L(T,\theta;D_0)},
+ \qquad
+ \mathcal C_\alpha^{\mathrm{exact}}=\{T:U_T\le1/\alpha\}.
+ \label{eq:textbook-S15-profile}
+\end{equation}
+真树的分母至少等于真参数似然，故 $\mathbb E_\star U_{T_\star}\le1$，
+进而 $\mathbb P_\star(T_\star\in\mathcal C_\alpha^{\mathrm{exact}})\ge1-\alpha$。
+这里所谓 profile，是在分母中对整个 $\Theta_T$ 取上确界；局部最优点不能自动替代它。
+
+\subsection{带求解器界的可实施算法：教学整理}
+
+为避免下溢，定义
+\[
+ \ell_Q=\log Q_1(D_0),\qquad
+ F_T^\star=\inf_{\theta\in\Theta_T}[-\log L(T,\theta;D_0)].
+\]
+则 $\log U_T=\ell_Q+F_T^\star$。求解器若返回
+$\underline F_T\le F_T^\star\le\overline F_T$，便知道
+\[
+ \ell_Q+\underline F_T\le\log U_T
+ \le\ell_Q+\overline F_T.
+\]
+注意方向：最小化目标的\emph{下界}产生安全的似然分母上界，因此可用来可靠排除；仅有可行解产生的上界不能支持排除。
+
+\begin{algorithm}[htbp]
+\caption{S15：逐树 profile 检验，数值未定时保守保留（教学整理）}
+\label{alg:textbook-S15}
+\begin{algorithmic}[1]
+\Require $D_1,D_0$；完整树域 $\mathcal T$ 与 $\Theta_T$；正确似然；$\alpha$；每树计算预算
+\Ensure 保守置信集合 $\mathcal C_\alpha$，及每棵树的判定状态
+\State 仅用 $D_1$ 拟合归一化预测密度 $\widehat q_1$
+\State 冻结分子，计算 $\ell_Q\gets\sum_{i\in D_0}\log\widehat q_1(Z_i)$
+\State $c\gets-\log\alpha$；$\mathcal C_\alpha\gets\varnothing$
+\For{每棵 $T\in\mathcal T$}
+  \State 最小化 $F_T(\theta)=-\log L(T,\theta;D_0)$
+  \State 得到已验证界 $\underline F_T\le F_T^\star\le\overline F_T$
+  \If{$\ell_Q+\underline F_T>c$}
+    \State 标记 $T$ 为“已排除”
+  \Else
+    \State $\mathcal C_\alpha\gets\mathcal C_\alpha\cup\{T\}$
+    \If{$\ell_Q+\overline F_T\le c$}
+      \State 标记 $T$ 为“已确认属于精确反演集合”
+    \Else
+      \State 标记 $T$ 为“计算未定，保守保留”
+    \EndIf
+  \EndIf
+\EndFor
+\State 未计算的域内树也作为“未定”保留
+\State \Return $\mathcal C_\alpha$ 与状态、上下界、分子拟合记录
+\end{algorithmic}
+\end{algorithm}
+
+只要下界是对声明完整模型域成立的界，这个集合包含精确反演集合，因而保留其覆盖下界。计算预算只会扩大未定部分。对于最小化问题，求解器的可行目标值通常是 $\overline F_T$，全局松弛或可靠分支定界给出 $\underline F_T$；应按求解器的定义核实，不能只读取一个名为 gap 的数值。
+
+\subsection{完整数值例：三个模型标签、一个均值 nuisance}
+
+为把所有中间量算出来，用一维条件模型代表三种候选结构所允许的响应范围：
+\[
+ Y\mid T_j,\theta\sim N(\theta,1),\qquad
+ \Theta_1=[0,1],\quad\Theta_2=[1,2],\quad\Theta_3=[2,3].
+\]
+这些区间是教学模型，\textbf{不是三棵配电树的物理等价模型}。
+
+独立训练数据为 $D_1=(0,1)$，据此选
+$\widehat q_1=N(0.5,1)$。检验数据为 $D_0=(0,0,1,1)$。
+检验均值也是 $0.5$，但这是例子数值的巧合，分子已经由训练阶段冻结。
+取 $\alpha=0.1$，排除阈值为 $10$。
+
+令公共对数密度常数 $c_0=-2\log(2\pi)$。分子的平方残差和为
+\[
+ (0-0.5)^2+(0-0.5)^2+(1-0.5)^2+(1-0.5)^2=1,
+\]
+所以 $\ell_Q=c_0-0.5$。每棵树的 MLE 为将检验均值投影到相应区间：
+\begin{center}
+\begin{tabular}{lrrrrl}
+\toprule
+模型 & $\widehat\theta_T$ & SSE & $F_T^\star+c_0$ & $U_T$ & 判定\\
+\midrule
+$T_1$ & 0.5 & 1 & 0.5 & 1.000000 & 保留\\
+$T_2$ & 1.0 & 2 & 1.0 & 1.648721 & 保留\\
+$T_3$ & 2.0 & 10 & 5.0 & 90.017131 & 排除\\
+\bottomrule
+\end{tabular}
+\end{center}
+表中的 $F_T^\star=-c_0+\mathrm{SSE}/2$，故
+$\log U_T=\mathrm{SSE}/2-0.5$。最后
+$\mathcal C_{0.1}^{\mathrm{exact}}=\{T_1,T_2\}$。
+这些统计量不是“树的概率”；例如第三个值可以大于一。
+
+\paragraph{继续检查求解器界。}
+对 $T_2$，若局部求解器只找到 $\theta=2$，它得到 SSE $=10$，
+错误地把该可行点用作 profile 分母就会得到 $U=90.017131$，把本应保留的 $T_2$ 排除。
+反之，若证明相对负对数似然下界为 $0.8$，安全统计量为
+$e^{0.8-0.5}=1.349859$，不超过精确值 $1.648721$。
+对 $T_3$，若只取得下界 $2$，安全统计量
+$e^{2-0.5}=4.481689<10$，因此预算结束时必须保守保留；它虽然本可被精确计算排除，但当前证书还不够。
+
+\subsection{条件密度版本如何用于 P/Q/V}
+
+将功率及已知工况记为 $U$，把检验电压记为 $V_0$，训练数据记为 $D_1$。
+合适的对象是
+\[
+ \frac{q_1(V_0\mid U,D_1)}
+ {p_{T,\theta}(V_0\mid U,D_1)}.
+\]
+在相应条件分布下，分子对 $V_0$ 的积分为一，就可以重做期望计算。
+基础高斯回归可写成
+\[
+ v_t\mid p_t,q_t,T,\theta
+ \sim N(b_t\mathbf1+R_Tp_t+X_Tq_t,\Omega).
+\]
+如果时间相关已被建模，应使用检验序列的正确联合条件密度；把它强行写成独立时刻的乘积会改变原假设。若根电压未知，分母可合法地对其参数 profile，但分子不能在看到 $V_0$ 后重新自由选择每时刻的均值而仍声称是冻结的预测密度。
+
+训练模型较差主要降低检验能力；错误的原假设似然则会使保证的对象失去依据。功率测量误差、线性化偏差、噪声相关及根电压过程都应包含在观测模型或明确的近似范围中。
+
+\subsection{停止、成本及保证检查}
+
+有限域共有 $K$ 棵树时，成本为分子训练成本加上
+$\sum_{T\in\mathcal T}C_{\mathrm{solve}}(T)$。
+逐树计算可在证书跨越阈值时提前结束，也可在预算到达时保留“未定”。
+没有普适的多项式树搜索成本；把 RNJ 候选域当成全域只会隐藏组合复杂性。
+
+若多个预先定义的拆分各自产生非负统计量 $E_k$ 且真值处期望不超过一，则平均
+$K^{-1}\sum_kE_k$ 仍有该性质；不应改成看完结果取最大值。固定样本程序也不能在任意停止时直接复用。真正序贯的版本需要在看到当前数据前确定归一化条件预测密度，构造非负超鞅，再使用对应停止时理论。
+
+\paragraph{与最简树的接口。}
+反演保证保留固定真树，不以可辨识性为前提；但是没有可辨识性，集合通常无法稳定缩成唯一结构。隐藏度二节点的多个细分若产生同一观测模型，统计程序无法从相同密度中区分它们。候选域完整性、正确似然与数值证书是三个分别要检查的接口。
+
+\section{S16：把树拓扑和边长作为 MCMC 的真实状态}
+\label{sec:textbook-S16}
+
+\subsection{观测模型与状态：先弄清算法在抽什么}
+
+\citet{S16} 的主文第 5 节采用零均值高斯超度量协方差模型。Algorithm 1 先更新拓扑，再逐条更新全部边长。本节按该顺序整理；矩阵计算、存储规则和数值例子是教学补充。原文公式的版本疑点放在本节末尾与审查记录，不代替算法介绍。
+
+设有 $N$ 个独立样本 $x_t\in\mathbb R^m$：
+\[
+ x_t\mid T,a\sim N_m(0,\Sigma(T,a)),\qquad t=1,\ldots,N.
+\]
+这里零均值是模型条件，不能把估计样本均值后中心化与“均值已知为零”不加区分。
+标记集合为 $\{0,1,\ldots,m\}$；$0$ 是额外的根标记，其余 $m$ 个标记对应观测变量。
+采用带正根边的二叉树，其状态写为
+\[
+ \mathsf s=(\mathcal E,a),\qquad
+ a:\mathcal E\longrightarrow(0,\infty).
+\]
+每个分裂只存不含根标记 $0$ 的那一侧 $A\subseteq\{1,\ldots,m\}$，
+并以排序后的标记集合为唯一键。状态必须同时存“哪个分裂”及“该分裂的边长”，仅存边长数组会在改拓扑时丢掉含义。
+
+\begin{center}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+状态组成 & 内容\\
+\midrule
+固定末端分裂 & $\{1\},\ldots,\{m\}$，各自边长严格为正\\
+固定根分裂 & $\{1,\ldots,m\}$，对应共同根边，边长严格为正\\
+内部分裂 $\mathcal E^I$ & $m-2$ 个兼容分裂，大小在 $2$ 到 $m-1$ 之间\\
+长度字典 $a_A$ & 完全二叉状态共有 $2m-1$ 个正值\\
+$\Sigma$、$\ell$ & 当前协方差及数据对数似然的缓存\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+分裂兼容性在这种根向表示中意味着任意两个集合嵌套或不交。
+给 $A$ 的指示向量 $u_A$，协方差为
+\begin{equation}
+ \Sigma(\mathcal E,a)=\sum_{A\in\mathcal E}a_Au_Au_A^\top.
+ \label{eq:textbook-S16-sigma}
+\end{equation}
+它的第 $i,j$ 元是二者共同根路径长度之和。
+末端边为正保证对任意非零 $z$，
+\[
+ z^\top\Sigma z
+ =\sum_Aa_A(u_A^\top z)^2
+ \ge\sum_{i=1}^m a_{\{i\}}z_i^2>0.
+\]
+因此，即使暂时将某条内部边收缩到零，协方差仍然正定。
+这允许拓扑提议经过未分辨树，而不必经过奇异协方差。
+
+\subsection{先验与稳定似然计算}
+
+为给出可直接实施的版本，本节使用主文演示的先验形式：拓扑均匀、所有边长独立且服从同均值的指数分布。具体为
+\[
+ \pi_E(\mathcal E)=\frac1{(2m-3)!!},\qquad
+ \pi_L(a)=\lambda^{-(2m-1)}
+ \exp\!\left[-\frac1\lambda\sum_{A\in\mathcal E}a_A\right],
+ \quad \lambda>0.
+\]
+论文也讨论更一般的树分裂先验；若改变先验，接受比中必须保留相应先验比，不能沿用均匀先验时的简化。
+
+令 $S=N^{-1}\sum_tx_tx_t^\top$。忽略与状态无关的常数，数据对数似然为
+\begin{equation}
+ \ell(\mathcal E,a)
+ =-\frac N2\log\det\Sigma
+  -\frac N2\operatorname{tr}(S\Sigma^{-1}).
+ \label{eq:textbook-S16-loglik}
+\end{equation}
+实现时先作 Cholesky 分解 $\Sigma=LL^\top$，
+用 $2\sum_j\log L_{jj}$ 算 $\log\det\Sigma$，
+并用三角求解计算二次型或 trace；不应为方便反复显式求逆。
+数值分解失败应触发状态和精度检查，不应被静默当成“后验不喜欢这棵树”。
+
+\subsection{一次拓扑提议：只改一个内部分裂}
+
+当 $m\ge3$，从 $\mathcal E^I$ 均匀选择 $A$。
+把该边收缩后，邻接的两个三度节点合并成一个四度节点；
+移开该节点后得到四个连通分支，其叶标记集合为 $C_1,C_2,C_3,C_4$，
+其中恰有一个包含根标记 $0$。四个分支有三种两两连接方式：
+当前方式对应 $A$，另外两种对应两个不同的新分裂。
+
+这一描述给出了 \textsc{OtherTwoNNI} 的实现方式：
+构建当前树的邻接关系，收缩选中边，取得四个分支，枚举另外两种配对，
+最后把每个分裂规范为不含 $0$ 的一侧。不要在完全图上随意选一个子集充当新分裂，
+因为那可能与保留分裂不兼容。
+
+均匀选一个新分裂 $B$ 后，令
+\[
+ \mathcal E'=(\mathcal E\setminus\{A\})\cup\{B\},\qquad
+ a'_B=a_A,
+\]
+其余分裂长度保持不变。这一步“新边继承旧边长度”已由原 Algorithm 1 第 4 步核实。
+当前和反向提议概率都为 $[2(m-2)]^{-1}$，长度重命名的 Jacobian 为一。
+在本节均匀拓扑、同分布长度先验下，接受比只剩
+\[
+ \log r_E=\ell(\mathcal E',a')-\ell(\mathcal E,a).
+\]
+若使用非均匀拓扑先验，应加
+$\log\pi_E(\mathcal E')-\log\pi_E(\mathcal E)$。
+按 $\log U\le\min(0,\log r_E)$ 接受，否则保持整个旧状态。
+
+\subsection{一次边长提议：截断后不能省略提议比}
+
+拓扑决定后，依次访问当前树中的全部 $2m-1$ 条边。
+对当前长度 $a>0$ 提议
+\[
+ a'\sim N(a,\sigma^2)\ \text{截断于 }(0,\infty).
+\]
+这里 $a$ 是未截断高斯的中心，不是截断后分布的实际均值。
+设标准正态密度、分布函数分别为 $\varphi_N,\Phi_N$，
+\[
+ q(a'\mid a)=
+ \frac{\varphi_N((a'-a)/\sigma)}
+ {\sigma\Phi_N(a/\sigma)}\,\mathbf1\{a'>0\}.
+\]
+高斯核对称，但归一化因子不同，所以
+\[
+ \frac{q(a\mid a')}{q(a'\mid a)}
+ =\frac{\Phi_N(a/\sigma)}{\Phi_N(a'/\sigma)}.
+\]
+固定拓扑和其他边长，完整对数接受比为
+\begin{equation}
+ \log r_L=
+ [\ell(a')-\ell(a)]
+ -\frac{a'-a}{\lambda}
+ +\log\Phi_N(a/\sigma)-\log\Phi_N(a'/\sigma).
+ \label{eq:textbook-S16-length-ratio}
+\end{equation}
+按同样的对数均匀数规则接受。每接受一条边后，后续边必须使用已经更新的状态。
+若被拒绝，应保留旧值，并把这一重复状态纳入链；只保存接受样本会改变抽样分布。
+
+\subsection{一轮完整流程：原 Algorithm 1 的可执行整理}
+
+下面保持原文的“拓扑一次、全部边长一轮”顺序。
+接受概率按标准 Metropolis--Hastings 定义写为 $\min(1,r)$；
+这是对已核查版本中概率表达的必要明确化，不是声称作者代码也使用了排版中的 $\max$。
+
+\begin{algorithm}[htbp]
+\caption{S16：树状态上的拓扑与边长交替 MH（原流程的等价整理）}
+\label{alg:textbook-S16}
+\begin{algorithmic}[1]
+\Require 零均值模型数据 $x_{1:N}$；有效二叉状态 $(\mathcal E,a)$；$\lambda,\sigma>0$；轮数 $M$；舍弃轮数 $B<M$
+\Ensure $M-B$ 个链状态及拓扑、边长诊断记录
+\State 计算 $S$、当前 $\Sigma$ 与 $\ell$；检查所有状态约束
+\For{$r=1,\ldots,M$}
+  \If{$m\ge3$}
+    \State 均匀选择内部分裂 $A$，求另外两个 NNI 分裂并均匀选 $B'$
+    \State 构造 $\mathcal E',a'$，使 $a'_{B'}=a_A$，其余长度不变
+    \State 计算 $\ell'$，置 $\log r_E=\ell'-\ell$
+    \State 若 $\log U\le\min(0,\log r_E)$，用新状态替换当前状态
+  \EndIf
+  \For{当前 $\mathcal E$ 中每条边 $A$，按固定顺序}
+    \State 从 $N(a_A,\sigma^2)$ 的正半轴截断分布提议 $a'_A$
+    \State 构造 $\Sigma'=\Sigma+(a'_A-a_A)u_Au_A^\top$，计算 $\ell'$
+    \State 按式 \eqref{eq:textbook-S16-length-ratio} 计算 $\log r_L$
+    \State 若 $\log U\le\min(0,\log r_L)$，同步更新 $a_A,\Sigma,\ell$
+    \State 拒绝时保持当前状态，包括之前本轮已经接受的更新
+  \EndFor
+  \State 记录本轮当前状态及接受信息
+  \If{$r>B$}
+    \State 将当前状态存入后验样本序列
+  \EndIf
+\EndFor
+\State \Return 样本序列、分裂访问频率、边长轨迹及诊断
+\end{algorithmic}
+\end{algorithm}
+
+每个接受步骤中的 $U$ 都重新独立取自 $\operatorname{Unif}(0,1)$。
+本算法固定采用均匀拓扑和相同均值指数先验；
+一般先验需要相应修改接受比。$M$ 是计算预算，不是自动保证收敛的迭代数。
+
+\subsection{数值例：三末端树的一次拓扑提议和一次边长提议}
+
+取 $m=3$，全部五条边初始长度为 $1$：
+\[
+ \mathcal E=\{\{1\},\{2\},\{3\},\{1,2,3\},\{1,2\}\},
+ \quad
+ \Sigma_{12}=
+ \begin{pmatrix}3&2&1\\2&3&1\\1&1&2\end{pmatrix}.
+\]
+两个独立观测取
+$x_1=(1,1,0)^\top$、$x_2=(-1,-1,0)^\top$。
+它们是教学数值，不用于声称模型已通过验证。
+
+\paragraph{第一步：拓扑改变。}
+唯一内部分裂为 $\{1,2\}$，另外两种为 $\{1,3\}$ 和 $\{2,3\}$。
+假设提议选择 $\{1,3\}$，并继承长度 $1$：
+\[
+ \Sigma_{13}=
+ \begin{pmatrix}3&1&2\\1&2&1\\2&1&3\end{pmatrix}.
+\]
+两者行列式均为 $8$。直接解线性方程得到
+\[
+ x_1^\top\Sigma_{12}^{-1}x_1=\tfrac12,\qquad
+ x_1^\top\Sigma_{13}^{-1}x_1=1.
+\]
+对 $x_2$ 的二次型相同。因此
+\[
+ \ell_{12}=-\log8-\tfrac12,\qquad
+ \ell_{13}=-\log8-1,\qquad
+ r_E=e^{-1/2}=0.606531.
+\]
+若本次均匀数 $U=0.4$，接受，新状态是 $\Sigma_{13}$；
+若 $U=0.7$ 则拒绝，状态仍为 $\Sigma_{12}$。
+以下继续使用已经接受 $\Sigma_{13}$ 的分支。
+
+\paragraph{第二步：单条末端边长度改变。}
+令 $\lambda=\sigma=1$，对分裂 $\{3\}$ 的长度由 $1$ 提议到 $1.5$。
+新矩阵为
+\[
+ \Sigma'=\Sigma_{13}+0.5e_3e_3^\top
+ =\begin{pmatrix}3&1&2\\1&2&1\\2&1&3.5\end{pmatrix}.
+\]
+这里
+$e_3^\top\Sigma_{13}^{-1}e_3=5/8$、
+$x_1^\top\Sigma_{13}^{-1}e_3=-1/2$。
+行列式引理与 Sherman--Morrison 公式给出
+\[
+ \frac{\det\Sigma'}{\det\Sigma_{13}}=
+ 1+\frac12\frac58=\frac{21}{16},\quad
+ \det\Sigma'=10.5,\quad
+ x_1^\top(\Sigma')^{-1}x_1=1-\frac{(1/2)(1/2)^2}{21/16}
+ =\frac{19}{21}.
+\]
+因此
+\[
+ \ell'-\ell_{13}
+ =-\log(21/16)+\frac2{21}=-0.176696.
+\]
+先验比是 $e^{-0.5}$，提议比是
+\[
+ \frac{\Phi_N(1)}{\Phi_N(1.5)}
+ =\frac{0.841345}{0.933193}=0.901577.
+\]
+最终
+\[
+ \log r_L=-0.176696-0.5+\log(0.901577)=-0.780306,
+ \qquad r_L=0.458266.
+\]
+若本次 $U=0.5$，拒绝该边长变化，当前状态仍是长度均为 $1$ 的 $\Sigma_{13}$。
+这个演算同时检查了似然、先验和截断提议三部分，不能只比较数据拟合。
+
+\subsection{怎样汇总样本、判断预算是否足够}
+
+对保留的 $M-B$ 个状态，可计算某分裂的访问频率
+\[
+ \widehat P(A\in\mathcal E\mid D)
+ =\frac1{M-B}\sum_{r>B}\mathbf1\{A\in\mathcal E^{(r)}\}.
+\]
+这是在链充分混合前提下的数值后验近似。对给定分裂，报告存在概率和
+“存在时的边长分布”应分开；未出现的分裂不是一条已存在但长度为零的内部边。
+完整拓扑的出现频率、最大访问后验密度状态和逐元素协方差平均，也分别是不同的汇总量。
+
+实际停止规则可预先给定预算，再检查多个初始树的模式访问、分裂切换、边长有效样本量和似然轨迹。没有一个“轨迹看起来平稳”的判据能够证明已访问全部后验模式。
+本节不推荐把原论文某次实验的舍弃比例机械搬到新数据。
+
+预计算 $S$ 约需 $O(Nm^2)$。朴素实现每次提议重新做稠密分解，
+一轮 $O(m)$ 次提议的成本约为 $O(m^4)$；$M$ 轮约 $O(Mm^4)$。
+单边变化是秩一更新，拓扑替换是一次删除加一次加入，谨慎使用 Cholesky 更新后可以减少重复计算；这是实现优化，不是原文实验时间的重述。
+只存分裂和长度约需每样本 $O(m)$ 空间，保存全部协方差则需 $O(m^2)$。
+
+\subsection{在 Topo 中迁移时保留哪些边界}
+
+相同的分裂展开可用于共同路径响应矩阵 $R$、$X$，但论文的观测模型是
+$x_t\sim N(0,\Sigma)$，并不是自动把电压样本当成共同路径增量。
+例如 $v=Rp+\varepsilon$ 时，通常
+$\operatorname{Cov}(v)=R\operatorname{Cov}(p)R^\top+\operatorname{Cov}(\varepsilon)$，
+并不等于 $R$。采用本算法之前，应明确抽样对象是响应矩阵参数还是电压协方差；
+若重写为 $P/Q/V$ 条件似然，应标作教学迁移模型。
+
+严格正的连续边长先验不对多分叉边界赋正质量。原 Algorithm 1 可以经零内部边的几何位置提出新二叉树，但最终保留状态仍是二叉正边状态。
+若目标最简树允许未分辨多分叉，需要新的边界质量与跳转规则，不能仅把近零边概率称为精确多分叉后验。
+
+\paragraph{版本核验提醒。}
+所读主文式 (9)--(11) 的 $\max(1,r)$ 不能作为接受概率，故上文使用了标准 $\min(1,r)$。
+主文关于扩展距离的加法表达与 CAT(0) 唯一性之间的核验问题，也不影响读者按明确密度和 MH 比率理解本节算法。完整证据和独立反例列在 \path{audit_statistical.md}，不据此推断作者代码是否存在相同问题。
+
+\section{S17：从校准分数到预测集合}
+\label{sec:textbook-S17}
+
+\subsection{先选样本单位：一个时刻还是一整个网络}
+
+\citet{S17} 第 1.1 节给出 split conformal 的标准步骤，附录 D 用秩对称性证明覆盖。
+其输入是一批具有可观测标签的校准样本 $(X_i,Y_i)$，以及已经冻结的评分函数
+$s(x,y)$；分数越大表示候选标签越不符合模型。
+
+在 Topo 中，两个不同任务对应两种不同样本单位：
+\begin{center}
+\begin{tabularx}{\linewidth}{lXXX}
+\toprule
+任务 & 一个 $X_i$ & 一个 $Y_i$ & 需要的校准来源\\
+\midrule
+未来电压预测 & 一个时刻的功率与工况 & 同一时刻的电压向量 & 与未来时刻具有所需交换关系的观测\\
+新网络拓扑预测 & 一整网的末端数据包 & 该网络已知真拓扑 & 多个有真树标签的可交换网络实例\\
+\bottomrule
+\end{tabularx}
+\end{center}
+同一未知网络的九个时刻可以提供九个电压标签，
+却不会自动提供九个已知的拓扑标签。这一选择必须发生在校准算法之前。
+
+\subsection{分位数公式及覆盖推导}
+
+给定 $n$ 个校准分数 $s_i=s(X_i,Y_i)$，令
+\begin{equation}
+ k=\left\lceil(n+1)(1-\alpha)\right\rceil,\qquad
+ \widehat q=
+ \begin{cases}
+ s_{(k)},& k\le n,\\
+ +\infty,& k=n+1,
+ \end{cases}
+ \quad
+ \mathcal C(x)=\{y:s(x,y)\le\widehat q\}.
+ \label{eq:textbook-S17-quantile}
+\end{equation}
+$s_{(k)}$ 是从小到大排序的第 $k$ 个数，使用从 $1$ 开始的索引。
+直接写成普通经验 $1-\alpha$ 分位数会遗漏有限样本修正。
+
+条件于独立训练数据，若校准样本与新样本可交换，且分数几乎必然无并列，
+新分数在 $n+1$ 个分数中的秩均匀。因此当 $k\le n$，
+\[
+ \mathbb P\{Y_{\mathrm{new}}\in\mathcal C(X_{\mathrm{new}})\}
+ =\mathbb P\{s_{\mathrm{new}}\le s_{(k)}\}
+ =\frac{k}{n+1}\ge1-\alpha.
+\]
+当 $k=n+1$，集合为整个输出空间，覆盖自然成立。
+有并列时，用弱不等式得到的下界仍然保留，集合可能更保守；
+精确上界需要额外条件或相应随机化。这是对来源秩论证的教材展开。
+
+\subsection{完整标准算法}
+
+\begin{algorithm}[htbp]
+\caption{S17：split conformal（原算法的索引与边界显式整理）}
+\label{alg:textbook-S17}
+\begin{algorithmic}[1]
+\Require 独立训练数据 $D_{\mathrm{train}}$；校准数据 $\{(X_i,Y_i)\}_{i=1}^n$；$0<\alpha<1$
+\Ensure 可用于新输入的预测集合函数 $\mathcal C(\cdot)$
+\State 只用训练数据拟合预测器及尺度，定义并冻结评分函数 $s$
+\For{$i=1,\ldots,n$}
+  \State $s_i\gets s(X_i,Y_i)$
+\EndFor
+\State $k\gets\lceil(n+1)(1-\alpha)\rceil$
+\If{$k>n$}
+  \State $\widehat q\gets+\infty$
+\Else
+  \State 对分数排序，$\widehat q\gets s_{(k)}$
+\EndIf
+\State 对任意新输入 $x$，返回所有满足 $s(x,y)\le\widehat q$ 的输出 $y$
+\State \Return $\mathcal C(\cdot)$，以及 $n,k,\widehat q$ 和冻结评分器
+\end{algorithmic}
+\end{algorithm}
+
+评分函数可以很差而仍获边际覆盖，但集合会很大或没有辨别力。
+校准数据用于确定阈值，不能又在许多评分器之间挑最窄的那个而仍直接套用同一证明。
+若需要调评分器，应另用训练/调参数据或采用有对应理论的选择程序。
+
+\subsection{数值例一：九个残差得到一个电压区间}
+
+设冻结预测器对本例所有输入给 $\widehat v=230$ 伏，
+尺度为 $1$ 伏，评分 $s(x,v)=|v-230|$。
+取 $\alpha=0.2$，九个校准观测及其分数为
+\begin{center}
+\begin{tabular}{crrrrrrrrr}
+\toprule
+$i$ &1&2&3&4&5&6&7&8&9\\
+\midrule
+$v_i$ &230.1&229.8&230.2&229.6&230.4&229.5&230.7&229.2&231.1\\
+$s_i$ &0.1&0.2&0.2&0.4&0.4&0.5&0.7&0.8&1.1\\
+\bottomrule
+\end{tabular}
+\end{center}
+这些分数恰好已按升序排列。
+\[
+ k=\lceil10\times0.8\rceil=8,\qquad
+ \widehat q=s_{(8)}=0.8.
+\]
+因此新输入的预测集合为
+\[
+ \mathcal C(x)=[230-0.8,\ 230+0.8]=[229.2,230.8]\ \text{伏}.
+\]
+新值 $230.7$ 的分数为 $0.7$，落入集合；$230.9$ 的分数为 $0.9$，不落入集合。
+这两个检验点仅解释集合判定，不是覆盖率的经验估计。
+
+若同样 $n=9$ 却要求 $\alpha=0.05$，
+$k=\lceil9.5\rceil=10>n$，必须返回整个实数轴。
+把 $k$ 硬截到 $9$ 并取最大残差 $1.1$，在一般连续分数下只有 $9/10$ 的覆盖，
+不是所要求的 $95\%$。这一边界是可实施算法必须显式处理的部分。
+
+\subsection{向量电压：同时覆盖应放进评分定义}
+
+对 $m$ 个末端，冻结 $\widehat v_j(x)$ 和严格正的尺度 $\widehat\sigma_j(x)$，
+定义
+\[
+ s(x,v)=\max_j\frac{|v_j-\widehat v_j(x)|}{\widehat\sigma_j(x)}.
+\]
+由该向量分数独立校准得到阈值后，
+\[
+ \mathcal C_v(x)=
+ \prod_{j=1}^m
+ [\widehat v_j(x)-\widehat q\widehat\sigma_j(x),\
+  \widehat v_j(x)+\widehat q\widehat\sigma_j(x)].
+\]
+这是单个新时刻的整个电压向量覆盖事件，不是每个节点分别校准后再假定联合覆盖。
+
+作为单独的教学计算，若\emph{向量校准分数}给出 $\widehat q=0.8$，
+新输入的预测为 $(230,228)$、尺度为 $(1,0.5)$，则
+\[
+ \mathcal C_v=[229.2,230.8]\times[227.6,228.4].
+\]
+观测 $(230.7,228.45)$ 的标准化误差为 $(0.7,0.9)$，
+最大值 $0.9$，故整个向量不被覆盖。不能把上一小节的标量校准分数直接当作此处向量分数；两者必须分别校准。
+
+\subsection{数值例二：标签是整棵树时怎样构造集合}
+
+现在使用另一组九个\emph{网络实例}进行校准，各实例的真树已知，
+并采用冻结推断器产生的树权重 $\widehat W(T\mid X)$。
+定义 $s(X,T)=1-\widehat W(T\mid X)$。
+假设这组网络校准分数为
+\[
+ (0.05,0.10,0.15,0.20,0.30,0.40,0.50,0.80,0.90).
+\]
+同样取 $\alpha=0.2$，得到 $k=8$、$\widehat q=0.8$。
+对一个新网络，三种树标签的冻结权重为
+\[
+ \widehat W=(0.65,0.25,0.10),\qquad s=(0.35,0.75,0.90).
+\]
+因为要求 $s\le0.8$，输出
+$\mathcal C_T(X)=\{T_1,T_2\}$。
+这可以校准一个原先不准确的权重评分，但覆盖对象是同机制新网络的真树标签，
+不是把同一网络的时间样本误当作独立真树。
+
+评分须在声明的整个树标签空间上有定义。
+如果测试时把该集合再与 RNJ 候选集相交，被截掉的真树可能破坏覆盖。
+若事先把候选域外树的分数定义为 $+\infty$ 并按同一规则校准，
+频繁候选遗漏可能使 $\widehat q=+\infty$；此时集合按定义应含全部标签，
+不能仍强行输出那个有限候选域。
+
+\subsection{停止、成本和数据条件}
+
+校准算法在计算全部 $n$ 个分数和一个次序统计量后结束。
+若每个评分成本为 $C_s$，排序实现约需
+$O(nC_s+n\log n)$；选第 $k$ 小元素可避免完整排序。
+树标签有限且有 $K$ 种时，每个新输入需要评估 $K$ 个标签分数；
+连续回归则需要把不等式反解为区间或区域。这里不包含预测器训练成本。
+
+覆盖是对校准集和新样本随机性平均后的边际陈述；它不是固定校准集上每个输入点的条件保证。
+对于时间数据，季节漂移、主动控制改变采样策略和重叠窗口都会影响可交换性。
+简单打乱时序不会制造原本不存在的独立性或交换性。
+若改用窗口、分组、加权或漂移适应版本，应说明新分数与新理论，不把标准算法的保证原封不动转移。
+
+\paragraph{预测与拓扑的最后区别。}
+一个错误拓扑仍可能在有限激励下有良好电压预测，或者靠很宽区域取得高覆盖。
+极端例子是始终返回 $\mathbb R^m$：电压覆盖为一，却没有任何拓扑识别内容。
+因此应同时报告区域大小、分组覆盖及样本单位。
+本节算法可靠地回答“新观测/标签如何形成覆盖集合”，不能凭电压残差校准直接回答“这棵物理树是否为真”。
+
+\section{四种算法怎样衔接而不混淆}
+\label{sec:textbook-statistical-connection}
+
+在一次可追踪的研究中，可以让 RNJ 提供候选，S14 对声明损失产生可比较权重，
+再以 S16 的树坐标探索连续参数与新分裂；
+但只有使用所声明的高斯协方差似然，才是本章给出的 S16 原模型。
+若目标是频率意义的真树保留，可另在正确条件似然和完整参数域上运行 S15。
+若目标是未来电压区域，S17 则可以把冻结预测器的残差分数校准成集合。
+它们不是一个自动叠加保证的流水线。
+
+一份可实施的记录至少应保存：数据划分、功率和电压坐标、树标签规范、
+候选生成规则、先验或损失、归一化密度、优化上下界、MCMC 随机种子、
+校准秩和无限阈值行为。每个输出都注明属于信念权重、后验计算近似、
+频率置信集合还是预测覆盖集合。这些对象分清后，数值实验才能回答相应的问题。
+
+% END statistical.tex
+
+
+% BEGIN operating_envelopes.tex
+\chapter{从电表响应到运行包络：四线回归、分配与整盒可行性}
+\label{ch:operating_envelopes}
+
+本章把两篇论文接成一条计算链：S10 从四线电气关系出发，用电表数据估计端口响应，再计算分布式资源的功率分配；S11 进一步要求每个用户在各自区间内独立行动时，所有组合都可行。两篇论文的输入信息与输出承诺不同，阅读时需要始终跟踪：估计的是哪个矩阵、优化的是一个联合运行点还是整个区间乘积、运行安全相对于哪个潮流模型成立。
+
+标记仍遵循“原文模型、等价整理、本文推导/教学实现、教学例子”四层。S10 已读作者上传全文，S11 已读 arXiv v4，并与 PDF 文本核对重要公式；所有本章小算例都是独立构造，数值核算记录保存在随附审查文件中。
+
+\section{S10：四线模型怎样变成可由电表估计的电压灵敏度}
+\label{sec:oe_s10}
+
+\subsection{问题直觉与输入输出}
+
+\textbf{文献定位。}\citet{S10} 的作者稿第 3 节推导四线电压模型，第 4 节给出阻抗回归，第 5 节算法 1 计算 DOE。其重点是利用端口量测建立运行模型，减少对完整内部网络参数的依赖；案例使用 49 个连接点及 OpenDSS/MATLAB 仿真。
+
+在低压三相四线网中，A 相多注入一些电流，不仅改变 A 相导线电压，还改变中性线电位。电表测量的是“相线减中性线”的幅值，因此对其他相也可能出现响应。若直接把每个相当作独立单相电路，就会漏掉这条传导路径。S10 的模型阅读顺序应该是：四线复阻抗 $\to$ 相对中性点电压 $\to$ 幅值对 $P,Q$ 的导数 $\to$ 回归系数 $\to$ 运行分配。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+输入/变量及维度 & 含义 \\
+\midrule
+$Z^{(4)}\in\mathbb C^{4\times4}$ & 一段线路的四线阻抗，或端口之间相应的共路径阻抗块 \\
+$\widetilde Z\in\mathbb C^{3\times3}$ & 相对中性点的三相等效响应，不是丢掉中性线后原矩阵的左上角 \\
+$P,Q,V\in\R^{T\times M}$ & $M$ 个端口的时序功率和电压幅值；还需相别、时标和单位 \\
+$S^P,S^Q\in\R^{M\times M}$ & 相角基准下的幅值灵敏度，常用单位为 V/kW 与 V/kvar \\
+$p_t,q_t\in\R^M$ & 待分配或预测的端口有功、无功；本节取向电网注入为正 \\
+其他运行输入 & 电压边界、变压器容量、资源可用功率及位置/相别信息 \\
+输出 & 回归模型及诊断；每时段的资源分配和相应约束计算结果 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+负荷为正的原始表计数据需要先变为本节的注入符号。无功采用相同注入约定，不能只给有功反号。所有回归和分配必须沿用同一符号，否则求得的“增发降压”可能只是输入方向写反。
+
+\subsection{四线电气关系：中性线消元到底消去了什么}
+
+\textbf{原文模型的矩阵等价整理。}按 $(a,b,c,n)$ 排列电流电压。在原文考虑的接地/回流假设下，
+\begin{equation}
+ I_n=-(I_a+I_b+I_c),\qquad
+ I^{(4)}=B_I I^{(3)},\quad
+ B_I=\begin{pmatrix}I_3\\-\boldsymbol1_3^T\end{pmatrix},\quad
+ U=T_VV^{(4)},\quad T_V=(I_3,-\boldsymbol1_3).
+ \label{eq:oe_s10_neutral}
+\end{equation}
+这里 $U=(V_a-V_n,V_b-V_n,V_c-V_n)^T$。若沿注入方向定义电压增量
+$\Delta V^{(4)}=Z^{(4)}I^{(4)}$，则
+\begin{equation}
+ \Delta U=\widetilde ZI^{(3)},\qquad
+ \widetilde Z=T_VZ^{(4)}B_I,\qquad
+ \widetilde Z_{\phi\psi}=Z_{\phi\psi}-Z_{\phi n}-Z_{n\psi}+Z_{nn}.
+ \label{eq:oe_s10_fourwire}
+\end{equation}
+\textbf{本文推导。}先用 $B_I$ 把三相电流映射到四线电流，再用 $Z^{(4)}$ 计算四线压降，最后用 $T_V$ 形成表计实际看到的相对中性点电压。这三个矩阵相乘顺序不能交换。即使原四线矩阵没有互感/互阻项，$Z_{nn}$ 也会使不同相之间的等效响应不为零。
+
+这一消元保留了中性线回流在端口上的作用，并不把“中性点电位恒为零”作为结论。若存在多点接地、显著对地分流或未建模支路，$I_n=-\sum I_\phi$ 的适用范围需要重新检查。多段径向线路的端口响应由相关共路径块叠加得到；仅识别这些端口系数通常不能唯一拆分成每一段内部线路参数。
+
+\subsection{从复电压到幅值的 P、Q 系数}
+
+设参考相量为 $\bar U_j=V_{0j}e^{\mathrm j\theta_j}$，以小扰动忽略二阶项。\textbf{本文统一推导}为
+\begin{equation}
+ \Delta I_j\approx\frac{\Delta P_j-\mathrm j\Delta Q_j}{\overline{\bar U_j}},\qquad
+ \Delta|U_i|\approx\Re\left\{\frac{\overline{\bar U_i}}{|\bar U_i|}
+          \sum_j\widetilde Z_{ij}\Delta I_j\right\}.
+ \label{eq:oe_s10_differential}
+\end{equation}
+定义复系数
+\begin{equation}
+ c_{ij}=\frac{\overline{\bar U_i}\,\widetilde Z_{ij}}
+ {|\bar U_i|\,\overline{\bar U_j}},\qquad
+ S^P_{ij}=\Re(c_{ij}),\qquad S^Q_{ij}=\Im(c_{ij}),
+ \quad \Delta v=S^P\Delta p+S^Q\Delta q.
+ \label{eq:oe_s10_sensitivity}
+\end{equation}
+无功系数为何是虚部而非负虚部？写 $c=a+\mathrm jb$，则
+$\Re\{c(\Delta P-\mathrm j\Delta Q)\}=a\Delta P+b\Delta Q$。
+相角差为零时系数退化为 $R/V_0$ 和 $X/V_0$；不同相之间需乘
+$e^{\mathrm j(\theta_j-\theta_i)}$。即使所有电阻都为正，跨相的幅值灵敏度仍可能为负。
+
+原文使用相别已知、名义三相角及名义电压的线性近似建立对应回归。式~\eqref{eq:oe_s10_sensitivity} 只是以紧凑复数记号解释同一传导关系，不是把线性化当作任意大扰动下的精确 AC 模型。
+
+\subsection{回归：先检查能否识别，再解释系数}
+
+对一个被观测端口 $i$，把 $T$ 个时刻的幅值变化组成
+$y_i\in\R^T$，把功率变化与已知相角系数组成
+$\Phi_i\in\R^{T\times d_i}$，未知共路径参数为
+$\vartheta_i\in\R^{d_i}$。原文第 4 节的回归可整理成
+\begin{equation}
+ y_i=\Phi_i\vartheta_i+\epsilon_i,\qquad
+ \hat\vartheta_i\in\arg\min_\vartheta\|y_i-\Phi_i\vartheta\|_2^2.
+ \label{eq:oe_s10_regression}
+\end{equation}
+若要同时估计各端口的 $R/X$，通常 $d_i$ 随端口数增长。使用功率差分时要同步构造电压差分；使用绝对量时还需截距/无负荷参考，不能把截距漂移硬塞进阻抗参数。
+
+\textbf{本文推导。}唯一无正则最小二乘解要求
+$\rank(\Phi_i)=d_i$。如果所有样本均满足固定 $Q=\kappa P$，同相的 $R$ 和 $X$ 只通过 $R+\kappa X$ 出现，数据未必能把二者分开。QR/SVD 可以报告有效秩和病态方向；加岭惩罚能选择一个数值稳定的解，但不能创造原本不存在的可辨识性。回归给出 $R/X$ 后，再按已知相别转换为运行灵敏度，并在未参与拟合的时段检查预测残差。
+
+\begin{algorithm}[tbp]
+\caption{S10 的辨识链：原模型顺序与教学数值诊断}
+\label{alg:oe_s10_identify}
+\begin{algorithmic}[1]
+\Require 同步 $P,Q,V$，每个端口相别、量纲、参考电压，以及有效数据掩码
+\State 统一注入符号；建立一致的基准或差分序列
+\State 根据相别与式~\eqref{eq:oe_s10_differential} 建立每个端口的 $\Phi_i,y_i$
+\For{每个端口 $i$}
+ \State 用 QR/SVD 检查秩与条件数；记录不易区分的参数方向
+ \State 求解式~\eqref{eq:oe_s10_regression}，计算拟合残差及有效样本数
+ \State 秩不足时只输出可辨识组合或带明确约束的估计，不称为唯一物理参数
+\EndFor
+\State 将估计系数转换为 $S^P,S^Q$，核查相角与单位
+\State 教学补充：在留出时段检验电压误差，保存模型适用范围
+\State 返回端口模型及辨识诊断，交给运行分配层
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{运行分配：最大输出、均等削减与灵敏度削减}
+
+\textbf{原文流程。}每个时段由预测量计算端口电流、电压及变压器负载；若出现约束违例，则按选定目标调整 DER 输出，并检查电压、变压器容量、资源能力及所选的不平衡约束；否则保留当前预测输出。原文比较最大总输出、均等削减以及按灵敏度分配削减三种原则。
+
+为教学清楚，固定无功和其他负荷后，最大输出的一个电压约束子问题为
+\begin{equation}
+ \max_p\boldsymbol1^Tp\quad\text{s.t.}\quad
+ v_{\min}\le v_0+S^Pp+S^Qq\le v_{\max},\qquad
+ 0\le p\le\bar p.
+ \label{eq:oe_s10_dispatch}
+\end{equation}
+变压器约束、无功能力和原文采用的电压不平衡指标应在实际运行问题中另外保留；式~\eqref{eq:oe_s10_dispatch} 是讲清分配机制的简化子问题。它得到的是一个联合功率向量。将其每个坐标作为独立上限还需要下一节的整盒检查。
+
+若同相若干端口需要消除 $b>0$ 的过压，设灵敏度为 $s_i>0$、削减为
+$c_i=\bar p_i-p_i$。局部线性条件为 $\sum_i s_ic_i\ge b$。
+均等削减要求 $c_i=c$；按灵敏度削减可取 $c_i=\lambda s_i$。后者给出
+$\lambda=b/\sum_is_i^2$，前者给出 $c=b/\sum_is_i$；一旦某个端口达到输出边界，就固定该端口，再对剩余端口重算。这种带饱和重分配的明确顺序是\textbf{教学实现补充}，不能只写一个比例而遗漏设备上限。
+
+\begin{algorithm}[tbp]
+\caption{S10 的逐时段运行链：原算法主线，停止与复检显式化}
+\label{alg:oe_s10_allocate}
+\begin{algorithmic}[1]
+\Require 已辨识模型、相别、预测 $\bar p_t,q_t$、电压/变压器/资源约束、分配目标
+\For{每个运行时段 $t$}
+ \State 计算预测端口电压、电流和变压器负载；计算选用的不平衡指标
+ \If{预测满足全部所建约束}
+   \State 取 $p_t\gets\bar p_t$
+ \Else
+   \State 选择最大输出优化、均等削减或灵敏度削减规则
+   \State 求解约束分配；遇到资源饱和则更新活动集合并重新分配
+   \State 用最终功率重新计算全部所建约束，记录求解状态及剩余违例
+ \EndIf
+ \State 返回联合运行点与约束计算结果；若要下发独立区间，转入整盒检查
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{完整传导例子：四线阻抗、四个回归样本和两端口分配}
+
+\begin{example}[从中性线回流算到电压边界]
+取一段四线阻抗，单位为 $\Omega$：
+\[
+ Z^{(4)}=\diag(.4+.2\mathrm j,.4+.2\mathrm j,.4+.2\mathrm j,.1+.05\mathrm j).
+\]
+没有互阻项，但由式~\eqref{eq:oe_s10_fourwire} 得
+\[
+ \widetilde Z_{\phi\phi}=.5+.25\mathrm j,\qquad
+ \widetilde Z_{\phi\psi}=.1+.05\mathrm j\quad(\phi\ne\psi).
+\]
+取 $230\,\mathrm V$ 名义电压、相角 $0,-120^\circ,120^\circ$。
+A 相注入 $1\,\mathrm{kW}$ 且无功为零时，近似相电流为 $1000/230=4.347826\,\mathrm A$，中性线电流为其负值。
+A 相对地电压变化为 $1.739130+.869565\mathrm j$，中性点为
+$-.434783-.217391\mathrm j$；两者相减得到
+\[
+ \Delta U_a=2.173913+1.086957\mathrm j,\qquad
+ \Delta|U_a|\approx2.173913\,\mathrm V.
+\]
+
+现在假设不知道 A 相的四个等效参数
+$\vartheta=(R_{aa},X_{aa},R_{ab},X_{ab})^T$，但相别已知。
+教学辨识数据依次施加 $1\,\mathrm{kW}$ 的 A 相有功、$1\,\mathrm{kvar}$ 的 A 相无功、$1\,\mathrm{kW}$ 的 B 相有功、$1\,\mathrm{kvar}$ 的 B 相无功扰动。
+记 $k_0=1000/230$，则
+\[
+ \Phi=k_0\begin{pmatrix}
+ 1&0&0&0\\0&1&0&0\\0&0&-1/2&\sqrt3/2\\0&0&-\sqrt3/2&-1/2
+ \end{pmatrix},\quad
+ y=\begin{pmatrix}2.173913\\1.086957\\-.029125\\-.485228\end{pmatrix}\mathrm V.
+\]
+右下角是正交旋转矩阵，故 $\Phi^T\Phi=k_0^2I$，秩为 4；无噪声最小二乘恢复
+$\hat\vartheta=(.5,.25,.1,.05)^T$。这些四次独立扰动是\emph{教学数据设计}，并不是论文现场采用主动试验的事实。
+
+保留 A、B 两个端口，并把输出单位固定为 kW，得到
+\[
+ S^P=\begin{pmatrix}
+ 2.173913&-.029125\\-.405658&2.173913
+ \end{pmatrix}\mathrm{V/kW}.
+\]
+两个跨相系数不同，因为它们分别含 $e^{-\mathrm j120^\circ}$ 和
+$e^{\mathrm j120^\circ}$ 的相角旋转；这不违反原复阻抗块的对称性。
+
+设运行基准电压均为 $250\,\mathrm V$，上限 $253\,\mathrm V$，两个 DER 的可用有功均为 $2\,\mathrm{kW}$，无功固定为零。原预测 $(2,2)$ 给出
+$(254.289576,253.536511)\,\mathrm V$，都超限。
+仅在本例电压及输出约束下，最大总输出点由 $S^Pp=(3,3)^T$ 得到
+\[
+ p^\star=(1.401993,1.641616)^T\,\mathrm{kW},\quad
+ \boldsymbol1^Tp^\star=3.043609\,\mathrm{kW}.
+\]
+它满足两个 $2\,\mathrm{kW}$ 上限，且两条电压约束恰好等号。
+作为最优性复核，存在正乘子 $\mu=(S^{P\,T})^{-1}\boldsymbol1>0$，使任意可行 $p$ 都有
+$\boldsymbol1^Tp=\mu^TS^Pp\le3\boldsymbol1^T\mu=\boldsymbol1^Tp^\star$。
+本例没有设置变压器和不平衡约束，因此不声称得到完整现场 DOE。
+\end{example}
+
+\begin{example}[同一过压，三种削减原则的差别]
+另取一个同相简化系统，两个端口灵敏度为 $(1,2)\,\mathrm{V/kW}$，可用输出为 $(2,2)\,\mathrm{kW}$，电压裕度为 $3\,\mathrm V$。预测引起 $6\,\mathrm V$ 升高，需要削减 $3\,\mathrm V$。
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+原则 & 削减 $(c_1,c_2)$ & 输出 $(p_1,p_2)$ & 总输出 \\
+\midrule
+最大总输出 & $(0,1.5)$ & $(2,.5)$ & $2.5$ \\
+均等削减 & $(1,1)$ & $(1,1)$ & $2$ \\
+按灵敏度削减 & $(.6,1.2)$ & $(1.4,.8)$ & $2.2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+三行均满足 $c_1+2c_2=3$。最大输出优先削减单位 kW 降压作用较强的端口；均等削减按 kW 平分；比例规则的削减量比为 $1:2$。这三种目标衡量不同的分配偏好，不能把“公平”当作无需定义的同一个指标。
+\end{example}
+
+\subsection{停止、成本、数据覆盖和完整性审查}
+
+每个端口的稠密最小二乘若有 $T$ 个样本、$d$ 个系数，QR 的典型成本为 $O(Td^2)$，全网端口数再乘相应数量。运行优化成本依赖目标、变压器及不平衡约束的具体形式；比例分配在每轮至少固定一个饱和设备的实现中最多进行设备数次活动集合更新。所有阶段都应记录秩不足、优化不可行、最大迭代耗尽和复检违例，避免把求解器返回一个向量当作安全成功。
+
+\textbf{原文范围。}作者稿讨论噪声与缺失数据，但明确未处理预测不确定性。其约束层涉及电压和变压器等边界；仅有端口阻抗并不能自动提供所有内部线路的热额定值。\textbf{本文审查。}相别错误、共线的 $P/Q$、基准电压漂移和未量测注入都会影响回归；终端拟合准确不能单独证明内部拓扑与线路容量已正确辨识。
+
+更直接的运行接口问题出现在前一例：若把联合点的两个坐标下发为独立区间
+$[0,1.401993]\times[0,1.641616]$，则在 $(1.401993,0)$ 时 A 相电压达到
+$253.047812\,\mathrm V$；在 $(0,1.641616)$ 时 B 相达到
+$253.568729\,\mathrm V$。联合点的安全依赖另一个相提供的负灵敏度贡献，而用户独立降到零会失去这个贡献。该反例由本书的线性教学模型构造，不冒充论文某个实验的失败；它说明将点分配接到独立 DOE 时，还必须补整盒包含关系。
+
+\section{S11：用椭球、内盒、去冗余和扩张计算可独立使用的区间}
+\label{sec:oe_s11}
+
+\subsection{输出从一个点变成一整个集合}
+
+\textbf{文献定位。}\citet{S11} 在第 III 节给出三个主步骤：初始区间、去冗余、扩张。本书把第一步拆成“椭球”和“内盒”两个子步骤，形成四步教学链。所核版本为 arXiv v4；正式期刊为 2024 年 IEEE Transactions on Power Systems。
+
+原文采用进口为正、出口为负的有功坐标，本节沿用它。与 S10 的注入正号相接时，要同时转换功率、灵敏度及上下限。下文二维正象限例子只是区间几何演示，可理解为两个允许进口的坐标。
+
+\begin{definition}[独立运行区间]
+给定可行域 $\mathcal F$，用户区间构成
+\[
+ \mathcal B(l,u)=\prod_{i=1}^n[l_i,u_i].
+\]
+要求 $\mathcal B(l,u)\subseteq\mathcal F$，即
+$\forall p_1\in[l_1,u_1],\ldots,\forall p_n\in[l_n,u_n]$，全部运行约束都成立。它比寻找一个 $p\in\mathcal F$ 多了对所有组合的量词。
+\end{definition}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+符号与维度 & 含义 \\
+\midrule
+$p\in\R^n,q\in\R^{n_q},v\in\R^{n_v}$ & 可控有功、被优化后固定的无功、线性网络状态 \\
+$G\in\R^{m\times n},h(q)\in\R^m$ & 消元后的线性可行域 $\mathcal F_L(q)=\{p:Gp\le h(q)\}$ \\
+$c\in\R^n,L=\diag(a_1,\ldots,a_n)$ & 椭球中心及正对角形状，$a_i>0$ \\
+$r\in\R_+^n,l,u\in\R^n$ & 盒半宽与下/上界，$l=c-r,u=c+r$ \\
+输出 & 固定的 $q^\star$、独立区间、每条约束的整盒裕度与求解记录 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{网络线性化与消元：先确定保证对象}
+
+\textbf{原文模型的等价整理。}线性约束写为
+\begin{equation}
+ Ap+Bq+Cv=d,\qquad Ev\le f.
+ \label{eq:oe_s11_linear}
+\end{equation}
+若选定参考和状态后 $C$ 可逆，则
+\begin{equation}
+ v=C^{-1}(d-Ap-Bq),\quad
+ G=-EC^{-1}A,\quad h(q)=f-EC^{-1}(d-Bq),\quad
+ \mathcal F_L(q)=\{p:Gp\le h(q)\}.
+ \label{eq:oe_s11_eliminate}
+\end{equation}
+不能把一般长方矩阵当作可逆矩阵；那种情况下应保留状态或使用合法的线性消元/投影。用户功率和无功能力边界也可以并入相应行。这里的 $\mathcal F_L$ 是给定线性模型的可行域，后续包含证明全部相对于它进行。
+
+\subsection{第一步：最大正对角椭球}
+
+考虑
+\begin{equation}
+ \mathcal E(c,L)=\{c+Lz:\|z\|_2\le1\},\qquad L=\diag(a),\quad a_i>0.
+ \label{eq:oe_s11_ellipsoid}
+\end{equation}
+对第 $j$ 条半空间，\textbf{本文展开原包含条件}：
+\begin{align}
+ \sup_{p\in\mathcal E}g_j^Tp
+ &=g_j^Tc+\sup_{\|z\|_2\le1}(L^Tg_j)^Tz\nonumber\\
+ &=g_j^Tc+\|L^Tg_j\|_2.
+ \label{eq:oe_s11_ellipsoid_support}
+\end{align}
+等式由 Cauchy--Schwarz 达到，最大方向为
+$z=L^Tg_j/\|L^Tg_j\|$，若分子为零则任意方向都一样。因此椭球完全落在多面体内，当且仅当每一行满足
+\begin{equation}
+ g_j^Tc+\|L^Tg_j\|_2\le h_j(q).
+ \label{eq:oe_s11_ellipsoid_contain}
+\end{equation}
+
+原文基本优化问题据此整理为
+\begin{equation}
+ \max_{c,a,q}\ \sum_{i=1}^n\log a_i
+ \quad\text{s.t.}\quad a_i>0,\quad \underline q\le q\le\overline q,
+ \quad\text{式~\eqref{eq:oe_s11_ellipsoid_contain} 对所有 }j\text{ 成立}.
+ \label{eq:oe_s11_ellipsoid_opt}
+\end{equation}
+对角形状限制很重要：它与每个用户单独的坐标方向对应，并不是允许任意旋转的最大体积椭球。固定维度后椭球体积正比于 $\prod_i a_i$，所以目标采用 $\log\det L=\sum\log a_i$。在上述线性 $h(q)$ 下，它是凸优化意义上的凹目标最大化问题。
+
+若已知用户只进口或只出口，原文通过软约束/惩罚把不需要的一侧靠近零。例如令状态标志 $s_i=1$ 表示只进口，$s_i=-1$ 表示只出口，添加
+\begin{equation}
+ -\delta_i\le c_i-s_i a_i/\sqrt n\le\delta_i,\qquad
+ \delta_i\ge0,
+ \quad\text{目标减去 }\varepsilon_{\rm md}\sum_i\delta_i.
+ \label{eq:oe_s11_status}
+\end{equation}
+未知状态还可惩罚 $|c_i|$。有限惩罚不会无条件使 $\delta_i=0$；必须检查求出的松弛量，才能知道所希望的单向运行边界是否真的实现。
+
+\subsection{第二步：在椭球中求最大的轴对齐内盒}
+
+\textbf{原文结果与本文证明。}固定最优 $c,a$，对以 $c$ 为中心的盒子，最远角点满足
+\[
+ \sum_i(r_i/a_i)^2\le1.
+\]
+体积为 $2^n\prod_i r_i$。令 $t_i=(r_i/a_i)^2$，最大化体积等价于最大化
+$\prod_i t_i$，约束为 $t_i\ge0,\sum_i t_i\le1$。算术--几何均值不等式给出
+$\prod_i t_i\le n^{-n}$，等号要求全部 $t_i=1/n$。于是
+\begin{equation}
+ r_i^0=\frac{a_i^\star}{\sqrt n},\qquad
+ l_i^0=c_i^\star-r_i^0,\qquad u_i^0=c_i^\star+r_i^0.
+ \label{eq:oe_s11_innerbox}
+\end{equation}
+它是这个轴对齐椭球内的最大体积轴对齐盒；“椭球内最大”不等于“整个原多面体内最大”。第三、四步的目的正是处理这部分保守性。
+
+\subsection{第三步：固定无功并去掉冗余半空间}
+
+固定 $q=q^\star$，才能知道后续盒子到底在哪个有功可行域内。原文算法 1 对每一行求解稍微放松该行的 LP：
+\begin{equation}
+ O_j=\max_p\{g_j^Tp-h_j:\ g_j^Tp\le h_j+1,\quad
+                 g_k^Tp\le h_k\ (k\ne j)\}.
+ \label{eq:oe_s11_redundancy}
+\end{equation}
+若 $O_j\le0$，其他行已经蕴含第 $j$ 行；若 $O_j>0$，删掉它会引入违反该行的点。额外的 $+1$ 把目标上界限制为 1，避免为判断冗余而遇到目标无界。
+
+\textbf{本文推导。}在原多面体非空时，若删除第 $j$ 行后存在违反它的点，可以将该点与原可行点作凸组合，得到一个违反量处于 $(0,1]$ 的点。因此，放松 1 不会把真正非冗余的行误判为冗余；“1”的量纲应与该行一致，数值实现宜先做行尺度归一化。求解器的上界/对偶界不确定或接近容差时，宁可保留该行。
+
+\begin{algorithm}[tbp]
+\caption{S11 去冗余步骤的教学安全实现：顺序删除}
+\label{alg:oe_s11_redundancy}
+\begin{algorithmic}[1]
+\Require 非空多面体 $Gp\le h$，冗余判断容差及 LP 求解容差
+\State 初始化保留行集合 $\mathcal J\gets\{1,\ldots,m\}$
+\For{依次访问每个原始行 $j$}
+ \State 使用当前保留的其他行，求解式~\eqref{eq:oe_s11_redundancy}
+ \If{可靠的最优上界不大于冗余容差}
+   \State 从 $\mathcal J$ 删除 $j$，记录 LP 证明信息
+ \Else
+   \State 保留 $j$；数值失败或界未闭合时也保留
+ \EndIf
+\EndFor
+\State 返回剩余行；最终区间还必须对全部原始约束重新检查
+\end{algorithmic}
+\end{algorithm}
+
+顺序删除是教学实现与原文简单逐行描述之间的一项重要保护。两个完全相同的约束各自看起来都被另一个蕴含；若同时删除，会把这条限制整个删掉。顺序法删掉第一条后，第二条就不能再凭已经不存在的第一条被判冗余。
+
+\subsection{第四步：保持初始盒、向外扩张并检查包含}
+
+首先理解原文式 (13) 的求解结构。把初始盒写成
+$E_Bp\le f_B$，扩大右端为 $f_B+\Delta f$，$\Delta f\ge0$。对外层第 $j$ 行，线性规划对偶给出
+\begin{equation}
+ E_B^T\lambda_j=g_j,\qquad\lambda_j\ge0,\qquad
+ (f_B+\Delta f)^T\lambda_j\le h_j.
+ \label{eq:oe_s11_dual_containment}
+\end{equation}
+\textbf{等价整理。}原文使用 $x_j=-\lambda_j\le0$，所以等式带负号。
+只要这些关系成立，对任意盒内 $p$ 有
+$g_j^Tp=\lambda_j^TE_Bp\le\lambda_j^T(f_B+\Delta f)\le h_j$。
+同时优化 $\lambda$ 和 $\Delta f$ 会出现双线性项，这就是原文指出扩张问题非凸的原因。
+
+对于本书的\emph{固定显式半空间与轴对齐盒}，可以进一步用以下精确支持函数消去对偶变量。这个形式是\textbf{本文推导的教学求解接口}，不是宣称作者采用了相同求解器：
+\begin{proposition}[整盒线性约束的精确证书]
+令 $G_+=\max(G,0)$、$G_-=\min(G,0)$，均逐元素定义。则
+\begin{equation}
+ \mathcal B(l,u)\subseteq\{p:Gp\le h\}
+ \quad\Longleftrightarrow\quad
+ G_+u+G_-l\le h.
+ \label{eq:oe_s11_box_exact}
+\end{equation}
+等价地，使用中心半宽为 $Gc+|G|r\le h$。
+\end{proposition}
+\begin{proof}
+对一行 $g_j$，$g_{ji}>0$ 时最大值在 $p_i=u_i$，$g_{ji}<0$ 时最大值在 $p_i=l_i$，零系数任意。逐坐标独立最大化得到
+$\max_{p\in[l,u]}g_j^Tp=(g_j)_+^Tu+(g_j)_-^Tl$。
+每行的最坏点不必相同，但逐行上界同时成立就足以保证整盒包含。
+\end{proof}
+
+因此一个可以直接执行、以真实区间宽度为目标的扩张问题为
+\begin{equation}
+ \begin{aligned}
+ \max_{l,u}\quad &\sum_i\log(u_i-l_i)\\
+ \text{s.t.}\quad &l\le l^0,\quad u\ge u^0,\quad u_i-l_i>0,\\
+ &G_+u+G_-l\le h(q^\star),
+ \end{aligned}
+ \label{eq:oe_s11_direct_expand}
+\end{equation}
+并保留设备边界与已确认的单向运行限制。这个特定形式是凹目标与线性约束构成的凸优化问题；它说明原式的双线性参数化不应被误读成所有轴对齐盒问题必然非凸。若约束本身非线性、离散控制未固定或外层域未显式给定，不能直接沿用这个结论。
+
+\begin{algorithm}[tbp]
+\caption{S11 的四步教学算法：原方法主线与显式盒求解变体}
+\label{alg:oe_s11_all}
+\begin{algorithmic}[1]
+\Require 线性网络模型、可控无功边界、用户运行方向、设备约束
+\Ensure $q^\star$、区间 $[l,u]$、针对全部原始线性行的最坏值和裕度
+\State 消元得到 $Gp\le h(q)$，检查维度、参考、非空性与功率符号
+\State \textbf{椭球：}解式~\eqref{eq:oe_s11_ellipsoid_opt}，按需要加入状态惩罚
+\State 检查优化状态与全部包含余量；无法验证时不生成安全结论
+\State \textbf{内盒：}计算 $r^0=a^\star/\sqrt n,l^0=c^\star-r^0,u^0=c^\star+r^0$
+\State \textbf{去冗余：}固定 $q^\star$，执行算法~\ref{alg:oe_s11_redundancy}
+\State \textbf{扩张：}原路径求解式 (13) 的包含优化；教学变体解式~\eqref{eq:oe_s11_direct_expand}
+\State 对全部原始行计算 $b=G_+u+G_-l$，输出裕度 $h(q^\star)-b$
+\State 若扩张失败而初始盒已获验证，保留初始盒并明确停止原因
+\State 另行报告线性模型与 AC/预测误差检验，区分模型证书与现场安全
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{一个可以手算四步的二维教学例子}
+
+\begin{example}[五边形中的最大椭球、内盒与扩张盒]
+固定无功，取
+\begin{equation}
+ \mathcal F=\{p:\ p_1\ge0,\ p_2\ge0,\ p_1+p_2\le4,\ p_1\le3,\ p_2\le3\},
+ \label{eq:oe_s11_polygon}
+\end{equation}
+并故意再加一条 $p_1+p_2\le5$ 用于演示去冗余。
+
+\textbf{步骤一。}椭球轴长为 $a_1,a_2$，下边界要求 $c_i\ge a_i$。
+在求最大体积时，将 $c_i$ 降到 $a_i$ 只会放松上侧约束，因此可取 $c_i=a_i$。
+斜边约束成为
+\[
+ a_1+a_2+\sqrt{a_1^2+a_2^2}\le4.
+\]
+设 $s=a_1+a_2$，则 $\sqrt{a_1^2+a_2^2}\ge s/\sqrt2$，且
+$a_1a_2\le s^2/4$。两处同时取等号需要 $a_1=a_2$，于是最优
+\[
+ a_1=a_2=c_1=c_2=a=\frac4{2+\sqrt2}=4-2\sqrt2=1.171573.
+\]
+单坐标最大值 $c_i+a_i=2.343146<3$，所以两个独立上限不改变这个解。
+椭圆面积为 $\pi a^2=4.312097$。
+
+\textbf{步骤二。}内盒半宽
+\[
+ r=\frac a{\sqrt2}=2\sqrt2-2=.828427,
+ \quad l^0=a-r=6-4\sqrt2=.343146,
+ \quad u^0=a+r=2.
+\]
+因此初始盒为 $[.343146,2]^2$，面积 $(2r)^2=2.745166$。
+其右上角是 $(2,2)$，位于斜边上，但左下角还可以向原点扩展。
+
+\textbf{步骤三。}检查附加行 $p_1+p_2\le5$：由真正斜边约束可得
+$\max(p_1+p_2)=4$，所以式~\eqref{eq:oe_s11_redundancy} 的目标为 $-1$，删去附加行不改变可行域。
+两个 $p_i\le3$ 都不是冗余的，例如删除 $p_1\le3$ 后 $(3.5,0)$ 会进入可行域。
+
+\textbf{步骤四。}扩张必须保留初始盒，所以 $u_1,u_2\ge2$；整盒斜边要求 $u_1+u_2\le4$，因此必有 $u_1=u_2=2$。
+非负性要求 $l_i\ge0$，最大化宽度则取 $l_1=l_2=0$。
+最终盒为 $[0,2]^2$，面积为 4，比初始盒增加约 $45.71\%$。
+四个顶点的坐标和分别为 $0,2,2,4$，都满足斜边；每个坐标均不超过 3。
+更直接地，用式~\eqref{eq:oe_s11_box_exact} 逐行复核，得到非负边界最坏违例为 0，斜边余量为 0，两个独立上界余量为 1，附加行余量为 1。
+\end{example}
+
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[scale=1.65,>=Stealth]
+ \fill[gray!13] (0,0)--(3,0)--(3,1)--(1,3)--(0,3)--cycle;
+ \fill[blue!10] (0,0) rectangle (2,2);
+ \draw[gray!80,thick] (0,0)--(3,0)--(3,1)--(1,3)--(0,3)--cycle;
+ \draw[orange!85!black,thick] (1.171573,1.171573) circle (1.171573);
+ \draw[blue!70!black,very thick] (0,0) rectangle (2,2);
+ \draw[teal!70!black,dashed,thick] (.343146,.343146) rectangle (2,2);
+ \draw[->] (-.15,0)--(3.5,0) node[right] {$p_1$};
+ \draw[->] (0,-.15)--(0,3.5) node[above] {$p_2$};
+ \foreach \t in {1,2,3}{\draw (\t,.035)--(\t,-.035) node[below] {\small $\t$};
+ \draw (.035,\t)--(-.035,\t) node[left] {\small $\t$};}
+ \fill (1.171573,1.171573) circle (.025);
+ \node[font=\small,above left] at (1.171573,1.171573) {$c$};
+ \node[font=\small,rotate=-45,above] at (2.05,2.05) {$p_1+p_2=4$};
+\end{tikzpicture}
+\caption{本书二维教学例子。灰色为线性可行域，橙色为最大对角椭球，青色虚线为椭球内初始盒，蓝色为扩张后的独立区间。}
+\label{fig:oe_s11_geometry}
+\end{figure}
+
+\subsection{支持函数也能修复上一节的独立上限问题}
+
+\textbf{本文推导。}对 S10 的两端口注入例子，若下界固定为零，要求
+$250\boldsymbol1+S^Pp\le253\boldsymbol1$ 对全部
+$p\in[0,u]$ 成立。负的跨相系数在最坏情况下取另一端口 $p=0$，所以
+\[
+ (S^P)_+u\le3\boldsymbol1
+ \quad\Longleftrightarrow\quad
+ 2.173913u_1\le3,\quad2.173913u_2\le3.
+\]
+得到 $u_1=u_2=1.38\,\mathrm{kW}$，总宽度为 $2.76\,\mathrm{kW}$。
+这比联合点的总输出 $3.043609\,\mathrm{kW}$ 小；减少的原因可以直接在负跨相系数上找到：独立权利不能依赖另一个用户始终提供有利响应。这里给出的是\emph{这组已知线性电压约束}的整盒保证；若加入低电压、变压器和其他设备约束，需要继续逐行/逐约束检查。
+
+\subsection{成本、停止与公平性所需的精确条件}
+
+四阶段成本不应压缩成一个不明来源的复杂度。椭球问题含 $n$ 个轴长、$n$ 个中心及无功变量，约 $m$ 个二阶锥式约束；其迭代成本随稀疏结构和求解器而变。内盒计算是 $O(n)$；去冗余最多求解 $m$ 个 LP；显式盒扩张含 $2n$ 个上下界变量和约 $m$ 条线性约束，最终证书计算为 $O(mn)$。原文对偶扩张还引入每条外层约束的一组对偶变量，因此冗余行数显著影响规模。
+
+停止不仅是优化器报告成功，还应检查所有约束残差、正轴长/正宽度、内盒保留关系、固定无功的值和原始行的最坏裕度。出现近边界舍入误差时应收紧或报告容差，不能用“在容差内”替代明确的数值安全裕度。去冗余只是加速，不应改变最终模型保证。
+
+\begin{proposition}[本文推导：对数宽度何时具有比例公平性]
+设可行宽度集合 $\mathcal W\subset\R_{++}^n$ 为凸集，$w^\star$ 是
+$\max_{w\in\mathcal W}\sum_i\log w_i$ 的全局最优解。则对任意
+$w\in\mathcal W$，
+\begin{equation}
+ \sum_i\frac{w_i-w_i^\star}{w_i^\star}\le0.
+ \label{eq:oe_s11_fairness}
+\end{equation}
+\end{proposition}
+\begin{proof}
+线段 $w^\star+t(w-w^\star)$ 在 $t\in[0,1]$ 上可行。最优点向任何可行方向的一阶方向导数不得为正，因此
+$\nabla(\sum\log w_i)|_{w^\star}^T(w-w^\star)\le0$，即所示不等式。
+\end{proof}
+
+这个结论讨论的是\emph{所有用户相对宽度变化的和}，不要求每个用户单独都不能增加。加入状态惩罚、改变可行无功或只取得局部解后，须重新核对对应目标和最优性条件。原文也明确指出最后扩张可能削弱其公平性结论。二维教学例子的 $[0,2]^2$ 是所设扩张问题的全局解；不能因此声称整个一般算法对任意 AC 网络都全局最优。
+
+\subsection{原文公式、线性化及 Topo 接口的最后审查}
+
+\textbf{公式记号核查。}原式 (13a) 的上下界记号在 HTML 与 PDF 文本中均存在需要澄清的符号组合。本书统一取
+\[
+ E_B=\begin{pmatrix}e_1^T\\-e_1^T\\\vdots\\e_n^T\\-e_n^T\end{pmatrix},\qquad
+ f_B=(u_1,-l_1,\ldots,u_n,-l_n)^T\in\R^{2n}.
+\]
+于是第 $i$ 个真实宽度必须为 $(f_B)_{2i-1}+(f_B)_{2i}=u_i-l_i$，扩张后再加两个非负增量。原显示式含相邻基础项相减；若沿用上述统一半空间约定，就不能同时将该表达式解释为区间宽度。本书采用式~\eqref{eq:oe_s11_direct_expand} 的 $u_i-l_i$，并将它标为明确符号下的教学重写，不把来源记号疑点悄悄修正后冒充逐字原式。原文对 $f$ 维度的描述也需与约束行数对齐。
+
+\textbf{线性保证与现场保证。}原文算例比较了线性可行域和非凸 AC 可行域，并指出两者一般没有固定的内外包含方向。因此
+$\mathcal B\subseteq\mathcal F_L$ 并不自动推出
+$\mathcal B\subseteq\mathcal F_{\rm AC}$。在线性半空间内检查所有角点是充分的；对非凸集合则未必。例如集合
+$[-1,-.5]\cup[.5,1]$ 包含区间 $[-1,1]$ 的两个端点，却不包含内部点 0。这个一维反例仅解释逻辑，不是论文案例的仿真结果。
+
+对 Topo，必须把模型不确定性也写进量词。若 $\mathcal T$ 是可能网络集合、
+$\mathcal D$ 是外部扰动集合，静态独立安全要求可以写成
+\begin{equation}
+ \forall T\in\mathcal T,\ \forall\xi\in\mathcal D,\
+ \forall p\in[l,u]:\quad \text{所要求的网络约束成立}.
+ \label{eq:oe_s11_topo_interface}
+\end{equation}
+有限候选池只覆盖部分真实可能性时，池内全部通过不能证明池外安全；末端等效电压模型也不能凭空补出内部热额定值。若将置信集用于概率声明，还需另行给出真实模型落入集合的覆盖保证、扰动集合的覆盖保证以及集合内的确定性安全证明。S5 的无监督融合分数和 S9 的小残差，都不能单独填满这些证明接口。
+
+\textbf{改进方向的定位。}本文的支持函数重写、顺序去冗余、数据留出与误差裕度检查是可复算的教学和审查补充。要将本章算法部署到含隐藏零注入树的 Topo 场景，还需要提供与实际观测匹配的端口模型、可验证的参数/模型误差边界以及所需运行约束；这些输入是否具备，应通过数据和代码检查回答，不能由文献相似性推定。
+
+% END operating_envelopes.tex
+
+
+% BEGIN integration.tex
+\chapter{把各篇算法连接起来：选择、比较与练习}
+\label{ch:integration}
+\section{按可用观测选择计算路线}
+\begin{longtable}{p{0.19\textwidth}p{0.24\textwidth}p{0.24\textwidth}p{0.23\textwidth}}
+\toprule 当前信息 & 可以考虑的文献路线 & 直接计算对象 & 还需确认的接口\\\midrule\endhead
+末端P/Q/V、内部零注入 & S2路线；S3需要转到其电流及相别配置 & 灵敏度、隐藏最简树、阻抗 & 根电压、P/Q秩、相线/中性线、候选覆盖\\
+末端统计量与潜结构 & S4潜树、S16树协方差 & 概率结构、模型后验 & 物理模型是否导出所用似然\\
+可控逆变器和电压响应 & S12、S13、P1 & 部分响应列、候选边、Laplacian & 探测和量测覆盖、背景变化、线路先验\\
+沿线路检测特征电流 & P2、P4 & 祖先/包含记录、邻接关系 & 通道门限、传感器位置、漏检误检\\
+高频传播或编码响应 & P3、P5 & 时延、端口传递函数、低阶模型 & 传播速度、反射、输入输出位置、模型非唯一\\
+多源归属标签或现场档案 & S5、S6、S8、S9 & 归属置信、异常排序、现场核验 & 标签定义、依赖证据、量测可用率、现场真值\\
+需要权重或覆盖集合 & S14、S15、S17 & 广义后验、置信集合、预测集合 & 温度或似然、样本划分、交换性、求解方向\\
+需要运行包络 & S10、S11 & 数据驱动灵敏度、联合域、独立区间 & 模型误差、AC边界、全域鲁棒包含\\
+\bottomrule
+\end{longtable}
+这些路线可以组合，但每次组合都要重新检查接口。例如 S3生成候选，S14赋权，是一个候选上的广义后验；要升级成 S15的频率覆盖集合，需要合法的测试密度、验证似然及正确的全域上界，不能仅更换分数名称。
+
+\section{相同数据下如何比较不同模块}
+把完整流程写作
+\begin{equation}
+ D\xrightarrow{\mathcal P}\widetilde D
+ \xrightarrow{\mathcal E}\widehat M
+ \xrightarrow{\mathcal G}\mathcal C
+ \xrightarrow{\mathcal S}\widehat T
+ \xrightarrow{\mathcal U}\text{运行决策}.
+\end{equation}
+$\mathcal P$ 是预处理，$\mathcal E$ 是矩阵或响应估计，$\mathcal G$ 是候选生成，$\mathcal S$ 是选择或集合推断，$\mathcal U$ 是应用。比较两个端到端方法时，应另做模块固定的配对比较：固定 $\widetilde D$ 比估计器，固定 $\widehat M$ 比候选生成，固定 $\mathcal C$ 比选择规则。否则不能知道改进来自新增传感器、更好的估计，还是更多搜索预算。
+
+结构指标应对隐藏节点重新编号不敏感，可使用终端分裂、根化 clade 或压缩后的边关系。阻抗误差必须对齐单位及压缩规则；两条串联边合并后，应比较其和。预测误差、结构错误率、置信覆盖、拒判率和运行约束违反率分别报告，它们回答不同问题。所有调参都应隔离测试集；同一馈线上的多个时间窗口不能替代跨馈线泛化测试。
+
+\section{候选内最优为什么不能充当全域证明}
+设声明的模型集合为 $\mathcal M$，候选生成器只产生 $\mathcal C\subseteq\mathcal M$。对最小化损失有
+\begin{equation}
+ \min_{m\in\mathcal C}L(m)\geq\inf_{m\in\mathcal M}L(m).
+ \label{eq:tb-candidate-bound}
+\end{equation}
+候选最优值给全域最小值的上界，不能作为下界排除模型。对最大化似然恰好相反，有限候选最大值是全域最大值的下界。S15的分母若需要最大似然或其上界，使用候选最大值会使检验量变大，可能破坏覆盖。
+
+同理，求解器的最优性间隙只对应已编码的那个优化问题。即使某个有界MILP求得零间隙，如果它只搜索一次结构扩展、固定先验支持或有限候选池，也没有自动搜索全部隐藏树。候选截断、优化超时和模型近似是三个不同的限制，应分别记录。
+
+\section{与当前Topo代码的数学对照}
+以下只是本次静态核对到的代码入口，帮助读者把书中变量映射到已有研究对象；本次文档整理没有修改这些实现。
+\begin{longtable}{p{0.18\textwidth}p{0.49\textwidth}p{0.23\textwidth}}
+\toprule 数学对象 & 仓库相对路径与入口 & 必须保留的尺度或语义\\\midrule\endhead
+共同路径矩阵 & \path{rnj_wzzt_core/rnj_wzzt/models/lin_distflow.py}；\texttt{build\_reduced\_sensitivity\_matrices} & 幅值模式为 $K$，平方电压模式为 $2K$\\
+树距离 & 同文件；\texttt{impedance\_distance\_from\_reduced\_R} & 函数按输入尺度返回距离；若输入 $2K$，返回 $2d$\\
+RNJ共同深度 & \path{rnj_wzzt_core/rnj_wzzt/graph/sensitivity_geometry.py} & 当前说明明确直接使用共同路径分数；距离保留作诊断\\
+受约束矩阵估计 & \path{rnj_wzzt_core/rnj_wzzt/estimation/constrained_least_squares.py} & 连续约束与树组合约束分开理解\\
+层状原子结构 & \path{rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py} & 文件说明：精确对应单步有界扩展，完整前向路径为贪心\\
+候选池与流程 & \path{rnj_wzzt_core/rnj_wzzt/pipeline.py}；\texttt{\_prepare\_case}、\texttt{candidate\_supports} & 预处理、支持池和外层选择分别记录\\
+\bottomrule
+\end{longtable}
+例如 $R=\sum_e a_ew_ew_e^\top$ 的系数若来自平方电压模型，$a_e=2r_e$；标幺到欧姆还需乘 $Z_{\rm base}=V_{\rm base}^2/S_{\rm base}$。比较 S3 的复电流灵敏度时，则应先转换观测模型，不能只改一个系数2。
+
+\section{从统计集合到运行安全的充分条件}
+\begin{proposition}[集合包含如何传递到全域约束]
+设 $m_\star$ 是真实模型，数据产生的集合满足
+$\Prob\{m_\star\in\mathcal M(D)\}\geq1-\alpha$。若计算出的动作集合 $\mathcal U(D)$ 对每个数据实现都满足
+\begin{equation}
+ \forall m\in\mathcal M(D),\ \forall u\in\mathcal U(D),\quad g_m(u)\leq0,
+\end{equation}
+则
+\begin{equation}
+ \Prob\{\forall u\in\mathcal U(D),\ g_{m_\star}(u)\leq0\}\geq1-\alpha.
+\end{equation}
+\end{proposition}
+\begin{proof}
+在事件 $m_\star\in\mathcal M(D)$ 上，把真实模型代入确定性的全域鲁棒约束即可。安全事件包含该覆盖事件，故概率至少为 $1-\alpha$。
+\end{proof}
+这个简短证明同时指出困难所在：第一步需要模型覆盖，第二步需要对整个集合和整个动作域验证。随机抽查若干 AC 潮流点、只检查一个运行点、或只覆盖已有候选树，都不能单独提供上述两个前提。对于另行控制的模型失配事件，可以显式加入额外失效概率，而不是省略它。
+
+\section{练习与参考解：检查是否真正理解算法}
+\subsection{练习1：改变公共干线能否被叶间距离发现}
+把例\ref{ex:tb-tree}中 $r_{0h}$ 从1变为2。写出新的 $K_r$ 和所有叶间距离。
+\paragraph{参考解} $K'_r=K_r+\mathbf1\mathbf1^\top$，所以每个叶间距离中的新增量为 $1+1-2=0$，仍为9、10、9；根距离则从3、8、9变为4、9、10。这个练习说明根信息不能由纯叶间距离自动恢复。
+
+\subsection{练习2：一个未知量计数足够的回归为何仍失败}
+有 $m=1000,n=3$，但 $q_t=0.4p_t$。是否足以同时估计任意 $R,X$？
+\paragraph{参考解}不充分。$A=[P\ 0.4P]$ 的秩最多为3，即使有1000行仍小于6。数据能识别 $R+0.4X$，不能分别识别全部参数。增加相同统计方向上的样本只能降低组合量的方差。
+
+\subsection{练习3：父子关系中的符号}
+树上 $j$ 是 $i$ 的父，$d_{ij}=2$，外部端点 $k$ 在 $i$ 子树之外。求 $\phi_{ijk}=d_{ik}-d_{jk}$。
+\paragraph{参考解}路径 $i\to k$ 先经过 $j$，故 $d_{ik}=2+d_{jk}$，$\phi=+2$。若计算程序按负号判 $i$ 为子，就与这个定义矛盾。复杂情况下先检查路径残差和根方向，不对复数使用未定义的“负”。
+
+\subsection{练习4：模长一致是否意味着兄弟关系}
+某对节点的外部差值为 $\{1,-1\}$。计算式\eqref{eq:tb-s3-scores}中的 $E_s$，判断能否用它证明理想等差条件。
+\paragraph{参考解} $E_s=1-1=0$，但两个差值并不相等，不能证明兄弟关系。它是评分失败模式的代数例子，不是对某一论文数据集的实验结论。
+
+\subsection{练习5：候选似然应提供哪一侧的界}
+验证集上某复合原假设的最大似然为 $L^\star$，已找到一个可行参数的似然为 $L_f$。把 $L_f$ 用作 S15 型比率的分母是否总是保守？
+\paragraph{参考解}不是。$L_f\leq L^\star$，分母缩小使比率放大，可能过度拒绝。需要精确 $L^\star$ 或经证明的上界 $U\geq L^\star$；负对数似然形式对应有效下界。
+
+\subsection{练习6：九个校准样本能否给95\%有限阈值}
+采用标准 split conformal，无随机化，校准样本 $m=9$，目标覆盖 $1-\alpha=0.95$，求索引。
+\paragraph{参考解} $k=\lceil(m+1)(1-\alpha)\rceil=\lceil9.5\rceil=10=m+1$。标准带额外 $+\infty$ 的规则给无穷阈值；直接把索引裁到最大有限分数9会改变保证。
+
+\subsection{练习7：联合可行域为何不能按坐标分别全额授权}
+设 $\mathcal F=\{(p_1,p_2):p_i\geq0,p_1+p_2\leq1\}$。两个坐标投影都是 $[0,1]$，它们的笛卡尔积是否可安全独立使用？
+\paragraph{参考解}不可以，$(1,1)$ 不可行。独立区间 $[0,b_1]\times[0,b_2]$ 必须满足 $b_1+b_2\leq1$。最大面积解为 $b_1=b_2=1/2$；精确的联合域与可同时行使的独立权利不同。
+
+\subsection{练习8：一次探测能否打破所有隐藏歧义}
+两棵模型在所有已有端口上具有完全相同的静态响应矩阵。只在这些端口改变准稳态 P/Q，能否保证区分两者？
+\paragraph{参考解}不能；同一矩阵作用于任意新增输入仍给同一输出。需要改变观测算子，例如增加内部量测或研究确有不同响应的频域通道。高频与电流路径方法须使用各自模型，不能把静态矩阵中的不可辨性当作任意物理实验都不可辨。
+
+% END integration.tex
+
+\appendix
+
+% BEGIN audit.tex
+\chapter{逐篇完整性与来源审查}
+\label{app:audit}
+\section{审查标准与本版交付边界}
+本版的“解释完整”分为两个层面：\textbf{教学闭合}要求读者知道输入、计算对象、更新、结束、算例和结论条件；\textbf{原文可复现}还要求原始模型、全部超参数、数据协议和实现细节已获得并核对。前者可以通过明确标记的教学变体补足，后者不能由自行补写冒充。任何本地数值验算都不等于复现原论文实验。
+
+\begin{longtable}{p{0.08\textwidth}p{0.24\textwidth}p{0.34\textwidth}p{0.24\textwidth}}
+\toprule 编号 & 当前来源范围 & 本版重点补齐的算法内容 & 仍需保留的边界\\\midrule\endhead
+S1 & 公开预印本全文 & 数据路由、相量回归及协方差算例 & 教程，不是单一算法\\
+S2 & 出版元数据；先前预览记录 & 三阶段公共模块的独立推导 & 未得全文；不可称原算法复现\\
+S3 & 作者机构全文 & 投影设计行、QP、分组状态、回溯、评分、完整树算例 & 原文若干索引/符号约定须核对；有限候选\\
+S4 & 出版摘要 & 高斯潜树EM的E/M更新、手算、BIC及停止 & 教学模型非已核实原模型；未得全文\\
+S5 & 本轮补得出版全文 & 多源EM、折扣、证据融合、决策与数值轨迹 & 缺失权重和置信表达的文本/公式差异\\
+S6 & 出版记录 & 可确认任务、应核对的训练/评估接口 & 未得全文；不虚构网络结构\\
+S7 & 公开预印本全文 & 量化设计、受约束估计、支持恢复条件与算例 & 教学求解器单独标记；理论假设接口\\
+S8 & 作者机构全文 & 参考序列、相似度、适应阈值、归属判断 & 现场覆盖与准确率含义不同\\
+S9 & 作者机构全文 & WLS、残差投影、标准化及诊断路径 & 异常残差不能唯一定位错误原因\\
+S10 & 作者公开全文 & 四线模型、灵敏度回归、包络分配步骤 & 预测/模型误差与运行限制需分开\\
+S11 & 公开预印本全文 & 椭球、矩形、去冗余、扩张及二维算例 & 线性模型鲁棒包含不等于AC全域安全\\
+S12 & 公开预印本全文 & 探测矩阵、等值集合、递归恢复与树算例 & 全节点/部分量测决定不同恢复对象\\
+S13 & 公开预印本全文 & 投影LS、二值化、MILP和连通约束 & 有界变量及候选线路先验\\
+P1 & 公开预印本全文 & Laplacian目标、ADMM更新、投影与停止 & 等价记号整理；树后处理与凸求解分开\\
+P2 & 出版全文 & 特征提取、祖先记录、传递约简 & 上游可见性依赖电路与检测条件\\
+P3 & 出版全文 & 检测、时延、反射、长度换算 & 高频模型及传播参数；非静态R/X算法\\
+P4 & 出版全文 & 记录包含、闭包、缺失与方向未决处理 & 逻辑蕴含和经验补全分别标记\\
+P5 & 公开预印本全文 & 相关解码、Hankel/ERA及端口模型 & 端口等效实现不唯一对应物理树\\
+S14 & 公开全文 & KL变分、归一化、温度和有限候选算例 & 广义后验权重非自动频率覆盖\\
+S15 & 公开预印本全文 & 训练密度、profile分母、比率及保守界 & 独立划分、模型正确性、优化界方向\\
+S16 & 作者公开全文 & 树空间状态、拓扑提案、边长MH与数值轮次 & 几何/接受式的版本级审查\\
+S17 & 公开预印本全文 & 校准分数、有限样本分位数和集合构造 & 交换性、样本单位、预测/拓扑目标\\
+\bottomrule
+\end{longtable}
+
+\section{原稿中需要改进的解释，现在如何闭合}
+旧稿关于“当前模型能否迁移”的讨论较多，而算法描述有时停在目标层。本版新增的关键连接包括：S3每个量测如何写入设计矩阵；RG合并后活动集、距离及图如何同步变化；S12如何从等值集合逐层生成子树；P1如何从增广目标得到各个更新块；P5如何从相关序列构造ERA矩阵；S4的E步为何要保留二阶矩；S15的优化界为何必须朝特定方向；S16怎样提出并接受树与边长变化；S17怎样处理超出有限样本最大索引的分位数。各章给出具体操作及数值例，而非只列算法名称。
+
+审查后仍不应把全书称为“22篇全部完整复现”。S2、S4、S6的缺口属于来源限制；其余文献本版也未重跑作者实验或核对全部作者代码。读取正文、证明教学推导、检查数值例和编译排版，是本次已经完成或执行的验证层次；精确实验复现是另一项工作。
+
+\section{公式冲突怎样处理：采用固定定义重新验证}
+文献中出现不一致时，先检查是否因向量化、符号方向或单位不同造成，再对照原文页面，最后用维数、特殊例子或目标的一阶条件验证。本版不把文本抽取异常直接宣布为原文错误；只有核对页面后才记录版本级问题。下表集中列出对理解有实质影响的接口，各专题节仍给出具体推导。
+
+\begin{longtable}{p{0.11\textwidth}p{0.36\textwidth}p{0.43\textwidth}}
+\toprule 来源 & 所读版本中需要检查的表达 & 本版采用的可验证处理\\\midrule\endhead
+S1 & 完整关联矩阵分块后的根列公式 & 从 $[a_0\ A]\mathbf1=0$ 直接得 $a_0=-A\mathbf1$，不依赖错置的逆矩阵。\\
+S3 & 原文第3.2节父子方向文字与 $\Phi_{ijk}=D_{ik}-D_{jk}$ 的定义 & 若子 $i$ 经父 $j$ 到外部 $k$，必有 $\Phi=+D_{ij}$。按路径等式和根方向判断，记录与文字的符号差异。\\
+S3 & 式(24)、(26)的平均集合/分母，以及相对分数零值 & 明确外部集合 $A\setminus\{i,j\}$ 和分母；零值/负值规则不冒充原文已规定。\\
+S5 & 缺失权重及置信度的文字与打印式不完全一致 & 分别解释实际式子与文字目标，教学约定写在算法旁边。\\
+P1 & 局部变量副本与乘子编号存在互换 & 以一致增广拉格朗日重新导出更新，标为等价代数整理。\\
+S13 & 矩阵逆与维数，以及树约束的适用条件 & 从最小二乘消元重推；连接数和非孤立不足以替代连通性，流约束须明确方向。\\
+S16 & 树空间乘积距离与CAT(0)解释；MH式出现 $\max$ & 几何结论按所用乘积度量检查；MH概率由详细平衡推导为 $\min\{1,r\}$。\\
+S11 & 上下界符号及去冗余的删除顺序 & 固定 $f=(u,-l)$ 的明确记号；采用逐行删除复检保持多面体不变。\\
+\bottomrule
+\end{longtable}
+这些记录不意味着相应方法整体失效。特别是启发式评分是否实用，需要其适用数据上的实验；一个公式或符号接口的核验结果，不应被扩大成对整篇论文结论的否定。
+
+\section{来源、版本和复现文件}
+每篇文献的完整书目信息在文末，原始来源的URL、版本及正文定位在随源文件附带的 \path{sources_core.md}、\path{sources_engineering.md}、\path{sources_probing.md} 和 \path{sources_statistical.md} 中。逐专题审查记录位于 \path{audit_*.md}。正文以章节和算法编号组织；来源文件保留原论文的节号、式号，避免本书重新编号后无法追溯。
+
+主文件为 \path{main.tex}，章节在 \path{chapters/}，书目在四个 \path{refs_*.bib}。\path{build.ps1} 使用 XeLaTeX 与 BibTeX 自动构建，\path{assemble_standalone.py} 生成嵌入书目的单文件版本。数值核验脚本只检查教学例的代数一致性；不作为原论文实验成绩。旧版目录 \path{docs/literature_detailed_20260910/} 保留，便于对照研究审查稿与本教材稿。
+
+% END audit.tex
+
+\backmatter
+
+\begin{thebibliography}{22}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Deka et~al.(2024)Deka, Kekatos, and Cavraro]{S1}
+Deepjyoti Deka, Vassilis Kekatos, and Guido Cavraro.
+\newblock Learning distribution grid topologies: A tutorial.
+\newblock \emph{IEEE Transactions on Smart Grid}, 15\penalty0 (1):\penalty0
+  999--1013, 2024.
+\newblock URL \url{https://arxiv.org/abs/2206.10837}.
+\newblock Public preprint v2, 2023-04-27; accessed 2026-09-10.
+
+\bibitem[Zhang et~al.(2026)Zhang, Sun, Zhang, Lin, Li, Mu, and Yu]{S2}
+Hengfeng Zhang, Wei Sun, Zhiqiang Zhang, Fei Lin, Qiyue Li, Daoming Mu, and
+  Jinzhu Yu.
+\newblock A data-driven method for joint estimation of topology and impedance
+  in distribution networks using end-user voltage magnitude and power data.
+\newblock \emph{Sustainable Energy, Grids and Networks}, 47:\penalty0 102385,
+  2026.
+\newblock \doi{10.1016/j.segan.2026.102385}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S2352467726002675}.
+\newblock Metadata verified from publisher API and Crossref; full text
+  unavailable in this review.
+
+\bibitem[Fang et~al.(2024)Fang, Pengwah, Andrew, Razzaghi, and Mu{\~n}oz]{S3}
+Luxin Fang, Abu~Bakr Pengwah, Lachlan L.~H. Andrew, Reza Razzaghi, and
+  Mario~Andr{\'e}s Mu{\~n}oz.
+\newblock Three-phase voltage sensitivity estimation and its application to
+  topology identification in low-voltage distribution networks.
+\newblock \emph{International Journal of Electrical Power \& Energy Systems},
+  158:\penalty0 109949, 2024.
+\newblock \doi{10.1016/j.ijepes.2024.109949}.
+\newblock URL
+  \url{https://minerva-access.unimelb.edu.au/server/api/core/bitstreams/26bfcb36-fcc3-4676-9b6d-9099b38c3e13/content}.
+\newblock Full text in the University of Melbourne repository; accessed
+  2026-09-10.
+
+\bibitem[Zhang et~al.(2022)Zhang, Zhao, Wang, and Xuan]{S4}
+Haipeng Zhang, Jian Zhao, Xiaoyu Wang, and Yi~Xuan.
+\newblock Low-voltage distribution grid topology identification with latent
+  tree model.
+\newblock \emph{IEEE Transactions on Smart Grid}, 13\penalty0 (3):\penalty0
+  2158--2169, 2022.
+\newblock \doi{10.1109/TSG.2022.3146205}.
+\newblock URL \url{https://ieeexplore.ieee.org/document/9696306/}.
+\newblock Publisher abstract and IEEE society contents verified; full text
+  unavailable in this review.
+
+\bibitem[Liu et~al.(2026)Liu, Deng, Zheng, Zhu, Lu, and Liu]{S5}
+Siliang Liu, Can Deng, Zenan Zheng, Ying Zhu, Hongxin Lu, and Wenze Liu.
+\newblock Confidence-aware topology identification in low-voltage distribution
+  networks: A multi-source fusion method based on weakly supervised learning.
+\newblock \emph{Energies}, 19\penalty0 (6):\penalty0 1503, 2026.
+\newblock \doi{10.3390/en19061503}.
+\newblock URL \url{https://www.mdpi.com/1996-1073/19/6/1503}.
+\newblock Published 18 March 2026. Publisher-provided full text on ResearchGate
+  inspected; MDPI supplied access, CC BY 4.0.
+
+\bibitem[Bian et~al.(2025)Bian, Long, and Cai]{S6}
+Ziyue Bian, Huan Long, and Huihuang Cai.
+\newblock Distribution network topology identification based on co-training of
+  {ResNet} and conformal prediction.
+\newblock In \emph{2025 8th International Conference on Energy, Electrical and
+  Power Engineering (CEEPE)}, pages 303--308, 2025.
+\newblock \doi{10.1109/CEEPE64987.2025.11033908}.
+\newblock URL \url{https://doi.org/10.1109/CEEPE64987.2025.11033908}.
+\newblock Publication metadata verified with Crossref; full method text not
+  obtained.
+
+\bibitem[Talkington et~al.(2025)Talkington, Rangarajan, {de Alc{\^a}ntara},
+  Roald, Molzahn, and Fuhrmann]{S7}
+Samuel Talkington, Aditya Rangarajan, Pedro~A. {de Alc{\^a}ntara}, Line Roald,
+  Daniel~K. Molzahn, and Daniel~R. Fuhrmann.
+\newblock Error bounds for radial network topology learning from quantized
+  measurements, 2025.
+\newblock URL \url{https://arxiv.org/abs/2508.05620}.
+\newblock Version 1, 7 August 2025; HTML and PDF text inspected.
+
+\bibitem[Th{\'e}ate et~al.(2025)Th{\'e}ate, Duchesne, Leerschool, Bahmanyar,
+  G{\'e}rard, Wehenkel, and Ernst]{S8}
+Thibaut Th{\'e}ate, Laurine Duchesne, Adrien Leerschool, Alireza Bahmanyar,
+  Simon G{\'e}rard, Thomas Wehenkel, and Damien Ernst.
+\newblock Smart meters phase identification for topology verification:
+  Practical challenges and insights from a case study.
+\newblock In \emph{28th Conference and Exhibition on Electricity Distribution
+  (CIRED 2025)}, pages 1--6, 2025.
+\newblock URL \url{https://orbi.uliege.be/handle/2268/327542}.
+\newblock Paper 831; author postprint in ORBi; conference 16--19 June 2025.
+
+\bibitem[Castin et~al.(2026)Castin, Bahmanyar, Leerschool, Duchesne, Bolland,
+  Wehenkel, G{\'e}rard, and Ernst]{S9}
+Martin Castin, Alireza Bahmanyar, Adrien Leerschool, Laurine Duchesne, Adrien
+  Bolland, Thomas Wehenkel, Simon G{\'e}rard, and Damien Ernst.
+\newblock Detection of topological errors in distribution networks using state
+  estimation residual patterns.
+\newblock In \emph{CIRED 2026 Brussels Workshop}, pages 1--5, 2026.
+\newblock URL \url{https://orbi.uliege.be/handle/2268/342287}.
+\newblock Paper 1423; author preprint in ORBi; June 2026.
+
+\bibitem[Cavraro and Kekatos(2018)]{S12}
+Guido Cavraro and Vassilis Kekatos.
+\newblock Graph algorithms for topology identification using power grid
+  probing.
+\newblock \emph{IEEE Control Systems Letters}, 2\penalty0 (4):\penalty0
+  689--694, 2018.
+\newblock \doi{10.1109/LCSYS.2018.2846801}.
+\newblock URL \url{https://arxiv.org/abs/1803.04506}.
+\newblock Author manuscript inspected: arXiv:1803.04506v2, revised 10 June
+  2018.
+
+\bibitem[Taheri et~al.(2019)Taheri, Kekatos, and Cavraro]{S13}
+Sina Taheri, Vassilis Kekatos, and Guido Cavraro.
+\newblock An {MILP} approach for distribution grid topology identification
+  using inverter probing.
+\newblock In \emph{2019 IEEE Milan PowerTech}, pages 1--6, 2019.
+\newblock \doi{10.1109/PTC.2019.8810900}.
+\newblock URL \url{https://arxiv.org/abs/2004.02370}.
+\newblock Author manuscript inspected: arXiv:2004.02370v2, revised 7 April
+  2020.
+
+\bibitem[Cavraro and Kekatos(2019)]{P1}
+Guido Cavraro and Vassilis Kekatos.
+\newblock Inverter probing for power distribution network topology processing.
+\newblock \emph{IEEE Transactions on Control of Network Systems}, 6\penalty0
+  (3):\penalty0 980--992, 2019.
+\newblock \doi{10.1109/TCNS.2019.2901714}.
+\newblock URL \url{https://arxiv.org/abs/1802.06027}.
+\newblock Author manuscript inspected: arXiv:1802.06027v3, revised 20 February
+  2019.
+
+\bibitem[Ge et~al.(2021{\natexlab{a}})Ge, Xu, Chen, Zhang, and Bi]{P2}
+Haotian Ge, Bingyin Xu, Wengang Chen, Xinhui Zhang, and Yongjian Bi.
+\newblock Topology identification of low voltage distribution network based on
+  current injection method.
+\newblock \emph{Archives of Electrical Engineering}, 70\penalty0 (2):\penalty0
+  297--306, 2021{\natexlab{a}}.
+\newblock \doi{10.24425/aee.2021.136985}.
+\newblock URL \url{https://journals.pan.pl/Content/119954/art04.pdf}.
+
+\bibitem[Ge et~al.(2021{\natexlab{b}})Ge, Xu, Zhang, and Bi]{P3}
+Haotian Ge, Bingyin Xu, Xinhui Zhang, and Yongjian Bi.
+\newblock Low-voltage overhead lines topology identification method based on
+  high-frequency signal injection.
+\newblock \emph{Archives of Electrical Engineering}, 70\penalty0 (4):\penalty0
+  791--800, 2021{\natexlab{b}}.
+\newblock \doi{10.24425/aee.2021.138261}.
+\newblock URL \url{https://journals.pan.pl/Content/121560/PDF/art04.pdf}.
+
+\bibitem[Duan et~al.(2024)Duan, Liu, Liu, and Li]{P4}
+Yilong Duan, Zheng Liu, Yuanyuan Liu, and Yong Li.
+\newblock Signal injection-based topology identification for low-voltage
+  distribution networks considering missing data.
+\newblock \emph{Energies}, 17\penalty0 (9):\penalty0 2060, 2024.
+\newblock \doi{10.3390/en17092060}.
+\newblock URL \url{https://www.mdpi.com/1996-1073/17/9/2060}.
+\newblock Publisher final PDF inspected, published 26 April 2024; 15 pages.
+
+\bibitem[Piaquadio et~al.(2023)Piaquadio, Wu, Sarailoo, and Huang]{P5}
+Nicholas Piaquadio, N.~Eva Wu, Morteza Sarailoo, and Jianzhuang Huang.
+\newblock Pulse compression probing for tracking distribution feeder models.
+\newblock arXiv:2305.19465v2, 2023.
+\newblock URL \url{https://arxiv.org/abs/2305.19465}.
+\newblock Author manuscript, revised 2 June 2023.
+
+\bibitem[Bissiri et~al.(2016)Bissiri, Holmes, and Walker]{S14}
+Pier~Giovanni Bissiri, Chris~C. Holmes, and Stephen~G. Walker.
+\newblock A general framework for updating belief distributions.
+\newblock \emph{Journal of the Royal Statistical Society: Series B (Statistical
+  Methodology)}, 78\penalty0 (5):\penalty0 1103--1130, 2016.
+\newblock \doi{10.1111/rssb.12158}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC5082587/}.
+\newblock Full-text analysis verified against arXiv:1306.6430v2 (28 January
+  2016).
+
+\bibitem[Wasserman et~al.(2020)Wasserman, Ramdas, and Balakrishnan]{S15}
+Larry Wasserman, Aaditya Ramdas, and Sivaraman Balakrishnan.
+\newblock Universal inference.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 117\penalty0
+  (29):\penalty0 16880--16890, 2020.
+\newblock \doi{10.1073/pnas.1922664117}.
+\newblock URL \url{https://arxiv.org/abs/1912.11436}.
+\newblock Theorem and section numbers in this report refer to
+  arXiv:1912.11436v4 (19 October 2022).
+
+\bibitem[Yao et~al.(2024)Yao, Wu, Bharath, and Baladandayuthapani]{S16}
+Tsung-Hung Yao, Zhenke Wu, Karthik Bharath, and Veerabhadran
+  Baladandayuthapani.
+\newblock Geometry-driven {Bayesian} inference for ultrametric covariance
+  matrices, 2024.
+\newblock URL \url{https://arxiv.org/abs/2401.11515}.
+\newblock Main text checked using the author-hosted PDF at zhenkewu.com;
+  supplement checked against arXiv v1 HTML. Accessed 10 September 2026.
+
+\bibitem[Angelopoulos and Bates(2022)]{S17}
+Anastasios~N. Angelopoulos and Stephen Bates.
+\newblock A gentle introduction to conformal prediction and distribution-free
+  uncertainty quantification, 2022.
+\newblock URL \url{https://arxiv.org/pdf/2107.07511v6}.
+\newblock Version 6, submitted 7 December 2022; PDF title page dated 8 December
+  2022. Initial arXiv submission in 2021.
+
+\bibitem[Kumarawadu et~al.(2025)Kumarawadu, Azim, Khorasany, Razzaghi, and
+  Heidari]{S10}
+Achala Kumarawadu, M.~Imran Azim, Mohsen Khorasany, Reza Razzaghi, and Rahmat
+  Heidari.
+\newblock Smart meter data-driven dynamic operating envelopes for {DERs}.
+\newblock \emph{Applied Energy}, 384:\penalty0 125469, 2025.
+\newblock \doi{10.1016/j.apenergy.2025.125469}.
+\newblock URL
+  \url{https://research.monash.edu/en/publications/smart-meter-data-driven-dynamic-operating-envelopes-for-ders/}.
+\newblock Published 15 April 2025; methods reviewed from author manuscript
+  uploaded 13 February 2025.
+
+\bibitem[Liu and Braslavsky(2024)]{S11}
+Bin Liu and Julio~H. Braslavsky.
+\newblock Robust dynamic operating envelopes for {DER} integration in
+  unbalanced distribution networks.
+\newblock \emph{IEEE Transactions on Power Systems}, 39\penalty0 (2):\penalty0
+  3921--3936, 2024.
+\newblock \doi{10.1109/TPWRS.2023.3308104}.
+\newblock URL \url{https://arxiv.org/abs/2212.03976}.
+\newblock Analysis uses arXiv version 4, 28 August 2023; first preprint
+  December 2022.
+
+\end{thebibliography}
+
+\end{document}

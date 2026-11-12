@@ -3,16 +3,24 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "terminal-load-only-case33"
+name = "rnj-wzzt-dr-mainline"
 version = "0.1.0"
-description = "Terminal-load-only IEEE case33 topology-identification scenarios"
+description = "Observed MIQP RNJ/WZZT identification and conditional demand response"
 requires-python = ">=3.10"
-dependencies = ["numpy", "pandas", "scipy", "networkx", "matplotlib", "PyYAML"]
+dependencies = ["numpy>=1.24", "scipy>=1.11"]
+
+[project.optional-dependencies]
+solver = ["gurobipy>=11"]
+physical = ["pandas>=2.0", "networkx>=3.0"]
+test = ["pytest>=7"]
 
 [tool.setuptools.packages.find]
-include = ["terminal_case33*", "experiments*", "research_experiments*"]
-exclude = ["research_experiments.tests*"]
+include = ["rnj_wzzt_dr*"]
+
+[tool.setuptools.package-data]
+rnj_wzzt_dr = ["*.md", "*.json", ".gitattributes", ".gitignore", "requirements.txt", "resources/*.json", "evidence/**/*.md", "evidence/**/*.json", "evidence/**/*.csv", "validation/*.txt", "validation/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["rnj_wzzt_core/tests", "tests", "research_experiments/tests"]
-pythonpath = [".", "rnj_wzzt_core"]
+testpaths = ["rnj_wzzt_dr/tests"]
+pythonpath = ["."]
+norecursedirs = ["archive", "outputs", "output", ".git", ".codex-rnj-deps"]

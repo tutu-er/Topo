@@ -1,0 +1,34 @@
+\begin{table}[htbp]
+\centering
+\caption{IEEE case33 派生算例的求解状态与路径结果}
+\label{tab:case33-status}
+\scriptsize
+\begin{tabularx}{\textwidth}{lrrrr>{\raggedright\arraybackslash}Xccr}
+\toprule
+算例 & $n$ & 时限/s & 接受原子 & 选中原子 & 停止原因 & 状态全 0 & 全部有证书 & 总时间/s \\
+\midrule
+四物理叶聚合 & 4 & 30 & 7 & 7 & 达到 laminar 上限 & 是 & 是 & 1.35 \\
+32 终端 hybrid & 32 & 60 & 0 & 0 & 扩展未获最优证书 & 否 & 否 & 60.59 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{IEEE case33 派生算例的外推、矩阵与 clade 指标}
+\label{tab:case33-quality}
+\scriptsize
+\begin{tabular}{lrrrrrr}
+\toprule
+算例 & 训练 MAE & 验证 MAE & 测试 MAE & $R$ 相对 Fro. & $X$ 相对 Fro. & F1 \\
+\midrule
+四物理叶聚合 & 0.000e+00 & 4.091e-17 & 3.397e-17 & 9.968e-16 & 3.067e-15 & 1.000 \\
+32 终端 hybrid & 5.972e-03 & 2.328e-02 & 1.168e-02 & 1.000e+00 & 1.000e+00 & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+\noindent 四叶聚合算例的 7 次扩展均取得严格证书，矩阵达到机器精度且两个非平凡 clade 全部匹配。
+32 终端算例在上界 2、单轮 60 秒内状态为 1，最大报告 gap 为 1.000。实现按设计拒绝未获证书的 incumbent，故空模型指标只表示规模压力测试，不能解释为已完成的 32 终端回归结果。
+\par\smallskip\textit{数据来源：}\path{outputs/laminar_l1_milp_case33_bound2_final/metrics.json}；真值仅用于生成响应和事后评分，未用于候选支撑搜索。

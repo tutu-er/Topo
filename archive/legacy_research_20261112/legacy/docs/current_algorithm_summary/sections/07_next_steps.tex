@@ -1,0 +1,83 @@
+\section{下一阶段技术路线}
+
+\subsection{针对真实 AMI 的优先改进}
+
+\begin{enumerate}
+  \item \textbf{先做零阻抗/同电压接入点辨识。}
+  对去根公共模态后的电压序列计算
+  \[
+  \delta_{ij}^{V}=
+  \sqrt{\frac{1}{T}\sum_t
+  \left[(v_i^2-v_0^2)-(v_j^2-v_0^2)\right]^2}.
+  \]
+  当 $\delta_{ij}^{V}$ 与量测噪声基线一致时，先把客户聚合为 voltage-equivalent
+  injection group，再对组级总 $P/Q$ 估计主干。这比要求零 service impedance
+  的每个客户都独立估计灵敏度更符合挪威数据结构。
+
+  \item \textbf{用无标签阈值替代真值调参。}
+  RNJ 容差应由距离 bootstrap 标准差、物理最小正阻抗下界或稳定平台选择；
+  pseudo 阈值可用 stability selection 的期望错误发现数控制。
+
+  \item \textbf{处理 errors-in-variables。}
+  $P/Q$ 也含噪声时普通最小二乘有衰减偏差。应比较 total least squares、
+  instrumental variables、SIMEX 和基于量测方差的广义最小二乘。
+
+  \item \textbf{先投影到加性树度量。}
+  在 RNJ 前求解最近树度量或四点条件正则：
+  \[
+  \min_{D\in\mathcal T}
+  \|W\odot(D-\widehat D)\|_F^2+
+  \lambda\Omega(D),
+  \]
+  其中 $\mathcal T$ 是加性树度量集合，$W$ 来自 bootstrap 不确定度。
+
+  \item \textbf{用 AC 残差二次筛选。}
+  RNJ 生成若干稳定候选 split 后，回到 AC 潮流或 branch-flow 模型，
+  用跨场景电压重构误差、线路损耗和参数正值约束重新排序，而不是只依赖线性距离。
+\end{enumerate}
+
+\subsection{真实数据扩展顺序}
+
+建议按以下顺序推进：
+\begin{enumerate}
+  \item 完成挪威径向 1 的 voltage-equivalent grouping，并在不看拓扑标签的条件下
+  固定阈值，再锁定一次测试集；
+  \item 接入 Iowa 的 3 条馈线，复用真实拓扑和变压器层聚合负荷，验证中等规模；
+  \item 从 Non-Synthetic European LV 数据中抽取单配变子树，保留三相和中性线，
+  比较正序等值与三相模型；
+  \item 用 SimBench 和 SMART-DS 做规模、DER 渗透率和量测缺失压力测试；
+  \item 最终寻找或与 DSO 合作获得同步客户 $P/Q/V$ 与配变电压，完成真正现场验证。
+\end{enumerate}
+
+\subsection{复现实验命令}
+
+\begin{verbatim}
+# 下载约 44.5 MB 的公开数据
+python scripts/download_norwegian_industrial.py
+
+# 两条径向、7/30/90 天、带进度可复现实验
+python -m experiments.run_norwegian_real_load_identification
+
+# 合成 case bank 的完整 rooted-clade F1
+python -m experiments.run_complete_rooted_topology_f1
+
+# 编译本文档
+cd docs/current_algorithm_summary
+xelatex main.tex
+bibtex main
+xelatex main.tex
+xelatex main.tex
+\end{verbatim}
+
+真实数据实验输出目录为
+\nolinkurl{outputs/norwegian_real_load_identification/}。主要文件包括
+\nolinkurl{identification_results.csv}、\nolinkurl{clade_details.csv}、
+\nolinkurl{data_summary.csv}、\nolinkurl{metrics.json}、报告和两条径向的拓扑对比图。
+
+\subsection{当前结论}
+
+当前算法已经形成可运行、可评价、根约束明确的初步主线。在合成 terminal-only
+case bank 上，一层高置信边缘收缩显著提高了平均 F1 和完全恢复率；但真实工业
+AMI 试验表明，零阻抗设备层、仅有功量测和强相关负荷会使逐客户灵敏度距离失效。
+下一步不应继续只在原有合成算例上微调滤波窗口，而应围绕“可辨识真值定义、
+同电压客户预聚合、errors-in-variables 与 AC 候选重评分”推进。

@@ -1,0 +1,33 @@
+\begin{table}[htbp]
+\centering
+\caption{small6 最终拟合、固定训练截距验证与测试结果}
+\label{tab:small6-fit}
+\scriptsize
+\begin{tabularx}{\textwidth}{lcc>{\raggedright\arraybackslash}Xrrr r}
+\toprule
+制度 & 路径点 & 选中原子 & 停止原因 & 训练 MAE & 验证 MAE & 测试 MAE & 总时间/s \\
+\midrule
+无噪声 & 9 & 9 & 无显著单原子增益 & 0.000e+00 & 7.220e-19 & 6.987e-19 & 21.27 \\
+Laplace+异常值 & 8 & 8 & 无显著单原子增益 & 1.429e-04 & 1.270e-04 & 1.239e-04 & 19.81 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{small6 矩阵、clade 与求解证书审计}
+\label{tab:small6-structure}
+\scriptsize
+\begin{tabular}{lrrrrrrr}
+\toprule
+制度 & $R$ 相对 Fro. & $X$ 相对 Fro. & 匹配/真值 & Precision & Recall & F1 & 全部扩展有证书 \\
+\midrule
+无噪声 & 4.588e-16 & 5.045e-15 & 3/3 & 1.000 & 1.000 & 1.000 & 是 \\
+Laplace+异常值 & 1.797e-01 & 3.242e-01 & 3/3 & 1.000 & 1.000 & 1.000 & 是 \\
+\bottomrule
+\end{tabular}
+\par\smallskip 最大报告绝对 gap 为 0.000e+00，最大相对 MIP gap 为 0.000e+00；两个制度均未触及系数上界。
+\end{table}
+
+\FloatBarrier
+\noindent\textit{数据来源：}\path{outputs/laminar_l1_milp_small6_final/summary.csv}。验证和首要测试指标均固定使用训练 LP 返回的截距。

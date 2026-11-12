@@ -1,0 +1,1628 @@
+{
+  "scope": "Read-only review of the two completed t100 saved paths. No solver/estimator rerun or existing result modification.",
+  "truth_usage": "Only posthoc diagnosis; original saved 1SE selection is preserved.",
+  "verified_first_support_correction": "The first certified support is the 12-terminal cross-branch set; [302,306,307,308] is the second accepted extension, not the first.",
+  "findings": [
+    "Both runs hit the configured forward-iteration cap at iteration 35 with 32 current atoms after three removals. Each last gain remains above tolerance; no no-gain certificate was requested after that point.",
+    "The first 12-terminal wrong support is pruned at path index 8. The second wrong support stays positive and crosses the missing true [301,302,303,304,305] clade; this is a greedy extension, not a fixed RNJ block.",
+    "Validation 1SE selects index 11, with family F1 0.75; final-path F1 is lower. This selection matches the best posthoc F1 on the visited path, but does not establish global topology optimality."
+  ],
+  "possible_followups_not_executed": [
+    "Clarify whether max_atoms is an active-family cap or an accepted-extension/iteration cap. Preserve a separate explicit step budget and stop reason.",
+    "If changing the cap semantics, rerun as a separately frozen algorithm variant with cycle guards and declared computational budget; do not relabel the existing capped result as no-gain convergence.",
+    "Consider reversible support deletion/replacement or swaps followed by fixed-family refits. Zero-only pruning already removes some wrong blocks, but does not reconsider a positive wrong split.",
+    "Any replacement policy and its validation/complexity rule require a declared protocol; truth-based best path is diagnostic only."
+  ],
+  "reviews": [
+    {
+      "job_id": "pengwah18__no_source__WZZT__t100",
+      "source_model_sha256": "31facf6c331500b6d62546ca7bbce15bffc418df1da6cdb9c006ea5cd83d17f3",
+      "stop_reason": "max_atoms",
+      "reported_status": "complete",
+      "elapsed_seconds": 545.562897900003,
+      "configured_per_solve_seconds": 6000.0,
+      "configured_method_wall_seconds": 30000.0,
+      "solver_timeouts": 0,
+      "solver_events": 20,
+      "all_solver_events_certified": true,
+      "bound_expansions": 0,
+      "bootstrap_selected_support_labels": [],
+      "initial_family_count": 18,
+      "accepted_extensions": 17,
+      "last_iteration_counter": 35,
+      "last_family_count": 32,
+      "configured_max_atoms": 35,
+      "unused_family_slots": 3,
+      "total_pruned_atoms": 3,
+      "last_accepted_gain": 2.0709890870333715e-07,
+      "last_gain_tolerance": 1.0477630653779385e-10,
+      "last_gain_over_tolerance": 1976.5814958235287,
+      "no_gain_test_executed_after_last_point": false,
+      "stop_classification": "Configured forward-iteration cap reached; neither time exhaustion nor certified no-gain/extension exhaustion.",
+      "counter_semantics": "iteration starts at initial_family_count+1 and increases after each accepted extension; pruning reduces family count without reducing iteration.",
+      "first_certified_extension": {
+        "support": [
+          303,
+          304,
+          305,
+          310,
+          311,
+          312,
+          313,
+          314,
+          315,
+          316,
+          317,
+          318
+        ],
+        "objective_recorded": 0.001028798386110973,
+        "objective_recomputed": 0.0010287983861109733,
+        "dual_bound": 0.001028798386110973,
+        "mip_gap": 0.0,
+        "absolute_primal_dual_gap": 0.0,
+        "status": 0,
+        "success": true,
+        "runtime_seconds": 377.99368710001,
+        "crossed_true_clades": [
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "pruned_at_path_indices": [
+          8
+        ]
+      },
+      "second_early_extension": {
+        "support": [
+          302,
+          306,
+          307,
+          308
+        ],
+        "introduced_path_index": 2,
+        "crossed_true_clades": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "positive_weight_trace": [
+          {
+            "path_index": 0,
+            "present": false,
+            "r": null,
+            "x": null
+          },
+          {
+            "path_index": 1,
+            "present": false,
+            "r": null,
+            "x": null
+          },
+          {
+            "path_index": 2,
+            "present": true,
+            "r": 0.04021691823217342,
+            "x": 0.14239099782652903
+          },
+          {
+            "path_index": 3,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 4,
+            "present": true,
+            "r": 0.04021691823217338,
+            "x": 0.14239099782652925
+          },
+          {
+            "path_index": 5,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 6,
+            "present": true,
+            "r": 0.0402169182321734,
+            "x": 0.14239099782652914
+          },
+          {
+            "path_index": 7,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 8,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 9,
+            "present": true,
+            "r": 0.0052077686056673815,
+            "x": 0.11981382438440806
+          },
+          {
+            "path_index": 10,
+            "present": true,
+            "r": 0.005207768605667573,
+            "x": 0.11981382438440864
+          },
+          {
+            "path_index": 11,
+            "present": true,
+            "r": 0.005207768605667551,
+            "x": 0.11981382438440859
+          },
+          {
+            "path_index": 12,
+            "present": true,
+            "r": 0.005207768605667567,
+            "x": 0.1198138243844086
+          },
+          {
+            "path_index": 13,
+            "present": true,
+            "r": 0.0,
+            "x": 0.1127010716545569
+          },
+          {
+            "path_index": 14,
+            "present": true,
+            "r": 0.0,
+            "x": 0.1127010716545564
+          },
+          {
+            "path_index": 15,
+            "present": true,
+            "r": 0.0,
+            "x": 0.1127010716545566
+          },
+          {
+            "path_index": 16,
+            "present": true,
+            "r": 0.0,
+            "x": 0.11065723368383294
+          },
+          {
+            "path_index": 17,
+            "present": true,
+            "r": 0.0,
+            "x": 0.11116561334590842
+          }
+        ]
+      },
+      "validation_1se": {
+        "best_validation_index": 11,
+        "threshold": 0.0005736350895169232,
+        "eligible_indices": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "independently_selected_index": 11,
+        "saved_selected_index": 11,
+        "selection_matches_saved": true,
+        "selected_family_count": 27
+      },
+      "selected_metrics": {
+        "path_index": 11,
+        "iteration_counter": 29,
+        "family_count": 27,
+        "active_atom_count": 26,
+        "family_clades": [
+          [
+            303,
+            304,
+            305
+          ],
+          [
+            306,
+            307,
+            308
+          ],
+          [
+            310,
+            311,
+            312
+          ],
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "new_supports": [
+          [
+            309,
+            310,
+            311,
+            312
+          ]
+        ],
+        "pruned_supports": [],
+        "pruned_count": 0,
+        "accepted_gain": 1.3605199649984725e-05,
+        "train_mae_recomputed": 0.00048346871017058,
+        "validation_mae_recomputed": 0.0005272912206196933,
+        "validation_se_recomputed": 4.6343868897229855e-05,
+        "validation_block_means": [
+          0.0006053068227447635,
+          0.00039284895837255374,
+          0.0005523493824576483,
+          0.0005586597189038079
+        ],
+        "family_metrics": {
+          "clade_f1": 0.75,
+          "precision": 0.6666666666666666,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 9,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "active_metrics": {
+          "clade_f1": 0.75,
+          "precision": 0.6666666666666666,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 9,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "missing_clades": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "extra_clades": [
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "true_clades_incompatible_with_current_family": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "r_relative_error": 0.2780950400570075,
+        "x_relative_error": 0.9787082851790608
+      },
+      "last_metrics": {
+        "path_index": 17,
+        "iteration_counter": 35,
+        "family_count": 32,
+        "active_atom_count": 31,
+        "family_clades": [
+          [
+            306,
+            307
+          ],
+          [
+            311,
+            312
+          ],
+          [
+            303,
+            304,
+            305
+          ],
+          [
+            306,
+            307,
+            308
+          ],
+          [
+            310,
+            311,
+            312
+          ],
+          [
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            313,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305,
+            306,
+            307,
+            308,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "new_supports": [
+          [
+            316,
+            317,
+            318
+          ]
+        ],
+        "pruned_supports": [],
+        "pruned_count": 0,
+        "accepted_gain": 2.0709890870333715e-07,
+        "train_mae_recomputed": 0.0004774235548706814,
+        "validation_mae_recomputed": 0.0005320103440145935,
+        "validation_se_recomputed": 4.326346411112071e-05,
+        "validation_block_means": [
+          0.0006025711867673857,
+          0.0004058231087436297,
+          0.0005622245062380441,
+          0.0005574225743093143
+        ],
+        "family_metrics": {
+          "clade_f1": 0.5714285714285714,
+          "precision": 0.42857142857142855,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 14,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "active_metrics": {
+          "clade_f1": 0.5714285714285714,
+          "precision": 0.42857142857142855,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 14,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "missing_clades": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "extra_clades": [
+          [
+            306,
+            307
+          ],
+          [
+            311,
+            312
+          ],
+          [
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            313,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305,
+            306,
+            307,
+            308,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "true_clades_incompatible_with_current_family": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "r_relative_error": 0.26423999035669676,
+        "x_relative_error": 0.9522299216581712
+      },
+      "posthoc_best_family_F1": 0.75,
+      "posthoc_best_indices": [
+        11,
+        12
+      ],
+      "posthoc_truth_used_to_change_selection": false,
+      "selected_positive_extra_clades": [
+        {
+          "support": [
+            302,
+            306,
+            307,
+            308
+          ],
+          "r": 0.005207768605667551,
+          "x": 0.11981382438440859,
+          "incompatible_true_clades": [
+            [
+              301,
+              302,
+              303,
+              304,
+              305
+            ]
+          ]
+        },
+        {
+          "support": [
+            301,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "r": 0.005393760833191394,
+          "x": 0.0,
+          "incompatible_true_clades": [
+            [
+              301,
+              302,
+              303,
+              304,
+              305
+            ]
+          ]
+        },
+        {
+          "support": [
+            301,
+            303,
+            304,
+            305
+          ],
+          "r": 0.08602969721964483,
+          "x": 0.0,
+          "incompatible_true_clades": []
+        }
+      ],
+      "independent_reconstruction_checks": [
+        {
+          "path_index": 0,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 1,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 2,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 3,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 4,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 5,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 6,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 7,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 8,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 4.336808689942018e-19,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 9,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 10,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 11,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 12,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 5.421010862427522e-20,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 13,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 14,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 15,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 16,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 17,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        }
+      ]
+    },
+    {
+      "job_id": "pengwah18__no_source__RNJ+WZZT__t100",
+      "source_model_sha256": "28961ee2294be5bbae878ee00651c4561a565f9f3f7f21c8dd40f92f3f417cea",
+      "stop_reason": "max_atoms",
+      "reported_status": "complete",
+      "elapsed_seconds": 540.1224324000068,
+      "configured_per_solve_seconds": 6000.0,
+      "configured_method_wall_seconds": 30000.0,
+      "solver_timeouts": 0,
+      "solver_events": 20,
+      "all_solver_events_certified": true,
+      "bound_expansions": 0,
+      "bootstrap_selected_support_labels": [],
+      "initial_family_count": 18,
+      "accepted_extensions": 17,
+      "last_iteration_counter": 35,
+      "last_family_count": 32,
+      "configured_max_atoms": 35,
+      "unused_family_slots": 3,
+      "total_pruned_atoms": 3,
+      "last_accepted_gain": 2.0709890870333715e-07,
+      "last_gain_tolerance": 1.0477630653779385e-10,
+      "last_gain_over_tolerance": 1976.5814958235287,
+      "no_gain_test_executed_after_last_point": false,
+      "stop_classification": "Configured forward-iteration cap reached; neither time exhaustion nor certified no-gain/extension exhaustion.",
+      "counter_semantics": "iteration starts at initial_family_count+1 and increases after each accepted extension; pruning reduces family count without reducing iteration.",
+      "first_certified_extension": {
+        "support": [
+          303,
+          304,
+          305,
+          310,
+          311,
+          312,
+          313,
+          314,
+          315,
+          316,
+          317,
+          318
+        ],
+        "objective_recorded": 0.001028798386110973,
+        "objective_recomputed": 0.0010287983861109733,
+        "dual_bound": 0.001028798386110973,
+        "mip_gap": 0.0,
+        "absolute_primal_dual_gap": 0.0,
+        "status": 0,
+        "success": true,
+        "runtime_seconds": 333.91497080004774,
+        "crossed_true_clades": [
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "pruned_at_path_indices": [
+          8
+        ]
+      },
+      "second_early_extension": {
+        "support": [
+          302,
+          306,
+          307,
+          308
+        ],
+        "introduced_path_index": 2,
+        "crossed_true_clades": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "positive_weight_trace": [
+          {
+            "path_index": 0,
+            "present": false,
+            "r": null,
+            "x": null
+          },
+          {
+            "path_index": 1,
+            "present": false,
+            "r": null,
+            "x": null
+          },
+          {
+            "path_index": 2,
+            "present": true,
+            "r": 0.04021691823217342,
+            "x": 0.14239099782652903
+          },
+          {
+            "path_index": 3,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 4,
+            "present": true,
+            "r": 0.04021691823217338,
+            "x": 0.14239099782652925
+          },
+          {
+            "path_index": 5,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 6,
+            "present": true,
+            "r": 0.0402169182321734,
+            "x": 0.14239099782652914
+          },
+          {
+            "path_index": 7,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 8,
+            "present": true,
+            "r": 0.04021691823217337,
+            "x": 0.1423909978265292
+          },
+          {
+            "path_index": 9,
+            "present": true,
+            "r": 0.0052077686056673815,
+            "x": 0.11981382438440806
+          },
+          {
+            "path_index": 10,
+            "present": true,
+            "r": 0.005207768605667573,
+            "x": 0.11981382438440864
+          },
+          {
+            "path_index": 11,
+            "present": true,
+            "r": 0.005207768605667551,
+            "x": 0.11981382438440859
+          },
+          {
+            "path_index": 12,
+            "present": true,
+            "r": 0.005207768605667567,
+            "x": 0.1198138243844086
+          },
+          {
+            "path_index": 13,
+            "present": true,
+            "r": 0.0,
+            "x": 0.1127010716545569
+          },
+          {
+            "path_index": 14,
+            "present": true,
+            "r": 0.0,
+            "x": 0.1127010716545564
+          },
+          {
+            "path_index": 15,
+            "present": true,
+            "r": 0.0,
+            "x": 0.1127010716545566
+          },
+          {
+            "path_index": 16,
+            "present": true,
+            "r": 0.0,
+            "x": 0.11065723368383294
+          },
+          {
+            "path_index": 17,
+            "present": true,
+            "r": 0.0,
+            "x": 0.11116561334590842
+          }
+        ]
+      },
+      "validation_1se": {
+        "best_validation_index": 11,
+        "threshold": 0.0005736350895169232,
+        "eligible_indices": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "independently_selected_index": 11,
+        "saved_selected_index": 11,
+        "selection_matches_saved": true,
+        "selected_family_count": 27
+      },
+      "selected_metrics": {
+        "path_index": 11,
+        "iteration_counter": 29,
+        "family_count": 27,
+        "active_atom_count": 26,
+        "family_clades": [
+          [
+            303,
+            304,
+            305
+          ],
+          [
+            306,
+            307,
+            308
+          ],
+          [
+            310,
+            311,
+            312
+          ],
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "new_supports": [
+          [
+            309,
+            310,
+            311,
+            312
+          ]
+        ],
+        "pruned_supports": [],
+        "pruned_count": 0,
+        "accepted_gain": 1.3605199649984725e-05,
+        "train_mae_recomputed": 0.00048346871017058,
+        "validation_mae_recomputed": 0.0005272912206196933,
+        "validation_se_recomputed": 4.6343868897229855e-05,
+        "validation_block_means": [
+          0.0006053068227447635,
+          0.00039284895837255374,
+          0.0005523493824576483,
+          0.0005586597189038079
+        ],
+        "family_metrics": {
+          "clade_f1": 0.75,
+          "precision": 0.6666666666666666,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 9,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "active_metrics": {
+          "clade_f1": 0.75,
+          "precision": 0.6666666666666666,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 9,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "missing_clades": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "extra_clades": [
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "true_clades_incompatible_with_current_family": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "r_relative_error": 0.2780950400570075,
+        "x_relative_error": 0.9787082851790608
+      },
+      "last_metrics": {
+        "path_index": 17,
+        "iteration_counter": 35,
+        "family_count": 32,
+        "active_atom_count": 31,
+        "family_clades": [
+          [
+            306,
+            307
+          ],
+          [
+            311,
+            312
+          ],
+          [
+            303,
+            304,
+            305
+          ],
+          [
+            306,
+            307,
+            308
+          ],
+          [
+            310,
+            311,
+            312
+          ],
+          [
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            309,
+            310,
+            311,
+            312
+          ],
+          [
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            313,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305,
+            306,
+            307,
+            308,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "new_supports": [
+          [
+            316,
+            317,
+            318
+          ]
+        ],
+        "pruned_supports": [],
+        "pruned_count": 0,
+        "accepted_gain": 2.0709890870333715e-07,
+        "train_mae_recomputed": 0.0004774235548706814,
+        "validation_mae_recomputed": 0.0005320103440145935,
+        "validation_se_recomputed": 4.326346411112071e-05,
+        "validation_block_means": [
+          0.0006025711867673857,
+          0.0004058231087436297,
+          0.0005622245062380441,
+          0.0005574225743093143
+        ],
+        "family_metrics": {
+          "clade_f1": 0.5714285714285714,
+          "precision": 0.42857142857142855,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 14,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "active_metrics": {
+          "clade_f1": 0.5714285714285714,
+          "precision": 0.42857142857142855,
+          "recall": 0.8571428571428571,
+          "predicted_clades": 14,
+          "true_clades": 7,
+          "matched_clades": 6
+        },
+        "missing_clades": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "extra_clades": [
+          [
+            306,
+            307
+          ],
+          [
+            311,
+            312
+          ],
+          [
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305
+          ],
+          [
+            302,
+            306,
+            307,
+            308
+          ],
+          [
+            313,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            303,
+            304,
+            305,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          [
+            301,
+            302,
+            303,
+            304,
+            305,
+            306,
+            307,
+            308,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ]
+        ],
+        "true_clades_incompatible_with_current_family": [
+          [
+            301,
+            302,
+            303,
+            304,
+            305
+          ]
+        ],
+        "r_relative_error": 0.26423999035669676,
+        "x_relative_error": 0.9522299216581712
+      },
+      "posthoc_best_family_F1": 0.75,
+      "posthoc_best_indices": [
+        11,
+        12
+      ],
+      "posthoc_truth_used_to_change_selection": false,
+      "selected_positive_extra_clades": [
+        {
+          "support": [
+            302,
+            306,
+            307,
+            308
+          ],
+          "r": 0.005207768605667551,
+          "x": 0.11981382438440859,
+          "incompatible_true_clades": [
+            [
+              301,
+              302,
+              303,
+              304,
+              305
+            ]
+          ]
+        },
+        {
+          "support": [
+            301,
+            303,
+            304,
+            305,
+            309,
+            310,
+            311,
+            312,
+            313,
+            314,
+            315,
+            316,
+            317,
+            318
+          ],
+          "r": 0.005393760833191394,
+          "x": 0.0,
+          "incompatible_true_clades": [
+            [
+              301,
+              302,
+              303,
+              304,
+              305
+            ]
+          ]
+        },
+        {
+          "support": [
+            301,
+            303,
+            304,
+            305
+          ],
+          "r": 0.08602969721964483,
+          "x": 0.0,
+          "incompatible_true_clades": []
+        }
+      ],
+      "independent_reconstruction_checks": [
+        {
+          "path_index": 0,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 1,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 2,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 3,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 4,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 5,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 6,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 7,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 8,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 4.336808689942018e-19,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 9,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 10,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 11,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 12,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 5.421010862427522e-20,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 13,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 14,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 15,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 16,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        },
+        {
+          "path_index": 17,
+          "R_atoms_reconstruction_max_error": 0.0,
+          "X_atoms_reconstruction_max_error": 0.0,
+          "train_mae_error": 0.0,
+          "validation_mae_error": 0.0,
+          "validation_se_error": 0.0
+        }
+      ]
+    }
+  ],
+  "raw_diagnosis_sha256": "127dd4fec447917cc3895dd36e0e8293b010e87ea387aab73ef8c3f9d6f5b5c4",
+  "raw_diagnosis_bytes": 176863
+}

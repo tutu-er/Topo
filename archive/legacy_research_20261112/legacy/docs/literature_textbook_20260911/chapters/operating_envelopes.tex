@@ -1,0 +1,553 @@
+\chapter{从电表响应到运行包络：四线回归、分配与整盒可行性}
+\label{ch:operating_envelopes}
+
+本章把两篇论文接成一条计算链：S10 从四线电气关系出发，用电表数据估计端口响应，再计算分布式资源的功率分配；S11 进一步要求每个用户在各自区间内独立行动时，所有组合都可行。两篇论文的输入信息与输出承诺不同，阅读时需要始终跟踪：估计的是哪个矩阵、优化的是一个联合运行点还是整个区间乘积、运行安全相对于哪个潮流模型成立。
+
+标记仍遵循“原文模型、等价整理、本文推导/教学实现、教学例子”四层。S10 已读作者上传全文，S11 已读 arXiv v4，并与 PDF 文本核对重要公式；所有本章小算例都是独立构造，数值核算记录保存在随附审查文件中。
+
+\section{S10：四线模型怎样变成可由电表估计的电压灵敏度}
+\label{sec:oe_s10}
+
+\subsection{问题直觉与输入输出}
+
+\textbf{文献定位。}\citet{S10} 的作者稿第 3 节推导四线电压模型，第 4 节给出阻抗回归，第 5 节算法 1 计算 DOE。其重点是利用端口量测建立运行模型，减少对完整内部网络参数的依赖；案例使用 49 个连接点及 OpenDSS/MATLAB 仿真。
+
+在低压三相四线网中，A 相多注入一些电流，不仅改变 A 相导线电压，还改变中性线电位。电表测量的是“相线减中性线”的幅值，因此对其他相也可能出现响应。若直接把每个相当作独立单相电路，就会漏掉这条传导路径。S10 的模型阅读顺序应该是：四线复阻抗 $\to$ 相对中性点电压 $\to$ 幅值对 $P,Q$ 的导数 $\to$ 回归系数 $\to$ 运行分配。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+输入/变量及维度 & 含义 \\
+\midrule
+$Z^{(4)}\in\mathbb C^{4\times4}$ & 一段线路的四线阻抗，或端口之间相应的共路径阻抗块 \\
+$\widetilde Z\in\mathbb C^{3\times3}$ & 相对中性点的三相等效响应，不是丢掉中性线后原矩阵的左上角 \\
+$P,Q,V\in\R^{T\times M}$ & $M$ 个端口的时序功率和电压幅值；还需相别、时标和单位 \\
+$S^P,S^Q\in\R^{M\times M}$ & 相角基准下的幅值灵敏度，常用单位为 V/kW 与 V/kvar \\
+$p_t,q_t\in\R^M$ & 待分配或预测的端口有功、无功；本节取向电网注入为正 \\
+其他运行输入 & 电压边界、变压器容量、资源可用功率及位置/相别信息 \\
+输出 & 回归模型及诊断；每时段的资源分配和相应约束计算结果 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+负荷为正的原始表计数据需要先变为本节的注入符号。无功采用相同注入约定，不能只给有功反号。所有回归和分配必须沿用同一符号，否则求得的“增发降压”可能只是输入方向写反。
+
+\subsection{四线电气关系：中性线消元到底消去了什么}
+
+\textbf{原文模型的矩阵等价整理。}按 $(a,b,c,n)$ 排列电流电压。在原文考虑的接地/回流假设下，
+\begin{equation}
+ I_n=-(I_a+I_b+I_c),\qquad
+ I^{(4)}=B_I I^{(3)},\quad
+ B_I=\begin{pmatrix}I_3\\-\boldsymbol1_3^T\end{pmatrix},\quad
+ U=T_VV^{(4)},\quad T_V=(I_3,-\boldsymbol1_3).
+ \label{eq:oe_s10_neutral}
+\end{equation}
+这里 $U=(V_a-V_n,V_b-V_n,V_c-V_n)^T$。若沿注入方向定义电压增量
+$\Delta V^{(4)}=Z^{(4)}I^{(4)}$，则
+\begin{equation}
+ \Delta U=\widetilde ZI^{(3)},\qquad
+ \widetilde Z=T_VZ^{(4)}B_I,\qquad
+ \widetilde Z_{\phi\psi}=Z_{\phi\psi}-Z_{\phi n}-Z_{n\psi}+Z_{nn}.
+ \label{eq:oe_s10_fourwire}
+\end{equation}
+\textbf{本文推导。}先用 $B_I$ 把三相电流映射到四线电流，再用 $Z^{(4)}$ 计算四线压降，最后用 $T_V$ 形成表计实际看到的相对中性点电压。这三个矩阵相乘顺序不能交换。即使原四线矩阵没有互感/互阻项，$Z_{nn}$ 也会使不同相之间的等效响应不为零。
+
+这一消元保留了中性线回流在端口上的作用，并不把“中性点电位恒为零”作为结论。若存在多点接地、显著对地分流或未建模支路，$I_n=-\sum I_\phi$ 的适用范围需要重新检查。多段径向线路的端口响应由相关共路径块叠加得到；仅识别这些端口系数通常不能唯一拆分成每一段内部线路参数。
+
+\subsection{从复电压到幅值的 P、Q 系数}
+
+设参考相量为 $\bar U_j=V_{0j}e^{\mathrm j\theta_j}$，以小扰动忽略二阶项。\textbf{本文统一推导}为
+\begin{equation}
+ \Delta I_j\approx\frac{\Delta P_j-\mathrm j\Delta Q_j}{\overline{\bar U_j}},\qquad
+ \Delta|U_i|\approx\Re\left\{\frac{\overline{\bar U_i}}{|\bar U_i|}
+          \sum_j\widetilde Z_{ij}\Delta I_j\right\}.
+ \label{eq:oe_s10_differential}
+\end{equation}
+定义复系数
+\begin{equation}
+ c_{ij}=\frac{\overline{\bar U_i}\,\widetilde Z_{ij}}
+ {|\bar U_i|\,\overline{\bar U_j}},\qquad
+ S^P_{ij}=\Re(c_{ij}),\qquad S^Q_{ij}=\Im(c_{ij}),
+ \quad \Delta v=S^P\Delta p+S^Q\Delta q.
+ \label{eq:oe_s10_sensitivity}
+\end{equation}
+无功系数为何是虚部而非负虚部？写 $c=a+\mathrm jb$，则
+$\Re\{c(\Delta P-\mathrm j\Delta Q)\}=a\Delta P+b\Delta Q$。
+相角差为零时系数退化为 $R/V_0$ 和 $X/V_0$；不同相之间需乘
+$e^{\mathrm j(\theta_j-\theta_i)}$。即使所有电阻都为正，跨相的幅值灵敏度仍可能为负。
+
+原文使用相别已知、名义三相角及名义电压的线性近似建立对应回归。式~\eqref{eq:oe_s10_sensitivity} 只是以紧凑复数记号解释同一传导关系，不是把线性化当作任意大扰动下的精确 AC 模型。
+
+\subsection{回归：先检查能否识别，再解释系数}
+
+对一个被观测端口 $i$，把 $T$ 个时刻的幅值变化组成
+$y_i\in\R^T$，把功率变化与已知相角系数组成
+$\Phi_i\in\R^{T\times d_i}$，未知共路径参数为
+$\vartheta_i\in\R^{d_i}$。原文第 4 节的回归可整理成
+\begin{equation}
+ y_i=\Phi_i\vartheta_i+\epsilon_i,\qquad
+ \hat\vartheta_i\in\arg\min_\vartheta\|y_i-\Phi_i\vartheta\|_2^2.
+ \label{eq:oe_s10_regression}
+\end{equation}
+若要同时估计各端口的 $R/X$，通常 $d_i$ 随端口数增长。使用功率差分时要同步构造电压差分；使用绝对量时还需截距/无负荷参考，不能把截距漂移硬塞进阻抗参数。
+
+\textbf{本文推导。}唯一无正则最小二乘解要求
+$\rank(\Phi_i)=d_i$。如果所有样本均满足固定 $Q=\kappa P$，同相的 $R$ 和 $X$ 只通过 $R+\kappa X$ 出现，数据未必能把二者分开。QR/SVD 可以报告有效秩和病态方向；加岭惩罚能选择一个数值稳定的解，但不能创造原本不存在的可辨识性。回归给出 $R/X$ 后，再按已知相别转换为运行灵敏度，并在未参与拟合的时段检查预测残差。
+
+\begin{algorithm}[tbp]
+\caption{S10 的辨识链：原模型顺序与教学数值诊断}
+\label{alg:oe_s10_identify}
+\begin{algorithmic}[1]
+\Require 同步 $P,Q,V$，每个端口相别、量纲、参考电压，以及有效数据掩码
+\State 统一注入符号；建立一致的基准或差分序列
+\State 根据相别与式~\eqref{eq:oe_s10_differential} 建立每个端口的 $\Phi_i,y_i$
+\For{每个端口 $i$}
+ \State 用 QR/SVD 检查秩与条件数；记录不易区分的参数方向
+ \State 求解式~\eqref{eq:oe_s10_regression}，计算拟合残差及有效样本数
+ \State 秩不足时只输出可辨识组合或带明确约束的估计，不称为唯一物理参数
+\EndFor
+\State 将估计系数转换为 $S^P,S^Q$，核查相角与单位
+\State 教学补充：在留出时段检验电压误差，保存模型适用范围
+\State 返回端口模型及辨识诊断，交给运行分配层
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{运行分配：最大输出、均等削减与灵敏度削减}
+
+\textbf{原文流程。}每个时段由预测量计算端口电流、电压及变压器负载；若出现约束违例，则按选定目标调整 DER 输出，并检查电压、变压器容量、资源能力及所选的不平衡约束；否则保留当前预测输出。原文比较最大总输出、均等削减以及按灵敏度分配削减三种原则。
+
+为教学清楚，固定无功和其他负荷后，最大输出的一个电压约束子问题为
+\begin{equation}
+ \max_p\boldsymbol1^Tp\quad\text{s.t.}\quad
+ v_{\min}\le v_0+S^Pp+S^Qq\le v_{\max},\qquad
+ 0\le p\le\bar p.
+ \label{eq:oe_s10_dispatch}
+\end{equation}
+变压器约束、无功能力和原文采用的电压不平衡指标应在实际运行问题中另外保留；式~\eqref{eq:oe_s10_dispatch} 是讲清分配机制的简化子问题。它得到的是一个联合功率向量。将其每个坐标作为独立上限还需要下一节的整盒检查。
+
+若同相若干端口需要消除 $b>0$ 的过压，设灵敏度为 $s_i>0$、削减为
+$c_i=\bar p_i-p_i$。局部线性条件为 $\sum_i s_ic_i\ge b$。
+均等削减要求 $c_i=c$；按灵敏度削减可取 $c_i=\lambda s_i$。后者给出
+$\lambda=b/\sum_is_i^2$，前者给出 $c=b/\sum_is_i$；一旦某个端口达到输出边界，就固定该端口，再对剩余端口重算。这种带饱和重分配的明确顺序是\textbf{教学实现补充}，不能只写一个比例而遗漏设备上限。
+
+\begin{algorithm}[tbp]
+\caption{S10 的逐时段运行链：原算法主线，停止与复检显式化}
+\label{alg:oe_s10_allocate}
+\begin{algorithmic}[1]
+\Require 已辨识模型、相别、预测 $\bar p_t,q_t$、电压/变压器/资源约束、分配目标
+\For{每个运行时段 $t$}
+ \State 计算预测端口电压、电流和变压器负载；计算选用的不平衡指标
+ \If{预测满足全部所建约束}
+   \State 取 $p_t\gets\bar p_t$
+ \Else
+   \State 选择最大输出优化、均等削减或灵敏度削减规则
+   \State 求解约束分配；遇到资源饱和则更新活动集合并重新分配
+   \State 用最终功率重新计算全部所建约束，记录求解状态及剩余违例
+ \EndIf
+ \State 返回联合运行点与约束计算结果；若要下发独立区间，转入整盒检查
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{完整传导例子：四线阻抗、四个回归样本和两端口分配}
+
+\begin{example}[从中性线回流算到电压边界]
+取一段四线阻抗，单位为 $\Omega$：
+\[
+ Z^{(4)}=\diag(.4+.2\mathrm j,.4+.2\mathrm j,.4+.2\mathrm j,.1+.05\mathrm j).
+\]
+没有互阻项，但由式~\eqref{eq:oe_s10_fourwire} 得
+\[
+ \widetilde Z_{\phi\phi}=.5+.25\mathrm j,\qquad
+ \widetilde Z_{\phi\psi}=.1+.05\mathrm j\quad(\phi\ne\psi).
+\]
+取 $230\,\mathrm V$ 名义电压、相角 $0,-120^\circ,120^\circ$。
+A 相注入 $1\,\mathrm{kW}$ 且无功为零时，近似相电流为 $1000/230=4.347826\,\mathrm A$，中性线电流为其负值。
+A 相对地电压变化为 $1.739130+.869565\mathrm j$，中性点为
+$-.434783-.217391\mathrm j$；两者相减得到
+\[
+ \Delta U_a=2.173913+1.086957\mathrm j,\qquad
+ \Delta|U_a|\approx2.173913\,\mathrm V.
+\]
+
+现在假设不知道 A 相的四个等效参数
+$\vartheta=(R_{aa},X_{aa},R_{ab},X_{ab})^T$，但相别已知。
+教学辨识数据依次施加 $1\,\mathrm{kW}$ 的 A 相有功、$1\,\mathrm{kvar}$ 的 A 相无功、$1\,\mathrm{kW}$ 的 B 相有功、$1\,\mathrm{kvar}$ 的 B 相无功扰动。
+记 $k_0=1000/230$，则
+\[
+ \Phi=k_0\begin{pmatrix}
+ 1&0&0&0\\0&1&0&0\\0&0&-1/2&\sqrt3/2\\0&0&-\sqrt3/2&-1/2
+ \end{pmatrix},\quad
+ y=\begin{pmatrix}2.173913\\1.086957\\-.029125\\-.485228\end{pmatrix}\mathrm V.
+\]
+右下角是正交旋转矩阵，故 $\Phi^T\Phi=k_0^2I$，秩为 4；无噪声最小二乘恢复
+$\hat\vartheta=(.5,.25,.1,.05)^T$。这些四次独立扰动是\emph{教学数据设计}，并不是论文现场采用主动试验的事实。
+
+保留 A、B 两个端口，并把输出单位固定为 kW，得到
+\[
+ S^P=\begin{pmatrix}
+ 2.173913&-.029125\\-.405658&2.173913
+ \end{pmatrix}\mathrm{V/kW}.
+\]
+两个跨相系数不同，因为它们分别含 $e^{-\mathrm j120^\circ}$ 和
+$e^{\mathrm j120^\circ}$ 的相角旋转；这不违反原复阻抗块的对称性。
+
+设运行基准电压均为 $250\,\mathrm V$，上限 $253\,\mathrm V$，两个 DER 的可用有功均为 $2\,\mathrm{kW}$，无功固定为零。原预测 $(2,2)$ 给出
+$(254.289576,253.536511)\,\mathrm V$，都超限。
+仅在本例电压及输出约束下，最大总输出点由 $S^Pp=(3,3)^T$ 得到
+\[
+ p^\star=(1.401993,1.641616)^T\,\mathrm{kW},\quad
+ \boldsymbol1^Tp^\star=3.043609\,\mathrm{kW}.
+\]
+它满足两个 $2\,\mathrm{kW}$ 上限，且两条电压约束恰好等号。
+作为最优性复核，存在正乘子 $\mu=(S^{P\,T})^{-1}\boldsymbol1>0$，使任意可行 $p$ 都有
+$\boldsymbol1^Tp=\mu^TS^Pp\le3\boldsymbol1^T\mu=\boldsymbol1^Tp^\star$。
+本例没有设置变压器和不平衡约束，因此不声称得到完整现场 DOE。
+\end{example}
+
+\begin{example}[同一过压，三种削减原则的差别]
+另取一个同相简化系统，两个端口灵敏度为 $(1,2)\,\mathrm{V/kW}$，可用输出为 $(2,2)\,\mathrm{kW}$，电压裕度为 $3\,\mathrm V$。预测引起 $6\,\mathrm V$ 升高，需要削减 $3\,\mathrm V$。
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+原则 & 削减 $(c_1,c_2)$ & 输出 $(p_1,p_2)$ & 总输出 \\
+\midrule
+最大总输出 & $(0,1.5)$ & $(2,.5)$ & $2.5$ \\
+均等削减 & $(1,1)$ & $(1,1)$ & $2$ \\
+按灵敏度削减 & $(.6,1.2)$ & $(1.4,.8)$ & $2.2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+三行均满足 $c_1+2c_2=3$。最大输出优先削减单位 kW 降压作用较强的端口；均等削减按 kW 平分；比例规则的削减量比为 $1:2$。这三种目标衡量不同的分配偏好，不能把“公平”当作无需定义的同一个指标。
+\end{example}
+
+\subsection{停止、成本、数据覆盖和完整性审查}
+
+每个端口的稠密最小二乘若有 $T$ 个样本、$d$ 个系数，QR 的典型成本为 $O(Td^2)$，全网端口数再乘相应数量。运行优化成本依赖目标、变压器及不平衡约束的具体形式；比例分配在每轮至少固定一个饱和设备的实现中最多进行设备数次活动集合更新。所有阶段都应记录秩不足、优化不可行、最大迭代耗尽和复检违例，避免把求解器返回一个向量当作安全成功。
+
+\textbf{原文范围。}作者稿讨论噪声与缺失数据，但明确未处理预测不确定性。其约束层涉及电压和变压器等边界；仅有端口阻抗并不能自动提供所有内部线路的热额定值。\textbf{本文审查。}相别错误、共线的 $P/Q$、基准电压漂移和未量测注入都会影响回归；终端拟合准确不能单独证明内部拓扑与线路容量已正确辨识。
+
+更直接的运行接口问题出现在前一例：若把联合点的两个坐标下发为独立区间
+$[0,1.401993]\times[0,1.641616]$，则在 $(1.401993,0)$ 时 A 相电压达到
+$253.047812\,\mathrm V$；在 $(0,1.641616)$ 时 B 相达到
+$253.568729\,\mathrm V$。联合点的安全依赖另一个相提供的负灵敏度贡献，而用户独立降到零会失去这个贡献。该反例由本书的线性教学模型构造，不冒充论文某个实验的失败；它说明将点分配接到独立 DOE 时，还必须补整盒包含关系。
+
+\section{S11：用椭球、内盒、去冗余和扩张计算可独立使用的区间}
+\label{sec:oe_s11}
+
+\subsection{输出从一个点变成一整个集合}
+
+\textbf{文献定位。}\citet{S11} 在第 III 节给出三个主步骤：初始区间、去冗余、扩张。本书把第一步拆成“椭球”和“内盒”两个子步骤，形成四步教学链。所核版本为 arXiv v4；正式期刊为 2024 年 IEEE Transactions on Power Systems。
+
+原文采用进口为正、出口为负的有功坐标，本节沿用它。与 S10 的注入正号相接时，要同时转换功率、灵敏度及上下限。下文二维正象限例子只是区间几何演示，可理解为两个允许进口的坐标。
+
+\begin{definition}[独立运行区间]
+给定可行域 $\mathcal F$，用户区间构成
+\[
+ \mathcal B(l,u)=\prod_{i=1}^n[l_i,u_i].
+\]
+要求 $\mathcal B(l,u)\subseteq\mathcal F$，即
+$\forall p_1\in[l_1,u_1],\ldots,\forall p_n\in[l_n,u_n]$，全部运行约束都成立。它比寻找一个 $p\in\mathcal F$ 多了对所有组合的量词。
+\end{definition}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+符号与维度 & 含义 \\
+\midrule
+$p\in\R^n,q\in\R^{n_q},v\in\R^{n_v}$ & 可控有功、被优化后固定的无功、线性网络状态 \\
+$G\in\R^{m\times n},h(q)\in\R^m$ & 消元后的线性可行域 $\mathcal F_L(q)=\{p:Gp\le h(q)\}$ \\
+$c\in\R^n,L=\diag(a_1,\ldots,a_n)$ & 椭球中心及正对角形状，$a_i>0$ \\
+$r\in\R_+^n,l,u\in\R^n$ & 盒半宽与下/上界，$l=c-r,u=c+r$ \\
+输出 & 固定的 $q^\star$、独立区间、每条约束的整盒裕度与求解记录 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{网络线性化与消元：先确定保证对象}
+
+\textbf{原文模型的等价整理。}线性约束写为
+\begin{equation}
+ Ap+Bq+Cv=d,\qquad Ev\le f.
+ \label{eq:oe_s11_linear}
+\end{equation}
+若选定参考和状态后 $C$ 可逆，则
+\begin{equation}
+ v=C^{-1}(d-Ap-Bq),\quad
+ G=-EC^{-1}A,\quad h(q)=f-EC^{-1}(d-Bq),\quad
+ \mathcal F_L(q)=\{p:Gp\le h(q)\}.
+ \label{eq:oe_s11_eliminate}
+\end{equation}
+不能把一般长方矩阵当作可逆矩阵；那种情况下应保留状态或使用合法的线性消元/投影。用户功率和无功能力边界也可以并入相应行。这里的 $\mathcal F_L$ 是给定线性模型的可行域，后续包含证明全部相对于它进行。
+
+\subsection{第一步：最大正对角椭球}
+
+考虑
+\begin{equation}
+ \mathcal E(c,L)=\{c+Lz:\|z\|_2\le1\},\qquad L=\diag(a),\quad a_i>0.
+ \label{eq:oe_s11_ellipsoid}
+\end{equation}
+对第 $j$ 条半空间，\textbf{本文展开原包含条件}：
+\begin{align}
+ \sup_{p\in\mathcal E}g_j^Tp
+ &=g_j^Tc+\sup_{\|z\|_2\le1}(L^Tg_j)^Tz\nonumber\\
+ &=g_j^Tc+\|L^Tg_j\|_2.
+ \label{eq:oe_s11_ellipsoid_support}
+\end{align}
+等式由 Cauchy--Schwarz 达到，最大方向为
+$z=L^Tg_j/\|L^Tg_j\|$，若分子为零则任意方向都一样。因此椭球完全落在多面体内，当且仅当每一行满足
+\begin{equation}
+ g_j^Tc+\|L^Tg_j\|_2\le h_j(q).
+ \label{eq:oe_s11_ellipsoid_contain}
+\end{equation}
+
+原文基本优化问题据此整理为
+\begin{equation}
+ \max_{c,a,q}\ \sum_{i=1}^n\log a_i
+ \quad\text{s.t.}\quad a_i>0,\quad \underline q\le q\le\overline q,
+ \quad\text{式~\eqref{eq:oe_s11_ellipsoid_contain} 对所有 }j\text{ 成立}.
+ \label{eq:oe_s11_ellipsoid_opt}
+\end{equation}
+对角形状限制很重要：它与每个用户单独的坐标方向对应，并不是允许任意旋转的最大体积椭球。固定维度后椭球体积正比于 $\prod_i a_i$，所以目标采用 $\log\det L=\sum\log a_i$。在上述线性 $h(q)$ 下，它是凸优化意义上的凹目标最大化问题。
+
+若已知用户只进口或只出口，原文通过软约束/惩罚把不需要的一侧靠近零。例如令状态标志 $s_i=1$ 表示只进口，$s_i=-1$ 表示只出口，添加
+\begin{equation}
+ -\delta_i\le c_i-s_i a_i/\sqrt n\le\delta_i,\qquad
+ \delta_i\ge0,
+ \quad\text{目标减去 }\varepsilon_{\rm md}\sum_i\delta_i.
+ \label{eq:oe_s11_status}
+\end{equation}
+未知状态还可惩罚 $|c_i|$。有限惩罚不会无条件使 $\delta_i=0$；必须检查求出的松弛量，才能知道所希望的单向运行边界是否真的实现。
+
+\subsection{第二步：在椭球中求最大的轴对齐内盒}
+
+\textbf{原文结果与本文证明。}固定最优 $c,a$，对以 $c$ 为中心的盒子，最远角点满足
+\[
+ \sum_i(r_i/a_i)^2\le1.
+\]
+体积为 $2^n\prod_i r_i$。令 $t_i=(r_i/a_i)^2$，最大化体积等价于最大化
+$\prod_i t_i$，约束为 $t_i\ge0,\sum_i t_i\le1$。算术--几何均值不等式给出
+$\prod_i t_i\le n^{-n}$，等号要求全部 $t_i=1/n$。于是
+\begin{equation}
+ r_i^0=\frac{a_i^\star}{\sqrt n},\qquad
+ l_i^0=c_i^\star-r_i^0,\qquad u_i^0=c_i^\star+r_i^0.
+ \label{eq:oe_s11_innerbox}
+\end{equation}
+它是这个轴对齐椭球内的最大体积轴对齐盒；“椭球内最大”不等于“整个原多面体内最大”。第三、四步的目的正是处理这部分保守性。
+
+\subsection{第三步：固定无功并去掉冗余半空间}
+
+固定 $q=q^\star$，才能知道后续盒子到底在哪个有功可行域内。原文算法 1 对每一行求解稍微放松该行的 LP：
+\begin{equation}
+ O_j=\max_p\{g_j^Tp-h_j:\ g_j^Tp\le h_j+1,\quad
+                 g_k^Tp\le h_k\ (k\ne j)\}.
+ \label{eq:oe_s11_redundancy}
+\end{equation}
+若 $O_j\le0$，其他行已经蕴含第 $j$ 行；若 $O_j>0$，删掉它会引入违反该行的点。额外的 $+1$ 把目标上界限制为 1，避免为判断冗余而遇到目标无界。
+
+\textbf{本文推导。}在原多面体非空时，若删除第 $j$ 行后存在违反它的点，可以将该点与原可行点作凸组合，得到一个违反量处于 $(0,1]$ 的点。因此，放松 1 不会把真正非冗余的行误判为冗余；“1”的量纲应与该行一致，数值实现宜先做行尺度归一化。求解器的上界/对偶界不确定或接近容差时，宁可保留该行。
+
+\begin{algorithm}[tbp]
+\caption{S11 去冗余步骤的教学安全实现：顺序删除}
+\label{alg:oe_s11_redundancy}
+\begin{algorithmic}[1]
+\Require 非空多面体 $Gp\le h$，冗余判断容差及 LP 求解容差
+\State 初始化保留行集合 $\mathcal J\gets\{1,\ldots,m\}$
+\For{依次访问每个原始行 $j$}
+ \State 使用当前保留的其他行，求解式~\eqref{eq:oe_s11_redundancy}
+ \If{可靠的最优上界不大于冗余容差}
+   \State 从 $\mathcal J$ 删除 $j$，记录 LP 证明信息
+ \Else
+   \State 保留 $j$；数值失败或界未闭合时也保留
+ \EndIf
+\EndFor
+\State 返回剩余行；最终区间还必须对全部原始约束重新检查
+\end{algorithmic}
+\end{algorithm}
+
+顺序删除是教学实现与原文简单逐行描述之间的一项重要保护。两个完全相同的约束各自看起来都被另一个蕴含；若同时删除，会把这条限制整个删掉。顺序法删掉第一条后，第二条就不能再凭已经不存在的第一条被判冗余。
+
+\subsection{第四步：保持初始盒、向外扩张并检查包含}
+
+首先理解原文式 (13) 的求解结构。把初始盒写成
+$E_Bp\le f_B$，扩大右端为 $f_B+\Delta f$，$\Delta f\ge0$。对外层第 $j$ 行，线性规划对偶给出
+\begin{equation}
+ E_B^T\lambda_j=g_j,\qquad\lambda_j\ge0,\qquad
+ (f_B+\Delta f)^T\lambda_j\le h_j.
+ \label{eq:oe_s11_dual_containment}
+\end{equation}
+\textbf{等价整理。}原文使用 $x_j=-\lambda_j\le0$，所以等式带负号。
+只要这些关系成立，对任意盒内 $p$ 有
+$g_j^Tp=\lambda_j^TE_Bp\le\lambda_j^T(f_B+\Delta f)\le h_j$。
+同时优化 $\lambda$ 和 $\Delta f$ 会出现双线性项，这就是原文指出扩张问题非凸的原因。
+
+对于本书的\emph{固定显式半空间与轴对齐盒}，可以进一步用以下精确支持函数消去对偶变量。这个形式是\textbf{本文推导的教学求解接口}，不是宣称作者采用了相同求解器：
+\begin{proposition}[整盒线性约束的精确证书]
+令 $G_+=\max(G,0)$、$G_-=\min(G,0)$，均逐元素定义。则
+\begin{equation}
+ \mathcal B(l,u)\subseteq\{p:Gp\le h\}
+ \quad\Longleftrightarrow\quad
+ G_+u+G_-l\le h.
+ \label{eq:oe_s11_box_exact}
+\end{equation}
+等价地，使用中心半宽为 $Gc+|G|r\le h$。
+\end{proposition}
+\begin{proof}
+对一行 $g_j$，$g_{ji}>0$ 时最大值在 $p_i=u_i$，$g_{ji}<0$ 时最大值在 $p_i=l_i$，零系数任意。逐坐标独立最大化得到
+$\max_{p\in[l,u]}g_j^Tp=(g_j)_+^Tu+(g_j)_-^Tl$。
+每行的最坏点不必相同，但逐行上界同时成立就足以保证整盒包含。
+\end{proof}
+
+因此一个可以直接执行、以真实区间宽度为目标的扩张问题为
+\begin{equation}
+ \begin{aligned}
+ \max_{l,u}\quad &\sum_i\log(u_i-l_i)\\
+ \text{s.t.}\quad &l\le l^0,\quad u\ge u^0,\quad u_i-l_i>0,\\
+ &G_+u+G_-l\le h(q^\star),
+ \end{aligned}
+ \label{eq:oe_s11_direct_expand}
+\end{equation}
+并保留设备边界与已确认的单向运行限制。这个特定形式是凹目标与线性约束构成的凸优化问题；它说明原式的双线性参数化不应被误读成所有轴对齐盒问题必然非凸。若约束本身非线性、离散控制未固定或外层域未显式给定，不能直接沿用这个结论。
+
+\begin{algorithm}[tbp]
+\caption{S11 的四步教学算法：原方法主线与显式盒求解变体}
+\label{alg:oe_s11_all}
+\begin{algorithmic}[1]
+\Require 线性网络模型、可控无功边界、用户运行方向、设备约束
+\Ensure $q^\star$、区间 $[l,u]$、针对全部原始线性行的最坏值和裕度
+\State 消元得到 $Gp\le h(q)$，检查维度、参考、非空性与功率符号
+\State \textbf{椭球：}解式~\eqref{eq:oe_s11_ellipsoid_opt}，按需要加入状态惩罚
+\State 检查优化状态与全部包含余量；无法验证时不生成安全结论
+\State \textbf{内盒：}计算 $r^0=a^\star/\sqrt n,l^0=c^\star-r^0,u^0=c^\star+r^0$
+\State \textbf{去冗余：}固定 $q^\star$，执行算法~\ref{alg:oe_s11_redundancy}
+\State \textbf{扩张：}原路径求解式 (13) 的包含优化；教学变体解式~\eqref{eq:oe_s11_direct_expand}
+\State 对全部原始行计算 $b=G_+u+G_-l$，输出裕度 $h(q^\star)-b$
+\State 若扩张失败而初始盒已获验证，保留初始盒并明确停止原因
+\State 另行报告线性模型与 AC/预测误差检验，区分模型证书与现场安全
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{一个可以手算四步的二维教学例子}
+
+\begin{example}[五边形中的最大椭球、内盒与扩张盒]
+固定无功，取
+\begin{equation}
+ \mathcal F=\{p:\ p_1\ge0,\ p_2\ge0,\ p_1+p_2\le4,\ p_1\le3,\ p_2\le3\},
+ \label{eq:oe_s11_polygon}
+\end{equation}
+并故意再加一条 $p_1+p_2\le5$ 用于演示去冗余。
+
+\textbf{步骤一。}椭球轴长为 $a_1,a_2$，下边界要求 $c_i\ge a_i$。
+在求最大体积时，将 $c_i$ 降到 $a_i$ 只会放松上侧约束，因此可取 $c_i=a_i$。
+斜边约束成为
+\[
+ a_1+a_2+\sqrt{a_1^2+a_2^2}\le4.
+\]
+设 $s=a_1+a_2$，则 $\sqrt{a_1^2+a_2^2}\ge s/\sqrt2$，且
+$a_1a_2\le s^2/4$。两处同时取等号需要 $a_1=a_2$，于是最优
+\[
+ a_1=a_2=c_1=c_2=a=\frac4{2+\sqrt2}=4-2\sqrt2=1.171573.
+\]
+单坐标最大值 $c_i+a_i=2.343146<3$，所以两个独立上限不改变这个解。
+椭圆面积为 $\pi a^2=4.312097$。
+
+\textbf{步骤二。}内盒半宽
+\[
+ r=\frac a{\sqrt2}=2\sqrt2-2=.828427,
+ \quad l^0=a-r=6-4\sqrt2=.343146,
+ \quad u^0=a+r=2.
+\]
+因此初始盒为 $[.343146,2]^2$，面积 $(2r)^2=2.745166$。
+其右上角是 $(2,2)$，位于斜边上，但左下角还可以向原点扩展。
+
+\textbf{步骤三。}检查附加行 $p_1+p_2\le5$：由真正斜边约束可得
+$\max(p_1+p_2)=4$，所以式~\eqref{eq:oe_s11_redundancy} 的目标为 $-1$，删去附加行不改变可行域。
+两个 $p_i\le3$ 都不是冗余的，例如删除 $p_1\le3$ 后 $(3.5,0)$ 会进入可行域。
+
+\textbf{步骤四。}扩张必须保留初始盒，所以 $u_1,u_2\ge2$；整盒斜边要求 $u_1+u_2\le4$，因此必有 $u_1=u_2=2$。
+非负性要求 $l_i\ge0$，最大化宽度则取 $l_1=l_2=0$。
+最终盒为 $[0,2]^2$，面积为 4，比初始盒增加约 $45.71\%$。
+四个顶点的坐标和分别为 $0,2,2,4$，都满足斜边；每个坐标均不超过 3。
+更直接地，用式~\eqref{eq:oe_s11_box_exact} 逐行复核，得到非负边界最坏违例为 0，斜边余量为 0，两个独立上界余量为 1，附加行余量为 1。
+\end{example}
+
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[scale=1.65,>=Stealth]
+ \fill[gray!13] (0,0)--(3,0)--(3,1)--(1,3)--(0,3)--cycle;
+ \fill[blue!10] (0,0) rectangle (2,2);
+ \draw[gray!80,thick] (0,0)--(3,0)--(3,1)--(1,3)--(0,3)--cycle;
+ \draw[orange!85!black,thick] (1.171573,1.171573) circle (1.171573);
+ \draw[blue!70!black,very thick] (0,0) rectangle (2,2);
+ \draw[teal!70!black,dashed,thick] (.343146,.343146) rectangle (2,2);
+ \draw[->] (-.15,0)--(3.5,0) node[right] {$p_1$};
+ \draw[->] (0,-.15)--(0,3.5) node[above] {$p_2$};
+ \foreach \t in {1,2,3}{\draw (\t,.035)--(\t,-.035) node[below] {\small $\t$};
+ \draw (.035,\t)--(-.035,\t) node[left] {\small $\t$};}
+ \fill (1.171573,1.171573) circle (.025);
+ \node[font=\small,above left] at (1.171573,1.171573) {$c$};
+ \node[font=\small,rotate=-45,above] at (2.05,2.05) {$p_1+p_2=4$};
+\end{tikzpicture}
+\caption{本书二维教学例子。灰色为线性可行域，橙色为最大对角椭球，青色虚线为椭球内初始盒，蓝色为扩张后的独立区间。}
+\label{fig:oe_s11_geometry}
+\end{figure}
+
+\subsection{支持函数也能修复上一节的独立上限问题}
+
+\textbf{本文推导。}对 S10 的两端口注入例子，若下界固定为零，要求
+$250\boldsymbol1+S^Pp\le253\boldsymbol1$ 对全部
+$p\in[0,u]$ 成立。负的跨相系数在最坏情况下取另一端口 $p=0$，所以
+\[
+ (S^P)_+u\le3\boldsymbol1
+ \quad\Longleftrightarrow\quad
+ 2.173913u_1\le3,\quad2.173913u_2\le3.
+\]
+得到 $u_1=u_2=1.38\,\mathrm{kW}$，总宽度为 $2.76\,\mathrm{kW}$。
+这比联合点的总输出 $3.043609\,\mathrm{kW}$ 小；减少的原因可以直接在负跨相系数上找到：独立权利不能依赖另一个用户始终提供有利响应。这里给出的是\emph{这组已知线性电压约束}的整盒保证；若加入低电压、变压器和其他设备约束，需要继续逐行/逐约束检查。
+
+\subsection{成本、停止与公平性所需的精确条件}
+
+四阶段成本不应压缩成一个不明来源的复杂度。椭球问题含 $n$ 个轴长、$n$ 个中心及无功变量，约 $m$ 个二阶锥式约束；其迭代成本随稀疏结构和求解器而变。内盒计算是 $O(n)$；去冗余最多求解 $m$ 个 LP；显式盒扩张含 $2n$ 个上下界变量和约 $m$ 条线性约束，最终证书计算为 $O(mn)$。原文对偶扩张还引入每条外层约束的一组对偶变量，因此冗余行数显著影响规模。
+
+停止不仅是优化器报告成功，还应检查所有约束残差、正轴长/正宽度、内盒保留关系、固定无功的值和原始行的最坏裕度。出现近边界舍入误差时应收紧或报告容差，不能用“在容差内”替代明确的数值安全裕度。去冗余只是加速，不应改变最终模型保证。
+
+\begin{proposition}[本文推导：对数宽度何时具有比例公平性]
+设可行宽度集合 $\mathcal W\subset\R_{++}^n$ 为凸集，$w^\star$ 是
+$\max_{w\in\mathcal W}\sum_i\log w_i$ 的全局最优解。则对任意
+$w\in\mathcal W$，
+\begin{equation}
+ \sum_i\frac{w_i-w_i^\star}{w_i^\star}\le0.
+ \label{eq:oe_s11_fairness}
+\end{equation}
+\end{proposition}
+\begin{proof}
+线段 $w^\star+t(w-w^\star)$ 在 $t\in[0,1]$ 上可行。最优点向任何可行方向的一阶方向导数不得为正，因此
+$\nabla(\sum\log w_i)|_{w^\star}^T(w-w^\star)\le0$，即所示不等式。
+\end{proof}
+
+这个结论讨论的是\emph{所有用户相对宽度变化的和}，不要求每个用户单独都不能增加。加入状态惩罚、改变可行无功或只取得局部解后，须重新核对对应目标和最优性条件。原文也明确指出最后扩张可能削弱其公平性结论。二维教学例子的 $[0,2]^2$ 是所设扩张问题的全局解；不能因此声称整个一般算法对任意 AC 网络都全局最优。
+
+\subsection{原文公式、线性化及 Topo 接口的最后审查}
+
+\textbf{公式记号核查。}原式 (13a) 的上下界记号在 HTML 与 PDF 文本中均存在需要澄清的符号组合。本书统一取
+\[
+ E_B=\begin{pmatrix}e_1^T\\-e_1^T\\\vdots\\e_n^T\\-e_n^T\end{pmatrix},\qquad
+ f_B=(u_1,-l_1,\ldots,u_n,-l_n)^T\in\R^{2n}.
+\]
+于是第 $i$ 个真实宽度必须为 $(f_B)_{2i-1}+(f_B)_{2i}=u_i-l_i$，扩张后再加两个非负增量。原显示式含相邻基础项相减；若沿用上述统一半空间约定，就不能同时将该表达式解释为区间宽度。本书采用式~\eqref{eq:oe_s11_direct_expand} 的 $u_i-l_i$，并将它标为明确符号下的教学重写，不把来源记号疑点悄悄修正后冒充逐字原式。原文对 $f$ 维度的描述也需与约束行数对齐。
+
+\textbf{线性保证与现场保证。}原文算例比较了线性可行域和非凸 AC 可行域，并指出两者一般没有固定的内外包含方向。因此
+$\mathcal B\subseteq\mathcal F_L$ 并不自动推出
+$\mathcal B\subseteq\mathcal F_{\rm AC}$。在线性半空间内检查所有角点是充分的；对非凸集合则未必。例如集合
+$[-1,-.5]\cup[.5,1]$ 包含区间 $[-1,1]$ 的两个端点，却不包含内部点 0。这个一维反例仅解释逻辑，不是论文案例的仿真结果。
+
+对 Topo，必须把模型不确定性也写进量词。若 $\mathcal T$ 是可能网络集合、
+$\mathcal D$ 是外部扰动集合，静态独立安全要求可以写成
+\begin{equation}
+ \forall T\in\mathcal T,\ \forall\xi\in\mathcal D,\
+ \forall p\in[l,u]:\quad \text{所要求的网络约束成立}.
+ \label{eq:oe_s11_topo_interface}
+\end{equation}
+有限候选池只覆盖部分真实可能性时，池内全部通过不能证明池外安全；末端等效电压模型也不能凭空补出内部热额定值。若将置信集用于概率声明，还需另行给出真实模型落入集合的覆盖保证、扰动集合的覆盖保证以及集合内的确定性安全证明。S5 的无监督融合分数和 S9 的小残差，都不能单独填满这些证明接口。
+
+\textbf{改进方向的定位。}本文的支持函数重写、顺序去冗余、数据留出与误差裕度检查是可复算的教学和审查补充。要将本章算法部署到含隐藏零注入树的 Topo 场景，还需要提供与实际观测匹配的端口模型、可验证的参数/模型误差边界以及所需运行约束；这些输入是否具备，应通过数据和代码检查回答，不能由文献相似性推定。

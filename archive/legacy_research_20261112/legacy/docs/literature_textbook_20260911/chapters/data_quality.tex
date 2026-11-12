@@ -1,0 +1,598 @@
+\chapter{从多个判断到可审查证据：标签融合、量化误差与现场核验}
+\label{ch:data_quality}
+
+这一章讨论一个实际问题：已有算法给出的相别、归属或支路判断，怎样变成能够检查、复算和安排现场工作的证据？S5 把多个有误差的标签源合并；S7 把量化误差传递到参数误差；S8 用电压相关性修订相别和馈线记录；S9 用状态估计残差定位可疑记录。S6 暂时只有出版记录，因此保留阅读接口，不补造论文算法。
+
+本章采用四种明确标记。\textbf{原文模型}表示已在来源中核实的定义和计算关系；\textbf{等价整理}表示改用统一符号、但保持数学含义的改写；\textbf{教学实现/本文推导}表示为使算法可以逐步执行而补充的求解细节或证明；\textbf{教学例子}表示本书自造且已核算的数据。后两类不代表论文作者的实验或代码。
+
+\section{S5：先学习每个标签源怎样犯错，再进行证据融合}
+\label{sec:dq_s5}
+
+\subsection{问题直觉与输入输出}
+
+\textbf{文献定位。}\citet{S5} 的 Ca-TI 处理电表所属变压器、相别或分支的离散标签。此次已取得由 MDPI 提供的全文，核查重点为第 3 节、式 (16)--(32) 与算法 1。它的主线是：滑窗标签、EM 误差模型、逐源责任度、可靠性折扣、冲突门控融合，最后输出类别和表级分数。
+
+如果三个方法都给出 A，相互一致是有用信息；但若它们使用同一段电压数据，这种一致也可能来自共同错误。Ca-TI 首先把“某个源习惯把 A 错判成 B”写成混淆矩阵，而不是直接多数投票。随后，它把源的犹豫和缺测转化为“尚不知道”的质量，再决定冲突证据应该被重新归一化还是留作未知。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+符号与维度 & 含义 \\
+\midrule
+$M,K,S,T$ & 电表数、候选标签数、标签源数、窗口数，$K\ge2$ \\
+$Y\in(\{1,\ldots,K\}\cup\{\bot\})^{M\times T\times S}$ & 每个方法对每个电表每个窗口的结果；$\bot$ 表示弃权 \\
+$w_{it}^{(s)}\in[0,1]$ & 标签对应的数据质量权重；弃权不参与似然 \\
+$\Pi^{(s)}\in[0,1]^{K\times K}$ & 行为真实标签、列为观测标签，各行和为 1 \\
+$\pi_i,\gamma_i,\gamma_i^{(s)}\in\R^K$ & 先验、联合责任度、逐源责任度，均为概率向量 \\
+$m_i\in\R^{K+1}$ & 对 $K$ 个单元素假设与全集 $\Theta$ 的证据质量 \\
+输出 & $\hat z_i$、$\operatorname{BetP}_i$、$\operatorname{conf}_i$，以及各源质量和冲突诊断 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+各标签源的内部 TI 算法是这一融合层的输入接口：要先统一类别编码、时间窗和弃权规则。如果源 1 的“1”表示 A 相、源 2 的“1”表示 B 相，统计融合无法自动补救这个语义错误。下文取一个电表在分析期间的真实标签 $Z_i$ 不变。
+
+\subsection{第一层：EM 学习源的混淆矩阵}
+
+\textbf{原文模型的等价整理。}令 $\mathcal O_i^{(s)}$ 为没有弃权的窗口集合，并写
+\begin{equation}
+ \Pi_{jk}^{(s)}=\Pr\{Y^{(s)}=k\mid Z=j\},\qquad
+ L_{ij}=\pi_{ij}\prod_{s=1}^S\prod_{t\in\mathcal O_i^{(s)}}
+       \bigl(\Pi_{j,y_{it}^{(s)}}^{(s)}\bigr)^{w_{it}^{(s)}}.
+ \label{eq:dq_s5_likelihood}
+\end{equation}
+式中幂权重构成加权似然：权重为 0 的窗口不提供证据，权重为 1 的窗口完整计入。统计解释还依赖给定真实类别之后各源及窗口的条件独立近似。对同一电表重复观察不能无条件当作独立新样本。
+
+E 步为
+\begin{equation}
+ \gamma_{ij}=\frac{L_{ij}}{\sum_{h=1}^K L_{ih}}.
+ \label{eq:dq_s5_e}
+\end{equation}
+它回答“若目前认为各方法按 $\Pi$ 犯错，这个电表属于 $j$ 的相对解释力是多少”。数值实现应在对数域累计，再使用 log-sum-exp 归一化，避免多个很小的概率相乘下溢。
+
+M 步为
+\begin{equation}
+ \Pi_{jk}^{(s)}\leftarrow
+ \frac{\displaystyle\sum_i\gamma_{ij}
+       \sum_{t\in\mathcal O_i^{(s)}}w_{it}^{(s)}\mathbf1\{y_{it}^{(s)}=k\}}
+      {\displaystyle\sum_i\gamma_{ij}
+       \sum_{t\in\mathcal O_i^{(s)}}w_{it}^{(s)}}.
+ \label{eq:dq_s5_m}
+\end{equation}
+\textbf{本文推导。}固定 $\gamma$ 后，源 $s$ 的第 $j$ 行需要最大化
+$\sum_k N_{jk}^{(s)}\log\Pi_{jk}^{(s)}$，其中分子就是软计数 $N_{jk}^{(s)}$。
+在 $\sum_k\Pi_{jk}^{(s)}=1$ 下使用拉格朗日乘子，有
+$N_{jk}^{(s)}/\Pi_{jk}^{(s)}=\lambda_j$，求和得 $\lambda_j=\sum_kN_{jk}^{(s)}$，于是得到式~\eqref{eq:dq_s5_m}。分母为零表示这一行没有有效信息，应保留初始化或报告未估计；这是必须写入实现的分支，不能执行 $0/0$。
+
+初始化可取对角元素 $\eta$、非对角元素 $(1-\eta)/(K-1)$，先验均匀。这个初始化赋予标签语义一个“多数方法倾向于正确”的方向；没有锚点时，潜变量模型可能存在标签置换及其他不可辨识性。EM 只保证在适当正则条件和精确更新下不降低所用似然，并不保证找到正确标签或全局最优参数。
+
+\begin{algorithm}[tbp]
+\caption{S5 的 EM 主循环：原算法顺序，数值保护为教学补充}
+\label{alg:dq_s5_em}
+\begin{algorithmic}[1]
+\Require $Y,w,K$，对角初始化 $\eta$，迭代上限 $J$，相对阈值 $\tau$
+\Ensure $\Pi^{(s)}$ 与每个电表的逐源责任度 $\gamma_i^{(s)}$
+\State 对齐各源类别编码；建立 $\mathcal O_i^{(s)}$；初始化 $\pi_i,\Pi^{(s)}$
+\State 计算初始加权对数似然 $\ell_{\rm old}=\sum_i\log\sum_jL_{ij}$
+\For{$k=1,\ldots,J$}
+  \State 用对数域式~\eqref{eq:dq_s5_e} 计算所有 $\gamma_{ij}$
+  \State 用式~\eqref{eq:dq_s5_m} 更新 $\Pi$；零软计数行保留并标记
+  \State 计算新似然 $\ell_{\rm new}$
+  \If{$|\ell_{\rm new}-\ell_{\rm old}|/\max(1,|\ell_{\rm old}|)<\tau$}
+    \State \textbf{break}
+  \EndIf
+  \State $\ell_{\rm old}\gets\ell_{\rm new}$
+\EndFor
+\State 固定最终 $\Pi$，只用源 $s$ 的窗口重新计算 $\gamma_i^{(s)}$，见式~\eqref{eq:dq_s5_single}
+\State 返回估计值、迭代次数、未估计行及停止原因
+\end{algorithmic}
+\end{algorithm}
+
+原文算法收敛后还有关键一步：\emph{重新计算每个源单独支持的责任度}，而不是把联合后验复制给每个源：
+\begin{equation}
+ \gamma_{ij}^{(s)}=
+ \frac{\pi_{ij}\prod_{t\in\mathcal O_i^{(s)}}
+ (\Pi_{j,y_{it}^{(s)}}^{(s)})^{w_{it}^{(s)}}}
+ {\sum_h\pi_{ih}\prod_{t\in\mathcal O_i^{(s)}}
+ (\Pi_{h,y_{it}^{(s)}}^{(s)})^{w_{it}^{(s)}}}.
+ \label{eq:dq_s5_single}
+\end{equation}
+否则，后续融合实际上会把已经合并过的一份证据重复使用 $S$ 次。
+
+\subsection{第二层：把不确定性和缺测放进未知质量}
+
+\textbf{原文模型。}定义熵集中度和有效窗口比例
+\begin{equation}
+ c_i^{(s)}=1-\frac{-\sum_j\gamma_{ij}^{(s)}\log\gamma_{ij}^{(s)}}{\log K},
+ \quad e_i^{(s)}=\frac1T\sum_{t\in\mathcal O_i^{(s)}}w_{it}^{(s)},
+ \quad r_i^{(s)}=\operatorname{clip}(e_i^{(s)}c_i^{(s)},0,1).
+ \label{eq:dq_s5_discount}
+\end{equation}
+令 $0\log0=0$。均匀责任度给出 $c=0$，集中于一个标签给出 $c=1$。证据分配为
+\begin{equation}
+ m_{ij}^{(s)}=r_i^{(s)}\gamma_{ij}^{(s)},\qquad
+ u_i^{(s)}=m_i^{(s)}(\Theta)=1-r_i^{(s)}.
+ \label{eq:dq_s5_bpa}
+\end{equation}
+这里 $\Theta$ 表示“确实在候选标签之中，但暂时不能区分”，不是额外的一种物理相别。各质量非负且总和为 1。全缺测电表的 $e=0$，于是所有质量都落在 $\Theta$。
+
+\subsection{第三层：冲突门控与最终决策}
+
+只允许单元素集合和 $\Theta$ 具有非零质量时，融合不必枚举 $2^K$ 个子集。\textbf{等价整理}为
+\begin{align}
+ U_i&=\prod_su_i^{(s)},&
+ a_{ij}&=\prod_s(m_{ij}^{(s)}+u_i^{(s)})-U_i,\\
+ C_i&=1-U_i-\sum_ja_{ij}.&&
+ \label{eq:dq_s5_conjunctive}
+\end{align}
+其中 $a_{ij}$ 是相交后只剩标签 $j$ 的质量，$U_i$ 是所有源都未知的质量，$C_i$ 是相互矛盾产生的空交集质量。对两个源，冲突量恰为 $\sum_{j\ne k}m_{ij}^{(1)}m_{ik}^{(2)}$。
+
+Dempster 方案把非冲突部分归一化，Yager 方案把冲突转入未知：
+\begin{equation}
+ m_i^D=\frac{(a_{i1},\ldots,a_{iK},U_i)}{1-C_i},\qquad
+ m_i^Y=(a_{i1},\ldots,a_{iK},U_i+C_i).
+ \label{eq:dq_s5_dy}
+\end{equation}
+设 $g_i=\{1+\exp[-a(C_i-C_0)]\}^{-1}$，则原文门控质量为
+\begin{equation}
+ m_i=(1-g_i)m_i^D+g_im_i^Y.
+ \label{eq:dq_s5_gate}
+\end{equation}
+$a$ 控制切换陡峭程度，$C_0$ 控制冲突阈值。它们通过最小化融合结果与各输入质量的平均 Jousselme 距离选择。为明确这一距离的可计算含义，对集合序列
+$\mathcal A=(\{1\},\ldots,\{K\},\Theta)$ 定义
+\begin{equation}
+ D_{uv}=\frac{|\mathcal A_u\cap\mathcal A_v|}{|\mathcal A_u\cup\mathcal A_v|},\quad
+ d_J(m,n)=\sqrt{\tfrac12(m-n)^TD(m-n)},\quad
+ (a,C_0)\in\arg\min\frac1{MS}\sum_{i,s}d_J(m_i,m_i^{(s)}).
+ \label{eq:dq_s5_jousselme}
+\end{equation}
+这是无真值的一致性准则，不是对正确率的监督校准。原文给出连续参数目标；下例的有限网格是为便于复算而选择的教学求解器。
+
+最终输出按原式 (31)--(32) 整理为
+\begin{equation}
+ \operatorname{BetP}_{ij}=m_{ij}+\frac{m_i(\Theta)}K,\quad
+ \hat z_i\in\arg\max_j\operatorname{BetP}_{ij},\quad
+ \operatorname{conf}_i=1-\{\lambda m_i(\Theta)+(1-\lambda)C_i\}.
+ \label{eq:dq_s5_output}
+\end{equation}
+并列最大值需要显式输出“并列/待核验”，不能依靠数组的第一个元素制造确定性。
+
+\begin{algorithm}[tbp]
+\caption{S5 的证据融合：原计算链与可执行边界处理}
+\begin{algorithmic}[1]
+\Require 逐源 $\gamma^{(s)}$、有效窗口权重、$\lambda$、待搜索的门控参数域
+\For{每个电表 $i$ 与源 $s$}
+ \State 用式~\eqref{eq:dq_s5_discount}--\eqref{eq:dq_s5_bpa} 计算 $m_i^{(s)}$
+\EndFor
+\State 对每个电表计算 $U_i,a_{ij},C_i$
+\State 通过式~\eqref{eq:dq_s5_jousselme} 选择门控参数；保存目标值和求解终止状态
+\For{每个电表 $i$}
+ \If{$1-C_i$ 足够大}
+   \State 计算 $m_i^D,m_i^Y,g_i$，再融合为 $m_i$
+ \Else
+   \State 教学保护：返回 $m_i^Y$ 并标记近完全冲突，避免未归一化的结果
+ \EndIf
+ \State 计算 BetP、并列情况、置信度；按分数生成待核验顺序
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{一份可以手算到最终分数的教学例子}
+
+\begin{example}[两源、三电表、一次 EM 更新]
+取 $K=2,S=2,T=1$，全部 $w=1$，标签矩阵和初始化为
+\[
+ Y=\begin{pmatrix}1&1\\2&2\\1&2\end{pmatrix},\qquad
+ \Pi^{(1)}=\Pi^{(2)}=\begin{pmatrix}.8&.2\\.2&.8\end{pmatrix},\qquad
+ \pi_i=(.5,.5).
+\]
+第一行的两个类别似然分别为 $.5(.8)^2=.32$ 与 $.5(.2)^2=.02$。一次 E 步得到类别 1 的责任度
+$\gamma_{11}=16/17,\gamma_{21}=1/17,\gamma_{31}=1/2$。
+例如源 1、真实类别 1、输出 1 的软计数为 $16/17+1/2=49/34$，这一行总计数为 $3/2$。因此一次 M 步给出
+\[
+ \Pi^{(1)}=\frac1{51}\begin{pmatrix}49&2\\19&32\end{pmatrix},\qquad
+ \Pi^{(2)}=\frac1{51}\begin{pmatrix}32&19\\2&49\end{pmatrix}.
+\]
+这是\emph{一次迭代的演示状态，未声称 EM 已收敛}。固定它继续演示下游计算。电表 1 的两个逐源责任度为
+$(49/68,19/68)$ 与 $(16/17,1/17)$；折扣后的质量依次为
+\[
+ m_1^{(1)}=(.104739,.040613,.854648),\qquad
+ m_1^{(2)}=(.637405,.039838,.322757).
+\]
+于是 $U_1=.275844$，$a_1=(.645323,.048773)$，$C_1=.030060$。
+注意第一个源虽然更支持类别 1，却仍有 $.854648$ 的未知质量；这是熵折扣带来的结果。
+
+取教学搜索网格 $\{(5,0),(5,.5),(10,0),(10,.5)\}$。在三个电表、两个源上计算式~\eqref{eq:dq_s5_jousselme} 得
+\[
+ \begin{array}{c|rrrr}
+ (a,C_0)&(5,0)&(5,.5)&(10,0)&(10,.5)\\\hline
+ \text{平均距离}&.155937&.160262&.155596&.161018
+ \end{array}
+\]
+因此在\emph{这个有限网格内}选 $(10,0)$。对电表 1，$g_1=.574588$，
+\[
+ m_1^D=(.665323,.050285,.284392),\quad
+ m_1^Y=(.645323,.048773,.305903),
+\]
+\[
+ m_1=(.653831,.049416,.296752),\quad
+ \operatorname{BetP}_1=(.802207,.197793).
+\]
+当 $\lambda=.5$ 时，$\operatorname{conf}_1=.836594$。电表 2 的结果关于两类对称；电表 3 的 BetP 为 $(.5,.5)$，分数为 $.622938$，应保留并列。全部缺测时未知质量为 1、冲突为 0，式~\eqref{eq:dq_s5_output} 给出的分数是 $1-\lambda$，不是 0。这说明该分数的数值端点不能直接解释成真实正确率。
+\end{example}
+
+\subsection{停止、成本、保证与现场范围}
+
+若按稀疏观测表累计，每次 EM 的主要成本约为 $O(MSTK)$，存储标签为 $O(MST)$、混淆矩阵为 $O(SK^2)$；已经累计好各类加权出现次数时，可减少重复遍历窗口。融合利用式~\eqref{eq:dq_s5_conjunctive} 的结构约需 $O(MSK)$；门控搜索还要乘上目标评估次数。停止应同时报告最大迭代上限和似然变化；超出上限属于未收敛，不应被隐藏成成功。
+
+\textbf{原文证据范围与审查。}全文包含仿真和实际台区案例。其表级分数适合安排核验，但没有自动转成“隐藏零注入树在 $95\%$ 置信水平下正确”的定理。共享特征、重叠窗口及相关源会影响独立模型；候选标签集必须包含真实归属。原文缺失权重的文字与打印表达式存在不一致，教材将 $w\in[0,1]$ 作为输入契约；若以窗口缺失点数 $d$ 实现，则 $(W-d)/W$ 是本书建议的有效比例约定，须与作者代码核对。原文对分数的文字称为乘积，但显示式 (32) 为加权惩罚，本节遵循显示式。极端冲突的回退及并列处理是本书的实现保护。
+
+\section{S6：共形预测论文的已知记录与尚未闭合的算法接口}
+\label{sec:dq_s6}
+
+\textbf{来源状态。}\citet{S6} 的作者、题名、会议和页码已由 Crossref 的出版记录核实。此次再次检查 IEEE 官方页面并定向搜索作者机构的合法公开全文，仍未取得方法正文。因此，无法据题名确认它使用哪些量测、ResNet 层数、输入张量、训练损失、协同训练回合或共形分数。这里不把通用共形步骤冠以 S6 的算法名称。
+
+\subsection{为什么题名不足以复现一个算法}
+
+“残差网络+共形预测”仍留下至少六个会改变结果的选择：样本单位是独立拓扑工况还是同一工况的滑窗；类别是全网开关配置还是单表相别；训练集和校准集怎样分开；分数是 $1-\hat p_y$、累积概率还是其他函数；协同训练新增标签是否污染校准集；输出是单点、集合还是弃权。每一个接口都需要正文证据。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+待补正文对象 & 复现时必须记录的内容 \\
+\midrule
+输入输出与维度 & $X\in\R^{N\times d_1\times\cdots}$ 的轴语义、量测布置、拓扑标签空间 \\
+模型与目标 & 网络结构、损失、优化器、训练停止标准、协同训练的数据流 \\
+不确定性算法 & 分数、校准分位数、随机化及并列规则、类别条件或边际保证 \\
+验证设计 & 按时间/场景/拓扑拆分方式、未知拓扑、覆盖率和集合大小 \\
+成本与停止 & 训练预算、每轮增样/终止条件、单样本推理成本 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{独立教学接口：一组分数怎样变成集合}
+
+以下只解释通用\emph{分割共形}计算接口，与 S6 的实现无对应承诺。设一个已固定的分类器有 $K$ 类，给定独立校准分数 $a_1,\ldots,a_n$，使用
+\begin{equation}
+ k=\lceil(n+1)(1-\alpha)\rceil,\quad
+ q=\begin{cases}a_{(k)},&k\le n,\\+\infty,&k=n+1,\end{cases}
+ \qquad \mathcal C(x)=\{y:a(x,y)\le q\}.
+ \label{eq:dq_generic_cp}
+\end{equation}
+在新样本与校准样本的分数可交换、拟合过程没有用校准标签反复调参等条件下，秩对称性给出边际覆盖率至少 $1-\alpha$。这是跨样本的频率保证，不能自动读作一个具体电表属于某类的后验概率。
+
+\begin{example}[非 S6 实验的九个校准分数]
+取 $n=9,\alpha=.2$，已排序分数为
+\[.05,.10,.12,.20,.25,.30,.40,.55,.80.\]
+由于 $k=\lceil10\times.8\rceil=8$，阈值为 $.55$。
+若三类预测概率是 $(.60,.30,.10)$ 且\emph{自行选择}分数 $1-\hat p_y$，分数为 $(.40,.70,.90)$，集合只有第一类；若概率是 $(.48,.46,.06)$，分数为 $(.52,.54,.94)$，集合含前两类。一次计算只需读取分位数并比较 $K$ 个分数，不能由此推出 S6 正是这样计算。
+\end{example}
+
+\textbf{审查结论。}S6 当前仍属于出版记录级解释，算法完整性没有通过。继续详细阅读的明确停止条件是取得合法正文，而不是用一种常见 ResNet 和一种常见共形方法把空白补满。与 Topo 的可能连接是校准候选集合或弃权策略；具体连接必须先确认样本交换性和标签空间，不能提前声称已在 S6 中实现。
+
+\section{S7：从量化读数到稀疏参数误差，再到边支持}
+\label{sec:dq_s7}
+
+\subsection{直觉、输入输出与全量测模型}
+
+\textbf{文献定位。}\citet{S7} 的 v1 全文给出了量化观测下的约束最小二乘误差界。本文检查第 II 节模型、第 III 节定理及实验。其分析核心是估计稀疏边权；下文的投影梯度法是为解读其估计器而补充的\textbf{教学实现，不是已核实的作者代码}。
+
+把真实树嵌入已知节点集上的完全图：存在的边取正权重，不存在的边取零。这样“找树”暂时变成“估计一个稀疏向量”。有 $n$ 个非根节点时，候选边数为 $d=n(n+1)/2$；每个快照提供 $n$ 条方程，$s$ 个快照共 $m=sn$ 条。
+
+令根电压已参考化，$u_t\in\R^n$ 是电压变化，$p_t\in\R^n$ 是有功注入。固定已知功率因数 $q_t=\kappa p_t$ 时，线性模型可写为
+\begin{equation}
+ u_t=Zp_t,\qquad Z=C^{-1}\diag(r+\kappa x)C^{-T},\qquad
+ w_e=(r_e+\kappa x_e)^{-1}.
+ \label{eq:dq_s7_network}
+\end{equation}
+这是正边权树模型，要求所用方向及 $r+\kappa x$ 的正性一致。对候选边的约化关联向量 $b_e\in\R^n$，有
+\begin{equation}
+ p_t=\sum_{e=1}^d w_eb_eb_e^Tu_t=A_tw,\qquad
+ A_t[:,e]=b_e(b_e^Tu_t),\qquad A\in\R^{m\times d}.
+ \label{eq:dq_s7_design}
+\end{equation}
+这一步把电压读数转换成设计矩阵；未知量是边权，不是电压本身。堆叠后的模拟响应是 $Aw$。
+
+\subsection{量化模型和 oracle 半径}
+
+\textbf{原文模型的统一记号。}量化间隔为 $\Delta>0$，独立抖动
+$\tau_i\sim\mathcal U[-\Delta/2,\Delta/2]$，观测为
+\begin{equation}
+ y_i=\Delta\left(\left\lfloor\frac{a_i^Tw^\star+\tau_i}{\Delta}\right\rfloor+\frac12\right),
+ \qquad
+ \hat w\in\arg\min_{\|w\|_1\le B}\frac{\|Aw-y\|_2^2}{2m},
+ \quad B=\|w^\star\|_1.
+ \label{eq:dq_s7_estimator}
+\end{equation}
+这个 $B$ 是知道真实向量才知道的\emph{oracle 半径}。它不是“求一个 $\ell_1$ 范数”就能从数据中无误地得到的参数。给定替代半径可以运行算法，但原定理对特定半径的结论不能直接沿用。对称 $\ell_1$ 球也允许负数及有环支持；求解器本身没有强制正边权树。
+
+\subsection{教学求解器：投影梯度法和 \texorpdfstring{$\ell_1$}{l1} 球投影}
+
+\textbf{本文推导。}设 $F(w)=\|Aw-y\|^2/(2m)$，则
+\begin{equation}
+ \nabla F(w)=A^T(Aw-y)/m,\qquad
+ L=\|A\|_2^2/m,\qquad
+ w^{k+1}=\operatorname{Proj}_{\|\cdot\|_1\le B}
+                 \{w^k-L^{-1}\nabla F(w^k)\}.
+ \label{eq:dq_s7_pg}
+\end{equation}
+若 $A=0$，梯度恒为零且无法识别边权；不要执行 $L^{-1}$。一般情况下可用精确谱范数、其上界或回溯确定安全步长。
+
+为推导投影，最小化 $\frac12\|w-z\|^2$，约束 $\sum_j|w_j|\le B$。若 $\|z\|_1\le B$，解就是 $z$；否则 KKT 条件给出
+\begin{equation}
+ w_j=\operatorname{sign}(z_j)(|z_j|-\theta)_+,
+ \qquad \sum_j(|z_j|-\theta)_+=B.
+ \label{eq:dq_s7_projection}
+\end{equation}
+将 $|z_j|$ 降序为 $v_1\ge\cdots\ge v_d$，寻找
+$\rho=\max\{k:v_k>(\sum_{j=1}^kv_j-B)/k\}$，再取
+$\theta=(\sum_{j=1}^{\rho}v_j-B)/\rho$。这不是简单地把每个坐标截到 $[-B,B]$；后者投影的是立方体，约束完全不同。
+
+\begin{algorithm}[tbp]
+\caption{S7 约束估计器的教学实现：投影梯度}
+\label{alg:dq_s7_pg}
+\begin{algorithmic}[1]
+\Require $A,y,B$、容差 $\varepsilon_{\rm opt}$、迭代上限 $J$、$L\ge\|A\|_2^2/m>0$
+\State $w^0\gets0$
+\For{$k=0,\ldots,J-1$}
+ \State $z\gets w^k-A^T(Aw^k-y)/(mL)$
+ \If{$\|z\|_1\le B$}
+   \State $w^{k+1}\gets z$
+ \Else
+   \State 排序 $|z|$，计算 $\rho,\theta$，按式~\eqref{eq:dq_s7_projection} 软阈值投影
+ \EndIf
+ \State $g_k\gets L\|w^{k+1}-w^k\|_2$
+ \If{$g_k\le\varepsilon_{\rm opt}$}
+   \State \textbf{break}
+ \EndIf
+\EndFor
+\State 返回 $w$、$F(w)$、$\|w\|_1$、$g_k$、停止原因；需要拓扑时另行设置边阈值
+\end{algorithmic}
+\end{algorithm}
+
+投影非扩张性与二次目标的光滑性使该方法在闭凸球上趋向一个全局最小值；常规 $O(1/k)$ 目标差界需要有限初始距离。这个优化结论与统计估计准确性是两回事。每轮稠密矩阵乘法约 $O(md)$，排序约 $O(d\log d)$；不显式形成 $A$ 时可以用关联向量计算矩阵乘法。
+
+\subsection{两节点、三候选边：从量化到最优解的完整例子}
+
+\begin{example}[有量化偏移的稀疏回归]
+取 $n=2$，候选边为 $(0,1),(0,2),(1,2)$，真实权重
+$w^\star=(1,0,2)^T$，故 $B=3$。两次电压向量为 $(1,2)^T,(2,1)^T$，得到
+\[
+ A=\begin{pmatrix}1&0&-1\\0&2&1\\2&0&1\\0&1&-1\end{pmatrix},\quad
+ Aw^\star=(-1,2,4,-2)^T.
+\]
+为演示量化计算，取 $\Delta=1$，指定本次抖动值均为 $.1$，于是
+$y=(-.5,2.5,4.5,-1.5)^T$。这些小整数是无量纲教学数据，不是现场电压或论文实验。
+\[
+ A^TA=\begin{pmatrix}5&0&1\\0&5&1\\1&1&4\end{pmatrix},\quad
+ A^Ty=(8.5,3.5,9)^T,\quad \lambda_{\max}(A^TA)=6.
+\]
+因此 $L=6/4=1.5$。从零出发，梯度步得到
+$z=(17/12,7/12,3/2)$，其 $\ell_1$ 范数为 $3.5$。三个坐标都需缩小 $1/6$，第一轮投影为
+\[
+ w^1=(5/4,5/12,4/3),\quad
+ Aw^1-y=(5/12,-1/3,-2/3,7/12)^T.
+\]
+目标从 $F(0)=3.625$ 降到 $F(w^1)=.133681$。
+
+无约束最小二乘为 $(4/3,1/3,11/6)$，不满足半径约束。约束最优解为
+\[
+ \hat w=(7/6,1/6,5/3),\quad A\hat w-y=(0,-.5,-.5,0)^T,
+ \quad F(\hat w)=.0625.
+\]
+验证最优性：$\|\hat w\|_1=3$ 且各项为正，
+$A^T(A\hat w-y)=(-1,-1,-1)^T$，故
+$\nabla F(\hat w)+\tfrac14(1,1,1)^T=0$，满足 KKT 条件。参数误差为
+$\|\hat w-w^\star\|_2=\sqrt{1/6}=.408248$。
+若额外选择阈值 $.5$，保留第 1、3 条边，恰好恢复本例的树；优化器本身并没有把第 2 条假边压成严格零。
+\end{example}
+
+\subsection{怎样从误差界推到边支持，哪些条件还要检查}
+
+原文定理给出的标度可用本节符号写成
+\begin{equation}
+ \|\hat w-w^\star\|_2\le
+ C\Delta\sqrt{\frac{2\log((n+1)/2)+3/2}{s}},
+ \qquad s\gtrsim\log n,
+ \label{eq:dq_s7_rate}
+\end{equation}
+并陈述 $0.99$ 的概率水平。常数与设计条件必须一起阅读，不能把数值拟合的 $C$ 当作所有现场数据共享的已知常数。
+
+\begin{proposition}[本文推导：边权误差转换为支持恢复]
+若 $\|\hat w-w^\star\|_2\le\varepsilon$，且最小真实正边权
+$w_{\min}>2\varepsilon$，则任取
+$\varepsilon<t<w_{\min}-\varepsilon$，集合
+$\{e:\hat w_e>t\}$ 恰为真实支持。
+\end{proposition}
+\begin{proof}
+逐坐标误差不超过 $\varepsilon$。零坐标的估计至多为 $\varepsilon$，真实坐标的估计至少为 $w_{\min}-\varepsilon$，阈值把两者分开。
+\end{proof}
+
+\textbf{原文保证与适用范围审查。}v1 有两处需在引用定理前补核。其一，原 Lemma 1 将所有树权重集合包含于真值半径的 $\ell_1$ 球；若没有额外归一化，$2w^\star$ 仍是树权重，却不在该球中。其二，“任意独立同分布次高斯行”的表述还需要非退化设计条件：全零行也是次高斯，却不能识别参数。实际同一电压快照产生的多行共享变量，且有不同稀疏模式，需要核实定理的独立性/协方差假设如何匹配。上述问题已在 HTML 和 PDF 文本交叉检查，不是由公式换行推断出的错误，也不等于否认所有经过补充条件的相关界。
+
+原实验以高斯电压围绕基准工况取样，并通过线性模型生成响应；约为 13、10 的常数来自实验比值。现场电表还有电压量化、不同步、相别错误和时序相关性，不是仅一个有功响应的抖动量化。对 Topo 的末端量测、隐藏零注入节点，消去内部节点后通常得到稠密 Kron 响应，式~\eqref{eq:dq_s7_design} 的“所有物理节点已知且可量测”接口不再成立。可迁移的是误差传播与最小边权分离条件，而不是直接套用全节点稀疏边支持定理。
+
+\section{S8：用参考电压、相关阈值与邻近馈线搜索修订档案}
+\label{sec:dq_s8}
+
+\subsection{直觉、量测和输出}
+
+\textbf{文献定位。}\citet{S8} 的 ORBi 六页作者稿已读，重点为第 2--4 节。输入是已有电表--馈线归属、电压时间序列及线路/地理信息；输出是电表--相别--馈线建议以及无法分类的点。它依赖三相参考，不是仅凭无标号末端数据重建内部树的算法。
+
+同一馈线同一相的电压变化往往共享较强成分。参考相的曲线提供三个可比较方向；距离更远、沿途用户更多时，局部压降会降低相似性，所以用随线路信息变化的接受阈值。相关最高只是候选，必须先通过阈值，才能赋值。
+
+令 $V\in\R^{T\times M}$ 是对齐后的电表电压；馈线 $f$ 的参考为
+$R_f\in\R^{T\times3}$，参考相具有已知语义；$L_{if}$ 为到参考的路径长度，$N_{if}$ 为沿途用户数。有效样本掩码必须随着每一次相关计算保存。
+
+\subsection{参考选取、预处理和匹配规则}
+
+\textbf{原文流程的等价整理。}先使用可获得的变压器三相电压；否则在馈线三相智能电表中按累计相关性选参考。没有合适三相参考时，该馈线不能使用这一路径。异常值转为缺失；长时间缺失记录拒绝使用，较短缺口按论文所述区域信息填补。具体缺口长度、数据频率与完整率阈值应作为数据配置保存，不在教材中替作者固定成通用数值。
+
+对有效共同样本 $\mathcal I$，Pearson 相关为
+\begin{equation}
+ \rho(v,r)=\frac{\sum_{t\in\mathcal I}(v_t-\bar v)(r_t-\bar r)}
+ {\sqrt{\sum_{t\in\mathcal I}(v_t-\bar v)^2}
+  \sqrt{\sum_{t\in\mathcal I}(r_t-\bar r)^2}}.
+ \label{eq:dq_s8_corr}
+\end{equation}
+零方差或有效点不足时返回不可计算，不应输出 0 来伪装成一条正常相关值。先在原归属馈线比较三相，以最大相关相作为候选，接受阈值为
+\begin{equation}
+ C_{if}=\max\{C_{\min},C_{\max}-\alpha L_{if}-\beta N_{if}\}.
+ \label{eq:dq_s8_threshold}
+\end{equation}
+$\alpha$ 的单位是长度单位的倒数，$\beta$ 的单位是每用户；如果 $L$ 从米换成千米而忘了换 $\alpha$，阈值就完全不同。原文使用三个相簇加一个离群组；对离群点再与邻近馈线参考比较，得到可能的档案归属修订。
+
+\begin{algorithm}[tbp]
+\caption{S8 的实际匹配链：原流程整理，异常出口显式化}
+\label{alg:dq_s8}
+\begin{algorithmic}[1]
+\Require 已有归属 $f(i)$、电压 $V$、三相参考候选、$L,N$、阈值参数及邻近馈线表
+\State 对齐时标；标记异常和长缺口；执行已记录的短缺口处理规则
+\For{每条馈线 $f$}
+ \State 优先选择变压器三相参考，否则选累计相关性最大的有效三相电表
+ \State 没有有效参考则标记该馈线不可用
+\EndFor
+\For{每个电表 $i$}
+ \State 在原馈线 $f(i)$ 计算三个有效相关系数和 $C_{i,f(i)}$
+ \If{唯一最高相关相通过阈值}
+   \State 记录原馈线与候选相、相关值、阈值和有效点数
+ \Else
+   \State 将该点列为离群，枚举可用的邻近馈线和三个相参考
+   \State 保留通过各自 $C_{if}$ 的候选，按相关值排序
+   \State 唯一明确候选生成核验建议；并列、无候选或缺参考则保持未决
+ \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{包含参考选择和跨馈线阈值的教学例子}
+
+\begin{example}[最高相关不一定被原馈线接受]
+为演示“累计相关”选参考，假设三个已对齐相别的候选三相电表，成对三相相关和为
+\[
+ S=\begin{pmatrix}0&2.7&2.1\\2.7&0&2.8\\2.1&2.8&0\end{pmatrix}.
+\]
+行和为 $(4.8,5.5,4.9)$，选择第二个参考。这是把原文累计相关准则具体化的\emph{教学约定}；原文未充分明确所有相排列与缺失掩码细节，复现实验需核实这些接口。
+
+取四时刻的三个零均值单位向量
+\[
+ a=\tfrac12(-1,-1,1,1)^T,\quad
+ b=\tfrac12(-1,1,-1,1)^T,\quad
+ c=\tfrac12(-1,1,1,-1)^T.
+\]
+它们两两正交。原馈线三相参考为 $230\boldsymbol1+2a$、
+$230\boldsymbol1+2b$、$230\boldsymbol1+2c$；目标电表为
+\[
+ v=230\boldsymbol1+2(.8a+.6b)=(228.6,229.8,230.2,231.4)^T.
+\]
+由于 $.8^2+.6^2=1$，三个相关系数正好是 $(.8,.6,0)$。
+取 $C_{\max}=.98,C_{\min}=.60,\alpha=.0005\,\mathrm{m}^{-1},\beta=.02$。
+原馈线距离 $200\,\mathrm m$、沿途 3 个用户时，阈值为
+$\max(.60,.98-.10-.06)=.82$；最高 $.8$ 仍不通过。
+
+邻近馈线某相参考恰有单位方向 $.8a+.6b$，于是相关为 1。若该候选路径为 $100\,\mathrm m$、沿途 1 户，其阈值为
+$\max(.60,.98-.05-.02)=.91$，通过并形成跨馈线核验建议。
+这四个时刻仅演示算式；一个实际归属变更不能由四个点的相关 1 单独确认。
+\end{example}
+
+\subsection{停止条件、成本和审查}
+
+该方法是一次有限遍历，停止于全部电表被分类或标为未决。每条曲线与三个参考计算相关约为 $O(T)$，初次匹配约 $O(MT)$；若每个离群点检查 $F_{\rm near}$ 条邻近馈线，增加 $O(M_{\rm out}F_{\rm near}T)$。参考候选两两比较的朴素实现约为 $O(R^2T)$，可以缓存充分统计量。
+
+\textbf{现场范围。}原文 RESA 案例的智能电表覆盖不足 $20\%$，并明确缺少可靠真值来进行完整量化验证。因此，其现场价值是档案筛查和案例解释，不能写成已证明的相别恢复率。\textbf{本文审查。}共同填补值、变压器整体电压变化以及天气驱动的共同负荷会抬高相关；参考自身相别错误会传播。相同相关值必须保持歧义；地理邻近不等于电气相连。对 Topo，经过现场确认的相别/归属可作为约束输入，未经确认的相关结果宜保留为候选及证据分数，不能替代内部树的唯一性证明。
+
+\section{S9：把状态估计残差变成定位线索，再进行人工核验}
+\label{sec:dq_s9}
+
+\subsection{问题、状态与残差}
+
+\textbf{文献定位。}\citet{S9} 的 ORBi 五页全文使用状态估计残差的空间模式检查拓扑记录，已核查第 2 节式 (1)--(2) 和第 3 节现场案例。归一化残差按量测标准差计算，阈值为 3；相别修正、数据问题和馈线重分配均通过具体核验场景讨论。
+
+现有拓扑 $\mathcal T$ 决定量测模型 $h_{\mathcal T}(x)$。量测向量
+$z\in\R^m$ 可含电压、功率等，状态 $x\in\R^q$ 含选定参考后的电压幅值与相角。误差协方差 $\Sigma\in\R^{m\times m}$ 要与不同量测的单位一致。若模型正确且数据正常，同一状态应能大致解释所有量测；若一组地理上聚集的表持续不能被解释，就值得追查其共同档案或设备。
+
+\subsection{WLS 的可执行教学整理}
+
+原文用状态估计器产生 $\hat x$，下述 Gauss--Newton 细节是\textbf{本文提供的标准教学实现}，不声称作者逐条采用。目标和线性化为
+\begin{equation}
+ \hat x\in\arg\min_xJ(x),\qquad
+ J(x)=(z-h_{\mathcal T}(x))^T\Sigma^{-1}(z-h_{\mathcal T}(x)),
+ \quad h(x+\delta)\approx h(x)+H\delta.
+ \label{eq:dq_s9_wls}
+\end{equation}
+令 $r=z-h(x)$，求解加权线性最小二乘
+\begin{equation}
+ \min_\delta\|\Sigma^{-1/2}(r-H\delta)\|^2,
+ \qquad H^T\Sigma^{-1}H\delta=H^T\Sigma^{-1}r.
+ \label{eq:dq_s9_gn}
+\end{equation}
+显示正规方程有利于理解，但实现宜使用 QR 或合适稀疏分解，避免显式求逆及病态条件数平方。秩不足表示状态不可观，不应默默用任意解继续判断拓扑。加入参考相角也是消除规范自由度的必要步骤。
+
+最终按原文定义计算
+\begin{equation}
+ r_i=z_i-h_i(\hat x),\qquad \rho_i=r_i/\sigma_i,\qquad
+ \mathcal B=\{i:|\rho_i|>3\}.
+ \label{eq:dq_s9_normalized}
+\end{equation}
+这里的 3 是诊断阈值；超过它意味着某个数据--模型组合难以协调，不能单独确定是哪一条连接错误。
+
+\begin{algorithm}[tbp]
+\caption{S9 的残差诊断链：现场流程整理，WLS 求解为教学实现}
+\label{alg:dq_s9}
+\begin{algorithmic}[1]
+\Require 现有网络记录 $\mathcal T$、同一时刻量测 $z$、误差尺度、地理映射
+\State 固定状态参考；检查单位、时标、可观性；初始化 $x$
+\For{$k=1,\ldots,J$}
+ \State 计算 $h(x),H,r$，按式~\eqref{eq:dq_s9_gn} 求解 $\delta$
+ \State 回溯选择使 $J$ 下降的步长 $\eta$，令 $x\gets x+\eta\delta$
+ \State 若步长/目标变化满足容差则停止；失败时返回求解失败标签
+\EndFor
+\State 计算 $\rho$，绘制其幅值、符号和地理/馈线位置
+\State 区分孤立表、同相局部簇、整条馈线模式，生成有限的解释候选
+\State 检查相别记录、采集质量和馈线归属；与运维记录/现场信息交叉核验
+\State 对有依据的候选记录重跑相同量测集，保存前后残差和修改依据
+\State 教学补充：使用未参与选择的时刻复核；未确认候选维持待核验状态
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{一组残差怎样指向共同偏移}
+
+\begin{example}[三只电表与一项相别偏移假设]
+使用最简单的单状态模型 $h(x)=(x,x,x)^T$，三只表的标准差均为 $.1\,\mathrm V$，量测为
+$z=(230,230.1,231)^T\,\mathrm V$。WLS 解就是均值
+$\hat x=230.366667$。因此
+\[
+ r=(-.366667,-.266667,.633333)^T,\quad
+ \rho=(-3.666667,-2.666667,6.333333)^T,
+ \quad J=60.666667.
+\]
+第一和第三只表都超过阈值。第三只表是最可疑点，但第一只表也被共同状态的偏移拖出了阈值，因此不能把所有超阈值表都独立判坏。
+
+假设档案核验给出一个\emph{事先有物理根据}的替代模型
+$h'(x)=(x,x,x+.9)^T$。调整后的数据是
+$(230,230.1,230.1)$，新的状态为 $230.066667$，从而
+\[
+ r'=(-.066667,.033333,.033333)^T,\quad
+ \rho'=(-.666667,.333333,.333333)^T,\quad J'=.666667.
+\]
+同一量测集上的残差显著下降，使这个偏移假设更值得核验。这里的 $.9$ 不能是在看过残差之后任意拟合出来、又被当作独立证据。
+
+若直接删除第三只表，前两只的拟合目标降为 $.5$，甚至小于 $.666667$；这不能说明“删除表”比“修正模型”更真实，因为量测数量已改变。另取未参与选择的时刻
+$z_{\rm hold}=(230.2,230.3,231.2)$，两模型的目标仍分别为 $60.666667$ 与 $.666667$，可以作为进一步支持，但仍需排除固定传感偏差等竞争解释。
+\end{example}
+
+\subsection{残差的统计含义与方法边界}
+
+\textbf{本文推导。}在线性化且正确模型下，白化雅可比为
+$\bar H=\Sigma^{-1/2}H$，其列空间投影为 $P_{\bar H}$。白化残差近似为
+\begin{equation}
+ e=\Sigma^{-1/2}r\approx(I-P_{\bar H})\epsilon,
+ \qquad \operatorname{Cov}(e)\approx I-P_{\bar H}.
+ \label{eq:dq_s9_leverage}
+\end{equation}
+即使输入白噪声方差是 1，第 $i$ 个拟合残差的方差也是 $1-h_{ii}$，而非一律为 1。教学例子的投影为 $\boldsymbol1\boldsymbol1^T/3$，所以每个方差为 $2/3$。若要依据残差进行标准统计检验，需要考虑杠杆值、相关性和多重比较；本书不会把原文的 $r_i/\sigma_i$ 偷换成另一种已做杠杆修正的统计量。
+
+同理，若错误拓扑造成的一阶量测偏移 $d$ 落在 $H$ 的列空间内，存在状态变化 $\delta$ 使 $d=H\delta$，那么 $I-P_{\bar H}$ 会把它消掉。小残差只能说明当前量测能被解释，不能证明网络记录唯一正确。
+
+每次稠密 Gauss--Newton 正规方程的朴素成本为 $O(mq^2+q^3)$，实际网络应利用稀疏性；候选网络数会相应放大重估成本。停止至少区分收敛、不可观、数值失败与超迭代上限。原文现场证据来自 RESA 网络的具体工况与人工纠错案例，时序自动诊断是后续方向。对 Topo，WLS 更适合对候选网络作同量测条件下的排查与核验排序；终端等效响应相同的隐藏树可能得到相同残差，这个工具不能替代候选完备性与可辨识性论证。
+

@@ -1,0 +1,326 @@
+{
+  "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "versions": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "scipy": "1.17.1",
+    "networkx": "3.6.1"
+  },
+  "cases": [
+    {
+      "case": "paper15",
+      "nodes": 22,
+      "edges": 21,
+      "terminals": 15,
+      "hidden": 6,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 5.0,
+      "violations": []
+    },
+    {
+      "case": "soumalas11",
+      "nodes": 16,
+      "edges": 15,
+      "terminals": 11,
+      "hidden": 4,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 5.2,
+      "violations": []
+    },
+    {
+      "case": "flynn16",
+      "nodes": 23,
+      "edges": 22,
+      "terminals": 16,
+      "hidden": 6,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 4.8,
+      "violations": []
+    },
+    {
+      "case": "pengwah18",
+      "nodes": 26,
+      "edges": 25,
+      "terminals": 18,
+      "hidden": 7,
+      "base_kv": 0.4,
+      "base_mva": 0.2,
+      "legacy_scale": 4.5,
+      "violations": []
+    }
+  ],
+  "l1_row_alignment_probe": {
+    "aligned_mae": 0.0,
+    "same_labeled_rows_reversed_mae": 2.6666666666666665,
+    "interpretation": "L1 direct callers must synchronize row order; labels alone do not align time rows."
+  },
+  "smoke_config": {
+    "cases": [
+      "soumalas11"
+    ],
+    "scenario_suite": "reference",
+    "scenario_count": 1,
+    "samples_per_scenario": 8,
+    "bootstrap_replicates": 2,
+    "time_limit": 5.0,
+    "selection_only": false,
+    "run_baseline": false,
+    "contract_blocks": true,
+    "candidate_pool_mode": "rnj"
+  },
+  "smoke_result": {
+    "config": {
+      "cases": [
+        "soumalas11"
+      ],
+      "scenario_count": 1,
+      "samples_per_scenario": 8,
+      "training_replicate": 0,
+      "validation_replicate": 1,
+      "pq_noise_rel": 0.005,
+      "voltage_noise_rel": 0.0002,
+      "preprocessing": "daily_demean",
+      "constraint_mode": "ordered",
+      "distance_mode": "RX_75R_25X",
+      "tolerance_factor": 0.16,
+      "bootstrap_replicates": 2,
+      "bootstrap_kind": "circular_moving_block",
+      "block_length": 4,
+      "confidence_threshold": 0.75,
+      "maximum_candidate_count": 2,
+      "selection_only": false,
+      "run_baseline": false,
+      "contract_blocks": true,
+      "deembedding_weight": 0.5,
+      "candidate_pool_mode": "rnj",
+      "time_limit_seconds_per_extension": 5.0,
+      "coefficient_bound": 2.0,
+      "truth_used_for_candidate_generation": false,
+      "scenario_settings": {
+        "scenario_suite": "reference",
+        "profiles": [
+          "default",
+          "cloudy_variable_pv",
+          "evening_peak_high_load"
+        ],
+        "seeds": [
+          42,
+          7,
+          21
+        ],
+        "root_mean": 1.02,
+        "root_sigma": 0.003,
+        "root_process": "correlated",
+        "root_observation": "noisy",
+        "root_meter_noise_rel": 0.0002,
+        "impedance_scale": 1.0,
+        "physical_sample_count": 96,
+        "day_hours": 24.0,
+        "daily_fraction": 0.65,
+        "ou_tau_hours": 1.0,
+        "tap_step_amplitude": 0.0,
+        "tap_start_hour": 12.0,
+        "tap_end_hour": 18.0,
+        "tap_step_demeaned": true,
+        "voltage_clipping": false
+      }
+    },
+    "scenarios": [
+      {
+        "case": "soumalas11",
+        "split": "training",
+        "name": "oneday_96pts_default_seed42_reference_rep0",
+        "impedance_scale": 1.0,
+        "root_observation": "noisy",
+        "samples": 8
+      },
+      {
+        "case": "soumalas11",
+        "split": "validation",
+        "name": "oneday_96pts_default_seed42_reference_rep1",
+        "impedance_scale": 1.0,
+        "root_observation": "noisy",
+        "samples": 8
+      }
+    ],
+    "rnj": [
+      {
+        "case": "soumalas11",
+        "scenario_count": 1,
+        "samples_per_scenario": 8,
+        "total_training_rows": 8,
+        "fit_r2": 0.8911357766681045,
+        "condition_number": 1922.539507152532,
+        "selection_seconds": 0.15269700001226738,
+        "full_rnj_clade_precision": 0.0,
+        "full_rnj_clade_recall": 0.0,
+        "full_rnj_clade_f1": 0.0,
+        "full_rnj_cherry_precision": 0.0,
+        "full_rnj_cherry_recall": 0.0,
+        "full_rnj_cherry_f1": 0.0,
+        "selected_count": 0,
+        "selected_supports": "",
+        "selected_confidences": "",
+        "selected_precision_against_truth": 0.0,
+        "selected_recall_against_truth_cherries": 0.0,
+        "true_cherries": "101,102,103;106,107,108;109,110,111"
+      }
+    ],
+    "milp": [
+      {
+        "case": "soumalas11",
+        "initializer": "rx75_rnj_contracted_plus_milp",
+        "rnj_initial_supports": "",
+        "frozen_support_count": 11,
+        "frozen_leaf_singleton_count": 11,
+        "frozen_rnj_block_count": 0,
+        "candidate_pool_mode": "rnj",
+        "candidate_pool_count": 6,
+        "candidate_pool_only_truth_recall": 0.0,
+        "candidate_pool_plus_frozen_truth_recall": 0.0,
+        "candidate_pool_clades": "101,104;105,107;109,111;102,103,110;105,106,107;101,104,105,106,107,108",
+        "milp_terminal_count": 11,
+        "elapsed_seconds": 0.4533559999981662,
+        "support_count": 14,
+        "nontrivial_support_count": 3,
+        "clade_precision": 0.0,
+        "clade_recall": 0.0,
+        "clade_f1": 0.0,
+        "train_mae": 0.0002982039686629404,
+        "validation_mae": 0.000588244232453924,
+        "stop_reason": "no_significant_one_atom_gain",
+        "attempt_count": 6,
+        "selected_path_index": 3,
+        "path_length": 6,
+        "path_support_counts": "11;12;13;14;15;16",
+        "path_validation_mae": "0.000767829867778;0.000662757850989;0.000641136244234;0.000588244232454;0.000631549357305;0.000612497312535",
+        "attempt_statuses": "0;0;0;0;0;0",
+        "attempts_proven_optimal": 6,
+        "attempt_runtimes": "0.170409;0.0734124;0.0467432;0.0339466;0.0365352;0.0189259",
+        "attempt_objectives": "0.000342249234965;0.000309504385077;0.000298203968663;0.000287454813871;0.000279894559897;0.000279894559897",
+        "attempt_dual_bounds": "0.000342249234965;0.000309504385077;0.000298203968663;0.000287454813871;0.000279894559897;0.000279894559897",
+        "attempt_mip_gaps": "0;0;0;0;0;0",
+        "attempt_messages": "Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal) | Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "predicted_clades": "102,103,110;105,106,107;101,104,105,106,107,108",
+        "true_clades": "101,102,103;106,107,108;109,110,111;104,105,106,107,108",
+        "missing_clades": "101,102,103;106,107,108;109,110,111;104,105,106,107,108",
+        "extra_clades": "102,103,110;105,106,107;101,104,105,106,107,108"
+      }
+    ]
+  },
+  "loaded_repository_modules": [
+    {
+      "module": "rnj_wzzt",
+      "path": "rnj_wzzt_core/rnj_wzzt/__init__.py"
+    },
+    {
+      "module": "rnj_wzzt.cli",
+      "path": "rnj_wzzt_core/rnj_wzzt/cli.py"
+    },
+    {
+      "module": "rnj_wzzt.data",
+      "path": "rnj_wzzt_core/rnj_wzzt/data/__init__.py"
+    },
+    {
+      "module": "rnj_wzzt.data.paper_style_case_bank",
+      "path": "rnj_wzzt_core/rnj_wzzt/data/paper_style_case_bank.py"
+    },
+    {
+      "module": "rnj_wzzt.data.paper_style_terminal_lv",
+      "path": "rnj_wzzt_core/rnj_wzzt/data/paper_style_terminal_lv.py"
+    },
+    {
+      "module": "rnj_wzzt.estimation",
+      "path": "rnj_wzzt_core/rnj_wzzt/estimation/__init__.py"
+    },
+    {
+      "module": "rnj_wzzt.estimation.constrained_least_squares",
+      "path": "rnj_wzzt_core/rnj_wzzt/estimation/constrained_least_squares.py"
+    },
+    {
+      "module": "rnj_wzzt.estimation.laminar_l1_milp",
+      "path": "rnj_wzzt_core/rnj_wzzt/estimation/laminar_l1_milp.py"
+    },
+    {
+      "module": "rnj_wzzt.estimation.matrix_constraints",
+      "path": "rnj_wzzt_core/rnj_wzzt/estimation/matrix_constraints.py"
+    },
+    {
+      "module": "rnj_wzzt.estimation.multiscenario",
+      "path": "rnj_wzzt_core/rnj_wzzt/estimation/multiscenario.py"
+    },
+    {
+      "module": "rnj_wzzt.estimation.preprocessing",
+      "path": "rnj_wzzt_core/rnj_wzzt/estimation/preprocessing.py"
+    },
+    {
+      "module": "rnj_wzzt.graph",
+      "path": "rnj_wzzt_core/rnj_wzzt/graph/__init__.py"
+    },
+    {
+      "module": "rnj_wzzt.graph.bootstrap",
+      "path": "rnj_wzzt_core/rnj_wzzt/graph/bootstrap.py"
+    },
+    {
+      "module": "rnj_wzzt.graph.rooted_hierarchy",
+      "path": "rnj_wzzt_core/rnj_wzzt/graph/rooted_hierarchy.py"
+    },
+    {
+      "module": "rnj_wzzt.graph.rooted_neighbor_joining",
+      "path": "rnj_wzzt_core/rnj_wzzt/graph/rooted_neighbor_joining.py"
+    },
+    {
+      "module": "rnj_wzzt.graph.sensitivity_geometry",
+      "path": "rnj_wzzt_core/rnj_wzzt/graph/sensitivity_geometry.py"
+    },
+    {
+      "module": "rnj_wzzt.models",
+      "path": "rnj_wzzt_core/rnj_wzzt/models/__init__.py"
+    },
+    {
+      "module": "rnj_wzzt.models.ac_powerflow",
+      "path": "rnj_wzzt_core/rnj_wzzt/models/ac_powerflow.py"
+    },
+    {
+      "module": "rnj_wzzt.models.lin_distflow",
+      "path": "rnj_wzzt_core/rnj_wzzt/models/lin_distflow.py"
+    },
+    {
+      "module": "rnj_wzzt.models.network",
+      "path": "rnj_wzzt_core/rnj_wzzt/models/network.py"
+    },
+    {
+      "module": "rnj_wzzt.pipeline",
+      "path": "rnj_wzzt_core/rnj_wzzt/pipeline.py"
+    },
+    {
+      "module": "rnj_wzzt.reporting",
+      "path": "rnj_wzzt_core/rnj_wzzt/reporting.py"
+    },
+    {
+      "module": "rnj_wzzt.scenario",
+      "path": "rnj_wzzt_core/rnj_wzzt/scenario/__init__.py"
+    },
+    {
+      "module": "rnj_wzzt.scenario.profiles",
+      "path": "rnj_wzzt_core/rnj_wzzt/scenario/profiles.py"
+    },
+    {
+      "module": "rnj_wzzt.scenario.settings",
+      "path": "rnj_wzzt_core/rnj_wzzt/scenario/settings.py"
+    },
+    {
+      "module": "rnj_wzzt.scenario.simulation",
+      "path": "rnj_wzzt_core/rnj_wzzt/scenario/simulation.py"
+    },
+    {
+      "module": "rnj_wzzt.scenario.validate_scenario",
+      "path": "rnj_wzzt_core/rnj_wzzt/scenario/validate_scenario.py"
+    }
+  ],
+  "noncore_repository_imports": []
+}
