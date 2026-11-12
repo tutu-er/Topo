@@ -1,6 +1,6 @@
 {
   "updated_utc": "2026-11-12T09:42:39.987380+00:00",
-  "status": "running_full_main",
+  "status": "main_complete_pressure_running",
   "main_output": "outputs/large96_main_20261112_001",
   "main_protocol_sha256": "ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4",
   "runner_source_commit": "5610f28c",
@@ -16,7 +16,7 @@
   "train_points": 64,
   "selection_points": 32,
   "extra_observations_allowed": false,
-  "truth_exposed": false,
+  "truth_exposed": true,
   "source_sha256": {
     "algorithm.py": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
     "optimization.py": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
@@ -27,6 +27,8 @@
     "tools/large96.py": "67aafdefbbc1585dc80c3a4db776b5224879ea8bad086c7b5d86c4161a492698"
   },
   "current_counts": {
+    "stage": "finished",
+    "manager_elapsed_seconds_all_invocations": 16505.049611299997,
     "common": {
       "planned": 240,
       "pending": 0,
@@ -38,20 +40,18 @@
     },
     "methods": {
       "planned": 2400,
-      "pending": 84,
-      "unresolved_attempts": 8,
+      "pending": 0,
+      "unresolved_attempts": 0,
       "budget_exceeded": 0,
       "interrupted": 0,
-      "fitted": 2316,
+      "fitted": 2400,
       "failed": 0
     }
   },
   "next_steps": [
-    "sentinel terminal and pre-truth audit/time summary",
-    "continue remaining main tasks without rerunning existing terminals",
-    "seal all2400 before truth and independent analysis",
-    "evaluate planned pressure launch, no algorithm tuning",
-    "summarize and archive all failures/time limits and DR candidate value"
+    "finish existing pressure manager without reruns",
+    "seal then independently score pressure",
+    "archive all raw records and publish combined conclusions"
   ],
   "interruption_policy": "Do not restart old attempts with fresh budget. Existing frozen outputs and sources are immutable.",
   "preflight_data_review": "preflight_data_review.json",
@@ -81,11 +81,51 @@
   "pressure_protocol_sha256": "20877c32c732d5083c2765908ccd37701251bc23bf40a23f6aa5a49de2016ec8",
   "pressure_frozen_before_main_truth": true,
   "pressure_generation_failed": 0,
-  "pressure_status": "queued_waiting_for_main_completion",
+  "pressure_status": "running",
   "pressure_sources_match_main": true,
   "pressure_exec_session": 12248,
   "pressure_continuation_policy": "Already queued in session12248; waits main run.lock and completion then runs frozen pressure manager. Do not launch another pressure manager.",
   "pressure_data_review": "pressure_preflight_data_review.json",
   "posthoc_cross_family_bound_witness": true,
-  "diagnose_source_sha256": "9ed4692925c2867a27dc4e4182378136c6135f708d75e7c74b9ecfc678063a8e"
+  "diagnose_source_sha256": "9ed4692925c2867a27dc4e4182378136c6135f708d75e7c74b9ecfc678063a8e",
+  "main_fitted": 2400,
+  "main_independently_verified": 2400,
+  "main_exact_101": 110,
+  "main_F1_101": 0.8018757978132978,
+  "main_manager_finished": true,
+  "postprocessing_unique_tests": 83,
+  "full_latest_test_count": 77,
+  "pressure_counts_snapshot": {
+    "stage": "running",
+    "updated_utc": "2026-11-12T10:06:05.120049+00:00",
+    "active": {
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input087\\111\\result.json": 59268,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input101\\100\\result.json": 47764,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input102\\101\\result.json": 26836,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input103\\111\\result.json": 45408,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input106\\101\\result.json": 54144,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input107\\111\\result.json": 13188,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input108\\000\\result.json": 29348,
+      "D:\\0-github_workspace\\Topo\\topology_identification_standalone\\outputs\\large96_pressure_20261112_001\\runs\\input109\\100\\result.json": 54132
+    },
+    "queued": 530,
+    "common": {
+      "planned": 160,
+      "pending": 0,
+      "unresolved_attempts": 0,
+      "failed": 0,
+      "interrupted": 0,
+      "fitted": 160,
+      "budget_exceeded": 0
+    },
+    "methods": {
+      "planned": 640,
+      "pending": 538,
+      "unresolved_attempts": 8,
+      "failed": 0,
+      "interrupted": 0,
+      "fitted": 102,
+      "budget_exceeded": 0
+    }
+  }
 }

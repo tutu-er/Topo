@@ -1,0 +1,95 @@
+{
+  "created_utc": "2026-11-12T10:05:27.330135+00:00",
+  "reviewer": "/root/large96_analysis/plots",
+  "passed": true,
+  "reviewed_formats": [
+    "png"
+  ],
+  "reviewed_images": 6,
+  "read_only_review_of_figures": true,
+  "figure_or_source_files_modified": false,
+  "pressure_figures_or_scores_read": false,
+  "scope": "Main panel six PNGs visually inspected using view_image. Associated PDF/SVG exports were not individually rendered for this review.",
+  "nonblocking_issues": [
+    "case_noise paper15 legend partly covers low-noise W/RW datapoint",
+    "ablation endpoint count annotations extend beyond axes, fully retained by export bbox"
+  ],
+  "figures": [
+    {
+      "file": "main_comparison.png",
+      "sha256": "b27d4601ed5e8658adc01a64d97f02b03e7ef78bb42e2134a51428255882add0",
+      "width": 2842,
+      "height": 975,
+      "readable": true,
+      "text_clipped": false,
+      "blocking_issue": false,
+      "findings": [
+        "F1 and exact labels agree with 240 planned/verified inputs per method; method-hours axis explicitly logarithmic."
+      ]
+    },
+    {
+      "file": "dr_tradeoff.png",
+      "sha256": "54cfcb124e6065573a95a336a0468fb5061de275468cee545a4f9875a7e75bcf",
+      "width": 2405,
+      "height": 1737,
+      "readable": true,
+      "text_clipped": false,
+      "blocking_issue": false,
+      "findings": [
+        "Wrong-primary truth-pair coverage shown, not overall coverage inflated by already-correct primaries.",
+        "Caption states no DR intervention and no confidence-level interpretation; undefined pair rates remain undrawn rather than zero-filled."
+      ]
+    },
+    {
+      "file": "rte_heatmap.png",
+      "sha256": "a03d343c1dfc8127b02506fc0691a14ce819f06fc20a39805a877896f7a0c958",
+      "width": 2327,
+      "height": 1017,
+      "readable": true,
+      "text_clipped": false,
+      "blocking_issue": false,
+      "findings": [
+        "All eight cells labelled R/T/E and n=240/240; F1 and exact/planned panels use distinct labels."
+      ]
+    },
+    {
+      "file": "case_noise.png",
+      "sha256": "db0b15e504a9cf269757102323e08831f6fe2eadb8b7774d744641b2ebc69bd4",
+      "width": 2640,
+      "height": 2128,
+      "readable": true,
+      "text_clipped": false,
+      "blocking_issue": false,
+      "findings": [
+        "All four cases and three voltage/root-meter noise levels visible.",
+        "Minor non-blocking occlusion: paper15 lower-left legend overlaps the first low-noise W/RW point near F1=.484; lines remain partly visible through the translucent legend."
+      ]
+    },
+    {
+      "file": "ablation_effects.png",
+      "sha256": "0caacd47148dc7b8020e2e9dcb6201bf4c232e3496ef2f5da0a4f46b7fdb4cd9",
+      "width": 3063,
+      "height": 1203,
+      "readable": true,
+      "text_clipped": false,
+      "blocking_issue": false,
+      "findings": [
+        "All twelve conditional effects, signs and n=240/240 labels visible.",
+        "Some endpoint n labels extend outside axes but remain fully present in the tight export bounding box."
+      ]
+    },
+    {
+      "file": "single_error_breakdown.png",
+      "sha256": "2afdf875c019d94be22cdd7bc5ef8a1784104e7b68c06293537aef4fddb54b51",
+      "width": 2384,
+      "height": 1009,
+      "readable": true,
+      "text_clipped": false,
+      "blocking_issue": false,
+      "findings": [
+        "No-alternative, separated single and emitted pair errors are distinct; verified-only count scope stated."
+      ]
+    }
+  ],
+  "plot_manifest_sha256": "d3b6a2f5237b3b239ab60299ecdee6c0b815e06a75c5d4d7a72bbbe48df24c5b"
+}

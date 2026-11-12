@@ -1,0 +1,2635 @@
+{
+  "created_utc": "2026-11-12T10:05:54.671281+00:00",
+  "scope": "Readonly post-seal main-panel true-family QP decomposition; no pressure score, new fit, parameter choice, model selection or intervention.",
+  "source_sha256": {
+    "true_family_diagnostics\\decompositions.csv": "e48026363c653e74034740b33bbf25a4372e5758ddeb12fc2d4052990bd8a2a8",
+    "true_family_diagnostics\\summary.json": "61295a17b920df01eb289af9e23842a743e85bd6f08bdd8d299682c7652b2e70",
+    "analysis\\results.csv": "6b446faf714c6a639090b122bc5a7265aa05171bd77a0ad61c1be233a62911c9"
+  },
+  "definition": {
+    "delta": "selected minus raw true-family fit",
+    "fit_difference": "(M_selected_train64-M_true_train64)/reference64",
+    "penalty_difference": "alpha*(selected_stored_k-true_stored_k), alpha=.003",
+    "delta_J": "fit_difference+penalty_difference",
+    "comparison_tolerance_normalized": 1e-10,
+    "selection_difference": "M_selected_selection32-M_true_selection32 with both coefficients fitted only on train64"
+  },
+  "methods": {
+    "000": {
+      "counts": {
+        "planned": 240,
+        "compared": 240,
+        "wrong": 204,
+        "wrong_train_lower": 26,
+        "wrong_train_higher": 178,
+        "wrong_J_lower": 17,
+        "wrong_J_higher": 187,
+        "wrong_selection_lower": 15,
+        "wrong_selection_higher": 189,
+        "true_family_collapses": 0,
+        "selected_zero_auxiliary": 0,
+        "penalty_favors_wrong": 6,
+        "penalty_favors_true": 15,
+        "nesting": {
+          "non_nested": 181,
+          "strict_subfamily": 9,
+          "strict_superfamily": 14
+        },
+        "by_noise": {
+          "0.0002": {
+            "wrong": 59,
+            "train_lower": 9,
+            "J_lower": 1,
+            "selection_lower": 4,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 8
+          },
+          "0.0005": {
+            "wrong": 66,
+            "train_lower": 10,
+            "J_lower": 4,
+            "selection_lower": 5,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 6
+          },
+          "0.001": {
+            "wrong": 79,
+            "train_lower": 7,
+            "J_lower": 12,
+            "selection_lower": 6,
+            "penalty_favors_wrong": 6,
+            "penalty_favors_true": 1
+          }
+        }
+      },
+      "penalty_reversal_cases": [
+        {
+          "job": "input028",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0010775454549585754,
+          "count_difference": 0.003,
+          "J_difference": 0.0019224545450414743,
+          "delta_k": 1
+        },
+        {
+          "job": "input030",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0010061149758324012,
+          "count_difference": 0.003,
+          "J_difference": 0.001993885024167419,
+          "delta_k": 1
+        },
+        {
+          "job": "input039",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -3.096473892650157e-05,
+          "count_difference": 0.003,
+          "J_difference": 0.002969035261073394,
+          "delta_k": 1
+        },
+        {
+          "job": "input052",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.003772951887465172,
+          "count_difference": 0.006,
+          "J_difference": 0.002227048112534824,
+          "delta_k": 2
+        },
+        {
+          "job": "input053",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.007487749497119675,
+          "count_difference": -0.009000000000000001,
+          "J_difference": -0.0015122505028806188,
+          "delta_k": -3
+        },
+        {
+          "job": "input060",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.00021887087488222564,
+          "count_difference": 0.003,
+          "J_difference": 0.0027811291251176318,
+          "delta_k": 1
+        },
+        {
+          "job": "input070",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0028079787772297637,
+          "count_difference": 0.003,
+          "J_difference": 0.0001920212227703999,
+          "delta_k": 1
+        },
+        {
+          "job": "input086",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0013786482402027194,
+          "count_difference": 0.003,
+          "J_difference": 0.0016213517597972738,
+          "delta_k": 1
+        },
+        {
+          "job": "input121",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0004078800571908069,
+          "count_difference": 0.003,
+          "J_difference": 0.002592119942808946,
+          "delta_k": 1
+        },
+        {
+          "job": "input128",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.001482852626909928,
+          "count_difference": -0.003,
+          "J_difference": -0.0015171473730901663,
+          "delta_k": -1
+        },
+        {
+          "job": "input129",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.001141176388653499,
+          "count_difference": 0.003,
+          "J_difference": 0.001858823611346594,
+          "delta_k": 1
+        },
+        {
+          "job": "input138",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.001813768945552158,
+          "count_difference": 0.003,
+          "J_difference": 0.0011862310544477062,
+          "delta_k": 1
+        },
+        {
+          "job": "input159",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.00019158308328763644,
+          "count_difference": 0.003,
+          "J_difference": 0.0028084169167121864,
+          "delta_k": 1
+        },
+        {
+          "job": "input161",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.005685442913446591,
+          "count_difference": -0.006,
+          "J_difference": -0.0003145570865534797,
+          "delta_k": -2
+        },
+        {
+          "job": "input173",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.00530998299066267,
+          "count_difference": -0.006,
+          "J_difference": -0.0006900170093373514,
+          "delta_k": -2
+        },
+        {
+          "job": "input179",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0015006474734291075,
+          "count_difference": -0.003,
+          "J_difference": -0.0014993525265709629,
+          "delta_k": -1
+        },
+        {
+          "job": "input195",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0002944248595894162,
+          "count_difference": 0.003,
+          "J_difference": 0.0027055751404105877,
+          "delta_k": 1
+        },
+        {
+          "job": "input196",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0002930167227821439,
+          "count_difference": 0.003,
+          "J_difference": 0.002706983277217856,
+          "delta_k": 1
+        },
+        {
+          "job": "input197",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0022460137664433925,
+          "count_difference": -0.003,
+          "J_difference": -0.0007539862335566028,
+          "delta_k": -1
+        },
+        {
+          "job": "input222",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0019507757960878663,
+          "count_difference": 0.006,
+          "J_difference": 0.004049224203912072,
+          "delta_k": 2
+        },
+        {
+          "job": "input223",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0038918103819201894,
+          "count_difference": 0.006,
+          "J_difference": 0.002108189618079681,
+          "delta_k": 2
+        }
+      ]
+    },
+    "100": {
+      "counts": {
+        "planned": 240,
+        "compared": 240,
+        "wrong": 204,
+        "wrong_train_lower": 27,
+        "wrong_train_higher": 177,
+        "wrong_J_lower": 17,
+        "wrong_J_higher": 187,
+        "wrong_selection_lower": 15,
+        "wrong_selection_higher": 189,
+        "true_family_collapses": 0,
+        "selected_zero_auxiliary": 0,
+        "penalty_favors_wrong": 6,
+        "penalty_favors_true": 16,
+        "nesting": {
+          "non_nested": 181,
+          "strict_subfamily": 9,
+          "strict_superfamily": 14
+        },
+        "by_noise": {
+          "0.0002": {
+            "wrong": 59,
+            "train_lower": 9,
+            "J_lower": 1,
+            "selection_lower": 4,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 8
+          },
+          "0.0005": {
+            "wrong": 66,
+            "train_lower": 11,
+            "J_lower": 4,
+            "selection_lower": 5,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 7
+          },
+          "0.001": {
+            "wrong": 79,
+            "train_lower": 7,
+            "J_lower": 12,
+            "selection_lower": 6,
+            "penalty_favors_wrong": 6,
+            "penalty_favors_true": 1
+          }
+        }
+      },
+      "penalty_reversal_cases": [
+        {
+          "job": "input028",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0010775454549585754,
+          "count_difference": 0.003,
+          "J_difference": 0.0019224545450414743,
+          "delta_k": 1
+        },
+        {
+          "job": "input030",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0010061149758324012,
+          "count_difference": 0.003,
+          "J_difference": 0.001993885024167419,
+          "delta_k": 1
+        },
+        {
+          "job": "input039",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -3.096473892650157e-05,
+          "count_difference": 0.003,
+          "J_difference": 0.002969035261073394,
+          "delta_k": 1
+        },
+        {
+          "job": "input052",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.003772951887465172,
+          "count_difference": 0.006,
+          "J_difference": 0.002227048112534824,
+          "delta_k": 2
+        },
+        {
+          "job": "input053",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.007487749497119675,
+          "count_difference": -0.009000000000000001,
+          "J_difference": -0.0015122505028806188,
+          "delta_k": -3
+        },
+        {
+          "job": "input060",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.00021887087488222564,
+          "count_difference": 0.003,
+          "J_difference": 0.0027811291251176318,
+          "delta_k": 1
+        },
+        {
+          "job": "input070",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0028079787772297637,
+          "count_difference": 0.003,
+          "J_difference": 0.0001920212227703999,
+          "delta_k": 1
+        },
+        {
+          "job": "input086",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0013786482402027194,
+          "count_difference": 0.003,
+          "J_difference": 0.0016213517597972738,
+          "delta_k": 1
+        },
+        {
+          "job": "input118",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0005273906049855565,
+          "count_difference": 0.003,
+          "J_difference": 0.00247260939501448,
+          "delta_k": 1
+        },
+        {
+          "job": "input121",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0004078800571908069,
+          "count_difference": 0.003,
+          "J_difference": 0.002592119942808946,
+          "delta_k": 1
+        },
+        {
+          "job": "input128",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.001482852626909928,
+          "count_difference": -0.003,
+          "J_difference": -0.0015171473730901663,
+          "delta_k": -1
+        },
+        {
+          "job": "input129",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.001141176388653499,
+          "count_difference": 0.003,
+          "J_difference": 0.001858823611346594,
+          "delta_k": 1
+        },
+        {
+          "job": "input138",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.001813768945552158,
+          "count_difference": 0.003,
+          "J_difference": 0.0011862310544477062,
+          "delta_k": 1
+        },
+        {
+          "job": "input159",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.00019158308328763644,
+          "count_difference": 0.003,
+          "J_difference": 0.0028084169167121864,
+          "delta_k": 1
+        },
+        {
+          "job": "input161",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.005685442913446591,
+          "count_difference": -0.006,
+          "J_difference": -0.0003145570865534797,
+          "delta_k": -2
+        },
+        {
+          "job": "input173",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.00530998299066267,
+          "count_difference": -0.006,
+          "J_difference": -0.0006900170093373514,
+          "delta_k": -2
+        },
+        {
+          "job": "input179",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0015006474734291075,
+          "count_difference": -0.003,
+          "J_difference": -0.0014993525265709629,
+          "delta_k": -1
+        },
+        {
+          "job": "input195",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0002944248595894162,
+          "count_difference": 0.003,
+          "J_difference": 0.0027055751404105877,
+          "delta_k": 1
+        },
+        {
+          "job": "input196",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0002930167227821439,
+          "count_difference": 0.003,
+          "J_difference": 0.002706983277217856,
+          "delta_k": 1
+        },
+        {
+          "job": "input197",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0022460137664433925,
+          "count_difference": -0.003,
+          "J_difference": -0.0007539862335566028,
+          "delta_k": -1
+        },
+        {
+          "job": "input222",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0019507757960878663,
+          "count_difference": 0.006,
+          "J_difference": 0.004049224203912072,
+          "delta_k": 2
+        },
+        {
+          "job": "input223",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0038918103819201894,
+          "count_difference": 0.006,
+          "J_difference": 0.002108189618079681,
+          "delta_k": 2
+        }
+      ]
+    },
+    "101": {
+      "counts": {
+        "planned": 240,
+        "compared": 240,
+        "wrong": 130,
+        "wrong_train_lower": 58,
+        "wrong_train_higher": 72,
+        "wrong_J_lower": 62,
+        "wrong_J_higher": 68,
+        "wrong_selection_lower": 22,
+        "wrong_selection_higher": 108,
+        "true_family_collapses": 0,
+        "selected_zero_auxiliary": 0,
+        "penalty_favors_wrong": 15,
+        "penalty_favors_true": 11,
+        "nesting": {
+          "non_nested": 89,
+          "strict_subfamily": 12,
+          "strict_superfamily": 29
+        },
+        "by_noise": {
+          "0.001": {
+            "wrong": 77,
+            "train_lower": 18,
+            "J_lower": 31,
+            "selection_lower": 10,
+            "penalty_favors_wrong": 15,
+            "penalty_favors_true": 2
+          },
+          "0.0005": {
+            "wrong": 35,
+            "train_lower": 22,
+            "J_lower": 18,
+            "selection_lower": 6,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 4
+          },
+          "0.0002": {
+            "wrong": 18,
+            "train_lower": 18,
+            "J_lower": 13,
+            "selection_lower": 6,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 5
+          }
+        }
+      },
+      "penalty_reversal_cases": [
+        {
+          "job": "input011",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.0017222423299668736,
+          "count_difference": -0.003,
+          "J_difference": -0.0012777576700331306,
+          "delta_k": -1
+        },
+        {
+          "job": "input022",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0002374290092076848,
+          "count_difference": 0.003,
+          "J_difference": 0.002762570990792357,
+          "delta_k": 1
+        },
+        {
+          "job": "input023",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 1.4259810466805274e-05,
+          "count_difference": -0.003,
+          "J_difference": -0.002985740189533237,
+          "delta_k": -1
+        },
+        {
+          "job": "input030",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0010061149758324012,
+          "count_difference": 0.003,
+          "J_difference": 0.001993885024167419,
+          "delta_k": 1
+        },
+        {
+          "job": "input039",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -3.096473892650157e-05,
+          "count_difference": 0.003,
+          "J_difference": 0.002969035261073394,
+          "delta_k": 1
+        },
+        {
+          "job": "input053",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.007487749497119675,
+          "count_difference": -0.009000000000000001,
+          "J_difference": -0.0015122505028806188,
+          "delta_k": -3
+        },
+        {
+          "job": "input060",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.00021887087488222564,
+          "count_difference": 0.003,
+          "J_difference": 0.0027811291251176318,
+          "delta_k": 1
+        },
+        {
+          "job": "input065",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 6.324902793386847e-05,
+          "count_difference": -0.003,
+          "J_difference": -0.0029367509720661378,
+          "delta_k": -1
+        },
+        {
+          "job": "input068",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.002515625507525508,
+          "count_difference": -0.003,
+          "J_difference": -0.00048437449247451525,
+          "delta_k": -1
+        },
+        {
+          "job": "input070",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0028079787772297637,
+          "count_difference": 0.003,
+          "J_difference": 0.0001920212227703999,
+          "delta_k": 1
+        },
+        {
+          "job": "input071",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0015575191749600031,
+          "count_difference": 0.003,
+          "J_difference": 0.00144248082504006,
+          "delta_k": 1
+        },
+        {
+          "job": "input086",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0013786482402027194,
+          "count_difference": 0.003,
+          "J_difference": 0.0016213517597972738,
+          "delta_k": 1
+        },
+        {
+          "job": "input092",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.004531582352300715,
+          "count_difference": -0.006,
+          "J_difference": -0.0014684176476993382,
+          "delta_k": -2
+        },
+        {
+          "job": "input119",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.0011096911241459805,
+          "count_difference": -0.003,
+          "J_difference": -0.0018903088758539521,
+          "delta_k": -1
+        },
+        {
+          "job": "input146",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0019976339740298546,
+          "count_difference": -0.003,
+          "J_difference": -0.0010023660259701472,
+          "delta_k": -1
+        },
+        {
+          "job": "input159",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.00019158308328763644,
+          "count_difference": 0.003,
+          "J_difference": 0.0028084169167121864,
+          "delta_k": 1
+        },
+        {
+          "job": "input161",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.005685442913446591,
+          "count_difference": -0.006,
+          "J_difference": -0.0003145570865534797,
+          "delta_k": -2
+        },
+        {
+          "job": "input173",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.00530998299066267,
+          "count_difference": -0.006,
+          "J_difference": -0.0006900170093373514,
+          "delta_k": -2
+        },
+        {
+          "job": "input179",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0015006474734291075,
+          "count_difference": -0.003,
+          "J_difference": -0.0014993525265709629,
+          "delta_k": -1
+        },
+        {
+          "job": "input195",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0002944248595894162,
+          "count_difference": 0.003,
+          "J_difference": 0.0027055751404105877,
+          "delta_k": 1
+        },
+        {
+          "job": "input196",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0002930167227821439,
+          "count_difference": 0.003,
+          "J_difference": 0.002706983277217856,
+          "delta_k": 1
+        },
+        {
+          "job": "input197",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0022460137664433925,
+          "count_difference": -0.003,
+          "J_difference": -0.0007539862335566028,
+          "delta_k": -1
+        },
+        {
+          "job": "input223",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0038918103819201894,
+          "count_difference": 0.006,
+          "J_difference": 0.002108189618079681,
+          "delta_k": 2
+        },
+        {
+          "job": "input230",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.002510323254144449,
+          "count_difference": -0.003,
+          "J_difference": -0.0004896767458555384,
+          "delta_k": -1
+        },
+        {
+          "job": "input236",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0015655997583307257,
+          "count_difference": -0.003,
+          "J_difference": -0.001434400241669298,
+          "delta_k": -1
+        },
+        {
+          "job": "input239",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0027161839764733298,
+          "count_difference": -0.003,
+          "J_difference": -0.0002838160235267839,
+          "delta_k": -1
+        }
+      ]
+    },
+    "111": {
+      "counts": {
+        "planned": 240,
+        "compared": 240,
+        "wrong": 130,
+        "wrong_train_lower": 65,
+        "wrong_train_higher": 65,
+        "wrong_J_lower": 77,
+        "wrong_J_higher": 53,
+        "wrong_selection_lower": 16,
+        "wrong_selection_higher": 114,
+        "true_family_collapses": 0,
+        "selected_zero_auxiliary": 1,
+        "penalty_favors_wrong": 16,
+        "penalty_favors_true": 4,
+        "nesting": {
+          "strict_superfamily": 33,
+          "non_nested": 85,
+          "strict_subfamily": 12
+        },
+        "by_noise": {
+          "0.0002": {
+            "wrong": 21,
+            "train_lower": 21,
+            "J_lower": 21,
+            "selection_lower": 3,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 0
+          },
+          "0.0005": {
+            "wrong": 34,
+            "train_lower": 24,
+            "J_lower": 21,
+            "selection_lower": 4,
+            "penalty_favors_wrong": 0,
+            "penalty_favors_true": 3
+          },
+          "0.001": {
+            "wrong": 75,
+            "train_lower": 20,
+            "J_lower": 35,
+            "selection_lower": 9,
+            "penalty_favors_wrong": 16,
+            "penalty_favors_true": 1
+          }
+        }
+      },
+      "penalty_reversal_cases": [
+        {
+          "job": "input004",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0001050073166674101,
+          "count_difference": 0.003,
+          "J_difference": 0.002894992683332598,
+          "delta_k": 1
+        },
+        {
+          "job": "input011",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.0017222423299668736,
+          "count_difference": -0.003,
+          "J_difference": -0.0012777576700331306,
+          "delta_k": -1
+        },
+        {
+          "job": "input022",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0002374290092076848,
+          "count_difference": 0.003,
+          "J_difference": 0.002762570990792357,
+          "delta_k": 1
+        },
+        {
+          "job": "input023",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 1.4259810466805274e-05,
+          "count_difference": -0.003,
+          "J_difference": -0.002985740189533237,
+          "delta_k": -1
+        },
+        {
+          "job": "input053",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.007487749497119675,
+          "count_difference": -0.009000000000000001,
+          "J_difference": -0.0015122505028806188,
+          "delta_k": -3
+        },
+        {
+          "job": "input065",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 6.324902793386847e-05,
+          "count_difference": -0.003,
+          "J_difference": -0.0029367509720661378,
+          "delta_k": -1
+        },
+        {
+          "job": "input068",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.002515625507525508,
+          "count_difference": -0.003,
+          "J_difference": -0.00048437449247451525,
+          "delta_k": -1
+        },
+        {
+          "job": "input070",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "strict_superfamily",
+          "fit_difference": -0.0028079787772297637,
+          "count_difference": 0.003,
+          "J_difference": 0.0001920212227703999,
+          "delta_k": 1
+        },
+        {
+          "job": "input092",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.004531582352300715,
+          "count_difference": -0.006,
+          "J_difference": -0.0014684176476993382,
+          "delta_k": -2
+        },
+        {
+          "job": "input101",
+          "kind": "extra_lines_wrong_disfavored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": -0.0015645956401657986,
+          "count_difference": 0.003,
+          "J_difference": 0.001435404359834136,
+          "delta_k": 1
+        },
+        {
+          "job": "input116",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0009441222185780403,
+          "count_difference": -0.003,
+          "J_difference": -0.002055877781421911,
+          "delta_k": -1
+        },
+        {
+          "job": "input119",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.0011096911241459805,
+          "count_difference": -0.003,
+          "J_difference": -0.0018903088758539521,
+          "delta_k": -1
+        },
+        {
+          "job": "input146",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0019976339740298546,
+          "count_difference": -0.003,
+          "J_difference": -0.0010023660259701472,
+          "delta_k": -1
+        },
+        {
+          "job": "input161",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.005685442913446591,
+          "count_difference": -0.006,
+          "J_difference": -0.0003145570865534797,
+          "delta_k": -2
+        },
+        {
+          "job": "input173",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.00530998299066267,
+          "count_difference": -0.006,
+          "J_difference": -0.0006900170093373514,
+          "delta_k": -2
+        },
+        {
+          "job": "input179",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0015006474734291075,
+          "count_difference": -0.003,
+          "J_difference": -0.0014993525265709629,
+          "delta_k": -1
+        },
+        {
+          "job": "input197",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0022460137664433925,
+          "count_difference": -0.003,
+          "J_difference": -0.0007539862335566028,
+          "delta_k": -1
+        },
+        {
+          "job": "input230",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "strict_subfamily",
+          "fit_difference": 0.002510323254144449,
+          "count_difference": -0.003,
+          "J_difference": -0.0004896767458555384,
+          "delta_k": -1
+        },
+        {
+          "job": "input236",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0015655997583307257,
+          "count_difference": -0.003,
+          "J_difference": -0.001434400241669298,
+          "delta_k": -1
+        },
+        {
+          "job": "input239",
+          "kind": "sparser_wrong_favored_by_penalty",
+          "relation": "non_nested",
+          "fit_difference": 0.0027161839764733298,
+          "count_difference": -0.003,
+          "J_difference": -0.0002838160235267839,
+          "delta_k": -1
+        }
+      ]
+    }
+  },
+  "main101_cluster_intervals": {
+    "train_lower": {
+      "estimate": 0.4461538461538462,
+      "numerator": 58,
+      "denominator": 130,
+      "low": 0.35343559837728195,
+      "high": 0.5407560568086883
+    },
+    "J_lower": {
+      "estimate": 0.47692307692307695,
+      "numerator": 62,
+      "denominator": 130,
+      "low": 0.3870967741935484,
+      "high": 0.5669291338582677
+    },
+    "penalty_favors_wrong": {
+      "estimate": 0.11538461538461539,
+      "numerator": 15,
+      "denominator": 130,
+      "low": 0.06715174129353234,
+      "high": 0.1721311475409836
+    },
+    "penalty_favors_true": {
+      "estimate": 0.08461538461538462,
+      "numerator": 11,
+      "denominator": 130,
+      "low": 0.03759398496240601,
+      "high": 0.14173375249735573
+    },
+    "non_nested": {
+      "estimate": 0.6846153846153846,
+      "numerator": 89,
+      "denominator": 130,
+      "low": 0.6102941176470589,
+      "high": 0.7627230151650312
+    }
+  },
+  "main101_cases": [
+    {
+      "job": "input002",
+      "case": "paper15",
+      "replicate": 0,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.009264733755977876,
+      "count_difference": 0.0,
+      "J_difference": 0.009264733755977916,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input004",
+      "case": "soumalas11",
+      "replicate": 0,
+      "voltage_sigma": 0.0005,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": -0.0038187899379472667,
+      "count_difference": 0.003,
+      "J_difference": -0.0008187899379472618,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input005",
+      "case": "soumalas11",
+      "replicate": 0,
+      "voltage_sigma": 0.001,
+      "F1": 0.4,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.01175872367558509,
+      "count_difference": -0.009000000000000001,
+      "J_difference": 0.002758723675585051,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input008",
+      "case": "flynn16",
+      "replicate": 0,
+      "voltage_sigma": 0.001,
+      "F1": 0.2,
+      "relation": "non_nested",
+      "fit_difference": 0.016009415426190842,
+      "count_difference": -0.006,
+      "J_difference": 0.010009415426190826,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input011",
+      "case": "pengwah18",
+      "replicate": 0,
+      "voltage_sigma": 0.001,
+      "F1": 0.9230769230769231,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.0017222423299668736,
+      "count_difference": -0.003,
+      "J_difference": -0.0012777576700331306,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input014",
+      "case": "paper15",
+      "replicate": 1,
+      "voltage_sigma": 0.001,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": -0.0004342146590238676,
+      "count_difference": 0.0,
+      "J_difference": -0.00043421465902382383,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input017",
+      "case": "soumalas11",
+      "replicate": 1,
+      "voltage_sigma": 0.001,
+      "F1": 0.75,
+      "relation": "non_nested",
+      "fit_difference": -0.0016784139507280867,
+      "count_difference": 0.0,
+      "J_difference": -0.001678413950728097,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input020",
+      "case": "flynn16",
+      "replicate": 1,
+      "voltage_sigma": 0.001,
+      "F1": 0.36363636363636365,
+      "relation": "non_nested",
+      "fit_difference": 0.004267173114926177,
+      "count_difference": -0.003,
+      "J_difference": 0.001267173114926301,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input022",
+      "case": "pengwah18",
+      "replicate": 1,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8,
+      "relation": "non_nested",
+      "fit_difference": -0.0002374290092076848,
+      "count_difference": 0.003,
+      "J_difference": 0.002762570990792357,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input023",
+      "case": "pengwah18",
+      "replicate": 1,
+      "voltage_sigma": 0.001,
+      "F1": 0.46153846153846156,
+      "relation": "non_nested",
+      "fit_difference": 1.4259810466805274e-05,
+      "count_difference": -0.003,
+      "J_difference": -0.002985740189533237,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input029",
+      "case": "soumalas11",
+      "replicate": 2,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": 0.002111570586457582,
+      "count_difference": 0.0,
+      "J_difference": 0.0021115705864576118,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input030",
+      "case": "flynn16",
+      "replicate": 2,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0010061149758324012,
+      "count_difference": 0.003,
+      "J_difference": 0.001993885024167419,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input031",
+      "case": "flynn16",
+      "replicate": 2,
+      "voltage_sigma": 0.0005,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": -0.004772030315857387,
+      "count_difference": 0.0,
+      "J_difference": -0.0047720303158573785,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input032",
+      "case": "flynn16",
+      "replicate": 2,
+      "voltage_sigma": 0.001,
+      "F1": 0.3333333333333333,
+      "relation": "non_nested",
+      "fit_difference": -0.0032212723678672573,
+      "count_difference": 0.0,
+      "J_difference": -0.0032212723678672894,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input034",
+      "case": "pengwah18",
+      "replicate": 2,
+      "voltage_sigma": 0.0005,
+      "F1": 0.75,
+      "relation": "non_nested",
+      "fit_difference": 0.01989239589656312,
+      "count_difference": 0.006,
+      "J_difference": 0.025892395896563114,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input035",
+      "case": "pengwah18",
+      "replicate": 2,
+      "voltage_sigma": 0.001,
+      "F1": 0.2222222222222222,
+      "relation": "non_nested",
+      "fit_difference": 0.07147274366952486,
+      "count_difference": -0.015,
+      "J_difference": 0.05647274366952493,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input036",
+      "case": "paper15",
+      "replicate": 3,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0035293596885330454,
+      "count_difference": 0.003,
+      "J_difference": -0.0005293596885331819,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input037",
+      "case": "paper15",
+      "replicate": 3,
+      "voltage_sigma": 0.0005,
+      "F1": 0.5333333333333333,
+      "relation": "non_nested",
+      "fit_difference": 0.00890386296566455,
+      "count_difference": 0.009000000000000001,
+      "J_difference": 0.017903862965664485,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input038",
+      "case": "paper15",
+      "replicate": 3,
+      "voltage_sigma": 0.001,
+      "F1": 0.2,
+      "relation": "non_nested",
+      "fit_difference": 0.02092412083299893,
+      "count_difference": -0.006,
+      "J_difference": 0.014924120832998988,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input039",
+      "case": "soumalas11",
+      "replicate": 3,
+      "voltage_sigma": 0.0002,
+      "F1": 0.8888888888888888,
+      "relation": "strict_superfamily",
+      "fit_difference": -3.096473892650157e-05,
+      "count_difference": 0.003,
+      "J_difference": 0.002969035261073394,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input040",
+      "case": "soumalas11",
+      "replicate": 3,
+      "voltage_sigma": 0.0005,
+      "F1": 0.75,
+      "relation": "non_nested",
+      "fit_difference": 0.011109123496587959,
+      "count_difference": 0.0,
+      "J_difference": 0.011109123496588102,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input041",
+      "case": "soumalas11",
+      "replicate": 3,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": 0.004791116955745969,
+      "count_difference": 0.0,
+      "J_difference": 0.0047911169557459665,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input044",
+      "case": "flynn16",
+      "replicate": 3,
+      "voltage_sigma": 0.001,
+      "F1": 0.18181818181818182,
+      "relation": "non_nested",
+      "fit_difference": 0.009135710719963537,
+      "count_difference": -0.003,
+      "J_difference": 0.00613571071996355,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input047",
+      "case": "pengwah18",
+      "replicate": 3,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.010165018552030865,
+      "count_difference": -0.006,
+      "J_difference": 0.004165018552030886,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input050",
+      "case": "paper15",
+      "replicate": 4,
+      "voltage_sigma": 0.001,
+      "F1": 0.2,
+      "relation": "non_nested",
+      "fit_difference": 0.04162876702268468,
+      "count_difference": -0.006,
+      "J_difference": 0.035628767022684804,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input052",
+      "case": "soumalas11",
+      "replicate": 4,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8888888888888888,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0036646562448122205,
+      "count_difference": 0.003,
+      "J_difference": -0.0006646562448122673,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input053",
+      "case": "soumalas11",
+      "replicate": 4,
+      "voltage_sigma": 0.001,
+      "F1": 0.4,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.007487749497119675,
+      "count_difference": -0.009000000000000001,
+      "J_difference": -0.0015122505028806188,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input055",
+      "case": "flynn16",
+      "replicate": 4,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.003066216024892133,
+      "count_difference": 0.003,
+      "J_difference": -6.621602489209621e-05,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input056",
+      "case": "flynn16",
+      "replicate": 4,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": -0.003919425238039693,
+      "count_difference": 0.0,
+      "J_difference": -0.0039194252380396755,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input058",
+      "case": "pengwah18",
+      "replicate": 4,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8571428571428571,
+      "relation": "non_nested",
+      "fit_difference": 0.003933071782354967,
+      "count_difference": 0.0,
+      "J_difference": 0.003933071782354913,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input059",
+      "case": "pengwah18",
+      "replicate": 4,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.011962017559860098,
+      "count_difference": -0.006,
+      "J_difference": 0.005962017559860255,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input060",
+      "case": "paper15",
+      "replicate": 5,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.00021887087488222564,
+      "count_difference": 0.003,
+      "J_difference": 0.0027811291251176318,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input061",
+      "case": "paper15",
+      "replicate": 5,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.003542806414624498,
+      "count_difference": 0.003,
+      "J_difference": -0.0005428064146244527,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input062",
+      "case": "paper15",
+      "replicate": 5,
+      "voltage_sigma": 0.001,
+      "F1": 0.3076923076923077,
+      "relation": "non_nested",
+      "fit_difference": 0.0010433570478372023,
+      "count_difference": 0.003,
+      "J_difference": 0.004043357047837315,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input065",
+      "case": "soumalas11",
+      "replicate": 5,
+      "voltage_sigma": 0.001,
+      "F1": 0.8571428571428571,
+      "relation": "strict_subfamily",
+      "fit_difference": 6.324902793386847e-05,
+      "count_difference": -0.003,
+      "J_difference": -0.0029367509720661378,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input068",
+      "case": "flynn16",
+      "replicate": 5,
+      "voltage_sigma": 0.001,
+      "F1": 0.36363636363636365,
+      "relation": "non_nested",
+      "fit_difference": 0.002515625507525508,
+      "count_difference": -0.003,
+      "J_difference": -0.00048437449247451525,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input069",
+      "case": "pengwah18",
+      "replicate": 5,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.003039412914976976,
+      "count_difference": 0.003,
+      "J_difference": -3.94129149769995e-05,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input070",
+      "case": "pengwah18",
+      "replicate": 5,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0028079787772297637,
+      "count_difference": 0.003,
+      "J_difference": 0.0001920212227703999,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input071",
+      "case": "pengwah18",
+      "replicate": 5,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": -0.0015575191749600031,
+      "count_difference": 0.003,
+      "J_difference": 0.00144248082504006,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input072",
+      "case": "paper15",
+      "replicate": 6,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.004713660612780976,
+      "count_difference": 0.003,
+      "J_difference": -0.0017136606127809983,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input073",
+      "case": "paper15",
+      "replicate": 6,
+      "voltage_sigma": 0.0005,
+      "F1": 0.7692307692307693,
+      "relation": "non_nested",
+      "fit_difference": -0.0034385462916115394,
+      "count_difference": 0.003,
+      "J_difference": -0.00043854629161166336,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input074",
+      "case": "paper15",
+      "replicate": 6,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.0004291267753956086,
+      "count_difference": 0.0,
+      "J_difference": 0.00042912677539552746,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input077",
+      "case": "soumalas11",
+      "replicate": 6,
+      "voltage_sigma": 0.001,
+      "F1": 0.4,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.011106914489744404,
+      "count_difference": -0.009000000000000001,
+      "J_difference": 0.002106914489744427,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input079",
+      "case": "flynn16",
+      "replicate": 6,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": 0.004261645538904165,
+      "count_difference": 0.0,
+      "J_difference": 0.004261645538904069,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input080",
+      "case": "flynn16",
+      "replicate": 6,
+      "voltage_sigma": 0.001,
+      "F1": 0.0,
+      "relation": "non_nested",
+      "fit_difference": 0.04007284114176137,
+      "count_difference": -0.015,
+      "J_difference": 0.025072841141761337,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input083",
+      "case": "pengwah18",
+      "replicate": 6,
+      "voltage_sigma": 0.001,
+      "F1": 0.15384615384615385,
+      "relation": "non_nested",
+      "fit_difference": 0.01718787251886469,
+      "count_difference": -0.003,
+      "J_difference": 0.014187872518864886,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input086",
+      "case": "paper15",
+      "replicate": 7,
+      "voltage_sigma": 0.001,
+      "F1": 0.7692307692307693,
+      "relation": "non_nested",
+      "fit_difference": -0.0013786482402027194,
+      "count_difference": 0.003,
+      "J_difference": 0.0016213517597972738,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input089",
+      "case": "soumalas11",
+      "replicate": 7,
+      "voltage_sigma": 0.001,
+      "F1": 0.25,
+      "relation": "non_nested",
+      "fit_difference": 0.002988380988775963,
+      "count_difference": 0.0,
+      "J_difference": 0.0029883809887759627,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input091",
+      "case": "flynn16",
+      "replicate": 7,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.004525271504104282,
+      "count_difference": 0.003,
+      "J_difference": -0.0015252715041043086,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input092",
+      "case": "flynn16",
+      "replicate": 7,
+      "voltage_sigma": 0.001,
+      "F1": 0.2,
+      "relation": "non_nested",
+      "fit_difference": 0.004531582352300715,
+      "count_difference": -0.006,
+      "J_difference": -0.0014684176476993382,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input095",
+      "case": "pengwah18",
+      "replicate": 7,
+      "voltage_sigma": 0.001,
+      "F1": 0.36363636363636365,
+      "relation": "non_nested",
+      "fit_difference": 0.023586232188192502,
+      "count_difference": -0.009000000000000001,
+      "J_difference": 0.01458623218819255,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input098",
+      "case": "paper15",
+      "replicate": 8,
+      "voltage_sigma": 0.001,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": -0.0003287511773732726,
+      "count_difference": 0.0,
+      "J_difference": -0.00032875117737329873,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input101",
+      "case": "soumalas11",
+      "replicate": 8,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": -0.0012419280151687532,
+      "count_difference": 0.0,
+      "J_difference": -0.0012419280151687584,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input102",
+      "case": "flynn16",
+      "replicate": 8,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0030923876597478608,
+      "count_difference": 0.003,
+      "J_difference": -9.238765974806107e-05,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input104",
+      "case": "flynn16",
+      "replicate": 8,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": 0.0029076556792873164,
+      "count_difference": 0.0,
+      "J_difference": 0.002907655679287302,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input105",
+      "case": "pengwah18",
+      "replicate": 8,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.004865094024534217,
+      "count_difference": 0.003,
+      "J_difference": -0.001865094024534164,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input106",
+      "case": "pengwah18",
+      "replicate": 8,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.003310206591089891,
+      "count_difference": 0.003,
+      "J_difference": -0.0003102065910899343,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input107",
+      "case": "pengwah18",
+      "replicate": 8,
+      "voltage_sigma": 0.001,
+      "F1": 0.13333333333333333,
+      "relation": "non_nested",
+      "fit_difference": 0.006115596912760758,
+      "count_difference": 0.003,
+      "J_difference": 0.00911559691276076,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input110",
+      "case": "paper15",
+      "replicate": 9,
+      "voltage_sigma": 0.001,
+      "F1": 0.2,
+      "relation": "non_nested",
+      "fit_difference": 0.017073601213030396,
+      "count_difference": -0.006,
+      "J_difference": 0.011073601213030582,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input112",
+      "case": "soumalas11",
+      "replicate": 9,
+      "voltage_sigma": 0.0005,
+      "F1": 0.5714285714285714,
+      "relation": "non_nested",
+      "fit_difference": 0.021104621027179665,
+      "count_difference": -0.003,
+      "J_difference": 0.018104621027179357,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input113",
+      "case": "soumalas11",
+      "replicate": 9,
+      "voltage_sigma": 0.001,
+      "F1": 0.3333333333333333,
+      "relation": "non_nested",
+      "fit_difference": 0.009869426437384381,
+      "count_difference": -0.006,
+      "J_difference": 0.0038694264373844156,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input115",
+      "case": "flynn16",
+      "replicate": 9,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": 0.0023986054651670245,
+      "count_difference": 0.0,
+      "J_difference": 0.002398605465167014,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input116",
+      "case": "flynn16",
+      "replicate": 9,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": 0.0034764582917046374,
+      "count_difference": 0.0,
+      "J_difference": 0.0034764582917046205,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input118",
+      "case": "pengwah18",
+      "replicate": 9,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8571428571428571,
+      "relation": "non_nested",
+      "fit_difference": 2.4538643208044394e-05,
+      "count_difference": 0.0,
+      "J_difference": 2.4538643208060762e-05,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input119",
+      "case": "pengwah18",
+      "replicate": 9,
+      "voltage_sigma": 0.001,
+      "F1": 0.9230769230769231,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.0011096911241459805,
+      "count_difference": -0.003,
+      "J_difference": -0.0018903088758539521,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input122",
+      "case": "paper15",
+      "replicate": 10,
+      "voltage_sigma": 0.001,
+      "F1": 0.15384615384615385,
+      "relation": "non_nested",
+      "fit_difference": 0.009770141116955532,
+      "count_difference": 0.003,
+      "J_difference": 0.012770141116955402,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input124",
+      "case": "soumalas11",
+      "replicate": 10,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8571428571428571,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.018004793950705644,
+      "count_difference": -0.003,
+      "J_difference": 0.01500479395070542,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input125",
+      "case": "soumalas11",
+      "replicate": 10,
+      "voltage_sigma": 0.001,
+      "F1": 0.8571428571428571,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.004992627160281397,
+      "count_difference": -0.003,
+      "J_difference": 0.0019926271602812573,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input126",
+      "case": "flynn16",
+      "replicate": 10,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0045366013269476325,
+      "count_difference": 0.003,
+      "J_difference": -0.001536601326947773,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input127",
+      "case": "flynn16",
+      "replicate": 10,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": -0.003896596102650393,
+      "count_difference": 0.0,
+      "J_difference": -0.0038965961026504736,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input128",
+      "case": "flynn16",
+      "replicate": 10,
+      "voltage_sigma": 0.001,
+      "F1": 0.46153846153846156,
+      "relation": "non_nested",
+      "fit_difference": -0.006506224489002765,
+      "count_difference": 0.003,
+      "J_difference": -0.0035062244890027294,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input131",
+      "case": "pengwah18",
+      "replicate": 10,
+      "voltage_sigma": 0.001,
+      "F1": 0.46153846153846156,
+      "relation": "non_nested",
+      "fit_difference": 0.007288348909050166,
+      "count_difference": -0.003,
+      "J_difference": 0.004288348909050166,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input134",
+      "case": "paper15",
+      "replicate": 11,
+      "voltage_sigma": 0.001,
+      "F1": 0.6153846153846154,
+      "relation": "non_nested",
+      "fit_difference": 0.01753270989678306,
+      "count_difference": 0.003,
+      "J_difference": 0.020532709896782908,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input137",
+      "case": "soumalas11",
+      "replicate": 11,
+      "voltage_sigma": 0.001,
+      "F1": 0.5714285714285714,
+      "relation": "non_nested",
+      "fit_difference": -0.0016161467330975158,
+      "count_difference": -0.003,
+      "J_difference": -0.004616146733097626,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input139",
+      "case": "flynn16",
+      "replicate": 11,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": -0.0002883497704196091,
+      "count_difference": 0.0,
+      "J_difference": -0.00028834977041958254,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input140",
+      "case": "flynn16",
+      "replicate": 11,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.0008358956631514431,
+      "count_difference": 0.0,
+      "J_difference": 0.0008358956631514536,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input141",
+      "case": "pengwah18",
+      "replicate": 11,
+      "voltage_sigma": 0.0002,
+      "F1": 0.875,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.008445105845426064,
+      "count_difference": 0.006,
+      "J_difference": -0.00244510584542601,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input142",
+      "case": "pengwah18",
+      "replicate": 11,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.005777638854551312,
+      "count_difference": 0.003,
+      "J_difference": -0.0027776388545512898,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input143",
+      "case": "pengwah18",
+      "replicate": 11,
+      "voltage_sigma": 0.001,
+      "F1": 0.46153846153846156,
+      "relation": "non_nested",
+      "fit_difference": 0.018412430449973843,
+      "count_difference": -0.003,
+      "J_difference": 0.015412430449973868,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input144",
+      "case": "paper15",
+      "replicate": 12,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0043589573455068585,
+      "count_difference": 0.003,
+      "J_difference": -0.0013589573455068393,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input145",
+      "case": "paper15",
+      "replicate": 12,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.003344841187942172,
+      "count_difference": 0.003,
+      "J_difference": -0.00034484118794209095,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input146",
+      "case": "paper15",
+      "replicate": 12,
+      "voltage_sigma": 0.001,
+      "F1": 0.0,
+      "relation": "non_nested",
+      "fit_difference": 0.0019976339740298546,
+      "count_difference": -0.003,
+      "J_difference": -0.0010023660259701472,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input151",
+      "case": "flynn16",
+      "replicate": 12,
+      "voltage_sigma": 0.0005,
+      "F1": 0.7142857142857143,
+      "relation": "non_nested",
+      "fit_difference": 0.011189886252939244,
+      "count_difference": 0.006,
+      "J_difference": 0.017189886252939268,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input152",
+      "case": "flynn16",
+      "replicate": 12,
+      "voltage_sigma": 0.001,
+      "F1": 0.46153846153846156,
+      "relation": "non_nested",
+      "fit_difference": 0.0036660130459769944,
+      "count_difference": 0.003,
+      "J_difference": 0.006666013045977026,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input153",
+      "case": "pengwah18",
+      "replicate": 12,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.00431488308384829,
+      "count_difference": 0.003,
+      "J_difference": -0.001314883083848306,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input155",
+      "case": "pengwah18",
+      "replicate": 12,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.006260654462180701,
+      "count_difference": -0.006,
+      "J_difference": 0.0002606544621805984,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input158",
+      "case": "paper15",
+      "replicate": 13,
+      "voltage_sigma": 0.001,
+      "F1": 0.7692307692307693,
+      "relation": "non_nested",
+      "fit_difference": 0.011316797398470546,
+      "count_difference": 0.003,
+      "J_difference": 0.01431679739847036,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input159",
+      "case": "soumalas11",
+      "replicate": 13,
+      "voltage_sigma": 0.0002,
+      "F1": 0.8888888888888888,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.00019158308328763644,
+      "count_difference": 0.003,
+      "J_difference": 0.0028084169167121864,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input160",
+      "case": "soumalas11",
+      "replicate": 13,
+      "voltage_sigma": 0.0005,
+      "F1": 0.2857142857142857,
+      "relation": "non_nested",
+      "fit_difference": 0.015563187629667925,
+      "count_difference": -0.003,
+      "J_difference": 0.012563187629667683,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input161",
+      "case": "soumalas11",
+      "replicate": 13,
+      "voltage_sigma": 0.001,
+      "F1": 0.3333333333333333,
+      "relation": "non_nested",
+      "fit_difference": 0.005685442913446591,
+      "count_difference": -0.006,
+      "J_difference": -0.0003145570865534797,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input163",
+      "case": "flynn16",
+      "replicate": 13,
+      "voltage_sigma": 0.0005,
+      "F1": 0.7692307692307693,
+      "relation": "non_nested",
+      "fit_difference": 0.004113916014936077,
+      "count_difference": 0.003,
+      "J_difference": 0.007113916014936161,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input164",
+      "case": "flynn16",
+      "replicate": 13,
+      "voltage_sigma": 0.001,
+      "F1": 0.0,
+      "relation": "non_nested",
+      "fit_difference": 0.04484001419623511,
+      "count_difference": -0.006,
+      "J_difference": 0.03884001419623517,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input167",
+      "case": "pengwah18",
+      "replicate": 13,
+      "voltage_sigma": 0.001,
+      "F1": 0.7692307692307693,
+      "relation": "non_nested",
+      "fit_difference": 0.00328725832703649,
+      "count_difference": -0.003,
+      "J_difference": 0.00028725832703657694,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input170",
+      "case": "paper15",
+      "replicate": 14,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.017465417329689974,
+      "count_difference": 0.0,
+      "J_difference": 0.01746541732968998,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input173",
+      "case": "soumalas11",
+      "replicate": 14,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.00530998299066267,
+      "count_difference": -0.006,
+      "J_difference": -0.0006900170093373514,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input176",
+      "case": "flynn16",
+      "replicate": 14,
+      "voltage_sigma": 0.001,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": 0.0018962099692484394,
+      "count_difference": 0.0,
+      "J_difference": 0.0018962099692485523,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input179",
+      "case": "pengwah18",
+      "replicate": 14,
+      "voltage_sigma": 0.001,
+      "F1": 0.6153846153846154,
+      "relation": "non_nested",
+      "fit_difference": 0.0015006474734291075,
+      "count_difference": -0.003,
+      "J_difference": -0.0014993525265709629,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input184",
+      "case": "soumalas11",
+      "replicate": 15,
+      "voltage_sigma": 0.0005,
+      "F1": 0.6666666666666666,
+      "relation": "non_nested",
+      "fit_difference": -0.008027384108808253,
+      "count_difference": 0.003,
+      "J_difference": -0.005027384108808208,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input185",
+      "case": "soumalas11",
+      "replicate": 15,
+      "voltage_sigma": 0.001,
+      "F1": 0.25,
+      "relation": "non_nested",
+      "fit_difference": -0.007664331155721804,
+      "count_difference": 0.0,
+      "J_difference": -0.0076643311557218485,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input188",
+      "case": "flynn16",
+      "replicate": 15,
+      "voltage_sigma": 0.001,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": -0.001813505084366819,
+      "count_difference": 0.0,
+      "J_difference": -0.0018135050843668399,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input190",
+      "case": "pengwah18",
+      "replicate": 15,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9333333333333333,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.003205058655156309,
+      "count_difference": 0.003,
+      "J_difference": -0.00020505865515629829,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input191",
+      "case": "pengwah18",
+      "replicate": 15,
+      "voltage_sigma": 0.001,
+      "F1": 0.7272727272727273,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.013473850915245904,
+      "count_difference": -0.009000000000000001,
+      "J_difference": 0.0044738509152457695,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input192",
+      "case": "paper15",
+      "replicate": 16,
+      "voltage_sigma": 0.0002,
+      "F1": 0.8571428571428571,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.007998699450544123,
+      "count_difference": 0.006,
+      "J_difference": -0.0019986994505440947,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input194",
+      "case": "paper15",
+      "replicate": 16,
+      "voltage_sigma": 0.001,
+      "F1": 0.3076923076923077,
+      "relation": "non_nested",
+      "fit_difference": 0.0016945987088222568,
+      "count_difference": 0.003,
+      "J_difference": 0.004694598708822273,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input195",
+      "case": "soumalas11",
+      "replicate": 16,
+      "voltage_sigma": 0.0002,
+      "F1": 0.8888888888888888,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0002944248595894162,
+      "count_difference": 0.003,
+      "J_difference": 0.0027055751404105877,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input196",
+      "case": "soumalas11",
+      "replicate": 16,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8888888888888888,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0002930167227821439,
+      "count_difference": 0.003,
+      "J_difference": 0.002706983277217856,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input197",
+      "case": "soumalas11",
+      "replicate": 16,
+      "voltage_sigma": 0.001,
+      "F1": 0.5714285714285714,
+      "relation": "non_nested",
+      "fit_difference": 0.0022460137664433925,
+      "count_difference": -0.003,
+      "J_difference": -0.0007539862335566028,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input198",
+      "case": "flynn16",
+      "replicate": 16,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.005265385441063055,
+      "count_difference": 0.003,
+      "J_difference": -0.002265385441063028,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input199",
+      "case": "flynn16",
+      "replicate": 16,
+      "voltage_sigma": 0.0005,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0040087841309661065,
+      "count_difference": 0.003,
+      "J_difference": -0.0010087841309660561,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input200",
+      "case": "flynn16",
+      "replicate": 16,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": -0.0031844811219304677,
+      "count_difference": 0.0,
+      "J_difference": -0.0031844811219304825,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input202",
+      "case": "pengwah18",
+      "replicate": 16,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8571428571428571,
+      "relation": "non_nested",
+      "fit_difference": -0.0007965584851231977,
+      "count_difference": 0.0,
+      "J_difference": -0.0007965584851230556,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input203",
+      "case": "pengwah18",
+      "replicate": 16,
+      "voltage_sigma": 0.001,
+      "F1": 0.7142857142857143,
+      "relation": "non_nested",
+      "fit_difference": -0.0023141987689131636,
+      "count_difference": 0.0,
+      "J_difference": -0.002314198768913145,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input206",
+      "case": "paper15",
+      "replicate": 17,
+      "voltage_sigma": 0.001,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": 0.0017727142350464657,
+      "count_difference": 0.0,
+      "J_difference": 0.0017727142350464353,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input208",
+      "case": "soumalas11",
+      "replicate": 17,
+      "voltage_sigma": 0.0005,
+      "F1": 0.75,
+      "relation": "non_nested",
+      "fit_difference": -0.00225996425444968,
+      "count_difference": 0.0,
+      "J_difference": -0.0022599642544498533,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input209",
+      "case": "soumalas11",
+      "replicate": 17,
+      "voltage_sigma": 0.001,
+      "F1": 0.5714285714285714,
+      "relation": "non_nested",
+      "fit_difference": -0.001324566312334594,
+      "count_difference": -0.003,
+      "J_difference": -0.004324566312334577,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input210",
+      "case": "flynn16",
+      "replicate": 17,
+      "voltage_sigma": 0.0002,
+      "F1": 0.8571428571428571,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.00852816689698158,
+      "count_difference": 0.006,
+      "J_difference": -0.002528166896981543,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input211",
+      "case": "flynn16",
+      "replicate": 17,
+      "voltage_sigma": 0.0005,
+      "F1": 0.6153846153846154,
+      "relation": "non_nested",
+      "fit_difference": -0.006147464704626013,
+      "count_difference": 0.003,
+      "J_difference": -0.003147464704626013,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input212",
+      "case": "flynn16",
+      "replicate": 17,
+      "voltage_sigma": 0.001,
+      "F1": 0.36363636363636365,
+      "relation": "non_nested",
+      "fit_difference": -0.003676045687061714,
+      "count_difference": -0.003,
+      "J_difference": -0.006676045687061705,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input215",
+      "case": "pengwah18",
+      "replicate": 17,
+      "voltage_sigma": 0.001,
+      "F1": 0.8571428571428571,
+      "relation": "non_nested",
+      "fit_difference": -0.0005263313307398816,
+      "count_difference": 0.0,
+      "J_difference": -0.0005263313307398709,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input216",
+      "case": "paper15",
+      "replicate": 18,
+      "voltage_sigma": 0.0002,
+      "F1": 0.9230769230769231,
+      "relation": "strict_superfamily",
+      "fit_difference": -0.0034132857581096123,
+      "count_difference": 0.003,
+      "J_difference": -0.0004132857581096161,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input218",
+      "case": "paper15",
+      "replicate": 18,
+      "voltage_sigma": 0.001,
+      "F1": 0.0,
+      "relation": "non_nested",
+      "fit_difference": 0.047023453103914634,
+      "count_difference": 0.003,
+      "J_difference": 0.05002345310391443,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input221",
+      "case": "soumalas11",
+      "replicate": 18,
+      "voltage_sigma": 0.001,
+      "F1": 0.5,
+      "relation": "non_nested",
+      "fit_difference": 0.002744680052527371,
+      "count_difference": 0.0,
+      "J_difference": 0.0027446800525272597,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input223",
+      "case": "flynn16",
+      "replicate": 18,
+      "voltage_sigma": 0.0005,
+      "F1": 0.7142857142857143,
+      "relation": "non_nested",
+      "fit_difference": -0.0038918103819201894,
+      "count_difference": 0.006,
+      "J_difference": 0.002108189618079681,
+      "penalty_reversal": "extra_lines_wrong_disfavored_by_penalty"
+    },
+    {
+      "job": "input224",
+      "case": "flynn16",
+      "replicate": 18,
+      "voltage_sigma": 0.001,
+      "F1": 0.3333333333333333,
+      "relation": "non_nested",
+      "fit_difference": -0.0009587153981562363,
+      "count_difference": 0.0,
+      "J_difference": -0.0009587153981561736,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input227",
+      "case": "pengwah18",
+      "replicate": 18,
+      "voltage_sigma": 0.001,
+      "F1": 0.7692307692307693,
+      "relation": "non_nested",
+      "fit_difference": 0.0038849200457430288,
+      "count_difference": -0.003,
+      "J_difference": 0.0008849200457430317,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input230",
+      "case": "paper15",
+      "replicate": 19,
+      "voltage_sigma": 0.001,
+      "F1": 0.9090909090909091,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.002510323254144449,
+      "count_difference": -0.003,
+      "J_difference": -0.0004896767458555384,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input233",
+      "case": "soumalas11",
+      "replicate": 19,
+      "voltage_sigma": 0.001,
+      "F1": 0.4,
+      "relation": "strict_subfamily",
+      "fit_difference": 0.014015136160250942,
+      "count_difference": -0.009000000000000001,
+      "J_difference": 0.005015136160250844,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input235",
+      "case": "flynn16",
+      "replicate": 19,
+      "voltage_sigma": 0.0005,
+      "F1": 0.8333333333333334,
+      "relation": "non_nested",
+      "fit_difference": 0.0056230179043381895,
+      "count_difference": 0.0,
+      "J_difference": 0.005623017904338279,
+      "penalty_reversal": "no_reversal"
+    },
+    {
+      "job": "input236",
+      "case": "flynn16",
+      "replicate": 19,
+      "voltage_sigma": 0.001,
+      "F1": 0.36363636363636365,
+      "relation": "non_nested",
+      "fit_difference": 0.0015655997583307257,
+      "count_difference": -0.003,
+      "J_difference": -0.001434400241669298,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    },
+    {
+      "job": "input239",
+      "case": "pengwah18",
+      "replicate": 19,
+      "voltage_sigma": 0.001,
+      "F1": 0.6153846153846154,
+      "relation": "non_nested",
+      "fit_difference": 0.0027161839764733298,
+      "count_difference": -0.003,
+      "J_difference": -0.0002838160235267839,
+      "penalty_reversal": "sparser_wrong_favored_by_penalty"
+    }
+  ],
+  "true_fit_ledger": {
+    "planned_inputs": 240,
+    "fitted_inputs": 240,
+    "true_family_fit_calls": 240,
+    "native_MIQP_calls": 0,
+    "extra_observation_files_read": 0,
+    "same_event_true_witness_applicable": 667,
+    "same_event_true_witness_bound_contradictions": 0
+  },
+  "interpretation_limits": [
+    "The diagnostic true family uses raw stored supports in its count penalty even if an edge fits zero response. Here none of the 240 fitted true families collapsed, so raw and active true counts coincide; this must be rechecked in weak-edge pressure studies.",
+    "Selected and true support families are often non-nested. Lower true-family minimum MSE is not a universal requirement; only same-bound nested-family inclusion gives a monotonic feasible-set comparison.",
+    "A static alpha ranking reversal of these two fixed fitted points is not the number of cases a rerun at another alpha would recover.",
+    "Noise, P/Q measurement error and AC-to-linear mismatch coexist. This decomposition separates the fit term from line-count penalty, not noise from physical-model bias.",
+    "Training J and final selection32 MSE serve different stages. A true J better than the final selected J does not by itself contradict the optimum of a particular earlier conditional MIQP."
+  ]
+}

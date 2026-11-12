@@ -1,0 +1,83 @@
+{
+  "created_utc": "2026-11-12T09:56:15.514653+00:00",
+  "source_sha256": "79ec3abf4c5a11bdfea54cc13ba8edc3ad204efa430405f3d494d12ab9d897c0",
+  "input_sha256": {
+    "analysis\\results.csv": "6b446faf714c6a639090b122bc5a7265aa05171bd77a0ad61c1be233a62911c9",
+    "analysis\\summary.json": "85c2647e18bea2d724d4733b9c5d6a7f4b554c96494622776fe593c4e6dfd65f",
+    "analysis\\dr_curve.csv": "2cb689a414749080b3304115c00a19d2084b59c337d7c715c14e9512d4fb5375",
+    "analysis\\ablation_effects.csv": "5a124f6080782027e587ce4c6cb25301188f9259b10ff85556a84a5054e5da49",
+    "analysis\\verification.json": "7df7cef4738da874921e55205f70d1c4e051c1dcf27727747e7deef74b90d609",
+    "protocol.json": "ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4"
+  },
+  "figure_sha256": {
+    "main_comparison.png": "b27d4601ed5e8658adc01a64d97f02b03e7ef78bb42e2134a51428255882add0",
+    "main_comparison.pdf": "ff7f1168d2a69c68a417ea56d6d0f347c120d113ab1cf00699a796b10396ae08",
+    "main_comparison.svg": "fc3c80c7bd57ed37ee8584d3508ae0f86f7fd361f2737459f2578f3152e178eb",
+    "case_noise.png": "db0b15e504a9cf269757102323e08831f6fe2eadb8b7774d744641b2ebc69bd4",
+    "case_noise.pdf": "5ab82ad4145aa0be649aff884b94016e2479aaaaeb17420a2d1284d7d2ebfcf8",
+    "case_noise.svg": "8d2678cf6d4566fe368a6f5647077d72fd3bf896c69976f296012a6bac7ab264",
+    "dr_tradeoff.png": "54cfcb124e6065573a95a336a0468fb5061de275468cee545a4f9875a7e75bcf",
+    "dr_tradeoff.pdf": "bac0aebb571d00c002e3d877b7ce2bc603019ff4a0fd930351213d93b0555d15",
+    "dr_tradeoff.svg": "dc0cce5a2e5cc9b41759ec7f804047ed31783f8d8e564b47df52bd0e01300e8d",
+    "single_error_breakdown.png": "2afdf875c019d94be22cdd7bc5ef8a1784104e7b68c06293537aef4fddb54b51",
+    "single_error_breakdown.pdf": "5a1f7f2580b3fdee2d4d09df2ab8f2fd6bda4d2b4c11341c8dcc626574732194",
+    "single_error_breakdown.svg": "fc857db9c85e0378b2e9c39979f618de35b7c9e51cd8de42b93aeec79600100a",
+    "rte_heatmap.png": "a03d343c1dfc8127b02506fc0691a14ce819f06fc20a39805a877896f7a0c958",
+    "rte_heatmap.pdf": "6654b1c0fb0afc71f63a24075ab43a8a730bbe1af87ce5a9a4eeab47ac4cf64c",
+    "rte_heatmap.svg": "ffd8caa0cbd6b2da7170886bf9fffa3e9fc125046010d7057552d417217d02df",
+    "ablation_effects.png": "0caacd47148dc7b8020e2e9dcb6201bf4c232e3496ef2f5da0a4f46b7fdb4cd9",
+    "ablation_effects.pdf": "ff971e2b8a664eb9b32b532c1f6a2f6c886f710dc81d1fea828c24958c1bd27e",
+    "ablation_effects.svg": "05b15f6f08c0c09376992e01eda86ca2c1bc820b805a6d83b29d97653e868fc1"
+  },
+  "captions": {
+    "main_comparison": "F1 bars use verified runs; black diamonds count failures as F1=0. Exact recovery retains every planned run.\nRecorded time includes returned failures; unknown times are omitted and labelled. Confidence intervals use clustered report tables.",
+    "case_noise": "Methods and noise siblings share each day's trajectory. Daily replicate groups, not condition rows, are independent repeats.\nLines are descriptive stratum means. Failed/invalid/over-budget runs remain in exact-recovery denominators.",
+    "dr_tradeoff": "Kappa changes the returned set, never the primary topology or its F1. No DR intervention was run.\nWrong-primary pair coverage measures an available correct alternative, not observed DR recovery. Undefined rates stay NA; no confidence levels.",
+    "single_error_breakdown": "A separated saved alternative and no saved alternative are different outcomes. Neither proves global identifiability.\nFailed, interrupted, invalid and over-budget runs have no verified primary and are excluded from this descriptive error breakdown.",
+    "rte_heatmap": "Gray cells are not planned or have no verified F1; they are never filled with another method's result.\nModule effects include the declared algorithm's stopping and budget allocation policy.",
+    "ablation_effects": "Only pairs with both endpoints independently verified contribute to deltas; planned and paired denominators are displayed.\nThese bars are descriptive paired means. Clustered uncertainty is reported separately; module order is not re-executed here."
+  },
+  "figures": 6,
+  "exports": 18,
+  "methods": [
+    "rnj",
+    "nj",
+    "000",
+    "100",
+    "010",
+    "001",
+    "110",
+    "101",
+    "011",
+    "111"
+  ],
+  "planned_by_method": {
+    "rnj": 240,
+    "nj": 240,
+    "000": 240,
+    "100": 240,
+    "010": 240,
+    "001": 240,
+    "110": 240,
+    "101": 240,
+    "011": 240,
+    "111": 240
+  },
+  "verified_by_method": {
+    "rnj": 240,
+    "nj": 240,
+    "000": 240,
+    "100": 240,
+    "010": 240,
+    "001": 240,
+    "110": 240,
+    "101": 240,
+    "011": 240,
+    "111": 240
+  },
+  "synthetic_fixture": false,
+  "skipped": [],
+  "optimizer_imported": false,
+  "observations_or_truth_opened": false,
+  "scope": "Descriptive plots of independently verified finite panel; no new inference, refitting or DR intervention"
+}
