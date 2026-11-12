@@ -1,0 +1,120 @@
+{
+  "version": "heterogeneous_resources_v1",
+  "status": "prespecified_synthetic_parameters_not_empirically_calibrated",
+  "time": {"slots": 96, "dt_hours": 0.25, "period_hours": [[0,6],[6,9],[9,17],[17,22],[22,24]]},
+  "allocation": {
+    "seed": 2026110411,
+    "history_scope": "all existing reference N288 training-only bundles at voltage_sigma=0.0002, PQ_sigma=0.005; no validation/test/V/results",
+    "sizing_quantile": 0.9,
+    "inventory_fraction_of_sum_nodal_positive_net_P_quantiles": 0.20,
+    "node_size_factors": [0.8,1.0,1.2],
+    "normalization": "normalize size factors within each network so total inventory equals 0.20*sum nodal q90(max(P,0))",
+    "mix_templates": {
+      "user_heavy": {"user": 0.65, "ev": 0.20, "battery": 0.15},
+      "ev_heavy": {"user": 0.30, "ev": 0.50, "battery": 0.20},
+      "battery_heavy": {"user": 0.35, "ev": 0.20, "battery": 0.45}
+    },
+    "assignment": "SHA256(seed|case|label|purpose); hash-ordered nodes cycle through mix templates; no topology or identification outcome",
+    "node_cost_factors": [0.9,1.0,1.1],
+    "node_sd_factors": [0.9,1.0,1.1],
+    "grid_resource_allocated_kw": 0.0,
+    "grid_reason": "No declared terminal actuator: retain optional template without inventing installed grid resources"
+  },
+  "resource_limits": {
+    "matched_enrollment": "paper15 retains sum enrolled resource kW<=2; other networks scale 2 by training positive-net mean-power ratio to paper15",
+    "inventory_is_not_dispatch": true,
+    "no_cost_budget_upper": true,
+    "no_minimum_activation_or_diversity_constraint": true,
+    "aggregation": "enrolled kW counts every resource before node netting; physical power and energy scale with enrolled share",
+    "sufficiency_check": "report full-inventory per-slot directional power / matched enrollment cap; >=2 is a declared diagnostic, not an identifiability guarantee",
+    "legacy_contract": "old 2 kW synthetic single-resource experiments are unchanged; changed resource/energy/cost model requires matched new comparisons"
+  },
+  "price": {
+    "unit": "CNY_per_kWh_scenario_assumption",
+    "full_activation_price_by_period": {
+      "user": [0.60,1.00,0.80,1.20,0.70],
+      "ev": [0.30,0.60,0.60,0.45,0.30],
+      "battery": [0.30,0.35,0.30,0.50,0.35],
+      "grid_optional": [0.20,0.30,0.25,0.40,0.25]
+    },
+    "ev_unavailable_period_price": "ignored by zero power availability, not an offer to buy daytime EV energy",
+    "mean_response": "signed nominal u = direction * A_direction * pi / c, 0<=pi<=c; A_direction is headroom at enrolled scale, not nameplate",
+    "prepaid_contract": "C=dt*sum c*(u_plus^2/A_plus+u_minus^2/A_minus); zero A requires zero u; opposite directions cannot activate simultaneously on one resource",
+    "settlement": "fixed planned service reward, no refund/redraw after underdelivery; report delivered quantities separately",
+    "cost_contents": "all-in service compensation; do not add the same inconvenience/wear again",
+    "sensitivity_multiplier": [0.5,1.0,2.0],
+    "old_fee_conversion": "44.9505 old contract units are not converted to CNY"
+  },
+  "user": {
+    "curtailable_share": 0.25,
+    "shiftable_share": 0.75,
+    "availability_fraction_by_period": [0.6,1.0,0.8,1.0,0.7],
+    "baseline": "embedded synthetic component A*availability; original total load receives only actual increment",
+    "shiftable_power": "baseline plus u in [0,2*A*availability]",
+    "shiftable_prefix_shift_hours": 2.0,
+    "shiftable_terminal_delta_kwh": 0.0,
+    "curtailable_power": "u in [-A*availability,0]",
+    "curtailable_daily_reduction_hours": 2.0,
+    "reactive_ratios": [0.2,0.35,0.5]
+  },
+  "ev": {
+    "reference_charger_kw": 7.0,
+    "reference_battery_kwh": 50.0,
+    "reference_grid_energy_kwh_per_overnight_session": 20.0,
+    "connected_hours": [[0,8],[18,24]],
+    "charge_efficiency": 0.9,
+    "arrival_soc": 0.4,
+    "soc_min": 0.2,
+    "soc_max": 0.9,
+    "reactive_ratio": 0.0,
+    "v2g": false,
+    "baseline": "constant charging during 14 connected hours; 20/7 kWh per enrolled charger kW per overnight session",
+    "midnight_accounting": "00:00 vehicle has already received 6/14 of previous session energy; fulfill remaining 8/14 by 08:00. New arrival at 18:00 must receive 6/14 by 24:00; separate segment equality prevents borrowing across disconnection or next day",
+    "template_boundary": "fractional contracted fleet share, not fractional physical vehicle count; residence timing, energy and 50 kWh battery are assumptions"
+  },
+  "battery": {
+    "reference_power_kw": 5.0,
+    "reference_energy_kwh": 12.5,
+    "energy_to_power_hours": 2.5,
+    "roundtrip_efficiency": 0.85,
+    "soc_min": 0.2,
+    "soc_max": 0.8,
+    "soc_initial": 0.5,
+    "soc_terminal": 0.5,
+    "baseline_kw": 0.0,
+    "reactive_ratio": 0.0,
+    "state_equation": "E[t+1]=E[t]+dt*(sqrt(.85)*charge-discharge/sqrt(.85)); charge*discharge=0",
+    "energy_accounting": "count recharge and losses; no free terminal energy or perfect-efficiency replacement"
+  },
+  "response": {
+    "nominal_multiplier_mean": 1.0,
+    "stress_multiplier_mean": 0.9,
+    "relative_sd_by_type": {"user": 0.15, "ev": 0.08, "battery": 0.03, "grid_optional": 0.02},
+    "user_peak_sd_multiplier": 1.25,
+    "ev_last_two_hours_before_08_departure_sd_multiplier": 1.5,
+    "main_variance_weights": [0.15,0.25,0.20,0.40],
+    "main_ar1_phi": 0.8,
+    "stress_variance_weights": [0.30,0.30,0.25,0.15],
+    "stress_ar1_phi": 0.9,
+    "factor_order": ["shared_day","node_day","shared_time_AR1","resource_time_AR1"],
+    "formula": "U_raw=u*(m+nu_type*nu_node*nu_time*Z); Var Z=1; node-day factor shared across types at same node",
+    "covariance": "Cov(Z_it,Z_js)=w_day+w_node*1(node_i=node_j)+(w_time+w_resource*1(resource_i=resource_j))*phi^abs(t-s)",
+    "execution": "causal device/state-feasible delivery; clipping must also preserve SOC/deadline feasibility; slot-only clipping is insufficient for EV/storage",
+    "calibration": "assumed continuous correlated delivery, not calibrated participation probabilities"
+  },
+  "forecast": {
+    "predictor": "training same-slot mean P/Q; other predictors may replace this later",
+    "assumed_relative_sd_by_period": [0.05,0.10,0.08,0.10,0.05],
+    "scale": "per-slot training RMS, not abs signed net forecast near zero; fixed before test",
+    "PQ_standardized_correlation": 0.6,
+    "background_independent_of_response": true,
+    "basis": "synthetic working distribution, not 3-day covariance calibration",
+    "status": "recorded only; existing predictor/noise pipeline unchanged"
+  },
+  "evidence_sources": [
+    {"url":"https://atb.nrel.gov/electricity/2024/residential_battery_storage","supports":"5 kW / 12.5 kWh and 85 percent roundtrip reference; SOC/cost/penetration are our assumptions","reading":"official indexed parameter text in previous literature pass; direct page fetch returned 502"},
+    {"url":"https://arxiv.org/html/2304.06769v1","supports":"EV power, availability and energy feasibility; numerical charger range 7-13 kW","reading":"open author full text; residential schedule here is not their workplace schedule"},
+    {"url":"https://onlinelibrary.wiley.com/doi/10.1155/etep/6254758","supports":"numerical charging incentive range 0.25-0.45 CNY/kWh; not field elasticity calibration","reading":"open full HTML numerical section"},
+    {"url":"https://www.ahjd.gov.cn/Jczwgk/show/3553986.html","supports":"2025 policy compensation reference, not a topology probing tariff or marginal cost","reading":"official policy text in prior literature pass"}
+  ]
+}

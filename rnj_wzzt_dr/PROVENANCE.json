@@ -1,0 +1,348 @@
+{
+  "date": "2026-11-12",
+  "main_commit": "5d2d40fd",
+  "dr_commit": "69c6fe05",
+  "sources": [
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/algorithm.py",
+      "source_sha256": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
+      "destination": "identification/algorithm.py",
+      "packaged_sha256": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/competition.py",
+      "source_sha256": "86db89cca689256fe70cf700d10f7d6576c0968a8188c1d4b5fc7ecedff2865e",
+      "destination": "identification/competition.py",
+      "packaged_sha256": "86db89cca689256fe70cf700d10f7d6576c0968a8188c1d4b5fc7ecedff2865e",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/optimization.py",
+      "source_sha256": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
+      "destination": "identification/optimization.py",
+      "packaged_sha256": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/trees.py",
+      "source_sha256": "82501475348a0aee575270440d712cdc49f20e112f45b543f7623b520ef0ae44",
+      "destination": "identification/trees.py",
+      "packaged_sha256": "82501475348a0aee575270440d712cdc49f20e112f45b543f7623b520ef0ae44",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/data.py",
+      "source_sha256": "a1b0e853c141c8379aaca741d96c305e57d77c1033bf13c65ddb5918634a9d9e",
+      "destination": "observations.py",
+      "packaged_sha256": "85925fdb0630f80a522078d0b7d73b9d297686f911bd642c1d72b015ee813b86",
+      "extracted_symbols": [
+        "Observation"
+      ],
+      "changes": [
+        "Keep Observation class; add explicit NPZ reader and observation fingerprint; remove generators, catalogs, networks and truth loading"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/vendor/problem.py",
+      "source_sha256": "8f90924fb33eb7224af8266fca4194f2c88969dc00a52f59e6bfe7ed0d03d8ee",
+      "destination": "dr/device_map.py",
+      "packaged_sha256": "c466491a80d8a4dc5ee75cfb8e4d170415599514abdcee3cc20fedbbaca53a92",
+      "extracted_symbols": [
+        "_array",
+        "Devices"
+      ],
+      "changes": [
+        "Extract declared symbols and replace legacy module header with local imports"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/vendor/solver.py",
+      "source_sha256": "d8235a1b529b1d641921f3273f3cb2b235f06fc5b2837ce9a6c696be0beca898",
+      "destination": "dr/device_graph.py",
+      "packaged_sha256": "6a6f873892c9076afa85ce978762db3e81798c52303686260f33f473fef16a96",
+      "extracted_symbols": [
+        "_Term",
+        "_Graph",
+        "build_device_graph",
+        "_values",
+        "_attribute"
+      ],
+      "changes": [
+        "Extract declared symbols and replace legacy module header with local imports"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/mse_existing_cases/core.py",
+      "source_sha256": "c3750e0bfb624c8e18719a3c135cd48f0d058847ae6cb4017f572b38ecd6688b",
+      "destination": "dr/resource_adapter.py",
+      "packaged_sha256": "69e8f553396f9b67dc7ac912ba33d66bf24b62abbafe82be3fc3aeba99c7acde",
+      "extracted_symbols": [
+        "_finite",
+        "ResourceOnly"
+      ],
+      "changes": [
+        "Reuse _finite and ResourceOnly; local SolverDevices import replaces dynamic old-type injection"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_heterogeneous_pilot/devices.py",
+      "source_sha256": "efb77c91568d94c8492b06a3b1c2d0069aac9855ada7d8d0eed366cd367e75f7",
+      "destination": "dr/devices.py",
+      "packaged_sha256": "efb77c91568d94c8492b06a3b1c2d0069aac9855ada7d8d0eed366cd367e75f7",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_heterogeneous_resources/build_allocations.py",
+      "source_sha256": "6ceed1d852c1aecf665a1306e26d6b7e8bd08c62c2637273691a85299af156a4",
+      "destination": "dr/profiles.py",
+      "packaged_sha256": "951f141ebaf4227f6ff4e40d7a3098de2d3fdcfd5731ffac1860eb9b9cfe9499",
+      "extracted_symbols": [
+        "period_array",
+        "profiles"
+      ],
+      "changes": [
+        "Extract declared symbols and replace legacy module header with local imports"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/selection_mse.py",
+      "source_sha256": "f86b0ac726c334c9c90b19648d7467c54ef6a04afbc6c8a79b66c5badaaead9c",
+      "destination": "dr/selection_mse.py",
+      "packaged_sha256": "f86b0ac726c334c9c90b19648d7467c54ef6a04afbc6c8a79b66c5badaaead9c",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/miqp_mse.py",
+      "source_sha256": "a57a1cf63f90beca81875a5d074aecbb772da2a6d1636853e89152774e4d2395",
+      "destination": "dr/miqp_mse.py",
+      "packaged_sha256": "2210d27fc63f032293464d0a1680a30298e6862dad9883c0156764556e342b58",
+      "extracted_symbols": [
+        "MSEGate",
+        "solve_factorized"
+      ],
+      "changes": [
+        "Reuse MSEGate and single-pair solve_factorized; local IO/graph; require full control gate; exact sufficient recheck; retain input hashes",
+        "Retain reported lower bound and flag conflicts against a replayed feasible cost before claiming a gap"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/mse_existing_cases/core.py",
+      "source_sha256": "c3750e0bfb624c8e18719a3c135cd48f0d058847ae6cb4017f572b38ecd6688b",
+      "destination": "dr/conditional.py",
+      "packaged_sha256": "9ac7bfa7a813f5359846e92a4eac98aea07dca54df65671bdf793c3dc31957c2",
+      "extracted_symbols": [
+        "build_gate"
+      ],
+      "changes": [
+        "Reuse build_gate; local MSEGate import; epsilon, power error scale and AR read explicitly from data; new adapter maps K=1/M_ref"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/zero_screen.py",
+      "source_sha256": "23a91c01e4dbbcd2a7e2206c73f8a784aa86fb70ca12c3f64ba64b72ed3e55ec",
+      "destination": "dr/zero.py",
+      "packaged_sha256": "b9be57fa7123dee0eda68aaaa512394bbb4ffabe812d506abd0deb07fefe00c8",
+      "extracted_symbols": [
+        "spectral_pair",
+        "joint"
+      ],
+      "changes": [
+        "Reuse spectral_pair/joint; explicit numerical tolerance and error law; active-topology identity; arbitrary-target equal-response tie direction"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_heterogeneous_resources/library.json",
+      "source_sha256": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
+      "destination": "resources/library.json",
+      "packaged_sha256": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_heterogeneous_resources/case_allocations.json",
+      "source_sha256": "0770978e6ba6346289cdaf5e8596d0b29fd74eb9279bb64e6d95c72f736521d1",
+      "destination": "resources/case_allocations.json",
+      "packaged_sha256": "b280a0eb89ecd29b76f3a161fd2cc9558a390c929bfebdc4beec37b7c07bc374",
+      "changes": [
+        "Retain only four mainline network allocations, without changing selected node/resource values"
+      ]
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "docs/wzzt_dr_handoff_20261112/README.md",
+      "source_sha256": "bbdae18aa714c9f696bf48c659259bacd8f98f9d024cc2b84004f22b3dd79fd8",
+      "destination": "evidence/dr_handoff/README.md",
+      "packaged_sha256": "bbdae18aa714c9f696bf48c659259bacd8f98f9d024cc2b84004f22b3dd79fd8",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "docs/wzzt_dr_handoff_20261112/MODEL.md",
+      "source_sha256": "8e061b8e5dae36dcc140f295fda2468ee575824db2eabbaada1c7dc29ca3c1f2",
+      "destination": "evidence/dr_handoff/MODEL.md",
+      "packaged_sha256": "8e061b8e5dae36dcc140f295fda2468ee575824db2eabbaada1c7dc29ca3c1f2",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "docs/wzzt_dr_handoff_20261112/FILES.md",
+      "source_sha256": "f04f62121bae26d135d615b990142d549b5213ac746c7e3260afbd38097b68b4",
+      "destination": "evidence/dr_handoff/FILES.md",
+      "packaged_sha256": "f04f62121bae26d135d615b990142d549b5213ac746c7e3260afbd38097b68b4",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/RESULTS.json",
+      "source_sha256": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5",
+      "destination": "evidence/old_zero_screen/RESULTS.json",
+      "packaged_sha256": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/AUDIT.json",
+      "source_sha256": "cf34e97d3af8a78dcce1f0f8efb862be1fcbbdce95f708b0eaaee41b395017c5",
+      "destination": "evidence/old_zero_screen/AUDIT.json",
+      "packaged_sha256": "cf34e97d3af8a78dcce1f0f8efb862be1fcbbdce95f708b0eaaee41b395017c5",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/PROTOCOL.json",
+      "source_sha256": "7fef7bb706ba78a5d6c89e7583288335ab5fd0e90c8fc8a938881e68a1973b4d",
+      "destination": "evidence/old_zero_screen/PROTOCOL.json",
+      "packaged_sha256": "7fef7bb706ba78a5d6c89e7583288335ab5fd0e90c8fc8a938881e68a1973b4d",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_spatial_correlated/ac_bridge.py",
+      "source_sha256": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42",
+      "destination": "compat/ac_bridge.py",
+      "packaged_sha256": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py",
+      "source_sha256": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
+      "destination": "compat/research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py",
+      "packaged_sha256": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "dr_worktree",
+      "source": "research_experiments/wzzt_dr_selection/end_to_end/physical_case.py",
+      "source_sha256": "5239e5357885273d32ce28326d350858517e052081cbd8836001b932dea41f79",
+      "destination": "compat/research_experiments/wzzt_dr_selection/end_to_end/physical_case.py",
+      "packaged_sha256": "5239e5357885273d32ce28326d350858517e052081cbd8836001b932dea41f79",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/experiments/full48_mse/coverage_summary.csv",
+      "source_sha256": "c98ff3d896df0eaad97f4c41858506fb94102ca553fad678c893b4fb5abb11aa",
+      "destination": "evidence/current48/coverage_summary.csv",
+      "packaged_sha256": "c98ff3d896df0eaad97f4c41858506fb94102ca553fad678c893b4fb5abb11aa",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "source_root": "main",
+      "source": "topology_identification_standalone/experiments/full48_mse/ERRATA_QP_20261112.md",
+      "source_sha256": "d66dd95735c319b1e632ad4c2a4c3251663622c3d8461e5d6cba26b60fe56613",
+      "destination": "evidence/current48/ERRATA_QP_20261112.md",
+      "packaged_sha256": "d66dd95735c319b1e632ad4c2a4c3251663622c3d8461e5d6cba26b60fe56613",
+      "byte_identical": true,
+      "changes": []
+    }
+  ],
+  "original_roots": {
+    "main": "D:\\0-github_workspace\\Topo",
+    "dr_worktree": "C:\\Users\\23761\\.codex\\worktrees\\wzzt-dr-selection\\Topo"
+  },
+  "package_files": {
+    ".gitattributes": "9085b1662f30db3afd7cbbcbd77af5aa4b0360c08d621bb3c76bb85f97c5e80b",
+    ".gitignore": "e31c46f21a3a22a62fc8acc285f427e0f0de235865e6197a46d6c6b3f048d5f6",
+    "__init__.py": "fbc85c2e2e3c49401e20af4ab0fc29fa2515ef4ef12d55a02ec9c7119702f879",
+    "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "ARCHIVE.md": "62a4c24d88645ff1bda3fd38ec68163867d4b4ac929c54ed1d099c9f19d0d22b",
+    "cli.py": "97269e681665d52753ceb57a749465f066092318d547bf40f1eb8f2a39f406a6",
+    "compat/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
+    "compat/ac_bridge.py": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42",
+    "compat/research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
+    "compat/research_experiments/wzzt_dr_selection/end_to_end/physical_case.py": "5239e5357885273d32ce28326d350858517e052081cbd8836001b932dea41f79",
+    "dr/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
+    "dr/conditional.py": "9ac7bfa7a813f5359846e92a4eac98aea07dca54df65671bdf793c3dc31957c2",
+    "dr/device_graph.py": "6a6f873892c9076afa85ce978762db3e81798c52303686260f33f473fef16a96",
+    "dr/device_map.py": "c466491a80d8a4dc5ee75cfb8e4d170415599514abdcee3cc20fedbbaca53a92",
+    "dr/devices.py": "efb77c91568d94c8492b06a3b1c2d0069aac9855ada7d8d0eed366cd367e75f7",
+    "dr/miqp_mse.py": "2210d27fc63f032293464d0a1680a30298e6862dad9883c0156764556e342b58",
+    "dr/pipeline.py": "baf52d7de60352b47f632578eb5fd7932edac38d844f963d871a57c9c9426074",
+    "dr/profiles.py": "951f141ebaf4227f6ff4e40d7a3098de2d3fdcfd5731ffac1860eb9b9cfe9499",
+    "dr/resource_adapter.py": "69e8f553396f9b67dc7ac912ba33d66bf24b62abbafe82be3fc3aeba99c7acde",
+    "dr/selection_mse.py": "f86b0ac726c334c9c90b19648d7467c54ef6a04afbc6c8a79b66c5badaaead9c",
+    "dr/zero.py": "b9be57fa7123dee0eda68aaaa512394bbb4ffabe812d506abd0deb07fefe00c8",
+    "evidence/current48/coverage_summary.csv": "c98ff3d896df0eaad97f4c41858506fb94102ca553fad678c893b4fb5abb11aa",
+    "evidence/current48/ERRATA_QP_20261112.md": "d66dd95735c319b1e632ad4c2a4c3251663622c3d8461e5d6cba26b60fe56613",
+    "evidence/dr_handoff/FILES.md": "f04f62121bae26d135d615b990142d549b5213ac746c7e3260afbd38097b68b4",
+    "evidence/dr_handoff/MODEL.md": "8e061b8e5dae36dcc140f295fda2468ee575824db2eabbaada1c7dc29ca3c1f2",
+    "evidence/dr_handoff/README.md": "bbdae18aa714c9f696bf48c659259bacd8f98f9d024cc2b84004f22b3dd79fd8",
+    "evidence/old_zero_screen/AUDIT.json": "cf34e97d3af8a78dcce1f0f8efb862be1fcbbdce95f708b0eaaee41b395017c5",
+    "evidence/old_zero_screen/PROTOCOL.json": "7fef7bb706ba78a5d6c89e7583288335ab5fd0e90c8fc8a938881e68a1973b4d",
+    "evidence/old_zero_screen/RESULTS.json": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5",
+    "history.py": "345cd7fcf7a2bd944e5c7c0ead6f4ddf49e4db01e3bbe09ddd09731fd8f17769",
+    "identification/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
+    "identification/algorithm.py": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
+    "identification/competition.py": "86db89cca689256fe70cf700d10f7d6576c0968a8188c1d4b5fc7ecedff2865e",
+    "identification/optimization.py": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
+    "identification/trees.py": "82501475348a0aee575270440d712cdc49f20e112f45b543f7623b520ef0ae44",
+    "io.py": "54cf69ff77ae5551d1ef9b19019c94ab1506e0b14c1f9a1f8c276b8ffda871b7",
+    "MODEL.md": "ffb4d73b8b0345c2600a1b84a544a145526d90d5b15605c1a7713fb4b7f44397",
+    "observations.py": "85925fdb0630f80a522078d0b7d73b9d297686f911bd642c1d72b015ee813b86",
+    "README.md": "490f79ba38ee32fcf74daa38b30f6576c5f01d81db7760df73c225f46e3ca636",
+    "requirements.txt": "eddd856fd69f0e6f8184ae7a9a7e8d0a1f9084979a10dcb837c65cb6592aee16",
+    "resources/case_allocations.json": "b280a0eb89ecd29b76f3a161fd2cc9558a390c929bfebdc4beec37b7c07bc374",
+    "resources/library.json": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
+    "run.py": "14c745af0ed8150a0b02726887e9a4075dc418eaf85c012e1e3db27b619186ce",
+    "tests/__init__.py": "98a189fcc2ccceb759578d6841872173b9e8a68488e1bd32bd92edffcbf20602",
+    "tests/test_pipeline.py": "55de259caa424a975985294e49020507dcd3dd3bc6e05ad10e2c1d916e18d157",
+    "validation/check.txt": "7e429a26b0cf73a2e6da4bedc5447981ace2ee74f62f6e2c3f786e356794a15c",
+    "validation/cli_smoke.json": "b64f2e61a006ca153c1ee072cdc96aa0497b7954ed214d4157d855bf60725b62",
+    "VALIDATION.md": "099d3e6cd2ff91afcaece8253b56148a5532261a5bcbbf6ac37b149f02e8ce80",
+    "verify.py": "5f8fa722ad9cd383bf1aa8c86a95ad8763fc16a5811d19bfbb8d8892b02a2a09"
+  }
+}
