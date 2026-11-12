@@ -12,6 +12,22 @@ from tools import analyze_large96 as audit
 
 
 class Large96AnalysisTests(unittest.TestCase):
+    def test_relocated_receipt_keeps_original_root_and_rejects_other_inputs(self):
+        original = r"D:\original\main001\runtime\inputs\input000.npz"
+        root = audit.observation_receipt_root([original], "inputs/input000.npz")
+        self.assertEqual(root, "D:/original/main001/runtime")
+        # A copied archive can now reside on a different drive or Unix root;
+        # receipt validation deliberately does not resolve/open the old path.
+        self.assertNotEqual(root, "/relocated/main001/runtime")
+        self.assertEqual(audit.observation_receipt_root(
+            ["D:/original/main001/runtime/inputs/input001.npz"], "inputs/input001.npz", root), root)
+        for opened, relative in (([original], "inputs/input009.npz"),
+                                 ([original, r"D:\original\main001\runtime\inputs\other.npz"], "inputs/input000.npz"),
+                                 (["E:/another/main001/runtime/inputs/input000.npz"], "inputs/input000.npz"),
+                                 (["runtime/inputs/input000.npz"], "inputs/input000.npz")):
+            with self.assertRaises(ValueError):
+                audit.observation_receipt_root(opened, relative, root)
+
     def test_selection_tie_and_ambiguity_use_distinct_roles(self):
         first = dict(index=0, internal=1, selection_scaled_mse=.995)
         alternate = dict(index=1, internal=2, selection_scaled_mse=1.)

@@ -14,7 +14,7 @@ import hashlib
 from itertools import combinations, permutations
 import json
 import math
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import traceback
 
 import numpy as np
@@ -96,6 +96,29 @@ def split_fingerprint(labels, rows):
         array = np.ascontiguousarray(value, dtype=np.float64)
         digest.update(repr(array.shape).encode()); digest.update(array.tobytes())
     return digest.hexdigest()
+
+
+def observation_receipt_root(opened, relative, expected_root=None):
+    """Validate the original I/O receipt without requiring its old disk path.
+
+    Archive relocation changes the replay root, not the sealed receipt. Require
+    one unique original file ending in runtime/<declared input path>, and keep
+    one original runtime prefix across the entire sealed run. Never open that
+    old location. Forward/backslash normalization also supports Windows runs
+    replayed on another operating system.
+    """
+    paths = set(map(str, opened)); require(len(paths) == 1, "I/O receipt must name exactly one observed file")
+    raw = next(iter(paths)).replace("\\", "/")
+    absolute = raw.startswith("/") or (len(raw) >= 3 and raw[0].isalpha() and raw[1:3] == ":/")
+    require(absolute, "Original observation receipt is not absolute")
+    original = PurePosixPath(raw); suffix = PurePosixPath(relative)
+    require(not suffix.is_absolute() and len(suffix.parts) == 2 and suffix.parts[0] == "inputs"
+            and suffix.suffix.lower() == ".npz" and ".." not in original.parts, "Invalid declared observation path")
+    expected_suffix = ("runtime", *suffix.parts)
+    require(original.parts[-len(expected_suffix):] == expected_suffix, "I/O receipt names another observed file")
+    root = PurePosixPath(*original.parts[:-len(suffix.parts)]).as_posix()
+    require(expected_root is None or root == expected_root, "Original observation runtime prefixes differ within one run")
+    return root
 
 
 def canonical(family, n, *, laminar=True):
@@ -464,7 +487,7 @@ def analyze(output, *, bootstrap=2000, destination=None):
         require(consumed["evaluation_map.json"] == protocol["evaluation_map_sha256"], "Evaluation map changed")
     require(set(evaluation_map) == set(inputs), "Evaluation metadata denominator differs")
     rows, candidates, events, errors, solvers, box_certificates = [], [], [], [], [], []
-    common_costs = {}; audits = {}
+    common_costs = {}; audits = {}; original_observation_root = None
     for job, info in inputs.items():
         meta = evaluation_map[job]; cache = {}; data = None
         common_path = out/"common"/job/"common.json"
@@ -472,6 +495,8 @@ def analyze(output, *, bootstrap=2000, destination=None):
         if common_path.exists():
             consumed[common_path.relative_to(out).as_posix()] = sha(common_path)
             common_costs[job] = float(common.get("total_seconds", common.get("seconds", 0.)))
+            if common.get("status") in {"fitted", "complete"} and "observed_npz_opened" in common:
+                original_observation_root = observation_receipt_root(common["observed_npz_opened"], info["path"], original_observation_root)
         for method in methods:
             path = out/"runs"/job/method/"result.json"; wrapper = read(path)
             base = dict(job=job, method=method, **{k: meta.get(k) for k in ("case", "replicate", "voltage_sigma", "profile", "level", "cohort")},
@@ -497,7 +522,7 @@ def analyze(output, *, bootstrap=2000, destination=None):
                 if wrapper.get("common_sha256"):
                     require(wrapper["common_sha256"] == sha(common_path), "Method used changed common preprocessing")
                 if "observed_npz_opened" in wrapper:
-                    require(set(wrapper["observed_npz_opened"]) == {str(local(runtime, info["path"]))}, "Method read another observed file or lacks its sole input receipt")
+                    original_observation_root = observation_receipt_root(wrapper["observed_npz_opened"], info["path"], original_observation_root)
                 audit = audit_result(wrapper, common, train, selection, labels, config, method, cache)
                 audits[job, method] = audit
                 if wrapper["status"] in {"fitted", "complete"}:
@@ -580,6 +605,7 @@ def analyze(output, *, bootstrap=2000, destination=None):
         source_and_input_sha256=consumed, qp_box_certificates=len(box_certificates),
         qp_box_certificate_failures=sum(not c["qp_box_certificate_passed"] for c in box_certificates),
         analysis_source_sha256=sha(Path(__file__)), truth_opened_only_after_pre_truth_audit=True,
+        observation_path_mapping=dict(original_observation_root=original_observation_root, current_replay_root=str(runtime.resolve())),
         information_scope="sole96 per input; train64 coefficients; selection32 frozen ranking; no extra day/test observations",
         support_union_scope="materialized guidance/pools/path only; unknown-support W domain can contain other clades")
     summary = dict(methods=summaries, timing=timing, planned_inputs=len(inputs), methods_per_input=len(methods),
