@@ -2,6 +2,10 @@
 
 本目录只接冻结辨识结果，不改变辨识器、历史、尺度、资源或量测规则。主目标是使指定竞争者的期望对数后验赔率相对同一个无DR新日增加至少`log(2)`，并最小化原合同费用。它表示平均证据增强，不是90%后验达标概率保证。
 
+本轮开发测试已完成，详见[完整结果](results/REPORT.md)、[逐起点记录](results/attempts.csv)和[核验记录](results/VALIDATION.json)。原整数设备版ADMM和直接QCQP均为0/4合格报价；明确的凸设备子域版为2/4，两份报价来自同一个Flynn输入的相反条件方向。全部实际ADMM起点均到时间上限，保留了合格中间点，尚无迭代收敛或全局最优证明。
+
+Flynn真目标的声明模型平均后验从95.0930%升至95.9602%；独立AC模拟从94.5683%升至94.7988%，正确唯一输出从29/32升至30/32，完整恢复仍为30/32。AC平均证据增量的95%均值区间包含0；Paper两个目标无合格报价。13项解析、控制器回放和后验核验测试通过。原始数据分别保存在忽略的v1、v2输出目录。
+
 ## 精确二次目标
 
 条件于冻结目标t为生成模型，`Y=H_t P+e`、`E[e|P]=0`，历史共同sigma²固定。对每个竞争者j：
@@ -72,7 +76,7 @@ $py = 'D:/apps/miniconda3/envs/Topo/python.exe'
 & $py -X utf8 -B -m rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.run --output outputs/a_new_expected_logodds_run
 ```
 
-只使用新输出目录，保留所有失败、超时和起点结果。算法代码和解析检查已实现；正式运行与效果以各阶段完成标记和后续结果报告为准。
+只使用新输出目录，保留所有失败、超时和起点结果。本轮已有完成标记，不重跑已有批次；上面的命令供新的、事前固定范围的实验使用。
 
 ## 第二个原型：明确的凸设备子域
 
@@ -88,3 +92,16 @@ $py = 'D:/apps/miniconda3/envs/Topo/python.exe'
 & $py -X utf8 -B -m unittest rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_convex -v
 & $py -X utf8 -B -m rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.convex_run --output outputs/a_new_convex_subset_run
 ```
+
+## 报价冻结后的确认与汇总
+
+先完成全部目标的规划并冻结策略，再运行`confirm`。它分别保存2048条条件模型路径和每输入32条AC新日，比较无DR、同费轮换和可执行的ADMM报价。失败报价保留为未执行；相反目标共用的实际新日不重复计为独立样本。`audit_model`复算已有路径，不新开测试随机流；`report`独立重算全部实际后验和结构错漏，再生成公开汇总。
+
+```powershell
+& $py -X utf8 -B -m unittest rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_admm rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_convex rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_confirm -v
+& $py -X utf8 -B -m rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.confirm --help
+& $py -X utf8 -B -m rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.audit_model --run outputs/a_completed_convex_subset_run
+& $py -X utf8 -B -m rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.report --run outputs/a_completed_convex_subset_run --public outputs/a_new_public_summary
+```
+
+本轮`results/RECEIPT.json`保存公开文件哈希；`VALIDATION.json`记录完整预算、初值来源、超时和独立复算范围。模型与AC确认使用规划冻结后的新路径，输入本身仍是已有开发输入。

@@ -1,0 +1,80 @@
+{
+  "status": "passed",
+  "created_utc": "2026-11-12T17:09:12.713477+00:00",
+  "unit_checks": {
+    "count": 13,
+    "passed": 13,
+    "modules": [
+      "test_admm",
+      "test_convex",
+      "test_confirm"
+    ],
+    "private_log_sha256": "c02837fc8594b6fe234c6702981fe968b3ddc8b0ccf116d710f6a5057f7eabab",
+    "command": "python -X utf8 -B -m unittest rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_admm rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_convex rnj_wzzt_dr.experiments.expected_logodds_admm_20261113.test_confirm -v",
+    "development_failure_preserved": "The initial rho=2 two-competitor improvement expectation failed; an explicit regression now records retention of only the input feasible seed. Symmetric zero-start failure is also tested."
+  },
+  "planning": {
+    "inputs": 2,
+    "conditional_targets": 4,
+    "original_domain_ADMM_qualified": 0,
+    "original_domain_direct_QCQP_qualified": 0,
+    "convex_subset_ADMM_qualified": 2,
+    "independent_positive_inputs": 1,
+    "ADMM_starts": 14,
+    "stop_reasons": {
+      "time_limit_partial_device_pass": 14
+    },
+    "converged_starts": 0,
+    "global_optimality_proved": false,
+    "all_budgets_seconds_per_target": 60,
+    "original_ADMM_budget_split": "two 30-second starts including model construction",
+    "convex_subset_budget_split": "supporting-plane seed construction counted first; remaining budget divided over zero and feasible seed starts",
+    "native_direct_scope": "full original integer device domain; 60-second native limit plus setup; all four native status 9 without an incumbent",
+    "domain_scope": "continuous no-nominal-clipping convex subset with fixed battery direction schedule; not the full original device domain",
+    "retained_point_scope": "cheapest independently verified feasible intermediate iterate; not a converged final iterate",
+    "first_feasible_time_scope": "attempts.csv branch time includes branch setup; separate seed generation time must also be counted in the full target workflow",
+    "bound_scope": "convex subset or supporting-plane bounds are not original-domain lower bounds"
+  },
+  "confirmation": {
+    "conditional_model_target_streams": 4,
+    "model_paths_per_target": 2048,
+    "fresh_AC_background_days": 64,
+    "AC_day_calls": 128,
+    "target_policy_path_rows": 384,
+    "completed": 256,
+    "not_run_no_quote": 128,
+    "failed": 0,
+    "actual_paths_shared_across_opposite_targets": true,
+    "identifier_refits": 0,
+    "parameter_refits": 0,
+    "execution_source_and_policy_hashes_unchanged": true,
+    "physical_independent_audit_sha256": "5bc09afef2172ccb174999f993eaf2cd70d89945d508741bcecaec56602d1052",
+    "physical_rows_recomputed": 256,
+    "maximum_physical_probability_error": 2.1038726316646716e-13,
+    "model_independent_audit_sha256": "bf09b190f5f96b7d30ab4795a2b598f4b8a29069c56630a531a463bb83e95b2e",
+    "model_residual_paths_recomputed": 128,
+    "maximum_model_probability_error": 1.8285373215576328e-13,
+    "maximum_model_log_odds_error": 2.7284841053187847e-12,
+    "audit_opens_new_model_streams": false,
+    "model_and_actual_mean_posterior_pass_rates_and_cost_separately_reported": true,
+    "interval_scope": "descriptive paired t confidence interval of sample mean, not a distribution-free guarantee",
+    "actual_mean_evidence_interval_includes_zero": true,
+    "actual_full_recovery_count_unchanged": true
+  },
+  "artifacts": {
+    "csv_rows": {
+      "actual.csv": 48,
+      "actual_paired.csv": 4,
+      "attempts.csv": 14,
+      "model.csv": 48,
+      "model_evidence.csv": 10,
+      "planning.csv": 12
+    },
+    "python_syntax_files_checked": 13,
+    "svg_xml_valid": true,
+    "figure_visually_checked": true,
+    "raw_observations_parameters_and_price_trajectories_published": false,
+    "original_first_report_retained_privately": true,
+    "finalization_original_receipt_retained_privately": true
+  }
+}
