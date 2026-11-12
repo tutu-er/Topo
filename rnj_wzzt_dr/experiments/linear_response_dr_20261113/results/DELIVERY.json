@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "created_utc": "2026-11-12T17:43:38.177146+00:00",
+  "tests": {
+    "new_checks": 4,
+    "passed": 4,
+    "modules": [
+      "test_models",
+      "test_synthetic"
+    ]
+  },
+  "numerical_scope": {
+    "historical_inputs_screened": 6,
+    "conditional_targets_screened": 12,
+    "screen_QPs": 24,
+    "original_domain_feasible_witnesses_from_screening_targets": 8,
+    "selected_inputs": 2,
+    "selected_conditional_targets": 4,
+    "ADMM_method_runs": 8,
+    "original_device_qualified_method_runs": 6,
+    "original_device_unqualified_method_runs": 2,
+    "original_quote_first_feasible_times": "not separately recorded; complete method time and per-branch plant feasibility time retained",
+    "screen_elapsed_seconds_sum": 88.57865129987476,
+    "ADMM_elapsed_seconds_sum": 239.1829402000003,
+    "synthetic_gain_levels": [
+      0.6931471805599453,
+      2,
+      4,
+      8
+    ],
+    "synthetic_paths": 65536,
+    "new_AC_days": 0,
+    "new_identifier_or_real_parameter_fits": 0
+  },
+  "forecast": {
+    "planning_mean": "observed historical 96-slot P/Q, first 64 training plus next 32 validation in original order",
+    "model_power": "forecast plus zero-mean additive Gaussian error, channel SD=.05*channel peak, same-node P/Q shared, AR(1)=.7",
+    "AC_background": "previous independent original day96 generator, not constrained to the forecast error law",
+    "high_accuracy_on_AC_verified": false,
+    "true_plus_noise_forecast_AC_test_executed": false,
+    "interpretation": "The current conditional model assumes forecast accuracy. The actual AC generator did not enforce it."
+  },
+  "historical_metric_sources": [
+    {
+      "relative_path": "dr_frozen_distance/REPORT.md",
+      "sha256": "414592941d9f72b0b193dcbe0ea57e10538fbf3da135c7fb3c514d4b7d7373cc"
+    },
+    {
+      "relative_path": "dr_pricing/bayes_qcqp/exponential_dr.py",
+      "sha256": "23e7475ba6dc194e40373391a03ce5ca7bc6b26f521ef7f6710d7b81d4e443c9"
+    }
+  ],
+  "public_schema": {
+    "original_raw_P_Q_V": false,
+    "real_fitted_matrices_or_sigma": false,
+    "original_contract_trajectory": false,
+    "real_fees": "normalized only",
+    "synthetic_parameters": "explicit artificial model"
+  },
+  "final_artifact_checks": {
+    "python_syntax": true,
+    "svg_xml": true,
+    "figure_visually_inspected": true,
+    "all_previous_manifest_hashes": true
+  }
+}
