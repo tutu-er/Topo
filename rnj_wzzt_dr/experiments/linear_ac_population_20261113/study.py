@@ -16,7 +16,7 @@ from ..expected_logodds_admm_20261113.run import REFERENCE
 from .solver import Model,solve
 
 
-def prepare(out):
+def prepare(out,study_seed=2026111305,development=None):
     require(not out.exists(),'Use a new output directory; old runs are preserved')
     out.mkdir(parents=True)
     requests=[r for r in io.read(REFERENCE/'requests.json') if r['method']=='101']
@@ -48,12 +48,15 @@ def prepare(out):
     sources={}
     for path in sorted((ROOT/'rnj_wzzt_dr').rglob('*.py')):
         if '__pycache__' in path.parts:continue
+        # Independent audit/report programs record their own versions; neither
+        # is imported by planning or physical execution.
+        if path.parent==Path(__file__).parent and path.name in ('audit.py','analyze.py'):continue
         rel=path.relative_to(ROOT);dest=out/'source_snapshot'/rel;dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(path,dest);sources[rel.as_posix()]=io.ref(path)
     for cohort in ('main','pressure'):open_runtime(out,cohort)
     protocol=dict(created_utc=utc(),commit_at_lock=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         environment=io.environment(),sources=sources,inputs=io.ref(out/'inputs.json'),
-        gamma=[float(np.log(2)),2.,4.],prediction_relative_sd=.05,qratio=.35,beta=.9,study_seed=2026111305,
+        gamma=[float(np.log(2)),2.,4.],prediction_relative_sd=.05,qratio=.35,beta=.9,study_seed=study_seed,
         competitors='all other historical posterior weights >=1%; always include strongest runner-up; full library scores all observations',
         target='historical MAP only; actual truth never selects the planning target',
         response='deltaP=historical_node_peak*x_hour, deltaQ=.35*deltaP, exact deterministic linear delivery; no physical power, SOC, energy, availability, clipping or integer constraints',
@@ -68,6 +71,7 @@ def prepare(out):
         primary='population all 400 inputs, all fixed gamma levels, paired AC/meter paths; confirmation selected cases separately',
         failures='retain all planning and AC failures; planning failure applies explicit zero-action fallback, not a qualified zero-cost quote; AC failures retain missing posterior and count as nonrecovery',
         truth='offline coverage, scoring and development-case selection only; no physical line parameters in solver inputs',
+        development_failure=None if development is None else io.ref(development),
         new_identifier_fits=0,new_parameter_fits=0,private='raw forecast, P/Q/V, fitted matrices, physical state and actions remain in ignored outputs')
     io.write(out/'protocol.json',protocol);io.write(out/'lock.json',dict(pid=os.getpid(),created_utc=utc(),protocol_sha256=sha(out/'protocol.json')))
     return protocol
@@ -130,7 +134,12 @@ def run_input(identity,phase,days,replicate_base):
             # and noisy forecast. All policies sealed before evaluation voltages.
             for gamma in protocol['gamma']:
                 label=f'g{gamma:.6g}'
-                result=solve(model,gamma,seconds=protocol['solver_seconds_per_plan'],env=_WORK['env']) if model is not None else dict(qualified=True,x=controls['no_dr'].copy(),cost=0.,lower_bound=0.,relative_gap=0.,global_optimality_verified=True,status='single_candidate_zero',source='no_competitor',seconds=0.,gains=[])
+                plan_start=perf_counter()
+                try:
+                    result=solve(model,gamma,seconds=protocol['solver_seconds_per_plan'],env=_WORK['env']) if model is not None else dict(qualified=True,x=controls['no_dr'].copy(),cost=0.,lower_bound=0.,relative_gap=0.,global_optimality_verified=True,status='single_candidate_zero',source='no_competitor',seconds=0.,gains=[])
+                except Exception as exc:
+                    result=dict(qualified=False,cost=None,lower_bound=None,relative_gap=None,global_optimality_verified=False,
+                        status='solver_exception_zero_fallback',seconds=perf_counter()-plan_start,error=repr(exc),traceback=traceback.format_exc())
                 x=result.pop('x',None);plans[label]=result
                 controls['optimized_'+label]=x if result['qualified'] else np.zeros_like(controls['no_dr'])
                 pattern=np.where((np.arange(24)[:,None]//2+np.arange(H.shape[1])[None,:])%2==0,1.,-1.)
@@ -225,8 +234,9 @@ def select(out):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--stage',choices=['prepare','pilot','population','select','confirmation'],required=True)
+    p.add_argument('--study-seed',type=int,default=2026111305);p.add_argument('--development',type=Path)
     a=p.parse_args();out=a.output.resolve()
-    if a.stage=='prepare':prepare(out)
+    if a.stage=='prepare':prepare(out,a.study_seed,a.development)
     elif a.stage=='select':select(out)
     else:run_phase(out,a.stage)
 

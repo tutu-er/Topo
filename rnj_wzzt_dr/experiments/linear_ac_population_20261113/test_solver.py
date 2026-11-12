@@ -1,10 +1,20 @@
 import unittest
 import numpy as np
-from .solver import Model,single,solve
+from .solver import Model,single,solve,finite_attribute
 from .study import forecast
 
 
 class Tests(unittest.TestCase):
+    def test_missing_native_bound_is_unavailable_not_a_plan_exception(self):
+        class EarlyStop:
+            @property
+            def ObjBound(self):raise AttributeError('Unable to retrieve attribute ObjBound')
+            MIPGap=float('inf')
+            finite=3.
+        self.assertIsNone(finite_attribute(EarlyStop(),'ObjBound'))
+        self.assertIsNone(finite_attribute(EarlyStop(),'MIPGap'))
+        self.assertEqual(finite_attribute(EarlyStop(),'finite'),3.)
+
     def test_zero_background_hard_case_known_global_cost(self):
         H=np.array([np.column_stack((np.eye(2),np.zeros((2,2)))),np.zeros((2,4))])
         model=Model(H,0,[1],np.ones(2),.5).prepare(np.zeros((96,4)))

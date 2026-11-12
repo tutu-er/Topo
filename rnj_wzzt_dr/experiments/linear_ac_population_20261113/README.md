@@ -2,6 +2,8 @@
 
 本轮严格采用：真实新日功率→加预测误差→规划→真实网络AC→表计误差→完整历史加新日后验。候选和R/X冻结，评价电压只来自原AC网络。旧的`Y=HtP+e`抽样不参与本轮效果评价。
 
+使用当前较简洁主线101的400份冻结库：RNJ引导、WZZT逐步加线、结束前联合重选；111另加末端局部重选，不混入本次DR总体分母。没有重新拟合辨识器。
+
 ## 设备和指标
 
 只用确定性线性响应：`deltaP=历史节点功率峰值*x_hour`、`deltaQ=.35*deltaP`。x为可正可负的归一化小时请求。去掉全部设备功率、时窗、SOC、充放电方向、能量、截止和截断约束，不再交给旧设备执行器修复。二次费用为`mean(x²)`，是声明的合成计价，不是实证货币。实际调节幅度、净注入、AC失败和电压越限完整记录。
@@ -33,3 +35,5 @@ G_j(u)=[\|D(\widehat P+Bu)\|^2-\|D\widehat P\|^2]/(2\sigma^2).
 - 所有原始P/Q/V、真实状态、预测、拟合矩阵和行动轨迹留私有输出；公开统计、合成费用、源哈希与可复核边界。
 
 入口：`python -X utf8 -B -m rnj_wzzt_dr.experiments.linear_ac_population_20261113.study --output outputs/a_new_run --stage prepare|pilot|population|select|confirmation`。各阶段完成标记阻止重复运行；阶段有锁而未完成时先检查实际进程与断点。
+
+开发v1已完整保存：400输入中3个新日因原生求解器未提供ObjBound而中断评价，共21条记录；其余11179行独立复算通过。修复仅涉及缺失界值安全读取和逐计划失败隔离。正式v2在准备时显式指定`--study-seed 2026111306 --development outputs/linear_ac_population_20261113_v1/development_failure.json`，不覆盖v1，也不将v1混入正式总体统计。

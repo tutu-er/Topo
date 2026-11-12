@@ -8,6 +8,13 @@ import numpy as np
 from scipy.optimize import brentq
 
 
+def finite_attribute(model,name):
+    """Some early native stops expose no bound/gap; absence is not failure."""
+    try:value=float(getattr(model,name))
+    except Exception:return None
+    return value if np.isfinite(value) else None
+
+
 class Model:
     def __init__(self,H,target,competitors,scale,sigma2,qratio=.35):
         self.H=np.asarray(H,float);self.target=int(target);self.competitors=list(competitors)
@@ -116,6 +123,7 @@ def solve(model,gamma,*,seconds=.15,env=None):
     cost=model.norm_cost(x)
     gap=max(0.,cost-lower)/max(cost,1e-30)
     if gap>1e-5 and perf_counter()-began<seconds:
+        if seed is None:seed=cost
         import gurobipy as gp
         owns=env is None
         if owns:
@@ -131,9 +139,8 @@ def solve(model,gamma,*,seconds=.15,env=None):
                     quadratic=sum(v[h]@model.Q[j]@v[h] for h in range(24))
                     m.addConstr(quadratic+2*(model.a[j]*v).sum()>=gamma)
                 m.setObjective((v*v).sum());m.Params.TimeLimit=max(.001,seconds-(perf_counter()-began));m.optimize()
-                bound=float(m.ObjBound);native_gap=float(m.MIPGap) if m.SolCount else None
-                native=dict(status=int(m.Status),solutions=int(m.SolCount),bound=bound if np.isfinite(bound) else None,
-                            gap=native_gap if native_gap is not None and np.isfinite(native_gap) else None)
+                native=dict(status=int(m.Status),solutions=int(m.SolCount),bound=finite_attribute(m,'ObjBound'),
+                            gap=finite_attribute(m,'MIPGap') if m.SolCount else None)
                 if m.SolCount:
                     candidate=np.asarray(v.X)
                     if min(model.gains(candidate))>=gamma-1e-8 and model.norm_cost(candidate)<cost:
