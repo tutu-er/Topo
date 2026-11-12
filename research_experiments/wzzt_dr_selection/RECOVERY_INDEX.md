@@ -1,3 +1,9 @@
+## 合格40组零DR检查已完成，2026-11-12
+
+- public dr_pricing/conditional_target/{zero_screen.py,README.md,PROTOCOL.json,RESULTS.json,AUDIT.json}：一个新驱动复用原loader/设备/概率门槛，精确谱分解加速原稠密G，不改误差分布。目标历史winner且离线资格为真族；请求剥离真树/test字段，参数冻结，原5%max功率SD/AR.7/节点PQ共同误差及strict MSE门槛。
+- private wzzt_conditional_zero_screen_v1/run_v1保存冻结protocol/requests/source_snapshot.zip、40 rows/188pairs、summary/checkpoint/complete。40/40整库union充分90%已过，最弱lower .9999997154786188；全部delta负，完整历史证据使本条件问题零动作足够。不能作为新AC恢复或无条件正确概率。
+- 独立audit_formula.py/config/json对188/188稠密积分、40历史target及最弱4输入17对全部核验；audit_inputs.py/protocol/json核45源码/快照、请求隔离/资格/全库/联合概率和40零控制器重放。0费用/0交付/状态可行及非负费用确认本条件问题全局最小费0。无新拟合/求解/抽样/AC；不要重启或在这些数据中强行寻非零报价。后续若有新合格例须先确认原门槛剩余缺口。
+
 ## 主路线恢复：条件于目标候选正确，2026-11-12
 
 - 用户明确主问题为给定H1正确时，用原指数QCQP计算使其在原选模中胜出的DR及最小费用。不把一般Hbar、候选均值或多假设联合设计替换成主线；旧扩展结果保留，代码未删除或重写。
