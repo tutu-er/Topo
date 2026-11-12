@@ -41,6 +41,8 @@ python -I -B tools/diagnose_large96.py outputs/new_main
 
 把records下每个records-*.zip解压到同一空目录；每卷本身是合法ZIP，各卷需要共同保留。manifest.json含每个文件SHA、所在卷及卷SHA；receipt.json给出全部CRC/SHA检查结果。解压后的两个run有独立原目录名前缀。归档不含旧多日NPZ。
 
+便携算法ZIP排除嵌套ZIP，包含代码、本地网络、生成器及派生报告，可独立重新生成/运行。若要直接重放这400份已经封存的观测及原始输出，请另取records两卷及其清单；它们不会被重复塞进算法ZIP。
+
 分析、绘图和诊断实际源码按SHA保存在各run中。为保护原分析，重新审计时使用新destination：
 
 ```powershell
@@ -48,6 +50,8 @@ python -I -B tools/analyze_large96.py extracted/large96_main_20261112_001 --dest
 ```
 
 审计器核对I/O守卫原收据的runtime/inputs/job.npz后缀并映射到当前解压根，不读取旧机器绝对路径。独立目录仍携带相同工具；需要严格复现旧字节时使用归档SHA目录中的实际源文件。不要在已封存run上重新启动拟合经理。
+
+解释性review是第二路只读复核，使用会话内Python stdin聚合，没有另存.py脚本。其JSON保留原表SHA、公式、分母、重采样设置和逐例证据；正式指标、区间及CSV由已归档analyzer重建，见REVIEW_PROVENANCE.json。压力原版分层图及布局修正版分别存figures、figures_reviewed，各自保留实际绘图源SHA；交付图使用后者，原始数值不变。
 
 重新发布原始记录的命令为：
 

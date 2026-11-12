@@ -1,6 +1,6 @@
 {
-  "updated_utc": "2026-11-12T10:14:14.780769+00:00",
-  "status": "main_complete_pressure_running",
+  "updated_utc": "2026-11-12T11:51:00.634760+00:00",
+  "status": "published_waiting_independent_archive_replay",
   "main_output": "outputs/large96_main_20261112_001",
   "main_protocol_sha256": "ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4",
   "runner_source_commit": "5610f28c",
@@ -49,9 +49,9 @@
     }
   },
   "next_steps": [
-    "finish existing pressure manager without reruns",
-    "seal then independently score pressure",
-    "archive all raw records and publish combined conclusions"
+    "complete independent safe extraction and shifted audit",
+    "refresh standalone package and final delivery evidence",
+    "scoped commit and push"
   ],
   "interruption_policy": "Do not restart old attempts with fresh budget. Existing frozen outputs and sources are immutable.",
   "preflight_data_review": "preflight_data_review.json",
@@ -61,7 +61,7 @@
   "postprocessing_tests": 77,
   "postprocessing_source_sha256": {
     "tools/analyze_large96.py": "7a1f575fb60e49bcd60077b27801a4e21f3e2f0b20d62aed085713c8842914ea",
-    "tools/plot_large96.py": "79ec3abf4c5a11bdfea54cc13ba8edc3ad204efa430405f3d494d12ab9d897c0",
+    "tools/plot_large96.py": "3b30555fe86882d5cbdecccf2307cd3e5dbbc7a79f8c198289df514b1b149bf6",
     "tools/publish_large96.py": "ab8eb5ebb966491b71df9a6e682c1977e4a08ae3e3f9d1970c7409e16a3c7690",
     "tools/diagnose_large96.py": "80b0f33038b05a8df03850a7b55eb2dad6d4674da0061e9023ff39da703f7940",
     "tests/test_large96_analysis.py": "f23833d28e4173449dce5fd091eb333c880b9a850e9e48c36be83a18eb2784c3",
@@ -81,7 +81,7 @@
   "pressure_protocol_sha256": "20877c32c732d5083c2765908ccd37701251bc23bf40a23f6aa5a49de2016ec8",
   "pressure_frozen_before_main_truth": true,
   "pressure_generation_failed": 0,
-  "pressure_status": "running",
+  "pressure_status": "complete",
   "pressure_sources_match_main": true,
   "pressure_exec_session": 12248,
   "pressure_continuation_policy": "Already queued in session12248; waits main run.lock and completion then runs frozen pressure manager. Do not launch another pressure manager.",
@@ -94,7 +94,7 @@
   "main_F1_101": 0.8018757978132978,
   "main_manager_finished": true,
   "postprocessing_unique_tests": 83,
-  "full_latest_test_count": 77,
+  "full_latest_test_count": 83,
   "pressure_counts_snapshot": {
     "stage": "running",
     "updated_utc": "2026-11-12T10:14:12.297066+00:00",
@@ -132,5 +132,33 @@
   "main_results_commit": "251cda12",
   "main_results_push_complete": true,
   "final_regression_exec_session": 62414,
-  "final_regression_policy": "Queued after pressure true-family diagnostic; one full check.py run; no full-smoke benchmark rerun"
+  "final_regression_policy": "Queued after pressure true-family diagnostic; one full check.py run; no full-smoke benchmark rerun",
+  "pressure_fitted": 640,
+  "pressure_independently_verified": 640,
+  "pressure_truth_exposed": true,
+  "all_methods_failed": 0,
+  "all_methods_budget_exceeded": 0,
+  "all_methods_native_timeouts": 0,
+  "total_actual_timing": {
+    "logical_method_seconds": 177522.56182079978,
+    "physical_common_once_plus_fresh_seconds": 174238.9130238003,
+    "generation_seconds": 18.10566790001758,
+    "manager_elapsed_seconds_all_invocations": 22611.028840500003,
+    "unknown_method_timings": 0
+  },
+  "full_latest_tests_passed": true,
+  "pressure_manager_finished": true,
+  "pressure_postprocessing_finished": true,
+  "pressure_selection_seal_sha256": "7cba061361b5c615060408020ae5a1a6bc4defe8da7a03dc9f4a99848fdc9df6",
+  "postprocessing_original_plot_sha256": "79ec3abf4c5a11bdfea54cc13ba8edc3ad204efa430405f3d494d12ab9d897c0",
+  "publication_exec_session": 44013,
+  "pressure_interpretation_complete": true,
+  "pressure_current_figures": "figures_reviewed",
+  "publication_complete": true,
+  "publication_volume_count": 2,
+  "publication_members": 18195,
+  "publication_npz": 400,
+  "publication_manifest_sha256": "7d8c7dde3d46ad033fd50869ffc0e94b9e79cabb7fb30200b0594ec1dde02f1c",
+  "publication_raw_bytes": 1148200801,
+  "publication_zip_bytes": 99600628
 }

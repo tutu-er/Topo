@@ -161,8 +161,11 @@ def plot(run, output=None):
     sigmas = sorted({number(r, "voltage_sigma") for r in rows if np.isfinite(number(r, "voltage_sigma"))})
     use_noise = len(sigmas) > 1
     conditions = sigmas if use_noise else sorted({(r.get("profile", "baseline"), r.get("level", "1")) for r in rows})
-    labels = [f"{s:g}" for s in sigmas] if use_noise else [f"{p}\n{l}" for p, l in conditions]
-    fig, axes = plt.subplots(len(case_order), 2, figsize=(12, max(4., 2.55*len(case_order))), squeeze=False)
+    short_profiles = {"independent_scale": "Independent", "load_scale": "Load", "rx_ratio": "R/X", "weak_edge": "Weak"}
+    labels = [f"{s:g}" for s in sigmas] if use_noise else [
+        f"{short_profiles.get(p, p)}\n{float(l):g}" for p, l in conditions]
+    size = (12, max(4., 2.55*len(case_order))) if use_noise else (14, max(4., 3.1*len(case_order)))
+    fig, axes = plt.subplots(len(case_order), 2, figsize=size, squeeze=False)
     for i, case in enumerate(case_order):
         for j, method in enumerate(shown):
             means, exact_rates, denoms = [], [], []
@@ -183,11 +186,17 @@ def plot(run, output=None):
         for column, ax in enumerate(axes[i]):
             ax.set_title(case)
             ax.set_ylim(-.025, 1.06)
-            ax.set_xticks(range(len(conditions)), labels, rotation=0 if use_noise else 32, ha="center" if use_noise else "right")
-            ax.set_xlabel("Voltage / root-meter noise sigma" if use_noise else "Predeclared stress profile / level")
-            ax.set_ylabel("F1: verified" if column == 0 else "Exact / planned in stratum")
+            ax.set_xticks(range(len(conditions)), labels, rotation=0, ha="center", fontsize=9 if use_noise else 8)
+            ax.set_xlabel("Voltage / root-meter noise sigma" if use_noise else "Stress profile / level")
+            ax.set_ylabel(("F1: verified" if column == 0 else "Exact / planned in stratum") if use_noise
+                          else ("F1" if column == 0 else "Exact rate"))
             ax.grid(alpha=.2)
-    axes[0, 0].legend(loc="lower left", fontsize=7)
+    if use_noise:
+        axes[0, 0].legend(loc="lower left", fontsize=7)
+    else:
+        handles, legend_labels = axes[0, 0].get_legend_handles_labels()
+        fig.legend(handles, legend_labels, loc="upper center", bbox_to_anchor=(.5, .99),
+                   ncol=min(4, len(legend_labels)), frameon=False, fontsize=9)
     save(fig, "case_noise" if use_noise else "case_profile",
          "Methods and noise siblings share each day's trajectory. Daily replicate groups, not condition rows, are independent repeats.\n"
          "Lines are descriptive stratum means. Failed/invalid/over-budget runs remain in exact-recovery denominators.", bottom=.09)
