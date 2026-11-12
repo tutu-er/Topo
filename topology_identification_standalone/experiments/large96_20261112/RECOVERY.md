@@ -1,8 +1,10 @@
 # 本批次运行与恢复索引
 
+最新状态：主2400/2400已封存、独立评分、绘图、真族诊断和第二路物理重评分完成，无方法失败或原生超时；结果在MAIN_RESULTS.md。主结果与数值界审计已推送251cda12。压力唯一经理session12248正在运行，不要重复启动。root另有唯一后处理等待器session88704，等待pressure的completion及run.lock退出后自动truth→analyze→plot→diagnose；失败会保留validation/large96_20261112/pressure_*.log，不自动重跑。三位复核agent会等既有分析完成后只读验证，不调用新拟合。最终发布须等它们的review文件齐全后静止源清单。
+
 主输出：`outputs/large96_main_20261112_001`。240个新输入、2400个方法配置，协议SHA为`ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4`。算法/生成器/运行器已在`5610f28c`提交，实际运行以runtime中逐文件SHA为准。后处理在`c97f38b5`、`5d2d40fd`提交，不改变冻结算法。
 
-首24输入的240个方法已全部成功，1420次原生求解，无TimeLimit或界冲突。耗时证据在`sentinel_operational_review.json`；此阶段未读真树/F1。全量经理随后自动接续，当前唯一主经理的桌面exec session为46447；前一哨兵session17750已完成。实时状态以输出目录的state.json、run.lock、manager_attempts和终态文件为准，本文/ RUN_STATUS只是有时间戳的恢复索引。
+首24输入的240个方法已全部成功，1420次原生求解，无TimeLimit或界冲突。耗时证据在`sentinel_operational_review.json`；此阶段未读真树/F1。全量经理随后自动接续，主经理的历史桌面exec session为46447，已成功返回；前一哨兵session17750也已完成。实时状态以输出目录的state.json、run.lock、manager_attempts和终态文件为准，本文/ RUN_STATUS只是有时间戳的恢复索引。
 
 ## 运行中的检查
 
@@ -26,7 +28,7 @@ truth仅从冻结evaluation_cases生成proper clades；独立分析在pre_truth_
 
 ## 预定压力扩展
 
-压力面板已在主试验评分前冻结，目录outputs/large96_pressure_20261112_001，协议SHA为20877c32c732d5083c2765908ccd37701251bc23bf40a23f6aa5a49de2016ec8。160输入生成均成功，7源码与物理case字节均与主协议一致，独立核查在pressure_preflight_data_review.json。不要重复freeze或覆盖。压力经理已排队在桌面exec session12248：等待main的run.lock退出并核对completion后自动运行冻结压力经理；当前尚未原生求解，勿再手工启动第二个压力经理。压力配置按PLAN提前固定，不按主试验成绩挑选。
+压力面板已在主试验评分前冻结，目录outputs/large96_pressure_20261112_001，协议SHA为20877c32c732d5083c2765908ccd37701251bc23bf40a23f6aa5a49de2016ec8。160输入生成均成功，7源码与物理case字节均与主协议一致，独立核查在pressure_preflight_data_review.json。不要重复freeze或覆盖。压力经理在桌面exec session12248，已经主批完成后自动启动，勿再手工启动第二个压力经理。压力配置按PLAN提前固定，不按主试验成绩挑选。
 
 ```powershell
 # 以下仅为恢复命令；已有session12248排队时不要重复执行。
