@@ -1,3 +1,9 @@
+## 主路线恢复：条件于目标候选正确，2026-11-12
+
+- 用户明确主问题为给定H1正确时，用原指数QCQP计算使其在原选模中胜出的DR及最小费用。不把一般Hbar、候选均值或多假设联合设计替换成主线；旧扩展结果保留，代码未删除或重写。
+- 只读资格核查来源：private wzzt_mse_dr_diagnostic_v1/case_inventory.json、原mse_exit_tuning_20261111/catalog.json及48个jobs/result.json，另核8错例的miqp_loss_benchmark_20261111/common/<job>/common.json中120个完整RNJ bank点，物理branches.csv+labels核真族。主48中40有真候选且历史选对；8错例输出/raw/RNJ均无完整真族。不得把3个有正多余根块的proper正确raw冒充完整真族。
+- 下一步只对合格40组核算条件于目标正确时的零DR概率裕量；历史已选对不自动等于新日90%条件足够。先锁历史/参数/误差/选模及计算协议，不读新未来、不改门槛噪声/线路/历史找正。零DR足够记零费；存在原门槛缺口才锁有界价格优化及独立AC。本轮没有新拟合、求解或AC。
+
 ## 一般电压参考QCQP修补，2026-11-12
 
 - public dr_pricing/mse_reference_repair：quadratic.py为可独立调用的高斯二次式→固定Q/q/const/h；study.py复用原设备与AC、保留AR.7相关性；local_candidates.py有限历史族补充；nominal_solver.py原能力内无名义投影的内域计算。theory/main.tex、reference_repair.pdf及BUILD为两页完整推导，旧H1是特例。README/REPORT/PROTOCOL/RESULTS/AUDIT和POSITIVE_CONTROL全为源码/无轨迹汇总。
