@@ -1,0 +1,485 @@
+{
+  "schema": "wzzt_dr_handoff_v1",
+  "date": "2026-11-12",
+  "research_snapshot_commit": "ef614e88",
+  "branch": "codex/wzzt-dr-selection-20261027",
+  "python": "D:/apps/miniconda3/envs/Topo/python.exe",
+  "roots": {
+    "workspace": "C:/Users/23761/.codex/worktrees/wzzt-dr-selection/Topo",
+    "main": "D:/0-github_workspace/Topo",
+    "private": "C:/Users/23761/.codex/visualizations/2026/10/25/01a1726e-8ec7-7bc1-9f18-391f9cf79a1a"
+  },
+  "verification": "read-only SHA256 for public files; private roots opt-in existence only; no experiments",
+  "entries": [
+    {
+      "id": "algorithm_strategy",
+      "root": "main",
+      "path": "docs/wzzt_rnj_best_strategy_20261028/README.md",
+      "kind": "file",
+      "role": "historical",
+      "note": "旧联合最佳策略说明",
+      "visibility": "public",
+      "sha256": "c1fc8f99eef3e5dbf9198ba0e443651e88f037329f5cc813c4eb6f390558b4aa"
+    },
+    {
+      "id": "algorithm_spec",
+      "root": "main",
+      "path": "docs/wzzt_rnj_best_strategy_20261028/best_strategy.json",
+      "kind": "file",
+      "role": "historical",
+      "note": "旧策略规格，非CLI配置",
+      "visibility": "public",
+      "sha256": "9b3f7b857de51463c904fbcd51d8b486ba62b918e4bdd443f9ec6fe2d6309c3f"
+    },
+    {
+      "id": "joint_adapter_doc",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pool_v2/ADAPTER.md",
+      "kind": "file",
+      "role": "interface",
+      "note": "旧联合任意观测输入与输出约定",
+      "visibility": "public",
+      "sha256": "4c90adfcbf6a1ad6fcc6daf402d4ec408494747609d9889b87860d274076c40c"
+    },
+    {
+      "id": "joint_adapter",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pool_v2/adapter.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "fit_observed，旧3%MAE/.16",
+      "visibility": "public",
+      "sha256": "0d7dc1f60c98559bd12eae6960868756456619c7c6da7e8cb499cacdce354de7"
+    },
+    {
+      "id": "joint_engine",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pool_v2/engine.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "RNJ库/共同调权/结构修正与搜索",
+      "visibility": "public",
+      "sha256": "d50c1307480dbd4a407b0a04f2da04cd68b867b11089bd168f2ab9936902054c"
+    },
+    {
+      "id": "joint_selection",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pool_v2/selection.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "旧联合验证和输出收缩",
+      "visibility": "public",
+      "sha256": "43cd2d14984808861caed734f185a600c74b0071119a363b431119efe6cb743d"
+    },
+    {
+      "id": "miqp_design",
+      "root": "main",
+      "path": "research_experiments/miqp_loss_benchmark_20261111/README.md",
+      "kind": "file",
+      "role": "algorithm_research",
+      "note": "后续MIQP/MSE算法规格",
+      "visibility": "public",
+      "sha256": "2c0ff9a7153ebd657a9a18a7b93d6143b9d4431462af91975c493242cbfa2f43"
+    },
+    {
+      "id": "miqp_backend",
+      "root": "main",
+      "path": "research_experiments/miqp_loss_benchmark_20261111/squared_backend.py",
+      "kind": "file",
+      "role": "algorithm_research",
+      "note": "PoolQP/solve/install",
+      "visibility": "public",
+      "sha256": "27e6d0cc2e0bc4a1e356dc1f0fbac76755347940420529a4db30a2cec7422ae8"
+    },
+    {
+      "id": "exit_design",
+      "root": "main",
+      "path": "research_experiments/mse_exit_tuning_20261111/README.md",
+      "kind": "file",
+      "role": "algorithm_research",
+      "note": "训练final-E接受校准说明",
+      "visibility": "public",
+      "sha256": "221fe94cb66aee707655f40ec4cc87e0cca97e73d8e00bdec3769e73be6a9546"
+    },
+    {
+      "id": "exit_gate",
+      "root": "main",
+      "path": "research_experiments/mse_exit_tuning_20261111/gate.py",
+      "kind": "file",
+      "role": "algorithm_research",
+      "note": "pure_mse_gate，训练接受非最终验证",
+      "visibility": "public",
+      "sha256": "78b60764be36122e396d33ea98f5a7b7211f401485b115037f690c23c61ff1e1"
+    },
+    {
+      "id": "conditional_model",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/README.md",
+      "kind": "file",
+      "role": "current",
+      "note": "主模型/最新40组零DR说明",
+      "visibility": "public",
+      "sha256": "1ff88e28d247e06ddbaad04af853e55ebe84f7c05fc38e7c28b4f272f28a67bd"
+    },
+    {
+      "id": "zero_screen",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/zero_screen.py",
+      "kind": "file",
+      "role": "current",
+      "note": "零DR谱积分和整库充分界",
+      "visibility": "public",
+      "sha256": "23a91c01e4dbbcd2a7e2206c73f8a784aa86fb70ca12c3f64ba64b72ed3e55ec"
+    },
+    {
+      "id": "zero_results",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/RESULTS.json",
+      "kind": "file",
+      "role": "current",
+      "note": "40/188无轨迹结果",
+      "visibility": "public",
+      "sha256": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5"
+    },
+    {
+      "id": "zero_audit",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/AUDIT.json",
+      "kind": "file",
+      "role": "current",
+      "note": "数值/输入/费用独立审计",
+      "visibility": "public",
+      "sha256": "cf34e97d3af8a78dcce1f0f8efb862be1fcbbdce95f708b0eaaee41b395017c5"
+    },
+    {
+      "id": "zero_protocol",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/conditional_target/PROTOCOL.json",
+      "kind": "file",
+      "role": "current",
+      "note": "原误差/目标/评分协议",
+      "visibility": "public",
+      "sha256": "7fef7bb706ba78a5d6c89e7583288335ab5fd0e90c8fc8a938881e68a1973b4d"
+    },
+    {
+      "id": "history_gate",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/mse_existing_cases/core.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "load_history_case/build_gate，显式目标方向",
+      "visibility": "public",
+      "sha256": "c3750e0bfb624c8e18719a3c135cd48f0d058847ae6cb4017f572b38ecd6688b"
+    },
+    {
+      "id": "mse_selector",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/selection_mse.py",
+      "kind": "file",
+      "role": "current",
+      "note": "choose_mse/required_new_sse_gap",
+      "visibility": "public",
+      "sha256": "f86b0ac726c334c9c90b19648d7467c54ef6a04afbc6c8a79b66c5badaaead9c"
+    },
+    {
+      "id": "mse_selection_plan",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/MSE_SELECTION_PLAN.md",
+      "kind": "file",
+      "role": "current",
+      "note": "严格物理MSE与参数冻结",
+      "visibility": "public",
+      "sha256": "57cd02b3ee3ab05a57151e439aeaa5620f491b730de4275339c2b2e616521b07"
+    },
+    {
+      "id": "physical_mse_gate",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/miqp_mse.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "物理MSE积分/单对求解先例",
+      "visibility": "public",
+      "sha256": "a57a1cf63f90beca81875a5d074aecbb772da2a6d1636853e89152774e4d2395"
+    },
+    {
+      "id": "device_graph",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/vendor/solver.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "build_device_graph",
+      "visibility": "public",
+      "sha256": "d8235a1b529b1d641921f3273f3cb2b235f06fc5b2837ce9a6c696be0beca898"
+    },
+    {
+      "id": "device_contract",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/vendor/problem.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "原资源域和费用",
+      "visibility": "public",
+      "sha256": "8f90924fb33eb7224af8266fca4194f2c88969dc00a52f59e6bfe7ed0d03d8ee"
+    },
+    {
+      "id": "actual_devices",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_heterogeneous_pilot/devices.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "nominal/project/draw/audit",
+      "visibility": "public",
+      "sha256": "efb77c91568d94c8492b06a3b1c2d0069aac9855ada7d8d0eed366cd367e75f7"
+    },
+    {
+      "id": "resource_parameters",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_heterogeneous_resources/library.json",
+      "kind": "file",
+      "role": "current",
+      "note": "合成资源行为/成本设定",
+      "visibility": "public",
+      "sha256": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00"
+    },
+    {
+      "id": "resource_allocations",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_heterogeneous_resources/case_allocations.json",
+      "kind": "file",
+      "role": "current",
+      "note": "合成节点资产配置",
+      "visibility": "public",
+      "sha256": "0770978e6ba6346289cdaf5e8596d0b29fd74eb9279bb64e6d95c72f736521d1"
+    },
+    {
+      "id": "paper15_physics",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/ac.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "paper15独立实际执行适配",
+      "visibility": "public",
+      "sha256": "03689bdd2e8c5ec9475c2319ced32cd09742da69849cebc7fd67231204323b64"
+    },
+    {
+      "id": "multi_case_driver",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/mse_existing_cases/run.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "多网旧诊断执行链，不重复已完成批",
+      "visibility": "public",
+      "sha256": "dfe85f6dae4ee70acc1d5181d44aae35bd3fa673d4c94fb65b0717d2a2199371"
+    },
+    {
+      "id": "multi_case_physics",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_spatial_correlated/ac_bridge.py",
+      "kind": "file",
+      "role": "interface",
+      "note": "open_runtime/build_background/execute_policy",
+      "visibility": "public",
+      "sha256": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42"
+    },
+    {
+      "id": "background_theory_pdf",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/bayes_qcqp/relative_gate_paper/method_appendix.pdf",
+      "kind": "file",
+      "role": "background",
+      "note": "条件高斯和指数界背景，采用加权损失",
+      "visibility": "public",
+      "sha256": "42d645b399fd6493b17fdb84dbd5a20ece34611340b9c34b93f2f658c8ddcaa5"
+    },
+    {
+      "id": "background_theory_tex",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/bayes_qcqp/relative_gate_paper/main.tex",
+      "kind": "file",
+      "role": "background",
+      "note": "上述可编辑理论源",
+      "visibility": "public",
+      "sha256": "f3900eaa1e5241d45e2223227534a6a5e938000189ab9d5a8255df3bb12c57a8"
+    },
+    {
+      "id": "paper15_evidence",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/MIQP_REPORT.md",
+      "kind": "file",
+      "role": "evidence",
+      "note": "paper15非零DR与不同评分口径",
+      "visibility": "public",
+      "sha256": "48cb5eaac6abd4c69c8bab7217898975bb49393ad0e01eaa83b8d5e5180fc207"
+    },
+    {
+      "id": "mse_rescore_audit",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/paper15_exponential/MSE_SELECTION_AUDIT.json",
+      "kind": "file",
+      "role": "evidence",
+      "note": "旧观察MSE评分审计",
+      "visibility": "public",
+      "sha256": "83115c51db73718ada16f91670b24aa0e517f73f12d89f71aaa6129e40da29cb"
+    },
+    {
+      "id": "wrong_reference_evidence",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/mse_existing_cases/REPORT.md",
+      "kind": "file",
+      "role": "negative_control",
+      "note": "错误H1和库不足",
+      "visibility": "public",
+      "sha256": "1ec220208e304cc5821033f655f0a238a18322c5c873b99f0e78d171fe4e10cb"
+    },
+    {
+      "id": "alternative_reference_evidence",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/dr_pricing/mse_reference_repair/REPORT.md",
+      "kind": "file",
+      "role": "alternative",
+      "note": "Hbar替代分支和候选补充",
+      "visibility": "public",
+      "sha256": "09d8471d8af4b95f3df87a436306f9b071ce88c46290cad6d89e601526589ef6"
+    },
+    {
+      "id": "main_catalog",
+      "root": "main",
+      "path": "outputs/mse_exit_tuning_20261111/catalog.json",
+      "kind": "file",
+      "role": "local_metadata",
+      "note": "主48历史/数据指针，禁止用test规划",
+      "visibility": "public",
+      "sha256": "96db2bffeb8cba0d161c3eb8eb425d07b03859c6626d2e1979799ca51b7472b5"
+    },
+    {
+      "id": "main_configuration",
+      "root": "main",
+      "path": "outputs/day96_t_benchmark_20261110/configuration.json",
+      "kind": "file",
+      "role": "local_metadata",
+      "note": "原物理/噪声/源协议",
+      "visibility": "public",
+      "sha256": "832cd5af78de63228f5fce14fafa04baaa7367ed9fe5197e5ef09dafbf7aadef"
+    },
+    {
+      "id": "private_eligibility",
+      "root": "private",
+      "path": "wzzt_mse_dr_diagnostic_v1/case_inventory.json",
+      "kind": "file",
+      "role": "private",
+      "note": "离线真族资格，不送给规划器",
+      "visibility": "private",
+      "sha256": "3be4661e541d50178404766c0753128cbce9bab24e51cc13a6e1423d2d09fa8f"
+    },
+    {
+      "id": "private_zero_run",
+      "root": "private",
+      "path": "wzzt_conditional_zero_screen_v1/run_v1",
+      "kind": "directory",
+      "role": "private",
+      "note": "已完成40/188，无新AC",
+      "visibility": "private",
+      "sha256": null
+    },
+    {
+      "id": "private_wrong_run",
+      "root": "private",
+      "path": "wzzt_mse_dr_diagnostic_v1/run_v1",
+      "kind": "directory",
+      "role": "private",
+      "note": "两错误H1旧36观察",
+      "visibility": "private",
+      "sha256": null
+    },
+    {
+      "id": "private_repair_run",
+      "root": "private",
+      "path": "wzzt_reference_repair_v1/run_v1",
+      "kind": "directory",
+      "role": "private",
+      "note": "替代参考/合法候选补充旧结果",
+      "visibility": "private",
+      "sha256": null
+    },
+    {
+      "id": "private_paper15_run",
+      "root": "private",
+      "path": "wzzt_paper15_miqp_gate_v1",
+      "kind": "directory",
+      "role": "private",
+      "note": "paper15旧报价/AC/冻结源",
+      "visibility": "private",
+      "sha256": null
+    },
+    {
+      "id": "status",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/STATUS.md",
+      "kind": "file",
+      "role": "tracking",
+      "note": "当前状态与历史时间记录",
+      "visibility": "public",
+      "sha256": "953dfc3d6e51099504b1b9420dc9a000a2e099a3fdd40d8e4c918e8c27bf9c85"
+    },
+    {
+      "id": "recovery",
+      "root": "workspace",
+      "path": "research_experiments/wzzt_dr_selection/RECOVERY_INDEX.md",
+      "kind": "file",
+      "role": "tracking",
+      "note": "完整恢复索引",
+      "visibility": "public",
+      "sha256": "0075f4a445123400e1bf3eb036ab5e947c3cd6169b66b01e988d6bcef8403110"
+    },
+    {
+      "id": "handoff_readme_md",
+      "root": "workspace",
+      "path": "docs/wzzt_dr_handoff_20261112/README.md",
+      "kind": "file",
+      "role": "handoff",
+      "note": "交接包入口文件",
+      "visibility": "public",
+      "sha256": "bbdae18aa714c9f696bf48c659259bacd8f98f9d024cc2b84004f22b3dd79fd8"
+    },
+    {
+      "id": "handoff_model_md",
+      "root": "workspace",
+      "path": "docs/wzzt_dr_handoff_20261112/MODEL.md",
+      "kind": "file",
+      "role": "handoff",
+      "note": "交接包入口文件",
+      "visibility": "public",
+      "sha256": "8e061b8e5dae36dcc140f295fda2468ee575824db2eabbaada1c7dc29ca3c1f2"
+    },
+    {
+      "id": "handoff_files_md",
+      "root": "workspace",
+      "path": "docs/wzzt_dr_handoff_20261112/FILES.md",
+      "kind": "file",
+      "role": "handoff",
+      "note": "交接包入口文件",
+      "visibility": "public",
+      "sha256": "f04f62121bae26d135d615b990142d549b5213ac746c7e3260afbd38097b68b4"
+    },
+    {
+      "id": "handoff_continue_prompt_md",
+      "root": "workspace",
+      "path": "docs/wzzt_dr_handoff_20261112/CONTINUE_PROMPT.md",
+      "kind": "file",
+      "role": "handoff",
+      "note": "交接包入口文件",
+      "visibility": "public",
+      "sha256": "59bec2dfb3d3ea5a926e2587f81b715451940764f782dfc032e84ab70f1006f0"
+    },
+    {
+      "id": "handoff_verify_py",
+      "root": "workspace",
+      "path": "docs/wzzt_dr_handoff_20261112/verify.py",
+      "kind": "file",
+      "role": "handoff",
+      "note": "交接包入口文件",
+      "visibility": "public",
+      "sha256": "1ec0091dcad46db999e19bce99406c78ac857104a8c8d04a41c4004dc73e0d04"
+    }
+  ]
+}

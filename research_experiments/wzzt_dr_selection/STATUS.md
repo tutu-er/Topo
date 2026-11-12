@@ -1,3 +1,9 @@
+## 新窗口交接包，2026-11-12
+
+统一入口为[docs/wzzt_dr_handoff_20261112/README.md](../../docs/wzzt_dr_handoff_20261112/README.md)，共六个文件：README、MODEL、FILES、CONTINUE_PROMPT、manifest.json、verify.py。主模型条件Ht正确、物理MSE/完整历史、固定参数；索引分别标清旧3%MAE/.16联合算法、后续MIQP/.24研究及当前DRstrictMSE，不改生产默认。显式记录build_gate必须current=竞争者/reference=目标，避免把最近错候选当真。多候选非零联合优化尚未接通；固定风险预算可保留多二次约束，零点union核算不是该优化器。
+
+交接索引包括原算法设计、DR门槛/设备/AC入口、理论背景、结果边界及私有恢复指针，SHA-256可用verify.py只读核验。代码和数据保留原位，不复制历史批量或私有轨迹。本轮仅整理文档/索引及核验，不新增拟合、报价或AC实验。
+
 ## 含真候选40组零DR检查完成，2026-11-12
 
 按用户主线新增[conditional_target](dr_pricing/conditional_target/README.md)，只有一个新驱动zero_screen.py，复用既有.24/QP输出库、历史loader、原设备和原指数条件。冻结协议后计算40/40合格输入：目标均为已历史选中的真结构参数点，条件于其响应模型正确；完整96训练/288验证和96新日预测均保留，原5%通道最大功率误差、P/Q共同因素/AR.7、目标历史残差电压尺度、strict MSE原数值门槛均未改。188个不同支撑竞争比较全覆盖，以失败上界之和<=.1判断整库充分90%，没有以逐对90%冒充整库90%。精确响应相同的不同支撑对0。

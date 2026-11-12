@@ -1,3 +1,8 @@
+## 简洁交接入口，2026-11-12
+
+- docs/wzzt_dr_handoff_20261112六文件为新窗口首读：README/MODEL/FILES/CONTINUE_PROMPT/manifest.json/verify.py。不复制实现和轨迹，按索引直接复用，外部主项目和私有根可覆盖。
+- verify.py只读核来源哈希，--include-private只查私有指针存在，不启动旧批。主模型方向与代码target/ref映射、算法版本、候选资格、40零费边界及未实现联合非零优化均集中说明。历史STATUS段落为过程记录，新窗口先按交接入口恢复。
+
 ## 合格40组零DR检查已完成，2026-11-12
 
 - public dr_pricing/conditional_target/{zero_screen.py,README.md,PROTOCOL.json,RESULTS.json,AUDIT.json}：一个新驱动复用原loader/设备/概率门槛，精确谱分解加速原稠密G，不改误差分布。目标历史winner且离线资格为真族；请求剥离真树/test字段，参数冻结，原5%max功率SD/AR.7/节点PQ共同误差及strict MSE门槛。
