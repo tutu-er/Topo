@@ -141,4 +141,74 @@ class TrueFamilyDiagnosticTests(unittest.TestCase):
             self.assertEqual(oracle["zero_weight_true_clades"],[[1,2]])
 
 
+class SelectionBoundWitnessTests(unittest.TestCase):
+    def fixture(self):
+        bases=[[0],[1],[2],[3],[0,1,2,3]]
+        family=bases+[[0,1],[2,3]]
+        witness=dict(supports=family,r=[.1,.1,.1,.1,0.,.2,.2],x=[0.]*7)
+        event=dict(stage="E",pool=family+[[0,1,2],[1,2]],keep=bases,
+                   solver=dict(scope="finite laminar support pool",solve_started=True,status=2,
+                               bound=1.3,bound_consistent_with_fixed_family_qp=True))
+        kwargs=dict(n=4,train_mse=1.,reference_mse=1.,alpha=.1,response_bound=2.)
+        return event,witness,kwargs
+
+    def test_exact_event_domain_can_disprove_bound_beyond_same_family_check(self):
+        event,witness,kwargs=self.fixture();before=json.dumps((event,witness),sort_keys=True)
+        check=diagnostic.selection_bound_witness(event,witness,**kwargs)
+        self.assertEqual(check["status"],"bound_contradiction")
+        self.assertTrue(check["domain_feasible"])
+        self.assertTrue(check["additional_to_same_family_flag"])
+        self.assertEqual(check["true_raw_internal_count"],2)
+        self.assertEqual(check["cardinality_inequalities_checked"],5)
+        self.assertAlmostEqual(check["true_raw_J"],1.2)
+        self.assertEqual(json.dumps((event,witness),sort_keys=True),before)
+
+    def test_same_tolerance_boundary_and_previous_conflict_are_preserved(self):
+        event,witness,kwargs=self.fixture();score=1.2;tolerance=1e-7*(1+abs(score))
+        event["solver"]["bound"]=score+tolerance
+        self.assertEqual(diagnostic.selection_bound_witness(event,witness,**kwargs)["status"],"no_contradiction_detected")
+        event["solver"]["bound"]=score+2*tolerance
+        event["solver"]["bound_consistent_with_fixed_family_qp"]=False
+        answer=diagnostic.selection_bound_witness(event,witness,**kwargs)
+        self.assertEqual(answer["status"],"bound_contradiction")
+        self.assertFalse(answer["additional_to_same_family_flag"])
+
+    def test_materialized_union_does_not_replace_specific_pool_or_keep(self):
+        event,witness,kwargs=self.fixture()
+        event["pool"].remove([2,3]);event["materialized_support_union"]=witness["supports"]
+        answer=diagnostic.selection_bound_witness(event,witness,**kwargs)
+        self.assertEqual(answer["status"],"not_applicable")
+        self.assertEqual(answer["reason"],"true_family_not_contained_in_this_event_pool")
+        event,witness,kwargs=self.fixture();event["keep"].append([1,2])
+        answer=diagnostic.selection_bound_witness(event,witness,**kwargs)
+        self.assertEqual(answer["reason"],"mandatory_event_keep_not_in_true_family")
+        event.pop("pool");event["candidate_pool_union"]=witness["supports"]
+        self.assertEqual(diagnostic.selection_bound_witness(event,witness,**kwargs)["reason"],"exact_event_pool_or_keep_not_recorded")
+
+    def test_out_of_box_crossing_or_duplicate_witness_is_not_feasible(self):
+        event,witness,kwargs=self.fixture();witness["r"][0]=2.000001
+        self.assertEqual(diagnostic.selection_bound_witness(event,witness,**kwargs)["reason"],"witness_coefficients_outside_exact_response_box")
+        event,witness,kwargs=self.fixture();witness["supports"][-1]=[1,2]
+        self.assertEqual(diagnostic.selection_bound_witness(event,witness,**kwargs)["reason"],"true_family_crosses_itself")
+        event,witness,kwargs=self.fixture();witness["supports"].append([0,1]);witness["r"].append(.1);witness["x"].append(0.)
+        self.assertEqual(diagnostic.selection_bound_witness(event,witness,**kwargs)["reason"],"duplicate_witness_supports_not_native_selection_variables")
+
+    def test_zero_weight_true_support_still_costs_one_raw_binary(self):
+        event,witness,kwargs=self.fixture();witness["r"][-2]=0.
+        event["keep"].append([0,1]);event["solver"]["bound"]=1.15
+        answer=diagnostic.selection_bound_witness(event,witness,**kwargs)
+        self.assertEqual(answer["status"],"no_contradiction_detected")
+        self.assertEqual(answer["true_raw_internal_count"],2)
+        self.assertAlmostEqual(answer["true_raw_J"],1.2)
+
+    def test_unknown_support_W_and_missing_native_bound_are_not_checked(self):
+        event,witness,kwargs=self.fixture();event["stage"]="W"
+        self.assertEqual(diagnostic.selection_bound_witness(event,witness,**kwargs)["status"],"not_applicable")
+        event["stage"]="T";event["solver"]["bound"]=None
+        answer=diagnostic.selection_bound_witness(event,witness,**kwargs)
+        self.assertEqual(answer["status"],"not_applicable")
+        self.assertTrue(answer["domain_feasible"])
+        self.assertEqual(answer["reason"],"native_reported_bound_unavailable")
+
+
 if __name__=="__main__": unittest.main()

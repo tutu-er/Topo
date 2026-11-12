@@ -161,6 +161,90 @@ def point_summary(point, n, zero, bound):
     return dict(stored_internal_count=len(raw), active_internal_count=len(active), active_proper_clades=[list(C) for C in active])
 
 
+def selection_bound_witness(event, point, *, n, train_mse, reference_mse, alpha, response_bound=2.):
+    """Use a true-family feasible point only in this event's exact T/E domain.
+
+    No fitting is performed. Zero-weight true supports still have binary value
+    one, so the objective uses the raw proper-support count. Unknown-support W
+    and materialized unions are deliberately not used as finite selection pools.
+    """
+    native = event.get("solver", {})
+    answer = dict(stage=event.get("stage"), status="not_applicable", domain_feasible=False,
+                  native_status=native.get("status"), native_reported_bound=native.get("bound"),
+                  native_same_family_bound_consistency=native.get("bound_consistent_with_fixed_family_qp"),
+                  additional_to_same_family_flag=False)
+    def unavailable(reason, **extra):
+        answer.update(reason=reason, **extra)
+        return answer
+    if event.get("stage") not in {"T", "E"}:
+        return unavailable("unknown_support_W_or_nonselection_stage_not_checked")
+    if "pool" not in event or "keep" not in event:
+        return unavailable("exact_event_pool_or_keep_not_recorded")
+    if not native.get("solve_started") or native.get("scope") != "finite laminar support pool":
+        return unavailable("native_finite_selection_not_solved")
+    if (isinstance(n, bool) or not isinstance(n, (int, np.integer)) or n < 2 or
+            not all(np.isfinite(v) for v in (train_mse, reference_mse, alpha, response_bound)) or
+            train_mse < 0 or reference_mse <= 0 or alpha < 0 or response_bound <= 0):
+        return unavailable("invalid_witness_objective_or_box_parameters")
+    def supports(values):
+        result = []
+        for raw in values:
+            if (not raw or any(isinstance(i, bool) or not isinstance(i, (int, np.integer)) or i < 0 or i >= n for i in raw)
+                    or len(raw) != len(set(raw))):
+                raise ValueError("Invalid support")
+            result.append(tuple(sorted(map(int, raw))))
+        return result
+    try:
+        family_list = supports(point["supports"])
+        pool, keep = set(supports(event["pool"])), set(supports(event["keep"]))
+        r, x = np.asarray(point["r"], float), np.asarray(point["x"], float)
+    except (KeyError, TypeError, ValueError):
+        return unavailable("invalid_support_or_coefficient_encoding")
+    family = set(family_list)
+    if len(family) != len(family_list):
+        return unavailable("duplicate_witness_supports_not_native_selection_variables")
+    if (r.shape != (len(family_list),) or x.shape != r.shape or
+            not np.isfinite(r).all() or not np.isfinite(x).all() or
+            np.any(r < 0.) or np.any(x < 0.) or np.any(r > response_bound) or np.any(x > response_bound)):
+        return unavailable("witness_coefficients_outside_exact_response_box")
+    bases = {(i,) for i in range(n)} | {tuple(range(n))}
+    if not bases <= family:
+        return unavailable("witness_does_not_explicitly_include_native_basis")
+    if not family <= pool:
+        return unavailable("true_family_not_contained_in_this_event_pool",
+                           missing_event_pool_supports=[list(C) for C in sorted(family-pool)])
+    if not keep <= family:
+        return unavailable("mandatory_event_keep_not_in_true_family",
+                           missing_mandatory_supports=[list(C) for C in sorted(keep-family)])
+    selected = [C for C in family if 1 < len(C) < n]
+    for C in family:
+        for D in family:
+            if set(C) & set(D) and not (set(C) <= set(D) or set(D) <= set(C)):
+                return unavailable("true_family_crosses_itself")
+    containers = {C for C in pool if 1 < len(C) < n} | {tuple(range(n))}
+    violations = [dict(W=list(W), selected_strict_subsets=sum(set(C) < set(W) for C in selected), capacity=len(W)-2)
+                  for W in sorted(containers) if sum(set(C) < set(W) for C in selected) > len(W)-2]
+    if violations:
+        return unavailable("native_hierarchy_cardinality_violated", cardinality_violations=violations)
+    answer.update(domain_feasible=True, true_raw_internal_count=len(selected),
+        event_pool_size=len(pool), event_keep_size=len(keep), cardinality_inequalities_checked=len(containers),
+        exact_event_domain_sha256=hashlib.sha256(json.dumps(dict(pool=sorted(pool), keep=sorted(keep)),
+                                      sort_keys=True, separators=(",", ":")).encode()).hexdigest())
+    score = float(train_mse/reference_mse+alpha*len(selected))
+    tolerance = 1e-7*(1+abs(score))
+    answer.update(true_raw_J=score, bound_consistency_tolerance=tolerance)
+    lower = native.get("bound")
+    if lower is None or not isinstance(lower, (int, float, np.number)) or not np.isfinite(lower):
+        return unavailable("native_reported_bound_unavailable")
+    contradiction = bool(lower > score+tolerance)
+    answer.update(status="bound_contradiction" if contradiction else "no_contradiction_detected",
+        reason="reported_lower_bound_exceeds_this_event_feasible_true_family_J" if contradiction else
+               "this_event_true_family_witness_does_not_undercut_reported_bound",
+        reported_bound_minus_true_J=float(lower-score),
+        additional_to_same_family_flag=bool(contradiction and native.get("bound_consistent_with_fixed_family_qp") is not False))
+    return answer
+
+
 def diagnose(output, destination=None):
     started = perf_counter(); output = Path(output).resolve(); runtime = output/"runtime"
     protocol, seal, consumed = verify_study(output)
@@ -177,15 +261,17 @@ def diagnose(output, destination=None):
         oracle_role="posthoc true-family fixed-support diagnostic; forbidden for model/kappa selection",
         train_points=64, selection_points=32, total_observed_points=96,
         coefficient_bound=2., qp_soft_seconds=300., true_family_fits_per_available_input=1,
-        main_budget_debit=0., no_MIqp_or_extra_observations=True)
+        main_budget_debit=0., no_MIqp_or_extra_observations=True,
+        selection_bound_witness_scope="individual T/E event.pool and keep; no materialized unions or unknown-support W",
+        additional_fits_for_selection_bound_witness=0)
     write(destination/"plan.json", plan)
     allowed_npz = [inside(runtime, info["path"]) for info in protocol["inputs"].values() if not info.get("generation_failed")]
     opened = read_guard(output, destination, own, allowed_npz)
     data, optimization, trees = native_modules(runtime, protocol["source_sha256"])
     alpha, zero, bound = [float(protocol["config"][name]) for name in ("alpha", "zero_tol", "response_bound")]
-    summaries, comparisons = [], []
+    summaries, comparisons, witness_checks = [], [], []
     for job, info in protocol["inputs"].items():
-        began = perf_counter(); fitter = None; fitted = None; fit_calls = 0; fit_began = None; job_rows = []; read_start = len(opened)
+        began = perf_counter(); fitter = None; fitted = None; fit_calls = 0; fit_began = None; job_rows = []; job_witnesses = []; read_start = len(opened)
         oracle = dict(job=job, status="failed", source_sha256=own_sha, input_sha256=info.get("sha256"),
                       selection_seal_sha256=sha(output/"selection_seal.json"), oracle_only=True)
         try:
@@ -246,22 +332,34 @@ def diagnose(output, destination=None):
                     true_family_zero_weight_collapse=bool(missing), selected_index=record["result"]["selected"]["index"],
                     selected_active_proper_clades=selected_counts["active_proper_clades"])
                 job_rows.append(row)
+                for event_index, event in enumerate(record["result"].get("events", [])):
+                    if event.get("stage") not in {"T", "E"}:
+                        continue
+                    check = selection_bound_witness(event, fitted, n=training.n, train_mse=train_mse,
+                                                   reference_mse=reference, alpha=alpha, response_bound=bound)
+                    job_witnesses.append(dict(job=job, method=method, event_index=event_index, **check))
         except Exception as exc:
             oracle.update(status="budget_exceeded" if isinstance(exc, TimeoutError) else "failed", error=traceback.format_exc())
             job_rows = [dict(job=job, method=method, method_status=read(output/"runs"/job/method/"result.json")["status"],
                              oracle_status=oracle["status"], status="oracle_unavailable") for method in protocol["methods"]]
+            job_witnesses = []
         observed = sorted(set(opened[read_start:]))
         require(not observed or observed == [str(inside(runtime, info["path"]))], "An input's diagnostic opened another input")
         oracle.update(fixed_family_fit_calls=fit_calls, elapsed_seconds=perf_counter()-began,
                       qp_seconds=oracle.get("qp_seconds", perf_counter()-fit_began if fit_began is not None else 0.),
-                      qp_records=fitter.records if fitter is not None else [], observed_npz_opened=observed)
+                      qp_records=fitter.records if fitter is not None else [], observed_npz_opened=observed,
+                      selection_bound_witnesses=job_witnesses)
         write(destination/"inputs"/(job+".json"), oracle)
         comparisons.extend(job_rows)
+        witness_checks.extend(job_witnesses)
         summaries.append({key: oracle.get(key) for key in ("job", "status", "fixed_family_fit_calls", "elapsed_seconds", "qp_seconds", "zero_weight_collapses_true_family")})
     require(len(comparisons) == protocol["planned_methods"], "Diagnostic method denominator changed")
     fields = list(dict.fromkeys(key for row in comparisons for key in row))
     with (destination/"decompositions.csv").open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields); writer.writeheader(); writer.writerows(comparisons)
+    witness_fields = list(dict.fromkeys(key for row in witness_checks for key in row)) or ["job", "method", "event_index", "stage", "status", "reason"]
+    with (destination/"selection_bound_witnesses.csv").open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=witness_fields); writer.writeheader(); writer.writerows(witness_checks)
     for relative, expected in consumed.items():
         require(sha(inside(output, relative)) == expected, "Frozen source/input/result changed during posthoc diagnosis")
     require(sha(own) == own_sha, "Diagnostic source changed during execution")
@@ -276,6 +374,13 @@ def diagnose(output, destination=None):
         sum_true_qp_seconds=sum(row["qp_seconds"] or 0. for row in summaries),
         source_sha256=own_sha, protocol_sha256=seal["protocol_sha256"], selection_seal_sha256=sha(output/"selection_seal.json"),
         decompositions_sha256=sha(destination/"decompositions.csv"), original_bytes_unchanged=True,
+        selection_bound_witnesses_sha256=sha(destination/"selection_bound_witnesses.csv"),
+        selection_events_checked=len(witness_checks),
+        selection_events_domain_and_bound_applicable=sum(row["status"] != "not_applicable" for row in witness_checks),
+        selection_events_not_applicable=sum(row["status"] == "not_applicable" for row in witness_checks),
+        selection_bound_contradictions=sum(row["status"] == "bound_contradiction" for row in witness_checks),
+        selection_bound_contradictions_additional_to_same_family_flag=sum(row["additional_to_same_family_flag"] for row in witness_checks),
+        unknown_support_W_events_checked=0,
         inputs=summaries, actual_topology_or_kappa_selection_changed=False, main_budget_debit=0.,
         extra_observation_files_read=0, native_MIQP_calls=0, oracle_only=True,
         interpretation="Counts use stored proper supports even if fitted weights become zero. Noise vs AC/linear bias is not separated by this decomposition.")
