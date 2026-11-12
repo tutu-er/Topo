@@ -1,10 +1,10 @@
 {
-  "updated_utc": "2026-11-12T05:35:33.998752+00:00",
-  "status": "running_sentinel",
+  "updated_utc": "2026-11-12T06:12:06.257567+00:00",
+  "status": "running_full_main",
   "main_output": "outputs/large96_main_20261112_001",
   "main_protocol_sha256": "ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4",
   "runner_source_commit": "5610f28c",
-  "manager_exec_session": 17750,
+  "manager_exec_session": 46447,
   "sentinel_inputs": 24,
   "planned_main_inputs": 240,
   "planned_main_methods": 2400,
@@ -29,21 +29,21 @@
   "current_counts": {
     "common": {
       "planned": 240,
-      "pending": 216,
+      "pending": 0,
       "unresolved_attempts": 0,
-      "failed": 0,
-      "fitted": 24,
       "budget_exceeded": 0,
-      "interrupted": 0
+      "interrupted": 0,
+      "fitted": 240,
+      "failed": 0
     },
     "methods": {
       "planned": 2400,
-      "pending": 2252,
+      "pending": 1902,
       "unresolved_attempts": 8,
-      "failed": 0,
-      "fitted": 148,
       "budget_exceeded": 0,
-      "interrupted": 0
+      "interrupted": 0,
+      "fitted": 498,
+      "failed": 0
     }
   },
   "next_steps": [
@@ -57,7 +57,7 @@
   "preflight_data_review": "preflight_data_review.json",
   "preflight_model_review": "preflight_model_review.json",
   "full_continuation_exec_session": 46447,
-  "full_continuation_policy": "Already queued; waits for sentinel run.lock then resumes full main with terminal skip. Do not launch another manager.",
+  "full_continuation_policy": "Full main now running; do not start another manager",
   "postprocessing_tests": 77,
   "postprocessing_source_sha256": {
     "tools/analyze_large96.py": "7a1f575fb60e49bcd60077b27801a4e21f3e2f0b20d62aed085713c8842914ea",
@@ -66,5 +66,15 @@
     "tools/diagnose_large96.py": "80b0f33038b05a8df03850a7b55eb2dad6d4674da0061e9023ff39da703f7940",
     "tests/test_large96_analysis.py": "f23833d28e4173449dce5fd091eb333c880b9a850e9e48c36be83a18eb2784c3",
     "tests/test_diagnose_large96.py": "2b6a2a5f93f7fb004eaf1cf542e61a8d388947391e79777cba9c4ad5ed134a81"
-  }
+  },
+  "sentinel_manager_exec_session": 17750,
+  "sentinel_finished": true,
+  "sentinel_fitted": 240,
+  "recovery_instructions": "RECOVERY.md",
+  "sentinel_timing": "sentinel_operational_review.json",
+  "postprocessing_commits": [
+    "c97f38b5",
+    "5d2d40fd"
+  ],
+  "source_frozen": true
 }
