@@ -2,6 +2,8 @@
 
 任务范围：保持候选与后验评分冻结，用历史残差减少新调节方向上的偏差；对原费用界未闭合的问题延长求解；另核固定启停的经济调度和示例电价。生产默认不变。
 
+已完成[结果与失败汇报](results/REPORT.md)、[公式及模型边界](MODEL.md)。独立物理测试704个背景，另4个接口预跑；12个原费用问题延时并做可行凸QP改进；固定ED/价格544条核算，8个联合ED示例。全部原约束与费用独立复算见[验证记录](results/VALIDATION.json)。
+
 ## 事前锁定的主测试
 
 原400库中，150库含真候选，28库历史真候选权重低于99%，122库已至少99%。选择全部28个证据不足输入，加每网络一个已清楚输入和一个缺真候选对照，共36个。真值只作离线资格和评价，实际目标沿用历史最高权重候选；不把目标自动换成真拓扑。
@@ -25,3 +27,13 @@
 电价先使用明确标注的示例元/MWh。费用分别列能量购售电、发电报价、负荷转移补偿及切负荷损失，并与同一资源条件下的基线作差。参数是合成报价，不称实证校准。若负荷转供改变供电路径，就改变待辨识拓扑；本轮只做固定拓扑下的连续功率调节。
 
 原始P/Q/V、拟合校正和动作留在忽略的outputs。每批锁协议、源码、输入和随机流；已有完成数据不重跑。
+
+## 入口与版本
+
+- 主物理批次：`python -X utf8 -B -m rnj_wzzt_dr.experiments.residual_guard_ed_20261113.study --run <new_private_run> --stage prepare|pilot|population|confirmation`。
+- 原观测与残差约束核验：同包`audit --run <private_run> --phase <phase> --workers 4`。完成记录须保留，重复核验应使用独立新目录或读取已保存验证。
+- 延长旧问题：同包`longrun --output <new_private_output>`；可行凸QP改进：`polish --previous <long_run> --output <new_private_output>`。
+- 固定启停ED：同包`prices --run <physical_run> --output <new_private_output>`；可行凸ED步骤：`ed_polish --previous <prices_run> --output <new_private_output>`。
+- 原约束与费用独立复算：`verify_costs --longrun ... --polish ... --prices ... --ed-polish ... --output <new_receipt.json>`。
+
+本轮正式物理记录为`outputs/residual_guard_ed_20261113_v1`，长时间核算为`..._longsolve_v1`，有效凸QP核算为`..._polish_v2`，有效价格记录为`..._prices_v2`，凸ED记录为`..._ed_polish_v1`。开发失败的`..._polish_v1`和`..._prices_v1`保持原样，修正后的费用模型和核验范围见报告。

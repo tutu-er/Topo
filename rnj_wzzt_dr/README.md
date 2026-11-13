@@ -1,6 +1,8 @@
 # MIQP RNJ＋WZZT → 条件 DR 主线
 
-**2026-11-13最新DR实验入口：**[有幅度边界的双向价格响应](experiments/bidirectional_price_dr_20261113/README.md)。已完成400输入×4新日及12个锁定例×32新日；[模型与当前QCQP求法](experiments/bidirectional_price_dr_20261113/MODEL.md)、[总体效果、无解、未决和下降例](experiments/bidirectional_price_dr_20261113/results/REPORT.md)分别记录。采用期望对数赔率增量；以下旧条件概率设备主线按原版本保留，生产默认没有改变。
+**2026-11-13当前研究进展：**[历史残差方向检查、费用求解与配网灵活性ED核算](experiments/residual_guard_ed_20261113/README.md)。重点测试库含真候选但历史证据不足的28个输入，另保留容易、缺候选及下降对照；[结果](experiments/residual_guard_ed_20261113/results/REPORT.md)记录改善、仍下降、未报价和费用界未闭合。新增研究不修改生产默认。
+
+**2026-11-13前一轮有界基线：**[有幅度边界的双向价格响应](experiments/bidirectional_price_dr_20261113/README.md)。已完成400输入×4新日及12个锁定例×32新日；[模型与QCQP求法](experiments/bidirectional_price_dr_20261113/MODEL.md)、[总体效果、无解、未决和下降例](experiments/bidirectional_price_dr_20261113/results/REPORT.md)分别记录。采用期望对数赔率增量；以下旧条件概率设备主线按原版本保留，生产默认没有改变。
 
 以后从本目录进入研究。辨识器采用 2026-11-12 主项目的现有简化实现；DR 复用已交接的积分、严格 MSE 评分、设备执行器和单对优化器。历史批量控制器、画图、重复算法和大型观测文件留在原位置。
 
