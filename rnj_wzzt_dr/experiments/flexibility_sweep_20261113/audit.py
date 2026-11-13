@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 
 import numpy as np
 from scipy.special import logsumexp
@@ -20,6 +23,22 @@ from .study import verify_sources
 def require(value, message):
     if not value:
         raise AssertionError(message)
+
+
+def replay_locked_sources(out):
+    """Use the actual locked bytes when later maintenance changes live code."""
+    protocol = io.read(out/'protocol.json')
+    stage = out/'audit_replay'/io.ref(__file__)['sha256'][:12]
+    for rel, expected in protocol['sources'].items():
+        source = out/'source_snapshot'/rel
+        require(source.exists() and io.ref(source)['sha256'] == expected, 'Locked snapshot differs: '+rel)
+        target = stage/rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    auditor = stage/Path(__file__).relative_to(ROOT)
+    auditor.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(__file__, auditor)
+    subprocess.run([sys.executable, '-m', __package__+'.audit', '--out', str(out)], cwd=stage, check=True)
 
 
 def support_prediction(point, observation):
@@ -141,5 +160,9 @@ def run(out):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--locked-source', action='store_true')
     args = parser.parse_args()
-    print(run(args.out.resolve()))
+    if args.locked_source:
+        replay_locked_sources(args.out.resolve())
+    else:
+        print(run(args.out.resolve()))

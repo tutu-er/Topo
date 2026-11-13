@@ -23,3 +23,7 @@
 确认前另锁定证据增量2与4，沿用相同冻结历史、设备域、3秒求解预算和配对路径，见`intensity.py`与`results/intensity/protocol.json`。没有增加辨识拟合；补充开发路径复用原弱例的两天。`compare.py`校验两批基准P/Q/V与随机流相同，合并为32条确认路径，避免重复计数。`audit.py`逐支持重算后验、原AC、原设备域与费用，保留每次失败与未决。
 
 本批私有完整输出为`outputs/customer_flexibility_sweep_20261113_v1`及`outputs/customer_flexibility_intensity_20261113_v1`。结果已完成，后续读取统计或核验即可，不重跑已有拟合和确认。
+
+实验完成后修复了原生日志包含`inf/nan`时的JSON保存：有限拟合参数仍强制检查，非有限日志值以null及原字段路径/原字符串留存；原日志不在内存中改写。原批次的1次失败保持原样，不重跑、不补计成功。维护后的源码不同于本批锁定字节，复核本批使用`python -m rnj_wzzt_dr.experiments.flexibility_sweep_20261113.audit --out <private-output> --locked-source`，从已哈希的源码快照运行核验。统计入口`compare.py`只读既有结果，不启动辨识或AC批次。
+
+另用`refine.py`对目标2、4各最前两个短时未决报价追加30秒；4/4找到可行点，费用界仍未完全闭合。原确认效果不改写，追加核算见`results/REFINEMENT.json`，逐点与协议留私有。

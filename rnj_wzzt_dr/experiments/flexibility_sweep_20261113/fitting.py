@@ -20,6 +20,32 @@ from ..posterior_mse_20261112.scoring import score, independent_check, active_to
 from .config import FIT_BUDGET
 
 
+def native_json_record(native):
+    """Preserve nonfinite failed-solve diagnostics without accepting bad models."""
+    for row in native.get('frozen_candidates', []):
+        arrays = [row[k] for k in ('R', 'X') if k in row]
+        arrays += [row.get('point', {})[k] for k in ('r', 'x') if k in row.get('point', {})]
+        if any(not np.isfinite(np.asarray(a, float)).all() for a in arrays):
+            raise ValueError('Frozen model coefficients must remain finite')
+    fields = []
+    def visit(value, path):
+        if isinstance(value, np.ndarray):
+            return visit(value.tolist(), path)
+        if isinstance(value, np.generic):
+            value = value.item()
+        if isinstance(value, float) and not np.isfinite(value):
+            fields.append(dict(path=path, value=repr(value)))
+            return None
+        if isinstance(value, dict):
+            return {k: visit(v, path+'.'+str(k)) for k, v in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [visit(v, path+f'[{i}]') for i, v in enumerate(value)]
+        return value
+    record = visit(native, 'native')
+    record['_nonfinite_native_fields'] = fields
+    return record
+
+
 def pack_score(native, training, validation):
     s = score(native, training, validation)
     s['independent_verification'] = independent_check(native, training, validation, s)
@@ -67,7 +93,7 @@ def fit_one(task):
         valid = load(task['observed_refs']['validation']['path'])
         native = fit_observed(train, valid, method='101', config=SearchConfig(**FIT_BUDGET))
         s = pack_score(native, train, valid)
-        io.write(directory/'native_result.json', native)
+        io.write(directory/'native_result.json', native_json_record(native))
         io.write(directory/'score.json', s)
         receipt = dict(id=task['id'], status='fitted', score=io.ref(directory/'score.json'),
             native=io.ref(directory/'native_result.json'), training_points=train.points, validation_points=valid.points,
