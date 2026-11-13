@@ -16,10 +16,12 @@ from ... import io
 CHINESE=dict(no_dfs='无服务',old_gamma2='旧增量2',nominal='单目标名义恢复',calibrated='单目标均值修正',
     symmetric='多目标绝对恢复',symmetric_guard='对称恢复\n＋方向保护',symmetric_full='全候选绝对恢复',
     symmetric_full_guard='全候选\n＋方向保护',multiplicative_absolute='乘性校正绝对恢复',
-    capped_absolute='限幅校正绝对恢复',weighted_nominal='历史加权\n绝对恢复',weighted_capped='历史加权\n＋偏差限幅')
+    capped_absolute='限幅校正绝对恢复',weighted_nominal='历史加权\n绝对恢复',weighted_capped='历史加权\n＋偏差限幅',
+    pq_trust1='P/Q方向限制\n1倍',pq_trust2='P/Q方向限制\n2倍')
 ENGLISH=dict(no_dfs='No service',old_gamma2='Old increment2',nominal='Single-target nominal',
     calibrated='Single-target mean adjusted',symmetric='Symmetric recovery',symmetric_guard='Symmetric recovery\n+ directional guards',
-    weighted_nominal='History-weighted\nabsolute recovery',weighted_capped='History-weighted\n+ capped mean correction')
+    weighted_nominal='History-weighted\nabsolute recovery',weighted_capped='History-weighted\n+ capped mean correction',
+    pq_trust1='P/Q direction limit\n1x',pq_trust2='P/Q direction limit\n2x')
 ROLES=('correct_clear','correct_ambiguous','wrong_present','missing')
 ROLE_ZH=dict(correct_clear='历史选对、优势明确',correct_ambiguous='历史选对、优势不明确',
     wrong_present='历史选错、库中含真拓扑',missing='库中缺完整真拓扑')
@@ -71,11 +73,18 @@ def create(report_path,out,*,physics='AC',partition='overall',strategies=None):
     if group['strategies']['no_dfs']['failed_or_missing_rows']:
         scope+=' '+tr('失败或缺失计作未恢复。','Failed or missing paths count as nonrecovery.')
     physics_title=tr('原AC','Original AC') if physics=='AC' else tr('真实支路线性消融','Physical-branch linear ablation')
+    study_label=tr('（迭代开发组）',' (development iteration)') if str(report.get('phase','')).startswith('development_iteration') else ''
+    physics_title+=study_label
 
     def save(fig,name):
         for ext in ('png','svg'):
             path=out/(prefix+'_'+name+'.'+ext)
             fig.savefig(path,dpi=180,bbox_inches='tight')
+            if ext=='svg':
+                # Normalize before hashing so later whitespace checks do not
+                # require changing an already-recorded scientific artifact.
+                normalized='\n'.join(line.rstrip() for line in path.read_text(encoding='utf-8').splitlines())+'\n'
+                path.write_text(normalized,encoding='utf-8',newline='\n')
             files.append(io.ref(path))
         plt.close(fig)
 
@@ -161,7 +170,7 @@ def create(report_path,out,*,physics='AC',partition='overall',strategies=None):
         ax.spines[['top','right']].set_visible(False)
     else:
         ax.set_axis_off();ax.text(.5,.5,tr('分组求解状态见完整报告','Grouped solver outcomes are in the full report'),ha='center',transform=ax.transAxes)
-    fig.suptitle(tr('费用与求解状态','Activation costs and solver outcomes'),fontsize=14)
+    fig.suptitle(tr('费用与求解状态','Activation costs and solver outcomes')+study_label,fontsize=14)
     fig.text(.5,.015,tr('费用为示例激活补偿；物理线性计算复用相同采购，费用与报价次数不另计。','Illustrative activation compensation; paired linear evaluation adds no procurement cost or extra quotes.'),ha='center',fontsize=9)
     fig.tight_layout(rect=(0,.09,1,.94))
     save(fig,'cost_and_solver')

@@ -1,12 +1,22 @@
 """Independent algebra/domain checks for the historical P/Q restriction."""
 from copy import deepcopy
+import json
+import subprocess
+import sys
 import numpy as np
 from ...observations import Observation
 from ..customer_flexibility_20261113.model import CustomerCase
-from .trusted_direction import PQTrustedCase
+from .trusted_direction import PQTrustedCase,training_fingerprint
 
 
 def main():
+    probe="import json,numpy as np; from rnj_wzzt_dr.experiments.absolute_identification_20261114.trusted_direction import training_fingerprint; p=np.arange(12.).reshape(6,2); print(json.dumps(training_fingerprint([1,2],p,.3*p),sort_keys=True))"
+    first=subprocess.check_output([sys.executable,'-c',probe],text=True)
+    second=subprocess.check_output([sys.executable,'-c',probe],text=True)
+    p0=np.arange(12.).reshape(6,2)
+    assert json.loads(first)==json.loads(second)==training_fingerprint([1,2],p0,.3*p0)
+    assert training_fingerprint([1,2],p0,.3*p0)['training_pq_sha256']!=training_fingerprint([1,2],p0,.3*p0+1)['training_pq_sha256']
+    assert training_fingerprint([1,2],p0,.3*p0)['training_labels_sha256']!=training_fingerprint([2,1],p0,.3*p0)['training_labels_sha256']
     original=CustomerCase();config=deepcopy(original.config)
     pv=next(r for r in config['resources'] if r['kind']=='pv')
     config['expected_terminal_labels']=[1,2]
@@ -52,7 +62,7 @@ def main():
     finally:
         env.dispose()
     assert 'planning_pq_trust' not in physical.config
-    print('P/Q trust checks passed: direct-vs-quadratic identity, hourly units, nested scales, radial feasibility, frozen physical domain, and attached convex-QCQP feasible/infeasible points.')
+    print('P/Q trust checks passed: two-process stable input hashes, content/label sensitivity, direct-vs-quadratic identity, hourly units, nested scales, radial feasibility, frozen physical domain, and attached convex-QCQP feasible/infeasible points.')
 
 
 if __name__=='__main__':main()

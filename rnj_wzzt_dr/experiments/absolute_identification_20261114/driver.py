@@ -98,6 +98,11 @@ def context(entry):
             pattern=pattern,rotation_receipt=rotation_receipt,means=calibrated_means(score,val),voltage_sigma=entry['voltage_sigma'])
     return WORK['cache'][entry['id']]
 
+def planning_context(ctx):
+    """Keep execution-only truth outside even the quote adapter's inputs."""
+    return {key:ctx[key] for key in ('case','score','train','val','means','voltage_sigma')}
+
+
 def quote(mode,ctx,prediction,base,seconds,seeds=None):
     case,s=ctx['case'],ctx['score'];H=np.asarray([p['H'] for p in s['parameters']]);target=s['map_index']
     other=[j for j in range(len(H)) if j!=target]
@@ -170,7 +175,7 @@ def run_day(task):
         began=perf_counter()
         try:
             charged=seed_receipt['seconds'] if mode not in ('nominal','calibrated') else 0.
-            receipt,u=quote(mode,ctx,prediction,base,max(.001,p['solver_seconds']-charged),seeds)
+            receipt,u=quote(mode,planning_context(ctx),prediction,base,max(.001,p['solver_seconds']-charged),seeds)
             if (u is not None)!=bool(receipt['feasible']):raise ValueError('Returned policy disagrees with flag')
             if u is not None and not case.audit(u)['passed']:raise ValueError('Returned resource-infeasible control')
         except Exception as exc:

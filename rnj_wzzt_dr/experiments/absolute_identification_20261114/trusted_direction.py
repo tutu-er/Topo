@@ -5,9 +5,20 @@ physical_case must still be used for actual delivery/AC feasibility checks:
 this restriction concerns extrapolation of a frozen identification model.
 """
 from time import perf_counter
+import hashlib
+import json
 import numpy as np
 from ... import io
 from ..customer_flexibility_20261113.model import CustomerCase
+
+
+def training_fingerprint(labels,p,q):
+    """Stable content hashes; never feed an object array to contract_hash."""
+    power=np.stack((np.asarray(p,dtype=np.float64),np.asarray(q,dtype=np.float64)))
+    names=json.dumps(list(labels),ensure_ascii=False,separators=(',',':'),default=io.plain)
+    return dict(training_pq_sha256=io.contract_hash(power),
+        training_labels_sha256=hashlib.sha256(names.encode('utf-8')).hexdigest(),
+        training_hash_schema='numeric_arrays_v2')
 
 
 class PQTrustedCase(CustomerCase):
@@ -33,7 +44,7 @@ class PQTrustedCase(CustomerCase):
         self.trust_Q=self.departure.T@self.departure
         self.trust_limit=float(self.trust_scale**2*self.H*self.base_kw**2*self.training_departure_variance.sum())
         self.trust_receipt=dict(source=io.ref(__file__),rule='sum_hn(delta_q_hn-kappa_n*delta_p_hn)^2 <= scale^2*H*base_kw^2*sum_n mean_train(q_n-kappa_n*p_n)^2',
-            training_pq_sha256=io.contract_hash(dict(labels=list(training.labels),p=p,q=q)),
+            **training_fingerprint(training.labels,p,q),
             training_rows=len(p),decision_hours=self.H,measurements_per_hour=self.repeat,
             base_kw=self.base_kw,scale=self.trust_scale,limit=self.trust_limit,
             kappa=self.kappa.tolist(),training_departure_rms_pu=np.sqrt(self.training_departure_variance).tolist(),

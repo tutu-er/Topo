@@ -12,6 +12,7 @@ import argparse
 from collections import Counter
 from copy import deepcopy
 from pathlib import Path
+import shutil
 import numpy as np
 from scipy.stats import norm
 
@@ -24,7 +25,10 @@ from ..unified_posterior_dr_20261112.history_scan import load_request
 from .data import checked
 
 
-NOMINAL={'symmetric','symmetric_guard','symmetric_full','symmetric_full_guard','weighted_nominal'}
+# driver.quote dispatches both pq_trust modes to the same symmetric_guard
+# evidence model. Only the admissible action domain differs, not mean/risk.
+NOMINAL={'symmetric','symmetric_guard','symmetric_full','symmetric_full_guard','weighted_nominal',
+    'pq_trust1','pq_trust2'}
 CALIBRATED={'multiplicative_absolute','capped_absolute','weighted_capped'}
 CAPPED={'capped_absolute','weighted_capped'}
 
@@ -175,16 +179,27 @@ def run(run_dir,out):
                             issue='Recorded feasible representative plan fails independent risk sum',sum=row['representative_failure_sum']))
                     records.append(row);own.append(row)
                 quotes.append(dict(id=entry['id'],day=day,mode=mode,planned_feasible=bool(plan['feasible']),
+                    plan_status=plan['status'],zero_action=bool(np.max(abs(controls[mode]),initial=0)<=1e-10),
                     targets=len(own),representative_pass90=all(r['representative_pass90'] for r in own),
                     native_raw_pass90=all(r['native_raw_pass90'] for r in own),
                     native_distinct_H_pass90=all(r['native_distinct_H_pass90'] for r in own),
                     native_worst_pair_over10=any(r['native_worst_pair_failure']>.1+1e-8 for r in own)))
     summary={}
-    for mode in sorted({q['mode'] for q in quotes}):
+    for mode in sorted(set(protocol['modes']) & (NOMINAL|CALIBRATED)):
         allq=[q for q in quotes if q['mode']==mode]
         feasible=[q for q in allq if q['planned_feasible']]
         r=[v for v in records if v['mode']==mode and v['planned_feasible']]
-        summary[mode]=dict(recorded_quotes=len(allq),feasible_quotes=len(feasible),feasible_target_checks=len(r),
+        summary[mode]=dict(planned_quotes=len(entries)*protocol['days'],recorded_quotes=len(allq),
+            unaudited_quotes=len(entries)*protocol['days']-len(allq),
+            feasible_quotes=len(feasible),feasible_target_checks=len(r),
+            feasible_zero_quotes=sum(q['zero_action'] for q in feasible),
+            feasible_nonzero_quotes=sum(not q['zero_action'] for q in feasible),
+            feasible_zero_native_raw_pass=sum(q['zero_action'] and q['native_raw_pass90'] for q in feasible),
+            feasible_nonzero_native_raw_pass=sum(not q['zero_action'] and q['native_raw_pass90'] for q in feasible),
+            all_executed_zero_quotes=sum(q['zero_action'] for q in allq),
+            all_executed_zero_native_raw_pass=sum(q['zero_action'] and q['native_raw_pass90'] for q in allq),
+            fallback_zero_quotes=sum(not q['planned_feasible'] and q['zero_action'] for q in allq),
+            fallback_zero_native_raw_pass=sum(not q['planned_feasible'] and q['zero_action'] and q['native_raw_pass90'] for q in allq),
             feasible_quotes_representative_pass=sum(q['representative_pass90'] for q in feasible),
             feasible_quotes_native_raw_pass=sum(q['native_raw_pass90'] for q in feasible),
             feasible_quotes_native_distinct_H_pass=sum(q['native_distinct_H_pass90'] for q in feasible),
@@ -199,6 +214,8 @@ def run(run_dir,out):
         interpretation='Each chosen representative is treated as the true declared mean (or its fitted multiplicative mean). Sum of Gaussian marginal failure probabilities is a sufficient union bound over all different-topology native parameter points. Values above 0.1 fail this sufficient certificate; they do not prove actual native recovery below 90%, because events overlap and another same-topology parameter point may rescue selection. No rejection guarantee. Identical frozen-H competitors are additionally deduplicated by minimum historical SSE, preserving nested-event union coverage.',
         scope='Uses sealed forecast/control, old validation/native parameters, plan receipts and metadata base_kw only. The existing manifest contains offline qualification fields, which are unused; separate truth records and future observation/outcome files are not opened. No new planning or simulation.')
     out.mkdir(parents=True)
+    shutil.copyfile(__file__,out/'source_snapshot.py')
+    result['source_snapshot']=io.ref(out/'source_snapshot.py')
     io.write(out/'audit.json',result);io.write(out/'targets.json',records);io.write(out/'quotes.json',quotes)
     return result
 

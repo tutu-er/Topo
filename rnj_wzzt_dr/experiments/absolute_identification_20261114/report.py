@@ -12,7 +12,8 @@ from ... import io
 LABELS=dict(no_dfs='无服务',old_gamma2='旧增量2',nominal='单目标名义恢复',calibrated='单目标均值修正',
     symmetric='多目标绝对恢复',symmetric_guard='多目标＋方向保护',symmetric_full='全候选绝对恢复',symmetric_full_guard='全候选＋方向保护',
     multiplicative_absolute='乘性校正绝对恢复',capped_absolute='限幅校正绝对恢复',
-    weighted_nominal='按难度分配误判额度',weighted_capped='按难度分配额度＋限幅校正')
+    weighted_nominal='按难度分配误判额度',weighted_capped='按难度分配额度＋限幅校正',
+    pq_trust1='P/Q方向限制1倍',pq_trust2='P/Q方向限制2倍')
 
 def label(strategy):
     return LABELS.get(strategy,strategy) if not strategy.endswith('_rotation') else label(strategy[:-9])+'同费轮换'
@@ -134,6 +135,9 @@ def summarize_solver(records,entries,modes,days,rows):
             mean_total_charged_seconds=mean([p.get('driver_planning_seconds',0)+p.get('shared_seed_seconds',0) for p in own]),
             maximum_total_charged_seconds=max([p.get('driver_planning_seconds',0)+p.get('shared_seed_seconds',0) for p in own],default=None),
             same_fee_rotation_failures=sum(not p.get('rotation_same_fee',False) for p in own),
+            planning_PQ_restriction_quotes=sum(p.get('trust') is not None for p in own),
+            delivered_PQ_restriction_audits=sum(p.get('delivered_trust_audit') is not None for p in own),
+            delivered_PQ_restriction_exceeded=sum(p.get('delivered_trust_audit') is not None and not p['delivered_trust_audit']['passed'] for p in own),
             certificate_bank_scopes=dict(Counter(p.get('constrained_bank','no_probability_certificate') for p in own)),
             scope='Valid bounds apply to the particular locked QCQP, not to the unapproximated identification probability or physical feasibility.')
     return result
@@ -161,6 +165,10 @@ def report(run,destination):
     p=io.read(run/'protocol.json');entries=io.read(run/'inputs.json');completion=io.read(run/'complete.json')
     rows=[r for path in sorted((run/'days').glob('*/day*/results.json')) for r in io.read(path)]
     plans={(path.parent.parent.name,int(path.parent.name[3:]),name):value for path in sorted((run/'days').glob('*/day*/plans.json')) for name,value in io.read(path).items()}
+    for path in sorted((run/'days').glob('*/day*/delivered_trust.json')):
+        for mode,receipt in io.read(path).items():
+            key=(path.parent.parent.name,int(path.parent.name[3:]),mode)
+            if key in plans:plans[key]['delivered_trust_audit']=receipt
     strategies=['no_dfs']+[s for mode in p['modes'] for s in (mode,mode+'_rotation')]
     result=dict(source=io.ref(__file__),protocol=io.ref(run/'protocol.json'),inputs=io.ref(run/'inputs.json'),
         phase=p['phase'],completion=completion,planned_histories=len(entries),planned_independent_future_paths=len(entries)*p['days'],
@@ -235,9 +243,11 @@ def report(run,destination):
         f"计划策略行{result['planned_strategy_rows']}，记录{len(rows)}，执行失败{result['failed_execution_rows']}，任务失败{result['failed_tasks']}；报价代码异常{result['quote_exceptions']}/{result['planned_optimization_quotes']}次。封存核验{'通过' if result['verification']['passed'] else '失败'}。",'']
     if result['quote_exceptions']:
         lines+=['**本批存在实现失败。异常报价直接回退零动作，后续电气计算成功不代表对应方法完成求解；受影响方法的本批结果仅记录实现故障，不能作为该方法的效果证据。**','']
+    if any(mode.startswith('pq_trust') for mode in p['modes']):
+        lines+=['本轮是在查看前两批结果后设计的开发轮。历史分组沿用原始标记；原“留出”历史现已用于问题诊断，不能再作为本轮未接触的历史验证集。新日随机路径独立于前两批，方法效果按本轮配对比较。','']
     if result['sample_design']=='stratified_repeat44':
-        lines+=['本批是按历史资格锁定的补充分组：全部19个弱优势、9个错误胜者但含真候选输入，加每网络2个明确正确和2个缺真对照。每历史重复32条独立新日。总体均值描述这个指定面板，不能与400输入总体未经加权合并成总体准确率；每历史结果另存本地REPORT.json的per_history。',
-            '', '逐历史恢复率给出条件二项Clopper–Pearson95%区间，前提是同一固定历史条件下32条新日独立同分布；方案差值按配对新日一起抽样2000次。逐历史不使用只有一个历史组的分组bootstrap。未观察到恢复差异时，日bootstrap可能仍为零宽，另列非零宽的独立有界区间；这些区间描述该历史条件，不能外推为400历史的泛化区间。','']
+        lines+=[f"本批是按历史资格锁定的补充分组：全部19个弱优势、9个错误胜者但含真候选输入，加每网络2个明确正确和2个缺真对照。每历史重复{p['days']}条独立新日。总体均值描述这个指定面板，不能与400输入总体未经加权合并成总体准确率；每历史结果另存本地REPORT.json的per_history。",
+            '', f"逐历史恢复率给出条件二项Clopper–Pearson95%区间，前提是同一固定历史条件下{p['days']}条新日独立同分布；方案差值按配对新日一起抽样2000次。逐历史不使用只有一个历史组的分组bootstrap。未观察到恢复差异时，日bootstrap可能仍为零宽，另列非零宽的独立有界区间；这些区间描述该历史条件，不能外推为400历史的泛化区间。",'']
     fmt=lambda x:'—' if x is None else f'{x:.2f}'
     def table(group):
         lines.extend(['|方案|完整恢复|代表模型恢复|含真库平均真权重|该权重分母|实际激活费/元|非零／零费／回退|','|---|---:|---:|---:|---:|---:|---:|'])
@@ -266,6 +276,11 @@ def report(run,destination):
     for mode,s in result['solver'].items():lines.append(f"|{label(mode)}|{s['feasible_quotes']}/{s['planned_quotes']}|{s['zero_sufficient']}|{s['nonzero_bound_closed']}/{s['nonzero_feasible']}|{s['initial_retained']}|{s['native_found_without_verified_initial']}|{fmt(None if s['mean_relative_gap_nonzero'] is None else 100*s['mean_relative_gap_nonzero'])}%|{fmt(s['mean_total_charged_seconds'])}|{s['same_fee_rotation_failures']}|")
     lines+=['','|方案|代码异常|QCQP内不可行证明|预算内未决|求解器时间上限|','|---|---:|---:|---:|---:|']
     for mode,s in result['solver'].items():lines.append(f"|{label(mode)}|{s['quote_exceptions']}|{s['infeasibility_proved']}|{s['unresolved_quotes']}|{s['time_limits']}|")
+    if any(s['planning_PQ_restriction_quotes'] for s in result['solver'].values()):
+        lines+=['','|规划方向限制|应用报价数|交付后复核数|交付后超出规划限制|','|---|---:|---:|---:|']
+        for mode,s in result['solver'].items():
+            if s['planning_PQ_restriction_quotes']:lines.append(f"|{label(mode)}|{s['planning_PQ_restriction_quotes']}|{s['delivered_PQ_restriction_audits']}|{s['delivered_PQ_restriction_exceeded']}|")
+        lines+=['','P/Q方向限制只缩小规划可选域，原物理设备约束保持不变。交付后超出这项历史方向限制单列，不计作设备约束违反；其受限QCQP不可行也不证明原物理资源域内不存在方案。两档限制仍允许零动作，不能修复原模型误判零动作已充分的问题。']
     lines+=['','时间含本方法初始化；公共初值实际生成时间分别计入使用它的方案预算。只对当前QCQP的有效上下界讨论最优性；未决与模型内不可行分别记录，均不证明原辨识任务不可行。费用是原示例报价的激活补偿，未另加完整市场采购成本。','',
         '## 去掉AC非线性的配对比较','', '|方案|线性恢复而AC失败|AC恢复而线性失败|线性减AC平均真权重/百分点|','|---|---:|---:|---:|']
     for strategy,a in result['linear_ablation'].items():lines.append(f"|{label(strategy)}|{a['linear_recovers_AC_fails']}|{a['AC_recovers_linear_fails']}|{fmt(None if a['mean_linear_minus_AC_true_weight'] is None else 100*a['mean_linear_minus_AC_true_weight'])}|")
