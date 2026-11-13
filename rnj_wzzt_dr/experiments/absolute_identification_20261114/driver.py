@@ -25,14 +25,9 @@ WORK={}
 
 def utc(): return datetime.now(timezone.utc).isoformat()
 
-def resources(entry):
-    c=deepcopy(io.read(ROOT/'outputs/customer_flexibility_sweep_20261113_v1/resource_configs/higher.json'))
-    labels=entry['labels']; n=len(labels)
-    c.update(id=entry['case']+'_fixed12_DER',network_case=entry['case'],expected_terminal_labels=labels,
-        placement_rule='Map original15-node ordinal locations linearly to N; fixed before new outcomes; no truth or fitted H read.')
-    for r in c['resources']:
-        r['node_label']=labels[round((r['node_label']-101)*(n-1)/14)]
-    return CustomerCase(c,labels)
+def resources(entry,scale=1.):
+    from .catalog import resources as catalog
+    return catalog(entry,scale)
 
 def physical_background(module,case,entry,replicate):
     parameters=dict(entry['physical_parameters'],replicate=replicate,study_seed=20261114)
@@ -63,7 +58,9 @@ def prepare(args):
     for cohort in sorted({e['physical_cohort'] for e in entries}): open_runtime(out,cohort)
     for entry in entries:
         dest=out/'resource_configs'/(entry['case']+'.json')
-        if not dest.exists():io.write(dest,resources(entry).config)
+        if not dest.exists():
+            io.write(dest,resources(entry,args.resource_scale).config)
+            io.write(out/'installed_configs'/(entry['case']+'.json'),resources(entry,args.baseline_scale).config)
     sources={}
     for p in sorted((ROOT/'rnj_wzzt_dr').rglob('*.py')):
         relative=p.relative_to(ROOT);dest=out/'source_snapshot'/relative
@@ -72,6 +69,7 @@ def prepare(args):
     p=dict(created_utc=utc(),environment=io.environment(),commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         sources=sources,input_ref=io.ref(args.inputs),entries=len(entries),days=args.days,solver_seconds=args.seconds,
         workers=args.workers,modes=args.modes.split(','),replicate_base=args.replicate_base,
+        resource_scale=args.resource_scale,baseline_scale=args.baseline_scale,
         replicate_rule='base + original_index*100 + day',study_seed=20261114,forecast_relative_sd=.05,
         primary='Original complete native frozen bank strict validation-history+new-day MSE recovery',
         physics=['original_AC','physical_LinDistFlow'],new_identifier_fits=0,parameter_refits=0,
@@ -94,7 +92,7 @@ def initialize(out):
 def context(entry):
     if entry['id'] not in WORK['cache']:
         score,train,val,truth=load_entry(entry);score['p_map']=entry['p_map']
-        case=resources(entry);pattern,rotation_receipt=fixed_rotation(case)
+        case=resources(entry,WORK['p'].get('resource_scale',1.));pattern,rotation_receipt=fixed_rotation(case)
         WORK['cache'][entry['id']]=dict(score=score,train=train,val=val,truth=truth,case=case,
             pattern=pattern,rotation_receipt=rotation_receipt,means=calibrated_means(score,val),voltage_sigma=entry['voltage_sigma'])
     return WORK['cache'][entry['id']]
@@ -115,6 +113,9 @@ def quote(mode,ctx,prediction,base,seconds,seeds=None):
     if mode in ('multiplicative_absolute','capped_absolute'):
         from .solver_v2 import plan
         return plan(case,s,ctx['val'],prediction,base,mode=mode,seconds=seconds,env=WORK['env'],seed_points=seeds)
+    if mode in ('weighted_nominal','weighted_capped'):
+        from .solver_v3 import plan
+        return plan(case,s,ctx['val'],prediction,base,mode=mode,seconds=seconds,env=WORK['env'],seed_points=seeds)
     from .solver import plan
     return plan(case,s,ctx['val'],prediction,base,mode='symmetric_guard' if 'guard' in mode else 'symmetric',
         target_mass=1. if 'full' in mode else .99,seconds=seconds,env=WORK['env'],seed_points=seeds)
@@ -128,11 +129,13 @@ def run_day(task):
     cohort=entry['physical_cohort']
     if cohort not in WORK['modules']:WORK['modules'][cohort]=open_runtime(out,cohort)[0]
     module=WORK['modules'][cohort];replicate=p['replicate_base']+entry['original_index']*100+day
-    b=physical_background(module,case,entry,replicate);prediction=forecast(b,replicate);base=b['network']['base_kw']
+    installed=resources(entry,p.get('baseline_scale',1.))
+    b=physical_background(module,installed,entry,replicate);prediction=forecast(b,replicate);base=b['network']['base_kw']
     controls={'no_dfs':np.zeros(case.shape)};plans={};seeds=None;seed_receipt={'seconds':0.}
     if p['shared_initial_points']:
         from .commonseeds import build_portfolio
         seeds,seed_receipt=build_portfolio(case,s,prediction,base,env=WORK['env'],seconds=min(2.,p['solver_seconds']/3))
+        np.savez_compressed(d/'shared_points.npz',**seeds)
     for mode in p['modes']:
         began=perf_counter()
         try:
@@ -149,7 +152,8 @@ def run_day(task):
         receipt['rotation_same_fee']=abs(case.fee(controls[mode+'_rotation'])-fee)<=1e-7;plans[mode]=receipt
     np.savez_compressed(d/'planner.npz',forecast=prediction,**controls)
     io.write(d/'plans.json',plans);io.write(d/'shared_seeds.json',seed_receipt)
-    io.write(d/'seal.json',dict(created_utc=utc(),planner=io.ref(d/'planner.npz'),plans=io.ref(d/'plans.json'),protocol=io.ref(out/'protocol.json'),truth_not_passed_to_planner=True))
+    io.write(d/'seal.json',dict(created_utc=utc(),planner=io.ref(d/'planner.npz'),plans=io.ref(d/'plans.json'),protocol=io.ref(out/'protocol.json'),truth_not_passed_to_planner=True,
+        shared_points=None if seeds is None else io.ref(d/'shared_points.npz')))
     rng=np.random.default_rng(np.random.SeedSequence([20261114,replicate,773]));eta=rng.uniform(.9,1.,case.R)
     np.savez_compressed(d/'background.npz',P=b['p'],Q=b['q'],root=b['root'],response=eta,**{'noise'+str(i):z for i,z in enumerate(b['noise'])})
     io.write(d/'generation.json',b['metadata']);rows=[]
@@ -177,7 +181,15 @@ def main():
     a=argparse.ArgumentParser();a.add_argument('--out',type=Path,required=True);a.add_argument('--inputs',type=Path);a.add_argument('--days',type=int,default=2)
     a.add_argument('--seconds',type=float,default=6.);a.add_argument('--workers',type=int,default=4);a.add_argument('--replicate-base',type=int,default=2000000)
     a.add_argument('--modes',default='old_gamma2,nominal,symmetric,symmetric_guard');a.add_argument('--common-seeds',action='store_true')
+    a.add_argument('--resource-scale',type=float,default=1.);a.add_argument('--baseline-scale',type=float,default=1.)
     a.add_argument('--resume',action='store_true');a.add_argument('--limit',type=int);a.add_argument('--phase',default='development');args=a.parse_args();out=args.out.resolve()
+    # Resolve every solver module before locking a large batch.
+    from .solver import plan as _v1
+    from .solver_v2 import plan as _v2
+    from .solver_v3 import plan as _v3
+    valid={'old_gamma2','nominal','calibrated','symmetric','symmetric_guard','symmetric_full','symmetric_full_guard','multiplicative_absolute','capped_absolute','weighted_nominal','weighted_capped'}
+    if not set(args.modes.split(','))<=valid:raise ValueError('Unknown planning mode')
+    if not 0<args.resource_scale<=args.baseline_scale:raise ValueError('Contracted device scale must be positive and no larger than installed catalog')
     p=io.read(out/'protocol.json') if args.resume else prepare(args)
     entries=io.read(out/'inputs.json');tasks=[(e,day) for e in entries for day in range(p['days'])]
     finished=[];failed=[]
