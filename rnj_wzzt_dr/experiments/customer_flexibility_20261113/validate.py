@@ -35,13 +35,14 @@ def csv_write(path, rows):
         w.writerows(rows)
 
 
-def run(out, runtime_run):
+def run(out, runtime_run, config_file=None):
     began = perf_counter()
     if out.exists():
         raise FileExistsError('Preserve previous checks; choose a new output directory: '+str(out))
     out.mkdir(parents=True)
-    case = CustomerCase()
-    sources = [Path(__file__), Path(__file__).with_name('model.py'), Path(__file__).with_name('case.json'),
+    config_file = Path(__file__).with_name('case.json') if config_file is None else config_file
+    case = CustomerCase(io.read(config_file))
+    sources = [Path(__file__), Path(__file__).with_name('model.py'), config_file,
                Path(__file__).parents[1]/'expected_logodds_admm_20261113/evidence.py']
     protocol = dict(created_utc=datetime.now(timezone.utc).isoformat(), pid=os.getpid(),
         id=case.config['id'], purpose='Resource configuration, linear feasibility and deterministic AC checks only',
@@ -183,5 +184,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--runtime-run', type=Path, default=DEFAULT_RUNTIME_RUN)
+    parser.add_argument('--config', type=Path)
     args = parser.parse_args()
-    run(args.output.resolve(), args.runtime_run.resolve())
+    run(args.output.resolve(), args.runtime_run.resolve(), None if args.config is None else args.config.resolve())

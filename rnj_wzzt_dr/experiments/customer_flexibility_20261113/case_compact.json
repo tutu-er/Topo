@@ -1,0 +1,232 @@
+{
+  "id": "paper15_compact_electric_buffer_v2",
+  "network_case": "paper15",
+  "description": "Synthetic customer-resource overlay on the unchanged paper15 feeder; not a reproduction of the Dutch or Swiss networks.",
+  "placement_rule": "Six predefined terminal meter IDs spaced through the public terminal-label list; no branch, fitted H, truth, posterior or prospective DR outcome used.",
+  "expected_terminal_labels": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115
+  ],
+  "time": {
+    "start_hour": 8,
+    "decision_hours": 1,
+    "hours": 24,
+    "measurement_minutes": 15
+  },
+  "solar": {
+    "sunrise_hour": 6,
+    "sunset_hour": 18,
+    "shape_exponent": 1.5
+  },
+  "thermal": {
+    "cop": 3.0,
+    "water_litres": 300.0,
+    "water_heat_capacity_kJ_per_kg_K": 4.186,
+    "initial_temperature_C": 47.5,
+    "minimum_temperature_C": 40.0,
+    "maximum_temperature_C": 55.0,
+    "ambient_temperature_C": 20.0,
+    "hourly_temperature_retention": 0.98,
+    "baseline_power_kw": {
+      "default": 0.4,
+      "morning": 0.8,
+      "evening": 1.0
+    },
+    "morning_hours": [
+      6,
+      9
+    ],
+    "evening_hours": [
+      17,
+      22
+    ],
+    "terminal_temperature": "equal initial temperature",
+    "electric_buffer_kwh": 0.85
+  },
+  "resources": [
+    {
+      "id": "pv101",
+      "kind": "pv",
+      "node_label": 101,
+      "dc_peak_kwp": 4.5,
+      "inverter_kva": 3.75,
+      "q_over_p": 0.0,
+      "baseline_available_fraction": 1.0,
+      "fee_positive_yuan_per_kwh": 0.3,
+      "fee_negative_yuan_per_kwh": 0.05
+    },
+    {
+      "id": "pv106",
+      "kind": "pv",
+      "node_label": 106,
+      "dc_peak_kwp": 4.5,
+      "inverter_kva": 3.75,
+      "q_over_p": 0.0,
+      "baseline_available_fraction": 1.0,
+      "fee_positive_yuan_per_kwh": 0.32,
+      "fee_negative_yuan_per_kwh": 0.05
+    },
+    {
+      "id": "pv111",
+      "kind": "pv",
+      "node_label": 111,
+      "dc_peak_kwp": 4.5,
+      "inverter_kva": 3.75,
+      "q_over_p": 0.0,
+      "baseline_available_fraction": 1.0,
+      "fee_positive_yuan_per_kwh": 0.28,
+      "fee_negative_yuan_per_kwh": 0.05
+    },
+    {
+      "id": "ev104",
+      "kind": "ev",
+      "node_label": 104,
+      "power_kw": 3.68,
+      "efficiency": 0.9,
+      "battery_energy_required_kwh": 7.5,
+      "connected_clock_hours": [
+        9,
+        17
+      ],
+      "baseline_charging_clock_hours": [
+        10,
+        14
+      ],
+      "q_over_p": 0.0,
+      "fee_positive_yuan_per_kwh": 0.1,
+      "fee_negative_yuan_per_kwh": 0.1
+    },
+    {
+      "id": "ev108",
+      "kind": "ev",
+      "node_label": 108,
+      "power_kw": 3.68,
+      "efficiency": 0.9,
+      "battery_energy_required_kwh": 7.5,
+      "connected_clock_hours": [
+        18,
+        7
+      ],
+      "baseline_charging_clock_hours": [
+        0,
+        4
+      ],
+      "q_over_p": 0.0,
+      "fee_positive_yuan_per_kwh": 0.12,
+      "fee_negative_yuan_per_kwh": 0.12
+    },
+    {
+      "id": "ev114",
+      "kind": "ev",
+      "node_label": 114,
+      "power_kw": 3.68,
+      "efficiency": 0.9,
+      "battery_energy_required_kwh": 7.5,
+      "connected_clock_hours": [
+        17,
+        8
+      ],
+      "baseline_charging_clock_hours": [
+        1,
+        5
+      ],
+      "q_over_p": 0.0,
+      "fee_positive_yuan_per_kwh": 0.08,
+      "fee_negative_yuan_per_kwh": 0.08
+    },
+    {
+      "id": "hp106",
+      "kind": "thermal",
+      "node_label": 106,
+      "power_kw": 2.0,
+      "power_factor": 0.95,
+      "fee_positive_yuan_per_kwh": 0.15,
+      "fee_negative_yuan_per_kwh": 0.15
+    },
+    {
+      "id": "hp114",
+      "kind": "thermal",
+      "node_label": 114,
+      "power_kw": 2.0,
+      "power_factor": 0.95,
+      "fee_positive_yuan_per_kwh": 0.12,
+      "fee_negative_yuan_per_kwh": 0.12
+    }
+  ],
+  "pricing": {
+    "status": "Illustrative yuan quotations, not observed/calibrated market prices; node differences are declared assumptions.",
+    "clock_hour_multiplier": {
+      "default": 1.0,
+      "morning_evening_peak": 1.25,
+      "night": 0.8
+    },
+    "peak_clock_windows": [
+      [
+        7,
+        10
+      ],
+      [
+        17,
+        22
+      ]
+    ],
+    "night_clock_windows": [
+      [
+        0,
+        7
+      ]
+    ],
+    "reservation_fee_yuan_per_kw_day": 0.0,
+    "grid_buy_yuan_per_kwh": {
+      "night": 0.3,
+      "day": 0.5,
+      "evening": 0.8
+    },
+    "grid_sell_to_buy_ratio": 0.9,
+    "accounting": "Primary cost is service compensation. The separate net-energy value sums customer-terminal powers, excludes network losses and is not automatically the DSO's own cash bill. EV/thermal compensation uses absolute changes, including rebound; do not also charge a full per-shifted-kWh fee."
+  },
+  "sources": [
+    {
+      "id": "zhan2021",
+      "doi": "10.36227/techrxiv.17032490.v1",
+      "url": "https://pure.tue.nl/ws/portalfiles/portal/191489652/SenZhanMS.pdf",
+      "location": "Manuscript Section III.A (PDF pp.6-8)",
+      "used": "PV 4.5 kW DC/3.75 kVA inverter; 230 V x 16 A EV charger, efficiency 90%, daily energy scale 7.5 kWh; COP 3, 1000 L reference tank and 40-55 C temperature range.",
+      "difference": "Our feeder, device count/placement, 2 kW thermal power, connection windows, heat-demand profile, 0.98 retention and monetary quotations are synthetic choices. We explicitly interpret 7.5 kWh as battery-side energy."
+    },
+    {
+      "id": "zapparoli2025",
+      "doi": "10.1038/s41597-025-05830-y",
+      "url": "https://arxiv.org/abs/2506.08724",
+      "location": "Methods: heat pumps, electric vehicles and grid integration",
+      "used": "Separate inflexible demand from allocated DERs; V1G charging with power/energy limits and thermal flexibility.",
+      "difference": "Swiss deployment counts and projected adoption shares are not copied to this feeder."
+    },
+    {
+      "id": "bodal2022",
+      "doi": "10.1049/gtd2.12651",
+      "url": "https://ietresearch.onlinelibrary.wiley.com/doi/10.1049/gtd2.12651",
+      "used": "Power/energy flexibility and rebound; Section 2.1.2 discusses 200 L, 2-3 kW residential electric water heaters.",
+      "difference": "Our 300 L heat-pump buffer, COP=3 and 0.85 kWh electrical contract are explicit synthetic assumptions, not that paper device calibration."
+    },
+    {
+      "id": "sanandaji2014",
+      "url": "https://arxiv.org/abs/1310.1693",
+      "used": "Definition 1: linear dissipative energy state with power and energy limits.",
+      "difference": "Our single resource represents a continuously controllable contracted group; no general exactness claim for arbitrary on/off devices."
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # MIQP RNJ＋WZZT → 条件 DR 主线
 
+**2026-11-13资源位置核查：**[线性资源模型、作用节点及可达证据量](experiments/customer_flexibility_20261113/RESOURCE_REVIEW.md)。三项合格历史输入的规划检查表明，位置调整可降低一项名义报价，另外两项在适度增容后仍达不到原gamma=2要求；上下界、初值、超时和候选缺失分别保留。新增简化电量缓冲与合同配置，尚未开展新配置的独立辨识收益测试。
+
 **2026-11-13新增资源算例：**[有限用户端PV、EV和热泵/热水资源](experiments/customer_flexibility_20261113/README.md)。在原paper15网络的6/15个表计接入点配置3套光伏、3个充电桩和2套热泵储热设备，设备约束及交付均采用线性模型；已完成9项测试、48个逐时范围LP及7份参考日AC校核。[配置及核验结果](experiments/customer_flexibility_20261113/results/SUMMARY.json)只用于资源与接口验收，信息采购QCQP和辨识改善尚待测试。
 
 **2026-11-13当前研究进展：**[历史残差方向检查、费用求解与配网灵活性ED核算](experiments/residual_guard_ed_20261113/README.md)。重点测试库含真候选但历史证据不足的28个输入，另保留容易、缺候选及下降对照；[结果](experiments/residual_guard_ed_20261113/results/REPORT.md)记录改善、仍下降、未报价和费用界未闭合。新增研究不修改生产默认。

@@ -103,6 +103,15 @@ class CustomerCase:
                     rows[h, np.arange(h+1)*self.R+j] = t['cop']*self.dt*rho**np.arange(h, -1, -1)
                 low = capacity*(t['minimum_temperature_C']-t['initial_temperature_C'])
                 high = capacity*(t['maximum_temperature_C']-t['initial_temperature_C'])
+                # Optional electricity-equivalent service contract. This is a
+                # change of units, e=z/COP, with an explicit smaller budget;
+                # it keeps the original temperature bounds for the audit.
+                if 'electric_buffer_kwh' in t:
+                    budget = float(t['electric_buffer_kwh'])
+                    if not np.isfinite(budget) or budget <= 0:
+                        raise ValueError("Positive finite thermal electric buffer required")
+                    low = max(low, -t['cop']*budget)
+                    high = min(high, t['cop']*budget)
                 ub.extend(rows)
                 bound.extend(np.full(self.H, high))
                 ub.extend(-rows)
@@ -113,7 +122,8 @@ class CustomerCase:
                 if np.any(heat < 0):
                     raise ValueError("Reference thermal demand would be negative")
                 self.thermal[j] = dict(capacity_kwh_per_C=capacity, rows=rows,
-                                       heat_demand_kw=heat, lower_heat_kwh=low, upper_heat_kwh=high)
+                                       heat_demand_kw=heat, lower_heat_kwh=low, upper_heat_kwh=high,
+                                       electric_buffer_kwh=[low/t['cop'], high/t['cop']])
             else:
                 raise ValueError("Unknown resource kind: "+kind)
         self.lower, self.upper = minimum-self.baseline, maximum-self.baseline
@@ -126,6 +136,8 @@ class CustomerCase:
         self.A_ub = np.array(ub).reshape(-1, self.dimension)
         self.b_ub = np.array(bound)
         price = c['pricing']
+        if price['reservation_fee_yuan_per_kw_day'] != 0:
+            raise ValueError("This adapter prices activation only; account for reservation fees separately")
         mult = np.full(self.H, price['clock_hour_multiplier']['default'])
         for w in price['peak_clock_windows']:
             mult[window(self.clock, *w)] = price['clock_hour_multiplier']['morning_evening_peak']
