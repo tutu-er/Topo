@@ -1,0 +1,36 @@
+{
+  "scope": "Resource setup, coupled linear device range and one deterministic reference-day AC check; no identification or DR evidence-cost experiment",
+  "source_run": "outputs/customer_flexibility_20261113_v2",
+  "protocol_sha256": "3f6a902997b45f539112c1431e7513549b868f340833ddc9c9fb4dc8104c39ca",
+  "public_results": {
+    "ac_checks.csv": "c04512d7ff7858714f1bf6bf4fddbc7f87eca4e4070ba583ea95a28faedd1b9b",
+    "hourly_headroom.csv": "ce3147be2acb946d25a74d8e1c43944366bf615b6f2bc59c7a9369a462529802",
+    "SUMMARY.json": "58a43a6abc2b290e2cc8c39acdb615a3be72d249532854b7630d335737ff723b"
+  },
+  "sources": {
+    "rnj_wzzt_dr\\experiments\\customer_flexibility_20261113\\validate.py": "37aba988f8848cb4abf6e5fc10f1e726288d1214fb006dfdf374a12ad63b05f3",
+    "rnj_wzzt_dr\\experiments\\customer_flexibility_20261113\\model.py": "259c40855c83c30207e87ae9eace6cfc4194f0e1a9640cdd74f3330860b60bbd",
+    "rnj_wzzt_dr\\experiments\\customer_flexibility_20261113\\case.json": "cc6fac2ed3be4355e0d1a1595303173df59df1fefe81f4008b17ce78fb8cd927",
+    "rnj_wzzt_dr\\experiments\\expected_logodds_admm_20261113\\evidence.py": "8929ef89cf480b65c9b5bd395143a42111e17813a98918855a3cf84f69ab8ae9"
+  },
+  "environment": {
+    "python": "3.11.15 | packaged by Anaconda, Inc. | (main, Jun 11 2026, 15:12:53) [MSC v.1942 64 bit (AMD64)]",
+    "packages": {
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "gurobipy": "13.0.3"
+    }
+  },
+  "tests": {
+    "command": "python -B -m pytest rnj_wzzt_dr/experiments/customer_flexibility_20261113/test_model.py -q",
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "test_source_sha256": "6a2dc2f82af1e0914c2e9fc0c186ab2720719f9e897c824afcb5613848bc1e7c"
+  },
+  "device_LP_solves": 48,
+  "reference_day_AC_schedules": 7,
+  "independent_new_day_performance_trials": 0,
+  "version_note": "v1 is preserved; v2 clarifies that the energy-value account excludes network losses and saves source snapshots. They repeat the same reference day.",
+  "private": "Physical R/X, raw P/Q/V, schedules and runtime binding remain in ignored outputs."
+}
