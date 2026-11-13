@@ -1,5 +1,7 @@
 # 有幅度边界的双向灵活性价格响应
 
+本轮已完成400输入×4日主体、12个锁定输入×32日独立复验，以及全部观测和容量配对核验。[结果与失败](results/REPORT.md)、[模型、求解和下降原因](MODEL.md)、[求解状态及费用界](results/solver_summary.json)为本目录主要入口。
+
 本轮允许发电、储能、可调负荷的聚合资源双向改变节点净功率，不把净注入判为违规。基线可理解为日前已经安排的净功率；价格只调用事先签约的可用偏移量。市场主体的接入关系不自动赋予运营商任意调度权，调用权来自合同、市场成交、自有资源或相应调度安排。
 
 政策依据使用原文：[中国虚拟电厂指导意见2025](https://www.ndrc.gov.cn/xxgk/zcfb/tz/202504/t20250411_1397162_ext.html)、[需求侧管理办法2023](https://zfxxgk.ndrc.gov.cn/web/iteminfo.jsp?id=20274)、[欧盟电力市场指令第32条](https://eur-lex.europa.eu/eli/dir/2019/944/)。这些来源支持聚合和采购分布式电源、储能、负荷等灵活性，不代表所有地区或所有资源均由DSO无条件控制。
@@ -30,3 +32,5 @@
 `diagnose.py`只读取旧的冻结观测，在事后把真候选对竞争者的实际证据变化精确拆为：预测距离、冻结响应参数差异、AC非线性和表计四项。真实物理矩阵只用于这个离线解释，不提供给价格规划。Soumalas039的gamma=4均值项为+3.988、−8.516、+2.157、−.155，合计−2.526；不能只归因于历史首选错误，因为另有历史首选错误的例子经DR改善。
 
 入口：`python -X utf8 -B -m rnj_wzzt_dr.experiments.bidirectional_price_dr_20261113.run --run outputs/a_new_bidirectional_run --stage prepare|pilot|population|confirmation`。已有完成标记和锁须保留。
+
+复核已有完成结果使用`python -X utf8 -B -m rnj_wzzt_dr.experiments.bidirectional_price_dr_20261113.audit --run <private_run> --phase <phase> --workers 4`，不得覆盖已有核验。数值结果来自正式`outputs/bidirectional_price_dr_20261113_v2`；开发v1保留了旧初值分支的完整主体，不混入正式统计。

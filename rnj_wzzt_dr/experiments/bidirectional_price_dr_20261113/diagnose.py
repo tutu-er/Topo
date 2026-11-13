@@ -32,20 +32,20 @@ def physical_H(module,meta,labels):
     return np.column_stack((R,X))
 
 
-def run(out):
+def run(out,phase='confirmation',identities=IDS):
     require(not out.exists(),'Preserve earlier diagnosis');out.mkdir(parents=True)
     entries={e['request']['id']:e for e in io.read(OLD/'inputs.json')}
     truth={e['id']:e for e in io.read(ROOT/'outputs/unified_posterior_dr_20261112_v1/evaluation.json')}
-    io.write(out/'protocol.json',dict(created_utc=utc(),source=io.ref(__file__),ids=list(IDS),
+    io.write(out/'protocol.json',dict(created_utc=utc(),source=io.ref(__file__),ids=list(identities),phase=phase,
         scope='offline decomposition of already completed actual AC; no true matrix enters new planning',new_days=0))
     modules={};aggregate=[];records=[]
-    for identity in IDS:
+    for identity in identities:
         entry=entries[identity];score=io.read(entry['scores']['path']);H=np.array([p['H'] for p in score['parameters']]);sigma2=score['sigma2']
         ti=next(i for i,m in enumerate(score['models']) if m['topology_id']==truth[identity]['truth_id'])
         planned=entry['target'];cohort=entry['request']['cohort']
         if cohort not in modules:modules[cohort]=open_runtime(OLD,cohort)[0]
         counts=Counter()
-        for d in sorted((OLD/'confirmation/jobs'/identity).glob('day*')):
+        for d in sorted((OLD/phase/'jobs'/identity).glob('day*')):
             meta=io.read(d/'generation.json');Hp=physical_H(modules[cohort],meta,score['labels'])
             with np.load(d/'physical.npz',allow_pickle=False) as physical,np.load(d/'observed.npz',allow_pickle=False) as obs,np.load(d/'planner.npz',allow_pickle=False) as packet:
                 names=obs['strategy'].tolist();baseline={};current={}
@@ -80,4 +80,6 @@ def run(out):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);run(p.parse_args().output.resolve())
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--phase',choices=['population','confirmation'],default='confirmation');p.add_argument('--ids',nargs='+')
+    a=p.parse_args();run(a.output.resolve(),a.phase,IDS if a.ids is None else a.ids)
