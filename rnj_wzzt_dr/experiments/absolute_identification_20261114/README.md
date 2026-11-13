@@ -3,6 +3,9 @@
 本目录隔离保存2026-11-14的推导、实现和扩大试验。生产默认未改动，原辨识器及旧结果保持不变。
 
 - `STUDY_LOG.md`：逐轮目标、发现、修正和锁定决定，包括失败批次。
+- `ANALYSIS.md`：800日与1408日完整结果、正反例、模型失配及继续迭代的依据。
+- `reports/REPEATED_CASES.md`：全部44份重复历史的恢复次数与费用。
+- `NATIVE_FAILURE_ANALYSIS.md`、`METER_MODEL_AUDIT.md`：逐事件归因、P/Q外推问题及表计评分对照。
 - `INVENTORY.md`：400个冻结历史库、真拓扑覆盖和物理历史分组。
 - `THEORY_NEXT.md`：绝对恢复条件、对称候选保护、模型偏差与QCQP形式。
 - `data.py`：原完整候选库适配，不重新拟合。
@@ -24,4 +27,4 @@ D:/apps/miniconda3/envs/Topo/python.exe -m rnj_wzzt_dr.experiments.absolute_iden
 D:/apps/miniconda3/envs/Topo/python.exe -m rnj_wzzt_dr.experiments.absolute_identification_20261114.report --run outputs/NEW_RUN --destination rnj_wzzt_dr/experiments/absolute_identification_20261114/reports/NEW_REPORT
 ```
 
-后续确认结果和最终建议完成后另见综合分析。固定库缺少真拓扑的输入必须保持在报告中；拒绝输出、零采购和完整恢复分别计数。
+800日和1408日均已执行并独立核验，报告见对应reports子目录。固定库缺少真拓扑的输入保持在报告中；拒绝输出、零采购和完整恢复分别计数。新增迭代不覆盖已完成结果，已打开的确认数据只作诊断材料。
