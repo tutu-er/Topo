@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import numpy as np
 from ..linear_ac_population_20261113.solver import Model
 from .solver import solve,box_upper
@@ -29,6 +30,14 @@ class Tests(unittest.TestCase):
         m=self.model(False);r=solve(m,.7,.3)
         self.assertTrue(r['qualified']);self.assertTrue(r['global_optimality_verified'])
         self.assertLessEqual(np.max(abs(r['x'])),.3+1e-10)
+
+    def test_unproved_in_capacity_seed_continues_native_search(self):
+        m=self.model(False);original=solve(m,.7,.3)
+        original.update(global_optimality_verified=False,lower_bound=0.,relative_gap=1.)
+        with patch('rnj_wzzt_dr.experiments.bidirectional_price_dr_20261113.solver.unbounded',return_value=original):
+            result=solve(m,.7,.3,seconds=.4)
+        self.assertTrue(result['qualified']);self.assertIsNotNone(result['native'])
+        self.assertLessEqual(result['cost'],original['cost']+1e-9)
 
 
 if __name__=='__main__':unittest.main()

@@ -13,7 +13,7 @@ def box_upper(model,alpha):
 
 
 def solve(model,gamma,alpha,*,seconds=.4,env=None):
-    if alpha is None:return unbounded(model,gamma,seconds=min(seconds,.15),env=env)
+    if alpha is None:return unbounded(model,gamma,seconds=seconds,env=env)
     began=perf_counter();initial=unbounded(model,gamma,seconds=0.,env=env)
     upper=box_upper(model,alpha)
     if initial.get('lower_bound') is not None and initial['lower_bound']>alpha**2+1e-10*max(1.,alpha**2):
@@ -24,7 +24,7 @@ def solve(model,gamma,alpha,*,seconds=.4,env=None):
         return dict(qualified=False,status='box_upper_proves_infeasible',source='valid_outer_box_bound',
             seconds=perf_counter()-began,cost=None,lower_bound=None,relative_gap=None,
             global_optimality_verified=False,infeasibility_proved=True,gain_upper=upper,alpha=alpha)
-    if initial['qualified'] and np.max(abs(initial['x']))<=alpha+1e-10:
+    if initial['qualified'] and initial['global_optimality_verified'] and np.max(abs(initial['x']))<=alpha+1e-10:
         initial.update(alpha=alpha,infeasibility_proved=False,seconds=perf_counter()-began)
         return initial
     lower=initial.get('lower_bound') or 0.;candidates=[]
@@ -52,7 +52,7 @@ def solve(model,gamma,alpha,*,seconds=.4,env=None):
     owns=env is None
     if owns:
         env=gp.Env(empty=True);env.setParam('OutputFlag',0);env.start()
-    native=None;source=None if best is None else best[0]
+    native=None;source=None if best is None else best[0];initial_source=source
     try:
         with gp.Model('bounded_bidirectional_QCQP',env=env) as m:
             for k,v in dict(OutputFlag=0,Threads=1,NonConvex=2,MIPGap=.01,FeasibilityTol=1e-8,NumericFocus=1).items():m.setParam(k,v)
@@ -72,7 +72,8 @@ def solve(model,gamma,alpha,*,seconds=.4,env=None):
             for j in range(len(model.M)):
                 quadratic=sum(v[h]@model.Q[j]@v[h] for h in range(24))
                 m.addConstr((quadratic+2*(model.a[j]*v).sum())/gamma>=1.)
-            if best:v.Start=best[1]
+            if best:
+                v.Start=best[1];initial_source=best[0]
             m.Params.TimeLimit=max(.001,seconds-(perf_counter()-began));m.optimize()
             bound=finite_attribute(m,'ObjBound');gap=finite_attribute(m,'MIPGap') if m.SolCount else None
             native=dict(status=int(m.Status),solutions=int(m.SolCount),bound=bound,gap=gap,sufficient_QP_status=qp_status)
@@ -99,4 +100,5 @@ def solve(model,gamma,alpha,*,seconds=.4,env=None):
     gap=max(0.,cost-lower)/max(cost,1e-30)
     return dict(qualified=True,x=x,status='qualified',source=source,cost=cost,lower_bound=lower,relative_gap=gap,
         global_optimality_verified=gap<=1e-5,seconds=perf_counter()-began,native=native,alpha=alpha,
-        initialization_cost=seed_cost,gains=gains,infeasibility_proved=False)
+        initialization_cost=seed_cost,initialization_source=initial_source,
+        initialization_verified=seed_cost is not None,gains=gains,infeasibility_proved=False)

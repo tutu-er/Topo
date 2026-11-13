@@ -15,7 +15,7 @@ OLD=ROOT/'outputs/linear_ac_population_20261113_v2'
 SCENARIOS={'unbounded':None,'cap10':.1,'cap30':.3,'cap50':.5}
 
 
-def prepare(out):
+def prepare(out,study_seed=2026111309,development=None):
     require(not out.exists(),'Keep existing run');out.mkdir(parents=True)
     require(io.read(OLD/'confirmation/independent_audit.json')['status']=='passed','Require audited prior study')
     prior=io.read(OLD/'protocol.json');inputs=io.read(OLD/'inputs.json')
@@ -26,7 +26,7 @@ def prepare(out):
         if p.parent==Path(__file__).parent and p.name in ('audit.py','report.py','diagnose.py'):continue
         relative=p.relative_to(ROOT);target=out/'source_snapshot'/relative;target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(p,target);sources[relative.as_posix()]=io.ref(p)
-    cfg=dict(prior,created_utc=utc(),sources=sources,study_seed=2026111308,
+    cfg=dict(prior,created_utc=utc(),sources=sources,study_seed=study_seed,
         commit_at_lock=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         response='bidirectional aggregate net power around the prior/day-ahead baseline; normalized signed incentive x gives deltaP=m*x, deltaQ=.35*deltaP',
         bounds='|x_ih|<=alpha, alpha=.1/.3/.5 of historical nodal peak; capacities are declared scenarios, not measured fleet capacity; net export allowed',
@@ -38,7 +38,8 @@ def prepare(out):
         population=dict(ids=prior['population']['ids'],days=4,replicate_base=1000000),
         confirmation=dict(ids=io.read(OLD/'confirmation_selection.json')['ids'],days=32,replicate_base=2000000,
             selection='exactly the 12 previously locked positive/weak examples; retained before any new capacity-test paths'),
-        development_failure=None,
+        development_failure=None if development is None else dict(protocol=io.ref(development/'protocol.json'),
+            description='开发v1的16例预跑与400输入主体记录保留。预跑核查发现容量未触发时会直接保留费用界未闭合的可行初值，跳过剩余原生求解预算；已改为仅在费用界闭合时直接返回，其余继续原QCQP。四容量预算统一0.4秒。正式v2使用独立随机流，不混入v1结果；v1未作最终物理审计或正式效果结论。'),
         failures='infeasible/no-quote applies explicit zero fallback and is counted; infeasibility proven by valid box bound or native global status only; no seed replacement',
         allowed_net_injection=True,new_identifier_fits=0,new_parameter_fits=0)
     io.write(out/'protocol.json',cfg);io.write(out/'lock.json',dict(pid=os.getpid(),created_utc=utc(),protocol_sha256=sha(out/'protocol.json')))
@@ -103,4 +104,5 @@ def execute(out,phase):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--run',type=Path,required=True);p.add_argument('--stage',choices=['prepare','pilot','population','confirmation'],required=True)
-    a=p.parse_args();prepare(a.run.resolve()) if a.stage=='prepare' else execute(a.run.resolve(),a.stage)
+    p.add_argument('--study-seed',type=int,default=2026111309);p.add_argument('--development',type=Path)
+    a=p.parse_args();prepare(a.run.resolve(),a.study_seed,None if a.development is None else a.development.resolve()) if a.stage=='prepare' else execute(a.run.resolve(),a.stage)
