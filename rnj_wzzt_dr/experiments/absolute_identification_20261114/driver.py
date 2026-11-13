@@ -80,6 +80,7 @@ def prepare(args):
         stream='All controls sealed before response and execution observation; paired meters, background, response across strategies',
         shared_initial_points=args.common_seeds,linear_ablation='Same true network branches and exact P/Q/meters; history remains original AC fit',
         rejection='External factor2*8*voltage_sigma² per scalar cell; sensitivity1.25/2/4; not calibrated error-rate control',
+        trusted_directions='pq_trust1/2 retain symmetric_guard evidence and physical devices; add historical-train P/Q departure energy bound at amplitude scale1/2. Planning-only restriction, not a physical device constraint. All methods receive the same raw and trust-scaled seed pool.',
         development='This round is development unless --phase confirmation. Old source histories already existed; future streams are new.',phase=args.phase)
     io.write(out/'protocol.json',p);io.write(out/'lock.json',dict(pid=os.getpid(),protocol=io.ref(out/'protocol.json')))
     return p
@@ -107,6 +108,19 @@ def quote(mode,ctx,prediction,base,seconds,seeds=None):
             from .commonseeds import solve_old_with_seeds
             return solve_old_with_seeds(e,2.,seed_points=seeds,seconds=seconds,env=WORK['env'])
         return old_solve(e,2.,seconds=seconds,env=WORK['env'])
+    if mode in ('pq_trust1','pq_trust2'):
+        from .trusted_direction import PQTrustedCase
+        from .solver import plan
+        began=perf_counter()
+        trusted=PQTrustedCase(case,ctx['train'],base_kw=base,scale=float(mode[-1]))
+        setup_seconds=perf_counter()-began
+        receipt,u=plan(trusted,s,ctx['val'],prediction,base,mode='symmetric_guard',
+            seconds=max(.001,seconds-setup_seconds),env=WORK['env'],seed_points=seeds)
+        receipt.update(mode=mode,trust=trusted.trust_receipt,trust_setup_seconds=setup_seconds)
+        receipt['seconds']+=setup_seconds
+        if u is not None:
+            receipt['trust_audit']=trusted.trust_audit(u)
+        return receipt,u
     if mode in ('nominal','calibrated'):
         from ..astra_review_20261113.solver import plan
         return plan(case,s,ctx['val'],prediction,base,mode=mode,seconds=seconds,env=WORK['env'],training=ctx['train'],voltage_sigma=ctx['voltage_sigma'])
@@ -135,6 +149,22 @@ def run_day(task):
     if p['shared_initial_points']:
         from .commonseeds import build_portfolio
         seeds,seed_receipt=build_portfolio(case,s,prediction,base,env=WORK['env'],seconds=min(2.,p['solver_seconds']/3))
+        if any(mode.startswith('pq_trust') for mode in p['modes']):
+            from .trusted_direction import PQTrustedCase
+            tick_seeds=perf_counter();original_seeds=list(seeds.items())
+            for scale in (1.,2.):
+                trusted=PQTrustedCase(case,ctx['train'],base_kw=base,scale=scale)
+                for name,point in original_seeds:
+                    info=trusted.trust_audit(point)
+                    factor=min(1.,np.sqrt(info['limit']/info['energy'])) if info['energy']>0 else 1.
+                    adjusted=point*factor
+                    seed_name=f'pq{int(scale)}_'+name
+                    seeds[seed_name]=adjusted
+                    seed_receipt['records'].append(dict(name=seed_name,accepted=True,
+                        cost_yuan=case.fee(adjusted),source='radial_trust_scaling',parent=name,scale=factor))
+            seed_receipt['trust_scaling_seconds']=perf_counter()-tick_seeds
+            seed_receipt['seconds']+=seed_receipt['trust_scaling_seconds']
+            seed_receipt['points']=len(seeds)
         np.savez_compressed(d/'shared_points.npz',**seeds)
     for mode in p['modes']:
         began=perf_counter()
@@ -155,6 +185,13 @@ def run_day(task):
     io.write(d/'seal.json',dict(created_utc=utc(),planner=io.ref(d/'planner.npz'),plans=io.ref(d/'plans.json'),protocol=io.ref(out/'protocol.json'),truth_not_passed_to_planner=True,
         shared_points=None if seeds is None else io.ref(d/'shared_points.npz')))
     rng=np.random.default_rng(np.random.SeedSequence([20261114,replicate,773]));eta=rng.uniform(.9,1.,case.R)
+    delivered_trust={}
+    for mode in p['modes']:
+        if mode.startswith('pq_trust'):
+            from .trusted_direction import PQTrustedCase
+            delivered_trust[mode]=PQTrustedCase(case,ctx['train'],base_kw=base,scale=float(mode[-1])).trust_audit(controls[mode]*eta[None])
+    # Keep sealed plans immutable; post-seal delivered-direction audits are separate.
+    io.write(d/'delivered_trust.json',delivered_trust)
     np.savez_compressed(d/'background.npz',P=b['p'],Q=b['q'],root=b['root'],response=eta,**{'noise'+str(i):z for i,z in enumerate(b['noise'])})
     io.write(d/'generation.json',b['metadata']);rows=[]
     for strategy,u in controls.items():
@@ -187,7 +224,8 @@ def main():
     from .solver import plan as _v1
     from .solver_v2 import plan as _v2
     from .solver_v3 import plan as _v3
-    valid={'old_gamma2','nominal','calibrated','symmetric','symmetric_guard','symmetric_full','symmetric_full_guard','multiplicative_absolute','capped_absolute','weighted_nominal','weighted_capped'}
+    from .trusted_direction import PQTrustedCase as _trusted
+    valid={'old_gamma2','nominal','calibrated','symmetric','symmetric_guard','symmetric_full','symmetric_full_guard','multiplicative_absolute','capped_absolute','weighted_nominal','weighted_capped','pq_trust1','pq_trust2'}
     if not set(args.modes.split(','))<=valid:raise ValueError('Unknown planning mode')
     if not 0<args.resource_scale<=args.baseline_scale:raise ValueError('Contracted device scale must be positive and no larger than installed catalog')
     p=io.read(out/'protocol.json') if args.resume else prepare(args)
