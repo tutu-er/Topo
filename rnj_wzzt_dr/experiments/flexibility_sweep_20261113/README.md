@@ -1,5 +1,7 @@
 # 弱历史证据下的配网灵活性测试
 
+已完成72个历史条件、14条开发新日和32条独立确认新日。重点结论、下降例与费用界见[结果解释](results/INTERPRETATION.md)，九种方案完整表见[确认结果](results/RESULTS.md)。
+
 目标是寻找已有方法选对拓扑、历史后验优势较小的条件，再检查有限客户侧灵活性能否提高独立新日的平均证据与后验。保留库缺真拓扑、求解失败和后验下降的结果。
 
 基础网架、线路与原 AC 程序保持原版本。使用上一阶段 10 项 PV、EV、热资源配置；高接入场景增加节点104的4.5 kWp / 3.75 kVA PV与节点107的3.68 kW EV，共12项。历史与新日都包含各场景固定设备基线。它是项目合成 paper15 算例，不作为实测网络或外部标准网架。
@@ -17,3 +19,7 @@
 运行入口：`python -m rnj_wzzt_dr.experiments.flexibility_sweep_20261113.study <action> --out <private-output>`。顺序为prepare、fit、qualify、select-development、development、extension（必要时重复fit/select-development/development）、select-confirmation、confirmation。每次只处理尚未运行的任务，既有完成标记、失败与未完成锁均保留。
 
 输入哈希、源码快照、环境、预算和随机流在私有输出protocol.json及lock.json中事前记录。原始P/Q/V、拟合矩阵、逐日报价轨迹不进入Git。
+
+确认前另锁定证据增量2与4，沿用相同冻结历史、设备域、3秒求解预算和配对路径，见`intensity.py`与`results/intensity/protocol.json`。没有增加辨识拟合；补充开发路径复用原弱例的两天。`compare.py`校验两批基准P/Q/V与随机流相同，合并为32条确认路径，避免重复计数。`audit.py`逐支持重算后验、原AC、原设备域与费用，保留每次失败与未决。
+
+本批私有完整输出为`outputs/customer_flexibility_sweep_20261113_v1`及`outputs/customer_flexibility_intensity_20261113_v1`。结果已完成，后续读取统计或核验即可，不重跑已有拟合和确认。

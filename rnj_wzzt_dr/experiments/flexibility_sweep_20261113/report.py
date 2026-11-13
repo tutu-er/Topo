@@ -10,6 +10,7 @@ import numpy as np
 from scipy.stats import t
 
 from ... import io
+from ..customer_flexibility_20261113.model import CustomerCase
 from .study import collect, qualify, paired_summary
 
 
@@ -61,7 +62,11 @@ def paired(rows, strategy):
         minimum_gain_pp=None if not posterior else float(100*min(posterior)),
         maximum_gain_pp=None if not posterior else float(100*max(posterior)),
         mean_planned_fee_yuan=mean([b['planned_fee_yuan'] for a, b in pairs]),
-        mean_delivered_abs_kwh=mean([b['delivered_abs_kwh'] for a, b in pairs]))
+        mean_delivered_abs_kwh=mean([b['delivered_abs_kwh'] for a, b in pairs]),
+        native_recovered_from_wrong=sum(not a['native_map_correct'] and b['native_map_correct'] for a, b in pairs),
+        native_lost_from_correct=sum(a['native_map_correct'] and not b['native_map_correct'] for a, b in pairs),
+        gained_90=sum(a['p_true'] < .9 <= b['p_true'] for a, b in pairs),
+        lost_90=sum(b['p_true'] < .9 <= a['p_true'] for a, b in pairs))
 
 
 def solver_summary(out, phase):
@@ -81,6 +86,61 @@ def solver_summary(out, phase):
         same_planned_fee_failures=sum(not p.get('rotation_same_planned_fee', True) for p in records))
 
 
+def bias_and_energy(out, phase, rows):
+    """Separate model distance, frozen-parameter bias and observed evidence."""
+    selectionfile = out/('development_selection.json' if phase == 'development' else 'confirmation_selection.json')
+    if not selectionfile.exists():
+        return []
+    entries = io.read(selectionfile)
+    if isinstance(entries, dict):
+        entries = entries['entries']
+    entries = {r['id']: r for r in entries}
+    scores, cases, values = {}, {}, []
+    for r in rows:
+        if r['status'] != 'complete':
+            continue
+        entry = entries[r['id']]
+        if r['id'] not in scores:
+            scores[r['id']] = io.read(entry['score']['path'])
+        s = scores[r['id']]
+        adoption = r['adoption']
+        if adoption not in cases:
+            cases[adoption] = CustomerCase(io.read(out/'resource_configs'/f'{adoption}.json'))
+        d = out/phase/r['id']/f"day{r['day']:03d}"
+        with np.load(d/(r['strategy']+'.npz')) as z:
+            p, q, voltage = [np.array(z[k]) for k in ('true_P', 'true_Q', 'true_V')]
+        with np.load(d/'physical_background.npz') as z:
+            root, baseline = np.array(z['root']), np.array(z['P'])
+        base_kw = io.read(d/'generation.json')['base_kw']
+        net_value = cases[adoption].grid_energy_value(p*base_kw)
+        baseline_value = cases[adoption].grid_energy_value(baseline*base_kw)
+        row = dict(id=r['id'], strategy=r['strategy'], day=r['day'],
+            baseline_terminal_net_energy_value_yuan=baseline_value,
+            terminal_net_energy_value_yuan=net_value, terminal_net_energy_change_yuan=net_value-baseline_value,
+            activation_plus_terminal_energy_change_yuan=r['settled_fee_yuan']+net_value-baseline_value)
+        j, target = r['runner'], r['target']
+        if j is not None:
+            Ht, Hj = np.asarray(s['parameters'][target]['H']), np.asarray(s['parameters'][j]['H'])
+            power = np.c_[p, q]
+            difference = power@(Ht-Hj).T
+            residual = root[:, None]**2-voltage**2-power@Ht.T
+            distance = float(np.square(difference).sum()/(2*s['sigma2']))
+            bias = float(np.sum(residual*difference)/s['sigma2'])
+            historical = s['models'][target]['log_probability']-s['models'][j]['log_probability']
+            observed_increment = r['target_runner_logodds']-historical
+            row.update(model_distance=distance, frozen_parameter_bias_term=bias,
+                noiseless_actual_logodds_increment=distance+bias,
+                measured_logodds_increment=observed_increment,
+                meter_error_contribution=observed_increment-distance-bias)
+        values.append(row)
+    result = []
+    for identity, strategy in sorted({(r['id'], r['strategy']) for r in values}):
+        selected = [r for r in values if r['id'] == identity and r['strategy'] == strategy]
+        result.append(dict(id=identity, strategy=strategy, days=len(selected), **{
+            key: mean([r.get(key) for r in selected]) for key in values[0] if key not in ('id', 'strategy', 'day')}))
+    return result
+
+
 def make(out, destination):
     destination.mkdir(parents=True, exist_ok=True)
     history = qualify(out)
@@ -92,6 +152,17 @@ def make(out, destination):
         search_budget_reached=sum(r['search_budget_reached'] for r in fitted),
         method_cap_exceeded=sum(r['method_cap_exceeded'] for r in fitted),
         fit_total_seconds=sum(r['fit_seconds'] for r in history if 'fit_seconds' in r))
+    true = set(map(tuple, io.read(out/'offline_truth.json')['truth_clades']))
+    topology_details = {}
+    for row in fitted:
+        s = io.read(row['score']['path'])
+        selected = set(map(tuple, s['models'][s['map_index']]['active_clades']))
+        distances = [len(true-set(map(tuple, m['active_clades'])))+len(set(map(tuple, m['active_clades']))-true) for m in s['models']]
+        topology_details[row['id']] = dict(map_missing=len(true-selected), map_extra=len(selected-true),
+            minimum_full_topology_error_in_bank=min(distances),
+            any_candidate_contains_all_true_clades=any(true <= set(map(tuple, m['active_clades'])) for m in s['models']))
+    hsummary['missing_truth_but_true_clades_all_present_in_a_larger_candidate'] = sum(
+        not r['truth_present'] and topology_details[r['id']]['any_candidate_contains_all_true_clades'] for r in fitted)
     phases = {}
     per_case = []
     for phase in ('development', 'confirmation'):
@@ -103,7 +174,7 @@ def make(out, destination):
             paired_with_no_dfs={s: paired(rows, s) for s in strategies if s != 'no_dfs'},
             solvers=solver_summary(out, phase),
             phase_failures=[io.read(p) for p in (out/phase).glob('*/complete.json') if io.read(p).get('failed_rows', 0)],
-            development_primary_pairs=paired_summary(rows))
+            development_primary_pairs=paired_summary(rows), residual_and_energy_diagnostics=bias_and_energy(out, phase, rows))
         for identity in sorted({r['id'] for r in rows}):
             selected = [r for r in rows if r['id'] == identity]
             first = selected[0]
@@ -120,9 +191,11 @@ def make(out, destination):
         scope='Development-selected conditional examples; independent confirmation is separate. All rates use actual AC plus forecast, response and meter errors. Frozen candidate posterior is a plug-in model score.')
     io.write(destination/'summary.json', result)
     io.write(destination/'per_case.json', per_case)
-    safe_history = [{k: r.get(k) for k in ('id', 'adoption', 'history_points', 'voltage_sigma', 'profile', 'history_seed',
+    safe_history = [dict({k: r.get(k) for k in ('id', 'adoption', 'history_points', 'voltage_sigma', 'profile', 'history_seed',
         'status', 'fit_seconds', 'truth_present', 'qualification', 'p_map', 'p_true', 'original_winner_correct',
-        'posterior_MAP_correct', 'distinct_topologies', 'native_stop_reason', 'search_budget_reached', 'method_cap_exceeded')} for r in history]
+        'posterior_MAP_correct', 'distinct_topologies', 'native_stop_reason', 'search_budget_reached', 'method_cap_exceeded')},
+        **topology_details.get(r['id'], dict(map_missing=None, map_extra=None, minimum_full_topology_error_in_bank=None,
+                                            any_candidate_contains_all_true_clades=None))) for r in history]
     io.write(destination/'history_summary.json', safe_history)
     fields = list(safe_history[0]) if safe_history else []
     with (destination/'history_summary.csv').open('w', encoding='utf-8-sig', newline='') as stream:
