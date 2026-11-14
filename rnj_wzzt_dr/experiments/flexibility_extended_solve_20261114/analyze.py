@@ -207,7 +207,48 @@ def quote_fields(q):
         charged_total_seconds=q.get('charged_total_seconds'),native_runtime_seconds=raw.get('Runtime'),
         charged_total_budget_exceeded=q.get('charged_total_budget_exceeded'),shared_seed_seconds=q.get('shared_seed_seconds'),
         solver_seconds=q.get('seconds'),zero_fallback=q.get('zero_fallback'),rotation_same_fee=q.get('rotation_same_fee'),
-        native_attribute_unavailable=q.get('native_attribute_unavailable',[]))
+        native_attribute_unavailable=q.get('native_attribute_unavailable',[]),
+        engine_result_before_incumbent_retention=q.get('engine_result_before_incumbent_retention'),
+        explicit_previous_incumbent_retention=q.get('explicit_previous_incumbent_retention',False),
+        previous_300_cost_yuan=q.get('previous_300_cost_yuan'),
+        previous_300_charged_seconds=q.get('previous_300_charged_seconds'),
+        saved_buffered_audit_scope=('Engine-returned point before the adapter restored source300; '
+            'final returned point is independently recomputed from planner.npz'
+            if q.get('explicit_previous_incumbent_retention') else 'Final returned point'),
+        saved_engine_buffered_audit_summary=None if not q.get('buffered_direct_audit') else
+            {k:q['buffered_direct_audit'].get(k) for k in ('cost_yuan','passed_original_acceptance',
+                'minimum_original_buffered_margin','minimum_J_minus_required','strict_buffered_pair_nonnegative')})
+
+
+def check_saved_buffered(q,d,checks,key):
+    """A post-solve incumbent restoration changes which point an audit describes."""
+    saved=q.get('buffered_direct_audit')
+    if not saved:
+        return
+    if q.get('explicit_previous_incumbent_retention'):
+        # The engine audit is preserved, not falsely compared with the adapter's
+        # replacement point. The latter still undergoes every direct original
+        # constraint/fee check and the saved final.J/guard checks below.
+        checks.counts['saved_engine_audit_separated_after_retention']+=1
+        return
+    checks.near(saved['minimum_original_buffered_margin'],d['minimum_original_buffered_margin'],'saved_buffered_margin',key,1e-6)
+    checks.near([p['J'] for p in saved['pairs']],[p['J'] for p in d['pairs']],'saved_direct_J',key,1e-6)
+    checks.near([p['gain'] for p in saved['guards']],[p['gain'] for p in d['guards']],'saved_direct_guards',key,1e-6)
+
+
+def fallback_data_mock():
+    """Distinguish a stale engine-point audit from corrupted final-point data."""
+    final=dict(minimum_original_buffered_margin=.25,pairs=[dict(J=2.)],guards=[dict(gain=.5)])
+    stale=dict(minimum_original_buffered_margin=-.75,pairs=[dict(J=9.)],guards=[dict(gain=-4.)])
+    restored=Checks(); ordinary=Checks();matching=Checks()
+    check_saved_buffered(dict(buffered_direct_audit=stale,explicit_previous_incumbent_retention=True),final,restored,'restored')
+    check_saved_buffered(dict(buffered_direct_audit=stale,explicit_previous_incumbent_retention=False),final,ordinary,'ordinary')
+    check_saved_buffered(dict(buffered_direct_audit=final),final,matching,'matching')
+    passed=not restored.errors and not matching.errors and len(ordinary.errors)==3
+    if not passed:raise ArithmeticError('Engine/final audit distinction failed its pure-data mock')
+    return dict(passed=True,scope='Pure numerical dictionaries; no optimizer or AC call',
+        restored_point_wrong_comparisons=len(restored.errors),normal_corrupted_audit_detected=len(ordinary.errors),
+        normal_matching_audit_errors=len(matching.errors))
 
 
 def quote_comparisons(before,after,checks):
@@ -240,11 +281,7 @@ def quote_comparisons(before,after,checks):
                     checks.near(q['final']['J'],[p['J'] for p in d['pairs']],'original_final_J_'+label,key,1e-6)
                     checks.near(q['final']['guard_gains'],[p['gain'] for p in d['guards']],'original_final_guards_'+label,key,1e-6)
                     checks.near(q['final']['minimum_pair_margin'],d['minimum_original_buffered_margin']+BUFFER,'original_final_margin_'+label,key,1e-6)
-                saved=q.get('buffered_direct_audit')
-                if saved:
-                    checks.near(saved['minimum_original_buffered_margin'],d['minimum_original_buffered_margin'],'saved_buffered_margin',key,1e-6)
-                    checks.near([p['J'] for p in saved['pairs']],[p['J'] for p in d['pairs']],'saved_direct_J',key,1e-6)
-                    checks.near([p['gain'] for p in saved['guards']],[p['gain'] for p in d['guards']],'saved_direct_guards',key,1e-6)
+                check_saved_buffered(q,d,checks,key)
                 if q.get('pair_reduction'):
                     checks.require([p['kind'] for p in q['pair_reduction']]==[p['reduction_kind'] for p in d['pairs']], 'reduction_branch_identity',key)
                     for r,p in zip(q['pair_reduction'],d['pairs'],strict=True):
@@ -342,6 +379,7 @@ def report(pairs,truth_run,out,operational=(),self_test=False):
     if not reference['complete']:raise ValueError('Truth-label reference must be complete')
     truths,truth_counts=prior.truth_identity(reference)
     checks=Checks();outputs={};source_states=[]
+    fallback_mock=fallback_data_mock() if self_test else None
     for name,before_path,after_path in pairs:
         bp,ap=Path(before_path).resolve(),Path(after_path).resolve()
         if self_test and bp!=ap:raise ValueError('Self-test requires each before path equal its after path')
@@ -391,7 +429,7 @@ def report(pairs,truth_run,out,operational=(),self_test=False):
         destination.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(path,destination)
         sources.append(dict(original=prior.ref(path),saved=prior.ref(destination)))
     answer=dict(created_utc=datetime.now(timezone.utc).isoformat(),status='passed' if not checks.errors else 'failed',
-        self_test=self_test,sources=sources,source_runs=source_states,checks=checks.report(),pairs=outputs,
+        self_test=self_test,fallback_pure_data_mock=fallback_mock,sources=sources,source_runs=source_states,checks=checks.report(),pairs=outputs,
         truth_reference=prior.ref(Path(truth_run)/'protocol.json'),truth_label_evidence=truth_counts,
         scope='Additional optimization and replay of already evaluated paths; no new independent confirmation. Same physical day and error arrays. Native full-bank recovery and representative weights remain separate.',
         interpretation='A lower verified procurement cost or tighter bound does not imply improved identification. All adverse flips and incomplete paths remain recorded.',
