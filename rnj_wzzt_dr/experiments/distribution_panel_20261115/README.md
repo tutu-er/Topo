@@ -32,4 +32,6 @@
 
 原始时序、拟合参数、报价及逐时动作保存在忽略目录 `outputs/`。本目录只提交代码、协议和汇总。
 
+当前完整模型和固定保留的两个核心输入见 [CORE_MODEL.md](CORE_MODEL.md)。数据量与量测误差的36格扩展见 [网格试验](../flexibility_grid_20261115/README.md)，其新历史噪声、采样和执行结果与原确认结果分别记录。
+
 开发结果见 [DEVELOPMENT_RESULTS.md](DEVELOPMENT_RESULTS.md)，确认结果见 [CONFIRMATION_RESULTS.md](CONFIRMATION_RESULTS.md)，中断及续跑规则见 [CONTINUATION.md](CONTINUATION.md)。确认保持原96个计划窗口，46个数据完整、50个缺测；有效输入的92份预测全部执行，4份受中断影响的结果单列。
