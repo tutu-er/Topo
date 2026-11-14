@@ -130,16 +130,16 @@
 
 ### 5.1 只校准规划均值，不更改评分矩阵
 
-令\(\mu_{itn}=(H_ix_t)_n\)，在历史验证段按每个输出节点计算
+令\(\mu_{itn}=(H_ix_t)_n\)，\(N_v=|\mathcal V|\)为验证点数，在历史验证段按每个输出节点计算
 
 \[
  c_{in}=1+
  \frac{\sum_{t\in\mathcal V}\mu_{itn}(y_{tn}-\mu_{itn})}
- {\sum_{t\in\mathcal V}\mu_{itn}^2+96\sigma_s^2},
+ {\sum_{t\in\mathcal V}\mu_{itn}^2+N_v\sigma_s^2},
  \qquad K_i=\operatorname{diag}(c_i)H_i.
 \]
 
-它是最小化\(\sum_t(y_{tn}-c\mu_{itn})^2+96\sigma_s^2(c-1)^2\)得到的闭式解：使用历史残差修正整体幅度，同时把倍率拉向1。每一行的R、X共用同一倍率，未分别修正P/Q响应方向。代码为[calibrated_means](../flexibility_sweep_20261113/fitting.py)。
+它是最小化\(\sum_t(y_{tn}-c\mu_{itn})^2+N_v\sigma_s^2(c-1)^2\)得到的闭式解：使用历史残差修正整体幅度，同时把倍率拉向1。核心例\(N_v=96\)；采样网格按实际验证点数取96、48或24，代码没有固定为96。每一行的R、X共用同一倍率，未分别修正P/Q响应方向。代码为[calibrated_means](../flexibility_sweep_20261113/fitting.py)。
 
 规划假设为\(y_t=K_ix_t+e_t\)，最终计分继续使用\(H_i\)。因此“内部结构正确”与“\(K_i\)准确描述真实响应”是两个假设；当前数据已显示后者可能存在明显方向偏差。
 

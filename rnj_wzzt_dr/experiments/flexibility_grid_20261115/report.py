@@ -246,7 +246,8 @@ def markdown(result):
     for policy in POLICIES:
         g = overall['groups'][policy]; c = overall['paired_vs_no_dfs'][policy]
         text.append(f"|{policy}|{g['recovered']}/{g['n']}|{c['gained']}/{c['lost']}|{g['full_support_recovered']}|{number(g['mean_p_true_completed'])}|{g['true_high']}/{g['wrong_high']}|{number(g['settled_cost_mean_completed']['total_yuan'])}|")
-    text += ['', '逐格完整表如下。采样列为训练点/验证点；倍率作用于标准差。恢复结果按全部预定执行路径计数，失败路径留在分母。', '',
+    text += ['', '策略恢复数包含其声明的回退执行；回退效果不计为新概率约束达成。报价可行性、回退次数和求解界在后表单列。', '',
+        '逐格完整表如下。采样列为训练点/验证点；倍率作用于标准差。恢复结果按全部预定执行路径计数，失败路径留在分母。', '',
         '|输入|训练/验证|量测倍率|候选库含真内部族|历史选对|无采购|旧参考|normal_fixed|mgf_fixed|mgf_forecast|',
         '|---|---:|---:|---|---|---:|---:|---:|---:|---:|']
     for cell in result['cells']:
