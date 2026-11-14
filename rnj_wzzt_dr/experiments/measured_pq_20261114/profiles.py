@@ -125,6 +125,25 @@ def build_from_arrays(labels, p_kw, q_kvar, timestamps, nominal_p_kw, feeder_ids
                 split={key:list(value) for key,value in SPLIT.items()}, metadata=metadata)
 
 
+def _resource_records(metadata):
+    """Read registration context; older archives retain the hashed source manifest."""
+    if "resource_metadata_records" in metadata:
+        return metadata["resource_metadata_records"], "embedded in hashed archive"
+    receipt = metadata.get("source_manifest")
+    if receipt is None:
+        return [], "not supplied; availability unknown, not zero"
+    if sha256(receipt["path"]) != receipt["sha256"]:
+        raise ValueError("Source manifest hash differs while loading resource context")
+    manifest = io.read(receipt["path"])
+    assets = manifest["metadata"]
+    if sha256(assets["path"]) != assets["sha256"]:
+        raise ValueError("Source resource metadata hash differs")
+    frame = pd.read_csv(assets["path"])
+    frame = frame.loc[frame.feeder.isin(manifest["feeder_ids"])]
+    metadata["source_resource_metadata"] = assets
+    return json.loads(frame.to_json(orient="records")), "verified source CSV via hashed archive manifest"
+
+
 def build_case(case_name, archive_path, start_date, *, expected_sha256=None):
     """Map the first N distinct feeders to the network's original terminals.
 
@@ -161,7 +180,7 @@ def build_case(case_name, archive_path, start_date, *, expected_sha256=None):
         if np.any(counts < 12):
             raise ValueError(f"Selected window has {int(np.sum(counts<12))} incomplete node-time bins")
         metadata = json.loads(str(data["metadata_json"]))
-        records = metadata.get("resource_metadata_records", [])
+        records, resource_origin = _resource_records(metadata)
         current = []
         for feeder in ids[:n]:
             known = [row for row in records if int(row["feeder"]) == int(feeder) and row["date"] <= start_date]
@@ -174,6 +193,7 @@ def build_case(case_name, archive_path, start_date, *, expected_sha256=None):
                         local_timezone="Europe/Berlin", local_start=str(local_start),
                         source_valid_minutes_min=int(counts.min()), source_valid_minutes_mean=float(counts.mean()),
                         resource_metadata_at_history_start=current, resource_metadata_changes_in_window=changes,
+                        resource_metadata_origin=resource_origin,
                         resource_metadata_note="Registration records, not measured real-time availability; later installations are never backfilled",
                         node_assignment="Original terminal order -> first N numbered distinct source feeders")
         return build_from_arrays([b["bus_id"] for b in terminal], p, q,

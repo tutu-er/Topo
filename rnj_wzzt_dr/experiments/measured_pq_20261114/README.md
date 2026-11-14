@@ -2,6 +2,8 @@
 
 本批替换旧的合成背景负荷，保留四个网络的原始连接与线路参数。R、X 分别估计，不固定比例，不新增参数正则。数据来自 FeederBW v1.1，属于真实馈线净功率驱动的合成网络试验，电压由测试网络 AC 潮流计算。
 
+已完成数据重建与首次接口验证，结果见 [REPORT.md](REPORT.md)。合格主集为 4 个网络 × 4 个完整窗口，共 16 个输入。数据、候选、哈希索引位于 `outputs/measured_pq_sources_20261114/qualified_inputs_v2.json`；本批没有运行灵活性采购。
+
 ## 事前固定的输入规则
 
 - 来源：Netze BW / KIT，[FeederBW v1.1](https://zenodo.org/records/19550073)，DOI `10.5281/zenodo.19550073`，CC BY 4.0。真实采集期为 2023-04 至 2025-03；来源说明见 [Scientific Data](https://doi.org/10.1038/s41597-026-08152-9)。
@@ -12,11 +14,13 @@
 - 节点 n 的缩放系数为 `0.65 * nominal_P_n / RMS(P_n_train)`。0.65 是预设负载水平，并非实测估计。P/Q 使用同一正系数；验证和新日不参与确定尺度。原有反送电、容性无功和 P/Q 关系均保留。
 - 历史和新日都已包含源数据中的新能源及用户设备运行，均不再叠加旧 PV/EV/热泵基线。任何后续动作只改变基线之上的净注入。
 
-旧实验主要日曲线被 P/Q 共同使用，并且只在新日增加 DER 基线。旧结果仍保留为该合成设置下的证据，不用来说明新数据下的性能。新历史必须重新生成候选和拟合参数，不能复用旧冻结 H。
+本次承接的旧合成输入中，主要日曲线被 P/Q 共同使用，并且只在新日增加 DER 基线。旧结果仍保留为该合成设置下的证据，不用来说明新数据下的性能。新历史必须重新生成候选和拟合参数，不能复用旧冻结 H。
 
 ## 本批验收
 
 4 网络 × 4 日期 = 16 个预先声明的输入；这些输入共享部分源馈线与日期，不是 16 个独立现场网络。先检查数据来源、缺失、尺度非前瞻性、潮流及原辨识接口。固定真结构 QP 只作为离线参数诊断，禁止进入候选生成和采购。若运行 101，预算和未决状态单列；不把小预算失败写成算法不可恢复。
+
+实际执行中，原固定日期有 7 个输入因缺测失败。原输出完整保留。随后单独锁定补充规则：从各固定日期起向后最多检查 31 天，仅按前 18 条源馈线是否共同覆盖完整四天选择首个可用日期，不读取拟合或恢复结果。冬、春得到 2024-01-21、2024-05-09，夏、秋仍为原日期。补充运行前两组的 8 个输入，直接复用夏秋已完成的 8 个结果。全程共尝试 24 个输入，17 个可用、7 个缺测失败；原冬季另一个可用输入作为附加记录，不并入合格主集。完整性检查包含新日，所以该主集是完整量测窗口试验，并非未知未来缺测条件下的部署检验。
 
 累计选模使用 96 点历史验证＋96 点新日，训练损失不再加入。`internal_exact` 对应以前的完整内部拓扑口径；`full_exact` 另外要求单节点支路及公共干线的活动支持一致。原生接口未返回公共准备阶段参考 QP 的详细记录，报告单列这项缺口与公共耗时，不把原生 `QP` 数组长度当成实际全部 QP 次数。
 
@@ -34,8 +38,20 @@ python -m rnj_wzzt_dr.experiments.measured_pq_20261114.fetch --destination outpu
 
 `profiles.build_case(case_name, archive_path, start_date)` 返回四天的 kW/kvar、时间戳、192/96/96 划分、节点来源及缩放记录。`build_from_arrays` 是独立数值检查入口。
 
+本次执行命令如下。输出目录均要求尚不存在，避免覆盖已完成记录。
+
+```powershell
+python -m rnj_wzzt_dr.experiments.measured_pq_20261114.validate --archive outputs/measured_pq_sources_20261114/paired_pq_15min.npz --out outputs/measured_pq_validation_20261114_v1 --method101-seconds 30
+python -m rnj_wzzt_dr.experiments.measured_pq_20261114.qualify --archive outputs/measured_pq_sources_20261114/paired_pq_15min.npz --out outputs/measured_pq_sources_20261114/qualified_windows.json
+python -m rnj_wzzt_dr.experiments.measured_pq_20261114.validate --archive outputs/measured_pq_sources_20261114/paired_pq_15min.npz --out outputs/measured_pq_validation_20261114_supplement --dates 2024-01-21,2024-05-09 --method101-seconds 30
+```
+
+归档保存为 NumPy 数组后，构建单个输入和验证不再需要读取 Parquet。本次 Python 为 3.11，`pyarrow` 仅安装在临时依赖目录；完整包版本和执行代码哈希保存在两批 `protocol.json` 中。
+
 ## 后续灵活性接口
 
 本批不从净负荷猜测设备内部状态。安装容量不等于每时刻可调容量，旧 PV/EV/热状态约束不能直接套用。`dr_ready=False` 提醒调用者：先用本批历史重新产生候选，再明确与基线一致的资源时窗、上下调边界和价格。若采用聚合线性合同，应标明可用性是假设，并按节点群缩放资源容量；不得再次加设备基线。
+
+首版已执行快照缺少设备登记字段。后续修复通过归档内的源清单哈希、CSV 哈希读取登记，按历史起日选择当时已知记录。补齐的 `resource_context_v2.json` 与新索引另存，原数据及结果保持不变；全部 16 组补读后的 P/Q 与已执行输入逐值一致。登记信息说明接入情况，仍需另外定义可购买资源。
 
 数据来源有功正号为用电、负号为倒送；无功正号为感性、负号为容性，与本项目负荷正号一致。

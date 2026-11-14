@@ -239,6 +239,29 @@ class ArchiveAcceptance(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "daylight-saving"):
             profiles.build_case("paper15", self.path, "2024-03-30")
 
+    def test_older_archive_resource_context_is_hashed_and_not_backfilled(self):
+        folder = Path(self.temp.name)
+        assets = folder / "assets.csv"
+        pd.DataFrame([
+            {"feeder": 1, "date": "2023-01-01", "PV_systems_kW": 2.},
+            {"feeder": 1, "date": "2023-01-11", "PV_systems_kW": 4.},
+            {"feeder": 1, "date": "2023-01-20", "PV_systems_kW": 8.},
+        ]).to_csv(assets, index=False)
+        ref = lambda p: dict(path=str(p), sha256=hashlib.sha256(p.read_bytes()).hexdigest())
+        manifest = folder / "sources.json"
+        manifest.write_text(json.dumps(dict(metadata=ref(assets), feeder_ids=list(range(1, 19)))), encoding="utf-8")
+        self.payload["metadata_json"] = np.asarray(json.dumps(dict(source_manifest=ref(manifest))))
+        self.write_archive()
+        result = profiles.build_case("paper15", self.path, "2023-01-10")
+        context = result["metadata"]
+        self.assertEqual(context["resource_metadata_at_history_start"][0]["PV_systems_kW"], 2.)
+        self.assertEqual([r["PV_systems_kW"] for r in context["resource_metadata_changes_in_window"]], [4.])
+        self.assertIn("verified source CSV", context["resource_metadata_origin"])
+        np.testing.assert_array_equal(result["p_kw"], self.payload["p_kw"][:, :3] * [2., 3., .5])
+        assets.write_text("changed", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "resource metadata hash"):
+            profiles.build_case("paper15", self.path, "2023-01-10")
+
 
 if __name__ == "__main__":
     unittest.main()
