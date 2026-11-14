@@ -40,6 +40,18 @@ def simulate_target(model, powers, forecast, target, *, draws, seed,
     n, H = model['n'], model['H']
     if channels != 2*n or set(powers) != set(POLICIES):
         raise ValueError('Power shape or eight-policy contract differs')
+    # Equal actions often produce eight identical nominal power arrays. Keep
+    # every policy in the saved output, but evaluate each exact array once.
+    # Equality is exact (including dtype), never an allclose approximation.
+    groups = []
+    for pi, policy in enumerate(POLICIES):
+        for group in groups:
+            other = powers[POLICIES[group[0]]]
+            if powers[policy].dtype == other.dtype and np.array_equal(powers[policy], other):
+                group.append(pi)
+                break
+        else:
+            groups.append([pi])
     result = np.empty((len(LAWS), len(POLICIES), draws, len(H)))
     power_rng, node_rng, root_rng = generators(seed, entry_index, forecast_index)
     for start in range(0, draws, batch_size):
@@ -48,7 +60,9 @@ def simulate_target(model, powers, forecast, target, *, draws, seed,
         error = (node_rng.normal(size=(count, T, n))*model['independent_sd']
                  + root_rng.normal(size=(count, T, 1))*model['root_sd'])
         for li, law in enumerate(LAWS):
-            for pi, policy in enumerate(POLICIES):
+            for group in groups:
+                pi = group[0]
+                policy = POLICIES[pi]
                 X = powers[policy][None] + (xi if law == 'forecast' else 0.)
                 if len(X) == 1:
                     X = np.broadcast_to(X, (count, T, 2*n))
@@ -58,6 +72,8 @@ def simulate_target(model, powers, forecast, target, *, draws, seed,
                     residual = Y-X@h.T
                     result[li, pi, start:start+count, j] = (
                         np.square(residual).sum(axis=(1, 2))+model['history'][j])
+                for duplicate in group[1:]:
+                    result[li, duplicate, start:start+count] = result[li, pi, start:start+count]
     if not np.isfinite(result).all():
         raise ArithmeticError('Non-finite simulated native SSE')
     return result

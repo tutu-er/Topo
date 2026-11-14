@@ -75,6 +75,38 @@ def mean_or_none(values):
     return float(np.mean(values)) if values else None
 
 
+def distribution(values):
+    values=[float(v) for v in values if v is not None]
+    return dict(n=len(values),minimum=min(values) if values else None,median=float(np.median(values)) if values else None,
+        maximum=max(values) if values else None,mean=mean_or_none(values))
+
+
+def solver_summary(quotes, mode):
+    selected=[q for q in quotes if q['policy']==mode]
+    feasible=[q for q in selected if q['new_gate_feasible']]
+    zero=[q for q in feasible if q.get('zero_action_sufficient',False) and q.get('cost_yuan')==0.]
+    nonzero=[q for q in feasible if q.get('nonzero_executed',False)]
+    native_nonzero=[q for q in nonzero if q.get('optimizer_invoked')]
+    def stats(group):
+        return dict(n=len(group),gap=distribution([q['relative_gap'] for q in group]),
+            activation_upper_bound_yuan=distribution([q['cost_yuan'] for q in group]),
+            activation_lower_bound_yuan=distribution([q['lower_bound_yuan'] for q in group]),
+            charged_seconds=distribution([q['charged_total_seconds'] for q in group]),
+            rows=[{k:q.get(k) for k in ('id','forecast','source','native_status','optimizer_invoked',
+                'initial','cost_yuan','lower_bound_yuan','relative_gap','quote_wall_seconds','charged_total_seconds')} for q in group])
+    return dict(n=len(selected),new_gate_feasible=len(feasible),
+        zero_action_sufficient=sum(q.get('zero_action_sufficient',False) for q in selected),
+        nonzero_executed=sum(q.get('nonzero_executed',False) for q in selected),
+        anchor_fallbacks=sum(q['anchor_fallback'] for q in selected),zero_fallbacks=sum(q['zero_fallback'] for q in selected),
+        native_status_counts=dict(Counter(str(q['native_status']) for q in selected)),
+        status_counts=dict(Counter(str(q['status']) for q in selected)),
+        gap_mean_feasible=mean_or_none([q['relative_gap'] for q in feasible]),
+        gap_mean_feasible_scope='Includes zero-cost certificates; do not use this mixture to assess nonzero QCQP convergence.',
+        zero_cost_certificates=dict(n=len(zero),scope='Verified zero action and nonnegative activation prices give exact objective zero; no nonconvex search optimality is inferred.'),
+        nonzero_feasible_quotes=stats(nonzero),nonzero_feasible_optimizer_invoked=stats(native_nonzero),
+        charged_seconds_mean=mean_or_none([q['charged_total_seconds'] for q in selected]))
+
+
 def summarize(rows):
     completed=[r for r in rows if r['audit_status']=='passed'];n=len(rows)
     metrics=dict(n=n,completed=len(completed),recorded_failures=n-len(completed),
@@ -106,9 +138,18 @@ def summarize(rows):
     metrics['mean_model_error']=dict(n=len(diagnostics),**{field:mean_or_none([d[field] for d in diagnostics]) for field in (
         'K_nominal_forecast_mu','K_actual_input_mu','actual_power_minus_nominal_forecast','clean_minus_actual_K',
         'observed_minus_clean','clean_minus_nominal_K')})
+    metrics['squared_voltage_mean_error']=dict(n=len(diagnostics),**{field:mean_or_none([d.get(field) for d in diagnostics]) for field in (
+        'clean_Y_minus_K_mean','clean_Y_minus_K_rmse','clean_Y_minus_frozen_H_mean','clean_Y_minus_frozen_H_rmse')})
+    absolute=[r['evaluation']['evidence'] for r in completed if 'evidence' in r['evaluation']]
+    metrics['directed_true_family_absolute']=dict(n=len(absolute),**{field:mean_or_none([d[field] for d in absolute])
+        for field in ('h','J','bias','meter','clean_logodds','observed_logodds')})
+    metrics['directed_pair_scope']=('Offline only: the historically best frozen point with correct internal structure, '
+        'against the wrong historical winner or otherwise the historically best wrong structure. '
+        'The pair remains fixed across strategies and repeats; missing true candidates yield no such diagnostic.')
     increments=[r['evaluation']['evidence_increment'] for r in completed if 'evidence_increment' in r['evaluation']]
     metrics['directed_true_family_increment']=dict(n=len(increments),**{field:mean_or_none([d[field] for d in increments])
         for field in ('J','bias','meter','clean_logodds','observed_logodds')})
+    metrics['increment_ratio_status']='No realization ratio is reported; zero predicted gain gives an undefined 0/0 ratio.'
     return metrics
 
 
@@ -177,6 +218,7 @@ def run(audit_path, out):
         qualification=qualification,qualification_counts=dict(planned=len(qualification),data_valid=sum(r['data_valid'] for r in qualification),
             data_incomplete=sum(not r['data_valid'] for r in qualification),history_prepared=sum(r['history_prepared'] for r in qualification),
             resources_prepared=sum(r['resources_and_forecast_prepared'] for r in qualification)),
+        input_coverage_and_offered_resources=list(coverage.values()),
         coverage_counts=dict(assessed=len(coverage),truth_in_native_bank=sum(r['truth_in_native_bank'] for r in coverage.values()),
             truth_in_target_set=sum(r['truth_in_target_set'] for r in coverage.values()),history_correct=sum(r['history_correct'] for r in coverage.values())),
         full_pipeline_execution_rows=len(rows),groups=groups,comparisons=comparisons,
@@ -186,15 +228,13 @@ def run(audit_path, out):
             for case in sorted({r['case'] for r in rows})},
         coverage_strata={field:{str(flag):{p:summarize([r for r in split_group(field,flag) if r['strategy']==p]) for p in POLICIES}
             for flag in (False,True)} for field in ('history_correct','truth_in_native_bank','truth_in_target_set')},
-        solver={mode:dict(n=sum(q['policy']==mode for q in quotes),
-            new_gate_feasible=sum(q['policy']==mode and q['new_gate_feasible'] for q in quotes),
-            anchor_fallbacks=sum(q['policy']==mode and q['anchor_fallback'] for q in quotes),
-            zero_fallbacks=sum(q['policy']==mode and q['zero_fallback'] for q in quotes),
-            native_status_counts=dict(Counter(str(q['native_status']) for q in quotes if q['policy']==mode)),
-            status_counts=dict(Counter(str(q['status']) for q in quotes if q['policy']==mode)),
-            gap_mean_feasible=mean_or_none([q['relative_gap'] for q in quotes if q['policy']==mode and q['new_gate_feasible']]),
-            charged_seconds_mean=mean_or_none([q['charged_total_seconds'] for q in quotes if q['policy']==mode])) for mode in MODES},
+        solver={mode:solver_summary(quotes,mode) for mode in MODES},
         failed_or_unresolved_quotes=[q for q in quotes if not q['new_gate_feasible'] or q['native_status']==9 or q['status']=='exception'],
+        zero_gate_disagreements=[dict(id=input_id,forecast=forecast,
+            sufficient={q['policy']:q.get('zero_action_sufficient') for q in quotes if (q['id'],q['forecast'])==(input_id,forecast)},
+            executed_activation_cost={q['policy']:q['executed_cost']['activation_yuan'] for q in quotes if (q['id'],q['forecast'])==(input_id,forecast)})
+            for input_id,forecast in sorted({(q['id'],q['forecast']) for q in quotes})
+            if len({q.get('zero_action_sufficient') for q in quotes if (q['id'],q['forecast'])==(input_id,forecast)})>1],
         rotation_unmatched_fees=audit['rotation_unmatched_fees'],
         statistical_scope='Independent units are physical date clusters, with four networks and all forecast/execution repetitions kept together. No AC recovery claim follows from a declared-model gate.',
         failure_cost_scope='Data-valid pipeline failures are unrecovered in every strategy denominator; unavailable costs remain unknown.',

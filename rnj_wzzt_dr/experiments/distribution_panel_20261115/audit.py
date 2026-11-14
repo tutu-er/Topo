@@ -126,6 +126,8 @@ class Audit(base.Audit):
                         'available_clock_hours', 'hourly_fee_multiplier'):
                 if key in declared:
                     self.require(key in actual and actual[key] == declared[key], 'Contract changed: '+key)
+                    if key.startswith('fee_'):
+                        self.require(np.isfinite(actual[key]) and actual[key]>=0,'Negative/nonfinite activation price invalidates zero-cost bound')
         return pc
 
     def coverage(self, entry, ctx, model):
@@ -138,7 +140,12 @@ class Audit(base.Audit):
             truth_in_representatives=bool(set(correct)&set(represented)),
             truth_in_target_set=bool(set(correct)&set(targets)), selected_target_native_indices=targets,
             history_native_selected=ctx['target'], history_correct=ctx['target'] in correct,
-            full_support_truth_in_native_bank=any(s == ctx['truth'] for s in ctx['active']))
+            full_support_truth_in_native_bank=any(s == ctx['truth'] for s in ctx['active']),
+            measured_terminals=ctx['n'],P_devices=len(entry['p_resources']),Q_devices=len(entry['q_resources']),
+            P_total_contract_kw=sum(float(r['contract_kw']) for r in entry['p_resources']),
+            Q_total_contract_kvar=sum(float(r['capacity_kvar']) for r in entry['q_resources']),
+            P_resource_nodes=sorted({int(r['node_label']) for r in entry['p_resources']}),
+            Q_resource_nodes=sorted({int(r['node_label']) for r in entry['q_resources']}))
 
     def gates(self, model, forecast, power, mode, saved=None):
         result = exact_gates(model, forecast, power, mode)
@@ -279,6 +286,9 @@ class Audit(base.Audit):
         for mode in MODES:
             self.quote_check(entry, draw, mode, plans[mode], planner[mode], gates[mode,mode],
                 controls[mode]['bill'], seeds, seed_check, anchor, planner)
+            self.quote_records[-1].update(zero_action_sufficient=gates[mode,'no_dfs']['feasible'],
+                zero_action_direct_gate=gates[mode,'no_dfs'],
+                nonzero_executed=bool(np.max(abs(planner[mode]),initial=0.)>1e-8))
         rotations = base.read(self.file(folder/'rotation_receipt.json'))
         self.require(set(rotations) == set(MODES), 'Incomplete rotation controls')
         for mode in MODES:
@@ -346,12 +356,18 @@ class Audit(base.Audit):
                             y=x@K.T
                             return float(evaluation['evidence']['h']+(np.square(y-x@Hj.T).sum()-np.square(y-x@Hi.T).sum())/(2*model['sigma2']))
                         nominal_mu,actual_mu = mean(nominal),mean(actual_power)
+                        clean_y=obs['true_root'][:,None]**2-obs['true_V']**2
+                        mean_error=clean_y-actual_power@K.T
+                        frozen_error=clean_y-actual_power@Hi.T
                         evaluation['historical_mean_diagnostic'] = dict(native_target=i,native_competitor=j,
                             target_in_selected_set=target in model['targets'], K_nominal_forecast_mu=nominal_mu,
                             K_actual_input_mu=actual_mu, actual_power_minus_nominal_forecast=actual_mu-nominal_mu,
                             clean_minus_actual_K=evaluation['evidence']['clean_logodds']-actual_mu,
                             observed_minus_clean=evaluation['evidence']['meter'],
-                            clean_minus_nominal_K=evaluation['evidence']['clean_logodds']-nominal_mu)
+                            clean_minus_nominal_K=evaluation['evidence']['clean_logodds']-nominal_mu,
+                            clean_Y_minus_K_mean=float(mean_error.mean()),clean_Y_minus_K_rmse=float(np.sqrt(np.square(mean_error).mean())),
+                            clean_Y_minus_frozen_H_mean=float(frozen_error.mean()),clean_Y_minus_frozen_H_rmse=float(np.sqrt(np.square(frozen_error).mean())),
+                            Y_units='squared-voltage pu; positive means actual root-squared minus terminal-squared voltage exceeds the fitted mean')
                     if (repeat,'no_dfs') in current and 'evidence' in current[repeat,'no_dfs']['evaluation']:
                         zero=current[repeat,'no_dfs']['evaluation']['evidence']
                         evaluation['evidence_increment']={k:evaluation['evidence'][k]-zero[k] for k in ('J','bias','meter','clean_logodds','observed_logodds')}

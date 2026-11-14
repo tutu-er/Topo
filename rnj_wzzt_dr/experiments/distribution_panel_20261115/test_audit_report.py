@@ -123,3 +123,16 @@ def test_boundary_rejects_actual_context_before_seal(tmp_path):
     assert not audit.planning_boundary(path)['passed']
     path.write_text(script(False),encoding='utf8')
     assert audit.planning_boundary(path)['passed']
+
+
+def test_zero_certificates_do_not_dilute_nonzero_solver_gap():
+    def quote(gap,nonzero):
+        return dict(policy='mgf_fixed',new_gate_feasible=True,nonzero_executed=nonzero,
+            optimizer_invoked=nonzero,zero_action_sufficient=not nonzero,anchor_fallback=False,zero_fallback=False,
+            native_status=9 if nonzero else None,status='time_limit' if nonzero else 'zero_sufficient',
+            relative_gap=gap,cost_yuan=10. if nonzero else 0.,lower_bound_yuan=2. if nonzero else 0.,
+            charged_total_seconds=600. if nonzero else 1.)
+    result=report.solver_summary([quote(0.,False)]*9+[quote(.8,True)],'mgf_fixed')
+    assert result['gap_mean_feasible']==pytest.approx(.08)
+    assert result['nonzero_feasible_optimizer_invoked']['gap']['mean']==pytest.approx(.8)
+    assert result['zero_cost_certificates']['n']==9

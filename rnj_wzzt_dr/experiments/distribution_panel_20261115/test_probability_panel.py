@@ -1,5 +1,4 @@
 """Small independent checks of panel simulation and event bookkeeping."""
-from copy import deepcopy
 import unittest
 
 import numpy as np
@@ -23,6 +22,41 @@ def toy(single=False):
 
 
 class ProbabilityPanelTests(unittest.TestCase):
+    def test_exact_dedup_matches_independent_per_policy_calculation(self):
+        model, forecast, powers = toy()
+        # Include exact duplicates, a distinct action and a difference small
+        # enough that np.allclose would incorrectly merge the arrays.
+        powers['mgf_fixed'] += .2
+        powers['mgf_fixed_rotation'] = powers['mgf_fixed'].copy()
+        powers['normal_fixed_rotation'][0, 0] += 1e-8
+        self.assertTrue(np.allclose(powers['normal_fixed_rotation'], powers['no_dfs']))
+        self.assertFalse(np.array_equal(powers['normal_fixed_rotation'], powers['no_dfs']))
+        draws, batch_size, seed, index, forecast_index = 19, 6, 17, 3, 2
+        expected = np.empty((2, 8, draws, len(model['H'])))
+        rng = [np.random.default_rng(np.random.SeedSequence([seed, index, forecast_index, c]))
+               for c in range(3)]
+        T, n = len(forecast), model['n']
+        # Reference deliberately evaluates every policy, with no shared
+        # computation or call into the optimized sampling function.
+        for start in range(0, draws, batch_size):
+            count = min(batch_size, draws-start)
+            xi = rng[0].normal(size=(count, T, 2*n))*.05*abs(forecast)[None]
+            error = (rng[1].normal(size=(count, T, n))*model['independent_sd']
+                     + rng[2].normal(size=(count, T, 1))*model['root_sd'])
+            for li, law in enumerate(panel.LAWS):
+                for pi, policy in enumerate(panel.POLICIES):
+                    X = powers[policy][None] + (xi if law == 'forecast' else 0.)
+                    if len(X) == 1:
+                        X = np.broadcast_to(X, (count, T, 2*n))
+                    Y = X@model['means'][0].T + error
+                    for j, h in enumerate(model['H']):
+                        expected[li, pi, start:start+count, j] = (
+                            np.square(Y-X@h.T).sum(axis=(1, 2))+model['history'][j])
+        actual = panel.simulate_target(model, powers, forecast, 0, draws=draws,
+            seed=seed, entry_index=index, forecast_index=forecast_index, batch_size=batch_size)
+        np.testing.assert_array_equal(actual, expected)
+        self.assertFalse(np.array_equal(actual[:, 0], actual[:, 5]))
+
     def test_stream_identity_batch_and_common_policy(self):
         model, forecast, powers = toy()
         args = dict(draws=17, seed=101, entry_index=2, forecast_index=1)
