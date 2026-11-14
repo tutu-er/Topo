@@ -105,6 +105,7 @@ class Audit(base.Audit):
             self.quote_records.append(dict(id=entry['id'],forecast=draw,policy=mode,status=q['status'],new_gate_feasible=feasible,
                 anchor_fallback=q['anchor_fallback'],executed_gate_feasible=direct['feasible'],cost_yuan=q.get('cost_yuan'),lower_bound_yuan=lower,
                 relative_gap=q.get('relative_gap'),native_status=q.get('native_status'),source=q.get('source'),initial=initial,
+                optimizer_invoked=q.get('optimizer_invoked'),source_line=q.get('source_line'),search_scope=q.get('search_scope'),
                 native_attributes=q.get('native_attributes'),new_quote_wall_seconds=q['quote_wall_seconds'],charged_total_seconds=q['charged_total_seconds'],
                 previous_shared_preparation_seconds_sunk=q['previous_shared_preparation_seconds_sunk'],total_method_seconds=q['total_method_seconds_including_previous_shared_work'],
                 resource_box_checks=q.get('resource_box_checks'),infeasibility_proved=q.get('infeasibility_proved',False),
@@ -197,8 +198,18 @@ def boundary(path):
     plans=[x for x in ast.walk(tree) if isinstance(x,ast.Call) and ast.unparse(x.func)=='solver.plan']
     args=[ast.unparse(x) for x in plans[0].args] if len(plans)==1 else []
     expected=['case',"planning['score']","planning['val']",'prediction',"planning['base']"]
-    return dict(passed=len(context)==1 and len(seals)==1 and context[0]>seals[0] and args==expected,
-        context_lines=context,seal_lines=seals,solver_arguments=args,scope='Physical context opened after planning seal; solver receives only contracts, frozen score, historical validation and sealed forecast.')
+    line_driver=Path(path).name=='line_run.py'
+    line_info={};planning_passed=args==expected
+    if line_driver:
+        calls={name:[x for x in ast.walk(tree) if isinstance(x,ast.Call) and ast.unparse(x.func)==name]
+            for name in ('evidence.DistributionEvidence','line_seed.search_lines','line_polish.polish_resources')}
+        line_info={name:[ast.unparse(a) for a in value[0].args] if len(value)==1 else [] for name,value in calls.items()}
+        planning_passed=(not plans and line_info['evidence.DistributionEvidence']==expected
+            and line_info['line_seed.search_lines']==['case','model','anchor','{k: v.copy() for k, v in seeds.items()}']
+            and line_info['line_polish.polish_resources']==['case','model','point'])
+    return dict(passed=len(context)==1 and len(seals)==1 and context[0]>seals[0] and planning_passed,
+        context_lines=context,seal_lines=seals,solver_arguments=args,line_driver=line_driver,line_planning_arguments=line_info,
+        scope='Physical context opened after planning seal; planning receives only contracts, frozen score, historical validation, sealed forecast and old planning-only anchor/seed arrays. Line driver calls no QCQP optimizer; resource-only rotation LP remains separately timed.')
 
 
 def pair_moments(records):
@@ -232,7 +243,9 @@ def run(source,out):
     with audit.file(meta/'branches.csv').open(encoding='utf-8-sig',newline='') as f:branches=list(csv.DictReader(f))
     with audit.file(meta/'buses.csv').open(encoding='utf-8-sig',newline='') as f:buses=list(csv.DictReader(f))
     for name in ('metadata.json','branches.csv','buses.csv'):audit.require(base.ref(meta/name)['sha256']==base.ref(base.native.ROOT/'topology_identification_standalone/cases'/entries[0]['case']/name)['sha256'],'Physical reference table changed')
-    info=boundary(source/'source_snapshot/rnj_wzzt_dr/experiments/distribution_gate_20261114/run.py');audit.require(info['passed'],'Planning boundary differs')
+    driver=Path(p.get('driver_relative_path','rnj_wzzt_dr/experiments/distribution_gate_20261114/run.py'))
+    audit.require(not driver.is_absolute() and '..' not in driver.parts,'Driver snapshot path is not repository-relative')
+    info=boundary(source/'source_snapshot'/driver);audit.require(info['passed'],'Planning boundary differs')
     own=dict(created_utc=datetime.now(timezone.utc).isoformat(),source=base.ref(__file__),source_run=base.ref(source/'protocol.json'),expected_rows=p['forecasts']*p['repeats']*len(POLICIES),
         planning_boundary=info,probability_source=base.ref(prob.__file__),scope='Independent all-native Gaussian integral, original scalar guards, physical resources, payments, native scores and stored full-network AC. No fitting, optimizer or AC solve.',
         environment=dict(python=sys.version,numpy=np.__version__))
