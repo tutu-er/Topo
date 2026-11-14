@@ -15,6 +15,7 @@ import json
 import hashlib
 from pathlib import Path
 import shutil
+import sys
 import traceback
 
 import numpy as np
@@ -360,7 +361,12 @@ def run(source,original_audit,out):
         original_audit=base.ref(original.audit_root/'report.json'),source_run=base.ref(source/'protocol.json'),
         scope='Stored-array independent math/fees/native selection/Ohm law/KCL only; no optimization, AC solve or refitting.',
         expected_rows=p['forecasts']*p['repeats'],bound_scope='Restricted activation-budget total-objective bounds only.',planning_boundary=boundary,
-        helper_sources=[base.ref(base.__file__),base.ref(base.native.__file__),base.ref(base.operation.__file__)])
+        environment=dict(python=sys.version,numpy=np.__version__),
+        helper_sources=[base.ref(base.__file__),base.ref(base.native.__file__),base.ref(base.operation.__file__),
+            base.ref(sys.modules[base.direct_original.__module__].__file__),base.ref(sys.modules[SealedFiles.__module__].__file__)])
+    for item in own['helper_sources']:
+        path=Path(item['path']);saved=out/'helper_snapshots'/path.relative_to(base.native.ROOT)
+        saved.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(path,saved)
     base.write(out/'protocol.json',own)
     for entry in entries:
         for draw in range(p['forecasts']):
@@ -377,7 +383,9 @@ def run(source,original_audit,out):
         task_errors=audit.task_errors,counts=dict(audit.counts),maximum_absolute_errors=dict(audit.maxima),electrical_maximum_errors=dict(audit.operation.maxima),
         summary=base.summarize(audit.records),comparisons=compare_original(audit.records,original.report),quotes=audit.quote_records,records=audit.records)
     base.write(out/'report.json',result)
-    base.write(out/'inputs_manifest.json',[dict(path=path,sha256=digest) for path,digest in audit.hashes.items()])
+    all_inputs={path:dict(path=path,sha256=digest) for path,digest in audit.hashes.items()}
+    all_inputs.update(original.inputs)
+    base.write(out/'inputs_manifest.json',list(all_inputs.values()))
     base.write(out/'complete.json',dict(status=status,report=base.ref(out/'report.json'),inputs=base.ref(out/'inputs_manifest.json'),
         source_unchanged=base.ref(__file__)['sha256']==own['source']['sha256']))
     return result
