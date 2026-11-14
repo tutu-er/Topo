@@ -96,7 +96,8 @@ def build_portfolio(case, score, forecast, base_kw, *, env=None, max_pairs=3,
     for j in order:
         D = H[target]-H[j]
         difference = forecast@D.T
-        effect = (D[:,case.node]+D[:,case.N+case.node]*case.qratio)/base_kw
+        effect = (case.response_effect(D, base_kw) if hasattr(case, 'response_effect')
+                  else (D[:,case.node]+D[:,case.N+case.node]*case.qratio)/base_kw)
         grad = difference.reshape(case.H,case.repeat,case.N).sum(1)@effect/sigma2
         gradients.append(grad)
         if j in order[:max_pairs] and np.max(abs(grad)) > 1e-14:

@@ -44,8 +44,9 @@ def build(H, target, competitors, forecast, sigma2, original, base_kw, gain):
     scale = np.sqrt(2*sigma2)
     raw_base = np.einsum("tc,knc->ktn", forecast, difference)/scale
     n = H.shape[1]
-    raw_effect = (difference[:, :, original.node]
-                  +difference[:, :, n+original.node]*original.qratio[None, None])/(base_kw*scale)
+    raw_effect = (original.response_effect(difference, base_kw)/scale if hasattr(original, 'response_effect')
+                  else (difference[:, :, original.node]
+                        +difference[:, :, n+original.node]*original.qratio[None, None])/(base_kw*scale))
     scales = np.maximum(1., np.linalg.norm(raw_base, axis=(1, 2)))
     evidence = Evidence(raw_base/scales[:, None, None], raw_effect/scales[:, None, None], scales, gain)
     return evidence

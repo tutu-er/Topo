@@ -57,7 +57,8 @@ class SymmetricRecovery:
             self.q.append(q); self.a.append(a); self.c.append(float(np.sum(d*d)/(2*self.sigma2)))
             h = (self.history[j]-self.history[i])/(2*self.sigma2)
             self.h.append(min([v for target,v in ((i,h),(j,-h)) if target in selected]))
-            effect = (D[:,case.node]+D[:,case.N+case.node]*case.qratio)/self.base_kw
+            effect = (case.response_effect(D, self.base_kw) if hasattr(case, 'response_effect')
+                      else (D[:,case.node]+D[:,case.N+case.node]*case.qratio)/self.base_kw)
             positive,negative=np.maximum(effect,0),np.minimum(effect,0)
             lower=np.repeat(case.lower,case.repeat,axis=0)
             upper=np.repeat(case.upper,case.repeat,axis=0)

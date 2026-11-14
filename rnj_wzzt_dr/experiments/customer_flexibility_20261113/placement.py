@@ -31,8 +31,12 @@ def terms(case, A, B, K, forecast, sigma2, base_kw):
     n = case.N
     D, E = A-B, K-A
     normal = np.sqrt(2*sigma2)
-    M = (D[:, case.node]+D[:, n+case.node]*case.qratio)/(base_kw*normal)
-    N = (E[:, case.node]+E[:, n+case.node]*case.qratio)/(base_kw*normal)
+    if hasattr(case, 'response_effect'):
+        M = case.response_effect(D, base_kw)/normal
+        N = case.response_effect(E, base_kw)/normal
+    else:
+        M = (D[:, case.node]+D[:, n+case.node]*case.qratio)/(base_kw*normal)
+        N = (E[:, case.node]+E[:, n+case.node]*case.qratio)/(base_kw*normal)
     b, e = forecast@D.T/normal, forecast@E.T/normal
     Q = case.repeat*(M.T@M+N.T@M+M.T@N)
     a = b.reshape(case.H, case.repeat, n).sum(1)@M
