@@ -32,6 +32,57 @@ def lines(item):
 def item_key(row): return row['id'],int(row['forecast']),int(row['repeat']),row['strategy']
 
 
+def forecast_key(row): return row['id'],int(row['forecast'])
+
+
+def interruption_panel(rows, quotes):
+    """An interrupted forecast affects the comparison of every policy, together."""
+    known={forecast_key(r) for r in rows}; affected=defaultdict(list)
+    for quote in quotes:
+        recovery=quote.get('recovery')
+        if not recovery: continue
+        if not isinstance(recovery,dict): raise ValueError('Recovery metadata must be a dictionary')
+        key=forecast_key(quote)
+        if key not in known: raise ValueError('Recovered quote outside the execution panel: '+str(key))
+        affected[key].append(quote['policy'])
+    marked=[dict(r,interruption_affected=forecast_key(r) in affected) for r in rows]
+    forecasts=[dict(id=key[0],forecast=key[1],interruption_affected=key in affected,
+        recovered_modes=sorted(set(affected.get(key,[]))),strategies=list(POLICIES)) for key in sorted(known)]
+    return marked,forecasts
+
+
+def historical_recovery_summary(quotes):
+    """Lost-point prices are historical evidence, never current execution costs."""
+    rows=[]
+    for quote in quotes:
+        recovery=quote.get('recovery')
+        if not recovery: continue
+        original=base.read(checked(recovery['original_quote'])) if recovery.get('original_quote') else {}
+        rows.append(dict(id=quote['id'],forecast=int(quote['forecast']),policy=quote['policy'],
+            kind=recovery.get('kind'),original_action_unavailable=recovery.get('original_action_unavailable'),
+            original_quote=recovery.get('original_quote'),interrupted_trace=recovery.get('interrupted_trace'),
+            historical_reported_cost_yuan=original.get('cost_yuan'),
+            historical_reported_lower_bound_yuan=original.get('lower_bound_yuan'),
+            historical_quote_wall_seconds=original.get('quote_wall_seconds'),
+            prior_measured_wall_lower_bound=recovery.get('prior_measured_wall_lower_bound'),
+            prior_budget_charge_seconds=recovery.get('prior_budget_charge_seconds'),
+            remaining_native_budget_seconds=recovery.get('remaining_native_budget_seconds'),
+            recovery_verification_seconds=recovery.get('recovery_verification_seconds'),
+            additional_quote_wall_seconds=recovery.get('additional_quote_wall_seconds'),
+            current_point_source=quote.get('source'),current_point_cost_yuan=quote.get('cost_yuan'),
+            current_point_lower_bound_yuan=quote.get('lower_bound_yuan'),
+            current_point_relative_gap=quote.get('relative_gap'),
+            current_executed_activation_cost_yuan=quote.get('executed_cost',{}).get('activation_yuan'),
+            timing_scope=recovery.get('timing_scope'),bound_sources=quote.get('bound_sources'),recovery=recovery))
+    fields=('historical_reported_cost_yuan','historical_reported_lower_bound_yuan','historical_quote_wall_seconds',
+        'prior_measured_wall_lower_bound','prior_budget_charge_seconds','remaining_native_budget_seconds',
+        'recovery_verification_seconds','additional_quote_wall_seconds')
+    return dict(n=len(rows),kind_counts=dict(Counter(str(r['kind']) for r in rows)),rows=rows,
+        distributions={field:distribution([r[field] for r in rows]) for field in fields},
+        scope='Historical lost-point prices and bounds are not current feasible upper bounds. Current cost, bound and gap use the audited returned point; executed cost separately includes any fallback.',
+        timing_scope='Prior budget charge is conservative accounting. Measured lower bounds, extra solve time and verification time remain separate; they do not reconstruct an exact interrupted wall time.')
+
+
 def complete_panel(records, ledger, preparation_failures, protocol):
     """Construct the predeclared data-valid denominator, with no imputation of truth."""
     if len({item_key(r) for r in records}) != len(records): raise ValueError('Duplicate audited execution identities')
@@ -93,7 +144,8 @@ def solver_summary(quotes, mode):
             activation_lower_bound_yuan=distribution([q['lower_bound_yuan'] for q in group]),
             charged_seconds=distribution([q['charged_total_seconds'] for q in group]),
             rows=[{k:q.get(k) for k in ('id','forecast','source','native_status','optimizer_invoked',
-                'initial','cost_yuan','lower_bound_yuan','relative_gap','quote_wall_seconds','charged_total_seconds')} for q in group])
+                'initial','cost_yuan','lower_bound_yuan','relative_gap','quote_wall_seconds','charged_total_seconds',
+                'recovery','bound_sources')} for q in group])
     return dict(n=len(selected),new_gate_feasible=len(feasible),
         zero_action_sufficient=sum(q.get('zero_action_sufficient',False) for q in selected),
         nonzero_executed=sum(q.get('nonzero_executed',False) for q in selected),
@@ -104,12 +156,17 @@ def solver_summary(quotes, mode):
         gap_mean_feasible_scope='Includes zero-cost certificates; do not use this mixture to assess nonzero QCQP convergence.',
         zero_cost_certificates=dict(n=len(zero),scope='Verified zero action and nonnegative activation prices give exact objective zero; no nonconvex search optimality is inferred.'),
         nonzero_feasible_quotes=stats(nonzero),nonzero_feasible_optimizer_invoked=stats(native_nonzero),
+        recovered_after_interruption=sum(bool(q.get('recovery')) for q in selected),
+        cost_scope='Current audited returned-point costs and bounds only; lost historical incumbents are listed separately.',
         charged_seconds_mean=mean_or_none([q['charged_total_seconds'] for q in selected]))
 
 
 def summarize(rows):
     completed=[r for r in rows if r['audit_status']=='passed'];n=len(rows)
     metrics=dict(n=n,completed=len(completed),recorded_failures=n-len(completed),
+        forecasts=len({forecast_key(r) for r in rows}),
+        interruption_affected_forecasts=len({forecast_key(r) for r in rows if r.get('interruption_affected',False)}),
+        interruption_affected_rows=sum(bool(r.get('interruption_affected',False)) for r in rows),
         recovered=sum(recovered(r) for r in rows),
         full_support_recovered=sum(bool(r.get('evaluation',{}).get('native_full_support_exact')) for r in completed),
         wrong_high=sum(bool(r['evaluation']['wrong_high']) for r in completed),
@@ -189,6 +246,30 @@ def cluster_interval(dates, *, seed=2026111503, draws=5000):
         season_counts={k:len(v) for k,v in groups.items()},method='Equal-date mean; seasons fixed; whole dates sampled with replacement inside season.')
 
 
+def method_comparisons(rows, *, primary=False):
+    comparisons={}
+    for policy in MODES:
+        comparisons[policy]={}
+        for baseline in ('no_dfs','anchor',policy+'_rotation'):
+            comparison=paired_comparison(rows,policy,baseline)
+            comparison['date_cluster_95_interval']=cluster_interval(comparison['dates'])
+            comparison['inferential_role']=('predeclared_primary' if primary and (policy,baseline)==('mgf_fixed','no_dfs')
+                else 'descriptive_comparison' if primary else 'administrative_interruption_sensitivity')
+            comparisons[policy][baseline]=comparison
+    return comparisons
+
+
+def interruption_subset(rows, quotes, *, affected):
+    selected=[r for r in rows if r['interruption_affected']==affected]
+    keys={forecast_key(r) for r in selected}
+    return dict(forecasts=len(keys),execution_rows=len(selected),
+        groups={p:summarize([r for r in selected if r['strategy']==p]) for p in POLICIES},
+        paired_vs_no_dfs={p:paired_comparison(selected,p,'no_dfs') for p in POLICIES},
+        comparisons=method_comparisons(selected),
+        solver={mode:solver_summary([q for q in quotes if forecast_key(q) in keys],mode) for mode in MODES},
+        selection_scope='One common forecast subset for all eight policies, based only on interruption metadata; no outcome-dependent or method-specific exclusions.')
+
+
 def run(audit_path, out):
     audit_path=Path(audit_path).resolve();out=Path(out).resolve()
     if out.exists(): raise FileExistsError(out)
@@ -201,15 +282,15 @@ def run(audit_path, out):
         ids={e['id'] for e in entries_from(base.read(checked(protocol['inputs'])))}|{r['id'] for r in failures}
         ledger=[r for r in ledger if r.get('task',r)['id'] in ids]
     rows,qualification=complete_panel(lines(audit['records']),ledger,failures,protocol)
-    quotes=lines(audit['quotes']);out.mkdir(parents=True);shutil.copyfile(__file__,out/'report.py')
-    comparisons={}
-    for policy in MODES:
-        comparisons[policy]={}
-        for baseline in ('no_dfs','anchor',policy+'_rotation'):
-            comparison=paired_comparison(rows,policy,baseline)
-            comparison['date_cluster_95_interval']=cluster_interval(comparison['dates'])
-            comparison['inferential_role']='predeclared_primary' if (policy,baseline)==('mgf_fixed','no_dfs') else 'descriptive_comparison'
-            comparisons[policy][baseline]=comparison
+    quotes=lines(audit['quotes']);rows,forecast_flags=interruption_panel(rows,quotes)
+    recovery_history=historical_recovery_summary(quotes)
+    out.mkdir(parents=True);shutil.copyfile(__file__,out/'report.py')
+    flags_path=out/'execution_interruption_flags.jsonl'
+    with flags_path.open('w',encoding='utf8') as stream:
+        for row in rows:
+            flag={key:row[key] for key in ('id','forecast','repeat','strategy','interruption_affected')}
+            stream.write(json.dumps(flag,ensure_ascii=False,allow_nan=False)+'\n')
+    comparisons=method_comparisons(rows,primary=True)
     coverage={r['id']:r for r in audit['input_coverage']}
     def split_group(field,flag): return [r for r in rows if r['id'] in coverage and bool(coverage[r['id']][field])==flag]
     groups={policy:summarize([r for r in rows if r['strategy']==policy]) for policy in POLICIES}
@@ -222,6 +303,12 @@ def run(audit_path, out):
         coverage_counts=dict(assessed=len(coverage),truth_in_native_bank=sum(r['truth_in_native_bank'] for r in coverage.values()),
             truth_in_target_set=sum(r['truth_in_target_set'] for r in coverage.values()),history_correct=sum(r['history_correct'] for r in coverage.values())),
         full_pipeline_execution_rows=len(rows),groups=groups,comparisons=comparisons,
+        paired_vs_no_dfs={p:paired_comparison(rows,p,'no_dfs') for p in POLICIES},
+        interruption=dict(forecasts=len(forecast_flags),affected_forecasts=sum(f['interruption_affected'] for f in forecast_flags),
+            unaffected_forecasts=sum(not f['interruption_affected'] for f in forecast_flags),forecast_records=forecast_flags,
+            execution_flags=base.ref(flags_path),historical_recovery=recovery_history,
+            unaffected=interruption_subset(rows,quotes,affected=False),affected=interruption_subset(rows,quotes,affected=True),
+            scope='Primary groups retain every predeclared data-valid forecast, including interrupted forecasts. The common uninterrupted subset is an additional sensitivity analysis, not a replacement primary result.'),
         by_date={day:{p:summarize([r for r in rows if r['date_cluster']==day and r['strategy']==p]) for p in POLICIES}
             for day in sorted({r['date_cluster'] for r in rows})},
         by_network={case:{p:summarize([r for r in rows if r['case']==case and r['strategy']==p]) for p in POLICIES}
@@ -248,6 +335,17 @@ def run(audit_path, out):
         g=groups[policy];c=paired_comparison(rows,policy,'no_dfs')
         cost=g['settled_cost_mean_completed']['total_yuan']
         text.append(f"|{policy}|{g['recovered']}/{g['n']}|{c['gained']}/{c['lost']}|{g['wrong_high']}|{'未取得' if cost is None else f'{cost:.6f}'}|")
+    interruption=result['interruption']
+    text+=['',f"主表保留全部 {interruption['forecasts']} 个数据有效预测，其中 {interruption['affected_forecasts']} 个受中断影响。任一方法发生中断恢复时，该预测的八种策略统一标记。",'',
+        f"以下为共同的 {interruption['unaffected_forecasts']} 个未受中断预测子集，仅作中断敏感性比较：",'',
+        '|策略|完整内部恢复/全流程路径|新增/丢失（相对无采购）|错误高权重|费用均值，元（完整执行）|',
+        '|---|---:|---:|---:|---:|']
+    for policy in POLICIES:
+        g=interruption['unaffected']['groups'][policy];c=interruption['unaffected']['paired_vs_no_dfs'][policy]
+        cost=g['settled_cost_mean_completed']['total_yuan']
+        text.append(f"|{policy}|{g['recovered']}/{g['n']}|{c['gained']}/{c['lost']}|{g['wrong_high']}|{'未取得' if cost is None else f'{cost:.6f}'}|")
+    if recovery_history['n']:
+        text+=['',f"{recovery_history['n']} 张报价含中断恢复记录。当前费用与上下界按恢复后实际返回点核验；动作丢失的旧报价费用仅列历史记录。旧预算计费、已知实测耗时下界、新增求解时间和恢复核验时间分别保存。"]
     text+=['','失败保留在恢复分母中；失败路径未知费用没有填零。按日期的同权差和季节分层区间见 report.json；原生求解超时、无解未决和回退分别保存。',
         '电气检查覆盖隐藏母线、根及所有终端；热额定缺失，因此热安全保持未核验。声明高斯模型的成功下界与真实AC恢复分开。','']
     (out/'REPORT.md').write_text('\n'.join(text),encoding='utf8')

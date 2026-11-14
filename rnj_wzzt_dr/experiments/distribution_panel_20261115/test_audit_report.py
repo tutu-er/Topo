@@ -136,3 +136,107 @@ def test_zero_certificates_do_not_dilute_nonzero_solver_gap():
     assert result['gap_mean_feasible']==pytest.approx(.08)
     assert result['nonzero_feasible_optimizer_invoked']['gap']['mean']==pytest.approx(.8)
     assert result['zero_cost_certificates']['n']==9
+
+
+def recovery_quote(tmp_path, **changes):
+    path=tmp_path/'original_plan.json'
+    path.write_text('{"quote_wall_seconds": 600.03, "cost_yuan": 2.1}',encoding='utf8')
+    recovery=dict(kind='completed_quote_action_lost',original_quote=audit.base.ref(path),
+        original_action_unavailable=True,prior_budget_charge_seconds=600.,
+        prior_measured_wall_lower_bound=600.03,remaining_native_budget_seconds=0.,
+        recovery_verification_seconds=.2,additional_quote_wall_seconds=0.,
+        timing_scope='Conservative original budget plus measured verification, not exact total wall')
+    recovery.update(changes)
+    return dict(recovery=recovery,shared_preparation_seconds=151.,
+        charged_total_seconds=751.2,optimizer_invoked=False)
+
+
+def test_recovery_keeps_lost_point_separate_and_budget_exhausted(tmp_path):
+    quote=recovery_quote(tmp_path)
+    checker=audit.Audit();checker.recovery_check(quote)
+    assert checker.counts['recovered_quotes']==1
+    assert 'quote_wall_seconds' not in quote
+
+
+def test_recovery_rejects_budget_reset_and_post_exhaustion_search(tmp_path):
+    quote=recovery_quote(tmp_path,remaining_native_budget_seconds=600.)
+    with pytest.raises(AssertionError,match='resets'):
+        audit.Audit().recovery_check(quote)
+    quote=recovery_quote(tmp_path);quote['optimizer_invoked']=True
+    with pytest.raises(AssertionError,match='exhausted'):
+        audit.Audit().recovery_check(quote)
+
+
+def test_recovery_rejects_changed_old_receipt_and_wrong_accounted_time(tmp_path):
+    quote=recovery_quote(tmp_path)
+    Path(quote['recovery']['original_quote']['path']).write_text('{}',encoding='utf8')
+    with pytest.raises(AssertionError,match='hash differs'):
+        audit.Audit().recovery_check(quote)
+    quote=recovery_quote(tmp_path);quote['charged_total_seconds']+=600.
+    with pytest.raises(AssertionError,match='recovery_charged_time'):
+        audit.Audit().recovery_check(quote)
+
+
+def test_continuation_boundary_preserves_arguments_and_original_runner(tmp_path):
+    path=tmp_path/'continuation.py'
+    text=('ORIGINAL_PLAN = original.solver.plan\n'
+          'def checkpoint_plan(*args, **kwargs):\n'
+          '    receipt, point = ORIGINAL_PLAN(*args, **kwargs)\n'
+          '    return receipt, point\n'
+          'def run_stage(out, p):\n'
+          '    pool.submit(original.run_forecast, task)\n')
+    path.write_text(text,encoding='utf8')
+    assert audit.continuation_boundary(path)['passed']
+    path.write_text(text.replace('ORIGINAL_PLAN(*args, **kwargs)',
+        'ORIGINAL_PLAN(*args, seconds=600, **kwargs)'),encoding='utf8')
+    assert not audit.continuation_boundary(path)['passed']
+
+
+def test_recovery_boundary_checks_helper_inputs_and_seal_order(tmp_path):
+    path=tmp_path/'recover_partial.py'
+    text=('def recover_quote(case, planning, prediction):\n'
+          "    return solver.plan(case, planning['score'], planning['val'], prediction, planning['base'])\n"
+          'def run_forecast(task):\n'
+          '    q = recover_quote(case, planning, prediction)\n'
+          "    io.write(directory / 'seal.json', {})\n"
+          '    ctx = old.context(entry)\n')
+    path.write_text(text,encoding='utf8')
+    assert audit.recovery_boundary(path)['passed']
+    path.write_text(text.replace("planning['val']",'actual_voltage'),encoding='utf8')
+    assert not audit.recovery_boundary(path)['passed']
+
+
+def test_recovery_bound_current_cost_and_original_problem_are_independent(tmp_path):
+    e=entry();root=tmp_path/'run';folder=root/'fraction0.10'/e['id']/'forecast00'
+    folder.mkdir(parents=True)
+    def saved(name,data):
+        path=folder/name;audit.base.write(path,data);return audit.base.ref(path)
+    score=saved('score.json',{});val=saved('val.json',{});forecast=saved('forecast.json',{})
+    resource=saved('resource_case.json',{});seeds=saved('seeds.json',{})
+    audit.base.write(root/'protocol.json',{'solver_seconds':600.})
+    original=saved('mgf_fixed_plan.json',dict(mode='mgf_fixed',bound_cost_object='activation_yuan',
+        lower_bound_yuan=.25,quote_wall_seconds=600.,cost_yuan=2.))
+    pause=saved('pause.json',dict(partial_tasks=[dict(id=e['id'],forecast='forecast00',
+        saved_plans=[original],native_logs=[])]))
+    problem=dict(mode='mgf_fixed',original_protocol=audit.base.ref(root/'protocol.json'),
+        score=score,validation=val,forecast=forecast,resource_case=resource,
+        shared_initial_points=seeds,target_mass=.99,buffer=1e-8)
+    digest=audit.hashlib.sha256(audit.json.dumps(problem,sort_keys=True).encode()).hexdigest()
+    recovery=dict(kind='completed_quote_action_unavailable',task_id=e['id'],forecast=0,
+        same_problem_inputs=problem,same_problem_fingerprint=digest,pause_manifest=pause,original_quote=original,
+        prior_budget_charge_seconds=600.,prior_measured_wall_lower_bound=600.,remaining_native_budget_seconds=0.)
+    action=np.zeros((24,1));np.savez(folder/'action.npz',u=action)
+    quote=dict(recovery=recovery,initial_points=seeds,requested_quote_budget_seconds=600.,
+        bound_sources=[dict(reference=original,lower_bound_yuan=.25,same_problem_fingerprint=digest,origin='prior_same_mode')],
+        cost_yuan=3.,lower_bound_yuan=.25,relative_gap=2.75/3.,lower_bound_withdrawn=False,
+        executed_action_checkpoint=audit.base.ref(folder/'action.npz'))
+    e.update(score=score,files={'validation.npz':val},forecast_ref=forecast)
+    actual=audit.Audit().recovery_provenance_check(e,0,'mgf_fixed',quote)
+    np.testing.assert_array_equal(actual,action)
+    quote['relative_gap']=(2.-.25)/2.  # copied old incumbent gap is incorrect for the replacement
+    with pytest.raises(AssertionError,match='current_recovery_gap'):
+        audit.Audit().recovery_provenance_check(e,0,'mgf_fixed',quote)
+    quote['relative_gap']=2.75/3.
+    quote['bound_sources'][0]['same_problem_fingerprint']='another_problem'
+    with pytest.raises(AssertionError,match='bound problem differs'):
+        audit.Audit().recovery_provenance_check(e,0,'mgf_fixed',quote)

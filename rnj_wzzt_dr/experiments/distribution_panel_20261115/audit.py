@@ -12,7 +12,9 @@ import ast
 from collections import Counter
 import csv
 from datetime import date, datetime, timedelta, timezone
+import hashlib
 import json
+import math
 from pathlib import Path
 import shutil
 import sys
@@ -69,6 +71,57 @@ def planning_boundary(path):
         scope='Recorded runner places actual context after seal and passes only contracts, historical score/validation, prediction and normalization base to the solver. This is a static adapter check, not a general data-flow proof.')
 
 
+def continuation_boundary(path):
+    """Check that continuation delegates the original planner and runner."""
+    tree=ast.parse(Path(path).read_text(encoding='utf-8-sig'))
+    functions={node.name:node for node in tree.body if isinstance(node,ast.FunctionDef)}
+    checkpoint=functions.get('checkpoint_plan');stage=functions.get('run_stage')
+    if checkpoint is None or stage is None:
+        return dict(passed=False,source=base.ref(path),scope='Missing continuation entry points')
+    calls=[node for node in ast.walk(checkpoint) if isinstance(node,ast.Call)]
+    solve=[node for node in calls if ast.unparse(node.func)=='ORIGINAL_PLAN']
+    forwarded=(len(solve)==1 and [ast.unparse(a) for a in solve[0].args]==['*args']
+        and [(k.arg,ast.unparse(k.value)) for k in solve[0].keywords]==[(None,'kwargs')])
+    submits=[node for node in ast.walk(stage) if isinstance(node,ast.Call)
+        and ast.unparse(node.func)=='pool.submit']
+    old_runner=(len(submits)==1 and bool(submits[0].args)
+        and ast.unparse(submits[0].args[0])=='original.run_forecast')
+    no_physics=not any(isinstance(node,ast.Call) and ast.unparse(node.func) in
+        ('old.context','original.old.context') for node in ast.walk(tree))
+    assignment=any(isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='ORIGINAL_PLAN'
+        for t in node.targets) and ast.unparse(node.value)=='original.solver.plan' for node in tree.body)
+    return dict(passed=forwarded and old_runner and no_physics and assignment,source=base.ref(path),
+        original_arguments_forwarded=forwarded,original_runner_preserved=old_runner,
+        scope='Continuation forwards unchanged solver arguments and delegates the original sealed forecast runner; persistence is separate from numerical acceptance.')
+
+
+def recovery_boundary(path):
+    """Check the additional recovery helper and its seal-before-AC ordering."""
+    tree=ast.parse(Path(path).read_text(encoding='utf-8-sig'))
+    functions={node.name:node for node in tree.body if isinstance(node,ast.FunctionDef)}
+    runner,helper=functions.get('run_forecast'),functions.get('recover_quote')
+    if runner is None or helper is None:
+        return dict(passed=False,source=base.ref(path),scope='Missing recovery entry points')
+    calls=[node for node in ast.walk(runner) if isinstance(node,ast.Call)]
+    contexts=[node for node in calls if ast.unparse(node.func)=='old.context']
+    seals=[node for node in calls if ast.unparse(node.func)=='io.write' and node.args
+        and isinstance(node.args[0],ast.BinOp) and isinstance(node.args[0].right,ast.Constant)
+        and node.args[0].right.value=='seal.json']
+    recovery=[node for node in calls if ast.unparse(node.func)=='recover_quote']
+    helper_calls=[node for node in ast.walk(helper) if isinstance(node,ast.Call)]
+    solves=[node for node in helper_calls if ast.unparse(node.func)=='solver.plan']
+    expected=['case',"planning['score']","planning['val']",'prediction',"planning['base']"]
+    passed=(len(contexts)==len(seals)==len(recovery)==len(solves)==1
+        and contexts[0].lineno>seals[0].lineno>recovery[0].lineno
+        and [ast.unparse(arg) for arg in recovery[0].args[:3]]==['case','planning','prediction']
+        and [ast.unparse(arg) for arg in solves[0].args]==expected
+        and not any(ast.unparse(node.func)=='old.context' for node in helper_calls))
+    return dict(passed=passed,source=base.ref(path),
+        seal_line=seals[0].lineno if len(seals)==1 else None,
+        physical_context_line=contexts[0].lineno if len(contexts)==1 else None,
+        scope='Recovered quotation receives contracts and historical planning inputs; the physical future context is opened after the recovery seal. Narrow AST check plus separate budget/hash checks.')
+
+
 def resource_values(config, action, labels, forecast_p, power_base):
     """Independent scalar domain checks plus the declared P-to-Q coupling."""
     devices, violations, dp, dq = base.operation.resource_values(
@@ -109,6 +162,21 @@ class Audit(base.Audit):
             for child in value.values(): self.references(child)
         elif isinstance(value, list):
             for child in value: self.references(child)
+
+    def continuation_sources(self, source, original_protocol):
+        stages=[]
+        for path in sorted(Path(source).glob('resume*_protocol.json')):
+            protocol=base.read(self.file(path));self.references(protocol)
+            self.require(protocol['original_protocol']==original_protocol, 'Continuation changed original protocol')
+            actual=self.checked(protocol['source']);snapshot=self.checked(protocol['source_snapshot'])
+            self.require(protocol['source']['sha256']==protocol['source_snapshot']['sha256'],
+                'Continuation source snapshot differs')
+            if actual.name=='continuation.py': boundary=continuation_boundary(snapshot)
+            elif actual.name=='recover_partial.py': boundary=recovery_boundary(snapshot)
+            else: raise AssertionError('Unreviewed continuation driver: '+actual.name)
+            self.require(boundary['passed'], 'Additional planning boundary differs')
+            stages.append(dict(protocol=base.ref(path),stage=protocol['stage'],boundary=boundary))
+        return stages
 
     def catalogue(self, entry, config, ctx):
         resources, units = config['resources'], config['action_units']
@@ -182,7 +250,147 @@ class Audit(base.Audit):
                 a,b=self.directed(ctx,ideal,i,j),self.directed(ctx,ideal_zero,i,j)
                 self.same('reported_ideal_J_gain',row['exact_physical_J_gain'],a['J']-b['J'],atol=1e-8)
 
+    def recovery_check(self, quote, budget=600.):
+        """Verify accounting without treating a lost point as the executed one."""
+        recovery = quote.get('recovery')
+        if not recovery:
+            return
+        self.require(isinstance(recovery, dict) and bool(recovery.get('kind')), 'Recovery kind missing')
+        self.references(recovery)
+        keys = ('pause_manifest',) if recovery['kind'] == 'unstarted' else ('original_quote', 'interrupted_trace')
+        provenance = [recovery.get(k) for k in keys if recovery.get(k)]
+        self.require(bool(provenance), 'Recovery lacks original quote or interruption evidence')
+        self.require(all(isinstance(r, dict) and 'path' in r and 'sha256' in r for r in provenance),
+            'Recovery evidence is not a hashed reference')
+        names = ('prior_budget_charge_seconds', 'remaining_native_budget_seconds',
+                 'recovery_verification_seconds', 'additional_quote_wall_seconds')
+        values = {}
+        for name in names:
+            value = float(recovery[name])
+            self.require(np.isfinite(value) and value >= 0., 'Invalid recovery timing: '+name)
+            values[name] = value
+        prior, remaining = values['prior_budget_charge_seconds'], values['remaining_native_budget_seconds']
+        self.require(prior+remaining <= float(budget)+1e-8, 'Recovery resets the original native search budget')
+        measured = recovery.get('prior_measured_wall_lower_bound')
+        if measured is not None:
+            self.require(np.isfinite(measured) and measured >= 0., 'Invalid prior measured wall lower bound')
+        self.require(bool(recovery.get('timing_scope')), 'Recovery timing scope missing')
+        self.require(isinstance(recovery.get('original_action_unavailable'), bool),
+            'Missing original-action availability disclosure')
+        if recovery['kind'] == 'unstarted':
+            self.require(prior == 0. and remaining <= float(budget) and not recovery['original_action_unavailable'],
+                'Never-started mode has inconsistent prior-budget/action evidence')
+        if remaining == 0.:
+            self.require(not quote.get('optimizer_invoked', False), 'Optimizer invoked after the original budget was exhausted')
+            self.same('zero_remaining_native_search_time', values['additional_quote_wall_seconds'], 0., atol=0, rtol=0)
+        expected = (float(quote['shared_preparation_seconds'])+prior
+                    +values['additional_quote_wall_seconds']+values['recovery_verification_seconds'])
+        self.same('recovery_charged_time', quote['charged_total_seconds'], expected, atol=1e-8)
+        # An optional old quote is evidence about the original solve. It must
+        # remain separately readable, never overwrite the replacement action.
+        if recovery.get('original_quote'):
+            old_quote = base.read(self.checked(recovery['original_quote']))
+            if old_quote.get('quote_wall_seconds') is not None and measured is not None:
+                self.require(measured <= float(old_quote['quote_wall_seconds'])+1e-8,
+                    'Prior measured lower bound exceeds the saved original wall time')
+        self.counts['recovered_quotes'] += 1
+
+    def recovery_provenance_check(self, entry, draw, mode, quote):
+        recovery=quote.get('recovery')
+        if not recovery:return
+        problem=recovery['same_problem_inputs']
+        digest=hashlib.sha256(json.dumps(problem,sort_keys=True).encode()).hexdigest()
+        self.require(digest==recovery['same_problem_fingerprint'], 'Recovery problem fingerprint differs')
+        self.references(problem)
+        self.require(recovery['task_id']==entry['id'] and recovery['forecast']==draw,
+            'Recovery forecast identity changed')
+        for key,expected in (('mode',mode),('score',entry['score']),
+            ('validation',entry['files']['validation.npz']),('forecast',entry['forecast_ref']),
+            ('shared_initial_points',quote['initial_points']),('target_mass',.99),('buffer',1e-8)):
+            self.require(problem[key]==expected, 'Recovery changed same-problem input: '+key)
+        folder=Path(problem['resource_case']['path']).parent
+        self.require(folder.name==f'forecast{draw:02d}' and folder.parent.name==entry['id'],
+            'Recovery resource case belongs to another forecast')
+        protocol=base.read(self.checked(problem['original_protocol']))
+        self.require(protocol['solver_seconds']==quote['requested_quote_budget_seconds']==600.,
+            'Recovery quote budget differs from original protocol')
+        self.require(problem['original_protocol']==base.ref(folder.parents[2]/'protocol.json'),
+            'Recovery used a different run protocol')
+        pause=base.read(self.checked(recovery['pause_manifest']))
+        tasks=[r for r in pause['partial_tasks'] if r['id']==entry['id'] and r['forecast']==f'forecast{draw:02d}']
+        self.require(len(tasks)==1, 'Recovery task absent from the sealed pause manifest')
+        old=tasks[0]
+        if recovery['kind']=='unstarted':
+            touched=[r['path'] for r in old['saved_plans']+old['native_logs']]
+            self.require(not any(Path(x).name==mode+'_plan.json' or Path(x).parent.name==mode+'_diagnostics'
+                                 for x in touched), 'Previously started mode reported unstarted')
+            self.same('never_started_available_budget',recovery['remaining_native_budget_seconds'],600.,atol=0,rtol=0)
+        if recovery.get('original_quote'):
+            self.require(recovery['original_quote'] in old['saved_plans'], 'Original quote absent from pause manifest')
+            self.require(Path(recovery['original_quote']['path'])==folder/(mode+'_plan.json'),
+                'Original quote belongs to another forecast or mode')
+            record=base.read(self.checked(recovery['original_quote']))
+            elapsed=float(record.get('quote_wall_seconds',record.get('seconds',0.)))
+            self.same('completed_original_budget_charge',recovery['prior_budget_charge_seconds'],min(600.,elapsed),atol=1e-8)
+            self.same('completed_original_measured_wall',recovery['prior_measured_wall_lower_bound'],elapsed,atol=1e-8)
+            self.same('completed_search_remaining_budget',recovery['remaining_native_budget_seconds'],0.,atol=0,rtol=0)
+        if recovery.get('interrupted_trace'):
+            self.require(Path(recovery['interrupted_trace']['path']).parent==folder/(mode+'_diagnostics'),
+                'Interrupted bound trace belongs to another mode')
+            previous=self.checked(recovery['preceding_completed_file'])
+            self.same('preceding_file_recorded_mtime',recovery['preceding_file_mtime_epoch'],previous.stat().st_mtime,atol=1e-6,rtol=0)
+            stop=datetime.fromisoformat(pause['recorded_utc']).timestamp()
+            self.same('recorded_confirmed_stop',recovery['confirmed_stop_epoch'],stop,atol=1e-6,rtol=0)
+            charge=min(600.,float(math.ceil(max(0.,stop-previous.stat().st_mtime))))
+            self.same('interrupted_conservative_debit',recovery['prior_budget_charge_seconds'],charge,atol=0,rtol=0)
+            self.same('interrupted_remaining_budget',recovery['remaining_native_budget_seconds'],600.-charge,atol=0,rtol=0)
+        bounds=[]
+        for item in quote.get('bound_sources',[]):
+            self.require(item['same_problem_fingerprint']==digest, 'Inherited bound problem differs')
+            reference=item.get('reference')
+            self.require(isinstance(reference,dict) and 'path' in reference and 'sha256' in reference,
+                'Inherited bound has no hashed source')
+            path=self.checked(reference);value=float(item['lower_bound_yuan'])
+            self.require(np.isfinite(value) and 0<=value<1e90, 'Nonfinite inherited bound')
+            if item['origin']=='prior_same_mode':
+                self.require(reference in [recovery.get('original_quote'),recovery.get('interrupted_trace')],
+                    'Prior bound source does not match the interrupted mode')
+            elif item['origin']=='current_same_mode':
+                self.require(reference==quote.get('diagnostics_receipt'), 'Current bound lacks its solver diagnostics')
+            else: raise AssertionError('Unknown recovery bound origin')
+            if path.suffix=='.jsonl':
+                values=[]
+                for line in path.read_text(encoding='utf8').splitlines():
+                    try: row=json.loads(line)
+                    except json.JSONDecodeError: continue  # final partial write remains in the hashed source
+                    v=row.get('bound')
+                    if isinstance(v,(int,float)) and np.isfinite(v) and 0<=v<1e90:values.append(float(v))
+                self.require(bool(values), 'Interrupted trace contains no finite original-model bound')
+                self.same('prior_trace_lower_bound',value,max(values),atol=1e-12)
+            else:
+                record=base.read(path)
+                self.require(not record.get('lower_bound_withdrawn') or value==0.,
+                    'Withdrawn positive bound reused')
+                self.require(record.get('mode')==mode and record.get('bound_cost_object')=='activation_yuan',
+                    'Bound source mode or objective differs')
+                self.same('source_lower_bound',value,record['lower_bound_yuan'],atol=1e-12)
+            bounds.append(value)
+        expected=max([0.,*bounds]);cost=quote.get('cost_yuan')
+        conflict=cost is not None and expected>cost+1e-7*max(1.,cost)
+        self.require(bool(quote.get('lower_bound_withdrawn'))==conflict,
+            'Recovery bound-conflict handling differs')
+        expected=0. if conflict else expected
+        self.same('merged_recovery_bound',quote['lower_bound_yuan'],expected,atol=1e-10)
+        if cost is None:self.require(quote.get('relative_gap') is None,'Failed recovery retains an incumbent gap')
+        else:self.same('current_recovery_gap',quote['relative_gap'],(cost-expected)/max(cost,1e-12),atol=1e-10)
+        checkpoint=base.native.arrays(self.checked(quote['executed_action_checkpoint']))
+        self.require(set(checkpoint)=={'u'}, 'Unexpected executed recovery checkpoint fields')
+        return checkpoint['u']
+
     def quote_check(self, entry, draw, mode, quote, action, direct, bill, seeds, gates_for_seed, anchor, planner):
+        self.recovery_check(quote)
+        recovered_action=self.recovery_provenance_check(entry,draw,mode,quote)
+        if recovered_action is not None:self.same('executed_recovery_checkpoint',action,recovered_action,atol=0,rtol=0)
         feasible = bool(quote.get('new_gate_feasible', quote.get('new_constraints_feasible', False)))
         self.require(feasible == bool(quote['feasible']) == bool(quote['new_constraints_feasible']), 'Quote feasibility flags differ')
         if feasible:
@@ -220,12 +428,12 @@ class Audit(base.Audit):
             check, cost = gates_for_seed(seeds[initial['name']], mode)
             self.require(check['feasible'], 'Declared feasible initial point fails original probability expression')
             self.same('initial_cost', initial['cost_yuan'], cost, atol=1e-7)
-        if all(k in quote for k in ('charged_total_seconds', 'shared_preparation_seconds', 'quote_wall_seconds')):
+        if not quote.get('recovery') and all(k in quote for k in ('charged_total_seconds', 'shared_preparation_seconds', 'quote_wall_seconds')):
             self.same('charged_time', quote['charged_total_seconds'], quote['shared_preparation_seconds']+quote['quote_wall_seconds'], atol=1e-9)
         keys = ('status','native_status','source','initial','relative_gap','lower_bound_yuan','cost_yuan',
             'optimizer_invoked','native_attributes','charged_total_seconds','shared_preparation_seconds','quote_wall_seconds',
             'requested_quote_budget_seconds','quote_budget_exceeded','infeasibility_proved','lower_bound_withdrawn',
-            'first_feasible_seconds','logging_errors')
+            'first_feasible_seconds','logging_errors','recovery','bound_sources')
         self.quote_records.append(dict(**identity(entry), forecast=draw, policy=mode,
             **{k: quote.get(k) for k in keys}, new_gate_feasible=feasible,
             anchor_fallback=bool(quote.get('anchor_fallback')), zero_fallback=bool(quote.get('zero_fallback')),
@@ -412,6 +620,7 @@ def run(source, out):
         audit.file(source/'source_snapshot'/relative,item['sha256'])
     boundary=planning_boundary(source/'source_snapshot'/protocol['driver_relative_path'])
     audit.require(boundary['passed'],'Recorded planning boundary differs')
+    continuation_stages=audit.continuation_sources(source,base.ref(source/'protocol.json'))
     expected={(e['id'],d) for e in entries for d in range(protocol['forecasts'])}
     successful=summary.get('receipts',[]); failed=summary.get('failed_tasks',[])
     task_key=lambda r:(r['id'],int(r.get('forecast_index',r.get('forecast'))))
@@ -419,7 +628,8 @@ def run(source, out):
     audit.require(not(good_keys&failed_keys) and good_keys|failed_keys==expected and len(good_keys)==len(successful)
         and len(failed_keys)==len(failed),'Incomplete or duplicated forecast task ledger')
     own=dict(created_utc=datetime.now(timezone.utc).isoformat(),source=base.ref(__file__),source_run=base.ref(source/'protocol.json'),
-        policies=POLICIES,planning_boundary=boundary,expected_execution_rows=len(expected)*protocol['repeats']*len(POLICIES),
+        policies=POLICIES,planning_boundary=boundary,continuation_stages=continuation_stages,
+        expected_execution_rows=len(expected)*protocol['repeats']*len(POLICIES),
         scope='Independent frozen native score, Gaussian original expressions, request/delivery/fees and stored full-network AC. No fitting, optimization, AC solve or new random path.',
         environment=dict(python=sys.version,numpy=np.__version__))
     helpers=[prob,base,base.native,base.operation,sys.modules[base.direct_original.__module__]]
@@ -471,7 +681,8 @@ def run(source, out):
         original_execution_failed_rows=summary.get('execution_failed_rows',[]),
         ideal_requested_diagnostic_failures=audit.exact_failures,
         task_errors=audit.task_errors,records=base.ref(out/'records.jsonl'),quotes=base.ref(out/'quotes.jsonl'),
-        rotation_unmatched_fees=audit.fee_mismatches,maximum_absolute_errors=dict(audit.maxima),
+        rotation_unmatched_fees=audit.fee_mismatches,continuation_stages=continuation_stages,
+        maximum_absolute_errors=dict(audit.maxima),
         electrical_maximum_errors=dict(audit.operation.maxima),counts=dict(audit.counts),
         missing_thermal_ratings='Currents and apparent powers are measured; allowable thermal loading is not verified.')
     base.write(out/'report.json',result)
