@@ -58,8 +58,11 @@ def target_set(history,sigma2,mass=.99):
     return [int(i) for i in order if logw[i]>=threshold-1e-12],weights
 
 
-def build_model(score,validation,native=None):
+def build_model(score,validation,native=None,*,meter_relative_sd=.0005,forecast_relative_sd=.05):
     """Recover K and the two historical voltage-noise variances from inputs."""
+    meter_relative_sd=float(meter_relative_sd);forecast_relative_sd=float(forecast_relative_sd)
+    if not all(np.isfinite(v) and v>=0 for v in (meter_relative_sd,forecast_relative_sd)):
+        raise ValueError('Relative noise standard deviations must be finite and nonnegative')
     labels=list(score['labels']);n=len(labels);H=np.asarray([x['H'] for x in score['native_bank']],float)
     history=np.asarray([x['history_sse'] for x in score['native_bank']],float)
     representatives=[int(x['index']) for x in score['models']]
@@ -79,14 +82,15 @@ def build_model(score,validation,native=None):
     residual=y[None]-predictions
     factor=1+(predictions*residual).sum(axis=1)/(np.square(predictions).sum(axis=1)+len(power)*sigma2)
     means=factor[:,:,None]*repH
-    root_sd=2*.0005*float(np.median(validation['root']))**2
-    independent_sd=2*.0005*float(np.median(validation['V']))**2
+    root_sd=2*meter_relative_sd*float(np.median(validation['root']))**2
+    independent_sd=2*meter_relative_sd*float(np.median(validation['V']))**2
     covariance=root_sd**2*np.ones((n,n))+independent_sd**2*np.eye(n)
     targets,weights=target_set(history[representatives],sigma2)
     families=[x['topology_id'] for x in score['native_bank']]
     return dict(H=H,history=history,representatives=representatives,means=means,amplitude=factor,
         targets=targets,weights=weights,families=families,labels=labels,n=n,sigma2=sigma2,
         root_sd=root_sd,independent_sd=independent_sd,covariance=covariance,
+        meter_relative_sd=meter_relative_sd,forecast_relative_sd=forecast_relative_sd,
         internal=np.asarray([x['internal'] for x in score['native_bank']]),score=score,
         validation_cells=y.size)
 
@@ -112,7 +116,7 @@ class PairIntegral:
         E=K-Hi;Q=(.5*self.D.T@self.D+.5*(E.T@self.D+self.D.T@E))/sigma2
         A=np.zeros((p+n,p+n));A[:p,:p]=Q;A[:p,p:]=self.D.T/(2*sigma2);A[p:,:p]=self.D/(2*sigma2)
         L=np.zeros((T,p+n,p+n));L[:,:p,:p]=np.eye(p)[None]*power_sd[:,None,:]
-        L[:,p:,p:]=np.linalg.cholesky(covariance)[None]
+        L[:,p:,p:]=(np.linalg.cholesky(covariance) if np.any(covariance) else np.zeros_like(covariance))[None]
         B=np.einsum('tji,jk,tkl->til',L,A,L,optimize=True)
         self.Q=Q;self.B=(B+B.transpose(0,2,1))/2
         self.G=np.einsum('tji,jk->tik',L,A[:,:p],optimize=True)
@@ -159,7 +163,7 @@ def exact_gates(model,forecast,power,mode):
     """Independent all-native foreign-family constraints (no old J gate)."""
     T,n=power.shape[0],model['n'];score=model['score'];sigma2=model['sigma2']
     tie=max(1e-7,(score['cells']+T*n)*score['reference_mse']*score['validation_tie']/(2*sigma2))
-    sd=.05*abs(forecast) if mode=='mgf_forecast' else np.zeros_like(forecast)
+    sd=model.get('forecast_relative_sd',.05)*abs(forecast) if mode=='mgf_forecast' else np.zeros_like(forecast)
     cache=model.setdefault('_integral_cache',{})
     law_key=('forecast' if mode=='mgf_forecast' else 'fixed',hashlib.sha256(np.ascontiguousarray(forecast).tobytes()).hexdigest())
     rows=[];totals={str(t):0. for t in model['targets']}

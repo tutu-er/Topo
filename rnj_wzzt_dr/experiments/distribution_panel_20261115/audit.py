@@ -43,6 +43,17 @@ def identity(entry):
         season=entry.get('season', season_of(start)))
 
 
+def noise_parameters(entry, protocol):
+    """Resolve the sealed per-input law; old panel inputs keep their defaults."""
+    meter=entry.get('meter',protocol.get('meter',{}))
+    values=dict(pq_relative_sd=float(meter.get('additional_PQ_relative_sd',.005)),
+        meter_relative_sd=float(meter.get('additional_V_relative_sd',.0005)),
+        forecast_relative_sd=float(entry.get('forecast_relative_sd',protocol.get('forecast_relative_sd',.05))))
+    if not all(np.isfinite(v) and v>=0 for v in values.values()):
+        raise ValueError('Relative noise standard deviations must be finite and nonnegative')
+    return values
+
+
 def json_line(stream, value):
     def convert(x):
         if isinstance(x, np.ndarray): return x.tolist()
@@ -443,15 +454,17 @@ class Audit(base.Audit):
 
     def forecast(self, folder, entry, protocol, metadata, branches, buses):
         draw = int(folder.name.removeprefix('forecast')); ctx = self.context(entry)
+        noise=noise_parameters(entry,protocol)
         seal = base.read(self.file(folder/'seal.json')); self.references(seal)
         planner = base.native.arrays(self.checked(seal['planner']))
         self.require(set(planner) == {'forecast', *POLICIES}, 'Missing or extra policy arrays')
         forecast = planner['forecast']; self.require(forecast.shape == (96, 2*ctx['n']), 'Forecast dimensions differ')
         true_power = np.c_[ctx['baseline_P'],ctx['baseline_Q']]
-        expected_forecast = true_power*(1+.05*base.native.random_stream(protocol,entry,draw,0,991).normal(size=true_power.shape))
+        expected_forecast = true_power*(1+noise['forecast_relative_sd']*base.native.random_stream(protocol,entry,draw,0,991).normal(size=true_power.shape))
         self.same('forecast_error_stream',forecast,expected_forecast,atol=0,rtol=0)
         validation = base.native.arrays(self.checked(entry['files']['validation.npz']))
-        model = prob.build_model(ctx['score'], validation, ctx['native'])
+        model = prob.build_model(ctx['score'], validation, ctx['native'],
+            meter_relative_sd=noise['meter_relative_sd'],forecast_relative_sd=noise['forecast_relative_sd'])
         if not any(r['id'] == entry['id'] for r in self.input_records): self.input_records.append(self.coverage(entry, ctx, model))
         config = base.read(self.file(folder/'resource_case.json')); pc = self.catalogue(entry, config, ctx)
         qc = len(config['resources'])-pc
@@ -536,7 +549,8 @@ class Audit(base.Audit):
                 devices, violations, dp, dq = resource_values(config, delivered, ctx['labels'], forecast[:, :ctx['n']], ctx['base'])
                 self.same('actual_P', obs['true_P'], ctx['baseline_P']+dp, atol=1e-13)
                 self.same('actual_Q', obs['true_Q'], ctx['baseline_Q']+dq, atol=1e-13)
-                for name,k,sigma in (('P',0,.005),('Q',1,.005),('V',2,.0005),('root',3,.0005)):
+                for name,k,sigma in (('P',0,noise['pq_relative_sd']),('Q',1,noise['pq_relative_sd']),
+                        ('V',2,noise['meter_relative_sd']),('root',3,noise['meter_relative_sd'])):
                     self.same('meter_'+name, obs[name], obs['true_'+name]*(1+sigma*random['noise'+str(k)]), atol=1e-13)
                 self.same('observed_squared_voltage', obs['Y'], obs['root'][:,None]**2-obs['V']**2, atol=1e-13)
                 bill = base.procurement(config, action, delivered, kp, kq)
@@ -649,7 +663,9 @@ def run(source, out):
             for name in ('metadata.json','branches.csv','buses.csv'):
                 audit.require(base.ref(meta/name)['sha256']==base.ref(ROOT/'topology_identification_standalone/cases'/entry['case']/name)['sha256'], 'Physical table changed since snapshot')
             ctx=audit.context(entry)
-            model=prob.build_model(ctx['score'],base.native.arrays(audit.checked(entry['files']['validation.npz'])),ctx['native'])
+            noise=noise_parameters(entry,protocol)
+            model=prob.build_model(ctx['score'],base.native.arrays(audit.checked(entry['files']['validation.npz'])),ctx['native'],
+                meter_relative_sd=noise['meter_relative_sd'],forecast_relative_sd=noise['forecast_relative_sd'])
             audit.input_records.append(audit.coverage(entry,ctx,model))
         except Exception as exc:
             audit.task_errors.append(dict(id=entry['id'],error=repr(exc),traceback=traceback.format_exc()));continue

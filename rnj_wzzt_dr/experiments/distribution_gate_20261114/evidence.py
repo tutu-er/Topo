@@ -60,11 +60,18 @@ class DistributionEvidence:
     """
 
     def __init__(self, case, score, validation, forecast, base_kw,
-                 mode='mgf_forecast', target_mass=.99, lambda_start=.5):
+                 mode='mgf_forecast', target_mass=.99, lambda_start=.5, *,
+                 meter_relative_sd=METER_RELATIVE_SD,
+                 forecast_relative_sd=FORECAST_RELATIVE_SD):
         if mode not in ('mgf_forecast', 'mgf_fixed', 'normal_fixed'):
             raise ValueError(mode)
         if not np.isfinite(lambda_start) or lambda_start <= 0:
             raise ValueError('Positive finite starting lambda required')
+        self.meter_relative_sd = float(meter_relative_sd)
+        self.forecast_relative_sd = float(forecast_relative_sd)
+        if (not np.isfinite(self.meter_relative_sd) or self.meter_relative_sd < 0
+                or not np.isfinite(self.forecast_relative_sd) or self.forecast_relative_sd < 0):
+            raise ValueError('Finite nonnegative meter and forecast relative SDs required')
         self.case, self.score, self.mode = case, score, mode
         self.base_kw, self.target_mass = float(base_kw), float(target_mass)
         self.forecast = np.asarray(forecast, float)
@@ -83,10 +90,10 @@ class DistributionEvidence:
         if hasattr(case, 'labels') and tuple(case.labels) != tuple(validation.labels):
             raise ValueError('Validation terminal labels differ from resource labels')
         self.root_median, self.voltage_median = float(np.median(root)), float(np.median(voltage))
-        self.root_variance = (2*METER_RELATIVE_SD*self.root_median**2)**2
-        self.individual_variance = (2*METER_RELATIVE_SD*self.voltage_median**2)**2
+        self.root_variance = (2*self.meter_relative_sd*self.root_median**2)**2
+        self.individual_variance = (2*self.meter_relative_sd*self.voltage_median**2)**2
         self.sigma_e = self.root_variance*np.ones((self.N, self.N))+self.individual_variance*np.eye(self.N)
-        self.power_sd = (FORECAST_RELATIVE_SD*np.abs(self.forecast)
+        self.power_sd = (self.forecast_relative_sd*np.abs(self.forecast)
                          if mode == 'mgf_forecast' else np.zeros_like(self.forecast))
         self.sigma_p_diag = self.power_sd**2
 
@@ -198,11 +205,12 @@ class DistributionEvidence:
         self.metadata = dict(mode=mode, target_mass=target_mass, targets=list(self.targets),
             target_native_indices=[self.native_indices[i] for i in self.targets],
             representative_count=self.K, native_count=len(bank), pair_count=count,
-            guard_count=len(self.guards), score_sigma2=self.sigma2, meter_relative_sd=METER_RELATIVE_SD,
+            guard_count=len(self.guards), score_sigma2=self.sigma2, meter_relative_sd=self.meter_relative_sd,
+            forecast_relative_sd=self.forecast_relative_sd,
             root_voltage_median=self.root_median, terminal_voltage_median=self.voltage_median,
             root_squared_voltage_variance=self.root_variance, individual_squared_voltage_variance=self.individual_variance,
             voltage_error='Independent across times; shared root scalar plus independent terminal scalar Gaussians',
-            power_error='Independent across times and P/Q channels; SD=0.05*abs(frozen forecast); zero in fixed modes',
+            power_error=f'Independent across times and P/Q channels; SD={self.forecast_relative_sd:g}*abs(frozen forecast); zero in fixed modes',
             mean_source='Existing validation row-scale calibrated_means; frozen H used for all scores',
             constrained_bank='Every native point of different topology for each selected representative target',
             confidence_scope='Conditional on declared K mean and fixed Gaussian errors; not a true-network or posterior calibration guarantee',

@@ -188,6 +188,10 @@ def run_forecast(task):
     io.write(directory/'started.json', dict(pid=os.getpid(), created_utc=old.utc()))
     shared_began = perf_counter()
     planning = planning_context(entry, entry['base_kw'])
+    meter_config = entry.get('meter', p.get('meter', {}))
+    distribution_config = dict(
+        meter_relative_sd=float(meter_config.get('additional_V_relative_sd', .0005)),
+        forecast_relative_sd=float(entry.get('forecast_relative_sd', p.get('forecast_relative_sd', .05))))
     prediction = arrays(entry['forecast_ref'])[f'forecast{draw:02d}']
     case = PQIncrementCase(planning['resource'], planning['labels'], prediction, planning['base'],
                            q_resources=entry['q_resources'], fraction=.1)
@@ -222,11 +226,11 @@ def run_forecast(task):
         model = point = None
         try:
             model = evidence.DistributionEvidence(case, planning['score'], planning['val'], prediction,
-                                                   planning['base'], mode=mode, target_mass=.99)
+                                                   planning['base'], mode=mode, target_mass=.99, **distribution_config)
             receipt, point = solver.plan(case, planning['score'], planning['val'], prediction, planning['base'],
                 mode=mode, seconds=max(.001, p['solver_seconds']-(perf_counter()-tick)),
                 env=old.WORK['env'], seed_points={k:v.copy() for k,v in seeds.items()},
-                target_mass=.99, record_directory=directory/(mode+'_diagnostics'))
+                target_mass=.99, record_directory=directory/(mode+'_diagnostics'), **distribution_config)
             if bool(receipt['feasible']) != (point is not None):
                 raise ArithmeticError('Quote/point feasibility mismatch')
             if point is not None and not (case.audit(point)['passed'] and model.verify_expansion(point)['feasible']):
@@ -281,6 +285,9 @@ def run_forecast(task):
 
 def execute(entry, draw, p, directory, ctx, case, prediction, controls, plans, anchor_receipt):
     H, C, hist, sigma2 = ctx['H'], ctx['common_H'], ctx['history'], ctx['score']['sigma2']
+    meter_config = entry.get('meter', p.get('meter', {}))
+    pq_sigma = float(meter_config.get('additional_PQ_relative_sd', .005))
+    voltage_sigma = float(meter_config.get('additional_V_relative_sd', .0005))
     predicted = {name:old.pair_components(H, C, hist, sigma2, prediction+case.shift_pq_pu(u, ctx['base']))
                  for name,u in controls.items()}
     exact, rows = {}, []
@@ -325,7 +332,7 @@ def execute(entry, draw, p, directory, ctx, case, prediction, controls, plans, a
                 delivered, delivery = case.execute(u, ctx['p']*ctx['base'], eta)
                 pp, qq, state, checks, ref = old.physical_state(ctx, case, delivered, folder/'full_ac.npz')
                 v = state['terminal_voltage_pu']; clean_y = ctx['root'][:,None]**2-v**2
-                pm,qm,y,vm,rm = old.meter(pp,qq,v,ctx['root'],noise)
+                pm,qm,y,vm,rm = old.meter(pp,qq,v,ctx['root'],noise,pq_sigma=pq_sigma,voltage_sigma=voltage_sigma)
                 obs = Observation(pm,qm,y,ctx['labels'],vm,rm)
                 values,ll,new_sse = old.score_observation(ctx,obs)
                 components = old.pair_components(H,C,hist,sigma2,np.c_[pp,qq],clean_y,obs,ctx['history_without_common'])

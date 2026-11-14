@@ -46,7 +46,8 @@ def planning_context(entry,base_kw):
         val=Observation(observed.p,observed.q,observed.y,observed.labels,z['V'].copy(),z['root'].copy())
         if not np.array_equal(val.y,z['Y']):
             raise ArithmeticError('Historical Y changed while restoring measured voltage channels')
-    if val.rows!=96 or val.labels!=tuple(score['labels']):
+    expected_rows=int(entry.get('validation_rows',96))
+    if val.rows!=expected_rows or val.labels!=tuple(score['labels']):
         raise ValueError('Wrong historical validation split')
     return dict(score=score,val=val,base=float(base_kw),labels=val.labels,resource=read(entry['resource_context']))
 

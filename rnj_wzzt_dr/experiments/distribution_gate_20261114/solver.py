@@ -10,7 +10,7 @@ from scipy.stats import norm
 
 from ..absolute_identification_20261114.solver import seed_items
 from ..flexibility_extended_solve_20261114.solver import _Recorder, _number, _reference
-from .evidence import DistributionEvidence
+from .evidence import DistributionEvidence, METER_RELATIVE_SD, FORECAST_RELATIVE_SD
 
 BUFFER = 1e-8
 
@@ -93,11 +93,16 @@ def _expression(u, Q, a, c, hours):
 
 
 def plan(case, score, validation, forecast, base_kw, *, mode='mgf_forecast',
-         seconds=600., env, seed_points=None, target_mass=.99, record_directory=None):
+         seconds=600., env, seed_points=None, target_mass=.99, record_directory=None,
+         meter_relative_sd=METER_RELATIVE_SD, forecast_relative_sd=FORECAST_RELATIVE_SD):
     if seconds <= 0 or not np.isfinite(seconds):
         raise ValueError('Positive finite total quote budget required')
     began = perf_counter(); recorder = _Recorder(record_directory, began)
-    evidence = DistributionEvidence(case,score,validation,forecast,base_kw,mode=mode,target_mass=target_mass)
+    options = dict(mode=mode, target_mass=target_mass)
+    # Preserve the original default constructor call for existing adapters.
+    if meter_relative_sd != METER_RELATIVE_SD or forecast_relative_sd != FORECAST_RELATIVE_SD:
+        options.update(meter_relative_sd=meter_relative_sd, forecast_relative_sd=forecast_relative_sd)
+    evidence = DistributionEvidence(case,score,validation,forecast,base_kw,**options)
     zero = np.zeros(case.shape); baseline = evidence.verify_expansion(zero)
     common = dict(mode=mode, objective_kind='activation', objective_cost_object='activation_yuan',
         bound_cost_object='activation_yuan', targets=evidence.targets, gate_rows=evidence.rows,
@@ -105,6 +110,7 @@ def plan(case, score, validation, forecast, base_kw, *, mode='mgf_forecast',
         target_mass=target_mass, numerical_gate_buffer=BUFFER,
         constrained_bank='Chosen frozen representative versus all original native points in other internal-topology families',
         original_nominal_gates_retained=False, original_scalar_guards_retained=True,
+        meter_relative_sd=float(meter_relative_sd), forecast_relative_sd=float(forecast_relative_sd),
         time_scope='Evidence construction, seed checks, model construction, solve and receipts included; old common preparation reported by caller',
         confidence_scope='Conditional on fixed historical calibrated mean and declared fixed Gaussian law; nominal delivery, no actual-AC or random-delivery guarantee')
     if case.audit(zero)['passed'] and baseline['feasible']:
