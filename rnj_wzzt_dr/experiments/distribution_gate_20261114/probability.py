@@ -244,8 +244,9 @@ def forecast_probability(folder,entry,protocol,out,draws,seed,batch_size):
                 family=np.asarray([model['families'][j]==model['families'][i] for j in winner])
                 margins=(allS[:,foreign]-allS[:,i,None])/(2*model['sigma2'])
                 representative=np.all(margins>=tie,axis=1)
-                # Exact normal calculation is used for the fixed law, MGF for random power.
-                theory_mode='normal_fixed' if law=='fixed' else 'mgf_forecast'
+                # A fixed-MGF policy retains its actual conservative gate bound;
+                # fixed-P normal tails are an additional exact-model reference.
+                theory_mode=('mgf_fixed' if policy=='mgf_fixed' else 'normal_fixed') if law=='fixed' else 'mgf_forecast'
                 cachekey=(policy,theory_mode)
                 if cachekey not in theory_cache:theory_cache[cachekey]=exact_gates(model,forecast,power[policy],theory_mode)
                 gates=theory_cache[cachekey];pairs=[r for r in gates['rows'] if r['target']==target]
@@ -272,6 +273,9 @@ def forecast_probability(folder,entry,protocol,out,draws,seed,batch_size):
                     cachekey=(policy,'mgf_fixed')
                     if cachekey not in theory_cache:theory_cache[cachekey]=exact_gates(model,forecast,power[policy],'mgf_fixed')
                     row['fixed_MGF_union_failure_upper']=min(1.,theory_cache[cachekey]['target_failure_sums'][str(target)])
+                    normal_key=(policy,'normal_fixed')
+                    if normal_key not in theory_cache:theory_cache[normal_key]=exact_gates(model,forecast,power[policy],'normal_fixed')
+                    row['fixed_exact_normal_union_failure_upper']=min(1.,theory_cache[normal_key]['target_failure_sums'][str(target)])
                 rows.append(row);sample_events[law,target,policy]=(family,representative)
     comparisons=[]
     for law in LAWS:

@@ -154,6 +154,23 @@ class Audit(base.Audit):
                 pairfiles[repeat,policy]=base.native.arrays(path/'pair_evidence.npz')
                 if 'pair' in ev:
                     i,j=ev['pair'];ev['forecast_evidence']=self.directed(ctx,forecasts[policy],i,j)
+                    reps=model['representatives']
+                    if i in reps:
+                        target=reps.index(i);K=model['means'][target];Hi,Hj=model['H'][i],model['H'][j]
+                        actual_power=np.c_[obs['true_P'],obs['true_Q']];expected_y=actual_power@K.T
+                        actual_mu=float(ev['evidence']['h']+(np.square(expected_y-actual_power@Hj.T).sum()-np.square(expected_y-actual_power@Hi.T).sum())/(2*model['sigma2']))
+                        actual_difference=actual_power@(Hi-Hj).T
+                        actual_variance=float(np.einsum('ti,ij,tj->',actual_difference,model['covariance'],actual_difference,optimize=True)/model['sigma2']**2)
+                        target_row=next(x for x in gates['mgf_forecast',policy]['rows'] if x['target_native']==i and x['competitor_native']==j)
+                        fixed_mu=target_row['fixed_input_mean']
+                        ev['historical_mean_diagnostic']=dict(native_target=i,native_competitor=j,
+                            K_nominal_forecast_mu=fixed_mu,K_random_power_mean=target_row['mean'],K_actual_input_mu=actual_mu,
+                            fixed_power_score_variance=target_row['fixed_input_variance'],random_power_score_variance=target_row['variance'],
+                            actual_input_voltage_error_score_variance=actual_variance,
+                            actual_power_minus_nominal_forecast=actual_mu-fixed_mu,
+                            clean_minus_actual_K=ev['evidence']['clean_logodds']-actual_mu,
+                            observed_minus_clean=ev['evidence']['meter'],clean_minus_nominal_K=ev['evidence']['clean_logodds']-fixed_mu,
+                            scope='Offline true-family direction. Actual P/Q and physical voltage are used only after execution; planning K and all score H remain historical and frozen.')
                     if policy in exact:ev['ideal_evidence']=self.directed(ctx,exact[policy],i,j)
                     zero=ev if policy=='no_dfs' else current[repeat,'no_dfs']['evaluation']
                     ev['evidence_increment']={k:ev['evidence'][k]-zero['evidence'][k] for k in ('J','bias','meter','clean_logodds','observed_logodds')}
@@ -182,6 +199,23 @@ def boundary(path):
     expected=['case',"planning['score']","planning['val']",'prediction',"planning['base']"]
     return dict(passed=len(context)==1 and len(seals)==1 and context[0]>seals[0] and args==expected,
         context_lines=context,seal_lines=seals,solver_arguments=args,scope='Physical context opened after planning seal; solver receives only contracts, frozen score, historical validation and sealed forecast.')
+
+
+def pair_moments(records):
+    rows=[r['evaluation'] for r in records if r.get('audit_status')=='passed' and 'historical_mean_diagnostic' in r['evaluation']]
+    if not rows:return dict(n=0)
+    values={k:np.asarray([r['evidence'][k] for r in rows],float) for k in ('clean_logodds','observed_logodds','meter')}
+    n=len(rows);variance=lambda x:float(np.var(x,ddof=1)) if n>1 else None
+    answer=dict(n=n,native_pair=rows[0]['pair'],sample={k:dict(mean=float(v.mean()),variance=variance(v)) for k,v in values.items()},
+        model={k:float(np.mean([r['historical_mean_diagnostic'][k] for r in rows])) for k in (
+            'K_nominal_forecast_mu','K_random_power_mean','K_actual_input_mu','fixed_power_score_variance','random_power_score_variance','actual_input_voltage_error_score_variance')},
+        scope='Within-forecast paired actual AC/response/meter paths. Conditional declared-model moments are compared descriptively; 32 paths do not establish calibration across physical days.')
+    if n>1:
+        cov=float(np.cov(values['clean_logodds'],values['meter'],ddof=1)[0,1])
+        answer['clean_meter_covariance']=cov
+        answer['variance_decomposition_error']=variance(values['observed_logodds'])-variance(values['clean_logodds'])-variance(values['meter'])-2*cov
+        answer['observed_mean_standard_error']=float(np.std(values['observed_logodds'],ddof=1)/np.sqrt(n))
+    return answer
 
 
 def run(source,out):
@@ -221,6 +255,9 @@ def run(source,out):
         original_failed_tasks=completion['failed_tasks'],original_quote_exceptions=completion['quote_exceptions'],original_execution_failed_rows=completion['execution_failed_rows'],
         task_errors=audit.task_errors,exact_diagnostic_failures=audit.exact_failures,quotes=audit.quote_records,records=audit.records,
         groups={s:base.summarize(rows) for s,rows in groups.items()},comparisons={s:{b:paired(groups[s],groups[b]) for b in ('no_dfs','anchor')} for s in MODES},
+        per_forecast={str(draw):dict(groups={s:base.summarize([r for r in rows if r['forecast']==draw]) for s,rows in groups.items()},
+            pair_moments={s:pair_moments([r for r in rows if r['forecast']==draw]) for s,rows in groups.items()},
+            comparisons={s:{b:paired([r for r in groups[s] if r['forecast']==draw],[r for r in groups[b] if r['forecast']==draw]) for b in ('no_dfs','anchor')} for s in MODES}) for draw in range(p['forecasts'])},
         rotation_unmatched_fees=audit.fee_mismatches,maximum_absolute_errors=dict(audit.maxima),electrical_maximum_errors=dict(audit.operation.maxima),counts=dict(audit.counts))
     base.write(out/'report.json',result);base.write(out/'inputs_manifest.json',[dict(path=k,sha256=v) for k,v in audit.hashes.items()]);base.write(out/'complete.json',dict(status=result['status'],report=base.ref(out/'report.json'),source_unchanged=base.ref(__file__)['sha256']==own['source']['sha256']))
     return result
