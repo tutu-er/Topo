@@ -13,6 +13,8 @@
 |`report.py`|保留失败分母，汇总新增/丢失恢复、模型偏差、费用及求解状态|
 |`probability_panel.py`|方案封存后，核对声明高斯模型的解析界与2048条独立模拟路径|
 |`confirm_data.py`|读取开发审查凭据，再准备原名单的96个确认输入|
+|`continuation.py`|在原协议下继续尚未启动的预测，并逐方案保存动作|
+|`recover_partial.py`|按已用预算恢复中断预测，核验全部身份后写最终完成标记|
 
 从仓库根目录运行 `python -m rnj_wzzt_dr.experiments.distribution_panel_20261115.<模块> --help` 查看入口。主运行必须指定输入索引和新的输出目录。已经完成的运行保留；恢复运行使用原协议及源码哈希，不重置已用预算。
 
@@ -29,3 +31,5 @@
 - 全母线电压以0.95–1.05 pu筛查。网络缺少设备热额定值，保存电流、根功率和损耗，热安全状态保留未核验。
 
 原始时序、拟合参数、报价及逐时动作保存在忽略目录 `outputs/`。本目录只提交代码、协议和汇总。
+
+开发结果见 [DEVELOPMENT_RESULTS.md](DEVELOPMENT_RESULTS.md)，确认结果见 [CONFIRMATION_RESULTS.md](CONFIRMATION_RESULTS.md)，中断及续跑规则见 [CONTINUATION.md](CONTINUATION.md)。确认保持原96个计划窗口，46个数据完整、50个缺测；有效输入的92份预测全部执行，4份受中断影响的结果单列。
