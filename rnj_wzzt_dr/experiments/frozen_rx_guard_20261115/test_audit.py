@@ -95,3 +95,30 @@ def test_nodewise_PQ_budget_does_not_substitute_pooled_scale():
     actual=audit.increment_values(np.ones((24,1)),np.zeros((2,1)),np.array([[1.],[0.]]),affine,{},1.)
     assert actual['pq']==pytest.approx(.5)
     assert actual['pq']!=pytest.approx(1/101)
+
+
+def test_historical_bound_reversal_is_not_hidden_by_final_optimal_status(tmp_path):
+    trace=tmp_path/'progress.jsonl';log=tmp_path/'native.log'
+    trace.write_text('\n'.join([
+        '{"event":"mip","bound":12.5082929,"incumbent":22.3241,"native_runtime_seconds":10.2}',
+        '{"event":"native_end","attributes":{"Status":2,"ObjBound":3.0423768,"MIPGap":0.0}}'
+    ]),encoding='utf8')
+    log.write_text('  3  5  12.50829  2  900  22.32414  12.50829  44.0%  2048  10s\n'
+                   'H 930 873 3.0423768 3.04238 0.00% 2220 302s\n',encoding='utf8')
+    result=audit.native_bound_history(log,trace,3.0423762,True)
+    assert result['recorded_bound_conflict_with_verified_buffered_point']
+    assert result['callback_prior_bounds_above_verified_point']==1
+    assert result['log_bounds_above_verified_point']==1
+    assert result['maximum_prior_to_final_bound_drop_yuan']>9
+    assert result['final_native_attributes']['Status']==2
+
+
+def test_log_display_rounding_and_unbuffered_points_are_kept_separate(tmp_path):
+    log=tmp_path/'native.log'
+    log.write_text('H  1 0  1.2345678  1.23457 0.00% 1 1s\n',encoding='utf8')
+    rounded=audit.native_bound_history(log,None,1.2345678,True)
+    assert not rounded['recorded_bound_above_original_acceptance_point']
+    log.write_text('  1 2  4.0 1 4  8.0 4.0 50.0% 1 1s\n',encoding='utf8')
+    unbuffered=audit.native_bound_history(log,None,1.,False)
+    assert unbuffered['recorded_bound_above_original_acceptance_point']
+    assert not unbuffered['recorded_bound_conflict_with_verified_buffered_point']

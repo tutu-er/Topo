@@ -14,9 +14,11 @@ import csv
 from datetime import datetime, timezone
 import hashlib
 from itertools import combinations
+import json
 from math import fsum
 from pathlib import Path
 import shutil
+import re
 import sys
 import traceback
 
@@ -218,6 +220,52 @@ def full_native_diagnostic(ctx, values):
     return result
 
 
+def native_bound_history(log_path, trace_path, verified_cost=None, buffered_feasible=False):
+    """Preserve numerical bound reversals instead of trusting the terminal gap.
+
+    Callback values retain full precision. Console values are separately parsed
+    and compared with a 1e-5 allowance for their displayed decimal rounding.
+    These are solver diagnostics, not new independently proved lower bounds.
+    """
+    callback=[];log_rows=[];final=None
+    if trace_path is not None:
+        with Path(trace_path).open(encoding='utf-8-sig') as stream:
+            for number,line in enumerate(stream,1):
+                if not line.strip():continue
+                row=json.loads(line)
+                if row.get('event')=='mip' and row.get('bound') is not None and np.isfinite(row['bound']):
+                    callback.append(dict(line=number,bound=float(row['bound']),
+                        seconds=row.get('native_runtime_seconds'),incumbent=row.get('incumbent')))
+                if row.get('event')=='native_end':final=row.get('attributes')
+    if log_path is not None:
+        for number,line in enumerate(Path(log_path).read_text(encoding='utf-8-sig').splitlines(),1):
+            tokens=line.split()
+            for index,token in enumerate(tokens):
+                if index>=2 and re.fullmatch(r'\d+(?:\.\d+)?%',token):
+                    try:bound,incumbent=float(tokens[index-1]),float(tokens[index-2])
+                    except ValueError:continue
+                    if np.isfinite(bound):log_rows.append(dict(line=number,bound=bound,incumbent=incumbent,text=line.strip()))
+    max_callback=max(callback,key=lambda r:r['bound']) if callback else None
+    max_log=max(log_rows,key=lambda r:r['bound']) if log_rows else None
+    tolerance=1e-7*max(1.,abs(verified_cost)) if verified_cost is not None else None
+    conflicts=[] if verified_cost is None else [r for r in callback if r['bound']>verified_cost+tolerance]
+    displayed=[] if verified_cost is None else [r for r in log_rows if r['bound']>verified_cost+max(tolerance,1e-5)]
+    final_bound=(final or {}).get('ObjBound')
+    reversal=(max_callback['bound']-final_bound if max_callback and final_bound is not None and np.isfinite(final_bound) else None)
+    conflict=bool(conflicts or displayed)
+    return dict(trace_source=None if trace_path is None else base.ref(trace_path),
+        log_source=None if log_path is None else base.ref(log_path),
+        callback_bound_count=len(callback),log_bound_row_count=len(log_rows),
+        maximum_recorded_callback_lower_bound=max_callback,maximum_recorded_log_lower_bound=max_log,
+        final_native_attributes=final,maximum_prior_to_final_bound_drop_yuan=reversal,
+        verified_activation_cost=verified_cost,verified_point_within_buffered_constraints=bool(buffered_feasible),
+        callback_prior_bounds_above_verified_point=len(conflicts),log_bounds_above_verified_point=len(displayed),
+        first_callback_conflict=conflicts[0] if conflicts else None,last_callback_conflict=conflicts[-1] if conflicts else None,
+        recorded_bound_conflict_with_verified_buffered_point=bool(conflict and buffered_feasible),
+        recorded_bound_above_original_acceptance_point=conflict,
+        interpretation='A historical solver bound above a subsequently verified point in the same buffered domain contradicts that bound. Terminal Status=2 or zero gap does not repair this numerical certificate inconsistency. Raw records remain unchanged.')
+
+
 class Audit(panel.Audit):
     """Additional-budget audit; generic score and electrical helpers inherited."""
 
@@ -337,8 +385,30 @@ class Audit(panel.Audit):
         if 'final_action_sha256' in quote:
             self.require(quote['final_action_sha256']==array_hash(action),'Quote final action differs from executed point')
         original_feasible=bool(direct['feasible'] and budget['passed'])
-        buffered = budget['encoded_budget_passed'] and all(r['margin']>=1e-8-1e-7 for r in direct['rows'])
+        minimum_buffer=min((r['margin']-1e-8 for r in direct['rows']),default=None)
+        minimum_direction=min((r['gain'] for r in direct['guards']),default=None)
+        buffered = (budget['encoded_budget_passed'] and all(r['margin']>=1e-8-1e-9 for r in direct['rows'])
+                    and all(g['gain']>=-1e-9 for g in direct['guards']))
         certificate=cost_certificate(quote,bill['activation_yuan'],original_feasible,buffered)
+        diagnostics=Path(self.where)/(name+'_diagnostics')
+        log_path=diagnostics/'native.log';trace_path=diagnostics/'progress.jsonl'
+        history=native_bound_history(self.file(log_path) if log_path.exists() else None,
+            self.file(trace_path) if trace_path.exists() else None,
+            bill['activation_yuan'] if accepted else None,buffered and accepted)
+        certificate.update(native_bound_history=history,minimum_original_probability_buffer_margin=minimum_buffer,
+            minimum_scalar_direction_margin=minimum_direction,buffer_margin_arithmetic_tolerance=1e-9,
+            planner_reported_lower_bound_yuan=quote.get('lower_bound_yuan'),
+            planner_reported_relative_gap=quote.get('relative_gap'),
+            planner_claimed_global_optimality=quote.get('global_optimality_verified'),
+            audit_withdrawal_due_to_bound_trajectory=False)
+        if history['recorded_bound_conflict_with_verified_buffered_point']:
+            certificate.update(lower_bound_yuan=0.,relative_gap=1. if bill['activation_yuan']>0 else 0.,
+                audit_withdrawal_due_to_bound_trajectory=True,lower_bound_withdrawn=True,
+                audit_global_optimality_supported=False,
+                audit_lower_bound_source='Nonnegative activation cost; native trajectory contradicted a verified buffered feasible point')
+        else:
+            certificate['audit_global_optimality_supported']=bool(accepted and quote.get('global_optimality_verified')
+                and buffered and not quote.get('lower_bound_withdrawn'))
         if quote.get('status')!='exception':
             self.require(quote['original_evidence_constraints_changed'] is False and quote['original_objective_changed'] is False,
                          'Base probability/objective changed')
@@ -346,7 +416,7 @@ class Audit(panel.Audit):
         for key in ('seconds','geometry_seconds','quote_wall_seconds','requested_quote_budget_seconds'):
             if quote.get(key) is not None:self.require(np.isfinite(quote[key]) and quote[key]>=0,'Invalid timing '+key)
         keys=('status','native_status','source','optimizer_invoked','initial','native_attributes','seconds',
-              'geometry_seconds','quote_wall_seconds','requested_quote_budget_seconds','engine_budget_seconds',
+              'geometry_seconds','shared_prediction_models_seconds','quote_wall_seconds','requested_quote_budget_seconds','engine_budget_seconds',
               'requested_wrapper_seconds','shared_preparation_seconds','charged_total_seconds','quote_budget_exceeded',
               'infeasibility_proved','bound_problem_scope','lower_bound_withdrawal_reason')
         self.quote_records.append(dict(**panel.identity(entry),forecast=0,policy=name,base_mode=mode,guard_kind=kind,
