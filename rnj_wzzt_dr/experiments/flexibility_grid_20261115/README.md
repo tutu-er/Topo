@@ -4,6 +4,8 @@
 
 当前完整数学模型及原核心结果见 [CORE_MODEL.md](../distribution_panel_20261115/CORE_MODEL.md)。新网格规则见 [PROTOCOL.md](PROTOCOL.md)。采样稀疏化、量测误差、预测误差是三个不同问题，本批前两个构成主网格，预测误差固定5%。
 
+36/36格与4608/4608条独立核验已完成。完整结果及正、负机制见 [RESULTS.md](RESULTS.md)。本批三种新方法总体均未胜过无采购或旧参考；Pengwah正例与Soumalas退化例同时保留。后续分开训练量和验证量的设计见 [NEXT_DESIGN.md](NEXT_DESIGN.md)，尚未执行。
+
 入口从仓库根运行：
 
 1. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.data --prepare --out outputs/flexibility_grid_data_20261115_v1`
@@ -11,6 +13,9 @@
 3. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.run --index outputs/flexibility_grid_data_20261115_v1/grid_index.json --out outputs/flexibility_grid_smoke_20261115_v1 --smoke`
 4. `python -B -m rnj_wzzt_dr.experiments.distribution_panel_20261115.audit --run outputs/flexibility_grid_smoke_20261115_v1 --out outputs/flexibility_grid_smoke_audit_20261115_v1`
 5. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.run --index outputs/flexibility_grid_data_20261115_v1/grid_index.json --out outputs/flexibility_grid_execution_20261115_v1 --smoke-audit outputs/flexibility_grid_smoke_audit_20261115_v1/report.json`
+6. `python -B -m rnj_wzzt_dr.experiments.distribution_panel_20261115.audit --run outputs/flexibility_grid_execution_20261115_v1 --out outputs/flexibility_grid_audit_20261115_v1`
+7. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.report --audit outputs/flexibility_grid_audit_20261115_v1/report.json --out outputs/flexibility_grid_report_20261115_v1`
+8. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.plot --report outputs/flexibility_grid_report_20261115_v1/report.json --out outputs/flexibility_grid_figures_20261115_v1`
 
 正式入口必须读取8条接线执行全部通过的独立审计收据，并核对同一网格索引、零报价／执行异常和当前源文件哈希。接线后若修改运行源，需重新接线并另存审计。正式36格完成后，再使用第4步同一审计入口核查正式目录。
 

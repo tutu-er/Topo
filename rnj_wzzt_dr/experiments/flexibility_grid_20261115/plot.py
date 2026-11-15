@@ -31,38 +31,45 @@ def run(report, out):
     labels=('正态约束','固定功率指数约束','含预测误差指数约束')
     strides=(1,2,4);multipliers=(.5,1.,2.)
     by={(r['stride'],r['meter_multiplier']):r for r in source['by_stride_meter']}
-    panels=[]
-    for mode in modes:
-        effect=np.array([[100*by[s,m]['paired_vs_no_dfs'][mode]['pooled_path_difference']
-                         for m in multipliers] for s in strides])
-        panels.append(effect)
-    limit=max(1.,max(float(np.max(np.abs(x))) for x in panels))
-    fig,axes=plt.subplots(1,3,figsize=(13.2,4.7),layout='constrained')
-    for ax,mode,title,values in zip(axes,modes,labels,panels):
-        im=ax.imshow(values,cmap='RdBu',norm=TwoSlopeNorm(vmin=-limit,vcenter=0,vmax=limit))
-        ax.set_title(title,fontsize=12)
-        ax.set_xticks(range(3),['0.25% / 0.025%','0.5% / 0.05%','1% / 0.1%'],fontsize=8)
-        ax.set_yticks(range(3),['192 / 96','96 / 48','48 / 24'])
-        ax.set_xlabel('P/Q / 电压量测标准差',fontsize=10)
-        ax.set_ylabel('训练点 / 验证点',fontsize=10)
-        for i,s in enumerate(strides):
-            for j,m in enumerate(multipliers):
-                cell=by[s,m];pair=cell['paired_vs_no_dfs'][mode]
-                bill=cell['groups'][mode]['settled_cost_mean_completed']['total_yuan']
-                price='费用缺失' if bill is None else f'{bill:.2f}元'
-                text=f"+{pair['gained']} / −{pair['lost']}\n{price}"
-                ax.text(j,i,text,ha='center',va='center',fontsize=10,
-                        color='white' if abs(values[i,j])>.65*limit else 'black')
-    colorbar=fig.colorbar(im,ax=axes,fraction=.025,pad=.025)
-    colorbar.set_label('相对无采购：恢复率变化（百分点）',fontsize=9)
-    fig.suptitle('采购的改善与代价：每格4个固定网络日 × 16条配对路径',fontsize=13)
-    fig.text(.5,.005,'格内：新增恢复 / 丢失恢复；平均结算费。全部格保留，预测误差固定5%。',ha='center',fontsize=9)
+    def contrast(s,m,mode,kind):
+        cell=by[s,m]
+        if kind==0:return 100*cell['paired_vs_no_dfs'][mode]['pooled_path_difference']
+        a,b=cell['groups'][mode],cell['groups']['no_dfs']
+        return 100*(a['native_correct_and_true_high']-b['native_correct_and_true_high'])/a['n']
+    panels=[[np.array([[contrast(s,m,mode,kind) for m in multipliers] for s in strides])
+             for mode in modes] for kind in (0,1)]
+    fig,axes=plt.subplots(2,3,figsize=(13.2,8.4),layout='constrained')
+    for kind in (0,1):
+        limit=max(1.,max(float(np.max(np.abs(x))) for x in panels[kind]))
+        for ax,mode,title,values in zip(axes[kind],modes,labels,panels[kind]):
+            im=ax.imshow(values,cmap='RdBu',norm=TwoSlopeNorm(vmin=-limit,vcenter=0,vmax=limit))
+            ax.set_title(title,fontsize=12)
+            ax.set_xticks(range(3),['0.25% / 0.025%','0.5% / 0.05%','1% / 0.1%'],fontsize=8)
+            ax.set_yticks(range(3),['192 / 96','96 / 48','48 / 24'])
+            ax.set_xlabel('P/Q / 电压量测标准差',fontsize=10)
+            ax.set_ylabel('训练点 / 验证点',fontsize=10)
+            for i,s in enumerate(strides):
+                for j,m in enumerate(multipliers):
+                    cell=by[s,m];pair=cell['paired_vs_no_dfs'][mode]
+                    if kind==0:
+                        bill=cell['groups'][mode]['settled_cost_mean_completed']['total_yuan']
+                        price='费用缺失' if bill is None else f'{bill:.2f}元'
+                        text=f"+{pair['gained']} / −{pair['lost']}\n{price}"
+                    else:
+                        a,b=cell['groups'][mode],cell['groups']['no_dfs']
+                        text=f"{b['native_correct_and_true_high']} → {a['native_correct_and_true_high']}\n共{a['n']}条"
+                    ax.text(j,i,text,ha='center',va='center',fontsize=10,
+                            color='white' if abs(values[i,j])>.65*limit else 'black')
+        colorbar=fig.colorbar(im,ax=axes[kind],fraction=.025,pad=.025)
+        colorbar.set_label(('内部恢复率变化（百分点）' if kind==0 else '正确且权重≥0.9的比例变化（百分点）'),fontsize=9)
+    fig.suptitle('采购效果：每格4个固定网络日 × 16条配对路径',fontsize=13)
+    fig.text(.5,.005,'上：新增 / 丢失恢复、平均结算费。下：正确且权重≥0.9的路径数。预测误差固定5%。',ha='center',fontsize=9)
     fig.savefig(out/'grid_effects.png',dpi=180,bbox_inches='tight')
     fig.savefig(out/'grid_effects.pdf',bbox_inches='tight')
     plt.close(fig)
     io.write(out/'receipt.json',dict(report=io.ref(report),source=io.ref(__file__),
         png=io.ref(out/'grid_effects.png'),pdf=io.ref(out/'grid_effects.pdf'),
-        color_units='Recovery percentage-point change; all four fixed worlds and failures retained',
+        color_units='Top: recovery percentage-point change. Bottom: change in correct AND weight>=0.9 frequency. All four fixed worlds and failures retained.',
         counts='Paired gained/lost recoveries;16 paths per world per condition,64 per displayed cell',
         costs='Mean capacity plus delivered activation bill; not optimization lower bounds',
         scope='Descriptive sensitivity on4 known worlds; not independent date confirmation',

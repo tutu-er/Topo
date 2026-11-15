@@ -150,7 +150,7 @@ def _evaluate_identifier(fitted, splits, truth):
         recorded_native_QP_count=len(result["QP"]), MIQP_count=len(result["MIQP"]),
         common_seconds=result["common_seconds"], common_QP_records_available=False,
         native_returned_result_saved_in_full=True,
-        scoring_rows="96 historical validation + 96 new-day rows; training is not rescored",
+        scoring_rows=f"{splits['validation'].points} historical validation + {splits['new_day'].points} new-day rows; training is not rescored",
         topology_metric="internal_exact matches previous proper-clade recovery; full_exact also checks singleton and shared-trunk supports")
 
 
