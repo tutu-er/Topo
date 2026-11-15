@@ -97,6 +97,68 @@ def no_sdp_certificate(receipt):
         scope='SDP objective/residuals are numerical diagnostics and seed generation only')
 
 
+def validate_band_reference(protocol, baseline_protocol):
+    if baseline_protocol.get('variant')!='band':
+        raise ValueError('SDP comparison requires the no-SDP node/hour experiment')
+    if not protocol.get('smoke',False) and baseline_protocol.get('smoke',False):
+        raise ValueError('Formal SDP cannot use a smoke baseline')
+    if baseline_protocol['repeats']<protocol['repeats']:
+        raise ValueError('Band baseline has fewer paired paths than the SDP comparison')
+
+
+def independent_mgf_polynomials(model, forecast, resource_map, mode):
+    """Joint-Gaussian integral expansion, independent of production evidence."""
+    if mode not in ('mgf_fixed','mgf_forecast'):
+        raise ValueError('Only the two exponential constraints are lifted')
+    t,n=forecast.shape[0],model['n'];h=t//4;r=resource_map.shape[1]
+    score=model['score'];sigma2=model['sigma2']
+    tie=max(1e-7,(score['cells']+t*n)*score['reference_mse']*score['validation_tie']/(2*sigma2))
+    target=model['targets'][0];i=model['representatives'][target]
+    rivals=[j for j,f in enumerate(model['families']) if f!=model['families'][i]]
+    sd=model.get('forecast_relative_sd',.05)*abs(forecast) if mode=='mgf_forecast' else np.zeros_like(forecast)
+    def expand(matrix):
+        q=np.einsum('ci,tcd,dj->tij',resource_map,matrix,resource_map).reshape(h,4,r,r).sum(1)
+        a=np.einsum('ci,tcd,td->ti',resource_map,matrix,forecast).reshape(h,4,r).sum(1)
+        c=float(np.einsum('tc,tcd,td->',forecast,matrix,forecast))
+        return q,a,c
+    rows=[]
+    for j in rivals:
+        hist=(model['history'][j]-model['history'][i])/(2*sigma2)
+        integral=prob.PairIntegral(model['H'][i],model['H'][j],model['means'][target],sigma2,model['covariance'],sd,hist)
+        lam=integral.selected_lambda;eigen=1+2*lam*integral.eigenvalues
+        effective=lam*integral.Q[None]-2*lam*lam*np.einsum('tki,tk,tkj->tij',integral.projected_G,1/eigen,integral.projected_G)
+        q,a,c=expand(effective)
+        c+=np.log(.1/len(rivals))+lam*(hist-tie)+.5*np.log(eigen).sum()
+        rows.append((q,a,c))
+    guards=[]
+    for rep,j in enumerate(model['representatives']):
+        if rep==target:
+            continue
+        di=model['means'][target]-model['H'][i];dj=model['means'][target]-model['H'][j]
+        matrix=(dj.T@dj-di.T@di)/(2*sigma2)
+        q,a,_=expand(np.broadcast_to(matrix,(t,2*n,2*n)))
+        guards.append((q,a))
+    return dict(gate_q=np.asarray([x[0] for x in rows]),gate_a=np.asarray([x[1] for x in rows]),gate_c=np.asarray([x[2] for x in rows]),
+        guard_q=np.asarray([x[0] for x in guards]),guard_a=np.asarray([x[1] for x in guards]))
+
+
+def independent_moments(problem, mean, moments):
+    """Numerical diagnostics, deliberately not a primal/dual certificate."""
+    z=np.asarray(mean);w=np.asarray(moments)
+    if w.shape != (len(z),z.shape[1],z.shape[1]):
+        raise ValueError('SDP moment dimensions differ')
+    gates=np.einsum('khij,hij->k',problem['gate_q'],w)+2*np.einsum('khi,hi->k',problem['gate_a'],z)+problem['gate_c']
+    guards=np.einsum('khij,hij->k',problem['guard_q'],w)+2*np.einsum('khi,hi->k',problem['guard_a'],z)
+    mins=[]
+    for hour in range(len(z)):
+        active=np.flatnonzero((problem['lower'][hour]!=0)|(problem['upper'][hour]!=0))
+        a=z[hour,active];b=w[hour][np.ix_(active,active)]
+        block=np.block([[np.ones((1,1)),a[None]],[a[:,None],b]])
+        mins.append(float(np.linalg.eigvalsh((block+block.T)/2).min()))
+    return dict(minimum_eigenvalues=mins,gate_margins=gates.tolist(),scalar_guard_gains=guards.tolist(),
+        certified_lower_bound=False,scope='Independently recomputed approximate SDP point diagnostics only')
+
+
 class Audit(single.Audit):
     def __init__(self):
         super().__init__()
@@ -115,6 +177,18 @@ class Audit(single.Audit):
         return direct_band(hourly[:, :c['n']], hourly[:, c['n']:], c['band']['slope'], c['band']['width_pu'])
 
     def single_quote(self, entry, name, quote, action, direct, bill, seeds, seed_check):
+        if quote.get('solver_result_reused'):
+            self.require(quote.get('optimizer_invoked') is False and quote.get('native_status') is None,
+                         'Reused quote presented as a newly invoked native optimization')
+            self.require(quote.get('seconds')==0 and quote.get('lower_bound_yuan')==0,
+                         'Reused quote revives native timing or an unaudited bound')
+            prior=base.read(self.checked(quote['reused_quote_ref']))
+            prior_action=base.native.arrays(self.checked(quote['reused_action_ref']))['action']
+            self.same('reused_band_action',action,prior_action,atol=0,rtol=0)
+            self.require(bool(quote['new_gate_feasible'])==bool(prior['new_gate_feasible']) and
+                         bool(quote['zero_fallback'])==bool(prior['zero_fallback']), 'Reused feasibility flag changed')
+            if quote['new_gate_feasible']:
+                self.same('reused_band_objective',quote['cost_yuan'],prior['cost_yuan'],atol=0,rtol=0)
         check = self.action_band(entry, action)
         self.require(bool(quote['planned_band_feasible']) == check['passed'], 'Reported P/Q band flag differs')
         self.require(check['passed'], 'Accepted or zero fallback request violates P/Q band')
@@ -151,7 +225,9 @@ class Audit(single.Audit):
             cert.update(lower_bound_yuan=0.,relative_gap=1. if bill['activation_yuan']>0 else 0.,
                         lower_bound_withdrawn=True)
         row.update(planning_band=check, sdp_receipts=quote.get('sdp_receipts'),
-            sdp_reuse=quote.get('sdp_reuse'), original_initial_points=quote.get('original_initial_points'))
+            solver_result_reused=quote.get('solver_result_reused',False),
+            reused_quote_ref=quote.get('reused_quote_ref'),reused_action_ref=quote.get('reused_action_ref'),
+            original_initial_points=quote.get('original_initial_points'))
 
     def case(self, folder, entry, protocol, metadata, branches, buses):
         self.where = str(folder)
@@ -217,6 +293,10 @@ class Audit(single.Audit):
             record['planning_band'] = self.action_band(entry, obs['requested_action'])
             record['delivered_band'] = self.action_band(entry, obs['delivered_action'])
             self.require(record['planning_band']['passed'], 'Sealed request exceeds its training band')
+            self.require(all(np.isfinite(v) and v<=1e-7 for v in record['requested_violations'].values()),
+                         'Accepted or fallback request violates original physical resources')
+            self.require(all(np.isfinite(v) and v<=1e-7 for v in record['delivered_violations'].values()),
+                         'Actual delivery violates original physical resources')
         for mode, reference in seal['sdp_receipts'].items():
             receipt = base.read(self.checked(reference)); self.references(receipt)
             no_sdp_certificate(receipt)
@@ -240,12 +320,36 @@ class Audit(single.Audit):
                 source_actions=base.native.arrays(self.checked(candidate['action_ref']))
                 self.same('SDP_seed_from_saved_extraction',final[name],source_actions[candidate['array_key']],atol=0,rtol=0)
                 _, violations, dp, dq = panel.resource_values(config, final[name], labels, forecast[:,:len(labels)], entry['base_kw'])
-                self.require(not violations, 'SDP seed violates physical resource constraints')
+                self.require(all(np.isfinite(v) and v<=1e-7 for v in violations.values()), 'SDP seed violates physical resource constraints')
                 self.require(self.action_band(entry, final[name])['passed'], 'SDP seed violates node/hour band')
                 direct = self.gates(model, forecast, forecast+np.c_[dp,dq], origin['mode'], origin['direct_evidence'])
                 self.require(bool(candidate['probability_feasible'])==direct['feasible'],'SDP candidate probability flag differs')
                 self.sdp_records.append(dict(id=entry['id'], seed=name, mode=origin['mode'],
                     probability_feasible=direct['feasible'], band_feasible=True, physical_feasible=True))
+        if protocol['use_sdp']:
+            ctx=self.context(entry);forecast=base.native.arrays(self.checked(seal['planner']))['forecast']
+            noise=panel.noise_parameters(entry,protocol)
+            model=single.historical_target(prob.build_model(ctx['score'],
+                base.native.arrays(self.checked(entry['files']['validation.npz'])),ctx['native'],
+                meter_relative_sd=noise['meter_relative_sd'],forecast_relative_sd=noise['forecast_relative_sd']))
+            resource_map=np.zeros((2*len(labels),len(config['resources'])))
+            for col,resource in enumerate(config['resources']):
+                node=labels.index(int(resource['node_label']))
+                if config['action_units'][col]=='kW':
+                    resource_map[node,col]=1/entry['base_kw']
+                    resource_map[len(labels)+node,col]=resource.get('q_over_p',0.)/entry['base_kw']
+                else:resource_map[len(labels)+node,col]=1/entry['base_kw']
+            for mode in protocol['modes']:
+                directory=folder/(mode+'_sdp')
+                if not (directory/'problem.npz').exists():continue
+                problem=base.native.arrays(self.file(directory/'problem.npz'))
+                polynomials=independent_mgf_polynomials(model,forecast,resource_map,mode)
+                for key,value in polynomials.items():
+                    self.same('independent_SDP_integral_'+key,problem[key],value,atol=1e-8,rtol=1e-9)
+                if (directory/'moments.npz').exists():
+                    moments=base.native.arrays(self.file(directory/'moments.npz'))
+                    self.sdp_records.append(dict(id=entry['id'],mode=mode,
+                        moment_diagnostics=independent_moments(problem,moments['mean'],moments['moments'])))
 
 
 def planning_boundary(path):
@@ -300,6 +404,8 @@ def run(source, out):
         if not p.get(field):
             continue
         prior=base.read(audit.checked(p[field]));audit.require(prior['status']=='passed','Unverified baseline '+field)
+        if field=='band_baseline_audit':
+            validate_band_reference(p,base.read(audit.checked(prior['source_protocol'])))
         for row in (json.loads(line) for line in audit.checked(prior['records']).read_text(encoding='utf8').splitlines()):
             if row['id'] in ids and row['repeat']<p['repeats'] and row['strategy'] in allowed:
                 destination.append(row)

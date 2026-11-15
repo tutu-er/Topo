@@ -59,6 +59,13 @@ def test_positive_slack_is_zero_violation_not_a_negative_violation():
     assert result['minimum_slack_pu']==pytest.approx(-.002)
 
 
+def test_original_band_feasibility_does_not_imply_encoded_domain_feasibility():
+    p=np.zeros((24,1));q=np.ones_like(p)*.01;b=q.copy()
+    result=audit.direct_band(p,q,np.array([0.]),b)
+    assert result['passed'] and not result['encoded_passed']
+    assert result['encoded_maximum_violation_pu']>0
+
+
 def test_timezones_and_empty_hours_rejected():
     with pytest.raises(ValueError, match='timezone'):
         audit.local_hours(['2024-01-01T00:00:00'])
@@ -71,3 +78,19 @@ def test_sdp_numerical_value_not_a_certified_lower_bound():
     assert not audit.no_sdp_certificate({'status': 'optimal_inaccurate', 'objective': 2.})['certified_lower_bound']
     with pytest.raises(ValueError, match='no certified'):
         audit.no_sdp_certificate({'used_as_qcqp_lower_bound': True})
+
+
+@pytest.mark.parametrize('mode',['mgf_fixed','mgf_forecast'])
+def test_lifted_polynomial_matches_joint_gaussian_original_margin(mode):
+    from ..single_target_20261115.test_audit import toy
+    model=audit.single.historical_target(toy())
+    forecast=np.repeat(np.array([[1.,.2]]),8,axis=0)
+    mapping=np.array([[.2,0.],[0.,.3]])
+    poly=audit.independent_mgf_polynomials(model,forecast,mapping,mode)
+    action=np.array([[.3,-.4],[-.1,.2]])
+    shifted=forecast+np.repeat(action@mapping.T,4,axis=0)
+    direct=audit.single.exact_gates(model,forecast,shifted,mode)
+    gate=np.einsum('hi,khij,hj->k',action,poly['gate_q'],action)+2*np.einsum('khi,hi->k',poly['gate_a'],action)+poly['gate_c']
+    guard=np.einsum('hi,khij,hj->k',action,poly['guard_q'],action)+2*np.einsum('khi,hi->k',poly['guard_a'],action)
+    np.testing.assert_allclose(gate,[r['margin'] for r in direct['rows']],atol=1e-12)
+    np.testing.assert_allclose(guard,[r['gain'] for r in direct['guards']],atol=1e-12)
