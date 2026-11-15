@@ -298,7 +298,7 @@ class Audit(panel.Audit):
                     quote_zero_fallback=quote['zero_fallback'],base_mode=quote['mode'],
                     is_rotation=False,
                     actual_H_increment_error_over_sigma2=errorH.tolist(),actual_K_increment_error_over_sigma2=errorK.tolist(),
-                    
+
                     reused_action_source=row.get('reused_action_source'),baseline_source=row['baseline_source'])
             except Exception as exc:
                 rec.update(audit_status='failed',error=repr(exc),traceback=traceback.format_exc())
@@ -413,4 +413,3 @@ def main():
 
 
 if __name__=='__main__':main()
-

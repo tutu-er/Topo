@@ -28,7 +28,8 @@ def main():
             n=max(groups[k]['n'] for k in keys);ax.set_ylim(-3,n+3);ax.set_yticks(np.arange(0,n+1,max(1,n//4)));ax.set_xticks(range(3),('零采购','原多目标','历史单目标'))
             ax.set_title(label+'\n'+titles[j],fontsize=10);ax.grid(axis='y',alpha=.18);ax.set_axisbelow(True)
             if j==0:ax.set_ylabel('AC执行后内部拓扑正确次数')
-    fig.suptitle('历史单目标与原多目标：冻结参数的配对AC比较',fontsize=15,y=.995)
+    heading='接线检查（非正式效果）：单目标与多目标' if data.get('smoke') else '历史单目标与原多目标：冻结参数的配对AC比较'
+    fig.suptitle(heading,fontsize=15,y=.995)
     fig.text(.5,.012,'同一输入采用相同预测、设备响应及量测噪声；费用为平均预约加调用总费。\n内部拓扑与完整响应支持分别报告；同物理日重复路径属于开发重放。',ha='center',fontsize=9)
     fig.tight_layout(rect=(0,.06,1,.97));a.out.mkdir(parents=True,exist_ok=False)
     fig.savefig(a.out/'paired_ac.png',dpi=180,bbox_inches='tight');fig.savefig(a.out/'paired_ac.pdf',bbox_inches='tight');plt.close(fig)

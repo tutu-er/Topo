@@ -74,6 +74,67 @@ def quote_rows(reader, quotes, entries, root):
     return answer, timing
 
 
+def baseline_quote_rows(reader, protocol, entries):
+    """Reuse the original audit's cost certificates on their original domains."""
+    audit = reader.json(protocol['baseline_audit'])
+    if audit.get('status') != 'passed':
+        raise ValueError('Passed original grid audit required for baseline quotes')
+    original_protocol = reader.json(audit['source_protocol'])
+    original_root = Path(audit['source_protocol']['path']).parent
+    all_quotes = reader.lines(audit['quotes'])
+    rows = [q for q in all_quotes if q['id'] in entries and q['policy'] in MODES]
+    if len(rows) != len(entries)*len(MODES) or len({(q['id'],q['policy']) for q in rows}) != len(rows):
+        raise ValueError('Original multi-target quote denominator differs')
+    repository = Path(__file__).resolve().parents[3]
+    source_index = {str(Path(r['path']).resolve()):r for r in original_protocol['sources']}
+    result = []
+    for q in rows:
+        entry = entries[q['id']]
+        seal = reader.json(entry['prior_seal'])
+        plans = reader.json(seal['plans'])
+        source = plans[q['policy']]
+        if q['status'] != source['status'] or q['source'] != source['source']:
+            raise ValueError('Original audit quote and sealed plan differ')
+        snapshots = []
+        for key in ('solver_source','evidence_source'):
+            ref = source.get(key)
+            if not ref:
+                continue
+            if source_index.get(str(Path(ref['path']).resolve()), {}).get('sha256') != ref['sha256']:
+                raise ValueError('Original quote source absent from original protocol')
+            snapshot = original_root/'source_snapshot'/Path(ref['path']).resolve().relative_to(repository)
+            snapshot_ref = dict(path=str(snapshot), sha256=ref['sha256'])
+            reader.checked(snapshot_ref)
+            snapshots.append(dict(original_source=ref, executed_snapshot=snapshot_ref))
+        if source.get('diagnostics_receipt'):
+            reader.json(source['diagnostics_receipt'])
+        for ref in (source.get('diagnostic_files') or {}).values():
+            reader.checked(ref)
+        result.append(dict(q, data_origin='reused_original_multitarget_quote',
+            original_solver_receipt=source, executed_source_snapshots=snapshots,
+            original_bound_scope=source.get('raw_bound_scope', q.get('bound_scope')),
+            bound_reuse_scope='Original multi-target QCQP only; its lower bound is not a single-target lower bound',
+            original_audit=protocol['baseline_audit'],
+            trajectory_certificate_available=bool((q.get('certificate') or {}).get('native_bound_history'))))
+    return result
+
+
+def quotation_summary(quotes):
+    result = shared.quote_summary(quotes)
+    nonzero = [q for q in quotes if q.get('new_gate_feasible') and
+        (q.get('certificate') or {}).get('executed_activation_yuan', q.get('cost_yuan',0.)) > 1e-12]
+    result.update(zero_sufficient_quotes=sum(q.get('status') == 'zero_sufficient' for q in quotes),
+        native_time_limit_quotes=sum(q.get('native_status') == 9 for q in quotes),
+        original_wall_budget_overrun_quotes=sum(bool(q.get('quote_budget_exceeded',
+            (q.get('original_solver_receipt') or {}).get('quote_budget_exceeded'))) for q in quotes),
+        feasible_initial_quotes=sum(bool((q.get('initial') or {}).get('feasible')) for q in quotes),
+        verified_initial_retained_quotes=sum(q.get('source') == 'verified_initial_retained' for q in quotes),
+        nonzero_accepted_quotes=len(nonzero),
+        nonzero_accepted_gap=shared.stats([(q.get('certificate') or {}).get('relative_gap',q.get('relative_gap')) for q in nonzero]),
+        gap_scope='Zero sufficient quotes have a nonnegative-cost zero optimum; nonzero accepted gaps are reported separately')
+    return result
+
+
 def number(value, precision=4):
     return '—' if value is None else f'{value:.{precision}g}'
 
@@ -159,6 +220,35 @@ def markdown(result):
             f"{initial.get('name','—')}|{q.get('source',source.get('source'))}|"
             f"{bool(hist.get('recorded_bound_conflict_with_verified_buffered_point'))}/"
             f"{bool(cert.get('lower_bound_withdrawn',q.get('lower_bound_withdrawn')))}|")
+    lines += ['', '## 原多目标报价：独立保留的求解记录', '',
+        '以下9张报价来自原网格审计及当时封存的代码、计划和日志。费用界只适用于原多目标约束；'
+        '单目标删除部分约束后，原下界不作迁移。旧审计未提供完整界轨迹证书时标为未另核，不填成“无冲突”。', '',
+        '|输入|模式|状态/原生状态|原式可行|原回退|激活费下界|激活费上界|相对gap|报价秒数|初值|返回来源|原界撤回|界轨迹复核|',
+        '|---|---|---|---|---|---:|---:|---:|---:|---|---|---|---|']
+    for q in result['baseline_quotes']['rows']:
+        cert = q.get('certificate') or {}; initial = q.get('initial') or {}
+        upper = cert.get('upper_bound_yuan', cert.get('executed_activation_yuan',q.get('cost_yuan'))
+            if q.get('new_gate_feasible') else None)
+        lines.append(f"|{q['id']}|{q['policy']}|{q.get('status')}/{q.get('native_status')}|"
+            f"{q.get('new_gate_feasible')}|{bool(q.get('anchor_fallback') or q.get('zero_fallback'))}|"
+            f"{number(cert.get('lower_bound_yuan',q.get('lower_bound_yuan')))}|{number(upper)}|"
+            f"{number(cert.get('relative_gap',q.get('relative_gap')))}|{number(q.get('quote_wall_seconds'))}|"
+            f"{initial.get('name','—')}|{q.get('source')}|"
+            f"{bool(cert.get('lower_bound_withdrawn',q.get('lower_bound_withdrawn')))}|"
+            f"{'已核' if q['trajectory_certificate_available'] else '未另核'}|")
+    withdrawn = [q for q in result['baseline_quotes']['rows'] if q.get('lower_bound_withdrawn')]
+    for q in withdrawn:
+        source = q['original_solver_receipt']; native = q.get('native_attributes') or {}
+        lines += ['', f"原{q['id']} / {q['policy']}的原生状态为{q.get('native_status')}，"
+            f"原生下界{number(native.get('ObjBound'))}元已因{source.get('lower_bound_withdrawal_reason')}撤回；"
+            f"保留独立可行点上界{number(q.get('cost_yuan'))}元与有效下界{number(q.get('lower_bound_yuan'))}元。"
+            '该原生状态不作为已证最优。']
+    lines += ['', '|求解批次|报价数|原生到时限|合法零解|非零可行|有可行初值|保留初值|非零gap均值|',
+        '|---|---:|---:|---:|---:|---:|---:|---:|']
+    for name, q in (('原多目标',result['baseline_quotes']),('新单目标',result['quotes'])):
+        lines.append(f"|{name}|{q['n']}|{q['native_time_limit_quotes']}|{q['zero_sufficient_quotes']}|"
+            f"{q['nonzero_accepted_quotes']}|{q['feasible_initial_quotes']}|{q['verified_initial_retained_quotes']}|"
+            f"{number(q['nonzero_accepted_gap']['mean'])}|")
     lines += ['', '## 复用的anchor和旧轮换', '',
         '这些仅是旧多目标报价对应的对照，不是新单目标同费对照。', '',
         '|输入|策略|内部正确|完整支持正确|错误高权重|激活费/元|预留费/元|总费/元|',
@@ -231,13 +321,8 @@ def report(audit_path, out):
             paired_vs_no_dfs={name:shared.paired(rows, name, 'no_dfs') for name in names},
             paired_vs_multitarget={'single_'+mode:shared.paired(rows, 'single_'+mode, mode) for mode in modes}))
     quotes, timing = quote_rows(reader, quotes, entrymap, root)
-    quote_summary = shared.quote_summary(quotes)
-    nonzero_quotes = [q for q in quotes if q.get('new_gate_feasible')
-        and (q.get('certificate') or {}).get('executed_activation_yuan', 0.) > 1e-12]
-    quote_summary.update(zero_sufficient_quotes=sum(q.get('status') == 'zero_sufficient' for q in quotes),
-        nonzero_accepted_quotes=len(nonzero_quotes),
-        nonzero_accepted_gap=shared.stats([(q.get('certificate') or {}).get('relative_gap') for q in nonzero_quotes]),
-        gap_scope='Zero sufficient quotes have a nonnegative-cost zero optimum; nonzero accepted gaps are reported separately')
+    quote_summary = quotation_summary(quotes)
+    baseline_quotes = quotation_summary(baseline_quote_rows(reader, protocol, entrymap))
     aggregate = {}
     for mode in modes:
         aggregate[mode] = dict(multitarget=summarize([r for r in enriched if r['strategy'] == mode]),
@@ -257,7 +342,7 @@ def report(audit_path, out):
         zero_sufficient_quotes=complete.get('zero_sufficient_quotes'),
         internal_truth_covered_cases=sum(bool(c['truth_in_native_bank']) for c in coverage.values()),
         full_support_truth_covered_cases=sum(bool(c['full_support_truth_in_native_bank']) for c in coverage.values()),
-        quotes=quote_summary, case_timing=timing, path_records=enriched,
+        quotes=quote_summary, baseline_quotes=baseline_quotes, case_timing=timing, path_records=enriched,
         recorded_failures=[r for r in enriched if r['audit_status'] != 'passed'],
         original_failed_tasks=audit.get('original_failed_tasks', []), task_errors=audit.get('task_errors', []),
         original_execution_failed_rows=audit.get('original_execution_failed_rows', []),
