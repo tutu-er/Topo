@@ -143,6 +143,10 @@ class ReportChecks(unittest.TestCase):
             self.assertEqual((no['n'],no['recovered'],new['recovered']),(72,35,70))
             self.assertEqual(result['overall']['paired_vs_no_dfs']['normal_fixed']['gained'],35)
             self.assertEqual(result['overall']['solver']['normal_fixed']['missing_quotes'],1)
+            covered=result['by_candidate_coverage']['truth_present']['groups']['no_dfs']
+            unknown=result['by_candidate_coverage']['coverage_unknown']['groups']['no_dfs']
+            self.assertEqual((covered['n'],unknown['n'],unknown['recorded_failures']),(70,2,2))
+            self.assertEqual(covered['n']+unknown['n'],no['n'])
             self.assertAlmostEqual(no['mean_p_true_completed'],.5)
             self.assertIsNone(result['cells'][-1]['groups']['normal_fixed']['mean_p_true_completed'])
             for name,n in [('grid_cells.csv',288),('stride_meter.csv',72)]:

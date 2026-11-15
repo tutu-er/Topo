@@ -309,6 +309,12 @@ def run(audit_path, out):
     by_grid = [dict(stride=s, meter_multiplier=m, **group([d['id'] for d in ordered
                if d['stride']==s and d['meter_multiplier']==m])) for s in STRIDES for m in MULTIPLIERS
                if any(d['stride']==s and d['meter_multiplier']==m for d in ordered)]
+    coverage_groups = {key: [] for key in ('truth_present', 'truth_missing', 'coverage_unknown')}
+    for tag in dims:
+        observed = coverage_by_id.get(tag)
+        key = ('coverage_unknown' if observed is None else
+               'truth_present' if observed['truth_in_native_bank'] else 'truth_missing')
+        coverage_groups[key].append(tag)
     result = dict(created_utc=datetime.now(timezone.utc).isoformat(), source=io.ref(__file__),
         helper_sources=[io.ref(panel.__file__)], audit=io.ref(audit_path), source_protocol=audit['source_protocol'],
         source_inputs=audit['source_inputs'], phase=protocol['phase'], smoke=protocol.get('smoke',False),
@@ -317,6 +323,7 @@ def run(audit_path, out):
         qualification=qualification, cells=cells, by_stride_meter=by_grid, overall=group(dims),
         by_world={world:group([d['id'] for d in ordered if d['original_id']==world])
                   for world in sorted({d['original_id'] for d in ordered})},
+        by_candidate_coverage={key:group(ids) for key,ids in coverage_groups.items() if ids},
         failed_qualification=[q for q in qualification if q['failure_category']],
         failed_execution_rows=[{k:r.get(k) for k in ('id','forecast','repeat','strategy','original_status','audit_status')}
                               for r in rows if r['audit_status'] != 'passed'],
