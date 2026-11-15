@@ -140,11 +140,16 @@ def delivery_summary(rows, mode, zero, expected):
     failed = [r for r in chosen if r['status'] != 'complete']
     margins = [float(r['linear']['minimum_logodds']) for r in good]
     correct = sum(bool(r['linear']['internal_correct']) for r in good)
+    changes = [improvement(r['direct'], zero) for r in good]
     return dict(expected_rows=expected, complete_rows=len(good), failed_rows=len(failed),
         failures=failed, internal_correct=correct, zero_reference_correct=expected*int(zero['internal_correct']),
         new_correct=sum(bool(r['linear']['internal_correct']) and not zero['internal_correct'] for r in good),
         lost_correct=sum(not r['linear']['internal_correct'] and bool(zero['internal_correct']) for r in good),
         native_selected_counts=dict(Counter(str(r['linear']['native_selected_index']) for r in good)),
+        double_improvement_above_1e_minus6=sum(c['double_improvement_above_1e_minus6'] for c in changes),
+        double_improvement_raw=sum(c['double_improvement_raw'] for c in changes),
+        positive_direct_z_above_1e_minus6=sum(r['direct']['direct_z'] > 1e-6 for r in good),
+        negative_direct_z_count=sum(r['direct']['direct_z'] < -1e-7 for r in good),
         minimum_logodds=statistics(margins),
         direct_z=statistics([r['direct']['direct_z'] for r in good]),
         error_ratio=statistics([r['direct']['e']/zero['e'] for r in good]) if zero['e'] > 0 else statistics([]),
@@ -167,6 +172,11 @@ def write_markdown(report, path):
         f"报价异常{report['quote_exceptions']}，交付失败{report['failed_delivery_rows']}。"
         f"{report['case_count']}个已有开发设置来自{report['network_date_backgrounds']}组网络/日期背景；"
         f"每方案{report['repeats']}条eta重复不增加独立物理日期数量。", '',
+        f"内部真族覆盖{report['internal_truth_covered_cases']}/{report['case_count']}，"
+        f"完整支持真候选覆盖{report['full_support_truth_covered_cases']}/{report['case_count']}。"
+        f"完整支持选择正确：计划{report['planned_full_support_correct']}/{report['quote_count']}，"
+        f"交付{report['delivered_full_support_correct']}/{report['delivery_rows']}。"
+        '下表的内部正确与完整线路支持恢复分别统计。', '',
         '## 方向变化与线性全库选择', '',
         'e/e0是总响应误差能量比；ΣJ/ΣJ0是全部异族候选距离之和的比值。'
         '最小标准化增量按min[(Jj−Jj0)/max(1,Jj0)]计算，在Jj0<1时不是百分比。'
@@ -184,16 +194,19 @@ def write_markdown(report, path):
     lines += ['', '双目标改善与正确选择分开统计：降低误差能量、增加候选距离，仍可能因误差投影方向变化而损害排序。'
         '最弱L使用指定正确参数点对全部异族原生点的累计线性对数赔率；同一正确族的其他参数点可能影响最终族选择。', '',
         '## 交付变化、费用和调用量', '',
-        '|输入|方案|线性内部正确/重复数|零参考|新增正确/丢失正确|计划费用/元|交付平均费用/元|计划P/kWh|计划Q/kvarh|交付最弱L均值|',
-        '|---|---|---:|---:|---|---:|---:|---:|---:|---:|']
+        '|输入|方案|线性内部正确/重复数|交付双目标改善/重复数|零参考|新增正确/丢失正确|计划费用/元|交付平均费用/元|计划P/kWh|计划Q/kvarh|交付最弱L均值|',
+        '|---|---|---:|---:|---:|---|---:|---:|---:|---:|---:|']
     for case in report['cases']:
         for mode in MODES:
             p, d = case['plans'][mode], case['deliveries'][mode]
             lines.append(f"|{case['id']}|{NAMES[mode]}|{d['internal_correct']}/{d['expected_rows']}|"
+                f"{d['double_improvement_above_1e_minus6']}/{d['expected_rows']}|"
                 f"{d['zero_reference_correct']}/{d['expected_rows']}|{d['new_correct']}/{d['lost_correct']}|"
                 f"{number(p['cost']['total_yuan'])}|{number(d['settled_total_yuan']['mean'])}|"
                 f"{number(p['quantities']['active_abs_kwh'])}|{number(p['quantities']['reactive_abs_kvarh'])}|"
                 f"{number(d['minimum_logodds']['mean'])}|")
+    lines += ['', '交付双目标改善逐条检查总误差降低与全部异族标准化距离增加均超过1e−6。'
+        '设备随机响应可能破坏计划时的方向约束，故该次数与线性内部正确次数分别报告。']
     lines += ['', '## 求解状态与界', '',
         '本轮最大化z，可行点给下界，原生分支定界或资源盒松弛给上界。下表不是费用界；费用也不是优化目标。'
         '冲突的原生界按原收据撤回，零动作始终可行；未找到正z不证明不存在改善方向。', '',
@@ -309,6 +322,11 @@ def report(audit_path, out):
     audited_quotes = {(row['id'], row['mode']):row for row in audited_rows}
     if len(audited_quotes) != len(audited_rows) or len(audited_quotes) != protocol['expected_quotes']:
         raise ValueError('Duplicate or missing independently audited quotes')
+    record_path = reader.path(audit['records'])
+    audited_deliveries = [json.loads(line) for line in record_path.read_text(encoding='utf-8-sig').splitlines() if line.strip()]
+    if len(audited_deliveries) != protocol['expected_delivery_rows']:
+        raise ValueError('Independent delivery record denominator differs')
+    coverage = {c['id']:c for c in audit['cases']}
     cases = []
     quote_count = delivery_rows = failed_rows = quote_exceptions = 0
     for entry in entries:
@@ -332,8 +350,20 @@ def report(audit_path, out):
                 raise ValueError('Audited individual quote differs from sealed combined plans')
         packed = {mode:plan_summary(mode, plans[mode], zero, audited_quotes[(entry['id'], mode)]) for mode in MODES}
         delivered = {mode:delivery_summary(deliveries, mode, zero, protocol['repeats']) for mode in MODES}
+        for mode in MODES:
+            independent = audited_quotes[(entry['id'], mode)]['linear']
+            if bool(independent['native_map_correct']) != packed[mode]['linear']['internal_correct']:
+                raise ValueError('Audited and recorded plan internal selection differ')
+            packed[mode]['linear']['native_full_support_exact'] = bool(independent['native_full_support_exact'])
+            paths = [r for r in audited_deliveries if r['id'] == entry['id'] and r['mode'] == mode]
+            if (len(paths) != protocol['repeats']
+                    or sum(bool(r['linear']['native_map_correct']) for r in paths) != delivered[mode]['internal_correct']):
+                raise ValueError('Audited and recorded delivery internal selections differ')
+            delivered[mode]['native_full_support_exact'] = sum(bool(r['linear']['native_full_support_exact']) for r in paths)
         cases.append(dict(id=entry['id'], case=entry['case'], start_date=entry['start_date'],
             target_native=int(entry['oracle_target']), competitors=entry['oracle_competitors'],
+            true_native_indices=coverage[entry['id']]['true_native_indices'],
+            full_support_exact_native_indices=coverage[entry['id']]['full_support_exact_native_indices'],
             zero=zero, plans=packed, deliveries=delivered, old_action_linear_references=old,
             source_completion=io.ref(directory/'complete.json'), source_seal=io.ref(directory/'seal.json')))
         quote_count += len(plans); delivery_rows += len(deliveries)
@@ -350,6 +380,10 @@ def report(audit_path, out):
         network_date_backgrounds=len({(e['case'], e['start_date']) for e in entries}),
         distinct_calendar_dates=len({e['start_date'] for e in entries}),
         native_bound_conflicts=audit.get('native_bound_conflicts'),
+        internal_truth_covered_cases=sum(bool(c['true_native_indices']) for c in cases),
+        full_support_truth_covered_cases=sum(bool(c['full_support_exact_native_indices']) for c in cases),
+        planned_full_support_correct=sum(c['plans'][m]['linear']['native_full_support_exact'] for c in cases for m in MODES),
+        delivered_full_support_correct=sum(c['deliveries'][m]['native_full_support_exact'] for c in cases for m in MODES),
         cases=cases, summary_by_mode={mode:dict(
             quotes=len(cases), positive_z_above_1e_minus6=sum(c['plans'][mode]['direct_z'] > 1e-6 for c in cases),
             small_positive_z=sum(0 < c['plans'][mode]['direct_z'] <= 1e-6 for c in cases),
