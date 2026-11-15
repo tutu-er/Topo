@@ -106,6 +106,18 @@ def validate_band_reference(protocol, baseline_protocol):
         raise ValueError('Band baseline has fewer paired paths than the SDP comparison')
 
 
+def cross_bound(lower, candidate_cost, candidate_encoded_feasible, tolerance=1e-7):
+    """A feasible point in the identical encoded domain must exceed its lower bound."""
+    difference=None if lower is None or candidate_cost is None else float(lower-candidate_cost)
+    allowance=None if candidate_cost is None else tolerance*max(1.,abs(float(candidate_cost)))
+    conflict=bool(candidate_encoded_feasible and difference is not None and difference>allowance)
+    return dict(lower_bound_yuan=lower,cross_run_feasible_cost_yuan=candidate_cost,
+        point_in_same_encoded_domain=bool(candidate_encoded_feasible),
+        lower_minus_feasible_cost_yuan=difference,cost_tolerance_yuan=allowance,
+        conflict=conflict,effective_lower_bound_yuan=0. if conflict else lower,
+        scope='Same activation objective and identical encoded constraints; numeric comparison only, no unbuffered/AC claim')
+
+
 def independent_mgf_polynomials(model, forecast, resource_map, mode):
     """Joint-Gaussian integral expansion, independent of production evidence."""
     if mode not in ('mgf_fixed','mgf_forecast'):
@@ -167,6 +179,7 @@ class Audit(single.Audit):
         self.single_baseline_records = []
         self.band_baseline_records = []
         self.sdp_records = []
+        self.cross_run_certificates = []
 
     def action_band(self, entry, action):
         c = self.band_context[entry['id']]
@@ -350,6 +363,45 @@ class Audit(single.Audit):
                     moments=base.native.arrays(self.file(directory/'moments.npz'))
                     self.sdp_records.append(dict(id=entry['id'],mode=mode,
                         moment_diagnostics=independent_moments(problem,moments['mean'],moments['moments'])))
+            if protocol.get('band_baseline_audit'):
+                oldaudit=base.read(self.checked(protocol['band_baseline_audit']))
+                oldprotocol=base.read(self.checked(oldaudit['source_protocol']))
+                oldroot=Path(oldaudit['source_protocol']['path']).parent
+                oldseal=base.read(self.file(oldroot/'cases'/entry['id']/'seal.json'));self.references(oldseal)
+                for field in ('score','train','validation'):
+                    self.require(oldseal[field]==seal[field],'Cross-run bound problem changed: '+field)
+                self.require(base.read(self.checked(oldseal['resource_case']))==config,'Cross-run resources/fees changed')
+                oldarrays=base.native.arrays(self.checked(oldseal['bandwidth_npz']))
+                for key in arrays:self.same('same_cross_run_band_'+key,oldarrays[key],arrays[key],atol=0,rtol=0)
+                oldplanner=base.native.arrays(self.checked(oldseal['planner']))
+                self.same('same_cross_run_forecast',oldplanner['forecast'],forecast,atol=0,rtol=0)
+                for leaf in ('node_time_pq_20261115/domain.py','single_target_20261115/evidence.py','distribution_gate_20261114/evidence.py'):
+                    hashes=lambda proto:{r['sha256'] for r in proto['sources'] if Path(r['path']).as_posix().endswith(leaf)}
+                    self.require(len(hashes(protocol))==1 and hashes(protocol)==hashes(oldprotocol), 'Changed encoded constraint source: '+leaf)
+                oldquotes=[json.loads(line) for line in self.checked(oldaudit['quotes']).read_text(encoding='utf8').splitlines()]
+                newplanner=base.native.arrays(self.checked(seal['planner']))
+                for mode in protocol['modes']:
+                    name='single_'+mode
+                    oldquote=next(q for q in oldquotes if q['id']==entry['id'] and q['policy']==name)
+                    newquote=next(q for q in self.quote_records if q['id']==entry['id'] and q['policy']==name)
+                    points={}
+                    for kind,action,quote in [('band',oldplanner[name],oldquote),('sdp',newplanner[name],newquote)]:
+                        shifted=forecast+prob.shift(config,action,labels,entry['base_kw'])
+                        gate=self.gates(model,forecast,shifted,mode)
+                        band_check=self.action_band(entry,action)
+                        encoded=bool(quote['new_gate_feasible'] and band_check['encoded_passed'] and
+                            all(r['margin']>=1e-8-1e-9 for r in gate['rows']) and all(g['gain']>=-1e-9 for g in gate['guards']))
+                        cost=base.procurement(config,action,action,protocol['reservation_prices']['P'],protocol['reservation_prices']['Q'])['planned']['activation_yuan']
+                        points[kind]=(encoded,cost)
+                    forward=cross_bound(oldquote['certificate'].get('lower_bound_yuan'),points['sdp'][1],points['sdp'][0])
+                    reverse=cross_bound(newquote['certificate'].get('lower_bound_yuan'),points['band'][1],points['band'][0])
+                    if reverse['conflict']:
+                        cert=newquote['certificate'];cert['cross_run_prior_point_conflict']=reverse
+                        cert.update(lower_bound_yuan=0.,relative_gap=1. if points['sdp'][1]>0 else 0.,lower_bound_withdrawn=True)
+                    self.cross_run_certificates.append(dict(id=entry['id'],mode=mode,
+                        original_band_audit=protocol['band_baseline_audit'],same_encoded_domain_verified=True,
+                        prior_band_bound_against_SDP_point=forward,new_SDP_bound_against_prior_band_point=reverse,
+                        old_report_preserved=True,prior_bound_withdrawal_required=forward['conflict']))
 
 
 def planning_boundary(path):
@@ -454,7 +506,8 @@ def run(source, out):
         original_failed_tasks=complete.get('failed_tasks',[]),original_quote_exceptions=complete.get('quote_exceptions',0),
         original_execution_failed_rows=complete.get('failed_rows',0),post_execution_source_changes=audit.post_execution_source_changes,
         maximum_numeric_errors=dict(audit.maxima),maximum_electrical_errors=dict(audit.operation.maxima),
-        counts=dict(audit.counts),band_checks=audit.band_records,sdp_checks=audit.sdp_records)
+        counts=dict(audit.counts),band_checks=audit.band_records,sdp_checks=audit.sdp_records,
+        cross_run_certificates=audit.cross_run_certificates)
     base.write(out/'report.json',result);base.write(out/'complete.json',dict(status=result['status'],report=base.ref(out/'report.json')))
     return result
 

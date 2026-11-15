@@ -68,10 +68,15 @@ def markdown(result):
     for stage in result['sdp_stages']:
         source=stage['source_receipt']
         lines.append(f"|{stage['id']}|{stage['mode']}|{stage['status']}|{fmt(stage.get('wall_seconds'))}|"
-            f"{len(stage.get('added_seed_names',[]))}|{source.get('returned_probability_feasible_count',0)}|"
-            f"{source.get('returned_resource_only_count',0)}|{fmt(source.get('raw_sdp_objective_diagnostic'))}|")
+            f"{len(stage.get('added_seed_names',[]))}|{stage['added_probability_feasible_count']}|"
+            f"{stage['added_probability_infeasible_count']}|{fmt(source.get('raw_sdp_objective_diagnostic'))}|")
     if not result['sdp_stages']:
         lines.append('|本批未使用SDP|—|—|—|—|—|—|—|')
+    lines += ['', '|输入|共用SDP准备秒数（只计一次）|本批报价墙钟秒数之和|',
+              '|---|---:|---:|']
+    for timing in result['case_timing']:
+        lines.append(f"|{timing['id']}|{fmt(timing['new_SDP_shared_preparation_seconds'])}|"
+                     f"{fmt(timing['new_quote_wall_seconds_sum'])}|")
     lines += ['',
         '## 预测与实际证据', '',
         '下表固定比较历史赢家与历史最强异族，分别列预测功率下K均值、实际功率下K均值、干净AC和含量测评分的增量。'
@@ -87,6 +92,25 @@ def markdown(result):
             fields = ('forecast_K_logodds','actual_input_K_logodds','clean_logodds','observed_logodds')
             values = [fmt(pair['increments'][k]['mean']) for k in fields]
             lines.append('|'+case['id']+'|'+name+'|'+'|'.join(values)+'|')
+    lines += ['', '## 全母线及实际交付检查', '',
+        '|输入|新策略|电压最小/最大 pu|越.95–1.05路径|最大支路A|最大根kVA|平均网损变化kWh|实际带超出路径/点|最大带超出kvar|',
+        '|---|---|---|---:|---:|---:|---:|---:|---:|']
+    for row in result['operational_summary']:
+        lines.append(f"|{row['id']}|{row['policy']}|{fmt(row['voltage_minimum'])}/{fmt(row['voltage_maximum'])}|"
+            f"{row['voltage_failed_rows']}/{row['n']}|{fmt(row['maximum_branch_current_A'])}|{fmt(row['maximum_root_S_kVA'])}|"
+            f"{fmt(row['active_loss_change_kwh']['mean'])}|{row['delivered_band_failed_rows']}/{row['delivered_band_violated_cells']}|"
+            f"{fmt(row['maximum_delivered_band_violation_kvar'])}|")
+    lines += ['', '实际交付带超出按原带加浮点舍入误差核算，属于规划范围诊断；物理设备违规单列。'
+        '电压为采购后的AC检查，未加进采购规划；200kVA是标幺基准，设备热额定容量缺失。', '',
+        '## 跨运行费用界检查', '',
+        '仅在冻结历史、全部竞争者、概率式、资源、带宽及数值编码一致时比较。'
+        '新可行点若低于旧有效下界，登记旧证书撤回；反向也检查。旧报告原样保留，不称新点击败已证最优。', '',
+        '|输入|模式|旧带下界与SDP点冲突|新下界与旧带点冲突|', '|---|---|---|---|']
+    for row in result['cross_run_certificates']:
+        lines.append(f"|{row['id']}|{row['mode']}|{row['prior_band_bound_against_SDP_point']['conflict']}|"
+            f"{row['new_SDP_bound_against_prior_band_point']['conflict']}|")
+    if not result['cross_run_certificates']:
+        lines.append('|本批无同域SDP对照|—|—|—|')
     lines += ['', '## 已保留的异常与范围', '',
         f"记录的任务失败：{len(result['original_failed_tasks'])}；执行失败：{result['original_execution_failed_rows']}；"
         f"审计错误：{len(result['task_errors'])}；原始评分逐值复算最大误差：{result['maximum_native_SSE_replay_error']:.3g}。",
@@ -157,10 +181,37 @@ def report(audit_path, out):
     for item in audited.get('sdp_checks',[]):
         if 'source' in item:
             source=reader.json(item['source'])
-            stages.append(dict(item,source_receipt=source))
+            seeds=[r for r in audited.get('sdp_checks',[]) if r.get('id')==item['id']
+                and r.get('mode')==item['mode'] and 'seed' in r]
+            if {r['seed'] for r in seeds}!=set(item.get('added_seed_names',[])):
+                raise ValueError('Unique added SDP seed denominator differs from independent seed audits')
+            stages.append(dict(item,source_receipt=source,
+                added_probability_feasible_count=sum(r['probability_feasible'] for r in seeds),
+                added_probability_infeasible_count=sum(not r['probability_feasible'] for r in seeds)))
     for item in timing:
         item['new_SDP_shared_preparation_seconds']=sum(float(s.get('wall_seconds') or 0.) for s in stages if s['id']==item['id'])
         item['SDP_time_counting']='Once per input across both exponential seed generators; additional to all QCQP quote times'
+    raw_new=reader.lines(audited['records'])
+    zero={(r['id'],r['repeat']):r for r in reader.lines(audited['baseline_records']) if r['strategy']=='no_dfs'}
+    operation=[]
+    for tag,entry in entrymap.items():
+        for mode in modes:
+            policy='single_'+mode
+            all_rows=[r for r in raw_new if r['id']==tag and r['strategy']==policy]
+            good=[r for r in all_rows if r['audit_status']=='passed']
+            operation.append(dict(id=tag,policy=policy,n=len(all_rows),completed=len(good),
+                voltage_minimum=min((r['electrical']['all_bus_voltage']['minimum'] for r in good),default=None),
+                voltage_maximum=max((r['electrical']['all_bus_voltage']['maximum'] for r in good),default=None),
+                voltage_failed_rows=sum(not r['voltage_screen_passed'] for r in good),
+                maximum_branch_current_A=max((r['electrical']['maximum_branch_current_A'] for r in good),default=None),
+                maximum_root_S_kVA=max((r['electrical']['root_S_kVA']['maximum'] for r in good),default=None),
+                active_loss_change_kwh=shared.stats([r['electrical']['active_loss_kwh']-
+                    zero[(tag,r['repeat'])]['electrical']['active_loss_kwh'] for r in good]),
+                delivered_band_failed_rows=sum(not r['delivered_band']['passed'] for r in good),
+                delivered_band_violated_cells=sum(r['delivered_band']['violated_cells'] for r in good),
+                maximum_delivered_band_violation_kvar=max((r['delivered_band']['maximum_violation_pu']*entry['base_kw'] for r in good),default=None),
+                physical_requested_failed_rows=sum(any(v>1e-7 for v in r['requested_violations'].values()) for r in good),
+                physical_delivered_failed_rows=sum(any(v>1e-7 for v in r['delivered_violations'].values()) for r in good)))
     reader.checked(__file__)
     if not reader.unchanged():
         raise ValueError('Inputs changed during reporting')
@@ -174,6 +225,7 @@ def report(audit_path, out):
         original_failed_tasks=audited.get('original_failed_tasks',[]), task_errors=audited.get('task_errors',[]),
         original_execution_failed_rows=audited.get('original_execution_failed_rows',0),
         band_checks=audited.get('band_checks'), sdp_checks=audited.get('sdp_checks'),sdp_stages=stages,
+        operational_summary=operation,cross_run_certificates=audited.get('cross_run_certificates',[]),
         maximum_native_SSE_replay_error=post.maximum_error, sources_unchanged=True,
         statistical_scope='Three developer-selected inputs from two known physical backgrounds; reused paired paths, not independent confirmation',
         bound_scope='Original single-target plus node-hour band activation objective; numerical SDP objective not a certified QCQP lower bound',

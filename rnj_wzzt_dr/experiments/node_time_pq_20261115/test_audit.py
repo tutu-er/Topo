@@ -80,6 +80,23 @@ def test_sdp_numerical_value_not_a_certified_lower_bound():
         audit.no_sdp_certificate({'used_as_qcqp_lower_bound': True})
 
 
+def test_formal_sdp_cannot_reuse_smoke_as_its_band_comparison():
+    formal=dict(smoke=False,repeats=16)
+    with pytest.raises(ValueError,match='smoke'):
+        audit.validate_band_reference(formal,dict(variant='band',smoke=True,repeats=16))
+    with pytest.raises(ValueError,match='fewer'):
+        audit.validate_band_reference(formal,dict(variant='band',smoke=False,repeats=1))
+    audit.validate_band_reference(formal,dict(variant='band',smoke=False,repeats=16))
+
+
+def test_cross_run_bound_needs_encoded_feasible_point_and_material_gap():
+    assert audit.cross_bound(3.,2.,True)['conflict']
+    assert audit.cross_bound(3.,2.,True)['effective_lower_bound_yuan']==0
+    assert not audit.cross_bound(3.,2.,False)['conflict']
+    assert not audit.cross_bound(2.+1e-8,2.,True)['conflict']
+    assert not audit.cross_bound(0.,2.,True)['conflict']
+
+
 @pytest.mark.parametrize('mode',['mgf_fixed','mgf_forecast'])
 def test_lifted_polynomial_matches_joint_gaussian_original_margin(mode):
     from ..single_target_20261115.test_audit import toy
