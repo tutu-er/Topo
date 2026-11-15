@@ -122,3 +122,12 @@ def test_log_display_rounding_and_unbuffered_points_are_kept_separate(tmp_path):
     unbuffered=audit.native_bound_history(log,None,1.,False)
     assert unbuffered['recorded_bound_above_original_acceptance_point']
     assert not unbuffered['recorded_bound_conflict_with_verified_buffered_point']
+
+
+def test_response_sensitivity_preserves_dynamic_quote_and_execution_denominators():
+    quotes,policies=audit.policy_names(dict(modes=list(audit.panel.MODES),kinds=['response']))
+    assert len(quotes)==3 and len(policies)==6
+    assert len(policies)*3*16==288
+    assert all('__response' in name for name in policies)
+    with pytest.raises(ValueError,match='added-budget'):
+        audit.policy_names(dict(modes=['normal_fixed'],kinds=['response','response']))

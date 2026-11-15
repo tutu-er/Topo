@@ -31,6 +31,16 @@ prob = panel.prob
 ROOT = panel.ROOT
 
 
+def policy_names(protocol):
+    modes,kinds=protocol['modes'],protocol['kinds']
+    if not modes or len(set(modes))!=len(modes) or not set(modes)<=set(panel.MODES):
+        raise ValueError('Unknown, empty or repeated base probability modes')
+    if not kinds or len(set(kinds))!=len(kinds) or not set(kinds)<={'pq','response'}:
+        raise ValueError('Unknown, empty or repeated added-budget kinds')
+    quotes=[m+'__'+k for m in modes for k in kinds]
+    return quotes,quotes+[name+'_rotation' for name in quotes]
+
+
 def array_hash(value):
     value = np.ascontiguousarray(value, dtype=np.float64)
     digest = hashlib.sha256(str(value.shape).encode('ascii'))
@@ -435,8 +445,7 @@ class Audit(panel.Audit):
         source_planner=base.native.arrays(self.checked(oldseal['planner']))
         planner=base.native.arrays(self.checked(seal['planner']));forecast=planner['forecast']
         self.same('old_forecast_preserved',forecast,source_planner['forecast'],atol=0,rtol=0)
-        names=[m+'__'+k for m in protocol['modes'] for k in protocol['kinds']]
-        policies=names+[n+'_rotation' for n in names]
+        names,policies=policy_names(protocol)
         self.require(set(planner)==set(policies+['forecast']),'Missing or extra new action')
         config=base.read(self.checked(seal['resource_case']))
         self.require(config==base.read(self.checked(oldseal['resource_case'])),'Original physical offers changed')
@@ -643,8 +652,7 @@ def run(source,out):
     audit=Audit();p=base.read(audit.file(source/'protocol.json'))
     entries=base.read(audit.checked(p['inputs']));complete=base.read(audit.file(source/'complete.json'))
     audit.require(complete['source_unchanged'],'Run source changed during execution')
-    audit.require(p['kinds']==['pq','response'],'Unknown added-budget kinds')
-    audit.require(set(p['modes'])<=set(panel.MODES) and len(set(p['modes']))==len(p['modes']),'Unknown or repeated base probability mode')
+    policy_names(p)
     for item in p['sources']:
         relative=Path(item['path']).resolve().relative_to(ROOT)
         audit.file(source/'source_snapshot'/relative,item['sha256'])
