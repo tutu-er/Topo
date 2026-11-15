@@ -118,4 +118,5 @@ class Evaluator:
         if self.next_step!=96:
             raise ValueError('No final truth evaluation before all 96 observations')
         result,_,_=history.old.score_observation(self._ctx,observation)
+        result['truth_family_id']=self._ctx['truth']['truth_id']
         return result

@@ -227,6 +227,59 @@ class Fleet:
         plus=self.fee_plus[start:start+delta.shape[0]]; minus=self.fee_minus[start:start+delta.shape[0]]
         return DT*((plus-minus)*delta+(plus+minus)*absolute).sum()/2
 
+    def deterministic_service_tail(self, prefix_delta, *, prefix_audit=None):
+        """Construct a physical backup, independently of an optimizer or H.
+
+        The backward intervals encode the original terminal tasks. At every
+        step, project the original baseline P onto powers that land in the next
+        interval. Future Q is zero. This is a feasible service construction,
+        not an activation-cost optimum and not a node-P/Q-band guarantee.
+        """
+        began=perf_counter(); prefix=self._array(prefix_delta); k=len(prefix)
+        checked=self.audit_prefix(prefix) if prefix_audit is None else prefix_audit
+        receipt=dict(method='baseline_projection_into_next_reachable_interval',
+            completed_steps=k, optimizer_invoked=False, future_gross_Q_zero=True,
+            original_terminal_targets_retained=True)
+        if not checked['passed']:
+            return None,dict(receipt,feasible=False,status='prefix_infeasible_or_unreachable',
+                             seconds=perf_counter()-began)
+        point=np.zeros((96-k,self.R))
+        for q in self.q_index.values():point[:,q]=-self.original_baseline[k:,q]
+        inverter_limits={row['p']:row['S'] for row in self.circles}
+        failure=None
+        for did,s in self.states.items():
+            j=s['column']; value=checked['states'][did]['current']; reach=self.reachable[did]
+            for h,t in enumerate(range(k,96)):
+                base=s['a'][t]*value+s['g'][t]; c=s['c'][t]
+                lower=self.original_baseline[t,j]+self.lower[t,j]
+                upper=self.original_baseline[t,j]+self.upper[t,j]
+                if j in inverter_limits:
+                    lower=max(lower,-inverter_limits[j]); upper=min(upper,inverter_limits[j])
+                if c:
+                    first=(reach['lower'][t+1]-base)/c
+                    second=(reach['upper'][t+1]-base)/c
+                    lower=max(lower,min(first,second));upper=min(upper,max(first,second))
+                    roundoff=128*np.finfo(float).eps*max(1.,abs(lower),abs(upper),abs(base/c))
+                    if lower>upper+roundoff:
+                        failure=dict(device=did,step=t,reason='empty_next_state_power_interval',
+                                     lower_power_kw=float(lower),upper_power_kw=float(upper));break
+                    # A collapsed equality can invert by floating-point roundoff.
+                    power=float(np.clip(self.original_baseline[t,j],min(lower,upper),max(lower,upper)))
+                else:
+                    roundoff=128*np.finfo(float).eps*max(1.,abs(base))
+                    if base<reach['lower'][t+1]-roundoff or base>reach['upper'][t+1]+roundoff:
+                        failure=dict(device=did,step=t,reason='zero_gain_next_state_unreachable');break
+                    power=float(np.clip(self.original_baseline[t,j],lower,upper))
+                point[h,j]=power-self.original_baseline[t,j]
+                value=base+c*power
+            if failure is not None:break
+        audit=None if failure is not None else self.audit_prefix(np.vstack((prefix,point)))
+        feasible=bool(audit is not None and audit['passed'])
+        return (point if feasible else None),dict(receipt,feasible=feasible,
+            status='verified_physical_tail' if feasible else 'construction_failed',failure=failure,
+            physical_audit=audit,band=self.band_audit(point,k) if feasible else None,
+            cost_yuan=self.activation_fee(point,k) if feasible else None,seconds=perf_counter()-began)
+
     def service_plan(self, prefix_delta, *, env, seconds=30., warm_tail=None):
         began=perf_counter(); tail=self._tail(prefix_delta); k=tail['k']; prefix=tail['prefix']
         receipt=dict(firm_service=True, original_terminal_targets_retained=True, completed_steps=k,
@@ -239,25 +292,39 @@ class Fleet:
         if zcheck['passed']:
             return zero,dict(receipt,status='zero_original_delta_service',feasible=True,optimizer_invoked=False,
                 cost_yuan=0.,physical_audit=zcheck,band=self.band_audit(zero,k),seconds=perf_counter()-began)
-        initial=None
+        initial,constructed=self.deterministic_service_tail(prefix,prefix_audit=tail['status'])
+        receipt['deterministic_backup']=constructed
+        source='deterministic_interval_projection' if initial is not None else None
         if warm_tail is not None:
             candidate=self._array(warm_tail,tail['H'])
-            if self.audit_prefix(np.vstack((prefix,candidate)))['passed']:initial=candidate.copy()
-        import gurobipy as gp
-        with gp.Model('firm_remaining_service',env=env) as model:
-            for key,value in dict(OutputFlag=0,Threads=1,FeasibilityTol=1e-9,NumericFocus=1).items():model.setParam(key,value)
-            u,fee=self._attach_tail(model,tail)
-            model.setObjective(fee)
-            if initial is not None:u.Start=initial
-            model.Params.TimeLimit=max(.001,seconds-(perf_counter()-began));model.optimize()
-            point=initial;source='verified_previous_tail' if initial is not None else None
-            if model.SolCount:
-                candidate=np.asarray(u.X)
-                if self.audit_prefix(np.vstack((prefix,candidate)))['passed'] and (point is None or self.activation_fee(candidate,k)<self.activation_fee(point,k)):
-                    point=candidate;source='convex_service_qcp'
-            status=int(model.Status)
+            if self.audit_prefix(np.vstack((prefix,candidate)))['passed'] and (initial is None or self.activation_fee(candidate,k)<self.activation_fee(initial,k)):
+                initial=candidate.copy();source='verified_previous_tail'
+        point=initial;status=None;invoked=False;error=None
+        budget_exhausted=perf_counter()-began>=seconds
+        if not budget_exhausted:
+            try:
+                import gurobipy as gp
+                with gp.Model('firm_remaining_service',env=env) as model:
+                    for key,value in dict(OutputFlag=0,Threads=1,FeasibilityTol=1e-9,NumericFocus=1).items():model.setParam(key,value)
+                    u,fee=self._attach_tail(model,tail)
+                    model.setObjective(fee)
+                    if initial is not None:u.Start=initial
+                    remaining=seconds-(perf_counter()-began)
+                    if remaining>0:
+                        invoked=True;model.Params.TimeLimit=max(.001,remaining);model.optimize()
+                        status=int(model.Status)
+                        if model.SolCount:
+                            candidate=np.asarray(u.X)
+                            if self.audit_prefix(np.vstack((prefix,candidate)))['passed'] and (point is None or self.activation_fee(candidate,k)<self.activation_fee(point,k)):
+                                point=candidate;source='convex_service_qcp'
+                    else:budget_exhausted=True
+            except Exception as exc:
+                import traceback
+                error=dict(type=type(exc).__name__,message=str(exc),traceback=traceback.format_exc())
         return point,dict(receipt,status='feasible' if point is not None else 'unresolved_service',
-            feasible=point is not None,native_status=status,optimizer_invoked=True,source=source,
+            feasible=point is not None,native_status=status,optimizer_invoked=invoked,source=source,
+            optimizer_exception=error,budget_exhausted_before_optimize=budget_exhausted,
+            feasible_initial_retained=bool(point is not None and source!='convex_service_qcp'),
             cost_yuan=None if point is None else self.activation_fee(point,k),
             physical_audit=None if point is None else self.audit_prefix(np.vstack((prefix,point))),
             band=None if point is None else self.band_audit(point,k),seconds=perf_counter()-began)

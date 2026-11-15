@@ -1,5 +1,6 @@
 """Physical recurrence, task inheritance and robust-first-step boundaries."""
 import unittest
+from unittest.mock import patch
 import numpy as np
 
 from .domain import Fleet, DT
@@ -102,6 +103,57 @@ class DomainTests(unittest.TestCase):
         self.assertIsNotNone(point);self.assertTrue(receipt['physical_audit']['passed'])
         self.assertFalse(receipt['band']['passed'])
         self.assertGreater(receipt['cost_yuan'],0)
+
+    def test_deterministic_service_preserves_ev_battery_and_thermal_tasks(self):
+        f=make_fleet();prefix=np.zeros((58,f.R))
+        for d in f.devices:
+            j=f.p_index[d['id']]
+            if d['kind']=='battery':prefix[8,j]=.1*d['power_kw']
+            elif d['kind']=='ev':prefix[56,j]=-.1*d['power_kw']
+            elif d['kind']=='thermal':prefix[57,j]=-.001*d['power_kw']
+        self.assertTrue(f.audit_prefix(prefix)['passed'])
+        self.assertFalse(f.audit_prefix(np.vstack((prefix,np.zeros((38,f.R)))))['passed'])
+        point,receipt=f.deterministic_service_tail(prefix)
+        self.assertIsNotNone(point);self.assertTrue(receipt['physical_audit']['passed'])
+        self.assertFalse(receipt['optimizer_invoked'])
+        for q in f.q_index.values():
+            np.testing.assert_array_equal(point[:,q]+f.original_baseline[58:,q],np.zeros(38))
+        for d in f.devices:
+            if d['kind']=='pv':np.testing.assert_array_equal(point[:,f.p_index[d['id']]],np.zeros(38))
+        for n in range(1,39):
+            self.assertTrue(f.audit_prefix(np.vstack((prefix,point[:n])))['passed'])
+        for state in receipt['physical_audit']['states'].values():
+            self.assertLess(state['terminal_error'],1e-9)
+
+    def test_tiny_service_budget_retains_deterministic_tail_without_optimizer(self):
+        f=make_fleet(band=True);d=next(d for d in f.devices if d['kind']=='battery')
+        prefix=np.zeros((9,f.R));prefix[8,f.p_index[d['id']]]=.1*d['power_kw']
+        with patch('gurobipy.Model',side_effect=AssertionError('No optimizer after exhausted budget')) as model:
+            point,receipt=f.service_plan(prefix,env=None,seconds=1e-12)
+        model.assert_not_called()
+        self.assertIsNotNone(point);self.assertTrue(receipt['physical_audit']['passed'])
+        self.assertFalse(receipt['band']['passed'])
+        self.assertEqual(receipt['source'],'deterministic_interval_projection')
+        self.assertTrue(receipt['budget_exhausted_before_optimize'])
+        self.assertTrue(receipt['feasible_initial_retained'])
+        self.assertFalse(receipt['optimizer_invoked'])
+
+    def test_service_optimizer_exception_retains_verified_backup(self):
+        f=make_fleet();d=next(d for d in f.devices if d['kind']=='battery')
+        prefix=np.zeros((9,f.R));prefix[8,f.p_index[d['id']]]=.1*d['power_kw']
+        with patch('gurobipy.Model',side_effect=RuntimeError('test backend unavailable')):
+            point,receipt=f.service_plan(prefix,env=None,seconds=10.)
+        self.assertIsNotNone(point);self.assertTrue(receipt['physical_audit']['passed'])
+        self.assertTrue(receipt['feasible_initial_retained'])
+        self.assertEqual(receipt['optimizer_exception']['type'],'RuntimeError')
+        self.assertEqual(receipt['source'],'deterministic_interval_projection')
+
+    def test_deterministic_tail_keeps_unreachable_prefix_failure(self):
+        f=make_fleet();d=next(d for d in f.devices if d['kind']=='ev');j=f.p_index[d['id']]
+        prefix=np.zeros((92,f.R));prefix[56,j]=-.1*d['power_kw']
+        point,receipt=f.deterministic_service_tail(prefix)
+        self.assertIsNone(point);self.assertFalse(receipt['feasible'])
+        self.assertEqual(receipt['status'],'prefix_infeasible_or_unreachable')
 
     def test_unreachable_service_does_not_return_zero(self):
         f=make_fleet();d=next(d for d in f.devices if d['kind']=='ev');j=f.p_index[d['id']]
