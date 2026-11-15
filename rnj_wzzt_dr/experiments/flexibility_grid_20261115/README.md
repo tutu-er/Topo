@@ -6,6 +6,8 @@
 
 36/36格与4608/4608条独立核验已完成。完整结果及正、负机制见 [RESULTS.md](RESULTS.md)。本批三种新方法总体均未胜过无采购或旧参考；Pengwah正例与Soumalas退化例同时保留。后续分开训练量和验证量的设计见 [NEXT_DESIGN.md](NEXT_DESIGN.md)，尚未执行。
 
+四网络逐节点配置、36格实际调用与恢复变化、Soumalas负例的节点时段图和评分分解见 [RESOURCE_EFFECTS.md](RESOURCE_EFFECTS.md)。这次存量数据核算将冻结响应矩阵误差与AC近似余项分开，后者不是所查明显负例的主要来源；新增绘图和诊断入口均不重跑实验。
+
 入口从仓库根运行：
 
 1. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.data --prepare --out outputs/flexibility_grid_data_20261115_v1`
