@@ -94,7 +94,8 @@ def _expression(u, Q, a, c, hours):
 
 def plan(case, score, validation, forecast, base_kw, *, mode='mgf_forecast',
          seconds=600., env, seed_points=None, target_mass=.99, record_directory=None,
-         meter_relative_sd=METER_RELATIVE_SD, forecast_relative_sd=FORECAST_RELATIVE_SD):
+         meter_relative_sd=METER_RELATIVE_SD, forecast_relative_sd=FORECAST_RELATIVE_SD,
+         evidence_factory=None):
     if seconds <= 0 or not np.isfinite(seconds):
         raise ValueError('Positive finite total quote budget required')
     began = perf_counter(); recorder = _Recorder(record_directory, began)
@@ -102,7 +103,8 @@ def plan(case, score, validation, forecast, base_kw, *, mode='mgf_forecast',
     # Preserve the original default constructor call for existing adapters.
     if meter_relative_sd != METER_RELATIVE_SD or forecast_relative_sd != FORECAST_RELATIVE_SD:
         options.update(meter_relative_sd=meter_relative_sd, forecast_relative_sd=forecast_relative_sd)
-    evidence = DistributionEvidence(case,score,validation,forecast,base_kw,**options)
+    factory = DistributionEvidence if evidence_factory is None else evidence_factory
+    evidence = factory(case,score,validation,forecast,base_kw,**options)
     zero = np.zeros(case.shape); baseline = evidence.verify_expansion(zero)
     common = dict(mode=mode, objective_kind='activation', objective_cost_object='activation_yuan',
         bound_cost_object='activation_yuan', targets=evidence.targets, gate_rows=evidence.rows,
