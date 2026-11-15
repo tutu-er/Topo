@@ -8,6 +8,8 @@
 
 四网络逐节点配置、36格实际调用与恢复变化、Soumalas负例的节点时段图和评分分解见 [RESOURCE_EFFECTS.md](RESOURCE_EFFECTS.md)。这次存量数据核算将冻结响应矩阵误差与AC近似余项分开，后者不是所查明显负例的主要来源；新增绘图和诊断入口均不重跑实验。
 
+参数偏差成因见 [RESPONSE_BIAS.md](RESPONSE_BIAS.md)。限制P/Q偏离历史关系的度量、资源代价与一个新增凸二次预算建议见 [PQ_RELATION.md](PQ_RELATION.md)；该建议尚未接入采购或重新测试。
+
 入口从仓库根运行：
 
 1. `python -B -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.data --prepare --out outputs/flexibility_grid_data_20261115_v1`
