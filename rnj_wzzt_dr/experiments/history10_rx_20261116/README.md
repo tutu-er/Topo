@@ -10,6 +10,12 @@ See [PROTOCOL.md](PROTOCOL.md) for the predeclared scope and
 native topology identification from offline fixed-support parameter diagnostics.
 Private source data and numerical arrays stay under ignored `outputs/`.
 
+The experiment and independent audit are complete: see [RESULTS.md](RESULTS.md).
+All16 native cells and240 unique offline fits passed audit. More data lowers
+the selected X matrix error to15--19%, rather than eliminating it. The separate
+known-topology per-line X MAPE is still55--66%; both metrics are retained.
+See [RX_LITERATURE.md](RX_LITERATURE.md) for source-grounded paper comparisons.
+
 The locked comparison uses January 21--February 1, 2024, because the original
 January 4 eleven-day extension has missing source observations. The short fit
 uses January 27--29, the long fit January 21--29; both validate January 29--31
@@ -20,6 +26,8 @@ python -m pytest rnj_wzzt_dr/experiments/history10_rx_20261116 -q
 python -m rnj_wzzt_dr.experiments.history10_rx_20261116.run --prepare-only --workers 3
 python -m rnj_wzzt_dr.experiments.history10_rx_20261116.run --resume
 python -m rnj_wzzt_dr.experiments.history10_rx_20261116.run --offline-only
+python -m rnj_wzzt_dr.experiments.history10_rx_20261116.audit_report --run outputs/history10_rx_20261116_v1 --out outputs/history10_rx_audit_20261116_v2
+python -m rnj_wzzt_dr.experiments.history10_rx_20261116.line_metrics --run outputs/history10_rx_20261116_v1 --audit outputs/history10_rx_audit_20261116_v2/report/audit.json --out outputs/history10_rx_literature_metric_20261116_v2
 ```
 
 Default output is `outputs/history10_rx_20261116_v1`. Preparation refuses an
