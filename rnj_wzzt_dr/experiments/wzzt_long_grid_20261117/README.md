@@ -42,13 +42,14 @@ $py='D:/apps/miniconda3/envs/Topo/python.exe'
 
 ```powershell
 & $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.data prepare --protocol rnj_wzzt_dr/experiments/wzzt_long_grid_20261117/PROTOCOL.md --out outputs/wzzt_long_grid_data_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run prepare --data outputs/wzzt_long_grid_data_20261117_v1 --out outputs/wzzt_long_grid_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run run --out outputs/wzzt_long_grid_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run status --out outputs/wzzt_long_grid_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run report --out outputs/wzzt_long_grid_20261117_v1
+& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run prepare --data outputs/wzzt_long_grid_data_20261117_v1 --out outputs/wzzt_long_grid_20261117_v2
+& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run run --out outputs/wzzt_long_grid_20261117_v2
+& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run status --out outputs/wzzt_long_grid_20261117_v2
+& $py -B -m rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run report --out outputs/wzzt_long_grid_20261117_v2
 ```
 
 已准备/已运行的路径不重建。准备步骤保存代码、输入、环境和预算哈希；运行自动转入私人代码快照，后续工作区修改不影响在跑任务。
+控制器开始前先实际启动子进程检查导入；可单独运行`check-workers --out <run>`，不读观测、不拟合。
 再次运行先检查进程和`running.lock`；活进程不能同时启动第二控制器。
 确认为死进程后，保留锁及全部partial证据再由人工处理；恢复只执行未开始任务，不给中断项重新发完整预算。
 放置输出目录下`STOP`文件可停止后续派发；现有任务正常返回。这个操作保留尚未开始项为pending。
@@ -61,3 +62,6 @@ $py='D:/apps/miniconda3/envs/Topo/python.exe'
 主结果看完整内部/整树恢复、错漏线路、R/X响应误差和总耗时，另看换验证指标后的同库交叉复评。
 如果MAE在恢复上不劣且用时至少减半，建议回MAE；如果MSE净增至少5个百分点且耗时代价可接受，建议保留MSE。
 若结果依赖网络、噪声或求解预算，保留两配置并说明适用条件。这个判断只形成建议，不在批次中途更改生产默认。
+
+启动记录：v1在Windows子进程导入阶段失败，3项基础设施错误收据保留，实际数据拟合为0；旧快照未改。
+修正`__mp_main__`的包上下文并通过真实私人脚本spawn测试后，以v2继续同一数据和任务计划，协议引用原失败收据。

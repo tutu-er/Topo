@@ -20,9 +20,9 @@ import traceback
 # Direct execution of the private snapshot uses only that snapshot's package.
 if not __package__:
     sys.path.insert(0,str(Path(__file__).resolve().parents[3]))
-    from rnj_wzzt_dr.experiments.wzzt_long_grid_20261117.run import main
-    if __name__=='__main__':
-        main();raise SystemExit
+    # Windows spawn re-executes this file as __mp_main__; it needs the same
+    # relative-import context as the parent, without starting another CLI.
+    __package__='rnj_wzzt_dr.experiments.wzzt_long_grid_20261117'
 
 from ... import io, observations, history
 from ...identification import algorithm
@@ -34,6 +34,28 @@ PANELS=('long','grid','ablation','root_noise','sampling_control')
 
 
 def utc():return datetime.now(timezone.utc).isoformat()
+
+
+def worker_probe():
+    """Exercise real Windows-spawn imports without reading observations."""
+    return dict(pid=os.getpid(),driver=str(Path(__file__).resolve()),
+        algorithm=str(Path(algorithm.__file__).resolve()),package=__package__,observation_loaded=False)
+
+
+def check_workers(out):
+    out=Path(out).resolve();protocol=io.read(out/'protocol.json')
+    if Path(__file__).resolve()!=Path(protocol['private_driver']).resolve():
+        return subprocess.call([sys.executable,'-B',protocol['private_driver'],'check-workers','--out',str(out)])
+    for ref in protocol['sources']:checked(ref)
+    with ProcessPoolExecutor(max_workers=protocol['workers']) as pool:
+        futures=[pool.submit(worker_probe) for _ in range(protocol['workers'])]
+        rows=[f.result() for f in futures]
+    for row in rows:
+        if not Path(row['algorithm']).is_relative_to(Path(protocol['source_root'])):
+            raise RuntimeError('Worker imported a mutable algorithm')
+    result=dict(status='passed',workers=rows,observations_loaded=False,time_utc=utc(),source_protocol=io.ref(out/'protocol.json'))
+    io.write(out/'workers_checked.json',result);print(json.dumps(result,ensure_ascii=False),flush=True)
+    return 0
 
 
 def checked(ref):
@@ -109,7 +131,7 @@ def task_specs(entries):
     return specs
 
 
-def prepare(data,out):
+def prepare(data,out,previous_startup_failure=None):
     data,out=Path(data).resolve(),Path(out).resolve()
     if out.exists():raise FileExistsError('Keep prior run: '+str(out))
     completed=io.read(data/'complete.json')
@@ -129,6 +151,10 @@ def prepare(data,out):
         execution_addendum=io.ref(STUDY/'EXECUTION_ADDENDUM.md'),
         selection='strict normalized validation MSE; separate normalized MAE cross-view',
         truth_used_in_fitting=False,default_loss_changed=False)
+    if previous_startup_failure is not None:
+        previous=io.read(previous_startup_failure)
+        if previous['scientific_fits_started']!=0:raise ValueError('Cannot reset a scientific attempt')
+        protocol['previous_startup_failure']=io.ref(previous_startup_failure)
     io.write(out/'protocol.json',protocol)
     return protocol
 
@@ -226,6 +252,9 @@ def run(out, panels=PANELS):
     if Path(__file__).resolve()!=Path(protocol['private_driver']).resolve():
         return subprocess.call([sys.executable,'-B',protocol['private_driver'],'run','--out',str(out),'--panels',*panels])
     for ref in protocol['sources']:checked(ref)
+    worker_check=out/'workers_checked.json'
+    if not worker_check.exists() or io.read(worker_check)['source_protocol']!=io.ref(out/'protocol.json'):
+        check_workers(out)
     tasks=io.read(checked(protocol['tasks_ref']));entries={e['id']:e for e in io.read(checked(protocol['inputs_ref']))}
     lock=out/'running.lock';fd=os.open(lock,os.O_CREAT|os.O_EXCL|os.O_WRONLY)
     os.write(fd,str(os.getpid()).encode());os.close(fd)
@@ -288,13 +317,16 @@ def run(out, panels=PANELS):
 def main():
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='command',required=True)
     q=sub.add_parser('prepare');q.add_argument('--data',type=Path,required=True);q.add_argument('--out',type=Path,required=True)
+    q.add_argument('--previous-startup-failure',type=Path,help='Retain predecessor infrastructure-failure receipt; allowed only before any fit')
     q=sub.add_parser('run');q.add_argument('--out',type=Path,required=True);q.add_argument('--panels',nargs='+',choices=PANELS,default=list(PANELS))
     q=sub.add_parser('status');q.add_argument('--out',type=Path,required=True)
     q=sub.add_parser('report');q.add_argument('--out',type=Path,required=True)
+    q=sub.add_parser('check-workers');q.add_argument('--out',type=Path,required=True)
     args=p.parse_args()
-    if args.command=='prepare':r=prepare(args.data,args.out);print({k:r[k] for k in ('planned_inputs','planned_tasks','workers','private_driver')})
+    if args.command=='prepare':r=prepare(args.data,args.out,args.previous_startup_failure);print({k:r[k] for k in ('planned_inputs','planned_tasks','workers','private_driver')})
     elif args.command=='run':raise SystemExit(run(args.out,args.panels))
     elif args.command=='status':print(json.dumps(status(args.out),ensure_ascii=False,indent=2))
+    elif args.command=='check-workers':raise SystemExit(check_workers(args.out))
     else:
         print(report(args.out,allow_partial=True))
 
