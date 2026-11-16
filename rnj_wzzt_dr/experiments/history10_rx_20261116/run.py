@@ -229,6 +229,8 @@ def fit_task(out, task):
     except Exception as exc:
         record=dict(status='failed',task=task,stage=stage,seconds=perf_counter()-began,
                     error=repr(exc),traceback=traceback.format_exc())
+        details={key:getattr(exc,key) for key in ('append_receipt','output_contraction','qp_records','last_point') if hasattr(exc,key)}
+        if details:record['failure_details']=native_json_record(details)
     io.write(directory/'result.json',record)
     done=dict(status=record['status'],task=task,result=io.ref(directory/'result.json'),created_utc=utc())
     io.write(directory/'complete.json',done)

@@ -37,7 +37,7 @@ def fixture():
                            r=[.03]*4+[weight], x=[.02]*4+[weight*.3]))
     empty = Observation(p, q, np.zeros_like(p), (101, 102, 103))
     obs = Observation(p, q, predict(empty, points[0])+rng.normal(0, .001, p.shape), empty.labels)
-    cfg = algorithm.SearchConfig()
+    cfg = algorithm.SearchConfig(internal_floor=0.)
     selected, mae, bank = algorithm._output(points, obs, obs, .2, cfg)
     result = dict(method="111", selected=selected, selected_mae_view=mae,
         frozen_candidates=bank, reference_mse=.2, config=vars(cfg), events=[])
@@ -125,7 +125,7 @@ class PipelineTests(unittest.TestCase):
         other = dict(supports=[*star["supports"], [0, 1]], r=[.1]*4+[0.], x=[0.]*5)
         selected, _, bank = algorithm._output([star, other], obs, obs, 1., algorithm.SearchConfig())
         result = dict(method="111", selected=selected, frozen_candidates=bank,
-                      reference_mse=1., config=vars(algorithm.SearchConfig()), events=[])
+                      reference_mse=1., config=vars(algorithm.SearchConfig(internal_floor=0.)), events=[])
         h = freeze_history(result, obs)
         self.assertEqual(h.topology_ids[0], h.topology_ids[1])
         d = prepare_dr(h, np.column_stack((p, q)), voltage_sigma=.001)
@@ -209,7 +209,7 @@ class PipelineTests(unittest.TestCase):
         point = dict(supports=[[i] for i in range(n)], r=[.1]*n, x=[0.]*n)
         selected, _, bank = algorithm._output([point], obs, obs, 1., algorithm.SearchConfig())
         result = dict(method="111", selected=selected, frozen_candidates=bank, reference_mse=1.,
-                      config=vars(algorithm.SearchConfig()), events=[])
+                      config=vars(algorithm.SearchConfig(internal_floor=0.)), events=[])
         h = freeze_history(result, obs)
         d = prepare_dr(h, np.ones((96, 30))*.001, voltage_sigma=.001,
                        resources=(original, adapter, base))
@@ -236,7 +236,9 @@ class PipelineTests(unittest.TestCase):
         import ast
         root = Path(__file__).resolve().parents[1]
         for path in root.rglob("*.py"):
-            if "compat" in path.relative_to(root).parts or "outputs" in path.relative_to(root).parts:
+            # Experiment helpers may explicitly load frozen physical assets.
+            # The portable identifier/DR runtime must stay parent-independent.
+            if {"compat", "outputs", "experiments"} & set(path.relative_to(root).parts):
                 continue
             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8-sig"))):
                 names = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module or ""] if isinstance(node, ast.ImportFrom) else []

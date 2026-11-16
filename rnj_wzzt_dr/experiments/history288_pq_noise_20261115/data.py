@@ -287,6 +287,8 @@ def fit_cell(task, out):
         completion=dict(status='complete',task=task,entry=entry,result=io.ref(directory/'result.json'),seconds=perf_counter()-began)
     except Exception as exc:
         row=dict(id=task['id'],status='failed',stage=stage,seconds=perf_counter()-began,error=repr(exc),traceback=traceback.format_exc())
+        details={key:getattr(exc,key) for key in ('append_receipt','output_contraction','qp_records','last_point') if hasattr(exc,key)}
+        if details:row['failure_details']=native_json_record(details)
         io.write(directory/'result.json',row)
         completion=dict(status='failed',task=task,result=io.ref(directory/'result.json'),stage=stage,error=repr(exc),seconds=perf_counter()-began)
     io.write(directory/'complete.json',completion)

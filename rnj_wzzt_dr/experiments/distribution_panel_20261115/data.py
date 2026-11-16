@@ -152,23 +152,94 @@ def preflight(out):
 
 
 def append_candidate(original,point,train,validation):
-    """Re-score only validation; existing bank records are retained verbatim."""
+    """Finalize only the extra training point; retain the old bank verbatim.
+
+    Missing internal_floor in a saved configuration means the historical zero
+    floor, not whatever default a newer SearchConfig happens to use. Appending
+    records its own fitting/verification cost, separate from the original fit.
+    """
     enriched=deepcopy(original)
     if point is None:return enriched
-    old=original['frozen_candidates'];config=SearchConfig(**original['config'])
-    if not np.isclose(errors(train,point)['mse'],point['mse'],rtol=1e-10,atol=1e-18):
-        raise ArithmeticError('Extra point training MSE mismatch')
-    selected,mae,candidates=_output([r['point'] for r in old]+[point],train,validation,original['reference_mse'],config)
-    added=candidates[-1];added['source_stage']='original_E_pool_independent_60s'
-    enriched['frozen_candidates'].append(added)
-    enriched.update(selected=selected,selected_mse_view=deepcopy(selected),selected_mae_view=mae)
-    enriched['competition']=competition(enriched,validation)
-    enriched['handoff']['parameter_rule']='Original accepted path retained verbatim plus a training-only original-E-pool60s point; no new-day refit'
-    if enriched['frozen_candidates'][:-1]!=old:raise ArithmeticError('Original candidate prefix changed')
-    before,after=freeze_history(original,validation),freeze_history(enriched,validation)
-    if not np.array_equal(before.H,after.H[:len(old)]) or not np.array_equal(before.sse,after.sse[:len(old)]):
-        raise ArithmeticError('Frozen original matrices/history SSE changed')
-    return enriched
+    began=perf_counter();stage='check_original_bank'
+    old=original['frozen_candidates'];saved_config=dict(original['config'])
+    saved_config.setdefault('internal_floor',0.)
+    config=SearchConfig(**saved_config)
+    receipt=dict(status='running',source_stage='original_E_pool_independent_60s',
+        appended_index=len(old),original_candidate_count=len(old),internal_floor=float(config.internal_floor),
+        legacy_missing_floor_means_zero='internal_floor' not in original['config'],
+        raw_point=deepcopy(point),QP=[],floor_seconds=0.,
+        timing_scope='Additional append finalization and verification only; original fit/search timing is preserved')
+    try:
+        before=freeze_history(original,validation)
+        stage='check_extra_training_point'
+        if not np.isclose(errors(train,point)['mse'],point['mse'],rtol=1e-10,atol=1e-18):
+            raise ArithmeticError('Extra point training MSE mismatch')
+        final=point
+        if config.internal_floor>0.:
+            from ...identification import output_floor
+            from ...identification.optimization import QPFitter
+            stage='contract_extra_point'
+            previous=original.get('output_contraction')
+            if not isinstance(previous,dict) or previous.get('status')!='complete':
+                raise ValueError('Positive-floor native bank requires its complete original contraction receipt')
+            if previous.get('candidate_count')!=len(old) or len(previous.get('candidates',[]))!=len(old):
+                raise ValueError('Original contraction candidate denominator is inconsistent')
+            if float(previous['threshold'])!=config.internal_floor:
+                raise ValueError('Saved contraction threshold differs from the native configuration')
+            fitter=QPFitter(train,reference_mse=original['reference_mse'],bound=config.response_bound,
+                            qp_seconds=config.qp_seconds)
+            tick=perf_counter()
+            try:
+                points,single=output_floor.contract_bank([point],fitter,config.internal_floor,
+                    previous['calibration'])
+            finally:
+                receipt['floor_seconds']=perf_counter()-tick
+                receipt['QP']=deepcopy(fitter.records)
+            if len(points)!=1 or single.get('candidate_count')!=1 or len(single.get('candidates',[]))!=1:
+                raise ValueError('Single-candidate contraction returned an invalid denominator')
+            final=points[0];contraction=deepcopy(single['candidates'][0]);contraction['index']=len(old)
+            merged=deepcopy(previous)
+            merged['candidates'].append(contraction);merged['candidate_count']=len(old)+1
+            merged['completed_candidates']=len(old)+1
+            # Keep the initial fit's elapsed time and all prefix receipts intact.
+            merged['append_seconds']=float(previous.get('append_seconds',0.))+receipt['floor_seconds']
+            merged['append_QP']=[*deepcopy(previous.get('append_QP',[])),*deepcopy(fitter.records)]
+            merged['append_lineage']=[*deepcopy(previous.get('append_lineage',[])),
+                dict(index=len(old),source_stage=receipt['source_stage'],seconds=receipt['floor_seconds'],
+                     original_parameter_sha256=contraction['original_parameter_sha256'],
+                     final_parameter_sha256=contraction['final_parameter_sha256'])]
+            enriched['output_contraction']=merged
+            receipt['contraction']=deepcopy(contraction)
+        stage='strict_validation_selection'
+        selected,mae,candidates=_output([r['point'] for r in old]+[final],train,validation,original['reference_mse'],config)
+        added=candidates[-1];added['source_stage']='original_E_pool_independent_60s'
+        enriched['frozen_candidates'].append(added)
+        enriched.update(selected=selected,selected_mse_view=deepcopy(selected),selected_mae_view=mae)
+        enriched['competition']=competition(enriched,validation)
+        enriched.setdefault('handoff',{})['parameter_rule']=(
+            'Original frozen candidate prefix retained verbatim; extra training-only E60 point finalized '
+            'with the same frozen non-singleton output floor before strict validation; no new-day refit'
+            if config.internal_floor>0. else
+            'Original accepted path retained verbatim plus a training-only original-E-pool60s point; zero output floor; no new-day refit')
+        if enriched['frozen_candidates'][:-1]!=old:raise ArithmeticError('Original candidate prefix changed')
+        if config.internal_floor>0. and enriched['output_contraction']['candidates'][:-1]!=original['output_contraction']['candidates']:
+            raise ArithmeticError('Original contraction receipt prefix changed')
+        stage='freeze_enriched_bank'
+        after=freeze_history(enriched,validation)
+        if not np.array_equal(before.H,after.H[:len(old)]) or not np.array_equal(before.sse,after.sse[:len(old)]):
+            raise ArithmeticError('Frozen original matrices/history SSE changed')
+        receipt.update(status='complete',final_candidate_count=len(old)+1,seconds=perf_counter()-began,
+                       prefix_parameters_unchanged=True,prefix_history_SSE_unchanged=True,
+                       validation_used_for_refitting=False,new_day_used=False)
+        enriched['candidate_append_records']=[*deepcopy(original.get('candidate_append_records',[])),receipt]
+        return enriched
+    except Exception as exc:
+        receipt.update(status='failed',stage=stage,error_type=type(exc).__name__,error=str(exc),
+                       seconds=perf_counter()-began,original_bank_preserved=True)
+        if hasattr(exc,'receipt'):receipt['contraction_failure']=deepcopy(exc.receipt)
+        error=RuntimeError('Extra candidate append failed at '+stage+': '+str(exc))
+        error.append_receipt=receipt
+        raise error from exc
 
 
 def additional_search(original,train,seconds=60.):
@@ -176,7 +247,9 @@ def additional_search(original,train,seconds=60.):
     events=[r for r in original['events'] if r.get('stage')=='E' and all(k in r for k in ('pool','keep','point'))]
     if not events:return dict(status='not_run_no_recorded_E_pool',budget_seconds=seconds,closed_point=None,
         total_seconds=0.,truth_used=False,validation_used=False,new_day_used=False)
-    event=events[-1];config=SearchConfig(**original['config'])
+    event=events[-1];saved_config=dict(original['config'])
+    saved_config.setdefault('internal_floor',0.)
+    config=SearchConfig(**saved_config)
     try:
         result=pool_diagnostic.run_search(train,event['pool'],event['keep'],event['point'],config,original['reference_mse'],seconds)
         point=result['closed_point']
@@ -259,6 +332,8 @@ def generate_one(task,out):
         completion=dict(status='complete',task=task,entry=entry,result=io.ref(directory/'result.json'),seconds=perf_counter()-began)
     except Exception as exc:
         row=dict(**task,status='failed',stage=stage,seconds=perf_counter()-began,error=repr(exc),traceback=traceback.format_exc())
+        details={key:getattr(exc,key) for key in ('append_receipt','output_contraction','qp_records','last_point') if hasattr(exc,key)}
+        if details:row['failure_details']=native_json_record(details)
         io.write(directory/'result.json',row);completion=dict(status='failed',task=task,result=io.ref(directory/'result.json'),error=row['error'],stage=stage)
     io.write(directory/'complete.json',completion);return completion
 

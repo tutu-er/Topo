@@ -17,11 +17,13 @@ from .observations import Observation
 
 
 def fit_observed(training, validation, *, method="111", config=None):
-    """Use the existing identifier; retain every native own-path candidate."""
+    """Run the identifier and freeze its configured output-stage contraction."""
     result = algorithm.fit(training, validation, method=method, config=config)
-    result["handoff"] = dict(schema="rnj_wzzt_dr_v1",
+    active = result.get("output_contraction") is not None
+    result["handoff"] = dict(schema="rnj_wzzt_dr_v2" if active else "rnj_wzzt_dr_v1",
         training_sha256=fingerprint(training), validation_sha256=fingerprint(validation),
-        parameter_rule="native accepted path and singleton protection, no contraction",
+        parameter_rule=("Each native output candidate contracted on training only; non-terminal RX75 floor; terminal supports retained"
+                        if active else "native accepted path and singleton protection, no contraction"),
         selection_rule="validation_MSE/reference_MSE, original numerical ties")
     return result
 
@@ -66,6 +68,19 @@ def freeze_history(result, validation):
     stamp = result.get("handoff", {}).get("validation_sha256")
     if stamp is not None and stamp != fingerprint(validation):
         raise ValueError("Historical observations changed after fitting")
+    floor = float(result["config"].get("internal_floor", 0.))
+    if not np.isfinite(floor) or floor < 0.:
+        raise ValueError("Invalid saved internal floor")
+    contraction = result.get("output_contraction")
+    if floor > 0.:
+        if contraction is None:
+            raise ValueError("Enabled internal floor is missing its output contraction receipt")
+        from .identification.output_floor import validate_bank
+        if not np.isclose(float(contraction["threshold"]), floor, rtol=0., atol=0.):
+            raise ValueError("Output contraction threshold differs from the saved configuration")
+        validate_bank([r["point"] for r in result["frozen_candidates"]], contraction, validation.n)
+    elif contraction is not None:
+        raise ValueError("A disabled internal floor cannot carry an enabled contraction receipt")
     competition(result, validation)  # Original full-bank validation and tie rule.
     bank = result["frozen_candidates"]
     matrices, models, topologies, counts, snapshots = [], [], [], [], []

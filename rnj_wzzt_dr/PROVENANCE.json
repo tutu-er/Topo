@@ -8,9 +8,11 @@
       "source": "topology_identification_standalone/algorithm.py",
       "source_sha256": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
       "destination": "identification/algorithm.py",
-      "packaged_sha256": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
-      "byte_identical": true,
-      "changes": []
+      "packaged_sha256": "4dca0980539b4ed2bc5adf8161f360d423db66b235f57b701b65516125c892ff",
+      "byte_identical": false,
+      "changes": [
+        "2026-11-16: Add configurable training-only non-terminal RX75 output contraction, default .08; preserve original training search and pure validation scoring; 0 restores prior output behavior"
+      ]
     },
     {
       "source_root": "main",
@@ -299,8 +301,8 @@
     ".gitignore": "e31c46f21a3a22a62fc8acc285f427e0f0de235865e6197a46d6c6b3f048d5f6",
     "__init__.py": "fbc85c2e2e3c49401e20af4ab0fc29fa2515ef4ef12d55a02ec9c7119702f879",
     "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
-    "ARCHIVE.md": "ff28b2c6d7eaeabd4c59f7f1dffddff74dcc0ced8da7925c7dee9b8839c744fb",
-    "cli.py": "97269e681665d52753ceb57a749465f066092318d547bf40f1eb8f2a39f406a6",
+    "ARCHIVE.md": "6e6914d6ee0b0796fcca336a64b1cb182294bf6903eabdb981c5225bf059a3cf",
+    "cli.py": "f43e398d562874ea6e8ad0cab9563b481b81658653b962d0592da8e351d2b09c",
     "compat/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
     "compat/ac_bridge.py": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42",
     "compat/research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
@@ -324,25 +326,40 @@
     "evidence/old_zero_screen/AUDIT.json": "cf34e97d3af8a78dcce1f0f8efb862be1fcbbdce95f708b0eaaee41b395017c5",
     "evidence/old_zero_screen/PROTOCOL.json": "7fef7bb706ba78a5d6c89e7583288335ab5fd0e90c8fc8a938881e68a1973b4d",
     "evidence/old_zero_screen/RESULTS.json": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5",
-    "history.py": "345cd7fcf7a2bd944e5c7c0ead6f4ddf49e4db01e3bbe09ddd09731fd8f17769",
+    "history.py": "a8b80f1c6a707853626fe8328ee69c2ff982ada8f92e75d04f87991e5a311973",
     "identification/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
-    "identification/algorithm.py": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
+    "identification/algorithm.py": "4dca0980539b4ed2bc5adf8161f360d423db66b235f57b701b65516125c892ff",
     "identification/competition.py": "86db89cca689256fe70cf700d10f7d6576c0968a8188c1d4b5fc7ecedff2865e",
     "identification/optimization.py": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
     "identification/trees.py": "82501475348a0aee575270440d712cdc49f20e112f45b543f7623b520ef0ae44",
     "io.py": "54cf69ff77ae5551d1ef9b19019c94ab1506e0b14c1f9a1f8c276b8ffda871b7",
-    "MODEL.md": "ffb4d73b8b0345c2600a1b84a544a145526d90d5b15605c1a7713fb4b7f44397",
+    "MODEL.md": "377efc5370d2d3ec6921aca95936637defbbc3bc6d5bca395863047958ac7fad",
     "observations.py": "85925fdb0630f80a522078d0b7d73b9d297686f911bd642c1d72b015ee813b86",
-    "README.md": "dc3d97b82e6a11c4dd92e01ebb15ac86c0b26b4c8a0e696fc702451ffe81e13c",
+    "README.md": "8234726d8a825225f993ab9570dd6c5904a27b907620683839650cc163457100",
     "requirements.txt": "eddd856fd69f0e6f8184ae7a9a7e8d0a1f9084979a10dcb837c65cb6592aee16",
     "resources/case_allocations.json": "b280a0eb89ecd29b76f3a161fd2cc9558a390c929bfebdc4beec37b7c07bc374",
     "resources/library.json": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
     "run.py": "14c745af0ed8150a0b02726887e9a4075dc418eaf85c012e1e3db27b619186ce",
     "tests/__init__.py": "98a189fcc2ccceb759578d6841872173b9e8a68488e1bd32bd92edffcbf20602",
-    "tests/test_pipeline.py": "55de259caa424a975985294e49020507dcd3dd3bc6e05ad10e2c1d916e18d157",
+    "tests/test_pipeline.py": "d4d4db4e9792eaf887af80e48e921eba4cb2589fd04596f4421b8eeeb37915ac",
     "validation/check.txt": "7e429a26b0cf73a2e6da4bedc5447981ace2ee74f62f6e2c3f786e356794a15c",
     "validation/cli_smoke.json": "b64f2e61a006ca153c1ee072cdc96aa0497b7954ed214d4157d855bf60725b62",
     "VALIDATION.md": "099d3e6cd2ff91afcaece8253b56148a5532261a5bcbbf6ac37b149f02e8ce80",
-    "verify.py": "5f8fa722ad9cd383bf1aa8c86a95ad8763fc16a5811d19bfbb8d8892b02a2a09"
+    "verify.py": "5f8fa722ad9cd383bf1aa8c86a95ad8763fc16a5811d19bfbb8d8892b02a2a09",
+    "identification/output_floor.py": "6791ab3508b966e276cdbecac0cf4548c7103e3b2be97155fbbfbb83ee9e0c5e",
+    "tests/test_output_floor.py": "fa440899956cb6c703b8e6930361fee9a1a5bb4a2a72088d42edfc2bbd781a1f",
+    "tests/test_candidate_append_floor.py": "13e0db89338b4775e9474cfdbfc4b7535083009b25cf51ceb738775e898c8acc"
+  },
+  "package_revision": {
+    "date": "2026-11-16",
+    "reason": "User authorized normal non-terminal contraction default after frozen-candidate sensitivity audit",
+    "internal_floor": 0.08,
+    "metric": "RX75 training-normalized response / median root depth",
+    "scope": "len(C)>1, common upstream included, singleton terminal supports exempt",
+    "new_modules": {
+      "identification/output_floor.py": "Native train-only output contraction and frozen-bank verification"
+    },
+    "original_source_hashes_preserved": true,
+    "legacy_saved_results_unchanged": true
   }
 }

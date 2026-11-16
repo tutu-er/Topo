@@ -10,10 +10,12 @@ import numpy as np
 
 if __package__:
     from . import trees
+    from . import output_floor
     from .competition import competition
     from .optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices
 else:
     import trees
+    import output_floor
     from competition import competition
     from optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices
 
@@ -22,6 +24,7 @@ else:
 class SearchConfig:
     # Statistical/structural choices. Remaining fields are numerical budgets.
     alpha: float = .003
+    internal_floor: float = .08
     block_limit: int = 5
     response_bound: float = 2.
     total_seconds: float = 14400.
@@ -40,6 +43,8 @@ class SearchConfig:
     def validate(self):
         if self.alpha < 0 or not np.isfinite(self.alpha):
             raise ValueError("alpha must be finite and nonnegative")
+        if not np.isfinite(self.internal_floor) or self.internal_floor < 0.:
+            raise ValueError("internal_floor must be finite and nonnegative")
         if not np.isfinite(self.relative_gain) or not 0 <= self.relative_gain < 1:
             raise ValueError("relative_gain must be finite and in [0, 1)")
         if not np.isfinite(self.ambiguity_kappa) or not 0 <= self.ambiguity_kappa < 1:
@@ -341,15 +346,45 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
         star = fitter.fit([(i,) for i in range(train.n)])
         output_path = [*path, star]
     ping("output_started")
+    uncontracted_output_path = output_path
+    contraction = None
+    if config.internal_floor > 0.:
+        floor_started = perf_counter()
+        try:
+            if floor_started >= overall_deadline:
+                raise TimeoutError("No original method budget remains for output contraction")
+            calibration = output_floor.calibrate(guidance, train)
+            calibration_seconds = perf_counter()-floor_started
+            output_path, contraction = output_floor.contract_bank(
+                uncontracted_output_path, fitter, config.internal_floor, calibration,
+                deadline=overall_deadline)
+            contraction.update(bank_seconds=contraction["seconds"],
+                               calibration_seconds=calibration_seconds,
+                               seconds=perf_counter()-floor_started)
+        except output_floor.OutputFloorError:
+            raise
+        except Exception as exc:
+            receipt = dict(status="failed", threshold=config.internal_floor,
+                metric="rx75", scope="non_singleton", stage="training_calibration",
+                candidate_count=len(uncontracted_output_path), candidates=[],
+                seconds=perf_counter()-floor_started, original_deadline=overall_deadline,
+                deadline_exceeded=perf_counter() >= overall_deadline,
+                partial_bank_accepted=False, validation_used=False, truth_used=False,
+                error=type(exc).__name__+": "+str(exc))
+            raise output_floor.OutputFloorError(str(exc), receipt=receipt,
+                qp_records=fitter.records,
+                last_point=uncontracted_output_path[-1] if uncontracted_output_path else None) from exc
     selected, mae_view, candidates = _output(output_path, train, validation, common["reference_mse"], config)
     result = dict(method=method, selected=selected, selected_mse_view=selected,
                 selected_mae_view=mae_view, selection_metric="validation_mse", path=path, events=events,
                 frozen_candidates=candidates, stop_reason=reason, config=asdict(config),
                 reference_mse=common["reference_mse"], common_seconds=common["seconds"],
-                QP=fitter.records, MIQP=native_records, output_contraction=None,
+                QP=fitter.records, MIQP=native_records, output_contraction=contraction,
                 native_bound_conflicts=sum(r.get("bound_consistent_with_fixed_family_qp") is False for r in native_records),
                 complete_RNJ_output_fallback=False, truth_used=False, test_used=False,
                 guarantee_scope="native bounds require consistency with feasible fixed-family fits; no whole-tree optimality claim")
+    if contraction is not None:
+        result["uncontracted_output_path"] = uncontracted_output_path
     result["competition"] = competition(result, validation)
     fresh_seconds = perf_counter()-fresh_started
     result.update(fresh_seconds=fresh_seconds, total_seconds=fresh_seconds+common["seconds"],

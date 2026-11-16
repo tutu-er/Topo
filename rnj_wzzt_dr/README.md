@@ -1,5 +1,7 @@
 # MIQP RNJ＋WZZT → 条件 DR 主线
 
+**2026-11-16 正常默认已启用内部收缩：**所有原生输出候选在验证选模之前，逐条删除RX75相对强度低于**0.08**的非末端支路，每次删除后用训练段QP重拟合并检查至稳定。包括共用上游段，单节点末端接入线豁免。训练搜索及默认方法111不变；旧保存结果不自动修改。`--internal-floor 0`可精确关闭。参数依据、剩余拓扑错漏及R/X误差见[接入和残余误差](experiments/internal_contraction_20261116/README.md)，前一轮[完整阈值对照](experiments/impedance_floor_20261116/RESULTS.md)保留原样。
+
 **2026-11-14 无功与节点位置：**[独立Q合同、完整候选选点与两批AC测试](experiments/reactive_flex_20261114/README.md)。同样2×±5 kvar，从原节点306/309改到303/304后，16次报价由不可行变为可行。绝对方案开发批13→17/32恢复、确认批18→18/32；旧增量两批下降。主要残余问题是冻结参数对Q动作约25%的电压响应误差；高权重也增加错误确信。费用界、初值和失败全部保留。
 
 **2026-11-14 新 P/Q 灵活性复测完成：**[公共项、候选遗漏与预测收益实现](experiments/measured_pq_flex_20261114/RESULTS.md)。16 个固定背景输入、512 条配对执行的平均证据增益实现 97.2%，恢复仍为 480/512；完整参数库有 105 次比较优势下降。追加合法候选后的近似五五开例，当前纯有功资源达不到要求，8 次报价不可行。6144 个背景时刻的全母线、全支路 AC 状态已缓存。以下按日期保留前序版本。
@@ -21,8 +23,8 @@
 以后从本目录进入研究。辨识器采用 2026-11-12 主项目的现有简化实现；DR 复用已交接的积分、严格 MSE 评分、设备执行器和单对优化器。历史批量控制器、画图、重复算法和大型观测文件留在原位置。
 
 ```text
-观测训练 P/Q/Y → RNJ 几何与候选 → W 单支持扩展 → 可选 T / E → 保存自身路径
-观测验证 P/Q/Y → 原严格 MSE 选择 → 冻结完整候选库和 R/X
+观测训练 P/Q/Y → RNJ 几何与候选 → W 单支持扩展 → 可选 T / E → 保存原训练路径
+全部输出候选 → 训练校准RX75 .08非末端逐条收缩＋QP → 观测验证严格MSE选择 → 冻结完整库和R/X
 历史功率预测＋原资源 → 给定目标 Ht → 整库零 DR 核算
   ├─ 零动作充分且原设备可行：最小费用 0
   └─ 仍有缺口：已有单对报价；多竞争者非零报价待接通
@@ -35,7 +37,7 @@
 |---|---|
 | 训练搜索 | `MSE_train / M_ref + .003 × 内部支持数`；提议先固定族 QP，再按统一目标接受 |
 | 搜索与停止 | 原 W 逐支持扩展；T 为至多 5 个直接块的局部联合重构；一次 E 释放临时内部支持；保留预算、状态和界冲突 |
-| 输出参数 | 保存已接受自身路径及单点保护模型；参数冻结；最终无 `.24` 收缩，无完整 RNJ 整树兜底 |
+| 输出参数 | 原训练路径及单点保护模型全部按训练RX75 `.08` 收缩非末端支路并QP重拟合；末端豁免；保存原路径及逐条轨迹；无完整RNJ整树兜底 |
 | 最终选择 | 验证 MSE / `M_ref`；数值并列容差 `1e-12`，再依内部支持数、分数、原序选择 |
 
 原默认 `111`（R＋W＋T＋E）保持；`100/rnj_wzzt` 是 R＋W，`101` 是 R＋W＋E。已有开发回放中 101 的表现更好，尚不足以自动替换默认。`relative_gain=0` 保持原默认。`.003` 的双候选展示阈值只影响展示；DR 始终核算完整冻结库中的所有不同活动拓扑。
@@ -54,6 +56,7 @@ $run = 'D:/0-github_workspace/Topo/rnj_wzzt_dr/run.py'
 
 # 所有结果和报价放私人目录；以下 outputs 默认被 Git 忽略。
 & $py -I -B $run fit --train /path/train.npz --validation /path/validation.npz --method 111 --output /private/outputs/fit
+# 仅用于旧规则对照：在fit命令中加 --internal-floor 0。
 & $py -I -B $run zero --result /private/outputs/fit/result.json --history /path/validation.npz --forecast /private/forecast.npz --target 0 --voltage-sigma .0005 --case paper15 --output /private/outputs/zero.json
 & $py -I -B $run plan --result /private/outputs/fit/result.json --history /path/validation.npz --forecast /private/forecast.npz --target 0 --voltage-sigma .0005 --case paper15 --output /private/outputs/quote
 & $py -I -B $run score --result /private/outputs/fit/result.json --history /path/validation.npz --new /private/actual_new_day.npz --output /private/outputs/selection.json
@@ -67,7 +70,7 @@ $run = 'D:/0-github_workspace/Topo/rnj_wzzt_dr/run.py'
 
 | 位置 | 职责 |
 |---|---|
-| `identification/` | 现有 `algorithm/optimization/trees/competition` 四文件原字节复制；唯一辨识器 |
+| `identification/` | 当前唯一辨识器；原搜索代码延续，`output_floor.py`负责新默认输出收缩，来源及演进记入PROVENANCE |
 | `observations.py`、`history.py` | 观测输入、完整冻结库、原最终选择及 SSE 门槛 |
 | `dr/pipeline.py` | 明确目标方向、零动作核算、原单对报价入口 |
 | `dr/conditional.py`、`zero.py`、`miqp_mse.py` | 原稠密积分、谱积分、单对带整数 QCQP；移除旧实验导入 |

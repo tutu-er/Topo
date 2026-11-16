@@ -26,6 +26,8 @@ def main(argv=None):
     fit.add_argument("--validation", type=Path, required=True)
     fit.add_argument("--method", choices=(*METHODS, *ALIASES), default="111")
     fit.add_argument("--seconds", type=float, default=14400.)
+    fit.add_argument("--internal-floor", type=float, default=SearchConfig().internal_floor,
+                     help="Training-normalized RX75 floor on non-terminal supports including the common upstream term; 0 disables (default .08)")
     fit.add_argument("--output", type=Path, required=True)
     for name in ("score", "zero", "plan"):
         command = commands.add_parser(name)
@@ -65,10 +67,12 @@ def main(argv=None):
     if args.output.exists():
         raise FileExistsError("Use a new private output path; completed or failed attempts are preserved")
     if args.action == "fit":
-        # Keep all statistical defaults, including relative_gain=0. Short runs
+        # Keep relative_gain=0. Short runs
         # reserve a proportional output allowance, without changing search rules.
         cfg = replace(SearchConfig(), total_seconds=args.seconds,
+                      internal_floor=args.internal_floor,
                       output_reserve_seconds=min(600., args.seconds*.1))
+        cfg.validate()
         receipt = dict(status="frozen_before_fit", method=args.method, config=cfg,
                        train=io.ref(args.train), validation=io.ref(args.validation),
                        sources=io.source_receipt(), environment=io.environment())
@@ -79,7 +83,9 @@ def main(argv=None):
             io.write(args.output/"complete.json", dict(status="budget_exceeded" if result["total_cap_exceeded"]
                                                       else "complete", selected=result["selected"]["index"]))
         except Exception as exc:
-            io.write(args.output/"failed.json", dict(status="failed", type=type(exc).__name__, error=str(exc)))
+            io.write(args.output/"failed.json", dict(status="failed", type=type(exc).__name__, error=str(exc),
+                output_contraction=getattr(exc, "receipt", None),
+                QP=getattr(exc, "qp_records", None), last_point=getattr(exc, "last_point", None)))
             raise
         return 0
     result = io.read(args.result)
