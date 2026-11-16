@@ -12,17 +12,18 @@ if __package__:
     from . import trees
     from . import output_floor
     from .competition import competition
-    from .optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices
+    from .optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices, validate_loss
 else:
     import trees
     import output_floor
     from competition import competition
-    from optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices
+    from optimization import QPFitter, StructuralSolver, criterion, errors, internal_count, response_matrices, validate_loss
 
 
 @dataclass(frozen=True)
 class SearchConfig:
     # Statistical/structural choices. Remaining fields are numerical budgets.
+    loss: str = "mse"
     alpha: float = .003
     internal_floor: float = .08
     block_limit: int = 5
@@ -41,6 +42,7 @@ class SearchConfig:
     ambiguity_kappa: float = .003
 
     def validate(self):
+        validate_loss(self.loss)
         if self.alpha < 0 or not np.isfinite(self.alpha):
             raise ValueError("alpha must be finite and nonnegative")
         if not np.isfinite(self.internal_floor) or self.internal_floor < 0.:
@@ -86,12 +88,22 @@ def prepare_common(train, config=None):
     config.validate(); started = perf_counter()
     guidance = trees.rnj_guidance(train)
     fitter = QPFitter(train, bound=config.response_bound, qp_seconds=config.qp_seconds)
-    reference_point = fitter.fit(guidance["reference_family"])
-    reference = reference_point["mse"]
+    mse_reference_point = fitter.fit(guidance["reference_family"])
+    reference = mse_reference_point["mse"]
     if not np.isfinite(reference) or reference <= 0:
         raise ValueError("The training reference MSE is zero or invalid; normalized regularization is undefined")
-    return dict(guidance=guidance, reference_mse=reference, reference_point=reference_point,
-                seconds=perf_counter()-started, QP=fitter.records, n=train.n, labels=list(train.labels),
+    reference_point, reference_loss, records = mse_reference_point, reference, fitter.records
+    if config.loss == "mae":
+        mae_fitter = QPFitter(train, reference_mse=reference, reference_loss=1., loss="mae",
+                              bound=config.response_bound, qp_seconds=config.qp_seconds)
+        reference_point = mae_fitter.fit(guidance["reference_family"])
+        reference_loss = reference_point["mae"]
+        if not np.isfinite(reference_loss) or reference_loss <= 0.:
+            raise ValueError("The training reference MAE is zero or invalid; normalized regularization is undefined")
+        records = [*records, *mae_fitter.records]
+    return dict(guidance=guidance, reference_mse=reference, reference_loss=reference_loss, loss=config.loss,
+                reference_point=reference_point, reference_mse_point=mse_reference_point,
+                seconds=perf_counter()-started, QP=records, n=train.n, labels=list(train.labels),
                 training_sha256=_training_fingerprint(train),
                 truth_used=False, validation_used=False)
 
@@ -163,6 +175,8 @@ def _close_native(raw, fitter, config, native, *, protected=()):
     closed = fitter.fit(raw["supports"])
     score = criterion(closed, fitter.data.n, config.alpha)
     native["fixed_family_qp_objective"] = score
+    native["fixed_family_objective"] = score
+    native["fixed_family_loss"] = fitter.loss
     lower = native.get("bound")
     if lower is not None:
         tolerance = 1e-7*(1+abs(score))
@@ -192,7 +206,7 @@ def _initialization_receipt(current, raw, closed, fitter, config, source, *, ini
     initial = current if initial is None else initial
     current_score = criterion(current, fitter.data.n, config.alpha)
     initial_score = criterion(initial, fitter.data.n, config.alpha)
-    native_score = (errors(fitter.data, raw)["mse"]/fitter.reference_mse
+    native_score = (fitter.normalized_loss(raw)
                     + config.alpha*internal_count(raw, fitter.data.n)) if raw is not None else None
     return dict(current_score=current_score, initial_score=initial_score, initial_source=source,
                 current_to_initial_gain=current_score-initial_score,
@@ -316,11 +330,13 @@ def _single_reference_initial(current, reference_point, fitter, config, pool, ke
             raise ValueError("reference_supports_outside_existing_pool")
         if np.any(r > config.response_bound) or np.any(x > config.response_bound):
             raise ValueError("reference_exceeds_coefficient_bound")
-        loss = errors(fitter.data, reference_point)["mse"]
+        values = errors(fitter.data, reference_point)
+        loss = values[fitter.loss]
         if not np.isfinite(loss):
             raise ValueError("reference_has_nonfinite_training_loss")
-        point = dict(reference_point, mse=loss, objective=loss/fitter.reference_mse,
-                     reference_mse=fitter.reference_mse, fit_loss="normalized_MSE")
+        point = dict(reference_point, **values, objective=loss/fitter.reference_loss,
+                     reference_mse=fitter.reference_mse, reference_loss=fitter.reference_loss,
+                     loss_name=fitter.loss, fit_loss="normalized_"+fitter.loss.upper())
         score = criterion(point, fitter.data.n, config.alpha)
     except (KeyError, TypeError, ValueError, OverflowError) as exc:
         return current, "current", dict(info, reference_reason=str(exc))
@@ -383,6 +399,11 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
     if train.n != validation.n or tuple(train.labels) != tuple(validation.labels):
         raise ValueError("Train and validation terminal order must match")
     common = common if common is not None else prepare_common(train, config)
+    if common.get("loss", "mse") != config.loss:
+        raise ValueError("Common training calibration uses a different loss")
+    reference_loss = common.get("reference_loss", common["reference_mse"])
+    if config.loss == "mae" and "reference_loss" not in common:
+        raise ValueError("MAE common calibration is missing its training reference loss")
     if common["n"] != train.n or tuple(common["labels"]) != tuple(train.labels):
         raise ValueError("Common training calibration has different terminal labels")
     if common["training_sha256"] != _training_fingerprint(train):
@@ -390,7 +411,7 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
     if common["seconds"] >= config.total_seconds:
         raise TimeoutError("Shared training preprocessing exhausted the method budget")
     fitter = QPFitter(train, reference_mse=common["reference_mse"], bound=config.response_bound,
-                      qp_seconds=config.qp_seconds)
+                      qp_seconds=config.qp_seconds, loss=config.loss, reference_loss=reference_loss)
     # A self-prepared common already consumes fresh wall time; do not charge it
     # twice in the active deadline. Standalone reported costs always count it once.
     fresh_started = perf_counter()
@@ -422,6 +443,8 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
                            if E_on else structural_deadline)
         visited = {trees.canonical(current["supports"])}
         solver = StructuralSolver(fitter, config)
+        solver.progress = lambda update: ping("native_progress", **update)
+        solver.progress_interval = getattr(heartbeat, "every", 10.)
         tail = dict(pool=(), keep=trees.canonical(current["supports"]), frontiers=[], released=())
         try:
             reason = "forward_budget"
@@ -507,7 +530,8 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
     result = dict(method=method, selected=selected, selected_mse_view=selected,
                 selected_mae_view=mae_view, selection_metric="validation_mse", path=path, events=events,
                 frozen_candidates=candidates, stop_reason=reason, config=asdict(config),
-                reference_mse=common["reference_mse"], common_seconds=common["seconds"],
+                reference_mse=common["reference_mse"], reference_loss=reference_loss,
+                training_loss=config.loss, common_seconds=common["seconds"],
                 QP=fitter.records, MIQP=native_records, output_contraction=contraction,
                 native_bound_conflicts=sum(r.get("bound_consistent_with_fixed_family_qp") is False for r in native_records),
                 complete_RNJ_output_fallback=False, truth_used=False, test_used=False,

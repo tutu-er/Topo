@@ -25,11 +25,15 @@ def main(argv=None):
     fit.add_argument("--train", type=Path, required=True)
     fit.add_argument("--validation", type=Path, required=True)
     fit.add_argument("--method", choices=(*METHODS, *ALIASES), default="111")
-    fit.add_argument("--seconds", type=float, default=14400.)
+    fit.add_argument("--loss", choices=("mse","mae"), default="mse", help="Training loss; final selection remains strict validation MSE")
+    fit.add_argument("--preset", choices=("quick","grid","long"), help="Ready budgets: quick 300/30s, grid 600/10s, long 14400/600s (total/W step)")
+    fit.add_argument("--seconds", type=float, default=None)
     fit.add_argument("--step-seconds", type=float, default=None,
-                     help="W: cap each unknown-connection MIQP in seconds; T/E use remaining stage time. Omit to keep the existing default")
+                     help="W: cap each unknown-connection MIQP (MILP with MAE) in seconds; T/E use remaining stage time. Omit to keep the existing default")
     fit.add_argument("--internal-floor", type=float, default=SearchConfig().internal_floor,
                      help="Training-normalized RX75 floor on non-terminal supports including the common upstream term; 0 disables (default .08)")
+    fit.add_argument("--progress", choices=("text","json","off"), default="text")
+    fit.add_argument("--progress-every", type=float, default=10., help="Seconds between native-progress stdout updates; scalar trace is saved")
     fit.add_argument("--output", type=Path, required=True)
     for name in ("score", "zero", "plan"):
         command = commands.add_parser(name)
@@ -71,25 +75,35 @@ def main(argv=None):
     if args.action == "fit":
         # Keep relative_gain=0. Short runs
         # reserve a proportional output allowance, without changing search rules.
-        cfg = replace(SearchConfig(), total_seconds=args.seconds,
+        budgets={"quick":(300.,30.,30.),"grid":(600.,10.,60.),"long":(14400.,600.,600.)}
+        default=SearchConfig()
+        total,step,reserve=budgets.get(args.preset,(default.total_seconds,default.per_mip_seconds,default.output_reserve_seconds))
+        if args.seconds is not None:total=args.seconds;reserve=min(reserve,total*.1)
+        cfg = replace(default, loss=args.loss, total_seconds=total,
                       internal_floor=args.internal_floor,
-                      output_reserve_seconds=min(600., args.seconds*.1))
+                      per_mip_seconds=step,output_reserve_seconds=reserve)
         if args.step_seconds is not None:
             cfg = replace(cfg, per_mip_seconds=args.step_seconds)
         cfg.validate()
+        from .progress import Progress
+        progress=Progress(args.output,method=args.method,loss=args.loss,mode=args.progress,every=args.progress_every)
         receipt = dict(status="frozen_before_fit", method=args.method, config=cfg,
                        train=io.ref(args.train), validation=io.ref(args.validation),
                        sources=io.source_receipt(), environment=io.environment())
+        args.output.mkdir(parents=True,exist_ok=False)
         io.write(args.output/"request.json", receipt)
         try:
-            result = fit_observed(load(args.train), load(args.validation), method=args.method, config=cfg)
+            progress(dict(stage="loading_observations"))
+            result = fit_observed(load(args.train), load(args.validation), method=args.method, config=cfg,heartbeat=progress)
             io.write(args.output/"result.json", result)
             io.write(args.output/"complete.json", dict(status="budget_exceeded" if result["total_cap_exceeded"]
                                                       else "complete", selected=result["selected"]["index"]))
+            progress.finish(result)
         except Exception as exc:
             io.write(args.output/"failed.json", dict(status="failed", type=type(exc).__name__, error=str(exc),
                 output_contraction=getattr(exc, "receipt", None),
                 QP=getattr(exc, "qp_records", None), last_point=getattr(exc, "last_point", None)))
+            progress(dict(stage="failed",error=type(exc).__name__+": "+str(exc)))
             raise
         return 0
     result = io.read(args.result)

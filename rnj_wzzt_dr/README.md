@@ -29,6 +29,8 @@
 | 最终选择 | 原验证MSE，归一化并列容差1e-12，再按支持数、分数、原序决定 |
 
 训练目标为`MSE_train/M_ref + .003×内部支持数`。默认仍为111，100是R＋W，101是R＋W＋E。
+2026-11-17增加`--loss mae`：同一结构约束下，用训练MAE/参考MAE替换平方损失，固定结构用LP、未知连接和重构用MILP。
+最终选择继续用同一验证MSE；默认损失仍为MSE。两个损失的目标值不能直接相减比较好坏。
 R关闭的000不接收RNJ结构池或参考热启动，仍保留共同数值尺度。普通方法的最终库没有独立完整RNJ整树兜底；
 E原样返回参考初值时，收益归初值。W预试已找到的点也可保留，收益归预试。
 W实际模型初值保留全部旧支持，即使其系数已归零；规范预试点的清零收益另记，避免计数罚项造成假的原生负收益。
@@ -51,6 +53,10 @@ $py='D:/apps/miniconda3/envs/Topo/python.exe'
 & $py -I -B rnj_wzzt_dr/run.py doctor
 & $py -I -B rnj_wzzt_dr/run.py check --solver
 & $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 101 --output /private/fit
+# 配好预算的当前联合方法：600秒总限、每次W最多10秒，输出阶段预留60秒。
+& $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 101 --loss mse --preset grid --progress text --output /private/fit_mse
+# 同约束的MAE/MILP；long为4小时总限、每次W最多10分钟，E可用剩余结构预算。
+& $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 101 --loss mae --preset long --progress text --output /private/fit_mae
 # 短预算W对照：总限120秒，每次W未知连接求解最多10秒；不改变通用默认。
 & $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 100 --seconds 120 --step-seconds 10 --output /private/short_W
 & $py -I -B rnj_wzzt_dr/run.py score --result /private/fit/result.json --history /private/validation.npz --new /private/new_day.npz --output /private/score.json
@@ -59,6 +65,11 @@ $py='D:/apps/miniconda3/envs/Topo/python.exe'
 观测含`labels,P,Q,V,root`，或用`Y=root²−V²`替代电压列；功率为pu，节点顺序固定。
 `--internal-floor 0`关闭输出收缩。输入不包含真拓扑；验证不生成候选，新日不重拟合。
 `--step-seconds`只限制W的一次未知连接MIQP；T/E使用所在阶段的剩余时间。省略该选项保持原默认，不能将它理解为所有原生求解的统一硬限。
+`--progress json`输出便于读取的逐行记录，`off`关闭屏幕进度；三者都保存`progress.json`、`events.jsonl`和接受路径断点。
+屏幕进度显示当前步骤、目标/下界/差距、初值来源及原生搜索是否改善。`native_improved_initial=False`要结合原生状态和差距解释，
+限时回到初值与已经证明初值最优分别保留。`checkpoint.json`保存已接受路径，不包含可原样恢复的整数搜索树。
+
+[长时限与样本/误差网格](experiments/wzzt_long_grid_20261117/README.md)提供统一测试命令、锁定协议和全分母报告。
 `zero/plan`接收冻结库、明确目标和事前功率预测，命令见`run.py --help`；原设备、AC桥及资产边界见[ARCHIVE.md](ARCHIVE.md)。
 多竞争者非零采购的通用入口仍有待接通；各实验目录中的采购实现按其自身协议使用。
 

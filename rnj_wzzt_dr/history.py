@@ -16,9 +16,9 @@ from .observations import fingerprint
 from .observations import Observation
 
 
-def fit_observed(training, validation, *, method="111", config=None):
+def fit_observed(training, validation, *, method="111", config=None, heartbeat=None):
     """Run the identifier and freeze its configured output-stage contraction."""
-    result = algorithm.fit(training, validation, method=method, config=config)
+    result = algorithm.fit(training, validation, method=method, config=config, heartbeat=heartbeat)
     active = result.get("output_contraction") is not None
     result["handoff"] = dict(schema="rnj_wzzt_dr_v2" if active else "rnj_wzzt_dr_v1",
         training_sha256=fingerprint(training), validation_sha256=fingerprint(validation),

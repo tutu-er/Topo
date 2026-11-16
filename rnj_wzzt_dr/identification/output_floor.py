@@ -122,10 +122,13 @@ def _fit(fitter, family, deadline):
     before = len(fitter.records)
     cached = key in fitter.cache
     if not key and not cached:
-        mse = float(np.mean(fitter.data.y**2))
-        objective = mse / fitter.reference_mse
-        fitter.cache[key] = dict(supports=[], r=[], x=[], objective=objective, mse=mse,
-                                reference_mse=fitter.reference_mse, fit_loss='normalized_MSE')
+        values = dict(mse=float(np.mean(fitter.data.y**2)), mae=float(np.mean(abs(fitter.data.y))))
+        loss = getattr(fitter, 'loss', 'mse')
+        reference = getattr(fitter, 'reference_loss', fitter.reference_mse)
+        objective = values[loss] / reference
+        fitter.cache[key] = dict(supports=[], r=[], x=[], objective=objective, **values,
+                                reference_mse=fitter.reference_mse, reference_loss=reference,
+                                loss_name=loss, fit_loss='normalized_'+loss.upper())
         fitter.records.append(dict(family=(), solver='closed_form_empty_support', status='complete',
             objective=objective, lower_bound=objective, certificate_gap=0., seconds=0.,
             coefficient_bound=fitter.bound, rank=0, iterations=0))
