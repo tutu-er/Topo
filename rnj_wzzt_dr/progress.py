@@ -6,7 +6,7 @@ import json
 import math
 from pathlib import Path
 import sys
-from time import perf_counter
+from time import perf_counter, sleep
 
 from . import io
 
@@ -18,6 +18,17 @@ class Progress:
         self.directory=Path(directory);self.method=method;self.loss=loss
         self.mode=mode;self.every=every;self.stream=sys.stdout if stream is None else stream
         self.started=perf_counter();self.last_print=-float('inf');self.last_stage=None
+
+    def _write(self, path, value):
+        # Windows readers can briefly deny atomic replacement. Retry only this
+        # transient sharing error; permanent errors still reach the receipt.
+        for attempt in range(6):
+            try:
+                io.write(path,value)
+                return
+            except PermissionError:
+                if attempt==5:raise
+                sleep(.005*2**attempt)
 
     def __call__(self, event):
         now=perf_counter();stage=event['stage']
@@ -37,12 +48,12 @@ class Progress:
         if detail.get('solver'):
             row['solver_status']=detail['solver'].get('status')
             row['solver_gap']=detail['solver'].get('gap')
-        io.write(self.directory/'progress.json',row)
+        self._write(self.directory/'progress.json',row)
         self.directory.mkdir(parents=True,exist_ok=True)
         with (self.directory/'events.jsonl').open('a',encoding='utf8') as target:
             target.write(json.dumps(row,default=io.plain,ensure_ascii=False,allow_nan=False)+'\n')
         if event.get('point') is not None and stage!='native_progress':
-            io.write(self.directory/'checkpoint.json',dict(row,point=event['point'],path=event.get('path'),
+            self._write(self.directory/'checkpoint.json',dict(row,point=event['point'],path=event.get('path'),
                 budget_reset_allowed=False,scope='Accepted-path checkpoint; not a saved branch-and-bound tree'))
         force=stage!='native_progress' or now-self.last_print>=self.every
         if self.mode!='off' and force:
