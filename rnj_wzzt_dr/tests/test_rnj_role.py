@@ -10,7 +10,7 @@ import numpy as np
 
 from ..observations import Observation
 from ..identification import algorithm, trees
-from ..identification.optimization import QPFitter, criterion, errors, response_matrices
+from ..identification.optimization import QPFitter, criterion, errors, response_matrices, predict
 
 
 def fixture(n=4):
@@ -279,6 +279,69 @@ class RNJRoleTests(unittest.TestCase):
         self.assertEqual(event['pretrial_QP_count'], 0)
         self.assertEqual(event['pretrial_candidates_attempted'], 0)
         self.assertEqual(event['pretrial_stop_reason'], 'deadline')
+
+    def test_W_actual_start_score_retains_old_zero_support_without_changing_start_arrays(self):
+        for return_native in (False, True):
+            with self.subTest(return_native=return_native):
+                data, fitter, _, target, config = fixture()
+                old_support, new_support = (0, 1, 2), (0, 1)
+                current = fitter.fit(trees.canonical([*trees.basis(data.n), old_support]))
+                pool = trees.canonical([*trees.basis(data.n), new_support])
+                captured = {}
+
+                def start_values(old, candidate, warm):
+                    family = trees.canonical(old['supports'])
+                    lookup = {tuple(c): (r, x) for c, r, x in zip(warm['supports'], warm['r'], warm['x'])}
+                    z = np.array([i in candidate for i in range(data.n)], float)
+                    outer = np.outer(z, z); r, x = lookup.get(candidate, (0., 0.))
+                    relations = [np.eye(3)[0 if not set(c) & set(candidate)
+                                 else 1 if set(candidate) < set(c) else 2]
+                                 for c in family if 1 < len(c) < data.n]
+                    return dict(old_r=np.array([lookup.get(c, (0., 0.))[0] for c in family]),
+                        old_x=np.array([lookup.get(c, (0., 0.))[1] for c in family]),
+                        z=z, g=outer, nr=np.array(r), nx=np.array(x),
+                        active=np.array(float(candidate in lookup)), ur=r*outer, ux=x*outer,
+                        residual=(predict(data, warm)-data.y)/np.sqrt(fitter.reference_mse),
+                        relations=np.array(relations))
+
+                def extend(old, candidate, warm, **kwargs):
+                    captured.update(old=old, candidate=candidate, warm=warm,
+                                    before=deepcopy(warm), starts=start_values(old, candidate, warm))
+                    self.assertNotIn(list(old_support), warm['supports'])
+                    self.assertIn(list(new_support), warm['supports'])
+                    if not return_native:
+                        return None, dict(status=9)
+                    lookup = {tuple(c): (r, x) for c, r, x in zip(warm['supports'], warm['r'], warm['x'])}
+                    family = trees.canonical([*old['supports'], candidate])
+                    raw = dict(supports=[list(c) for c in family],
+                               r=[lookup.get(c, (0., 0.))[0] for c in family],
+                               x=[lookup.get(c, (0., 0.))[1] for c in family])
+                    return raw, dict(status=9)
+
+                result, event = algorithm._forward(current, fitter, SimpleNamespace(extend=extend),
+                                                    config, pool, perf_counter()+60.)
+                canonical, actual = event['pretrial_best'], event['initial_point']
+                self.assertIs(captured['warm'], canonical)
+                self.assertEqual(captured['before'], canonical)
+                self.assertIs(captured['old'], current)
+                self.assertEqual(captured['candidate'], new_support)
+                for key, values in captured['starts'].items():
+                    np.testing.assert_array_equal(values, start_values(current, new_support, canonical)[key])
+                self.assertNotIn(list(old_support), canonical['supports'])
+                index = actual['supports'].index(list(old_support))
+                self.assertEqual((actual['r'][index], actual['x'][index]), (0., 0.))
+                self.assertAlmostEqual(event['initial_score'], event['pretrial_best_score']+config.alpha)
+                self.assertAlmostEqual(event['pretrial_cleanup_score_gain'], config.alpha)
+                self.assertAlmostEqual(event['current_to_initial_gain'], event['current_score']-event['initial_score'])
+                self.assertFalse(event['native_improved_initial'])
+                self.assertTrue(event['accepted'])
+                self.assertIs(result, canonical)
+                if return_native:
+                    self.assertAlmostEqual(event['native_returned_score'], event['initial_score'])
+                    self.assertAlmostEqual(event['closed_score'], event['pretrial_best_score'])
+                else:
+                    self.assertIsNone(event['native_returned_score'])
+                    self.assertEqual(event['returned_point_source'], 'pool_pretrial_QP')
 
 
 if __name__ == '__main__':

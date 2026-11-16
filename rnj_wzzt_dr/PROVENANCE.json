@@ -8,12 +8,13 @@
       "source": "topology_identification_standalone/algorithm.py",
       "source_sha256": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
       "destination": "identification/algorithm.py",
-      "packaged_sha256": "bd0523e82fe0dd6d51d80b1119c18d70b1a62bbe50bc4cea2d1b4f8ca35d8def",
+      "packaged_sha256": "90837814b18c73b65d04ce71e3bf00ad32ede0df00b69a86a5c156ff547cf94e",
       "byte_identical": false,
       "changes": [
         "2026-11-16: Add configurable training-only non-terminal RX75 output contraction, default .08; preserve original training search and pure validation scoring; 0 restores prior output behavior",
         "2026-11-16: RNJ contributes pool, one W connection pattern and one pre-fitted E reference seed; remove pool QP and fifteen-tree QP prescans; retain native optimization domains and record current/seed/native/closed gains separately",
-        "2026-11-16 contribution audit: restore budgeted compatible single-support pool QP initialization for W, keep one fixed E reference; remove unused guidance.initial and warm_families; record pretrial versus native gains separately"
+        "2026-11-16 contribution audit: restore budgeted compatible single-support pool QP initialization for W, keep one fixed E reference; remove unused guidance.initial and warm_families; record pretrial versus native gains separately",
+        "2026-11-16 receipt correction: account for all stored old W supports in actual MIP-start score; preserve canonical solver warm object and every Start assignment; separate zero-support cleanup gain"
       ]
     },
     {
@@ -307,7 +308,7 @@
     "__init__.py": "fbc85c2e2e3c49401e20af4ab0fc29fa2515ef4ef12d55a02ec9c7119702f879",
     "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
     "ARCHIVE.md": "e4ea09cf2adf3e9b1de84f294957e9f2e74be195773bf96bccf7583840220f63",
-    "cli.py": "f43e398d562874ea6e8ad0cab9563b481b81658653b962d0592da8e351d2b09c",
+    "cli.py": "17ee9131f1d21b6a7653706ab759c19ac3946e14b4c3f5bfcb902a3111995348",
     "compat/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
     "compat/ac_bridge.py": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42",
     "compat/research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
@@ -333,14 +334,14 @@
     "evidence/old_zero_screen/RESULTS.json": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5",
     "history.py": "a8b80f1c6a707853626fe8328ee69c2ff982ada8f92e75d04f87991e5a311973",
     "identification/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
-    "identification/algorithm.py": "bd0523e82fe0dd6d51d80b1119c18d70b1a62bbe50bc4cea2d1b4f8ca35d8def",
+    "identification/algorithm.py": "90837814b18c73b65d04ce71e3bf00ad32ede0df00b69a86a5c156ff547cf94e",
     "identification/competition.py": "86db89cca689256fe70cf700d10f7d6576c0968a8188c1d4b5fc7ecedff2865e",
     "identification/optimization.py": "c11b1034a03694838abc05349616f0930065c4db47e24aa2ec2d2bb774ebf244",
     "identification/trees.py": "b55ffb1573f2c72a6b114065d5ce897883476b726f15ec9d04057f9d4884deaa",
     "io.py": "54cf69ff77ae5551d1ef9b19019c94ab1506e0b14c1f9a1f8c276b8ffda871b7",
-    "MODEL.md": "2eaea52c2cc2785700d80478c43982e14bee31da33cfe4e354f5c94d57768a94",
+    "MODEL.md": "0bf04c1cdac98824381894139bb409cd68025a2bb916bb6734c28a6aa1a09912",
     "observations.py": "85925fdb0630f80a522078d0b7d73b9d297686f911bd642c1d72b015ee813b86",
-    "README.md": "70953639a7aba33e13149ff6e1a5a4ea6fa6e46b7e5f83c6cd065b72220f30b0",
+    "README.md": "4a26b90f638531cdb0f78e028ea5465fa51817d22d5878f8ba2c919f3c0d318a",
     "requirements.txt": "eddd856fd69f0e6f8184ae7a9a7e8d0a1f9084979a10dcb837c65cb6592aee16",
     "resources/case_allocations.json": "b280a0eb89ecd29b76f3a161fd2cc9558a390c929bfebdc4beec37b7c07bc374",
     "resources/library.json": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
@@ -357,12 +358,13 @@
     "evaluation_scope.py": "402dc23c88e6147b1f2675f32f9312e58965cc8c83e86cdd68d1d37ab2d59d6b",
     "evaluation_scope.json": "bdbab0fc1e69dd3b4ff987e2d2f06c677b852a526e916d3ca5dcb7b479aa08f2",
     "tests/test_evaluation_scope.py": "7150ce36bf38f2606fd683d02c8cc219c205ece79fcfb1c6ec64cc6367b0c021",
-    "tests/test_rnj_role.py": "51237ef2f0f7004cea385effe3c8c43d876dd061f37bf2ae48f647a1eec998ae",
-    "HISTORY.md": "69ecbc7073be0e6dae077a9bdaba5b1c34c0ef70f3e3025b5a7bb16d5dd737bb"
+    "tests/test_rnj_role.py": "d2d1291f123cf01ed7ed2d4e5c35b40583c6bbfbb22e7ee259ad4d8a09d40ba7",
+    "HISTORY.md": "69ecbc7073be0e6dae077a9bdaba5b1c34c0ef70f3e3025b5a7bb16d5dd737bb",
+    "tests/test_cli_step_budget.py": "e3bd1706f1a25172aca16df91d39dff2dd45f828e9fac665de1be9e59060ed31"
   },
   "package_revision": {
     "date": "2026-11-16",
-    "reason": "Restore useful W pool-based initialization after explicit regression evidence; isolate direct RNJ baseline, search and contraction contributions",
+    "reason": "Code and historical contribution audit completed; budgeted W pool initialization, single E reference, explicit optional W step control and corrected initial-score provenance",
     "internal_floor": 0.08,
     "metric": "RX75 training-normalized response / median root depth",
     "scope": "len(C)>1, common upstream included, singleton terminal supports exempt",
@@ -374,6 +376,8 @@
     "original_source_hashes_preserved": true,
     "legacy_saved_results_unchanged": true,
     "rnj_role": "connection pool and reference initialization only; W pool QP initialization is explicit and timed; E uses one fixed reference point",
-    "evaluation_scope": "296 active historical inputs; pressure160 retired; sealed prior results unchanged"
+    "evaluation_scope": "296 active historical inputs; pressure160 retired; sealed prior results unchanged",
+    "receipt_revision": "Expand only the W model-start receipt with zero old supports; optimizer warm object and numeric inputs unchanged",
+    "cli_time_control": "Optional --step-seconds controls W calls only; no change to omitted-option defaults"
   }
 }

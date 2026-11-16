@@ -5,8 +5,10 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
+
 from ... import io
-from ..rnj_pool_only_20261116.compare import Reader, audit_native, strict_selection, topology
+from ..rnj_pool_only_20261116.compare import Reader, audit_native, response, strict_selection, topology
 from .run import METHODS
 
 
@@ -16,7 +18,10 @@ def origins(native):
     labels = ['basis']
     for event in native['events']:
         if event.get('accepted'):
-            labels.append(event['stage']+':'+event.get('returned_point_source', event.get('initial_source', 'native')))
+            # Initial-source names describe the submitted start, not the origin
+            # of an improved E/T return. Keep the two concepts separate.
+            returned = event.get('returned_point_source', 'solver_return_with_QP_closure')
+            labels.append(event['stage']+':'+returned)
     return [*labels, 'singleton_protection']
 
 
@@ -59,6 +64,7 @@ def build(run, out):
     rows, errors = [], []
     for entry in entries:
         data = None
+        saved_models = {}
         for method in METHODS:
             row = dict(id=entry['id'], case=entry['case'], method=method, status='missing')
             try:
@@ -79,6 +85,7 @@ def build(run, out):
                         raise ValueError('Physical node order changed')
                     truth = json.loads(str(physical['support_json'])); hstar=physical['Hstar']
                 native = reader.json(result['native'])
+                saved_models[method] = native
                 if native['method']!=method:
                     raise ValueError('Wrong method result')
                 row['audit'] = audit_native(native, **data, truth=truth, hstar=hstar)
@@ -110,6 +117,18 @@ def build(run, out):
                 row.update(status='audit_failed', error=str(exc))
                 errors.append(dict(id=entry['id'], method=method, error=str(exc)))
             rows.append(row)
+        # Source labels can prefer an earlier duplicate. Compare predictions
+        # directly rather than equating the selected index with causation.
+        if any(r['id']==entry['id'] and r['method']=='RNJ15' and r['status']=='complete' for r in rows):
+            n = len(entry['labels'])
+            direct = [response(c['point'], n) for c in saved_models['RNJ15']['frozen_candidates']]
+            for row in (r for r in rows if r['id']==entry['id'] and r['status']=='complete'):
+                fitted = response(saved_models[row['method']]['selected']['point'], n)
+                differences = [float(np.max(np.abs(fitted-h))) for h in direct]
+                row['RNJ15_equivalence'] = dict(
+                    matching_candidate_indices=[i for i,h in enumerate(direct) if np.allclose(fitted,h,rtol=1e-10,atol=1e-12)],
+                    min_max_abs_matrix_difference=min(differences),
+                    scope='Final selected response versus all RNJ15 baseline candidates, including common protection models')
     reader.verify_unchanged()
     report=dict(status='passed' if not errors and all(r['status']=='complete' for r in rows) else 'incomplete_or_failed',
         planned=32, completed=sum(r['status']=='complete' for r in rows), errors=errors, rows=rows,

@@ -5,6 +5,10 @@
 [版本差异与贡献核查](experiments/identification_contribution_20261116/VERSION_DIFF.md)解释历史有效R＋W和当前实现的区别，
 [历史结果](experiments/identification_contribution_20261116/HISTORICAL_RESULTS.md)与本轮同后处理测试分开报告。
 
+本轮[完整结论](experiments/identification_contribution_20261116/RESULTS.md)：旧主240统一后处理后，101内部恢复120/240，多RNJ基线55/240；
+近期长历史8输入中，单参考RNJ与101均8/8且最终矩阵相同。方法的额外收益取决于输入条件，不能只根据初值或返回来源标签归因。
+[早期耗时核查](experiments/identification_contribution_20261116/EARLY_WZZT_TIMING.md)区分纯W真实搜索、强初值后的求证成本，以及E和恢复分支开销。
+
 ## 当前辨识流程
 
 ```text
@@ -27,6 +31,7 @@
 训练目标为`MSE_train/M_ref + .003×内部支持数`。默认仍为111，100是R＋W，101是R＋W＋E。
 R关闭的000不接收RNJ结构池或参考热启动，仍保留共同数值尺度。普通方法的最终库没有独立完整RNJ整树兜底；
 E原样返回参考初值时，收益归初值。W预试已找到的点也可保留，收益归预试。
+W实际模型初值保留全部旧支持，即使其系数已归零；规范预试点的清零收益另记，避免计数罚项造成假的原生负收益。
 完整数学和DR接口见[MODEL.md](MODEL.md)。
 
 ## 结果应该怎样使用
@@ -46,11 +51,14 @@ $py='D:/apps/miniconda3/envs/Topo/python.exe'
 & $py -I -B rnj_wzzt_dr/run.py doctor
 & $py -I -B rnj_wzzt_dr/run.py check --solver
 & $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 101 --output /private/fit
+# 短预算W对照：总限120秒，每次W未知连接求解最多10秒；不改变通用默认。
+& $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 100 --seconds 120 --step-seconds 10 --output /private/short_W
 & $py -I -B rnj_wzzt_dr/run.py score --result /private/fit/result.json --history /private/validation.npz --new /private/new_day.npz --output /private/score.json
 ```
 
 观测含`labels,P,Q,V,root`，或用`Y=root²−V²`替代电压列；功率为pu，节点顺序固定。
 `--internal-floor 0`关闭输出收缩。输入不包含真拓扑；验证不生成候选，新日不重拟合。
+`--step-seconds`只限制W的一次未知连接MIQP；T/E使用所在阶段的剩余时间。省略该选项保持原默认，不能将它理解为所有原生求解的统一硬限。
 `zero/plan`接收冻结库、明确目标和事前功率预测，命令见`run.py --help`；原设备、AC桥及资产边界见[ARCHIVE.md](ARCHIVE.md)。
 多竞争者非零采购的通用入口仍有待接通；各实验目录中的采购实现按其自身协议使用。
 

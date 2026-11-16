@@ -203,6 +203,23 @@ def _initialization_receipt(current, raw, closed, fitter, config, source, *, ini
                 has_native_solution=raw is not None, pretrial_QP_count=pretrial_QP_count, **extra)
 
 
+def _W_model_initial_point(current, candidate, canonical_initial):
+    """Receipt-only representation of extend's unchanged MIP start.
+
+    W retains every old support and charges its count even when the canonical
+    pretrial removed its zero coefficient. Keep passing canonical_initial to
+    extend so all Start assignments, including residual arithmetic, stay exact.
+    """
+    lookup = {tuple(C): (r, x) for C, r, x in zip(
+        canonical_initial["supports"], canonical_initial["r"], canonical_initial["x"], strict=True)}
+    family = trees.canonical([*current["supports"], *([candidate] if candidate in lookup else [])])
+    if family == trees.canonical(canonical_initial["supports"]):
+        return canonical_initial
+    return dict(canonical_initial, supports=[list(C) for C in family],
+                r=[lookup.get(C, (0., 0.))[0] for C in family],
+                x=[lookup.get(C, (0., 0.))[1] for C in family])
+
+
 def _forward(current, fitter, solver, config, pool, deadline, *, reference_family=()):
     n, family = fitter.data.n, trees.canonical(current["supports"])
     candidate = _any_extension(family, n, pool, reference_family)
@@ -264,10 +281,16 @@ def _forward(current, fitter, solver, config, pool, deadline, *, reference_famil
                 proposal_source = "native_closed_point"
     else:
         raw, native = None, dict(solve_started=False, stop_reason="forward_budget", status=None)
+    # Construct this only after the unchanged solve: telemetry must not alter
+    # the warm object, Start arrays, residual BLAS order, or allocated deadline.
+    model_initial = _W_model_initial_point(current, candidate, initial)
+    cleanup_score_gain = criterion(model_initial, n, config.alpha)-criterion(initial, n, config.alpha)
     result, event = _accept(current, best, fitter, config, stage="W", solver=native, zeros=best_zeros,
                    raw_point=raw, unrestricted_support_domain=True, proposal_source=proposal_source,
                    **_initialization_receipt(current, raw, closed, fitter, config,
-                       initial_source, initial=initial, initial_connection=list(candidate),
+                       initial_source, initial=model_initial, initial_connection=list(candidate),
+                       initial_score_scope="W_model_start_with_all_old_supports",
+                       pretrial_cleanup_score_gain=cleanup_score_gain,
                        initial_connection_source=seed_origin, initial_new_r=initial_r, initial_new_x=initial_x,
                        initial_new_active=int(candidate in lookup), pretrial_QP_count=pretrial_count,
                        pretrial_seconds=pretrial_seconds, pretrial_candidates_attempted=len(trials),

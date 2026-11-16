@@ -26,6 +26,8 @@ def main(argv=None):
     fit.add_argument("--validation", type=Path, required=True)
     fit.add_argument("--method", choices=(*METHODS, *ALIASES), default="111")
     fit.add_argument("--seconds", type=float, default=14400.)
+    fit.add_argument("--step-seconds", type=float, default=None,
+                     help="W: cap each unknown-connection MIQP in seconds; T/E use remaining stage time. Omit to keep the existing default")
     fit.add_argument("--internal-floor", type=float, default=SearchConfig().internal_floor,
                      help="Training-normalized RX75 floor on non-terminal supports including the common upstream term; 0 disables (default .08)")
     fit.add_argument("--output", type=Path, required=True)
@@ -72,6 +74,8 @@ def main(argv=None):
         cfg = replace(SearchConfig(), total_seconds=args.seconds,
                       internal_floor=args.internal_floor,
                       output_reserve_seconds=min(600., args.seconds*.1))
+        if args.step_seconds is not None:
+            cfg = replace(cfg, per_mip_seconds=args.step_seconds)
         cfg.validate()
         receipt = dict(status="frozen_before_fit", method=args.method, config=cfg,
                        train=io.ref(args.train), validation=io.ref(args.validation),
