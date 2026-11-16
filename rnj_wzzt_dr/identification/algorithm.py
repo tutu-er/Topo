@@ -161,9 +161,10 @@ def _close_native(raw, fitter, config, native, *, protected=()):
     return _clean(fitter, closed, config, protected=protected)
 
 
-def _any_extension(family, n, rnj_pool):
+def _any_extension(family, n, rnj_pool, reference_family=()):
     family = set(trees.canonical(family))
-    for C in rnj_pool:
+    # RNJ supplies a single legal binary pattern, never a fitted tree contest.
+    for C in (*trees.canonical(reference_family), *rnj_pool):
         if 1 < len(C) < n and C not in family and all(trees.compatible(C, D) for D in family):
             return C
     for _, blocks in trees.children(family, n).items():
@@ -174,58 +175,99 @@ def _any_extension(family, n, rnj_pool):
     return None
 
 
-def _forward(current, fitter, solver, config, pool, deadline):
+def _initialization_receipt(current, raw, closed, fitter, config, source, *, initial=None, **extra):
+    initial = current if initial is None else initial
+    current_score = criterion(current, fitter.data.n, config.alpha)
+    initial_score = criterion(initial, fitter.data.n, config.alpha)
+    native_score = (errors(fitter.data, raw)["mse"]/fitter.reference_mse
+                    + config.alpha*internal_count(raw, fitter.data.n)) if raw is not None else None
+    return dict(current_score=current_score, initial_score=initial_score, initial_source=source,
+                current_to_initial_gain=current_score-initial_score,
+                initial_point=initial, closed_point=closed,
+                native_returned_score=native_score,
+                closed_score=criterion(closed, fitter.data.n, config.alpha) if closed is not None else None,
+                native_improved_initial=bool(native_score is not None and native_score < initial_score-config.gain_tol),
+                has_native_solution=raw is not None, pretrial_QP_count=0, **extra)
+
+
+def _forward(current, fitter, solver, config, pool, deadline, *, reference_family=()):
     n, family = fitter.data.n, trees.canonical(current["supports"])
-    candidate = _any_extension(family, n, pool)
+    candidate = _any_extension(family, n, pool, reference_family)
     if candidate is None:
         return current, dict(stage="W", accepted=False, structurally_complete=True,
-                             solver=dict(solve_started=False), zero_events=[])
+                             solver=dict(solve_started=False), zero_events=[],
+                             **_initialization_receipt(current, None, None, fitter, config, "current_no_extension"))
     best, best_zeros = current, []
-    for C in pool:
-        if perf_counter() >= deadline:
-            break
-        if C in family or not 1 < len(C) < n or not all(trees.compatible(C, D) for D in family):
-            continue
-        q, zeros = _clean(fitter, fitter.fit([*family, C]), config)
-        if criterion(q, n, config.alpha) < criterion(best, n, config.alpha):
-            best, best_zeros, candidate = q, zeros, C
+    closed = None
+    seed_origin = ("reference_RNJ_connection" if candidate in trees.canonical(reference_family) else
+                   "RNJ_pool_connection" if candidate in pool else "structural_connection")
     if deadline-perf_counter() > .01:
-        raw, native = solver.extend(current, candidate, best,
+        raw, native = solver.extend(current, candidate, current,
                                     deadline=min(deadline, perf_counter()+config.per_mip_seconds))
         if raw is not None:
             q, zeros = _close_native(raw, fitter, config, native)
+            closed = q
             if criterion(q, n, config.alpha) < criterion(best, n, config.alpha):
                 best, best_zeros = q, zeros
     else:
         raw, native = None, dict(solve_started=False, stop_reason="forward_budget", status=None)
     return _accept(current, best, fitter, config, stage="W", solver=native, zeros=best_zeros,
-                   raw_point=raw, unrestricted_support_domain=True)
+                   raw_point=raw, unrestricted_support_domain=True,
+                   **_initialization_receipt(current, raw, closed, fitter, config,
+                       "current_with_zero_weight_connection", initial_connection=list(candidate),
+                       initial_connection_source=seed_origin, initial_new_r=0., initial_new_x=0., initial_new_active=0))
 
 
-def _reconstruct(current, fitter, solver, config, *, pool, keep, deadline, stage, warm_families=()):
+def _single_reference_initial(current, reference_point, fitter, config, pool, keep):
+    """Validate and rescore the one pre-fitted .75/.16 RNJ reference, without QP."""
+    info = dict(reference_considered=reference_point is not None, reference_eligible=False,
+                reference_selected=False, reference_score=None, reference_refit_count=0)
+    if reference_point is None:
+        return current, "current", dict(info, reference_reason="unavailable")
+    try:
+        family, r, x = output_floor._point(reference_point, fitter.data.n)
+        if not set(keep) <= set(family):
+            raise ValueError("reference_missing_mandatory_supports")
+        if not set(family) <= set(pool):
+            raise ValueError("reference_supports_outside_existing_pool")
+        if np.any(r > config.response_bound) or np.any(x > config.response_bound):
+            raise ValueError("reference_exceeds_coefficient_bound")
+        loss = errors(fitter.data, reference_point)["mse"]
+        if not np.isfinite(loss):
+            raise ValueError("reference_has_nonfinite_training_loss")
+        point = dict(reference_point, mse=loss, objective=loss/fitter.reference_mse,
+                     reference_mse=fitter.reference_mse, fit_loss="normalized_MSE")
+        score = criterion(point, fitter.data.n, config.alpha)
+    except (KeyError, TypeError, ValueError, OverflowError) as exc:
+        return current, "current", dict(info, reference_reason=str(exc))
+    info.update(reference_eligible=True, reference_score=score)
+    if score < criterion(current, fitter.data.n, config.alpha):
+        info.update(reference_selected=True, reference_reason="single_fixed_reference_has_lower_training_score")
+        return point, "single_RNJ_reference", info
+    return current, "current", dict(info, reference_reason="reference_not_better_than_current")
+
+
+def _reconstruct(current, fitter, solver, config, *, pool, keep, deadline, stage, reference_point=None):
     """The same selection/closure/acceptance operation implements both T and E."""
     keep = trees.canonical([*keep, *trees.basis(fitter.data.n)])
     pool = trees.canonical([*pool, *keep, *current["supports"]])
     best, best_zeros = current, []
-    for family in warm_families:
-        if perf_counter() >= deadline:
-            break
-        family = trees.canonical([*family, *trees.basis(fitter.data.n)])
-        if not set(keep) <= set(family) or not set(family) <= set(pool) or not trees.is_laminar(family):
-            continue
-        q, zeros = _clean(fitter, fitter.fit(family), config, protected=keep)
-        if criterion(q, fitter.data.n, config.alpha) < criterion(best, fitter.data.n, config.alpha):
-            best, best_zeros = q, zeros
+    initial, source, seed_info = _single_reference_initial(
+        current, reference_point if stage == "E" else None, fitter, config, pool, keep)
+    closed = None
     if deadline-perf_counter() > .01:
-        raw, native = solver.select(pool, keep, best, deadline=deadline)
+        raw, native = solver.select(pool, keep, initial, deadline=deadline)
         if raw is not None:
             q, zeros = _close_native(raw, fitter, config, native, protected=keep)
+            closed = q
             if criterion(q, fitter.data.n, config.alpha) < criterion(best, fitter.data.n, config.alpha):
                 best, best_zeros = q, zeros
     else:
         raw, native = None, dict(solve_started=False, status=None, stop_reason="structural_budget")
     return _accept(current, best, fitter, config, stage=stage, solver=native, zeros=best_zeros,
-                   pool=pool, keep=keep, raw_point=raw)
+                   pool=pool, keep=keep, raw_point=raw,
+                   **_initialization_receipt(current, raw, closed, fitter, config, source,
+                       initial=initial, **seed_info))
 
 
 def _output(path, train, validation, reference, config):
@@ -287,7 +329,7 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
     else:
         R_on, T_on, E_on = (bool(int(bit)) for bit in method)
         pool = trees.canonical(guidance["pool"]) if R_on else trees.basis(train.n)
-        warm = guidance["warm_families"] if R_on else ()
+        reference_family = guidance["reference_family"] if R_on else ()
         current = fitter.fit(trees.basis(train.n)); path = [current]
         structural_deadline = overall_deadline-config.output_reserve_seconds
         # E-off cells can spend all structural time on W/T. E-on cells reserve
@@ -303,7 +345,8 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
                 if T_on and trees.max_direct_blocks(current["supports"], train.n) <= config.block_limit:
                     reason = "tail_eligible"; break
                 ping("W_started", iteration=len(events))
-                proposed, event = _forward(current, fitter, solver, config, pool, prefix_deadline)
+                proposed, event = _forward(current, fitter, solver, config, pool, prefix_deadline,
+                                            reference_family=reference_family)
                 events.append(event)
                 if not event["accepted"]:
                     reason = "structurally_complete" if event.get("structurally_complete") else "no_gain_or_unresolved"
@@ -329,13 +372,15 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
                 e_pool = trees.canonical([*pool, *(C for p in path for C in p["supports"]),
                                           *tail["pool"], *combinations(range(train.n), 2)])
                 current, event = _reconstruct(current, fitter, solver, config, pool=e_pool, keep=trees.basis(train.n),
-                                               deadline=structural_deadline, stage="E", warm_families=warm)
+                                               deadline=structural_deadline, stage="E",
+                                               reference_point=common.get("reference_point") if R_on else None)
                 events.append(event)
                 if event["accepted"]:
                     path.append(current)
                 ping("E_complete", event=event)
             elif E_on:
-                events.append(dict(stage="E", accepted=False, solver=dict(solve_started=False), skipped="budget"))
+                events.append(dict(stage="E", accepted=False, solver=dict(solve_started=False), skipped="budget",
+                    **_initialization_receipt(current, None, None, fitter, config, "current")))
         finally:
             solver.close()
         native_records = solver.records

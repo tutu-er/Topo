@@ -273,11 +273,13 @@ def nj(shared, depth, collapse_factor=0.):
 
 
 def rnj_guidance(train):
-    """One ordered fit, fifteen raw RNJ families, no fitted-zero pruning.
+    """One ordered fit, fifteen raw families for a connection pool only.
 
     This preserves the original generated supports. Historical experiments
     sometimes lost these supports by exporting only zero-pruned warm families;
-    this standalone version makes the candidate-generation contract explicit.
+    this standalone version keeps their generation provenance separately from
+    current-point warm starts. E may reuse the one already-fitted .75/.16
+    reference as an alternative initial point. No tree QP contest is required.
     """
     R, X, diagnostics = fit_sensitivity(train); families, origins = [], []
     for weight in (1., .75, 0.):
@@ -288,6 +290,8 @@ def rnj_guidance(train):
     shared, depth, calibration = geometry(R, X, .75)
     reference = rnj(shared, depth, .16)
     return dict(reference_family=reference, initial=reference,
-                pool=canonical(s for family in families for s in family), warm_families=tuple(families),
+                pool=canonical(s for family in families for s in family), pool_families=tuple(families),
+                warm_families=(),  # Deprecated: whole RNJ trees are not W/T/E warm starts.
+                reference_role="training_scale_W_connection_and_single_E_initial_point",
                 family_origins=origins, diagnostics=diagnostics, R=R, X=X,
                 shared=shared, depth=depth, calibration=calibration, fitted_zero_pruning=False)

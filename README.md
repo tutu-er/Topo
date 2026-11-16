@@ -1,6 +1,8 @@
 # MIQP RNJ＋WZZT 与条件 DR
 
-当前研究入口是 [rnj_wzzt_dr/README.md](rnj_wzzt_dr/README.md)。流程为：RNJ 提供候选与热启动，WZZT 用 MIQP 逐步扩展，可选 T/E 重构；全部输出候选先按训练RX75相对下限0.08收缩非末端支路（含共用上游段），再由验证MSE选择并冻结完整候选库，进入条件DR规划和原设备／AC评价。末端接入线豁免，`--internal-floor 0`恢复旧输出规则。
+当前研究入口是 [rnj_wzzt_dr/README.md](rnj_wzzt_dr/README.md)。RNJ提供连接池、W的单个连接模式和E的一个固定参考初值；WZZT直接用MIQP逐步扩展，可选T/E联合重构。E只比较当前点与已拟合参考点的训练目标来确定初值，取消15棵RNJ整树预试。输出候选按训练RX75相对下限0.08收缩非末端支路，再由验证MSE选择并冻结完整库，进入后续DR评价。末端接入线豁免，`--internal-floor 0`关闭输出收缩。
+
+后续默认研究范围由[rnj_wzzt_dr/evaluation_scope.json](rnj_wzzt_dr/evaluation_scope.json)管理：旧主240、当前40及16组，合计296项；旧压力160项已退出。旧封存记录保持历史口径，不再用于当前参数选择或效果论证。
 
 ```powershell
 $py = 'D:/apps/miniconda3/envs/Topo/python.exe'
