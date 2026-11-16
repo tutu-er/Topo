@@ -96,7 +96,19 @@ def prepare_common(train, config=None):
                 truth_used=False, validation_used=False)
 
 
-def _clean(fitter, point, config, *, protected=()):
+def _fit_before_deadline(fitter, family, deadline):
+    remaining = deadline-perf_counter()
+    if remaining <= 0.:
+        raise TimeoutError("No W pretrial budget remains")
+    original_limit = fitter.qp_seconds
+    fitter.qp_seconds = min(original_limit, remaining)
+    try:
+        return fitter.fit(family)
+    finally:
+        fitter.qp_seconds = original_limit
+
+
+def _clean(fitter, point, config, *, protected=(), deadline=None):
     protected = set(trees.canonical([*trees.basis(fitter.data.n), *protected]))
     if not protected <= set(map(tuple, point["supports"])):
         raise ValueError("A mandatory support is absent before zero cleanup")
@@ -107,7 +119,7 @@ def _clean(fitter, point, config, *, protected=()):
         removed = trees.canonical(set(map(tuple, current["supports"]))-set(keep))
         if not removed:
             return current, events
-        q = fitter.fit(keep)
+        q = fitter.fit(keep) if deadline is None else _fit_before_deadline(fitter, keep, deadline)
         accepted = q["objective"] <= current["objective"]+config.gain_tol
         events.append(dict(removed=removed, accepted=bool(accepted),
                            before=current["objective"], after=q["objective"]))
@@ -175,7 +187,8 @@ def _any_extension(family, n, rnj_pool, reference_family=()):
     return None
 
 
-def _initialization_receipt(current, raw, closed, fitter, config, source, *, initial=None, **extra):
+def _initialization_receipt(current, raw, closed, fitter, config, source, *, initial=None,
+                            pretrial_QP_count=0, **extra):
     initial = current if initial is None else initial
     current_score = criterion(current, fitter.data.n, config.alpha)
     initial_score = criterion(initial, fitter.data.n, config.alpha)
@@ -187,7 +200,7 @@ def _initialization_receipt(current, raw, closed, fitter, config, source, *, ini
                 native_returned_score=native_score,
                 closed_score=criterion(closed, fitter.data.n, config.alpha) if closed is not None else None,
                 native_improved_initial=bool(native_score is not None and native_score < initial_score-config.gain_tol),
-                has_native_solution=raw is not None, pretrial_QP_count=0, **extra)
+                has_native_solution=raw is not None, pretrial_QP_count=pretrial_QP_count, **extra)
 
 
 def _forward(current, fitter, solver, config, pool, deadline, *, reference_family=()):
@@ -196,26 +209,74 @@ def _forward(current, fitter, solver, config, pool, deadline, *, reference_famil
     if candidate is None:
         return current, dict(stage="W", accepted=False, structurally_complete=True,
                              solver=dict(solve_started=False), zero_events=[],
-                             **_initialization_receipt(current, None, None, fitter, config, "current_no_extension"))
+                             returned_point_source="current",
+                             **_initialization_receipt(current, None, None, fitter, config, "current_no_extension",
+                                 pretrial_seconds=0., pretrial_candidates_attempted=0, pretrial_candidates=[],
+                                 pretrial_stop_reason="structurally_complete", pretrial_best=current,
+                                 pretrial_best_score=criterion(current, n, config.alpha)))
     best, best_zeros = current, []
+    pretrial_started, record_start = perf_counter(), len(fitter.records)
+    trials, stop_reason = [], "completed_pool"
+    proposal_source = "current"
+    for C in trees.canonical(pool):
+        if C in family or not 1 < len(C) < n or not all(trees.compatible(C, D) for D in family):
+            continue
+        if deadline-perf_counter() <= .01:
+            stop_reason = "deadline"
+            break
+        trial_started, record_before = perf_counter(), len(fitter.records)
+        trial_family = trees.canonical([*family, C])
+        trial = dict(connection=list(C), cache_hit=trial_family in fitter.cache)
+        try:
+            q, zeros = _clean(fitter, _fit_before_deadline(fitter, trial_family, deadline),
+                              config, deadline=deadline)
+        except TimeoutError as exc:
+            trial.update(status="timeout", error=str(exc), seconds=perf_counter()-trial_started,
+                         new_QP_records=len(fitter.records)-record_before)
+            trials.append(trial)
+            stop_reason = "qp_soft_timeout"
+            break
+        trial.update(status="complete", score=criterion(q, n, config.alpha),
+                     seconds=perf_counter()-trial_started, new_QP_records=len(fitter.records)-record_before,
+                     zero_events=zeros)
+        trials.append(trial)
+        if trial["score"] < criterion(best, n, config.alpha):
+            best, best_zeros, candidate = q, zeros, C
+            proposal_source = "pool_pretrial_QP"
+    initial, initial_zeros = best, best_zeros
+    pretrial_seconds, pretrial_count = perf_counter()-pretrial_started, len(fitter.records)-record_start
+    pretrial_deadline_exceeded = perf_counter() >= deadline
     closed = None
-    seed_origin = ("reference_RNJ_connection" if candidate in trees.canonical(reference_family) else
+    seed_origin = ("RNJ_pool_single_support_QP" if initial is not current else
+                   "reference_RNJ_connection" if candidate in trees.canonical(reference_family) else
                    "RNJ_pool_connection" if candidate in pool else "structural_connection")
+    initial_source = "RNJ_pool_single_support_QP" if initial is not current else "current_with_zero_weight_connection"
+    lookup = {tuple(C): (r, x) for C, r, x in zip(initial["supports"], initial["r"], initial["x"], strict=True)}
+    initial_r, initial_x = lookup.get(candidate, (0., 0.))
     if deadline-perf_counter() > .01:
-        raw, native = solver.extend(current, candidate, current,
+        raw, native = solver.extend(current, candidate, initial,
                                     deadline=min(deadline, perf_counter()+config.per_mip_seconds))
         if raw is not None:
             q, zeros = _close_native(raw, fitter, config, native)
             closed = q
             if criterion(q, n, config.alpha) < criterion(best, n, config.alpha):
                 best, best_zeros = q, zeros
+                proposal_source = "native_closed_point"
     else:
         raw, native = None, dict(solve_started=False, stop_reason="forward_budget", status=None)
-    return _accept(current, best, fitter, config, stage="W", solver=native, zeros=best_zeros,
-                   raw_point=raw, unrestricted_support_domain=True,
+    result, event = _accept(current, best, fitter, config, stage="W", solver=native, zeros=best_zeros,
+                   raw_point=raw, unrestricted_support_domain=True, proposal_source=proposal_source,
                    **_initialization_receipt(current, raw, closed, fitter, config,
-                       "current_with_zero_weight_connection", initial_connection=list(candidate),
-                       initial_connection_source=seed_origin, initial_new_r=0., initial_new_x=0., initial_new_active=0))
+                       initial_source, initial=initial, initial_connection=list(candidate),
+                       initial_connection_source=seed_origin, initial_new_r=initial_r, initial_new_x=initial_x,
+                       initial_new_active=int(candidate in lookup), pretrial_QP_count=pretrial_count,
+                       pretrial_seconds=pretrial_seconds, pretrial_candidates_attempted=len(trials),
+                       pretrial_stop_reason=stop_reason, pretrial_candidates=trials,
+                       pretrial_deadline_exceeded=pretrial_deadline_exceeded,
+                       pretrial_best=initial, pretrial_best_score=criterion(initial, n, config.alpha),
+                       pretrial_best_zero_events=initial_zeros))
+    event["returned_point_source"] = proposal_source if event["accepted"] else "current"
+    return result, event
 
 
 def _single_reference_initial(current, reference_point, fitter, config, pool, keep):

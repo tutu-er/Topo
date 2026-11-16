@@ -1,115 +1,57 @@
-# MIQP RNJ＋WZZT → 条件 DR 主线
+# 拓扑辨识与配网灵活性研究入口
 
-**2026-11-16 当前求解结构：**RNJ仅提供连接池、W的单个合法连接模式和E的一个固定参考初值；W取消逐项QP筛优，直接优化未知连接。T用当前点初始化，E只比较当前点与已拟合的固定RNJ参考点；取消15棵RNJ整树预拟合。原训练归一化、方法111默认和输出非末端0.08收缩保留。E在有限连接池内联合选择及拟合R/X，热启动只影响求解过程。[E模型、精简范围及配对检查](experiments/rnj_pool_only_20261116/README.md)。
+当前辨识代码集中在`identification/`，DR读其冻结候选与R/X，评价期间不重新拟合。
+近期整理恢复了W的廉价单连接QP预试，E保留一个固定参考初值；删除弃用的整树热启动字段。
+[版本差异与贡献核查](experiments/identification_contribution_20261116/VERSION_DIFF.md)解释历史有效R＋W和当前实现的区别，
+[历史结果](experiments/identification_contribution_20261116/HISTORICAL_RESULTS.md)与本轮同后处理测试分开报告。
 
-**后续评估范围：**[evaluation_scope.json](evaluation_scope.json)默认保留旧主240＋当前40＋16，共296项；旧压力160已退出，不再参与当前参数选择和新结论。`load_catalog()`自动排除，`include_retired=True`仅用于显式历史追溯。0.08是保留的现行值；新的活动范围中尚未证明它优于0.12，不再借已退出条件为其排序。
-
-**内部收缩及旧记录：**所有原生输出候选在验证选模之前，逐条删除RX75相对强度低于0.08的非末端支路，每次删除后训练QP重拟合至稳定。包括共用上游段，末端接入线豁免。`--internal-floor 0`可关闭。此前[接入和残余误差](experiments/internal_contraction_20261116/README.md)、[完整阈值研究](experiments/impedance_floor_20261116/RESULTS.md)属于RNJ多树预试版历史结果；其中已退出范围不作为新版效果依据。
-
-**2026-11-14 无功与节点位置：**[独立Q合同、完整候选选点与两批AC测试](experiments/reactive_flex_20261114/README.md)。同样2×±5 kvar，从原节点306/309改到303/304后，16次报价由不可行变为可行。绝对方案开发批13→17/32恢复、确认批18→18/32；旧增量两批下降。主要残余问题是冻结参数对Q动作约25%的电压响应误差；高权重也增加错误确信。费用界、初值和失败全部保留。
-
-**2026-11-14 新 P/Q 灵活性复测完成：**[公共项、候选遗漏与预测收益实现](experiments/measured_pq_flex_20261114/RESULTS.md)。16 个固定背景输入、512 条配对执行的平均证据增益实现 97.2%，恢复仍为 480/512；完整参数库有 105 次比较优势下降。追加合法候选后的近似五五开例，当前纯有功资源达不到要求，8 次报价不可行。6144 个背景时刻的全母线、全支路 AC 状态已缓存。以下按日期保留前序版本。
-
-**2026-11-14 数据重建入口：**[同步实测 P/Q 驱动的新算例](experiments/measured_pq_20261114/README.md)。后续数据研究从这里开始：18 条不同 FeederBW 馈线、同步有功无功、四季完整日切分，R/X 仍分别估计；历史与新日不再使用共享主曲线的人造 Q，也不只在新日叠加 DER 基线。旧结果按原合成设置保留，新候选库须重新拟合。
-
-**2026-11-13 Astra完整复核：**[直接恢复概率QCQP、48个独立新日与失败原因](experiments/astra_review_20261113/ANALYSIS.md)。新形式已实现并核验，弱组旧增量方案22→25/32恢复；两个新方案均22/32，均值修正未改善平均权重。模型通过与实际失败、光伏调节方向偏差、拒绝失准、求解时间与费用界均完整保留。
-
-**2026-11-13方法审核稿：**[期望拓扑权重、拒绝项与QCQP](review/expected_posterior_20261113/REVIEW.md)。推导完整期望的充分条件及更紧的逐对二次门槛；已重算封存观测，记录拒绝造成的误拒和正态模型对实际AC结果的高估。新采购约束尚未接入求解器，待方法与误差基准审核。
-
-**2026-11-13资源位置核查：**[线性资源模型、作用节点及可达证据量](experiments/customer_flexibility_20261113/RESOURCE_REVIEW.md)。三项合格历史输入的规划检查表明，位置调整可降低一项名义报价，另外两项在适度增容后仍达不到原gamma=2要求；上下界、初值、超时和候选缺失分别保留。新增简化电量缓冲与合同配置，尚未开展新配置的独立辨识收益测试。
-
-**2026-11-13新增资源算例：**[有限用户端PV、EV和热泵/热水资源](experiments/customer_flexibility_20261113/README.md)。在原paper15网络的6/15个表计接入点配置3套光伏、3个充电桩和2套热泵储热设备，设备约束及交付均采用线性模型；已完成9项测试、48个逐时范围LP及7份参考日AC校核。[配置及核验结果](experiments/customer_flexibility_20261113/results/SUMMARY.json)只用于资源与接口验收，信息采购QCQP和辨识改善尚待测试。
-
-**2026-11-13当前研究进展：**[历史残差方向检查、费用求解与配网灵活性ED核算](experiments/residual_guard_ed_20261113/README.md)。重点测试库含真候选但历史证据不足的28个输入，另保留容易、缺候选及下降对照；[结果](experiments/residual_guard_ed_20261113/results/REPORT.md)记录改善、仍下降、未报价和费用界未闭合。新增研究不修改生产默认。
-
-**2026-11-13前一轮有界基线：**[有幅度边界的双向价格响应](experiments/bidirectional_price_dr_20261113/README.md)。已完成400输入×4新日及12个锁定例×32新日；[模型与QCQP求法](experiments/bidirectional_price_dr_20261113/MODEL.md)、[总体效果、无解、未决和下降例](experiments/bidirectional_price_dr_20261113/results/REPORT.md)分别记录。采用期望对数赔率增量；以下旧条件概率设备主线按原版本保留，生产默认没有改变。
-
-以后从本目录进入研究。辨识器采用 2026-11-12 主项目的现有简化实现；DR 复用已交接的积分、严格 MSE 评分、设备执行器和单对优化器。历史批量控制器、画图、重复算法和大型观测文件留在原位置。
+## 当前辨识流程
 
 ```text
-观测训练 P/Q/Y → RNJ连接池/单连接模式 → W未知支持MIQP → 可选T/E（E可用一个固定参考初值）→ 保存原训练路径
-全部输出候选 → 训练校准RX75 .08非末端逐条收缩＋QP → 观测验证严格MSE选择 → 冻结完整库和R/X
-历史功率预测＋原资源 → 给定目标 Ht → 整库零 DR 核算
-  ├─ 零动作充分且原设备可行：最小费用 0
-  └─ 仍有缺口：已有单对报价；多竞争者非零报价待接通
-冻结计划 → 原设备随机响应 / 截断 → 原 AC 含噪观测 → 原整库评分与完整恢复评价
+训练P/Q/Y → 前置R/X拟合 → RNJ连接池及固定参考点
+基础支持模型 → W：池内单连接QP初值＋未知连接MIQP → 可选T → 可选E
+本方法接受路径＋单节点保护模型 → .08非末端收缩及训练QP → 验证MSE选择 → 冻结
 ```
 
-## 一套算法，分别记录四个规则
-
-| 环节 | 本目录实际规则 |
+| 部分 | 实际作用 |
 |---|---|
-| 训练搜索 | `MSE_train / M_ref + .003 × 内部支持数`；提议先固定族 QP，再按统一目标接受 |
-| 搜索与停止 | W直接优化未知支持；T为至多5块局部联合重构；E从固定池联合重选；当前点或一个固定参考初值，保留预算、状态和界冲突 |
-| 输出参数 | 原训练路径及单点保护模型全部按训练RX75 `.08` 收缩非末端支路并QP重拟合；末端豁免；保存原路径及逐条轨迹；无完整RNJ整树兜底 |
-| 最终选择 | 验证 MSE / `M_ref`；数值并列容差 `1e-12`，再依内部支持数、分数、原序选择 |
+| RNJ | 生成连接池；提供W连接模式与E的一个固定参考点；参考尺度仅作共同训练校准 |
+| 初始结构 | 每个观测末端的单节点支持＋全节点公共支持，R开启也从这里开始 |
+| W | 对池中兼容的单连接做固定族QP，取较好点初始化，再用MIQP搜索一个未知连接并联合调权 |
+| T | 最多5块的局部联合重构；101关闭、111开启 |
+| E | 从有限连接池联合重选并拟合R/X；可撤销原内部连接；不进行15整树预试 |
+| 初值归因 | 当前→实际初值、初值→原生返回、原生→QP收尾分别记录；保留预试点须注明来源 |
+| 输出收缩 | 仅训练数据，RX75相对强度低于.08的非末端支路逐条删除并QP重拟合；末端接入支持豁免 |
+| 最终选择 | 原验证MSE，归一化并列容差1e-12，再按支持数、分数、原序决定 |
 
-原默认 `111`（R＋W＋T＋E）保持；`100/rnj_wzzt` 是 R＋W，`101` 是 R＋W＋E。已有开发回放中 101 的表现更好，尚不足以自动替换默认。`relative_gain=0` 保持原默认。`.003` 的双候选展示阈值只影响展示；DR 始终核算完整冻结库中的所有不同活动拓扑。
+训练目标为`MSE_train/M_ref + .003×内部支持数`。默认仍为111，100是R＋W，101是R＋W＋E。
+R关闭的000不接收RNJ结构池或参考热启动，仍保留共同数值尺度。普通方法的最终库没有独立完整RNJ整树兜底；
+E原样返回参考初值时，收益归初值。W预试已找到的点也可保留，收益归预试。
+完整数学和DR接口见[MODEL.md](MODEL.md)。
 
-**与提示词的版本差异：**旧适配器的 3% MAE／`.16`，后续 MIQP 的 `.24`／E 专用 `.001`，都是历史规则。本目录接当前验证 MSE 版本，物理 MSE 容差为 `M_ref × 1e-12`。详见 [MODEL.md](MODEL.md)。
+## 结果应该怎样使用
 
-## 最短使用路径
+旧主240、当前40和16是不同的数据预算与来源，按组比较。旧压力160已退出新默认清单，见[evaluation_scope.json](evaluation_scope.json)。
+旧40/40、16/16是旧联合候选库经过.08收缩的回放结果；不能当作新简化实现的重新辨识结果。
+最近四例的无预试A/B版本及其失败保留在[原配对说明](experiments/rnj_pool_only_20261116/README.md)。
+内部恢复检查2至N−1节点的活动集合；全部支持恢复还包括末端和公共项。R/X矩阵误差另报。
+历史研究、DR正负结果和旧入口索引已移到[HISTORY.md](HISTORY.md)，原数据和源快照保持原路径。
 
-Python 3.10+；NumPy、SciPy 支持观测读取、RNJ/NJ、QP、评分与零动作核算；结构 MIQP 和非零报价还需 Gurobi 与有效许可。
+## 使用
+
+Python3.10+、NumPy、SciPy；结构搜索与非零采购需Gurobi及许可。
 
 ```powershell
-$py = 'D:/apps/miniconda3/envs/Topo/python.exe'
-$run = 'D:/0-github_workspace/Topo/rnj_wzzt_dr/run.py'
-& $py -I -B $run doctor
-& $py -I -B $run check --solver
-
-# 所有结果和报价放私人目录；以下 outputs 默认被 Git 忽略。
-& $py -I -B $run fit --train /path/train.npz --validation /path/validation.npz --method 111 --output /private/outputs/fit
-# 仅用于旧规则对照：在fit命令中加 --internal-floor 0。
-& $py -I -B $run zero --result /private/outputs/fit/result.json --history /path/validation.npz --forecast /private/forecast.npz --target 0 --voltage-sigma .0005 --case paper15 --output /private/outputs/zero.json
-& $py -I -B $run plan --result /private/outputs/fit/result.json --history /path/validation.npz --forecast /private/forecast.npz --target 0 --voltage-sigma .0005 --case paper15 --output /private/outputs/quote
-& $py -I -B $run score --result /private/outputs/fit/result.json --history /path/validation.npz --new /private/actual_new_day.npz --output /private/outputs/selection.json
+$py='D:/apps/miniconda3/envs/Topo/python.exe'
+& $py -I -B rnj_wzzt_dr/run.py doctor
+& $py -I -B rnj_wzzt_dr/run.py check --solver
+& $py -I -B rnj_wzzt_dr/run.py fit --train /private/train.npz --validation /private/validation.npz --method 101 --output /private/fit
+& $py -I -B rnj_wzzt_dr/run.py score --result /private/fit/result.json --history /private/validation.npz --new /private/new_day.npz --output /private/score.json
 ```
 
-把示例路径换成实际绝对路径。观测 NPZ 包含 `labels, P, Q, V, root`，也可用 `Y` 代替 `V/root`；`Y=root²−V²`，功率为 pu。预测 NPZ 包含 `labels, power`，`power` 是 `[新日时槽, 先全部 P 再全部 Q]`。预测只由已知历史形成，时槽对齐须明确；64/32 划分不能沿用旧四个完整日均值。输入接口没有真树或测试集参数。
+观测含`labels,P,Q,V,root`，或用`Y=root²−V²`替代电压列；功率为pu，节点顺序固定。
+`--internal-floor 0`关闭输出收缩。输入不包含真拓扑；验证不生成候选，新日不重拟合。
+`zero/plan`接收冻结库、明确目标和事前功率预测，命令见`run.py --help`；原设备、AC桥及资产边界见[ARCHIVE.md](ARCHIVE.md)。
+多竞争者非零采购的通用入口仍有待接通；各实验目录中的采购实现按其自身协议使用。
 
-目录可整体复制改名，`python -I /copied/name/run.py doctor` 仍能工作。`fit` 保存输入／代码哈希和环境，`score` 检查历史与冻结参数，不重拟合；已有输出目录会被保留。
-
-## 留下的文件
-
-| 位置 | 职责 |
-|---|---|
-| `identification/` | 当前唯一辨识器；原搜索代码延续，`output_floor.py`负责新默认输出收缩，来源及演进记入PROVENANCE |
-| `observations.py`、`history.py` | 观测输入、完整冻结库、原最终选择及 SSE 门槛 |
-| `dr/pipeline.py` | 明确目标方向、零动作核算、原单对报价入口 |
-| `dr/conditional.py`、`zero.py`、`miqp_mse.py` | 原稠密积分、谱积分、单对带整数 QCQP；移除旧实验导入 |
-| `dr/device*`、`resource_adapter.py`、`profiles.py` | 原设备、小时请求图、费用及随机响应 |
-| `resources/` | 原四网络合成资源配置；私人拟合参数和报价另存 |
-| `compat/` | 原 AC 桥及两个直接辅助文件；实际运行仍需原冻结物理模拟源和网络资产 |
-| `evidence/` | 原 DR 交接和零费结果，按旧版本解释 |
-| `PROVENANCE.json`、`verify.py` | 来源、抽取符号、改动及哈希；无需旧代码即可核验本包 |
-
-## 初始整理阶段的验证（2026-11-12）
-
-当前已整理代码和接通接口，并做确定性的小规模验证，见 [VALIDATION.md](VALIDATION.md)。可用算例资格分两批：
-
-| 既有记录 | 完整真拓扑覆盖／历史选择 | 零 DR 状态 |
-|---|---|---|
-| 当前简化引擎 111，原 48 输入 | 输出库含真拓扑 38/48，历史选对 38/48；10 组缺完整真族 | 38 组仍需按当前参数／历史算零动作条件 |
-| 当前简化引擎 101，同一 48 输入 | 输出库含真拓扑 39/48，历史选对 39/48；9 组缺完整真族 | 39 组仍需核算；与 111 有重叠，不能相加 |
-| 旧 DR `.24/QP` 库 | 40/48 有完整真候选；8 组缺完整真族 | 40 组／188 比较已 complete，零动作整库 90% 充分条件全部通过 |
-
-前两行读取既有 [覆盖审计](evidence/current48/coverage_summary.csv)，没有新拟合或零动作计算；它们使用训练 96＋验证 288。原 T 的 4 次下界曾被同域 QP 点推翻，原最终模型已作 QP 闭合，见 [原补充核查](evidence/current48/ERRATA_QP_20261112.md)。后续严格总 96 点／大样本批次有独立数据与完成证据，仍保留在原独立目录，不并入本资格表。旧 paper15 的 17/32 收益属于旧 MAE；同观测严格 MSE 下三策略都是 32/32。
-
-该阶段的下一步是核对**当时版本**冻结结果的候选覆盖及零动作缺口，再接多竞争者非零采购与实际AC测试。真值仅用于离线资格与选后评价。上表保留初始整理时的口径；后续研究进展见下方各独立实验入口。
-
-90% 指目标正确及所声明误差法则下的条件激励事件。设备参数是合成设定；实际相关响应、截断和 AC 达成率另报。归档旧代码前按 [ARCHIVE.md](ARCHIVE.md) 保留数据和物理模拟源。
-
-## 简单后验权重的既有算例验证
-
-按 `sigma²=min validation MSE`、`s=2 sigma²/N` 的方案，已完成96个历史候选库和4个严格96点补充库的重评分。主组92次最高权重≥90%的方法／输入比较中，75次正确、17次错误；错误全部来自库缺完整真拓扑。库含真的77次均选对。结果、难区分样本和复现入口见 [实验说明](experiments/posterior_mse_20261112/README.md)。这是独立诊断，当前辨识和DR默认规则保持原样。
-
-## 2026-11-13 客户侧灵活性弱证据扫描
-
-本阶段的目标是对已辨识正确、后验优势较小的拓扑增强证据。噪声、数据量、负荷形态与较高PV/EV接入的预设网格、完整候选覆盖、有限预算QCQP及独立AC新日入口见 [实验说明](experiments/flexibility_sweep_20261113/README.md)。沿用原101辨识、统一后验尺度和客户设备线性域，不改生产默认。开发选例与32日确认分开，费用初值、有效上下界、失败及后验下降均保留。
-
-## 2026-11-14 分布概率约束与配对验证
-
-当前研究入口见 [分布概率约束实验](experiments/distribution_gate_20261114/README.md)：精确正态约束、固定功率指数约束、含预测误差指数约束均已接通QCQP与全库AC评价。一个已知背景日、4份预测×32条配对路径中，旧参考恢复108/128；新正态121/128，两种指数版本均128/128。简单连线缩减虽满足同一正态门槛，实际仅92/128，作为失败对照保留。
-
-两轮各768条策略执行均通过独立核验，条件模型概率另以每预测/目标2048条路径检查。12个原生报价均限时，未证全局最优；实际方向偏差仍随动作变化。当前结果用于继续跨日期确认，ADMM尚未接入。研究代码隔离在该实验子目录，生产默认不变。
+`PROVENANCE.json`核对当前运行闭包；历史源哈希保留。私人P/Q/V、拟合系数和报价轨迹保存在ignored outputs，不提交Git。

@@ -289,9 +289,8 @@ def rnj_guidance(train):
             families.append(family); origins.append(dict(weight=weight, tolerance=tolerance))
     shared, depth, calibration = geometry(R, X, .75)
     reference = rnj(shared, depth, .16)
-    return dict(reference_family=reference, initial=reference,
+    return dict(reference_family=reference,
                 pool=canonical(s for family in families for s in family), pool_families=tuple(families),
-                warm_families=(),  # Deprecated: whole RNJ trees are not W/T/E warm starts.
                 reference_role="training_scale_W_connection_and_single_E_initial_point",
                 family_origins=origins, diagnostics=diagnostics, R=R, X=X,
                 shared=shared, depth=depth, calibration=calibration, fitted_zero_pruning=False)

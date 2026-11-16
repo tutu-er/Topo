@@ -1,6 +1,6 @@
 # MIQP RNJ＋WZZT 与条件 DR
 
-当前研究入口是 [rnj_wzzt_dr/README.md](rnj_wzzt_dr/README.md)。RNJ提供连接池、W的单个连接模式和E的一个固定参考初值；WZZT直接用MIQP逐步扩展，可选T/E联合重构。E只比较当前点与已拟合参考点的训练目标来确定初值，取消15棵RNJ整树预试。输出候选按训练RX75相对下限0.08收缩非末端支路，再由验证MSE选择并冻结完整库，进入后续DR评价。末端接入线豁免，`--internal-floor 0`关闭输出收缩。
+当前研究入口是 [rnj_wzzt_dr/README.md](rnj_wzzt_dr/README.md)。RNJ提供连接池和参考初值；W先做廉价的单连接QP预试，再用MIQP扩展，可选T/E联合重构。E保留一个固定参考初值，取消15棵整树预试。初值、预试、原生搜索及输出收缩的贡献分别记录。历史R＋W与当前实现的差异见[版本对照](rnj_wzzt_dr/experiments/identification_contribution_20261116/VERSION_DIFF.md)。输出候选按训练RX75相对下限0.08收缩非末端支路，再由验证MSE选择并冻结完整库，进入后续DR评价。
 
 后续默认研究范围由[rnj_wzzt_dr/evaluation_scope.json](rnj_wzzt_dr/evaluation_scope.json)管理：旧主240、当前40及16组，合计296项；旧压力160项已退出。旧封存记录保持历史口径，不再用于当前参数选择或效果论证。
 

@@ -37,26 +37,31 @@ class RNJRoleTests(unittest.TestCase):
         fit.assert_called_once_with(data)
         self.assertEqual(len(guidance['pool_families']), 15)
         self.assertEqual(len(guidance['family_origins']), 15)
-        self.assertEqual(guidance['warm_families'], ())
+        self.assertNotIn('warm_families', guidance)
+        self.assertNotIn('initial', guidance)
         self.assertEqual(guidance['pool'], trees.canonical(C for f in guidance['pool_families'] for C in f))
         reference_index = guidance['family_origins'].index(dict(weight=.75, tolerance=.16))
         self.assertEqual(guidance['reference_family'], guidance['pool_families'][reference_index])
 
-    def test_W_uses_single_reference_connection_without_pool_QP_pretrial(self):
+    def test_W_retains_beneficial_pool_pretrial_without_native_solution(self):
         _, fitter, current, _, config = fixture()
         pool = trees.canonical([*trees.basis(4), (0, 1), (0, 2), (2, 3)])
         solver = SimpleNamespace(extend=Mock(return_value=(None, dict(status=9))))
-        with patch.object(fitter, 'fit', side_effect=AssertionError('No QP before native return')):
-            result, event = algorithm._forward(current, fitter, solver, config, pool,
-                perf_counter()+60., reference_family=((2, 3),))
+        result, event = algorithm._forward(current, fitter, solver, config, pool,
+            perf_counter()+60., reference_family=((2, 3),))
         args = solver.extend.call_args.args
-        self.assertIs(args[0], current); self.assertIs(args[2], current)
-        self.assertEqual(args[1], (2, 3))
-        self.assertIs(result, current)
-        self.assertEqual(event['initial_connection_source'], 'reference_RNJ_connection')
-        self.assertEqual((event['initial_new_r'], event['initial_new_x'], event['initial_new_active']), (0., 0., 0))
-        self.assertEqual(event['pretrial_QP_count'], 0)
-        self.assertFalse(event['accepted']); self.assertFalse(event['has_native_solution'])
+        self.assertIs(args[0], current); self.assertIs(args[2], event['pretrial_best'])
+        self.assertEqual(args[1], (0, 1))
+        self.assertIs(result, event['pretrial_best'])
+        self.assertEqual(event['initial_connection_source'], 'RNJ_pool_single_support_QP')
+        self.assertEqual(event['initial_new_active'], 1)
+        self.assertGreater(event['initial_new_r'], 0.)
+        self.assertGreater(event['pretrial_QP_count'], 0)
+        self.assertEqual(event['pretrial_candidates_attempted'], 3)
+        self.assertTrue(event['accepted']); self.assertFalse(event['has_native_solution'])
+        self.assertFalse(event['native_improved_initial'])
+        self.assertEqual(event['returned_point_source'], 'pool_pretrial_QP')
+        self.assertGreater(event['current_to_initial_gain'], 0.)
         self.assertIsNone(event['closed_point']); self.assertIsNone(event['native_returned_score'])
         self.assertTrue(event['unrestricted_support_domain'])
 
@@ -78,13 +83,14 @@ class RNJRoleTests(unittest.TestCase):
                                            trees.canonical(target['supports']), perf_counter()+60.)
         self.assertEqual(len(fitter.records)-before, 1)
         self.assertTrue(event['has_native_solution']); self.assertTrue(event['accepted'])
-        self.assertTrue(event['native_improved_initial'])
+        self.assertFalse(event['native_improved_initial'])
         self.assertAlmostEqual(event['current_score'], criterion(current, data.n, config.alpha))
         self.assertAlmostEqual(event['native_returned_score'],
             errors(data, target)['mse']/fitter.reference_mse+config.alpha)
         self.assertAlmostEqual(event['closed_score'], criterion(event['closed_point'], data.n, config.alpha))
-        self.assertIs(result, event['closed_point'])
-        self.assertIs(event['initial_point'], current)
+        self.assertAlmostEqual(criterion(result, data.n, config.alpha), event['closed_score'])
+        self.assertIs(event['initial_point'], event['pretrial_best'])
+        self.assertEqual(event['pretrial_QP_count'], 1)
 
     def test_T_and_E_keep_current_when_native_has_no_solution(self):
         _, fitter, current, target, config = fixture()
@@ -120,7 +126,7 @@ class RNJRoleTests(unittest.TestCase):
         data, _, _, target, config = fixture()
         class Poison:
             def __iter__(self): raise AssertionError('Legacy warm families must not be read')
-        guidance = dict(R=np.eye(4), X=np.eye(4), pool=trees.canonical(target['supports']),
+        guidance = dict(R=np.eye(4), X=np.eye(4), pool=trees.basis(4),
                         reference_family=trees.canonical(target['supports']), warm_families=Poison())
         common = dict(guidance=guidance, reference_mse=.1, reference_point=target,
             seconds=0., n=4, labels=data.labels, training_sha256=algorithm._training_fingerprint(data))
@@ -216,7 +222,7 @@ class RNJRoleTests(unittest.TestCase):
 
     def test_R_off_and_missing_reference_source_keep_current_initial(self):
         data, _, _, target, config = fixture()
-        guidance = dict(R=np.eye(4), X=np.eye(4), pool=trees.canonical(target['supports']),
+        guidance = dict(R=np.eye(4), X=np.eye(4), pool=trees.basis(4),
                         reference_family=trees.canonical(target['supports']))
         common = dict(guidance=guidance, reference_mse=.1, reference_point=target,
             seconds=0., n=4, labels=data.labels, training_sha256=algorithm._training_fingerprint(data))
@@ -234,6 +240,45 @@ class RNJRoleTests(unittest.TestCase):
             self.assertEqual(event['initial_source'], 'current')
             self.assertFalse(event['reference_considered'])
             self.assertIs(calls[-1], result['path'][0])
+
+    def test_W_pretrial_timeout_retains_earlier_verified_point_and_original_budget(self):
+        _, fitter, current, _, config = fixture()
+        now = [0.]
+        original_fit = fitter.fit
+        attempts = []
+        def bounded_fit(family):
+            attempts.append((family, fitter.qp_seconds))
+            if (2, 3) in family:
+                now[0] = 1.1
+                fitter.records.append(dict(family=family, soft_cap_exceeded=True, seconds=.9))
+                raise TimeoutError('fixture second QP soft timeout')
+            point = original_fit(family)
+            now[0] = .2
+            return point
+        solver = SimpleNamespace(extend=Mock(side_effect=AssertionError('Budget exhausted')))
+        pool = trees.canonical([*trees.basis(4), (0, 1), (2, 3)])
+        with patch.object(algorithm, 'perf_counter', side_effect=lambda: now[0]), patch.object(fitter, 'fit', side_effect=bounded_fit):
+            result, event = algorithm._forward(current, fitter, solver, config, pool, 1.)
+        self.assertEqual([limit for _, limit in attempts], [1., .8])
+        self.assertEqual(fitter.qp_seconds, 10.)
+        self.assertTrue(event['accepted']); self.assertFalse(event['has_native_solution'])
+        self.assertIn([0, 1], result['supports'])
+        self.assertEqual(event['pretrial_stop_reason'], 'qp_soft_timeout')
+        self.assertEqual(event['pretrial_candidates'][-1]['status'], 'timeout')
+        self.assertEqual(event['pretrial_QP_count'], 2)
+        self.assertTrue(event['pretrial_deadline_exceeded'])
+        self.assertEqual(event['returned_point_source'], 'pool_pretrial_QP')
+
+    def test_W_expired_pretrial_budget_does_not_fit_or_search(self):
+        _, fitter, current, target, config = fixture()
+        solver = SimpleNamespace(extend=Mock(side_effect=AssertionError('Budget exhausted')))
+        with patch.object(fitter, 'fit', side_effect=AssertionError('No budget')):
+            result, event = algorithm._forward(current, fitter, solver, config,
+                trees.canonical(target['supports']), -1.)
+        self.assertIs(result, current)
+        self.assertEqual(event['pretrial_QP_count'], 0)
+        self.assertEqual(event['pretrial_candidates_attempted'], 0)
+        self.assertEqual(event['pretrial_stop_reason'], 'deadline')
 
 
 if __name__ == '__main__':
