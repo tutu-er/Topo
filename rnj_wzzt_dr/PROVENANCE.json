@@ -8,14 +8,15 @@
       "source": "topology_identification_standalone/algorithm.py",
       "source_sha256": "06152967c0e939be11cd51e3fbf592f162655c9b92e032f9b28aaa59b4a4e20d",
       "destination": "identification/algorithm.py",
-      "packaged_sha256": "81b18315358204f3cc35712e116f72d4a208c7aac0d6d63edae277c593608a0b",
+      "packaged_sha256": "7109b1d5772a680a8ec9a38ac1807dd5debb476d4843a38d73e2797737562b83",
       "byte_identical": false,
       "changes": [
         "2026-11-16: Add configurable training-only non-terminal RX75 output contraction, default .08; preserve original training search and pure validation scoring; 0 restores prior output behavior",
         "2026-11-16: RNJ contributes pool, one W connection pattern and one pre-fitted E reference seed; remove pool QP and fifteen-tree QP prescans; retain native optimization domains and record current/seed/native/closed gains separately",
         "2026-11-16 contribution audit: restore budgeted compatible single-support pool QP initialization for W, keep one fixed E reference; remove unused guidance.initial and warm_families; record pretrial versus native gains separately",
         "2026-11-16 receipt correction: account for all stored old W supports in actual MIP-start score; preserve canonical solver warm object and every Start assignment; separate zero-support cleanup gain",
-        "2026-11-17: Optional normalized MAE training with the same candidate domains and final strict-MSE reference; retain default MSE; stream native progress without changing stopping rules"
+        "2026-11-17: Optional normalized MAE training with the same candidate domains and final strict-MSE reference; retain default MSE; stream native progress without changing stopping rules",
+        "2026-11-17: Add explicit W full/pool_only/skip ablations and optional fixed E allowance; default full/None reproduces prior numeric path; preserve raw RNJ pool metadata"
       ]
     },
     {
@@ -311,7 +312,7 @@
     "__init__.py": "fbc85c2e2e3c49401e20af4ab0fc29fa2515ef4ef12d55a02ec9c7119702f879",
     "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
     "ARCHIVE.md": "e4ea09cf2adf3e9b1de84f294957e9f2e74be195773bf96bccf7583840220f63",
-    "cli.py": "0cbd66ea4dbf21edde869a790ad4260ff79d0d03e121887bebcf6e07095bb53b",
+    "cli.py": "3afd3d839003272b455b1622d6182cc44c5fef0ef728cd74a5db8a08190d94b2",
     "compat/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
     "compat/ac_bridge.py": "de420d8d1d5d400339e1711d9dd039f752b28a64cb0c11d4368d4af232775d42",
     "compat/research_experiments/wzzt_dr_selection/dr_competition_bridge/physical_bridge.py": "652d33a50412400ce12e776dd4cf013cd0a5dd96a8bc5ed04ab11eee9eebed24",
@@ -337,14 +338,14 @@
     "evidence/old_zero_screen/RESULTS.json": "6146ef4b2705dc345c988a06ece65c569d50fbd08bfa46ee7baff3e9f9b569d5",
     "history.py": "1cf85a56370d4601513061f3cf0bd3ea651f0eb8c5ad2153654bfda5bad58e8e",
     "identification/__init__.py": "ad25b3b633157d449beb7060034e512e6a479df30c3eb5b507e659464b187ea1",
-    "identification/algorithm.py": "81b18315358204f3cc35712e116f72d4a208c7aac0d6d63edae277c593608a0b",
+    "identification/algorithm.py": "7109b1d5772a680a8ec9a38ac1807dd5debb476d4843a38d73e2797737562b83",
     "identification/competition.py": "86db89cca689256fe70cf700d10f7d6576c0968a8188c1d4b5fc7ecedff2865e",
     "identification/optimization.py": "c276e38c16dffaecb0e2bc96674615d7bb36efc958661ac767fe2f9248500ec4",
     "identification/trees.py": "b55ffb1573f2c72a6b114065d5ce897883476b726f15ec9d04057f9d4884deaa",
     "io.py": "54cf69ff77ae5551d1ef9b19019c94ab1506e0b14c1f9a1f8c276b8ffda871b7",
     "MODEL.md": "8e23df558a8c8e6ced90d0bdc994455d0bb52f6d90c1ba8fef84de3e2686e6c6",
     "observations.py": "85925fdb0630f80a522078d0b7d73b9d297686f911bd642c1d72b015ee813b86",
-    "README.md": "7c2567e4e0925e1d75931fbfb31051d88a545ba3f24f8221764234dbe66d3c72",
+    "README.md": "d910cf784771d03a12a1c375238ed7dd519302b30f492949ab682113ac7db1db",
     "requirements.txt": "eddd856fd69f0e6f8184ae7a9a7e8d0a1f9084979a10dcb837c65cb6592aee16",
     "resources/case_allocations.json": "b280a0eb89ecd29b76f3a161fd2cc9558a390c929bfebdc4beec37b7c07bc374",
     "resources/library.json": "f5ca236e34481b3a190a35d8e5b5b77f14c22a570ef59d79835ec17ba3d9cf00",
@@ -366,7 +367,8 @@
     "tests/test_cli_step_budget.py": "e3bd1706f1a25172aca16df91d39dff2dd45f828e9fac665de1be9e59060ed31",
     "progress.py": "01b8e567de78db8eb3664fb99f12d1ec0fffebfcb7360dadaf34c395dfaaa0ac",
     "tests/test_training_losses.py": "245042c440b5481b3846ff0926b3d669f02df8e08fd81960d325343bcebd6c63",
-    "tests/test_progress.py": "bc888a0c9679656e7d4ad5b68b28243c3119506e505beacae4eaa8bb821145ea"
+    "tests/test_progress.py": "bc888a0c9679656e7d4ad5b68b28243c3119506e505beacae4eaa8bb821145ea",
+    "tests/test_w_ablation.py": "94ef382d99dea43c760ea136a140a1cdbb3571857ea3c319a7693caeca8be69a"
   },
   "package_revision": {
     "date": "2026-11-17",
@@ -388,6 +390,7 @@
     "training_loss_default": "mse",
     "optional_training_loss": "mae",
     "progress": "Scalar live objective/bound/gap plus accepted-path checkpoint; no saved MIP search-tree claim",
-    "progress_sharing_retry": "2026-11-17: bounded retry for transient Windows atomic-replace sharing errors; running v2 snapshot remains unchanged"
+    "progress_sharing_retry": "2026-11-17: bounded retry for transient Windows atomic-replace sharing errors; running v2 snapshot remains unchanged",
+    "w_importance_ablation": "Explicit full/pool_only/skip with fixed E cap in research protocol; production defaults unchanged"
   }
 }

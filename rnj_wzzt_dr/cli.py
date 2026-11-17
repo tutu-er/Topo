@@ -26,6 +26,9 @@ def main(argv=None):
     fit.add_argument("--validation", type=Path, required=True)
     fit.add_argument("--method", choices=(*METHODS, *ALIASES), default="111")
     fit.add_argument("--loss", choices=("mse","mae"), default="mse", help="Training loss; final selection remains strict validation MSE")
+    fit.add_argument("--w-mode",choices=("full","pool_only","skip"),default="full",
+                     help="W ablation: full search, known-pool QP only, or skip W; default full")
+    fit.add_argument("--e-seconds",type=float,help="Optional E-only time cap; omit to use the remaining structural allowance")
     fit.add_argument("--preset", choices=("quick","grid","long"), help="Ready budgets: quick 300/30s, grid 600/10s, long 14400/600s (total/W step)")
     fit.add_argument("--seconds", type=float, default=None)
     fit.add_argument("--step-seconds", type=float, default=None,
@@ -79,7 +82,7 @@ def main(argv=None):
         default=SearchConfig()
         total,step,reserve=budgets.get(args.preset,(default.total_seconds,default.per_mip_seconds,default.output_reserve_seconds))
         if args.seconds is not None:total=args.seconds;reserve=min(reserve,total*.1)
-        cfg = replace(default, loss=args.loss, total_seconds=total,
+        cfg = replace(default, loss=args.loss, w_mode=args.w_mode,e_seconds=args.e_seconds,total_seconds=total,
                       internal_floor=args.internal_floor,
                       per_mip_seconds=step,output_reserve_seconds=reserve)
         if args.step_seconds is not None:

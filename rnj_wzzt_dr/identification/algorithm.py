@@ -24,6 +24,9 @@ else:
 class SearchConfig:
     # Statistical/structural choices. Remaining fields are numerical budgets.
     loss: str = "mse"
+    # Research ablations; full and no E-only cap preserve the original chain.
+    w_mode: str = "full"
+    e_seconds: float | None = None
     alpha: float = .003
     internal_floor: float = .08
     block_limit: int = 5
@@ -43,6 +46,10 @@ class SearchConfig:
 
     def validate(self):
         validate_loss(self.loss)
+        if self.w_mode not in ("full", "pool_only", "skip"):
+            raise ValueError("w_mode must be 'full', 'pool_only', or 'skip'")
+        if self.e_seconds is not None and (not np.isfinite(self.e_seconds) or self.e_seconds <= 0):
+            raise ValueError("e_seconds must be None or finite and strictly positive")
         if self.alpha < 0 or not np.isfinite(self.alpha):
             raise ValueError("alpha must be finite and nonnegative")
         if not np.isfinite(self.internal_floor) or self.internal_floor < 0.:
@@ -235,11 +242,14 @@ def _W_model_initial_point(current, candidate, canonical_initial):
 
 
 def _forward(current, fitter, solver, config, pool, deadline, *, reference_family=()):
+    if config.w_mode == "skip":
+        raise ValueError("W is disabled by w_mode='skip'")
     n, family = fitter.data.n, trees.canonical(current["supports"])
     candidate = _any_extension(family, n, pool, reference_family)
     if candidate is None:
         return current, dict(stage="W", accepted=False, structurally_complete=True,
                              solver=dict(solve_started=False), zero_events=[],
+                             w_mode=config.w_mode, unrestricted_support_domain=config.w_mode == "full",
                              returned_point_source="current",
                              **_initialization_receipt(current, None, None, fitter, config, "current_no_extension",
                                  pretrial_seconds=0., pretrial_candidates_attempted=0, pretrial_candidates=[],
@@ -284,7 +294,10 @@ def _forward(current, fitter, solver, config, pool, deadline, *, reference_famil
     initial_source = "RNJ_pool_single_support_QP" if initial is not current else "current_with_zero_weight_connection"
     lookup = {tuple(C): (r, x) for C, r, x in zip(initial["supports"], initial["r"], initial["x"], strict=True)}
     initial_r, initial_x = lookup.get(candidate, (0., 0.))
-    if deadline-perf_counter() > .01:
+    if config.w_mode == "pool_only":
+        raw, native = None, dict(solve_started=False, stop_reason="ablation_pool_only",
+                                status=None, bound=None, gap=None, native_disabled=True)
+    elif deadline-perf_counter() > .01:
         raw, native = solver.extend(current, candidate, initial,
                                     deadline=min(deadline, perf_counter()+config.per_mip_seconds))
         if raw is not None:
@@ -297,13 +310,16 @@ def _forward(current, fitter, solver, config, pool, deadline, *, reference_famil
         raw, native = None, dict(solve_started=False, stop_reason="forward_budget", status=None)
     # Construct this only after the unchanged solve: telemetry must not alter
     # the warm object, Start arrays, residual BLAS order, or allocated deadline.
-    model_initial = _W_model_initial_point(current, candidate, initial)
+    model_initial = (_W_model_initial_point(current, candidate, initial)
+                     if config.w_mode == "full" else initial)
     cleanup_score_gain = criterion(model_initial, n, config.alpha)-criterion(initial, n, config.alpha)
     result, event = _accept(current, best, fitter, config, stage="W", solver=native, zeros=best_zeros,
-                   raw_point=raw, unrestricted_support_domain=True, proposal_source=proposal_source,
+                   raw_point=raw, unrestricted_support_domain=config.w_mode == "full",
+                   w_mode=config.w_mode, proposal_source=proposal_source,
                    **_initialization_receipt(current, raw, closed, fitter, config,
                        initial_source, initial=model_initial, initial_connection=list(candidate),
-                       initial_score_scope="W_model_start_with_all_old_supports",
+                       initial_score_scope=("W_model_start_with_all_old_supports" if config.w_mode == "full"
+                                            else "pool_pretrial_point_without_native_start"),
                        pretrial_cleanup_score_gain=cleanup_score_gain,
                        initial_connection_source=seed_origin, initial_new_r=initial_r, initial_new_x=initial_x,
                        initial_new_active=int(candidate in lookup), pretrial_QP_count=pretrial_count,
@@ -447,8 +463,10 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
         solver.progress_interval = getattr(heartbeat, "every", 10.)
         tail = dict(pool=(), keep=trees.canonical(current["supports"]), frontiers=[], released=())
         try:
-            reason = "forward_budget"
-            while prefix_deadline-perf_counter() > .01:
+            reason = "w_skipped" if config.w_mode == "skip" else "forward_budget"
+            if config.w_mode == "skip":
+                ping("W_skipped", w_mode=config.w_mode)
+            while config.w_mode != "skip" and prefix_deadline-perf_counter() > .01:
                 if T_on and trees.max_direct_blocks(current["supports"], train.n) <= config.block_limit:
                     reason = "tail_eligible"; break
                 ping("W_started", iteration=len(events))
@@ -478,9 +496,13 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
                 ping("E_started")
                 e_pool = trees.canonical([*pool, *(C for p in path for C in p["supports"]),
                                           *tail["pool"], *combinations(range(train.n), 2)])
+                e_deadline = structural_deadline
+                if config.e_seconds is not None:
+                    e_deadline = min(structural_deadline, perf_counter()+config.e_seconds)
                 current, event = _reconstruct(current, fitter, solver, config, pool=e_pool, keep=trees.basis(train.n),
-                                               deadline=structural_deadline, stage="E",
+                                               deadline=e_deadline, stage="E",
                                                reference_point=common.get("reference_point") if R_on else None)
+                event["stage_seconds_cap"] = config.e_seconds
                 events.append(event)
                 if event["accepted"]:
                     path.append(current)
@@ -531,11 +553,16 @@ def fit(train, validation, method="111", config=None, common=None, heartbeat=Non
                 selected_mae_view=mae_view, selection_metric="validation_mse", path=path, events=events,
                 frozen_candidates=candidates, stop_reason=reason, config=asdict(config),
                 reference_mse=common["reference_mse"], reference_loss=reference_loss,
-                training_loss=config.loss, common_seconds=common["seconds"],
+                training_loss=config.loss, w_mode=config.w_mode, common_seconds=common["seconds"],
                 QP=fitter.records, MIQP=native_records, output_contraction=contraction,
                 native_bound_conflicts=sum(r.get("bound_consistent_with_fixed_family_qp") is False for r in native_records),
                 complete_RNJ_output_fallback=False, truth_used=False, test_used=False,
                 guarantee_scope="native bounds require consistency with feasible fixed-family fits; no whole-tree optimality claim")
+    rnj_active = method not in {"rnj", "nj"} and method[0] == "1"
+    result["rnj_pool_guidance"] = dict(structural_use="used" if rnj_active else "not_used",
+        pool=guidance["pool"] if rnj_active else (),
+        reference_family=guidance["reference_family"] if rnj_active else (),
+        training_scalar_reference_used=True)
     if contraction is not None:
         result["uncontracted_output_path"] = uncontracted_output_path
     result["competition"] = competition(result, validation)

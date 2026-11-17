@@ -70,6 +70,8 @@ $py='D:/apps/miniconda3/envs/Topo/python.exe'
 限时回到初值与已经证明初值最优分别保留。`checkpoint.json`保存已接受路径，不包含可原样恢复的整数搜索树。
 
 [长时限与样本/误差网格](experiments/wzzt_long_grid_20261117/README.md)提供统一测试命令、锁定协议和全分母报告。
+[W重要性消融](experiments/w_importance_20261117/README.md)比较完整W、仅池内QP组合及直接E；新批在原全量测试退出后启动。
+通用入口的`--w-mode full|pool_only|skip`及`--e-seconds`仅在显式指定时改变对应步骤，默认保持原完整流程。
 `zero/plan`接收冻结库、明确目标和事前功率预测，命令见`run.py --help`；原设备、AC桥及资产边界见[ARCHIVE.md](ARCHIVE.md)。
 多竞争者非零采购的通用入口仍有待接通；各实验目录中的采购实现按其自身协议使用。
 
