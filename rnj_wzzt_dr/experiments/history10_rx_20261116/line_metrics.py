@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).parents[3]
-DEFAULT_RUN = ROOT / 'outputs/history10_rx_20261116_v1'
+DEFAULT_RUN = ROOT / 'data/history10_rx_20261116_v1'
 DEFAULT_AUDIT = ROOT / 'outputs/history10_rx_audit_20261116_v2/report/audit.json'
 
 
@@ -84,7 +84,7 @@ def compute(run, audit_path, out):
 
     for world in worlds:
         case = world['case']
-        case_dir = ROOT / 'topology_identification_standalone/cases' / case
+        case_dir = ROOT / 'rnj_wzzt_dr/physical/cases' / case
         paths = {name: case_dir / name for name in ('metadata.json', 'buses.csv', 'branches.csv')}
         for p in paths.values():
             ref(p, expected_sources[str(p.resolve())])

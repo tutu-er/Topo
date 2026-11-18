@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import hashlib
 from pathlib import Path
 import numpy as np
+from .paths import resolve_path
 
 @dataclass(frozen=True)
 class Observation:
@@ -54,7 +55,7 @@ class Observation:
 
 def load(path):
     """Read explicitly named observed arrays, never test/truth/catalog entries."""
-    with np.load(Path(path), allow_pickle=False) as z:
+    with np.load(resolve_path(path), allow_pickle=False) as z:
         labels = tuple(map(int, z["labels"]))
         p, q = [np.asarray(z[k], float).reshape(-1, len(labels)) for k in ("P", "Q")]
         if "Y" in z:

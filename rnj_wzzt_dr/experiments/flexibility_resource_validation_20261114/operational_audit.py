@@ -21,7 +21,8 @@ import numpy as np
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 
 
 def write(path, value):

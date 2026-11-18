@@ -150,7 +150,7 @@ def build_case(case_name, archive_path, start_date, *, expected_sha256=None):
     Start at 08:00 Europe/Berlin. DST-changing windows are explicitly rejected.
     Network data supplies labels and nominal P for size only, not P/Q shape.
     """
-    from topology_identification_standalone.data import load_case
+    from rnj_wzzt_dr.physical.backend import load_case
     if case_name not in CASES:
         raise ValueError("Unknown predeclared test network")
     archive_path = Path(archive_path).resolve()

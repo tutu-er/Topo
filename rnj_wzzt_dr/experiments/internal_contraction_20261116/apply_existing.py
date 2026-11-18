@@ -122,7 +122,7 @@ def execute(run, out):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--run',type=Path,default=ROOT/'outputs/impedance_floor_20261116_v1')
+    parser.add_argument('--run',type=Path,default=ROOT/'data/impedance_floor_20261116_v1')
     parser.add_argument('--out',type=Path,required=True)
     args=parser.parse_args();result=execute(args.run,args.out)
     print({k:v for k,v in result.items() if k!='records'})

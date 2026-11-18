@@ -1,30 +1,28 @@
-# MIQP RNJ＋WZZT 与条件 DR
+# 拓扑辨识与条件 DR
 
-当前研究入口是 [rnj_wzzt_dr/README.md](rnj_wzzt_dr/README.md)。RNJ提供连接池和参考初值；W先做廉价的单连接QP预试，再用MIQP扩展，可选T/E联合重构。E保留一个固定参考初值，取消15棵整树预试。初值、预试、原生搜索及输出收缩的贡献分别记录。历史R＋W与当前实现的差异见[版本对照](rnj_wzzt_dr/experiments/identification_contribution_20261116/VERSION_DIFF.md)。输出候选按训练RX75相对下限0.08收缩非末端支路，再由验证MSE选择并冻结完整库，进入后续DR评价。
-
-后续默认研究范围由[rnj_wzzt_dr/evaluation_scope.json](rnj_wzzt_dr/evaluation_scope.json)管理：旧主240、当前40及16组，合计296项；旧压力160项已退出。旧封存记录保持历史口径，不再用于当前参数选择或效果论证。
+当前唯一开发入口是 [rnj_wzzt_dr](rnj_wzzt_dr/README.md)。流程为 RNJ 连接池与参考点、W 未知连接搜索、可选 T/E 重构、训练侧非末端收缩、独立验证 MSE 选择和完整候选库冻结。默认训练损失为 MSE，也提供 MAE；本次整理不改变算法和研究参数。
 
 ```powershell
 $py = 'D:/apps/miniconda3/envs/Topo/python.exe'
 & $py -I -B rnj_wzzt_dr/run.py doctor
 & $py -I -B rnj_wzzt_dr/run.py check --solver
 & $py -I -B rnj_wzzt_dr/run.py --help
+& $py -B -m pytest rnj_wzzt_dr/tests -q -p no:cacheprovider
 ```
 
-辨识和报价的输入、原最终评分、版本差异及当前缺口见主线说明；研究模型不因本次归档改变。零动作核算和原单对报价已接通，多竞争者非零报价仍待接通。
+Python 3.10+；NumPy、SciPy 支持基础运行，结构搜索和非零报价另需 Gurobi 与许可。实测 P/Q 数据处理还使用 pandas。根 pyproject.toml 是安装入口，不再安装已退出的 rnj_wzzt_core。
 
-## 目前保留的内容
-
-| 位置 | 用途 |
+| 位置 | 当前用途 |
 |---|---|
-| [rnj_wzzt_dr/](rnj_wzzt_dr/README.md) | 当前主线代码、必要资源和验收记录 |
-| [topology_identification_standalone/](topology_identification_standalone/README.md) | 正在进行的严格 96 点批次、原算例和历史完整验证；运行完成前保持路径 |
-| `rnj_wzzt_core/` | 另一路 AC 拟合／证据研究，含未提交代码，保持原位 |
-| [research_experiments/](research_experiments/README.md) | 两个未跟踪研究目录；其余旧实验已归档 |
-| `outputs/`、`artifacts/`、`data_external/` | 原始数据、冻结物理源和结果证据，保持原路径，不参加默认源码扫描 |
-| [KEEP.md](KEEP.md) | 保留理由、关键恢复资产和继续归档条件 |
-| [archive/legacy_research_20261112/](archive/legacy_research_20261112/README.md) | 已退出主线的旧代码和文档，带路径／哈希清单及恢复工具 |
+| rnj_wzzt_dr/identification、dr | 辨识、冻结评分、零动作核算、设备及已有单对报价 |
+| rnj_wzzt_dr/physical | 四网络 AC 模拟器和网络表 |
+| rnj_wzzt_dr/experiments | 保留的研究实现和实验入口，按各自协议使用 |
+| data/ | 本地私有数据与必要基准，Git 忽略 |
+| data/frozen_studies/ | 最新两批的冻结候选、参数及逐例结果汇总 |
+| KEEP.md、cleanup_manifest.json | 保留范围、清理结果及恢复位置 |
 
-旧 `experiments.run_mainline`、`terminal_case33` 和历代研究模块已退出根目录默认入口。需要重放时按归档说明恢复，或使用其原版本的独立检出。本次不将旧 L1/MILP 结果并入新 MSE 主线。
+默认历史评估范围仍为 296 项，见 rnj_wzzt_dr/evaluation_scope.json。不同来源的数据预算按组比较。旧压力 160 已退役。
 
-根 `pyproject.toml` 现只打包 `rnj_wzzt_dr`，默认测试也只收集该包。已有 `Topo` 环境、`requirements.txt` 和 `environment.yml` 保留，供现有 AC 研究和物理源使用；没有重装或搬动解释器。
+封存数据没有改写：读取时通过路径解析器找到新位置，再按原哈希核验内容。旧独立工程已拆出必要模拟器和基准文件，其余历史材料移出开发树。最新完整求解轨迹在仓库外压缩保存，当前候选库可用于后续 DR。
+
+通用 plan 保留零动作和已有单竞争者报价；多竞争者非零采购仍按各实验的独立实现使用。

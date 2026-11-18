@@ -96,7 +96,7 @@ class Verify:
         history = np.array([np.sum((y-P@matrix.T)**2) for matrix in H])
         history0 = np.array([np.sum((y-P@matrix.T)**2) for matrix in H-C])
         self.same('historical_sse', [row['history_sse'] for row in score['native_bank']], history, atol=1e-15)
-        case_root = ROOT/'topology_identification_standalone'/'cases'/entry['case']
+        case_root = ROOT/'rnj_wzzt_dr'/'physical'/'cases'/entry['case']
         metadata = io.read(case_root/'metadata.json')
         children = defaultdict(list)
         with (case_root/'branches.csv').open(encoding='utf-8-sig', newline='') as stream:

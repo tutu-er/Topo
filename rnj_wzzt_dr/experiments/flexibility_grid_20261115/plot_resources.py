@@ -148,7 +148,7 @@ def collect(run):
                 raise ValueError('Mixed P/Q action units changed')
             cell_refs.append(dict(id=cell['id'],seal=io.ref(directory/'seal.json'),
                                   resource_case=seal['resource_case'],planner=seal['planner']))
-        case_root=ROOT/'topology_identification_standalone'/'cases'/case
+        case_root=ROOT/'rnj_wzzt_dr'/'physical'/'cases'/case
         paths={name:case_root/name for name in ('metadata.json','buses.csv','branches.csv')}
         for path in paths.values():
             if str(path.resolve()) not in frozen_sources:raise ValueError('Physical table absent from data source seal')
@@ -334,7 +334,7 @@ def run(source_run,out):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--run',type=Path,default=Path('outputs/flexibility_grid_execution_20261115_v1'))
+    parser.add_argument('--run',type=Path,default=Path('data/flexibility_grid_execution_20261115_v1'))
     parser.add_argument('--out',type=Path,default=Path('outputs/flexibility_resource_configuration_20261115_v1'))
     args=parser.parse_args();answer=run(args.run,args.out)
     print(dict(networks=len(answer['networks']),nodes=answer['physical_node_count'],resources=answer['resource_count'],

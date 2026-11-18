@@ -18,11 +18,11 @@ from ...observations import Observation, fingerprint, load
 
 ROOT = Path(__file__).resolve().parents[3]
 GROUPS = {
-    'history288': ('outputs/history288_pq_noise_data_20261115_v1', 40,
+    'history288': ('data/history288_pq_noise_data_20261115_v1', 40,
                    'cc9c8db90a1be721d99bb98faead6c12a0cc28d8bbb9c9fd2ad1b91c0a9f231b'),
-    'history10': ('outputs/history10_rx_20261116_v1', 16,
+    'history10': ('data/history10_rx_20261116_v1', 16,
                   '33884afd579eec798fe94127f1bc39dee6721a15ce486afd156309734eef07bc'),
-    'large96_main': ('topology_identification_standalone/outputs/large96_main_20261112_001', 240,
+    'large96_main': ('data/benchmarks/large96_main_20261112_001', 240,
                      'ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4'),
     'large96_pressure': ('topology_identification_standalone/outputs/large96_pressure_20261112_001', 160,
                          '20877c32c732d5083c2765908ccd37701251bc23bf40a23f6aa5a49de2016ec8'),
@@ -30,7 +30,8 @@ GROUPS = {
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 
 
 def ref(path):
@@ -96,7 +97,7 @@ def _base_entry(group, task, root, directory, protocol, protocol_ref, snapshots)
 def _inventory_group(root, selected_group):
     root = Path(root).resolve(); entries = []
     if selected_group.startswith('large96_'):
-        broad = read(root/'outputs/astra_inventory_20261114/mainline400.json')
+        broad = read(root/'data/astra_inventory_20261114/mainline400.json')
         broad_lookup = {r['id']: r for r in broad}
         if len(broad) != 400 or len(broad_lookup) != 400:
             raise ValueError('Original 400-entry manifest is incomplete or duplicated')
@@ -179,7 +180,7 @@ def _inventory_group(root, selected_group):
                                  train_fingerprint=info['training_sha256'], validation_fingerprint=info['selection_sha256'],
                                  candidate_seal_ref=ref(directory/'selection_seal.json'), native_wrapper_key='result',
                                  legacy_truth_ref=ref(directory/'evaluation'/f'{task["job"]}.json'),
-                                 source_index_ref=ref(root/'outputs/astra_inventory_20261114/mainline400.json'),
+                                 source_index_ref=ref(root/'data/astra_inventory_20261114/mainline400.json'),
                                  physical_history_group=f'{task["cohort"]}|{task["case"]}|{task["replicate"]}',
                                  replicate=task['replicate'], voltage_sigma=task['voltage_sigma'])
                 entry['training_points'] = entry['train_rows'][1]-entry['train_rows'][0]

@@ -10,6 +10,8 @@ import sys
 
 import numpy as np
 
+from .paths import relocate_references, resolve_path
+
 
 def plain(value):
     if is_dataclass(value):
@@ -33,7 +35,7 @@ def write(path, value):
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    return relocate_references(json.loads(resolve_path(path).read_text(encoding="utf-8-sig")))
 
 
 def contract_hash(value):
@@ -42,7 +44,7 @@ def contract_hash(value):
 
 
 def ref(path):
-    path = Path(path).resolve()
+    path = resolve_path(path)
     return dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
 
 

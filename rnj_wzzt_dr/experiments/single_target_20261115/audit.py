@@ -382,7 +382,7 @@ def run(source,out):
             with audit.file(casepath/'branches.csv').open(encoding='utf-8-sig',newline='') as stream:branches=list(csv.DictReader(stream))
             with audit.file(casepath/'buses.csv').open(encoding='utf-8-sig',newline='') as stream:buses=list(csv.DictReader(stream))
             for file in ('metadata.json','branches.csv','buses.csv'):
-                audit.require(base.ref(casepath/file)['sha256']==base.ref(ROOT/'topology_identification_standalone/cases'/entry['case']/file)['sha256'],'Physical table changed')
+                audit.require(base.ref(casepath/file)['sha256']==base.ref(ROOT/'rnj_wzzt_dr/physical/cases'/entry['case']/file)['sha256'],'Physical table changed')
             audit.case(source/'cases'/entry['id'],entry,p,metadata,branches,buses)
         except Exception as exc:audit.task_errors.append(dict(id=entry['id'],error=repr(exc),traceback=traceback.format_exc()))
         base.write(out/'progress.json',dict(rows=len(audit.records),expected=expected_rows,task_errors=len(audit.task_errors),row_errors=sum(r['audit_status']=='failed' for r in audit.records)))

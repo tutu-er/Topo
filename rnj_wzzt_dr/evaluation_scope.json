@@ -13,12 +13,12 @@
   "active_count": 296,
   "historical_count": 456,
   "source_inventory": {
-    "path": "outputs/impedance_floor_20261116_v1/inputs.json",
+    "path": "data/impedance_floor_20261116_v1/inputs.json",
     "sha256": "379255f17bfeea88bcd155e3f9fdce425f56b928b2bc87d53b6e189f6a01985f"
   },
   "decision": "User excluded the old pressure160 cohort from future default evaluation. Keep all sealed historical data and results unchanged.",
   "selection_rule": "Filter only by source_group. Retain failed, unavailable and unresolved entries within the selected groups.",
-  "historical_access": "include_retired=True explicitly returns all 456 entries, with copied per-entry evaluation_scope.status labels.",
+  "historical_access": "include_retired=True returns all 456 metadata entries; retired pressure160 payloads are outside the active checkout after cleanup.",
   "evidence_version": "The source catalog and existing results use the previously executed RNJ multiple-whole-tree pretest version. They are not results for the newly simplified RNJ version.",
   "parameter_scope": "This scope change does not change the existing internal_floor=0.08 or any estimator, optimizer or frozen experiment."
 }

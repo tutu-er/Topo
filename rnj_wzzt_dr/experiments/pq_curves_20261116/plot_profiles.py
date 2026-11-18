@@ -212,8 +212,8 @@ def execute(run, archive_receipt, out):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--run',type=Path,default=ROOT/'outputs/history10_rx_20261116_v1')
-    p.add_argument('--archive-receipt',type=Path,default=ROOT/'outputs/measured_pq_sources_20261114/archive.json')
+    p.add_argument('--run',type=Path,default=ROOT/'data/history10_rx_20261116_v1')
+    p.add_argument('--archive-receipt',type=Path,default=ROOT/'data/measured_pq_sources_20261114/archive.json')
     p.add_argument('--out',type=Path,required=True)
     a=p.parse_args();r=execute(a.run,a.archive_receipt,a.out)
     print({k:r[k] for k in ('status','source_to_world_bitwise_equal','no_new_AC','source_unchanged')})

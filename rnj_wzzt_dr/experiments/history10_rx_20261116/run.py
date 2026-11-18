@@ -34,9 +34,9 @@ from .metrics import metrics, fixed_support_diagnostics
 
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_OUT = ROOT/'outputs/history10_rx_20261116_v1'
+DEFAULT_OUT = ROOT/'data/history10_rx_20261116_v1'
 OLD_INPUTS = ROOT/'outputs/rolling15_development_20261115_v1/inputs.json'
-ARCHIVE = ROOT/'outputs/measured_pq_sources_20261114/paired_pq_15min.npz'
+ARCHIVE = ROOT/'data/measured_pq_sources_20261114/paired_pq_15min.npz'
 
 
 def utc():
@@ -68,7 +68,7 @@ def source_paths():
     paths.update(p for p in Path(__file__).parent.glob('*.py')
                  if not p.name.startswith('test_') and p.name != 'audit_report.py')
     for case in ('soumalas11', 'pengwah18'):
-        paths.update(ROOT/'topology_identification_standalone/cases'/case/name
+        paths.update(ROOT/'rnj_wzzt_dr/physical/cases'/case/name
                      for name in ('metadata.json','buses.csv','branches.csv'))
     return sorted(paths)
 

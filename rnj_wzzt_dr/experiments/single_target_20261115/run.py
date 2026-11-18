@@ -41,7 +41,7 @@ def baseline_sources(source,original):
 def prepare(out,*,smoke=False,seconds=600.,preflight=None):
     out=Path(out).resolve()
     if out.exists():raise FileExistsError(out)
-    source=paired.old.ROOT/'outputs/flexibility_grid_execution_20261115_v1'
+    source=paired.old.ROOT/'data/flexibility_grid_execution_20261115_v1'
     source_audit=paired.old.ROOT/'outputs/flexibility_grid_audit_20261115_v1/report.json'
     original=io.read(source/'protocol.json');complete=io.read(source/'complete.json');audit=io.read(source_audit)
     if complete['status']!='complete' or not complete['source_unchanged'] or audit['status']!='passed' or audit['audited_rows']!=4608:raise ValueError('Completed audited original grid required')

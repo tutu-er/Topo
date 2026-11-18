@@ -27,7 +27,8 @@ RESOURCE_NAMES = dict(original_p10_q36='原7项P＋15项Q', expanded_p10_q36='�
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 
 
 def ref(path):

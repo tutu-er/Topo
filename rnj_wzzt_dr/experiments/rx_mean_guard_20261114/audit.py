@@ -311,7 +311,7 @@ def run(source,out):
     with audit.file(meta/'branches.csv').open(encoding='utf-8-sig',newline='') as f:branches=list(csv.DictReader(f))
     with audit.file(meta/'buses.csv').open(encoding='utf-8-sig',newline='') as f:buses=list(csv.DictReader(f))
     for name in ('metadata.json','branches.csv','buses.csv'):
-        current=base.native.ROOT/'topology_identification_standalone/cases'/entries[0]['case']/name
+        current=base.native.ROOT/'rnj_wzzt_dr/physical/cases'/entries[0]['case']/name
         audit.require(base.ref(current)['sha256']==base.ref(meta/name)['sha256'],'Physical truth tables changed since sealing')
     boundary=planning_boundary(source/'source_snapshot/rnj_wzzt_dr/experiments/rx_mean_guard_20261114/run.py')
     audit.require(boundary['passed'],'Solver input boundary differs from declared historical-data interface')

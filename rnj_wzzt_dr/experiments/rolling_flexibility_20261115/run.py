@@ -28,7 +28,7 @@ from . import solve
 
 
 ROOT=Path(__file__).resolve().parents[3]
-DEFAULT_SOURCE=ROOT/'outputs/history288_pq_noise_execution_20261115_v1'
+DEFAULT_SOURCE=ROOT/'data/history288_pq_noise_execution_20261115_v1'
 
 
 def utc():return datetime.now(timezone.utc).isoformat()

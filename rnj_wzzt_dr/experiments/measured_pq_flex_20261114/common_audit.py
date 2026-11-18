@@ -8,14 +8,16 @@ import sys, json, hashlib, collections, platform, argparse
 import numpy as np
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT))
-from topology_identification_standalone import data as physical
+from rnj_wzzt_dr.physical import backend as physical
 from rnj_wzzt_dr.observations import Observation
 from rnj_wzzt_dr.identification.optimization import QPFitter
 
 OUT=ROOT/'outputs/measured_pq_flex_20261114_audit'
-INDEX=ROOT/'outputs/measured_pq_sources_20261114/qualified_inputs_v2.json'
+INDEX=ROOT/'data/measured_pq_sources_20261114/qualified_inputs_v2.json'
 SPLITS={'train':(0,192),'validation':(192,288),'new_day':(288,384)}
-def read(path):return json.loads(Path(path).read_text(encoding='utf-8'))
+def read(path):
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def write(path,x):path.write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
 def matrices(pt,n):

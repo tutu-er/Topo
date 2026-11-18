@@ -400,7 +400,7 @@ def run(out):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source-run',type=Path,default=Path('outputs/flexibility_grid_execution_20261115_v1'))
+    parser.add_argument('--source-run',type=Path,default=Path('data/flexibility_grid_execution_20261115_v1'))
     parser.add_argument('--source-audit',type=Path,default=Path('outputs/flexibility_grid_audit_20261115_v1/report.json'))
     parser.add_argument('--out',type=Path,required=True)
     parser.add_argument('--smoke',action='store_true')

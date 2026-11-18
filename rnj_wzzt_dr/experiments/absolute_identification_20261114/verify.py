@@ -46,7 +46,7 @@ def verify(run,out,*,completed_only=False,limit_completed=0,history_id=None):
     if not (run/'complete.json').exists() and not completed_only:raise ValueError('Only audit completed batch unless partial preflight explicitly requested')
     (out/'source_snapshot.py').write_bytes(Path(__file__).read_bytes())
     io.write(out/'protocol.json',dict(source=io.ref(__file__),source_snapshot=io.ref(out/'source_snapshot.py'),batch_protocol=io.ref(run/'protocol.json'),new_optimization=0,new_AC=0,
-        all400_manifest=io.ref(ROOT/'outputs/astra_inventory_20261114/mainline400.json'),partial_preflight=completed_only,limit_completed=limit_completed,history_id=history_id,
+        all400_manifest=io.ref(ROOT/'data/astra_inventory_20261114/mainline400.json'),partial_preflight=completed_only,limit_completed=limit_completed,history_id=history_id,
         scope='All400 historical generation assumptions, all saved complete rows and returned policies. Replay saved shared seed arrays where available; otherwise cross-check named seed cost receipts.'))
     errors=[];maxerr=defaultdict(float);counts=Counter();certificates=[];counterexamples=[];resource_summary={};meta_cache={};trusted_records=[]
     metadata_defects=[];training_contracts={};nested_trust_records=[]
@@ -61,7 +61,7 @@ def verify(run,out,*,completed_only=False,limit_completed=0,history_id=None):
     def near(a,b,key,tol=1e-8):
         error=float(np.max(np.abs(np.asarray(a)-np.asarray(b)),initial=0));maxerr[key]=max(maxerr[key],error)
         require(error<=tol,key+' mismatch '+str(error))
-    all400=io.read(ROOT/'outputs/astra_inventory_20261114/mainline400.json')
+    all400=io.read(ROOT/'data/astra_inventory_20261114/mainline400.json')
     for e in all400:
         batch=Path(e['request']['batch'])
         if str(batch) not in meta_cache:meta_cache[str(batch)]=io.read(batch/'generation.json')

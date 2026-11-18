@@ -21,7 +21,8 @@ ID = 's0_c013'
 GH, GW = roots_hermitenorm(384)
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 
 def reference(path):
     p = Path(path).resolve()

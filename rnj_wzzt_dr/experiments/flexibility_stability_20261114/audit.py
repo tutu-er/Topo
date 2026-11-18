@@ -31,7 +31,8 @@ OBJECTIVES = {'activation': 'activation_compensation', 'capacity': 'activation_p
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 
 
 def write(path, value):
@@ -549,7 +550,7 @@ def run(source, destination):
         buses = list(csv.DictReader(f))
     # Native support evaluator reads these same static physical tables. Check
     # equality with the sealed copy before reconstructing offline truth.
-    current_case = native.ROOT/'topology_identification_standalone/cases'/case
+    current_case = native.ROOT/'rnj_wzzt_dr/physical/cases'/case
     for filename in ('metadata.json', 'branches.csv', 'buses.csv'):
         audit.require(ref(current_case/filename)['sha256'] == ref(meta_dir/filename)['sha256'], 'Physical table changed since sealing')
         audit.file(current_case/filename)

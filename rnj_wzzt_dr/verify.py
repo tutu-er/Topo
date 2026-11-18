@@ -27,4 +27,4 @@ def verify(*, originals=False):
     return dict(passed=not issues, checked=len(doc["sources"]),
                 package_files_checked=len(doc.get("package_files", {})), issues=issues,
                 missing_originals=missing_originals, active_core_requires_original_sources=False,
-                compatibility_AC_requires_frozen_assets=True)
+                compatibility_AC_requires_frozen_assets=False)

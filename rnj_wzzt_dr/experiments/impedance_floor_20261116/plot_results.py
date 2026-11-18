@@ -17,7 +17,7 @@ from matplotlib.ticker import PercentFormatter
 
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_RUN = ROOT / 'outputs/impedance_floor_20261116_v1'
+DEFAULT_RUN = ROOT / 'data/impedance_floor_20261116_v1'
 GROUPS = ('history288', 'history10', 'large96_main', 'large96_pressure')
 TITLES = {'history288': 'Current 40 histories', 'history10': 'Current 16 histories',
           'large96_main': 'Earlier main study: 240 inputs',

@@ -183,7 +183,7 @@ def run(out):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source',type=Path,default=Path('outputs/distribution_panel_data_20261115_v1'))
-    parser.add_argument('--out',type=Path,default=Path('outputs/distribution_panel_confirmation_data_20261115_v1'))
+    parser.add_argument('--out',type=Path,default=Path('data/distribution_panel_confirmation_data_20261115_v1'))
     parser.add_argument('--readiness',type=Path,required=True)
     parser.add_argument('--workers',type=int,default=4)
     parser.add_argument('--prepare-only',action='store_true');parser.add_argument('--resume',action='store_true')

@@ -246,7 +246,7 @@ class Audit(panel.Audit):
         self.same('full_native_H',[r['H'] for r in score['native_bank']],H,atol=1e-13,rtol=1e-13)
         self.same('frozen_history_sse',[r['history_sse'] for r in score['native_bank']],history,atol=1e-14)
         self.require(score['cells']==val['Y'].size,'History cell count differs')
-        directory=ROOT/'topology_identification_standalone'/'cases'/entry['case']
+        directory=ROOT/'rnj_wzzt_dr'/'physical'/'cases'/entry['case']
         metadata=base.read(self.file(directory/'metadata.json'))
         with self.file(directory/'branches.csv').open(encoding='utf-8-sig',newline='') as stream:branches=list(csv.DictReader(stream))
         physical,truth=physical_matrix(metadata,branches,labels)

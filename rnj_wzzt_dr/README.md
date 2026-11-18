@@ -1,5 +1,7 @@
 # 拓扑辨识与配网灵活性研究入口
 
+2026-11-18 文件整理：物理模拟器和网络表集中在 physical/，本地输入位于父目录 data/。封存 JSON 保持原字节，读取时解析迁移后的路径；恢复位置见根 cleanup_manifest.json。旧兼容桥和历史证据成品退出当前包的校验，下文历史结果按其原版本解释。
+
 当前辨识代码集中在`identification/`，DR读其冻结候选与R/X，评价期间不重新拟合。
 近期整理恢复了W的廉价单连接QP预试，E保留一个固定参考初值；删除弃用的整树热启动字段。
 [版本差异与贡献核查](experiments/identification_contribution_20261116/VERSION_DIFF.md)解释历史有效R＋W和当前实现的区别，

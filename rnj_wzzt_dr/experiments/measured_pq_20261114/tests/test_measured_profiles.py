@@ -186,7 +186,7 @@ class ArchiveAcceptance(unittest.TestCase):
             {"bus_id": 0, "is_terminal": False, "pd_kw": 0.},
             *[{"bus_id": name, "is_terminal": True, "pd_kw": float(nominal)}
               for name, nominal in zip(args["labels"], args["nominal_p_kw"])]]}
-        self.loader_patch = patch("topology_identification_standalone.data.load_case",
+        self.loader_patch = patch("rnj_wzzt_dr.physical.backend.load_case",
                                   return_value=self.network)
         self.loader_patch.start()
         self.addCleanup(self.loader_patch.stop)

@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import re
 
+from .paths import relocate_references
+
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = Path(__file__).with_suffix('.json')
 
@@ -89,7 +91,7 @@ def load_catalog(include_retired=False):
     raw = path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != config['source_inventory']['sha256']:
         raise ValueError('Historical source inventory SHA-256 changed')
-    entries = json.loads(raw)
+    entries = relocate_references(json.loads(raw))
     if not isinstance(entries, list) or any(not isinstance(e, dict) for e in entries):
         raise ValueError('Historical source inventory must be a list of entries')
     selected = _select(entries, include_retired, config)

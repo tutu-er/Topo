@@ -18,9 +18,9 @@ test = ["pytest>=7"]
 include = ["rnj_wzzt_dr*"]
 
 [tool.setuptools.package-data]
-rnj_wzzt_dr = ["*.md", "*.json", ".gitattributes", ".gitignore", "requirements.txt", "resources/*.json", "evidence/**/*.md", "evidence/**/*.json", "evidence/**/*.csv", "validation/*.txt", "validation/*.json"]
+rnj_wzzt_dr = ["*.md", "*.json", ".gitattributes", ".gitignore", "requirements.txt", "resources/*.json", "physical/cases/*/*.json", "physical/cases/*/*.csv"]
 
 [tool.pytest.ini_options]
 testpaths = ["rnj_wzzt_dr/tests"]
 pythonpath = ["."]
-norecursedirs = ["archive", "outputs", "output", ".git", ".codex-rnj-deps"]
+norecursedirs = ["archive", "data", "tmp", "outputs", "output", ".git", ".codex-rnj-deps"]

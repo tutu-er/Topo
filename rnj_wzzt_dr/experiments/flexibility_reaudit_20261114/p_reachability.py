@@ -23,7 +23,8 @@ from ..reactive_flex_20261114 import domain as pq_domain
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
+    from rnj_wzzt_dr.io import read as read_relocated
+    return read_relocated(path)
 
 
 def reference(path, expected=None):

@@ -704,7 +704,7 @@ def run(source,out):
             with audit.file(casepath/'branches.csv').open(encoding='utf-8-sig',newline='') as f:branches=list(csv.DictReader(f))
             with audit.file(casepath/'buses.csv').open(encoding='utf-8-sig',newline='') as f:buses=list(csv.DictReader(f))
             for file in ('metadata.json','branches.csv','buses.csv'):
-                audit.require(base.ref(casepath/file)['sha256']==base.ref(ROOT/'topology_identification_standalone/cases'/entry['case']/file)['sha256'],
+                audit.require(base.ref(casepath/file)['sha256']==base.ref(ROOT/'rnj_wzzt_dr/physical/cases'/entry['case']/file)['sha256'],
                     'Physical case table changed after snapshot')
             audit.case(source/'cases'/entry['id'],entry,p,metadata,branches,buses)
         except Exception as exc:

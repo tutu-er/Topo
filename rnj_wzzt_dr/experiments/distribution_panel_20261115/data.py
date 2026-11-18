@@ -374,7 +374,7 @@ def run_development(out):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--archive',type=Path,default=Path('outputs/measured_pq_sources_20261114/paired_pq_15min.npz'))
+    parser.add_argument('--archive',type=Path,default=Path('data/measured_pq_sources_20261114/paired_pq_15min.npz'))
     parser.add_argument('--out',type=Path,default=Path('outputs/distribution_panel_data_20261115_v1'))
     parser.add_argument('--workers',type=int,default=4)
     parser.add_argument('--prepare-only',action='store_true');parser.add_argument('--preflight-only',action='store_true');parser.add_argument('--resume',action='store_true')

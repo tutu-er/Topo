@@ -19,7 +19,7 @@ from .data import load_entry
 from .driver import resources
 
 ROOT=Path(__file__).resolve().parents[3]
-PANEL=ROOT/'outputs/astra_inventory_20261114/development32.json'
+PANEL=ROOT/'data/astra_inventory_20261114/development32.json'
 OLD=ROOT/'outputs/linear_ac_population_20261113_v2/population/jobs'
 BUDGETS=(3.,12.,60.)
 WORK={}

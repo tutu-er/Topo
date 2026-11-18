@@ -242,7 +242,7 @@ def run(source,out):
     meta=source/'source_snapshot/topology_identification_standalone/cases'/entries[0]['case'];metadata=base.read(audit.file(meta/'metadata.json'))
     with audit.file(meta/'branches.csv').open(encoding='utf-8-sig',newline='') as f:branches=list(csv.DictReader(f))
     with audit.file(meta/'buses.csv').open(encoding='utf-8-sig',newline='') as f:buses=list(csv.DictReader(f))
-    for name in ('metadata.json','branches.csv','buses.csv'):audit.require(base.ref(meta/name)['sha256']==base.ref(base.native.ROOT/'topology_identification_standalone/cases'/entries[0]['case']/name)['sha256'],'Physical reference table changed')
+    for name in ('metadata.json','branches.csv','buses.csv'):audit.require(base.ref(meta/name)['sha256']==base.ref(base.native.ROOT/'rnj_wzzt_dr/physical/cases'/entries[0]['case']/name)['sha256'],'Physical reference table changed')
     driver=Path(p.get('driver_relative_path','rnj_wzzt_dr/experiments/distribution_gate_20261114/run.py'))
     audit.require(not driver.is_absolute() and '..' not in driver.parts,'Driver snapshot path is not repository-relative')
     info=boundary(source/'source_snapshot'/driver);audit.require(info['passed'],'Planning boundary differs')

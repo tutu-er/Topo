@@ -173,7 +173,7 @@ def design_audit(data, family):
 
 def offline_physical(entry, labels):
     # Called only after all history-only estimates have been sealed.
-    from topology_identification_standalone import data as backend
+    from rnj_wzzt_dr.physical import backend as backend
     from ..measured_pq_20261114.physical import _network_hash
     network = backend.load_case(entry['case'])
     if _network_hash(network) != entry['physical_cache']['network_hash']:

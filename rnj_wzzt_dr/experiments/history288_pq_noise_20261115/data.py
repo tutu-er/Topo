@@ -40,9 +40,9 @@ VOLTAGE_SD = .0005
 HISTORY_REPEATS = 4
 EVALUATION_PATHS = 16
 NOISE_SEED = 2026111521
-SOURCE_RUN = ROOT/'outputs/equipment_flex_execution_20261115_v1'
+SOURCE_RUN = ROOT/'data/equipment_flex_execution_20261115_v1'
 SOURCE_AUDIT = ROOT/'outputs/equipment_flex_audit_20261115_v1/report.json'
-DEFAULT_OUT = ROOT/'outputs/history288_pq_noise_data_20261115_v1'
+DEFAULT_OUT = ROOT/'data/history288_pq_noise_data_20261115_v1'
 
 
 def sample_indices():

@@ -28,7 +28,7 @@ from ...observations import fingerprint
 
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_OUT = ROOT / 'outputs/impedance_floor_20261116_v1'
+DEFAULT_OUT = ROOT / 'data/impedance_floor_20261116_v1'
 RELATIVE_GRID = (0., .01, .02, .04, .08, .12, .16, .20, .24, .32)
 OHM_GRID = (0., .0005, .001, .002, .003, .005, .008, .01, .015, .02)
 SCOPES = ('all', 'non_singleton')

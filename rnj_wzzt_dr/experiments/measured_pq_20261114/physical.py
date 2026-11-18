@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from topology_identification_standalone import data as ac_backend
+from rnj_wzzt_dr.physical import backend as ac_backend
 from ... import io
 from ...observations import Observation, fingerprint
 

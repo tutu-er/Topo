@@ -7,7 +7,7 @@ for this post-hoc diagnosis, not to change any plan, candidate, or score.
 Example (two completed cells, the same chosen target and comparison indices)::
 
     python -m rnj_wzzt_dr.experiments.flexibility_grid_20261115.response_bias_diagnosis \
-      --run outputs/flexibility_grid_execution_20261115_v1 \
+      --run data/flexibility_grid_execution_20261115_v1 \
       --ids soumalas11__2024-01-04__s2__m0p5 soumalas11__2024-01-04__s2__m1p0 \
       --target-native 5 --competitors 6 3 --out outputs/new_readonly_diagnosis
 
@@ -24,7 +24,7 @@ from pathlib import Path
 
 import numpy as np
 
-from topology_identification_standalone import data as backend
+from rnj_wzzt_dr.physical import backend as backend
 from ..measured_pq_20261114.physical import _network_hash
 from ..measured_pq_flex_20261114.analyze import physical_response
 

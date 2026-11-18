@@ -13,7 +13,7 @@ from time import perf_counter
 
 import numpy as np
 
-from topology_identification_standalone import data as backend
+from rnj_wzzt_dr.physical import backend as backend
 from ... import io
 from ..measured_pq_20261114.physical import _network_hash
 

@@ -661,7 +661,7 @@ def run(source, out):
             with audit.file(meta/'branches.csv').open(encoding='utf-8-sig',newline='') as stream: branches=list(csv.DictReader(stream))
             with audit.file(meta/'buses.csv').open(encoding='utf-8-sig',newline='') as stream: buses=list(csv.DictReader(stream))
             for name in ('metadata.json','branches.csv','buses.csv'):
-                audit.require(base.ref(meta/name)['sha256']==base.ref(ROOT/'topology_identification_standalone/cases'/entry['case']/name)['sha256'], 'Physical table changed since snapshot')
+                audit.require(base.ref(meta/name)['sha256']==base.ref(ROOT/'rnj_wzzt_dr/physical/cases'/entry['case']/name)['sha256'], 'Physical table changed since snapshot')
             ctx=audit.context(entry)
             noise=noise_parameters(entry,protocol)
             model=prob.build_model(ctx['score'],base.native.arrays(audit.checked(entry['files']['validation.npz'])),ctx['native'],

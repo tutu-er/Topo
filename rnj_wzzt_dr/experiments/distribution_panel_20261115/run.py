@@ -47,7 +47,7 @@ def snapshot(out, entries):
                 paths.add(path)
     for name in sorted({entry['case'] for entry in entries}):
         for filename in ('metadata.json', 'branches.csv', 'buses.csv'):
-            paths.add(old.ROOT/'topology_identification_standalone'/'cases'/name/filename)
+            paths.add(old.ROOT/'rnj_wzzt_dr'/'physical'/'cases'/name/filename)
     for path in sorted(paths):
         dest = out/'source_snapshot'/path.relative_to(old.ROOT)
         dest.parent.mkdir(parents=True, exist_ok=True)

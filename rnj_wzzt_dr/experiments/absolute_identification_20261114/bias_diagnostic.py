@@ -182,8 +182,8 @@ def run(development,inventory,destination):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--development',type=Path,default=Path('outputs/astra_inventory_20261114/development32.json'))
-    p.add_argument('--inventory',type=Path,default=Path('outputs/astra_inventory_20261114/mainline400.json'))
+    p.add_argument('--development',type=Path,default=Path('data/astra_inventory_20261114/development32.json'))
+    p.add_argument('--inventory',type=Path,default=Path('data/astra_inventory_20261114/mainline400.json'))
     p.add_argument('--destination',type=Path,required=True)
     a=p.parse_args();s=run(a.development.resolve(),a.inventory.resolve(),a.destination.resolve())
     print('completed',s['completed_development'],'failed',len(s['failures']))
