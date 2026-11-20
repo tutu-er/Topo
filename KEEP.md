@@ -1,14 +1,13 @@
-# 当前开发保留范围
+# Maintained Files and Data
 
-2026-11-18：当前入口为 rnj_wzzt_dr/run.py。本次只整理文件、数据路径和校验，不改变辨识、概率、设备或采购模型。
+The current entry point is `rnj_wzzt_dr/run.py`. This English edition follows source snapshot `e66aae90`.
 
-- identification/、dr/、根级 Python 文件、resources/、tests/：正式功能与回归检查。
-- physical/：从原独立目录提取的四网络 AC 模拟器及原始网络表；不再维护第二套辨识器。
-- experiments/：保留现有研究源码和小型说明。历史批量结果不随源码保存；通用入口仍只支持 README 声明的功能。
-- 根 data/：本地私有输入、默认 296 项基准、必要预测/设备上下文和最新研究的冻结候选库。整体由 Git 忽略。
-- data/frozen_studies/：最新两批的最终候选、参数、状态与汇总；完整搜索轨迹位于仓库外压缩档案。
-- data/legacy_sources/：少量旧源文件原字节副本，供历史来源哈希核验，不作为第二个运行入口。
+- `rnj_wzzt_dr/identification/`, `dr/`, `resources/`, `tests/`, and the package-level Python files contain the main identification and conditional demand-response workflow.
+- `rnj_wzzt_dr/physical/` contains the AC simulator and four reference network tables.
+- `rnj_wzzt_dr/experiments/` contains research implementations and protocol-specific checks.
+- Local `data/` contains input and reference data, including the 296-entry evaluation catalog and the frozen banks from the two latest studies. The repository ignores this directory.
+- Local `data/legacy_sources/` preserves selected historical source bytes for provenance checks.
 
-封存 JSON 保持原字节。rnj_wzzt_dr.paths 在读入时解析旧路径，SHA-256 仍验证原内容。默认范围仍为旧主 240、history288 的 40 和 history10 的 16；退役压力 160 仅保留历史索引与汇总，不进入当前评估。
+The default evaluation catalog includes 240 main benchmark entries, 40 history288 entries, and 16 history10 entries. The retired pressure cohort of 160 entries remains available as historical metadata. The groups differ in observation budget and provenance.
 
-旧研究源码、原始 P/Q 来源、最新完整轨迹及清理前 Git 数据库的恢复位置记录在 cleanup_manifest.json。已跟踪旧源码也可从清理前提交恢复。私人观测、拟合参数和轨迹不得重新加入公共 Git。
+Original data files retain their stored bytes and SHA-256 values. The path resolver uses retained locations when reading old references. The [cleanup manifest](cleanup_manifest.json) records what was retained and how to locate the private recovery records.

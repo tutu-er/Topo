@@ -374,14 +374,15 @@ def evaluate_run(run,out):
         for group in groups:
             for split,metric in group['metrics'].items():
                 writer.writerow({**{k:group[k] for k in fields if k in group},'split':split,**{k:metric[k] for k in fields if k in metric}})
-    lines=['# W重要性配对消融','',f"状态：{report['status']}；计划{report['planned']}，完整任务{report['completed']}，审计错误{len(errors)}。",'',
-        f"任务状态：{json.dumps(report['status_counts'],ensure_ascii=False)}。",'',
-        '| 面板 | W模式 | 完整/计划 | 验证内部正确 | 验证全部支持正确 | 累计全部支持正确 | 完整任务秒数合计 |',
+    lines=['# Paired W-Stage Ablation','',
+        f"Audit {report['status']}. Completed {report['completed']} of {report['planned']} planned tasks with {len(errors)} audit errors.",'',
+        f"Task counts by status are {json.dumps(report['status_counts'],ensure_ascii=False)}.",'',
+        '| Panel | W mode | Completed / planned | Exact internal on validation | Exact full support on validation | Exact full support on cumulative data | Completed task time (s) |',
         '|---|---|---:|---:|---:|---:|---:|']
     for p in panel_rows:
         v=p['metrics']['validation'];c=p['metrics']['cumulative']
         lines.append(f"| {p['panel']} | {p['variant']} | {p['completed']}/{p['planned']} | {v['internal_correct']} | {v['full_correct']} | {c['full_correct']} | {p['seconds_completed_sum']:.2f} |")
-    lines+=['','| 面板 | 左→右 | 评分 | 完整配对 | 全支持新增 | 全支持丢失 | 两侧E均闭界 | 至少一侧E限时 | 右/左耗时中位比 |',
+    lines+=['','| Panel | Left → right | Scoring data | Completed pairs | Full recoveries gained | Full recoveries lost | Both E solves met gap | Either E solve hit time limit | Median runtime ratio (right / left) |',
         '|---|---|---|---:|---:|---:|---:|---:|---:|']
     for p in comparisons:
         if p['split'] not in ('validation','cumulative'):continue
@@ -389,11 +390,16 @@ def evaluate_run(run,out):
         lines.append(f"| {p['panel']} | {p['left']}→{p['right']} | {p['split']} | {p['completed_pairs']} | {p['full']['gains']} | "
             f"{p['full']['losses']} | {p['E_quality_strata']['both_closed']['pairs']} | {p['E_quality_strata']['at_least_one_time_limit']['pairs']} | "
             f"{ratio if ratio is not None else 'NA'} |")
-    lines+=['','full与pool_only比较检验原生W是否增加恢复；pool_only与skip比较检验逐步QP路径是否增加恢复。',
-        '配对净增/丢失、失败分母、F1、原生及partial限时保存在report.json；只有两侧完整的输入进入配对数值比较。',
-        'E使用相同声明上限；另核实际求解状态与时间。移除W会改变E池、初值和最终竞争库，不能把源标签单独解释为因果。',
-        'W前缀复评沿用已经保存的收缩结果，并非给W释放E预算后重新求解。',
-        '结果描述这批固定网络和历史窗口，未完成格子没有准确率；全部终结时仍保留失败及未启动分母。','']
+    lines+=['',
+        'The full to pool-only comparison measures the effect of removing the unknown-support solve. '
+        'The pool-only to skip comparison measures the effect of removing sequential fixed-support trials.','',
+        'The JSON report includes recovery gains and losses, failed attempts, F1, and time limits '
+        'from complete and partial solver records. Paired metrics use inputs completed in both modes.','',
+        'E has the same declared cap in each mode. Actual solver status and time are recorded separately. '
+        'Removing W can change E’s candidate pool, warm start, and the final bank.','',
+        'The W-prefix analysis uses the saved, contracted candidates under their original budgets.','',
+        'The results describe these networks and this observation window. Accuracy is reported for completed tasks. '
+        'The final planned denominator also includes failures and tasks that never started.','']
     (out/'REPORT.md').write_text('\n'.join(lines),encoding='utf8')
     base._write(out/'complete.json',dict(status=report['status'],report=base.file_ref(out/'report.json'),errors=len(errors)))
     return report

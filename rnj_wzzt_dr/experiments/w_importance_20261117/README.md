@@ -1,41 +1,41 @@
-# 验证W是否值得保留
+# W-Stage Ablation
 
-本批比较删去W之后的实际恢复与用时，包含负面和无效结果。详细口径见[事前协议](PROTOCOL.md)。
+This paired study ran three fresh versions of method `101` on the same inputs. `full` runs the pool trials and native W search before E. `pool_only` keeps the sequential fixed-support trials and then runs E. `skip` goes from the base model directly to E. All variants use MSE, identical validation selection, and the same maximum E time within each panel.
 
-| 模式 | 实际执行 | 回答的问题 |
-|---|---|---|
-| full | 池内QP逐步组合＋未知连接MIQP＋E | 当前完整流程 |
-| pool_only | 池内QP逐步组合＋E | 原生未知连接搜索是否有额外价值 |
-| skip | 直接做E | 整段W是否有额外价值 |
+## Completed results
 
-每个模式都保留同一训练目标、RNJ原始池、E参考初值规则、.08输出收缩及验证MSE。
-long16输入、grid160输入，各跑三个模式，共528项全新MSE任务。16个long输入属于160网格，不增加独立数据数。
-原先已有结果只作版本参考，本批fresh full用于配对。三模式顺序循环轮换，保存完整源/输入/预算哈希。
+All 528 tasks finished and passed independent scoring checks. The table counts exact internal and full-support recovery for the validation winner. The 16 long-budget inputs are a subset of the 160 main-grid inputs.
 
-long为14400秒总额、W单步600秒、E上限6900秒；grid为600／10／270秒。E不会获得删去W后省下的额外时间。
-E的初值和候选池会随W路径变化；报告同时解释结构来源、候选覆盖与选择变化。
+| Panel | W mode | Exact internal | Exact full support | Mean runtime (s) |
+| --- | --- | ---: | ---: | ---: |
+| Main grid | `full` | 136 / 160 | 132 / 160 | 129.04 |
+| Main grid | `pool_only` | 133 / 160 | 129 / 160 | 68.69 |
+| Main grid | `skip` | 112 / 160 | 112 / 160 | 62.37 |
+| Long budget | `full` | 16 / 16 | 16 / 16 | 865.85 |
+| Long budget | `pool_only` | 16 / 16 | 16 / 16 | 62.09 |
+| Long budget | `skip` | 14 / 16 | 14 / 16 | 58.02 |
 
-```powershell
-$py='D:/apps/miniconda3/envs/Topo/python.exe'
-& $py -B -m rnj_wzzt_dr.experiments.w_importance_20261117.run prepare --parent outputs/wzzt_long_grid_20261117_v2 --out outputs/w_importance_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.w_importance_20261117.run run --out outputs/w_importance_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.w_importance_20261117.run status --out outputs/w_importance_20261117_v1
-& $py -B -m rnj_wzzt_dr.experiments.w_importance_20261117.run report --out outputs/w_importance_20261117_v1
-```
+On the main grid, switching from `full` to `pool_only` gained four full recoveries and lost seven. The median paired runtime ratio was 0.235. Switching from `pool_only` to `skip` lost 17 full recoveries and gained none, with a median runtime ratio of 0.913. On the long panel, `pool_only` recovered the same full supports as `full` at a median paired runtime ratio of 0.087. Removing W changed E's input pool and warm start as well as the final candidate bank. The [protocol](PROTOCOL.md) explains how the report attributes each part of the change.
 
-run从封存的私人代码副本启动。原批次控制器退出、全部任务终结后，本批才开始派发；等待期间不占用求解进程或消耗新批预算。
-`controller.json`显示waiting_parent或running及活跃worker PID。最多3个单线程worker，每任务独立进程。
-已有输出目录不重建；已完成或失败任务均保留。中断不自动重给预算。
-`STOP`文件停止后续派发，当前任务按原预算正常结束；控制器异常时若尚有子进程，保留锁及其PID，避免重复启动。
+The original summary is `data/frozen_studies/w_importance_20261117_v1/report/report.json`. The [validation note](VALIDATION.md) describes the separate pre-run checks.
 
-每阶段结束自动做独立复算，全部任务终结且报告通过后才写execution.status=complete。
-错误／遗漏、完整恢复新增／丢失、候选覆盖、近根召回、时间、失败、原生和partial限时均保留。
-原生训练目标改进、所选路径来源及输出收缩贡献分开说明。轨迹中的W前缀复评不冒充另跑的完整预算消融。
+## Run a single input
 
-单个输入也可用通用入口：
+~~~sh
+python -m rnj_wzzt_dr fit --train data/train.npz --validation data/validation.npz --method 101 --loss mse --w-mode pool_only --preset grid --e-seconds 270 --output outputs/pool_only_fit
+~~~
 
-```powershell
-& $py -I -B rnj_wzzt_dr/run.py fit --train train.npz --validation validation.npz --method 101 --loss mse --w-mode pool_only --preset grid --e-seconds 270 --output outputs/pool_only_fit
-```
+Use `--w-mode full` or `--w-mode skip` with a fresh output path for a paired comparison. The regular CLI defaults to `full` and uses the remaining structural allowance for E when you omit the explicit cap.
 
-`--w-mode skip`直接进入E；默认仍为full，省略`--e-seconds`保持原E预算规则。新开关不改变在跑旧批的私人快照。
+## Run the study
+
+Use a prepared parent [loss-study run](../wzzt_long_grid_20261117/README.md) with its original input files and run metadata. Preparation checks the source hashes and creates its own task and code snapshot. The controller waits until the parent finishes dispatching and all parent tasks have reached a terminal state.
+
+~~~sh
+python -m rnj_wzzt_dr.experiments.w_importance_20261117.run prepare --parent outputs/loss_study --out outputs/w_ablation
+python -m rnj_wzzt_dr.experiments.w_importance_20261117.run run --out outputs/w_ablation
+python -m rnj_wzzt_dr.experiments.w_importance_20261117.run status --out outputs/w_ablation
+python -m rnj_wzzt_dr.experiments.w_importance_20261117.run report --out outputs/w_ablation
+~~~
+
+A `STOP` file stops further dispatch. Completed, failed, and interrupted attempts retain their files. Each panel gets an independent report with the planned denominator, completion status, paired outcomes, time limits, and source attribution.

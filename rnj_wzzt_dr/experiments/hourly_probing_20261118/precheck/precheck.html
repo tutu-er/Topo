@@ -1,0 +1,581 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Probing precheck</title>
+<style>body{font:13px/1.4 monospace;margin:16px;background:#fff;color:#111}pre{white-space:pre-wrap}</style>
+</head><body>
+<div id="progress">starting</div>
+<pre id="out"></pre>
+<script>
+'use strict';
+/* Pre-check of the hourly probing design on the repository's linear response model.
+   Truth:      Y = R P + X Q (LinDistFlow, r_C = 2 r_ohm / Zbase), measured through V/root meters.
+   Loads:      the generate_synthetic load law of physical/backend.py.
+   Noise:      P/Q 0.5% multiplicative, V and root 0.05%.
+   Not modelled: AC remainder, real FeederBW profiles, RNJ/MIQP bank generation, device state.
+   Usage: set RUN below, open the file in a browser, read the JSON when the page shows DONE.
+   DIAG = solver check; A = excitation sweep; B/C/D = v1 design arms; E = v2 design arms; ALL = A-D;
+   F = realistic P-only probing (no Q dispatch, kappa 1.5 and 3, refit vs frozen scoring, broad zero-sum P check). */
+
+const NET_CSV = {
+soumalas11: {branches: `from_bus,to_bus,r_ohm,x_ohm
+1,2,0.02688,0.02176
+1,3,0.03444,0.02788
+1,4,0.03024,0.02448
+3,5,0.02352,0.01904
+2,101,0.0121,0.00836
+2,102,0.01705,0.01178
+2,103,0.0154,0.01064
+3,104,0.0132,0.00912
+3,105,0.01925,0.0133
+5,106,0.011,0.0076
+5,107,0.0209,0.01444
+5,108,0.01485,0.01026
+4,109,0.01375,0.0095
+4,110,0.0187,0.01292
+4,111,0.01595,0.01102`,
+terminals: `101,4.8,1.6
+102,6.1,2.1
+103,7.4,2.5
+104,5.6,1.8
+105,8.2,2.9
+106,6.7,2.2
+107,9.5,3.3
+108,5.1,1.7
+109,7.9,2.6
+110,6.3,2.0
+111,8.8,3.0`},
+pengwah18: {branches: `from_bus,to_bus,r_ohm,x_ohm
+1,2,0.02856,0.02312
+1,3,0.0399,0.0323
+1,4,0.03108,0.02516
+1,5,0.03696,0.02992
+2,6,0.01932,0.01564
+4,7,0.02646,0.02142
+5,8,0.02394,0.01938
+2,301,0.011,0.0076
+2,302,0.01925,0.0133
+6,303,0.0132,0.00912
+6,304,0.01705,0.01178
+6,305,0.02365,0.01634
+3,306,0.0121,0.00836
+3,307,0.02145,0.01482
+3,308,0.0154,0.01064
+4,309,0.0143,0.00988
+7,310,0.011,0.0076
+7,311,0.02035,0.01406
+7,312,0.02475,0.0171
+5,313,0.01375,0.0095
+5,314,0.0187,0.01292
+8,315,0.01265,0.00874
+8,316,0.01595,0.01102
+8,317,0.02255,0.01558
+8,318,0.0198,0.01368`,
+terminals: `301,4.6,1.4
+302,6.9,2.4
+303,8.1,2.8
+304,5.5,1.8
+305,9.3,3.4
+306,6.2,2.0
+307,11.4,4.2
+308,7.1,2.5
+309,5.8,1.9
+310,8.6,3.0
+311,6.7,2.3
+312,10.5,3.9
+313,5.0,1.6
+314,7.8,2.7
+315,9.9,3.5
+316,6.4,2.1
+317,8.3,2.9
+318,11.8,4.4`}};
+
+const ZBASE = 0.4*0.4/0.2, BASE_KW = 200, SV = 0.0005, SPQ = 0.005;
+const PRICE_P = 0.8, PRICE_Q = 0.4;          // CNY per kWh / kvarh, assumption inside library range
+const LN9 = Math.log(9), LN19 = Math.log(19);
+const RUN = {exp:'F', seeds:20};   // edit to choose: DIAG | A | B | C | D | ALL | E | F
+
+/* ---------- utilities ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function RNG(seed){const u=mulberry32(seed>>>0);let spare=null;return{u,n(){if(spare!==null){const s=spare;spare=null;return s;}let a;do{a=u();}while(a<=1e-12);const b=u(),r=Math.sqrt(-2*Math.log(a));spare=r*Math.sin(2*Math.PI*b);return r*Math.cos(2*Math.PI*b);}};}
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:NaN;
+function even(a,b,k){const o=[];for(let j=0;j<k;j++)o.push(a+Math.floor(j*(b-a)/k));return o;}
+
+/* ---------- network ---------- */
+function buildNet(name){
+  const br=NET_CSV[name].branches.trim().split('\n').slice(1).map(l=>l.split(',').map(Number));
+  const tm=NET_CSV[name].terminals.trim().split('\n').map(l=>l.split(',').map(Number));
+  const n=tm.length, idx=new Map(tm.map((t,i)=>[t[0],i]));
+  const children=new Map(), inc=new Map();
+  for(const [f,t,r,x] of br){if(!children.has(f))children.set(f,[]);children.get(f).push(t);inc.set(t,{r,x});}
+  const desc=new Map();
+  (function dfs(bus){let s=idx.has(bus)?[idx.get(bus)]:[];for(const c of children.get(bus)||[])s=s.concat(dfs(c));desc.set(bus,s);return s;})(1);
+  const sup=new Map();
+  for(const [bus,z] of inc){const s=desc.get(bus).slice().sort((a,b)=>a-b);if(!s.length)continue;const k=s.join(',');const o=sup.get(k)||{set:s,r:0,x:0};o.r+=2*z.r/ZBASE;o.x+=2*z.x/ZBASE;sup.set(k,o);}
+  const all=[...sup.values()];
+  const R=Array.from({length:n},()=>new Float64Array(n)), X=Array.from({length:n},()=>new Float64Array(n));
+  for(const s of all)for(const i of s.set)for(const j of s.set){R[i][j]+=s.r;X[i][j]+=s.x;}
+  const truth=all.filter(s=>s.set.length>=2&&s.set.length<n).map(s=>s.set);
+  return {name,n,pnom:tm.map(t=>t[1]/BASE_KW),qnom:tm.map(t=>t[2]/BASE_KW),R,X,truth};
+}
+
+/* ---------- candidate families (laminar internal supports) ---------- */
+const skey=s=>s.join(',');
+const fkey=f=>f.map(skey).sort().join('|');
+function laminar(f,n){
+  for(const s of f)if(s.length<2||s.length>=n)return false;
+  for(let a=0;a<f.length;a++){const A=new Set(f[a]);for(let b=a+1;b<f.length;b++){const B=f[b];const k=B.filter(v=>A.has(v)).length;if(k&&k!==A.size&&k!==B.length)return false;if(k===A.size&&A.size===B.length)return false;}}
+  return true;
+}
+function parentOf(f,C,n){let best=null;for(const S of f)if(S.length>C.length&&C.every(v=>S.includes(v))&&(!best||S.length<best.length))best=S;return best||[...Array(n).keys()];}
+function directLeaves(f,S){const subs=f.filter(T=>T.length<S.length&&T.every(v=>S.includes(v)));return S.filter(v=>!subs.some(T=>T.includes(v)));}
+function rivals(truth,n){
+  const out=new Map(), tk=fkey(truth);
+  const add=(f,kind)=>{f=f.map(s=>s.slice().sort((a,b)=>a-b));if(!laminar(f,n))return;const k=fkey(f);if(k!==tk&&!out.has(k))out.set(k,{fam:f,kind});};
+  const full=[...Array(n).keys()];
+  truth.forEach((C,ci)=>{
+    const rest=truth.filter((_,k)=>k!==ci);
+    add(rest,'drop');
+    const leaves=directLeaves(truth,C);
+    if(C.length>=3)for(const i of leaves)add(rest.concat([C.filter(v=>v!==i)]),'move_out');
+    const P=parentOf(truth,C,n);
+    for(const i of directLeaves(truth,P))if(!C.includes(i))add(rest.concat([C.concat([i])]),'move_in');
+    if(leaves.length>=3){add(truth.concat([[leaves[0],leaves[1]]]),'split');add(truth.concat([[leaves[1],leaves[2]]]),'split');}
+    if(C.length>=3)for(const S of truth){if(S===C)continue;if(parentOf(truth,S,n)!==P&&!(skey(parentOf(truth,S,n))===skey(P)))continue;
+      for(const i of leaves){add(truth.filter(T=>T!==C&&T!==S).concat([C.filter(v=>v!==i),S.concat([i])]),'swap');}}
+  });
+  const rootLeaves=directLeaves(truth,full);
+  if(rootLeaves.length>=2)add(truth.concat([[rootLeaves[0],rootLeaves[1]]]),'split');
+  return [...out.values()];
+}
+
+/* ---------- linear-in-parameter candidate model ---------- */
+class Model{
+  constructor(fam,n,floorR,kind){
+    this.kind=kind||'';this.fam=fam;this.n=n;this.internal=fam.length;
+    this.sup=[];for(let i=0;i<n;i++)this.sup.push([i]);this.sup.push([...Array(n).keys()]);for(const s of fam)this.sup.push(s);
+    const m=this.m=this.sup.length, D=this.D=2*m;
+    this.lo=new Float64Array(D);this.hi=new Float64Array(D).fill(2);
+    for(let c=n+1;c<m;c++)this.lo[2*c]=floorR;
+    this.inter=new Float64Array(m*m);
+    for(let a=0;a<m;a++){const A=new Set(this.sup[a]);for(let b=0;b<m;b++)this.inter[a*m+b]=this.sup[b].filter(v=>A.has(v)).length;}
+    this.member=Array.from({length:n},()=>[]);
+    this.sup.forEach((s,c)=>s.forEach(i=>this.member[i].push(c)));
+    this.ancestry=Array.from({length:n},(_,i)=>this.fam.filter(s=>s.includes(i)).map(skey).sort().join('|'));
+  }
+}
+function newAcc(M){return{G:new Float64Array(M.D*M.D),b:new Float64Array(M.D),yy:0,cells:0};}
+function copyAcc(a){return{G:a.G.slice(),b:a.b.slice(),yy:a.yy,cells:a.cells};}
+function addRow(M,acc,P,Q,Y){
+  const m=M.m,D=M.D,f=new Float64Array(D),yc=new Float64Array(m);
+  for(let c=0;c<m;c++){let sp=0,sq=0,sy=0;for(const i of M.sup[c]){sp+=P[i];sq+=Q[i];sy+=Y[i];}f[2*c]=sp;f[2*c+1]=sq;yc[c]=sy;}
+  const G=acc.G;
+  for(let a=0;a<D;a++){const fa=f[a];if(fa===0)continue;const ca=(a>>1)*m;for(let b=0;b<D;b++)G[a*D+b]+=fa*f[b]*M.inter[ca+(b>>1)];acc.b[a]+=fa*yc[a>>1];}
+  for(let i=0;i<M.n;i++)acc.yy+=Y[i]*Y[i];acc.cells+=M.n;
+}
+function solve(M,acc,th,sweeps){
+  const D=M.D,G=acc.G,b=acc.b,g=new Float64Array(D);
+  for(let a=0;a<D;a++){th[a]=clamp(th[a],M.lo[a],M.hi[a]);}
+  for(let a=0;a<D;a++){let s=0;for(let c=0;c<D;c++)s+=G[a*D+c]*th[c];g[a]=s;}
+  for(let it=0;it<sweeps;it++){let mx=0;
+    for(let a=0;a<D;a++){const Gaa=G[a*D+a];if(!(Gaa>0))continue;const v=clamp(th[a]-(g[a]-b[a])/Gaa,M.lo[a],M.hi[a]);const d=v-th[a];if(d!==0){th[a]=v;for(let c=0;c<D;c++)g[c]+=d*G[c*D+a];const ad=Math.abs(d);if(ad>mx)mx=ad;}}
+    if(mx<1e-11)break;}
+  return th;
+}
+/* Exact box-constrained least squares: Lawson-Hanson style active set on the Gram matrix. */
+function cholSolve(A,r){const k=r.length,L=Array.from({length:k},()=>new Float64Array(k));
+  for(let i=0;i<k;i++){for(let j=0;j<=i;j++){let s=A[i][j];for(let p=0;p<j;p++)s-=L[i][p]*L[j][p];if(i===j){if(!(s>0))s=1e-300;L[i][i]=Math.sqrt(s);}else L[i][j]=s/L[j][j];}}
+  const y=new Float64Array(k);for(let i=0;i<k;i++){let s=r[i];for(let p=0;p<i;p++)s-=L[i][p]*y[p];y[i]=s/L[i][i];}
+  const z=new Float64Array(k);for(let i=k-1;i>=0;i--){let s=y[i];for(let p=i+1;p<k;p++)s-=L[p][i]*z[p];z[i]=s/L[i][i];}return z;}
+function exactSolve(M,acc,th0){
+  const D=M.D,G=acc.G,b=acc.b,lo=M.lo,hi=M.hi,th=new Float64Array(D),st=new Int8Array(D);
+  let bmax=0;for(let a=0;a<D;a++)bmax=Math.max(bmax,Math.abs(b[a]));const tol=1e-11*(bmax||1);
+  for(let a=0;a<D;a++){th[a]=clamp(th0?th0[a]:lo[a],lo[a],hi[a]);if(!(G[a*D+a]>0)){st[a]=-1;th[a]=lo[a];}}
+  for(let it=0;it<8*D;it++){
+    const F=[];for(let a=0;a<D;a++)if(st[a]===0)F.push(a);
+    if(F.length){const k=F.length,A=Array.from({length:k},()=>new Float64Array(k)),r=new Float64Array(k);
+      for(let i=0;i<k;i++){const ai=F[i];let s=b[ai];for(let c=0;c<D;c++)if(st[c]!==0)s-=G[ai*D+c]*th[c];r[i]=s;for(let j=0;j<k;j++)A[i][j]=G[ai*D+F[j]];A[i][i]*=1+1e-12;}
+      const z=cholSolve(A,r);let alpha=1,block=-1,side=0;
+      for(let i=0;i<k;i++){const a=F[i];if(z[i]<lo[a]){const t=(th[a]-lo[a])/(th[a]-z[i]);if(t<alpha){alpha=t;block=a;side=-1;}}else if(z[i]>hi[a]){const t=(hi[a]-th[a])/(z[i]-th[a]);if(t<alpha){alpha=t;block=a;side=1;}}}
+      for(let i=0;i<k;i++)th[F[i]]+=alpha*(z[i]-th[F[i]]);
+      if(block>=0){th[block]=side<0?lo[block]:hi[block];st[block]=side;continue;}
+    }
+    let worst=-1,wv=tol;
+    for(let a=0;a<D;a++){if(st[a]===0)continue;let g=-b[a];for(let c=0;c<D;c++)g+=G[a*D+c]*th[c];const v=st[a]<0?-g:g;if(v>wv&&G[a*D+a]>0){wv=v;worst=a;}}
+    if(worst<0)break;st[worst]=0;
+  }
+  for(let a=0;a<D;a++)th[a]=clamp(th[a],lo[a],hi[a]);
+  return th;
+}
+let USE_EXACT=true;
+function fit(M,acc,th0,sweeps){return USE_EXACT?exactSolve(M,acc,th0):solve(M,acc,th0?th0.slice():M.lo.slice(),sweeps);}
+function sse(M,acc,th){const D=M.D,G=acc.G;let q=0,l=0;for(let a=0;a<D;a++){let s=0;for(let c=0;c<D;c++)s+=G[a*D+c]*th[c];q+=th[a]*s;l+=acc.b[a]*th[a];}return acc.yy-2*l+q;}
+function predict(M,th,P,Q){
+  const m=M.m,sp=new Float64Array(m),sq=new Float64Array(m);
+  for(let c=0;c<m;c++){let a=0,b=0;for(const i of M.sup[c]){a+=P[i];b+=Q[i];}sp[c]=a;sq[c]=b;}
+  const Y=new Float64Array(M.n);for(let i=0;i<M.n;i++){let y=0;for(const c of M.member[i])y+=th[2*c]*sp[c]+th[2*c+1]*sq[c];Y[i]=y;}return Y;
+}
+function rowSSE(M,th,row){const p=predict(M,th,row.P,row.Q);let s=0;for(let i=0;i<M.n;i++){const e=row.Y[i]-p[i];s+=e*e;}return s;}
+function Hmat(M,th){const n=M.n,H=Array.from({length:n},()=>new Float64Array(2*n));
+  for(let c=0;c<M.m;c++){const s=M.sup[c];for(const i of s)for(const j of s){H[i][j]+=th[2*c];H[i][n+j]+=th[2*c+1];}}return H;}
+function relErr(M,th,net){const H=Hmat(M,th),n=net.n;let eR=0,nR=0,eX=0,nX=0;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){const dr=H[i][j]-net.R[i][j],dx=H[i][n+j]-net.X[i][j];eR+=dr*dr;nR+=net.R[i][j]**2;eX+=dx*dx;nX+=net.X[i][j]**2;}
+  return{R:Math.sqrt(eR/nR),X:Math.sqrt(eX/nX)};}
+
+/* ---------- loads and meters ---------- */
+function genLoads(net,rng,days){
+  const T=days*96,n=net.n,shift=Array.from({length:n},()=>(rng.u()*2-1)*Math.PI);
+  const fl=Array.from({length:T},()=>new Float64Array(n));
+  for(let t=0;t<T;t++)for(let i=0;i<n;i++){fl[t][i]=0.04*rng.n()+(t?0.8*fl[t-1][i]:0);}
+  const P=[],Q=[],Ph=[],Qh=[],root=[];
+  for(let t=0;t<T;t++){const ph=2*Math.PI*t/96,daily=.65+.2*Math.sin(ph-.5*Math.PI)+.1*Math.sin(2*ph-.9*Math.PI);
+    const p=new Float64Array(n),q=new Float64Array(n),p2=new Float64Array(n),q2=new Float64Array(n);
+    for(let i=0;i<n;i++){const pf=clamp(daily+.12*Math.sin(ph+shift[i])+fl[t][i],.15,1.4);const qf=pf*clamp(1+.15*Math.sin(ph-shift[i])+.04*rng.n(),.5,1.5);
+      const pfh=clamp(daily+.12*Math.sin(ph+shift[i]),.15,1.4),qfh=pfh*(1+.15*Math.sin(ph-shift[i]));
+      p[i]=pf*net.pnom[i];q[i]=qf*net.qnom[i];p2[i]=pfh*net.pnom[i];q2[i]=qfh*net.qnom[i];}
+    P.push(p);Q.push(q);Ph.push(p2);Qh.push(q2);root.push(1.02+.003*(.7*Math.sin(ph+.3)+.3*rng.n()));}
+  return{P,Q,Ph,Qh,root};
+}
+function drawNoise(rng,n){const e={p:new Float64Array(n),q:new Float64Array(n),v:new Float64Array(n),r:rng.n()};for(let i=0;i<n;i++){e.p[i]=rng.n();e.q[i]=rng.n();e.v[i]=rng.n();}return e;}
+function measure(net,Pn,Qn,root,e){
+  const n=net.n,Y=new Float64Array(n),Pm=new Float64Array(n),Qm=new Float64Array(n),rm=root*(1+SV*e.r);
+  for(let i=0;i<n;i++){let y=0;for(let j=0;j<n;j++)y+=net.R[i][j]*Pn[j]+net.X[i][j]*Qn[j];const V=Math.sqrt(root*root-y),Vm=V*(1+SV*e.v[i]);Y[i]=rm*rm-Vm*Vm;Pm[i]=Pn[i]*(1+SPQ*e.p[i]);Qm[i]=Qn[i]*(1+SPQ*e.q[i]);}
+  return{P:Pm,Q:Qm,Y,trueY:null};
+}
+
+/* ---------- one input cell: history, frozen bank, paired new-day paths ---------- */
+function makeCell(net,cfg,seed){
+  const rng=RNG(1000003*seed+17*cfg.Ntr+cfg.Nval),n=net.n;
+  const L=genLoads(net,rng,4);
+  const hist=t=>measure(net,L.P[t],L.Q[t],L.root[t],drawNoise(rng,n));
+  const train=even(0,192,cfg.Ntr).map(hist),val=even(192,288,cfg.Nval).map(hist);
+  const day={P:L.P.slice(288),Q:L.Q.slice(288),Ph:L.Ph.slice(288),Qh:L.Qh.slice(288),root:L.root.slice(288)};
+  const noise=Array.from({length:96},()=>drawNoise(rng,n));
+  const gain=Array.from({length:n},()=>.9+.1*rng.u());
+  const sdP=new Float64Array(n),sdQ=new Float64Array(n);
+  for(let i=0;i<n;i++){const ps=train.map(r=>r.P[i]),qs=train.map(r=>r.Q[i]),mp=mean(ps),mq=mean(qs);sdP[i]=Math.sqrt(mean(ps.map(v=>(v-mp)**2)));sdQ[i]=Math.sqrt(mean(qs.map(v=>(v-mq)**2)));}
+  // output floor from the star model, as a training-only resistance floor on internal supports
+  const star=new Model([],n,0),sacc=newAcc(star);train.forEach(r=>addRow(star,sacc,r.P,r.Q,r.Y));
+  const sth=fit(star,sacc,null,800),sH=Hmat(star,sth);
+  const diag=[...Array(n).keys()].map(i=>sH[i][i]).sort((a,b)=>a-b),floorR=.08*diag[Math.floor(n/2)];
+  let fams=[{fam:net.truth,kind:'truth'}].concat(rivals(net.truth,n));
+  if(cfg.noTruth)fams=fams.slice(1);
+  const models=fams.map(f=>new Model(f.fam,n,floorR,f.kind));
+  const accTrain=[],thFrozen=[],valSSE=[];
+  for(const M of models){const a=newAcc(M);train.forEach(r=>addRow(M,a,r.P,r.Q,r.Y));const th=fit(M,a,null,800);accTrain.push(a);thFrozen.push(th);valSSE.push(val.reduce((s,r)=>s+rowSSE(M,th,r),0));}
+  const sigma2=Math.min(...valSSE)/(cfg.Nval*n);
+  const truthIdx=cfg.noTruth?-1:0;
+  return{net,cfg,seed,n,train,val,day,noise,gain,sdP,sdQ,floorR,models,accTrain,thFrozen,valSSE,sigma2,truthIdx};
+}
+function costWeights(cell,kappa){const n=cell.n,w=new Float64Array(2*n),box=new Float64Array(2*n);
+  for(let i=0;i<n;i++){box[i]=kappa*cell.sdP[i];box[n+i]=kappa*cell.sdQ[i];w[i]=PRICE_P*BASE_KW/Math.max(box[i],1e-9);w[n+i]=PRICE_Q*BASE_KW/Math.max(box[n+i],1e-9);}
+  return{w,box};}
+const costOf=(w,u)=>{let c=0;for(let a=0;a<u.length;a++)c+=w[a]*u[a]*u[a];return c;};
+
+/* ---------- scores, rules ---------- */
+function leaderOf(cell,S){let best=0;for(let k=1;k<S.length;k++){if(S[k]<S[best]-1e-15||(Math.abs(S[k]-S[best])<=1e-15&&cell.models[k].internal<cell.models[best].internal))best=k;}return best;}
+function status(cell,S,newSSE,newCells,rule){
+  const L=leaderOf(cell,S),K=S.length;
+  let scale=cell.sigma2;
+  if(rule==='F2'&&newCells>=4*cell.n)scale=Math.max(scale,newSSE[L]/newCells);
+  const E=new Float64Array(K);for(let k=0;k<K;k++)E[k]=(S[k]-S[L])/(2*scale);
+  let z=0;for(let k=0;k<K;k++)z+=Math.exp(-E[k]);const wLead=1/z;
+  const need=rule==='F1'?LN9:LN19;
+  const others=[...Array(K).keys()].filter(k=>k!==L).sort((a,b)=>E[a]-E[b]);
+  const cond=rule==='F1'?wLead>=0.9:E[others[0]]>=LN19;
+  const comps=others.filter(k=>E[k]<need+3).slice(0,3);
+  const quota=comps.map(k=>Math.max(0,need-E[k])/2);
+  return{L,cond,wLead,scale,comps,quota,E};
+}
+
+/* Revised rule F3: refit every candidate on all data (train + validation + new day so far),
+   score in-sample with a BIC penalty, noise scale from the best in-sample residual variance. */
+function status3(cell,acc,th,sigma0){
+  const K=cell.models.length,N=acc[0].cells,lnN=Math.log(N);
+  const sse3=cell.models.map((M,k)=>sse(M,acc[k],th[k])),p=cell.models.map(M=>2*M.m);
+  let s2=Infinity;for(let k=0;k<K;k++)s2=Math.min(s2,sse3[k]/(N-p[k]));
+  const J=sse3.map((v,k)=>v/(2*s2)+.5*p[k]*lnN);
+  let L=0;for(let k=1;k<K;k++)if(J[k]<J[L])L=k;
+  const E=J.map(v=>v-J[L]);
+  const others=[...Array(K).keys()].filter(k=>k!==L).sort((a,b)=>E[a]-E[b]);
+  const cond=E[others[0]]>=LN19;
+  const comps=others.filter(k=>E[k]<LN19+3).slice(0,3),quota=comps.map(k=>Math.max(0,LN19-E[k])/2);
+  const rho=sigma0?(sse3[L]/(N-p[L]))/sigma0:1;
+  return{L,cond,scale:s2,comps,quota,E,rho,s2};
+}
+function prbs(cell,box,w,cap,rng){const n=cell.n,u=new Float64Array(2*n);for(let a=0;a<2*n;a++)u[a]=(rng.u()<.5?1:-1)*box[a];const c=costOf(w,u);if(c>cap){const f=Math.sqrt(cap/c);for(let a=0;a<2*n;a++)u[a]*=f;}return u;}
+function runArm3(cell,arm){
+  const n=cell.n,K=cell.models.length,{w,box}=costWeights(cell,arm.kappa);
+  const acc=cell.accTrain.map(copyAcc);
+  cell.models.forEach((M,k)=>cell.val.forEach(r=>addRow(M,acc[k],r.P,r.Q,r.Y)));
+  // arm.frozen: keep the passive training fit (the "former R/X") and never refit; scoring uses it as is.
+  let th=arm.frozen?cell.thFrozen.map(t=>t.slice()):cell.models.map((M,k)=>fit(M,acc[k],cell.thFrozen[k]));
+  const sigma0=status3(cell,acc,th,null).s2;
+  let streak=0,lastL=-1,bad=0,good=0,paused=false,flagged=false,cost=0,probed=0,everWrong=false,firstCorrect=null,cal=0;
+  const hourly=[],us=[],rrng=RNG(cell.seed*31+7),prng=RNG(cell.seed*53+11);
+  for(let h=0;h<24;h++){
+    const st=status3(cell,acc,th,sigma0);
+    if(st.rho>arm.alarm){bad++;good=0;}else{good++;bad=0;}
+    if(!paused&&bad>=2){paused=true;flagged=true;}if(paused&&good>=2)paused=false;
+    const condNow=st.cond&&!paused&&cal>=arm.calHours;
+    streak=(condNow&&st.L===lastL)?streak+1:(condNow?1:0);lastL=st.L;
+    if(streak>=2){if(st.L!==cell.truthIdx)everWrong=true;else if(firstCorrect===null)firstCorrect=h;}
+    let u=new Float64Array(2*n);
+    const ctx={st,th,acc,h,w,box,cap:arm.cap,pOnly:!!arm.pOnly};
+    if(arm.replay){u=arm.replay[h].slice();}
+    else if(arm.planner==='random'){if(arm.match[h]>0)u=arm.pOnly?planRandomP(cell,ctx,arm.match[h],rrng):planRandom(cell,ctx,arm.match[h],rrng);}
+    else if(arm.planner!=='none'&&!paused&&streak<2){
+      if(arm.planner==='prbs'||(arm.planner==='P3'&&cal<arm.calHours)){u=prbs(cell,box,w,arm.cap,prng);cal++;}
+      else if(arm.planner==='P3z'&&cal<arm.calHours){u=zeroSumP(cell,box,w,arm.cap,prng);cal++;}
+      else u=planP2(cell,ctx);}
+    if(arm.planner==='none'||arm.planner==='P2'||arm.planner==='random'||arm.replay)cal=Math.max(cal,arm.calHours);
+    const c=costOf(w,u);cost+=c;hourly.push(c);us.push(u.slice());if(c>1e-9)probed++;
+    for(let k=0;k<4;k++){const t=4*h+k,Pn=new Float64Array(n),Qn=new Float64Array(n);
+      for(let i=0;i<n;i++){Pn[i]=cell.day.P[t][i]+cell.gain[i]*u[i];Qn[i]=cell.day.Q[t][i]+cell.gain[i]*u[n+i];}
+      const r=measure(cell.net,Pn,Qn,cell.day.root[t],cell.noise[t]);for(let m=0;m<K;m++)addRow(cell.models[m],acc[m],r.P,r.Q,r.Y);}
+    if(!arm.frozen)th=cell.models.map((M,k)=>fit(M,acc[k],th[k]));
+  }
+  const st=status3(cell,acc,th,sigma0);
+  if(st.rho>arm.alarm){bad++;}if(!paused&&bad>=2){paused=true;flagged=true;}
+  const condEnd=st.cond&&!paused&&cal>=arm.calHours;
+  if(condEnd&&st.L===lastL)streak++;else streak=condEnd?1:0;
+  const confirmed=condEnd&&streak>=2;if(confirmed&&st.L!==cell.truthIdx)everWrong=true;
+  const tErr=cell.truthIdx===0?relErr(cell.models[0],th[0],cell.net):null;
+  return{correct:st.L===cell.truthIdx,confirmed,confirmedCorrect:confirmed&&st.L===cell.truthIdx,confirmedWrong:confirmed&&st.L!==cell.truthIdx,everWrong,firstCorrect,cost,probed,pauses:flagged?1:0,hourly,errX:tErr&&tErr.X,errR:tErr&&tErr.R,leaderKind:cell.models[st.L].kind,rhoEnd:st.rho,us};
+}
+const ARMS3=[
+  {name:'passive_F3',planner:'none'},
+  {name:'T_opt_F3',planner:'P2'},
+  {name:'prbs_F3',planner:'prbs'},
+  {name:'two_phase_F3',planner:'P3'},
+  {name:'random_matched_F3',planner:'random'},
+];
+async function expE(netName,cfg,seeds,tag){
+  const net=buildNet(netName),cells=[];for(let s=0;s<seeds;s++)cells.push(makeCell(net,cfg,s+1));
+  const out={tag,net:netName,cfg,bank:bankStats(cells),arms:{}},per={};ARMS3.forEach(a=>per[a.name]=[]);
+  for(let s=0;s<cells.length;s++){let match=null;
+    for(const a of ARMS3){const arm=Object.assign({calHours:3,alarm:1.3},a,{kappa:cfg.kappa,cap:cfg.cap});
+      if(a.planner==='random')arm.match=match;
+      const r=runArm3(cells[s],arm);per[a.name].push(r);if(a.planner==='P3')match=r.hourly;
+      await tick(`${tag}: seed ${s+1}/${cells.length} ${a.name}`);}}
+  for(const a of ARMS3)out.arms[a.name]=summarize(per[a.name]);
+  return out;
+}
+/* Experiment F: realistic P-only probing. No Q is dispatched (household inverters keep local volt-var).
+   T_opt_P_frozen_scoring replays the exact probes of T_opt_P_refit but scores with the frozen training fit,
+   so the two arms differ only in scoring. broad_then_T_P runs 3 h of zero-sum random-sign P, then T_opt_P. */
+const ARMSF=[
+  {name:'passive_refit',planner:'none'},
+  {name:'passive_frozen',planner:'none',frozen:true},
+  {name:'T_opt_P_refit',planner:'P2',pOnly:true},
+  {name:'T_opt_P_frozen_scoring',planner:'none',frozen:true,replayOf:'T_opt_P_refit'},
+  {name:'broad_then_T_P',planner:'P3z',pOnly:true},
+  {name:'random_matched_P',planner:'random',pOnly:true},
+];
+async function expF(netName,cfg,seeds,tag){
+  const net=buildNet(netName),cells=[];for(let s=0;s<seeds;s++)cells.push(makeCell(net,cfg,s+1));
+  const out={tag,net:netName,cfg,bank:bankStats(cells),arms:{}},per={};ARMSF.forEach(a=>per[a.name]=[]);
+  for(let s=0;s<cells.length;s++){let ref=null;
+    for(const a of ARMSF){const arm=Object.assign({calHours:3,alarm:1.3},a,{kappa:cfg.kappa,cap:cfg.cap});
+      if(a.planner==='random')arm.match=ref.hourly;
+      if(a.replayOf)arm.replay=ref.us;
+      const r=runArm3(cells[s],arm);per[a.name].push(r);if(a.name==='T_opt_P_refit')ref=r;
+      await tick(`${tag}: seed ${s+1}/${cells.length} ${a.name}`);}}
+  for(const a of ARMSF)out.arms[a.name]=summarize(per[a.name]);
+  return out;
+}
+
+/* ---------- planners ---------- */
+function hourRowsForecast(cell,h,u,gainHat){const n=cell.n,rows=[];for(let k=0;k<4;k++){const t=4*h+k,P=new Float64Array(n),Q=new Float64Array(n);for(let i=0;i<n;i++){P[i]=cell.day.Ph[t][i]+gainHat*u[i];Q[i]=cell.day.Qh[t][i]+gainHat*u[n+i];}rows.push({P,Q});}return rows;}
+
+function planP1(cell,ctx){ // draft: frozen-parameter expected evidence, min cost subject to quota
+  const n=cell.n,D2=2*n,{w,box,cap}=ctx,t=ctx.st.L,Ht=Hmat(cell.models[t],ctx.th[t]);
+  const dH=ctx.st.comps.map(j=>{const Hj=Hmat(cell.models[j],ctx.th[j]);return Ht.map((r,i)=>r.map((v,a)=>v-Hj[i][a]));});
+  if(!dH.length)return new Float64Array(D2);
+  const M=Array.from({length:D2},()=>new Float64Array(D2));
+  for(const d of dH)for(let i=0;i<n;i++)for(let a=0;a<D2;a++){const da=d[i][a];if(!da)continue;for(let b=0;b<D2;b++)M[a][b]+=da*d[i][b];}
+  let v=new Float64Array(D2).fill(1/Math.sqrt(D2));
+  for(let it=0;it<300;it++){const nv=new Float64Array(D2);for(let a=0;a<D2;a++){let s=0;for(let b=0;b<D2;b++)s+=M[a][b]/Math.sqrt(w[a]*w[b])*v[b];nv[a]=s;}const nr=Math.hypot(...nv);if(!(nr>0))return new Float64Array(D2);v=nv.map(x=>x/nr);}
+  let u=v.map((x,a)=>x/Math.sqrt(w[a]));
+  const xh=hourRowsForecast(cell,ctx.h,new Float64Array(D2),1).map(r=>Float64Array.from([...r.P,...r.Q]));
+  let lin=0;for(const x of xh)for(let a=0;a<D2;a++)for(let b=0;b<D2;b++)lin+=x[a]*M[a][b]*u[b];if(lin<0)u=u.map(x=>-x);
+  let amax=Math.sqrt(cap/costOf(w,u));for(let a=0;a<D2;a++)if(Math.abs(u[a])>0)amax=Math.min(amax,box[a]/Math.abs(u[a]));
+  const Dj=(alpha)=>dH.map(d=>{let s=0;for(const x of xh)for(let i=0;i<n;i++){let y=0;for(let a=0;a<D2;a++)y+=d[i][a]*(x[a]+alpha*u[a]);s+=y*y;}return s/(2*ctx.st.scale);});
+  const ok=alpha=>Dj(alpha).every((e,k)=>e>=ctx.st.quota[k]);
+  if(ok(0))return new Float64Array(D2);
+  let alpha=amax;
+  if(ok(amax)){let lo=0,hi=amax;for(let it=0;it<30;it++){const mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}alpha=hi;}
+  return u.map(x=>alpha*x);
+}
+
+function tEvidence(cell,ctx,j,u){ // lack of fit of competitor j after refitting it to the target's predicted hour
+  const Mj=cell.models[j],Mt=cell.models[ctx.st.L],acc=copyAcc(ctx.acc[j]);
+  for(const r of hourRowsForecast(cell,ctx.h,u,.95))addRow(Mj,acc,r.P,r.Q,predict(Mt,ctx.th[ctx.st.L],r.P,r.Q));
+  const th2=fit(Mj,acc,ctx.th[j],25);
+  return Math.max(0,sse(Mj,acc,th2)-ctx.oldSSE[j])/(2*ctx.st.scale);
+}
+function dictionary(cell,ctx){const n=cell.n,D2=2*n,dirs=[];
+  const chans=ctx.pOnly?[0]:[0,1];
+  for(let i=0;i<n;i++)for(const ch of chans)for(const sg of [1,-1]){const d=new Float64Array(D2);d[ch*n+i]=sg;dirs.push(d);}
+  const Mt=cell.models[ctx.st.L];
+  for(const j of ctx.st.comps){const Mj=cell.models[j],nodes=[...Array(n).keys()].filter(i=>Mt.ancestry[i]!==Mj.ancestry[i]);if(nodes.length<2)continue;
+    for(const ch of chans)for(const sg of [1,-1]){const d=new Float64Array(D2);nodes.forEach(i=>d[ch*n+i]=sg);dirs.push(d);}}
+  return dirs;}
+function scaleToCap(d,w,box,cap){let a=Math.sqrt(cap/costOf(w,d));for(let k=0;k<d.length;k++)if(d[k])a=Math.min(a,box[k]/Math.abs(d[k]));return d.map(x=>a*x);}
+function planP2(cell,ctx){ // revised: refit-aware (T-optimal) discrete design, scaled to the quota
+  const D2=2*cell.n,{w,box,cap}=ctx,comps=ctx.st.comps,q=ctx.st.quota;
+  if(!comps.length||q.every(x=>x<=0))return new Float64Array(D2);
+  ctx.oldSSE={};for(const j of comps)ctx.oldSSE[j]=sse(cell.models[j],ctx.acc[j],ctx.th[j]);
+  const ratio=u=>Math.min(...comps.map((j,k)=>q[k]>0?tEvidence(cell,ctx,j,u)/q[k]:Infinity));
+  if(ratio(new Float64Array(D2))>=1)return new Float64Array(D2);
+  let best=null,br=-1;
+  for(const d of dictionary(cell,ctx)){const u=scaleToCap(d,w,box,cap),r=ratio(u);if(r>br){br=r;best=u;}}
+  if(br>1)best=best.map(x=>x/Math.sqrt(br));
+  return best;
+}
+function planRandom(cell,ctx,targetCost,rng){const n=cell.n,d=new Float64Array(2*n);d[Math.floor(rng.u()*2)*n+Math.floor(rng.u()*n)]=rng.u()<.5?1:-1;return scaleToCap(d,ctx.w,ctx.box,targetCost);}
+function planRandomP(cell,ctx,targetCost,rng){const n=cell.n,d=new Float64Array(2*n);d[Math.floor(rng.u()*n)]=rng.u()<.5?1:-1;return scaleToCap(d,ctx.w,ctx.box,targetCost);}
+/* Zero-sum random-sign P block: buy at a random subset of nodes and sell the same total at the rest,
+   each node within its box, so the transformer flow is unchanged to first order. No Q. */
+function zeroSumP(cell,box,w,cap,rng){const n=cell.n,u=new Float64Array(2*n),sg=[];
+  for(let i=0;i<n;i++)sg.push(rng.u()<.5?1:-1);
+  let sp=0,sn=0;const sums=()=>{sp=0;sn=0;for(let i=0;i<n;i++){if(sg[i]>0)sp+=box[i];else sn+=box[i];}};sums();
+  if(sp===0||sn===0){sg[0]=-sg[0];sums();}
+  const fp=Math.min(1,sn/sp),fn=Math.min(1,sp/sn);for(let i=0;i<n;i++)u[i]=sg[i]>0?fp*box[i]:-fn*box[i];
+  const c=costOf(w,u);if(c>cap){const f=Math.sqrt(cap/c);for(let i=0;i<n;i++)u[i]*=f;}return u;}
+
+/* ---------- one trajectory ---------- */
+function runArm(cell,arm){
+  const n=cell.n,K=cell.models.length,{w,box}=costWeights(cell,arm.kappa);
+  const acc=cell.accTrain.map(copyAcc),th=cell.thFrozen.map(t=>t.slice()),S=cell.valSSE.slice(),newSSE=new Float64Array(K);
+  let newCells=0,streak=0,lastL=-1,bad=0,good=0,paused=false,cost=0,probed=0,everWrong=false,firstCorrect=null,pauses=0;
+  const hourly=[],rrng=RNG(cell.seed*31+7);
+  for(let h=0;h<24;h++){
+    const st=status(cell,S,newSSE,newCells,arm.rule);
+    const condNow=st.cond&&!paused;
+    streak=(condNow&&st.L===lastL)?streak+1:(condNow?1:0);lastL=st.L;
+    if(streak>=2){if(st.L!==cell.truthIdx)everWrong=true;else if(firstCorrect===null)firstCorrect=h;}
+    let u=new Float64Array(2*n);
+    const ctx={st,th,acc,h,w,box,cap:arm.cap};
+    if(arm.planner==='random'){if(arm.match[h]>0)u=planRandom(cell,ctx,arm.match[h],rrng);}
+    else if(arm.planner!=='none'&&!paused&&streak<2){u=arm.planner==='P1'?planP1(cell,ctx):planP2(cell,ctx);}
+    const c=costOf(w,u);cost+=c;hourly.push(c);if(c>1e-9)probed++;
+    const rows=[];
+    for(let k=0;k<4;k++){const t=4*h+k,Pn=new Float64Array(n),Qn=new Float64Array(n);
+      for(let i=0;i<n;i++){Pn[i]=cell.day.P[t][i]+cell.gain[i]*u[i];Qn[i]=cell.day.Q[t][i]+cell.gain[i]*u[n+i];}
+      rows.push(measure(cell.net,Pn,Qn,cell.day.root[t],cell.noise[t]));}
+    let leadHour=0;
+    for(let k=0;k<K;k++){let e=0;for(const r of rows)e+=rowSSE(cell.models[k],th[k],r);S[k]+=e;newSSE[k]+=e;if(k===st.L)leadHour=e;}
+    newCells+=4*n;
+    const rho=leadHour/(4*n*cell.sigma2);
+    if(rho>2){bad++;good=0;}else{good++;bad=0;}
+    if(!paused&&bad>=2){paused=true;pauses++;}if(paused&&good>=2)paused=false;
+    for(let k=0;k<K;k++){for(const r of rows)addRow(cell.models[k],acc[k],r.P,r.Q,r.Y);if(arm.refit)th[k]=fit(cell.models[k],acc[k],th[k],60);}
+  }
+  const st=status(cell,S,newSSE,newCells,arm.rule),condEnd=st.cond&&!paused;
+  if(condEnd&&st.L===lastL&&streak>=1){streak++;}
+  const confirmed=condEnd&&streak>=2;
+  if(confirmed&&st.L!==cell.truthIdx)everWrong=true;
+  const tErr=cell.truthIdx===0?relErr(cell.models[0],th[0],cell.net):null;
+  return{correct:st.L===cell.truthIdx,confirmed,confirmedCorrect:confirmed&&st.L===cell.truthIdx,confirmedWrong:confirmed&&st.L!==cell.truthIdx,everWrong,firstCorrect,cost,probed,pauses,hourly,errX:tErr&&tErr.X,errR:tErr&&tErr.R,leaderKind:cell.models[st.L].kind};
+}
+
+/* ---------- experiments ---------- */
+const ARMS=[
+  {name:'passive_frozen',planner:'none',refit:false,rule:'F1'},
+  {name:'passive_refit_F1',planner:'none',refit:true,rule:'F1'},
+  {name:'passive_refit_F2',planner:'none',refit:true,rule:'F2'},
+  {name:'draft_frozen_P1_F1',planner:'P1',refit:false,rule:'F1'},
+  {name:'draft_refit_P1_F1',planner:'P1',refit:true,rule:'F1'},
+  {name:'refit_P1_F2',planner:'P1',refit:true,rule:'F2'},
+  {name:'revised_refit_P2_F2',planner:'P2',refit:true,rule:'F2'},
+  {name:'random_matched_F2',planner:'random',refit:true,rule:'F2'},
+];
+function summarize(rs){const pct=f=>+(100*mean(rs.map(r=>f(r)?1:0))).toFixed(1);
+  const fc=rs.map(r=>r.firstCorrect).filter(v=>v!==null);
+  return{N:rs.length,end_leader_kinds:hist(rs.map(r=>r.leaderKind)),correct_pct:pct(r=>r.correct),confirmed_correct_pct:pct(r=>r.confirmedCorrect),confirmed_wrong_pct:pct(r=>r.confirmedWrong),ever_confirmed_wrong_pct:pct(r=>r.everWrong),
+    mean_cost_CNY:+mean(rs.map(r=>r.cost)).toFixed(2),mean_probed_hours:+mean(rs.map(r=>r.probed)).toFixed(1),mean_first_correct_hour:fc.length?+mean(fc).toFixed(1):null,pauses_pct:pct(r=>r.pauses>0),
+    confirmed_correct_by_3h_pct:pct(r=>r.firstCorrect!==null&&r.firstCorrect<=3),confirmed_correct_by_6h_pct:pct(r=>r.firstCorrect!==null&&r.firstCorrect<=6),confirmed_correct_by_12h_pct:pct(r=>r.firstCorrect!==null&&r.firstCorrect<=12),
+    truth_X_relerr:rs[0].errX===null?null:+mean(rs.map(r=>r.errX)).toFixed(3),truth_R_relerr:rs[0].errR===null?null:+mean(rs.map(r=>r.errR)).toFixed(3)};}
+
+function hist(list){const h={};for(const v of list)h[v]=(h[v]||0)+1;return h;}
+function bankStats(cells){const rs=cells.map(c=>{const S=c.valSSE,st=status(c,S,new Float64Array(S.length),0,'F1');
+    const rank=c.truthIdx<0?null:S.filter(v=>v<S[c.truthIdx]).length+1;
+    const gapT=c.truthIdx<0?null:(S[c.truthIdx]-S[st.L])/(2*c.sigma2);
+    return{lead:st.L===c.truthIdx,w:st.wLead,amb:st.wLead<0.9,K:S.length,kind:c.models[st.L].kind,rank,gapT};});
+  const rk=rs.filter(r=>r.rank!==null);
+  return{N:rs.length,bank_size:rs[0].K,val_leader_correct_pct:+(100*mean(rs.map(r=>r.lead?1:0))).toFixed(1),val_leader_weight_mean:+mean(rs.map(r=>r.w)).toFixed(3),ambiguous_pct:+(100*mean(rs.map(r=>r.amb?1:0))).toFixed(1),
+    val_leader_kinds:hist(rs.map(r=>r.kind)),truth_rank_median:rk.length?rk.map(r=>r.rank).sort((a,b)=>a-b)[Math.floor(rk.length/2)]:null,truth_gap_logodds_median:rk.length?+rk.map(r=>r.gapT).sort((a,b)=>a-b)[Math.floor(rk.length/2)].toFixed(2):null};}
+async function expDiag(netName,cfg,seeds,tag){ // solver convergence check: coordinate descent vs exact active set
+  const net=buildNet(netName),rows=[];
+  for(let s=0;s<seeds;s++){USE_EXACT=true;const c=makeCell(net,cfg,s+1);let worst=0,count=0,trueGap=0;
+    c.models.forEach((M,k)=>{const cd=solve(M,c.accTrain[k],M.lo.slice(),800),ex=c.thFrozen[k];const a=sse(M,c.accTrain[k],cd),b=sse(M,c.accTrain[k],ex);const rel=(a-b)/Math.max(b,1e-30);worst=Math.max(worst,rel);if(rel>1e-4)count++;if(k===0)trueGap=rel;});
+    rows.push({seed:s+1,cd_worse_than_exact_max_rel:+worst.toExponential(2),models_cd_off_gt_1e4:count,truth_cd_off_rel:+trueGap.toExponential(2)});await tick(`${tag} ${s+1}`);}
+  USE_EXACT=true;return{tag,net:netName,cfg,rows};}
+
+async function expB(netName,cfg,seeds,tag,arms){
+  const net=buildNet(netName),cells=[];
+  for(let s=0;s<seeds;s++)cells.push(makeCell(net,cfg,s+1));
+  const out={tag,net:netName,cfg,bank:bankStats(cells),arms:{}};
+  const per={};arms.forEach(a=>per[a.name]=[]);
+  for(let s=0;s<cells.length;s++){
+    let match=null;
+    for(const a of arms){
+      const arm=Object.assign({},a,{kappa:cfg.kappa,cap:cfg.cap});
+      if(a.planner==='random'){if(!match)continue;arm.match=match;}
+      const r=runArm(cells[s],arm);per[a.name].push(r);
+      if(a.name==='revised_refit_P2_F2')match=r.hourly;
+      await tick(`${tag}: seed ${s+1}/${cells.length} ${a.name}`);
+    }
+  }
+  for(const a of arms)if(per[a.name].length)out.arms[a.name]=summarize(per[a.name]);
+  return out;
+}
+async function expA(netName,cfg,seeds,tag){ // excitation needed for the R/X refit of the true support
+  const net=buildNet(netName),designs=['none','prbs_PQ','prbs_P','prbs_Q','cycle_PQ'],kappas=[1,3,10,30],res=[];
+  const cells=[];for(let s=0;s<seeds;s++)cells.push(makeCell(net,Object.assign({},cfg,{noTruth:false}),s+1));
+  res.push({design:'frozen_train_only',kappa:0,X_relerr:+mean(cells.map(c=>relErr(c.models[0],c.thFrozen[0],net).X)).toFixed(3),R_relerr:+mean(cells.map(c=>relErr(c.models[0],c.thFrozen[0],net).R)).toFixed(3),day_cost_CNY:0});
+  for(const design of designs)for(const kappa of (design==='none'?[0]:kappas)){
+    const eX=[],eR=[],cs=[];
+    for(const c of cells){
+      const M=c.models[0],acc=copyAcc(c.accTrain[0]),rng=RNG(c.seed*97+kappa*13+design.length),n=c.n,{w}=costWeights(c,Math.max(kappa,1));let cost=0;
+      for(let h=0;h<24;h++){const u=new Float64Array(2*n);
+        if(design.startsWith('prbs'))for(let i=0;i<n;i++){if(design!=='prbs_Q')u[i]=(rng.u()<.5?1:-1)*kappa*c.sdP[i];if(design!=='prbs_P')u[n+i]=(rng.u()<.5?1:-1)*kappa*c.sdQ[i];}
+        if(design==='cycle_PQ'){const i=h%n,sg=rng.u()<.5?1:-1;u[i]=sg*kappa*c.sdP[i];u[n+i]=(rng.u()<.5?1:-1)*kappa*c.sdQ[i];}
+        cost+=costOf(w,u);
+        for(let k=0;k<4;k++){const t=4*h+k,Pn=new Float64Array(n),Qn=new Float64Array(n);for(let i=0;i<n;i++){Pn[i]=c.day.P[t][i]+c.gain[i]*u[i];Qn[i]=c.day.Q[t][i]+c.gain[i]*u[n+i];}
+          const r=measure(net,Pn,Qn,c.day.root[t],c.noise[t]);addRow(M,acc,r.P,r.Q,r.Y);}}
+      const th=fit(M,acc,c.thFrozen[0],1500),e=relErr(M,th,net);eX.push(e.X);eR.push(e.R);cs.push(cost);
+    }
+    res.push({design,kappa,X_relerr:+mean(eX).toFixed(3),R_relerr:+mean(eR).toFixed(3),day_cost_CNY:+mean(cs).toFixed(1)});
+    await tick(`${tag}: ${design} k=${kappa}`);
+  }
+  return{tag,net:netName,cfg,rows:res};
+}
+function tick(msg){document.getElementById('progress').textContent=msg;return new Promise(r=>setTimeout(r,0));}
+
+(async function main(){
+  const exp=RUN.exp,seeds=RUN.seeds,t0=performance.now(),results=[];
+  try{
+    if(exp==='DIAG'){results.push(await expDiag('soumalas11',{Ntr:48,Nval:24},seeds,'diag_sou_48'));results.push(await expDiag('soumalas11',{Ntr:192,Nval:96},seeds,'diag_sou_192'));
+      const net=buildNet('soumalas11');for(const cfg of [{Ntr:48,Nval:24},{Ntr:192,Nval:96}]){const cells=[];for(let s=0;s<seeds;s++)cells.push(makeCell(net,cfg,s+1));results.push({tag:`bank_exact_sou_${cfg.Ntr}`,bank:bankStats(cells)});}}
+    if(exp==='A'||exp==='ALL'){results.push(await expA('soumalas11',{Ntr:48,Nval:24},seeds,'A_sou_48'));results.push(await expA('soumalas11',{Ntr:192,Nval:96},seeds,'A_sou_192'));results.push(await expA('pengwah18',{Ntr:48,Nval:24},seeds,'A_peng_48'));}
+    if(exp==='B'||exp==='ALL'){for(const kappa of [3,10])for(const cap of [5,1e9])results.push(await expB('soumalas11',{Ntr:48,Nval:24,kappa,cap},seeds,`B_sou_48_k${kappa}_cap${cap>1e6?'inf':cap}`,ARMS));}
+    if(exp==='C'||exp==='ALL'){results.push(await expB('soumalas11',{Ntr:48,Nval:24,kappa:10,cap:5,noTruth:true},seeds,'C_sou_48_truth_missing_k10_cap5',ARMS.filter(a=>a.planner!=='random')));}
+    if(exp==='E'){
+      results.push(await expE('soumalas11',{Ntr:48,Nval:24,kappa:3,cap:1e9},seeds,'E_sou_48_k3_capinf'));
+      results.push(await expE('soumalas11',{Ntr:48,Nval:24,kappa:10,cap:1e9},seeds,'E_sou_48_k10_capinf'));
+      results.push(await expE('soumalas11',{Ntr:48,Nval:24,kappa:10,cap:20},seeds,'E_sou_48_k10_cap20'));
+      results.push(await expE('soumalas11',{Ntr:48,Nval:24,kappa:10,cap:1e9,noTruth:true},seeds,'E_sou_48_truth_missing_k10_capinf'));
+      results.push(await expE('pengwah18',{Ntr:48,Nval:24,kappa:10,cap:1e9},seeds,'E_peng_48_k10_capinf'));}
+    if(exp==='F'){
+      for(const kappa of [1.5,3]){
+        results.push(await expF('soumalas11',{Ntr:48,Nval:24,kappa,cap:1e9},seeds,`F_sou_48_k${kappa}`));
+        results.push(await expF('soumalas11',{Ntr:48,Nval:24,kappa,cap:1e9,noTruth:true},seeds,`F_sou_48_truth_missing_k${kappa}`));
+        results.push(await expF('pengwah18',{Ntr:48,Nval:24,kappa,cap:1e9},seeds,`F_peng_48_k${kappa}`));}}
+    if(exp==='D'||exp==='ALL'){results.push(await expB('pengwah18',{Ntr:48,Nval:24,kappa:10,cap:5},seeds,'D_peng_48_k10_cap5',ARMS));results.push(await expB('soumalas11',{Ntr:192,Nval:96,kappa:10,cap:5},seeds,'D_sou_192_k10_cap5',ARMS));}
+    document.getElementById('out').textContent=JSON.stringify({seconds:+((performance.now()-t0)/1000).toFixed(1),seeds,results},null,1);
+    document.getElementById('progress').textContent='DONE';
+  }catch(e){document.getElementById('progress').textContent='ERROR '+e.message+'\n'+e.stack;}
+})();
+</script>
+</body></html>

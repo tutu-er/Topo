@@ -1,155 +1,26 @@
-# 长预算 WZZT 数据与对照方案
+# Data Sources and Preparation
 
-2026-11-17。本文件只核查已有文件和提出方案；没有启动新拟合、整数求解或 AC。以下“建议”还不是执行协议。
+For the final task grid and budgets, see the [executed design](PROTOCOL.md). The [original planning record](https://github.com/tutu-er/Topo/blob/e66aae90cf49093483ac3dc8ece2e8d411296a99/rnj_wzzt_dr/experiments/wzzt_long_grid_20261117/DATA_PLAN.md) retains the earlier grid proposals, source hashes, and historical 48-input loss comparison.
 
-**现成数据可支持两条分开的比较：四网 main240 的同输入算法回放，以及两网十一日实测 P/Q 驱动缓存上的历史长度×功率误差网格。** Paper/Flynn 也有完整的十一日实测 P/Q 来源，但目前找到的已封存 AC 缓存只有四日窗口。补四网长窗口时，需要生成这两网对应电压缓存；无须重新构造固定 P/Q 比例负荷。
+The study uses signed net active and reactive power from the same FeederBW meter and timestamp for each source feeder. The feeder profiles are load inputs to the four reference networks. Voltages come from AC simulation on those reference networks. The P/Q archive has 18 source feeders. Each observed terminal uses its assigned feeder and the same fixed positive scale for both power channels. The source archive manifest identifies FeederBW v1.1, DOI `10.5281/zenodo.19550073`.
 
-## 1. 已核实的数据资产
+## Required files for preparation
 
-所有路径相对 `D:/0-github_workspace/Topo`。原始功率、电压、拟合数值、逐步求解轨迹及本轮生成结果继续保存在忽略提交的 `outputs/`。
+Paths are relative to the repository root. The runner checks these files against the locked hashes.
 
-### A. 四网 main240：历史算法的直接同输入对照
+| Path | Contents |
+| --- | --- |
+| `data/measured_pq_sources_20261114/paired_pq_15min.npz` and adjacent `archive.json` | Synchronized P/Q, timestamps, and valid-minute counts |
+| `data/distribution_panel_confirmation_data_20261115_v1/confirmation/<case>__2024-01-04/resource_context.json` | Earlier case mapping, positive scale, and source identity for each of the four networks |
+| `data/history10_rx_20261116_v1/worlds.json` and its referenced input files | The existing 1,056-point Soumalas11 and Pengwah18 worlds, full AC states, network responses, and receipts |
+| `rnj_wzzt_dr/physical/cases/` | Network branches, buses, and case metadata for the four feeders |
 
-- 协议：`topology_identification_standalone/outputs/large96_main_20261112_001/protocol.json`。
-- 实际观测：该目录下 **`runtime/inputs/input000.npz`—`input239.npz`**。协议写的 `inputs/...` 是相对当时 runtime 的路径，不能误判文件缺失。
-- 现有统一索引：`outputs/impedance_floor_20261116_v1/inputs.json`，只取 `source_group == "large96_main"`；亦可通过现行 `rnj_wzzt_dr/evaluation_scope.py` 的活动范围读取。不得混入已退出默认评估的 pressure160。
-- 本次逐文件核验：240/240 存在且 SHA 与索引一致，P/Q 均为 96 行；Paper15、Flynn16、Soumalas11、Pengwah18 各 60 输入。
-- 每输入同一日 96 个十五分钟点，训练 `[0,64)`，最终选择 `[64,96)`，不洗牌；**没有另存独立新日评价**。数据由旧日型生成器和 AC 模型生成，不属于 FeederBW 实测来源。旧噪声/日型/幅值组合从 `generation.json` 原样继承。
-- 原方法与新方法可比较同一输入上的内部结构、全支持、候选覆盖、验证损失和总时间。改变训练64/验证32后就不再是旧240的同输入基线。
+The stage reuses the Soumalas and Pengwah worlds. It computes Paper and Flynn AC voltages for the same window and checks the original and full-state simulators against each other. The window begins January 21, 2024 at 08:00 Central European Time. Each selected quarter-hour bin requires at least twelve valid source minutes. Missing bins cause a qualification failure. The fixed window and source mapping are shared across all methods.
 
-协议 SHA：`ceac935650e280105c507e26ce780191fde4340cdd3a8fd3ba29028f8a6a8fc4`。
-统一456历史索引 SHA：`379255f17bfeea88bcd155e3f9fdce425f56b928b2bc87d53b6e189f6a01985f`。
-main240 的观测与拟合结果已经看过；回放用于算法配对比较，不称新的盲确认。
+| Split | Row indices within the 1,056-point window |
+| --- | --- |
+| Training | The last 48, 96, 192, 384, or 768 rows before index 768 |
+| Validation | `[768, 960)` |
+| New-day scoring | `[960, 1056)` |
 
-### B. 四网 Jan04 四日缓存：现成的共同实测负荷起点
-
-根目录：`outputs/distribution_panel_confirmation_data_20261115_v1/confirmation/{case}__2024-01-04/`。
-每网有 `private_physical.npz`、`full_ac.npz`、`resource_context.json`，时间为当地 Jan04 08:00 至 Jan08 07:45，共384点。原分割192训练、96验证、96新日。
-
-|网络|末端标签 / 源馈线|同节点共同正缩放系数范围|`private_physical.npz` SHA256|
-|---|---|---:|---|
-|Paper15|101—115 / 1—15|0.1049863—0.5481264|`b142e799088d6c48bf25c0bef46f93d7a653d1f8556a01298d75132bc697effa`|
-|Flynn16|201—216 / 1—16|0.0730348—0.3232547|`bfc508a1a569c317f9d732209f6efd294e9294cd51994ca789a36f1fa9f81315`|
-|Soumalas11|101—111 / 1—11|0.0674167—0.3908380|`f95508a5e46a15ebda37c3440aee1afa24d5b070487e667ac4224d9b7e567652`|
-|Pengwah18|301—318 / 1—18|0.0646077—0.4432674|`99be61b3162d5f97161568d783a275a11306e543e08ec7df4c67a699dbe412a0`|
-
-本次直接读取源 P/Q、封存尺度与缓存时间戳，四网均逐值确认
-
-\[
-P_{tn}=a_nP^{\rm source}_{tn}/200,\qquad
-Q_{tn}=a_nQ^{\rm source}_{tn}/200,
-\]
-
-最大差为0。尺度只由旧 Jan04 前192点的 P RMS 与网络额定负荷决定，P、Q使用同一个尺度，没有人为固定功率因数。200 kW 是标幺功率基准，不是变压器容量。不同网复用了相同源馈线，属于不同物理网络上的配对日型，不能当成四组相互独立的用电现场。
-
-各 `resource_context.json` SHA 按表顺序为：
-
-```text
-Paper: dc5bb88a578b47fe61ddf175a6c8349413e1bd2903898d27661fcb3852370778
-Flynn: 0e846eba6657d27449977cdb047da5fcc7c78811a6c9703b9e2814fac2467a2d
-Sou:   1c9f14b86a4c6a83add1be964af3347c24a3050917743eeec6c070fbfc33f9df
-Peng:  997fd663b782b56208582be9fded7cecc78b3b3c2279810cae522ca0e0b3fffe
-```
-
-另外，既有四季日期面板已完成的物理输入为：开发8/计划16（每网2）；确认46/计划96（Paper11、Flynn11、Peng11、Sou13）。58个缺测输入仍保留原记录。不同日期缓存各自可能用不同历史尺度，不能把它们直接拼成连续多日，或把日期与尺度的差异归因于样本数。
-
-开发索引 SHA `bda740e8b5152b3df8e20c0bda972fe036a22a8cd10ae54882fc476d6c57dcc3`；确认索引 SHA `ef2f79731e5e981e17c21739efc786d9935013b4591dff51bff036abc2ebac4c`。
-
-### C. 两网 Jan21 十一日缓存：可立即重用的长历史资产
-
-入口：`outputs/history10_rx_20261116_v1/worlds.json`，SHA `2fb7f208d9c465e63ea24cd07cb5da5bf354660ae197861e44c9b9e9b39c86b1`。
-实际文件在 `data/worlds/{soumalas11,pengwah18}/`。
-
-|网络|`clean.npz` SHA256|`full_ac.npz` SHA256|
-|---|---|---|
-|Soumalas11|`91b9b127d74c5b5f2224bcc67100c7889df55a137812e0bd852965f268e23074`|`35315202ee82b3502f8fc8b10a6c84e3e276335f7de3f8a07a6291c5d6deb56e`|
-|Pengwah18|`9e65930a29a1f2aaa11ae86f496a5cfea337e0c9d63857998d3853492a8cf34c`|`78c3ed97880f0f6d56db3ae1931b4a16ad13e135f7e1081c960cf25f0e10255b`|
-
-`clean.npz` 含1056行 P/Q/V/root及时间戳；本轮核实clean和profile元数据文件哈希与world索引一致。`clean`仅指尚未加入本项目附加表计噪声，源P/Q仍是真实表计数据，V/root是试验网络模拟量。原物理基线未重复加设备负荷或PV。
-
-|用途|固定行号|当地时间|点数|
-|---|---|---|---:|
-|8天训练|`[0,768)`|Jan21 08:00—Jan29 07:45|768|
-|4天训练|`[384,768)`|Jan25 08:00—Jan29 07:45|384|
-|2天训练|`[576,768)`|Jan27 08:00—Jan29 07:45|192|
-|共同验证|`[768,960)`|Jan29 08:00—Jan31 07:45|192|
-|共同独立时段评价|`[960,1056)`|Jan31 08:00—Feb01 07:45|96|
-
-短训练取长训练最后两天，保持训练截止、验证和评价日期相同；旧 Jan04 缩放系数也原样保留。已有 `noise_h00.npz`—`noise_h03.npz` 可用于同物理窗口的配对历史误差，但这四个重复不是四个独立物理日。当天未来数据只在候选与参数封存后用于评分。
-
-### D. 四网十一日扩展所缺的内容
-
-源库 `outputs/measured_pq_sources_20261114/paired_pq_15min.npz` 已有18条同步净P/Q、有效分钟数和UTC时间戳，共70176点，范围为2023-03-31T22:00Z至2025-03-31T21:45Z。本轮直接检查 Jan21 07:00Z—Feb01 07:00Z：1056点、全18馈线 P/Q有限、有效分钟数最少14、只有一格低于15；满足原每格至少12分钟规则。
-
-- 该完整窗口覆盖 Paper/Flynn 所需前15/16源。可以保持各自旧 Jan04 映射和尺度，直接提取同 Jan21 时刻，不生成新的固定比例 Q。
-- **尚缺 Paper/Flynn 对应1056点 AC 电压/全状态缓存和其物理核验收据。** 当前已找到的这两网私有电压缓存是384点窗口。若不新增一次物理数据准备，四网只能共同使用已有四日；不能把“源P/Q足够”写成“四网长AC缓存已经存在”。
-- 原 Jan04 连续十一日不完整，Jan12有缺测；Jan21是此前按源完整性选出的共同最早合格窗口，选择未看辨识效果。新规则沿用这次资格选择，不再为结果改变日期。
-
-源库 SHA `45c5556c96cb792043ca40ad8e0b2df11f24efb44423c164c381f566cf010d80`；源清单 SHA `b8a632de4726cdafd4beedcf94cbf6c3459cf9743a35cc84fee7bb877e5f0eb2`。清单记录 FeederBW v1.1、DOI `10.5281/zenodo.19550073`、CC BY 4.0。来源是馈线用户群净功率，并非试验树每个单户的现场P/Q；试验拓扑和电压来自原四网模型。源登记只说明有PV/EV/储能等，不提供设备分项实时出力或可调余量。
-
-## 2. 建议的样本×P/Q误差比较
-
-优先将两个问题分开。
-
-1. **旧算法与当前算法的同输入比较：** 保留 main240 的64/32输入、原物理参数和噪声，不重新生成日型。原选择点、当前候选库、收缩前后结果分别列出；旧结果不经过新算法重标后当成原结果。
-2. **长历史是否帮助当前搜索与R/X估计：** 在同Jan21物理缓存上用2/4/8天训练、固定两天验证和最后一天评价。P/Q附加误差建议0、0.5%、2%三档，V/root固定0.05%，同网络/时刻/重复使用相同标准噪声；P/Q均保留原符号。0档只表示不再附加本项目P/Q误差。
-
-完整两网小网格为 `2网 × 3历史长度 × 3P/Q档 × 4误差重复 = 72输入`。如四网长缓存准备完成，则为144输入。每输入的全部方法必须共享同一份train/validation/evaluation与尺度；失效/超时/无可行点保留原计划分母。
-
-这里样本数增加也增加历史时间跨度，因此应称“历史长度比较”。若另外研究采样密度，应在同两天192点内固定索引降采样到96或64，保持验证192和评价96不变，作为另一个实验轴；不要把两类操作放在同一条仅标N的曲线上。不得把旧main240的单日64/32和新两天64/共同两天验证当作同一输入。
-
-R/X误差只在候选封存后计算：历史赢家和库内正确内部族分别列；完整支持、公共项、末端缺失另列。完整支持与内部正确分母不得互换。候选不存在和库中有真族但选错是不同失败。所有同日期和同误差流的网格点采用配对统计，4个历史噪声重复以及一条物理日期不足以支持跨季节泛化。
-
-## 3. 极长预算的最小有效规模与公平计时
-
-不建议一开始给72或144个网格输入的每个方法都分配4小时。最低有误差重复的长预算检查可先锁：
-
-`2网 × {2天,8天} × {0.5%,2% P/Q误差} × 2噪声重复 = 16输入`。
-
-它覆盖当前两个不同难度网络、样本跨度和误差端点；选取由元数据决定，不按已有某算法成败筛选。它仍是已知物理日上的开发比较。`100`与`101`各一次为32次拟合，上限128核小时；若另加真正无RNJ指导的`000`，再增加最多64核小时。RNJ同输入、同收缩基线必须同时给出，其实际费用单列，不能把长搜索配置的成功全归于整数搜索。
-
-建议预锁如下预算，而不是求解看到结果后再延时：
-
-- 单输入/方法总会计上限14,400秒，固定结构LP/QP单次最多300秒，W原生单步最多3,600秒。
-- 最终候选收缩、重拟合和评分预留600秒。E版在启动W前另预留至少3,600秒给E；具体W阶段上限、E可用剩余量事先写定，包含共同RNJ/预试/模型构造时间。
-- 若比较E的额外贡献，推荐两方法共享同一个W阶段预算，例如总预算中W及共享准备最多7,200秒，E最多余下6,600秒，输出预留600秒。无E方法提前结束并报告实际时间，不虚记空闲预算。若无E允许继续把剩余时间用于W，则另外说明比较的是等总预算配置，而非同一前缀只开关E。
-- 每步记录：当前路径目标、预试各点及耗时、实际MIP-start完整目标与计数、原生返回点、闭合后点、上下界随时间、停止原因。将“预试改善”“原生改善”“闭合改变计数”分开，避免重演 −.003 计数差误报。
-- 在同一次运行记录10/120/600/3,600秒里程碑及返回点，可描述搜索演化，但它们不等价于重新执行相应短时限配置；真正时间预算对照须用独立预锁任务。
-- 中断保留原始incumbent、已耗预算、来源与旧轨迹；恢复不得重新给满4小时。结构路径限时结束、子问题达到gap和最终拓扑正确分别报告。
-
-该16输入检查的作用是确认大样本下原生搜索能否实际改善已审初值，以及E是否有稳定贡献；它不代替全部72/144网格，也不证明14,400秒足够求出全域最佳树。
-
-## 4. 旧48例 MAE/MSE 对照到底验证了什么
-
-已核查原封存协议、源码哈希、分析CSV与核验报告：
-`outputs/miqp_loss_benchmark_20261111/`，父L1批为 `outputs/day96_t_benchmark_20261110/`。
-
-- 四网×4个共同seed×3个电压误差档=48输入。每输入训练一个连续日96点，验证三个独立日288点，测试另一天96点。不是main240的64/32，也不是现有FeederBW长窗口。
-- 平方训练目标为 `K*MSE`，`K=f0_MAE/f0_MSE`，保留与父L1一致的 `.003*f0_MAE` 数量罚尺度；系数边界 `[0,2]`，输出收缩 `.24`。主选择是**严格物理MAE**，另在同一冻结输出库上检查MSE选择；无完整RNJ整树最终兜底。
-- 两种结构各48，共96个新MIQP结果，与96个父L1结果全部核验；两种验证视图合计384逻辑评分视图，不是384次新搜索。
-- `exact`按 `1 < len(support) < n` 且系数非零的**内部支持集合**比较，不包括单叶和全节点公共项。旧“完整恢复40/48”应在当前文稿中明确为内部结构恢复。
-
-|结构|L1：内部exact / F1|平方：内部exact / F1|配对新增 / 丢失exact|F1改善 / 相同 / 下降|
-|---|---:|---:|---:|---:|
-|noT|33/48 / .915125|39/48 / .967896|8 / 2|12 / 33 / 3|
-|T003|33/48 / .912893|40/48 / .973104|9 / 2|12 / 33 / 3|
-
-192个“损失×结构×输入”组合在同库MAE/MSE选择之间，保存点变化为0/192。因而这批优势主要发生在训练/搜索产生的候选，而非把最终验证评分由MAE换成MSE。平方中T只多恢复1例，另外47例相同。
-
-T003成功尝试计时为L1 43,923.242秒（12.20小时）、平方52,116.152秒（14.48小时）。包含中断保守计费的operational时间分别44,523.841秒（12.37小时）和71,131.694秒（19.76小时）。旧平方批有8次中断尝试、10个未开始任务后续恢复，不能只报成功尝试时间当全部实际消耗。全部原生调用1,151次，1,149次Status2、2次Status9；后两次是同一Flynn输入的noT/T003最终E，末端相对界差约0.638%和0.594%。它们返回可用树但未闭合到原约定精度。E用剩余总预算，记录的3,684秒不宜误认为W单步超3,600秒。
-
-因此旧40/48支持的是当时**配对损失对照**，不能直接预测当前`.08`收缩、简化RNJ初值、新数据与最终MSE选择的结果。新MAE分支若采用当前core，必须重新做同候选来源、同预算、同输出规则的配对；旧L1源不改写成当前实现。
-
-### 旧48依据哈希
-
-```text
-protocol.json              616d3542bec98407402a0857066488acd2097ff9c7e1eb6b0441f190e6f25d5b
-catalog.json               96db2bffeb8cba0d161c3eb8eb425d07b03859c6626d2e1979799ca51b7472b5
-analysis/summary.csv       5bad6c11d34aff16e4e665ce9eeff396efcfc02965b1943c7f3dbfe02c541018
-analysis/paired_summary.csv 61f718fef95a5fd1aea46b80dcfda38d62470dbb44bcd0394f4cd0ae3dd4d339
-analysis/verification.json fc57b6f53f5cbfdec22da1daee4217376fa6725ab9a3382b620fd205939a2f79
-source/.../run.py          f8de0c79ec6dfc4bd4ebef20bf784797c82df1252bd7fc28da7e6e5047f0b2b7
-source/.../squared_backend.py 27e6d0cc2e0bc4a1e356dc1f0fbac76755347940420529a4db30a2cec7422ae8
-```
-
-最后两项与原协议登记SHA一致。指标定义见 `analysis_source/analyze.py:108–110,196–204`；逐调用界差见 `analysis/diagnostics/solver_calls.csv`；同库选择见 `selector_changes.csv`；中断计费见 `recovery_audit.json`。本次仅重读/聚合这些文件，没有重跑其分析器或原求解器。
+The main grid changes both sample count and the history covered by consecutive observations. The evenly spaced controls hold the training interval fixed and change the number of points. References to archived paths may be absolute. Keep the sealed inputs at resolvable original or retained paths, with their stored bytes intact. See the [data and archive layout](../../ARCHIVE.md).

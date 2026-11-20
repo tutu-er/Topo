@@ -1,208 +1,21 @@
-# 根部连接是否更容易辨识：理论边界与配对检查初稿
+# Identifying Connections Near the Root
 
-编写日期：2026-11-17。状态：依据现有源码和已完成报告的研究计划，尚未运行本轮新实验。本文只规定应检验的命题、分层指标与对照原则；最终输入清单、预算及执行命令由本目录总协议另行封存。
+Root-near internal supports, the common upstream support, and singleton terminal supports have different observation and selection properties. The [locked study](PROTOCOL.md) evaluates them separately. The [original derivation and audit plan](https://github.com/tutu-er/Topo/blob/e66aae90cf49093483ac3dc8ece2e8d411296a99/rnj_wzzt_dr/experiments/wzzt_long_grid_20261117/ROOT_IDENTIFIABILITY.md) gives the complete rationale.
 
-## 1. 首先检验什么
+## Root-anchored tree distances
 
-待检验的命题是：在同一网络、同一观测与相同输出规则下，WZZT 是否比 RNJ 更容易找回靠近根部、覆盖较多已量测末端的真实连接，以及这种差别来自连接搜索、拟合损失还是输出收缩。
+On an exact additive tree, positive weights $a,b$ give the shared-path matrix $G=aR+bX$. The distance between measured terminals $i,j$ is $d_{ij}=G_{ii}+G_{jj}-2G_{ij}$. The distance from the root to terminal $i$ is $d_{0i}=G_{ii}$. These distances recover each shared path by $G_{ij}=(d_{0i}+d_{0j}-d_{ij})/2$. The common upstream term cancels from terminal pairs and remains in the root distances. The RNJ implementation uses root depth alongside terminal information.
 
-理论支持“大下游集合有不同的信号与误差结构”，尚不支持“WZZT 普遍在根部更准确”。应同时保留三个可能结果：WZZT 在近根部改善；只在某种负荷或噪声下改善；没有改善或新增公共项误加。
+The observable tree combines unmeasured series segments that have the same downstream set. It also omits branches that feed no measured terminals. Report recovery against this observable structure. Under the linearized model and the declared per-unit base $Z_{\rm base}$, the response coefficients for an observable branch are $r_C=2R_{C,\Omega}/Z_{\rm base}$ and $x_C=2X_{C,\Omega}/Z_{\rm base}$.
 
-本任务的“位置”有三个不同含义：
+## Power variation and meter error
 
-- 公共上游段：下游包含全部已量测末端的支持。
-- 近根内部段：靠近根部，但下游只是部分末端的分支。
-- 末端段：下游只有一个已量测末端。
+A support $C$, with indicator vector $z_C$, produces an active-power feature column formed from $(P_t^\top z_C)z_C$ at every time $t$. Its squared norm is $|C|\sum_t(P_t^\top z_C)^2$. Larger supports can produce a stronger voltage signal because more terminals experience the drop. Ancestor and descendant supports can also have highly correlated profiles. To assess separability in a known network, project that branch's P and Q columns off the other branch columns. A small eigenvalue of their residual two-column Gram matrix indicates a weakly observable resistance/reactance combination.
 
-三类分别报告。公共上游项被误加或删除，不等于内部支路分叉辨识改善。
+Root meter error contributes the same first-order voltage-drop error to all terminals at one slot. For common root error variance $\sigma_0^2$ and independent terminal variance $\sigma_v^2$, the information about a shared terminal shift is $n/(\sigma_v^2+n\sigma_0^2)$. It saturates as the number of terminals grows when root error is present. The root-meter control changes measurement error while keeping physical root voltage and loads fixed.
 
-## 2. 精确加性树中，RNJ 没有天然丢失根部信息
+## Comparing recovery
 
-令已量测末端数为 n，线路 e 的下游末端集合为 C_e，其指示向量为 z_e。在线性电压降模型中，平方电压降为
+Report exact internal recovery and exact full-support recovery separately. Stratify true supports by root depth and downstream size, and report false supports by size or predicted depth. Compare the R/X matrix error separately from resistance/reactance errors on matched branches. A native solve that improves training loss may still yield an incorrect support. The analysis tracks whether correct supports first appeared in an RNJ family, a pool trial, an unknown-support solve, or the E reconstruction, and records any effect of output contraction.
 
-\[
-Y_t=R P_t+X Q_t,\qquad
-R=\sum_e r_e z_ez_e^\top,\quad
-X=\sum_e x_e z_ez_e^\top.
-\]
-
-本项目的 P/Q 为统一功率基准下的标幺值，Y 为根端与末端电压标幺值的平方差。响应系数与物理阻抗的关系是
-
-\[
-r_e=2R_{e,\Omega}/Z_{\rm base},\qquad
-x_e=2X_{e,\Omega}/Z_{\rm base}.
-\]
-
-当前 `history10_rx_20261116/data.py:178–182` 显式使用这一换算；`identification/optimization.py:38–45` 使用相应的连接特征。
-
-若 R、X 来自同一径向树、有效边长为正，取固定正权重 a、b 得到
-
-\[
-G=aR+bX=\sum_e (ar_e+bx_e)z_ez_e^\top.
-\]
-
-G 仍是该树的公共路径长度矩阵。末端两两距离和根到末端距离分别是
-
-\[
-d_{ij}=G_{ii}+G_{jj}-2G_{ij},\qquad d_{0i}=G_{ii}.
-\]
-
-因此，在这些精确条件下，同时使用根距离与两两距离的树重构，包含 G 的同一份结构信息。现有 `trees.geometry` 保留 shared 与 depth；`trees.rnj` 使用公共路径和深度，`trees.nj` 还显式把观测根作为距离矩阵的一行一列（`trees.py:180–195, 227–277`）。以“距离法会消掉根部”为理由断言当前 RNJ 无法辨识根部，依据不足。
-
-公共上游项 c·11ᵀ 在 d_ij 中确实抵消，但在 d_0i 中仍留下 c。只提供末端两两距离的算法会丢掉它；保留根参考的当前实现并未做这个丢弃。由 P/Q/Y 估计 G 仍需要足够输入变化，已知根参考也不保证有限样本能准确估出 c。
-
-这里比较的是可观测的简化树：多个串联、无量测、无分叉的隐藏节点形成同一个下游集合，只能辨识其阻抗之和。没有任何量测末端的支路也不在当前支持模型的可辨识对象中。统计“逐线恢复”前，必须按相同下游集合合并这类等价段。
-
-有限噪声时，两条流程处理信息的方式不同：RNJ 先做稠密 R/X 回归，再按几何关系建树；WZZT 直接用受树结构约束的 R/X 拟合候选。前处理、结构约束、损失和限时路径均可能产生差异，需通过配对结果区分。
-
-## 3. 为什么较大集合可能信号更强，也可能更难分开
-
-对一条给定连接，P 对应的设计列为
-
-\[
-f_{e,P}=\operatorname{vec}\{(P_t^\top z_e)z_e^\top\}_{t=1}^N,
-\quad
-\|f_{e,P}\|^2=|C_e|\sum_t(P_t^\top z_e)^2,
-\]
-
-Q 列同理。这说明同一连接会影响多个下游电压，且受下游总功率驱动。较大集合在其他条件相同时可有更大响应；实际增加多少取决于净负荷相消、共同负荷变化和连接阻抗。
-
-原始列范数大，并不等于这条连接相对其他连接的信息多。祖先、后代支持共享大量功率和电压分量，其特征列可能高度相似。离线检查应同时计算：
-
-1. 每条真实等价段的两列范数，以及这两列的相关性；
-2. 把其余连接特征解释掉后，剩余的两列信息：
-   \[
-   I_e=F_e^\top(I-\Pi_{-e})F_e,
-   \]
-   其中 F_e=[f_{e,P},f_{e,Q}]，Π_-e 是其他真实连接特征列空间的正交投影。
-
-I_e 的小特征值接近零，表示至少一个 R/X 组合很难单独估计。这是给定真实支持、固定输入下的离线设计诊断，不作为候选搜索、收缩阈值或样本筛选依据；普通最小二乘设计也未覆盖输入表误差和 AC 模型偏差。
-
-两个直接反例有助于检查“根更准”：
-
-- 近根线虽覆盖许多节点，但阻抗很小，且其与相邻嵌套集合的聚合功率几乎相同，仍可能难以分开。
-- 末端线虽只有一个响应输出，但阻抗较大、该节点有独立且变化充分的 P/Q，反而可能容易辨识。
-
-## 4. 根表计误差要单列
-
-根电压的真实物理波动与根表计误差是两件事。若真实根电压已被正确使用，物理波动进入根端和末端的同一潮流计算；表计误差则污染计算得到的 Y。
-
-本项目现有数据生成器使用
-
-\[
-\widehat V_{0t}=V_{0t}(1+\epsilon_{0t}),\qquad
-\widehat V_{it}=V_{it}(1+\epsilon_{it}),\qquad
-Y_{it}=\widehat V_{0t}^{,2}-\widehat V_{it}^{,2}.
-\]
-
-一阶近似下，Y 的量测误差为
-
-\[
-e_{it}\simeq2V_{0t}^{,2}\epsilon_{0t}-2V_{it}^{,2}\epsilon_{it}.
-\]
-
-同一时刻的根表误差对所有节点相同。因此增加下游电压数量，不能把这部分共同误差当作独立样本平均掉。例如在近似固定电压下，Σ=σ_0²11ᵀ+σ_v²I；对于覆盖全体 n 个末端的公共方向，其信息系数为
-
-\[
-\mathbf1^\top\Sigma^{-1}\mathbf1=
-\frac{n}{\sigma_v^2+n\sigma_0^2}.
-\]
-
-它随 n 增加而趋于饱和。这一式子只解释共同误差如何限制信息增长，本轮不据此悄悄替换原 MAE/MSE 目标。
-
-数据接口依据：`measured_pq_20261114/physical.py:91–106`；当前物理根波动参数 .003 与 V/root 相对表计标准差 .0005 在协议中分别保存。未来表格应明确原始 P/Q 的来源表误差未知，追加的模拟噪声只代表追加部分；“追加噪声为0”不等于原始测量完全无误差。
-
-## 5. 离线分层指标：结构与参数分别回答
-
-以真实网络在量测节点集合上形成的等价段为评价单位。最终指标至少保存下列维度：
-
-|维度|定义与用途|
-|---|---|
-|下游规模|k=|C| 及 k/n；单点、全体公共项单列，其余按事前固定的 k/n 档汇总。|
-|根深度|在等价段树中的上游拓扑层数；另存从根到该段上端的物理路径长度或阻抗和。绝不能用拟合权重替代真实位置。|
-|真实强度|物理 RΩ、XΩ、|Z|Ω，另存训练校准下的 RX75 相对强度；不按恢复结果重划强弱档。|
-|连接召回|该层真实支持被最终输出保留的比例，给 TP/FN 的实际数量。|
-|误加|按预测支持大小列出 FP 数；若展示误加深度，明确是预测树深度。错误支持通常没有一一对应的真实线路。|
-|参数误差|在匹配支持上报告 RΩ/XΩ 的有符号误差、绝对误差和相对误差；极小/零真实参数的逐线相对误差另标不适用。|
-|缺线代价|把缺失支持估计系数记0，另列包含漏线的总绝对阻抗误差；FP 阻抗总量单列，避免只在恢复成功线路上计算误差。|
-|整体预测|全 R/X 响应矩阵误差、留出电压响应误差；这些量与逐线阻抗误差分别命名。|
-
-对内部树、全部活动支持分别报告 exact、F1、FP、FN。当前代码的计数罚只含 1<|C|<n（`optimization.py:48–53`），而正常输出 .08 收缩覆盖 |C|>1、包括公共项、豁免单节点。这会对不同位置产生不同取舍，必须展示收缩前与收缩后结果，并保留被收缩的真连接。
-
-还应记录结构在哪一阶段首次出现：RNJ1、RNJ15 整树库、RNJ 原连接池、W 预试、W 原生未知支持、T/E、最终输出。真实连接不在 RNJ15 的某棵完整树中，与不在 RNJ 原连接池中是两个不同命题。验证 W 的新连接贡献，需同时核实际初值与原生返回，不能把预试已有点或最终收缩收益计为原生搜索收益。
-
-分层表按每输入先算指标，再按网络/独立日期或随机世界配对汇总。共同噪声重复、同一网络中的多条线路、同一物理轨迹的不同噪声档都存在依赖，应保留配对关系；不能将所有线路当作独立实验重复。
-
-## 6. 先做同模型对照，再扩数据因素
-
-### 6.1 MAE/MILP 与 MSE/MIQP 的公平核心
-
-两种损失使用同一 P/Q/Y、同一训练/验证划分、同一 RNJ 生成池和参考家族、同一 W/T/E 开关、连接域、R/X 界、计数罚定义、输出收缩及预算。各自参考损失在同一个参考家族上仅用训练数据拟合并冻结：
-
-\[
-J_{\rm MAE}=\frac{\operatorname{MAE}}{f_{\rm MAE}}+\alpha k,
-\qquad
-J_{\rm MSE}=\frac{\operatorname{MSE}}{f_{\rm MSE}}+\alpha k.
-\]
-
-不得把旧 MAE 的绝对罚值原样加到 SSE 上。使用相同无量纲 α，是相同参考拟合损失下的复杂度价格，不是保证两种损失具有相同误选概率。
-
-主选择器应事前固定为同一个验证口径；在同一已拟合库上额外报告 MAE 与 MSE 两种验证视图，区分“候选生成变了”与“仅择优指标变了”。全链条损失替换会改变预试排名和路径，所以还需保留相同支持的固定 LP/QP 对照，解释参数拟合差异。
-
-至少保留 RNJ1 与 RNJ15 在相同 basis、同收缩和同验证下的基线。它们的同处理成本计入方法时间，原始 RNJ 输出同时留存。核心结构主比较可固定 101（R+W+E），T 的作用用预声明独立对照回答，不在中途按网络效果切换。
-
-### 6.2 训练数量与 P/Q 误差分开成轴
-
-候选训练量可覆盖半天、一天、两天和八天，P/Q 追加相对标准差可覆盖 0、.005、.02；具体取点由总协议控制计算量。训练窗口具有相同截止时刻，较短窗口嵌套在长窗口内；验证和评估窗口、节点映射、物理阻抗、原始 P/Q 缩放全部保持一致。若另做同一天抽稀，应单独标记：抽稀改变的是采样间隔，增加历史天数改变的是负荷状态覆盖。
-
-P/Q 噪声档共用标准随机数组，V/root 误差先固定为 .0005。不要同时减少训练点与验证点，再把候选缺失归因于“验证信心不足”。候选覆盖不足和候选已有但验证选错分别报告。
-
-新增日期仅依据时间覆盖与数据质量规则选择，不依据拓扑恢复率或对某方法有利。用于本次机制诊断的已见困难输入，单列为开发诊断，不能并入未见确认样本。
-
-### 6.3 负荷形态与弱近根线作为单独机制层
-
-优先使用未修改的实测 P/Q 时间序列，保存负荷共因、P/Q 条件变化和净反送的自然差异。若自然数据覆盖不足，再定义合成机制对照，并与原始数据分开：
-
-- 固定边际功率尺度，比较跨节点独立变化与共同变化；同时保存支路聚合功率、P/Q 相关性和特征条件数。改变共因会改变支路功率方差，不能宣称只改变了相关系数而其他难度完全相同。
-- 在给定拓扑上，事先按位置/支持大小选线，将同一阻抗倍率分别施于近根内部段和较深内部段；R/X 同比变化以保留线型比例。公共上游段另做一类。
-- 真线物理阻抗变化只属于合成网络情景，不进入搜索参数或实例筛选；保持原零改动网络作为基准，保留所有失败。新情景仍需满足电气数据生成质量要求。
-- 根表误差单独比较“已声明的基准”和“根表更准确”两档，终端表误差及同一物理根轨迹保持一致。物理根波动不充当额外量测噪声档。
-
-这些机制层用于检验反例，不用于挑出最有利输入后替换主结果。
-
-## 7. 极长预算主要回答求解贡献，不能代替识别证据
-
-相同输入下给两种损失相同总预算、输出预留、原生单线程和并发环境。每个实际模型保存：初值生成成本、实际编码初值目标、原生返回目标、固定支持闭合后目标、原生界/gap、状态、节点数和时间轨迹。保留未开始、限时、有可行点但未闭界、程序失败等全部分母。
-
-至少将两种预算问题分开：
-
-1. 单个 W/T/E 子问题延长求解，是否真正改善实际初值，还是主要完成当前子问题的证明；
-2. 整条路径在总预算内能否继续到后续 W/E 和输出，是否被一轮长求解占尽。
-
-中间时间轨迹只能证明同一已启动模型的进展。长运行末端的 checkpoint 不能伪装成短预算会重新分配阶段后得到的算法输出；若要比较短预算路径，须事前定义单独匹配运行。
-
-极长预算仍然只优化声明的单步未知支持或有限 E 池。全局子问题界闭合与真实拓扑正确分别报告。重复返回初值、原生目标下降、结构改变、最终恢复增加是四个不同结果。
-
-## 8. 已有 MAE/MSE 配对证据及本轮新增问题
-
-旧 `docs/miqp_loss_benchmark_20261111` 已有完整配对结果，现位于 `archive/legacy_research_20261112/legacy/docs/miqp_loss_benchmark_20261111/`。本次已读取 `MODEL.md`、`CONCLUSIONS.md`、`summary.csv`、`paired_summary.csv` 和 `verification.json`，未重跑其优化。
-
-旧批为4网络×4个跨网络共享种子×3档V/root噪声，共48输入；训练96点、验证288点、另日测试96点，P/Q追加相对噪声固定.005。两种结构×两种损失共192逻辑模型，新MIQP96/96与复用L1 96/96均核验通过。
-
-|同结构有 T 的旧对照|L1-MAE|平方误差-MSE|
-|---|---:|---:|
-|内部集合 F1|.912893|.973104|
-|内部拓扑 exact|33/48|40/48|
-|成功尝试累计方法耗时|12.20小时|14.48小时|
-
-平方误差在12例 F1 改善、33例相同、3例下降；内部 exact 新增9例、丢失2例。全部192个已拟合库的 MAE/MSE 验证视图选择完全相同点，本批主要增益发生在训练、候选生成及输出映射。有2次最终E达到时限、仍有可行正确输出，但最优性界未闭合。
-
-旧报告将 exact 称作“完整恢复”；实际 `analyze.py:185–203` 比较的是内部 `indexed_clades`。本轮引用为“内部拓扑 exact”，全支持（含末端和公共项）需另外核验。旧批也采用 .24 收缩，与当前 .08 非单点收缩的结果不能直接混作同一版本。
-
-本轮应新增的是：位置分层、独立 R/X 误差、训练量与 P/Q 误差分离、原生搜索相对实际初值的贡献、长预算分配与全支持结果。已有结果足以说明 MSE 曾在匹配条件下有明显收益；本轮要检验收益的范围和机制。
-
-## 9. 本文件完成范围
-
-已完成：加性树信息关系、共同根表误差及特征强度推导；当前接口和历史配对证据核对；分层评价与公平对照初稿。
-
-尚未完成：本轮数据清单和预算最终锁定、执行实现、本轮数值结果。本文没有修改现有算法、原始数据或任何已封存实验。
+The runs compare finite budgets on a shared set of inputs and networks. They provide evidence about these data conditions and do not establish a universal ranking of near-root recovery.

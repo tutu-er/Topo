@@ -1,38 +1,7 @@
-# 执行状态与验证记录
+# Original Startup and First Contribution Check
 
-记录时间：2026-11-17T01:00:59.179563+08:00（北京时间）。
+The first controller attempt failed during Windows worker import. It produced three infrastructure failure receipts and began zero scientific fits. Commit `e5b8b7cd` corrected the worker package context. The v2 controller reused the 192 sealed inputs and task plan from `56e00a01`. The original [startup record](https://github.com/tutu-er/Topo/blob/e66aae90cf49093483ac3dc8ece2e8d411296a99/rnj_wzzt_dr/experiments/wzzt_long_grid_20261117/RUN_STATUS.md) preserves the intermediate progress and audit counts.
 
-代码和统一入口已实现；正式长时限测试仍在运行，尚无本批MILP/MIQP优劣结论。
+The first completed `101` MSE fit used the Flynn network, 96 training points, 0.5% added P/Q error, and repeat 0. It spent 174.25 seconds in total. Eight of 13 W calls improved their actual starts. W ended with two correct, nine extra, and four missing internal supports. E recovered all six correct internal supports, and output contraction removed a spurious common support. The final bank's winner matched the RNJ15 winner in support and R/X. The native gaps and timings refer to the individual W and E models.
 
-代码提交：`56e00a01`；Windows子进程修正：`e5b8b7cd`。两次均已推送当前任务分支。
-当前私人运行目录：`outputs/wzzt_long_grid_20261117_v2`。输入192份，计划1272个方法任务；先long再grid/消融/对照。
-
-| 面板 | 计划 | 完成 | 失败 | 运行中 | 尚未开始 |
-|---|---:|---:|---:|---:|---:|
-| long | 96 | 25 | 0 | 3 | 68 |
-| grid | 960 | 0 | 0 | 0 | 960 |
-| ablation | 24 | 0 | 0 | 0 | 24 |
-| root_noise | 96 | 0 | 0 | 0 | 96 |
-| sampling_control | 96 | 0 | 0 | 0 | 96 |
-
-已做独立增量核验：9/1272完成，审计错误0。后续完成项尚未包含在这一份增量核验中。
-
-## 首个完整101的实际贡献
-
-Flynn、96点拟合、附加PQ误差0.5%、重复0，MSE训练。总耗时174.25秒，14次原生求解均Status2；没有下界冲突。
-13次W中8次实际改善所提交初值，W最后却仍只有2条正确内部连接、9条误加、4条遗漏。训练改善没有自动转成结构正确。
-E随后重新选线，内部6条全部正确；输出收缩再删掉1条多余公共项，最终22个完整支持正确。
-同观测RNJ1最终漏1条、误加3条；RNJ15也已完全正确，选中支持及R/X逐值等于101。
-因此此例验证当前完整链超过单参考RNJ，尚未显示超过多RNJ基线；正确结果主要依靠E重选和输出收缩，不能单算W的恢复收益。
-W最后一次求解已证该单步无改善；统一停止名no_gain_or_unresolved在本例应按无增益理解。
-W13次最终gap均0，E gap为5.6517e-5，达到约定1e-4精度。这些界覆盖单步或有限池，整体仍是路径搜索。
-MAE完整对照尚未结束，不能用不同训练目标的数值大小判断哪法较好。
-
-实施验证：完整测试106通过、2个默认跳过、33个子检查通过；另运行18项原生/接口检查全部通过，新增真实私人脚本Windows spawn检查通过。
-来源doctor核对27份原源及61份打包文件通过；旧MSE六组系数、目标和MSE逐值一致。
-
-首次v1在Windows子进程导入时失败，3份BrokenProcessPool错误收据保留，未读取观测或进入拟合；旧快照未改。
-v2协议引用v1失败留账，复用原192份数据，不重设任何已开始的科学求解预算。
-
-运行程序每阶段自动分析，最后自动保存同口径表格和热图。所有输出在ignored目录；未完成、失败、超时及未闭合差距均保留。
-此文件是当前时点记录；之后状态使用README中的status/report命令查询。
+See the [final result](README.md) for completion counts and the paired loss comparisons.

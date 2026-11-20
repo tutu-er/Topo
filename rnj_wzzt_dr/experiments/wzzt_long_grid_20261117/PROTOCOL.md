@@ -1,104 +1,42 @@
-# WZZT长时限、损失与适用情景测试协议
+# Matched Study Protocol for WZZT Training Loss and Data Conditions
 
-2026-11-17，正式数据准备和数值辨识前锁定。用户授权先制定方案，再完整实现与执行。
-本批比较实际实现和统计效果；不把MILP/MIQP的差别概括为所有线性/二次整数规划的普遍速度结论。
-生产默认暂保持MSE；是否推荐回MAE由配对结果决定，不按预想效果挑输入。
+This English edition describes the executed November 17, 2026 design. The original protocol and the budget amendment are pinned in the [source snapshot](https://github.com/tutu-er/Topo/tree/e66aae90cf49093483ac3dc8ece2e8d411296a99/rnj_wzzt_dr/experiments/wzzt_long_grid_20261117). Use those original bytes to verify the historical run.
 
-## 1. 问题和已知依据
+## Matched estimator
 
-当前观测为`Y=root²−V²=RP+XQ+e`，候选结构与R/X共同拟合。RNJ也保留根锚深度；精确加性树下没有天然丢弃根部信息。
-WZZT的大下游集合能利用多个终端和聚合功率，但共同根误差、相近负荷及嵌套特征会削弱这部分信息。
-根部优势因此是待验证假设，分别检查公共上游项、近根内部支路和末端。[推导与反例](ROOT_IDENTIFIABILITY.md)。
+Method `101` uses RNJ guidance, W, and E, with T disabled. Both training losses use the same preliminary R/X geometry and RNJ pool, the same coefficient bounds of [0, 2], the same internal support penalty of 0.003, and the same output response floor of 0.08. The fixed RNJ reference family is refitted under each loss for its training normalization. The validation selector uses strict normalized MSE for both. The evaluator also ranks each saved bank by normalized MAE to isolate the effect of changing the selection rule.
 
-已有旧48例结果显示平方损失内部恢复40/48、L1为33/48，并有回退、限时和额外时间成本；它们使用旧输出与验证规则。
-本批不是首次检验两种损失，不能把旧结果改称当前流程或全支持恢复。[旧资料与数据资格](DATA_PLAN.md)。
+RNJ1 takes one fixed RNJ family. RNJ15 fits the distinct families from the three distance weightings and five tolerances. Both baselines share the coefficient bounds, base supports, singleton protection, and output contraction. The [execution amendment](EXECUTION_ADDENDUM.md) matches the RNJ baselines' outer budgets and reserves to the corresponding `101` panel.
 
-## 2. 同一引擎和公平对照
+## Observations
 
-共同保持R/X界[0,2]、RNJ原始连接池、W单连接预试、未知支持扩展、E可撤销重构、alpha=.003、.08训练输出收缩。
-两法只切换训练残差：MAE用固定结构LP与结构MILP；MSE用固定结构QP与结构MIQP。
-前置R/X几何和RNJ候选生成仍按同一原方法，不因损失切换而另造连接池。
+The four feeders are Paper15, Flynn16, Soumalas11, and Pengwah18. The input signals come from 18 paired FeederBW P/Q profiles with the fixed January 4 mapping and common positive scales for signed P and Q. The aligned window begins January 21, 2024 at 08:00 Central European Time. Two 1,056-point AC cases are reused and two are prepared for this window. True supports, physical R/X and AC states are used during preparation and post-fit scoring. The worker loads training and validation observations only.
 
-训练归一尺度`reference_loss`由同一固定RNJ族在对应损失下拟合取得。共同的`reference_mse`仍取原MSE拟合，用于最终strictMSE和原数值容差，
-避免换训练目标时顺带改选模门槛。MAE系数可能不唯一，不另加只对某一方法有利的ridge或真参数约束。
-每点同时保存物理MAE/MSE、内部连接数、归一训练目标；两法的alpha尺度匹配不等于相同的统计正则效应。
+- Training uses the last 48, 96, 192, 384, or 768 quarter-hour points before index 768. The common validation interval is [768, 960), and the new-day interval is [960, 1056).
+- Simulated multiplicative Q and P errors have standard deviations of 0%, 0.5%, 1%, or 2%. The terminal and root voltage meters use 0.05% in the main grid. The original P/Q measurement error is unknown.
+- Two noise repetitions share the physical window. Methods and nested sample lengths share standard noise draws. Training, validation, and new-day streams are distinct. The recorded seed is `2026111701`.
+- Sixteen root-meter controls use 96 training points, 0.5% added P/Q noise, and root-meter error levels of 0% and 0.1%. The main grid supplies the 0.05% midpoint.
+- Sixteen sampling controls use 48, 96, 192, or 384 evenly spaced points from the first 768 rows, at 0.5% P/Q noise and repeat 0. All panels share the validation and evaluation windows.
 
-主结果仍用原严格验证MSE；同一冻结库另作统一训练MAE参考尺度下的MAE选模交叉复评。
-分开回答训练候选生成改变多少、仅换验证指标改变多少。测试日不重拟合。
-保留RNJ1、RNJ15直接基线，二者与联合方法共同保留基础项、单节点保护及同样输出收缩。
+## Tasks and budgets
 
-## 3. 数据和信息边界
+| Panel | Inputs | Tasks | Total / per W solve / output reserve (s) |
+| --- | ---: | ---: | --- |
+| Long, `101` and both RNJ baselines | 16 | 96 | 14,400 / 600 / 600 |
+| Main grid, `101` and both RNJ baselines | 160 | 960 | 600 / 10 / 60 |
+| `100` with RNJ guidance and W | 8 | 16 | 600 / 10 / 60 |
+| `000` with W and no RNJ support guidance | 4 | 8 | 3,600 / 300 / 300 |
+| Root-meter controls | 16 | 96 | 600 / 10 / 60 |
+| Fixed-window sampling controls | 16 | 96 | 600 / 10 / 60 |
 
-四网络：paper15、soumalas11、flynn16、pengwah18，分别15/11/16/18个观测末端。
-统一用已封存的18条FeederBW同步实测P/Q、原Jan04节点映射和共同正缩放，固定Jan21 08:00 CET起十一日。
-Sou/Peng复用原1056点AC世界；Paper/Flynn仅补对应AC缓存，不造固定P/Q比例或补人造新能源基线。
-原源表计误差未知。每个新物理世界记录收敛、电压/电流和网络源哈希。
+The 16 long inputs use both 96 and 768 points, 0.5% and 2% P/Q noise, and repeat 0. They are part of the main grid. Across the batch there are 1,272 method tasks, 440 of which include integer structure search. The runner attempts both losses for every planned method and input.
 
-拟合截止在第768点前；按最后N个连续15分钟点取N∈{48,96,192,384,768}。
-验证固定[768,960)，192点；独立评价[960,1056)，96点。长短训练共同截止，不洗牌、不截短验证。
-P/Q乘性高斯附加标准差∈{0,0.5%,1%,2%}；V和根表主标准差0.05%。0只表示不再附加模拟P/Q误差。
-每格2个新噪声重复；同输入的两损失、方法及样本长度共享标准噪声，训练/验证/新日随机流独立。
-新seed=2026111701，分量与来源坐标完整保存。
+The per-step cap applies to the unknown support solve in W. E uses the remaining structural allowance. The fixed-support fit has a 300-second soft allowance, with the native limit passed to the MAE LP and a return-time check for the bounded least-squares fit. Native relative and absolute gap settings are `1e-4` and `1e-7`. Up to three single-threaded workers run in parallel. Dispatch stops after 96 hours, and in-progress tasks retain their original allowances.
 
-主网格4×5×4×2=160项。另有根表误差对照16项：四网、N=96、PQ=0.5%、两重复，根表标准差0或0.1%；
-终端V仍0.05%，根表0.05%的中间水平直接取主网格。仅改变测量误差，不改变物理根电压。
-另加固定八天跨度的均匀取点控制16项：四网×N{48,96,192,384}、PQ0.5%、重复0，从训练768行均匀取N个不同索引，
-验证和新日不变；N768直接复用主网格。它区分点数与覆盖日型的作用，连续末N主网格不被解释成纯iid样本量效应。
-真支持、真R/X、完整AC状态只在数据生成和选后评价侧；辨识worker只收训练与验证观测。
-资格失败、负荷/电压异常、弱真线、非唯一、未收敛均保留。不按结果换日、改噪声、缩阻抗或删真线。
+## Evaluation
 
-## 4. 分阶段规模和预算
+For each frozen bank the evaluator computes exact internal and full-support recovery, support precision, recall and F1, true support coverage, and response-matrix errors. It scores validation, new day, and validation plus new day separately. Near-root, large-downstream, common, and singleton supports are reported separately. Newly observed data contribute residuals to scoring, with weights fixed.
 
-|阶段|输入及方法|计划方法任务|原生辨识任务|每任务预算|
-|---|---|---:|---:|---|
-|极长对照|四网×N{96,768}×PQ{0.5%,2%}×重复0，共16；RNJ1/RNJ15/101×两损失|96|32|101总14400秒、W步600秒、输出600秒；RNJ直接基线120秒|
-|主网格|160输入，RNJ1/RNJ15/101×两损失|960|320|101总600秒、W步10秒、输出60秒；RNJ120秒|
-|R＋W消融|四网×N{96,768}×PQ0.5%×重复0，共8；100×两损失|16|16|总600秒、W步10秒、输出60秒|
-|纯W消融|四网×N96×PQ0.5%×重复0，共4；000×两损失|8|8|总3600秒、W步300秒、输出300秒|
-|根表误差|16额外输入，RNJ1/RNJ15/101×两损失|96|32|同主网格|
-|固定跨度取点|16额外输入，RNJ1/RNJ15/101×两损失|96|32|同主网格|
-|合计|不同预算panel分别保存，同输入不冒充独立重复|1272|440|固定结构基线832项|
+Reports include planned and completed denominators, failures, time limits, and same-input gains and losses. They also record how much of the improvement comes from the solver start, the native solver return, or the subsequent refit and output contraction. Solver bounds cover their recorded subproblems. Networks, dates, grid points, and error repetitions are paired and share underlying physical conditions.
 
-长对照先执行、先报告，再执行网格和消融。输入按元数据排序，同一输入的MAE/MSE顺序交替，单原生线程、最多3worker。
-W单步限额不会限制T/E；本批101关闭T，E使用剩余结构阶段时间。所有原生相对gap目标1e-4、绝对gap1e-7。
-固定结构软时限300秒，MAE LP也设原生time_limit；BVLS仍只能返回后检查。总额超限单独标记，不改实际耗时。
-
-最坏原生预算约202.7单线程核时，另有固定结构拟合与后处理；这不是实际耗时预测。
-控制器最大墙钟96小时，未开始项若达到总预算记为budget_unrun，保留全分母，不能算已完成或成功。
-用户可用停止请求文件结束排队；正在运行的调用按其原预算返回，控制器不强杀并重置预算。
-进程中断保留partial/已有初值/进度，不自动重给完整预算；已完成任务按输入/代码哈希复用。
-
-## 5. 求解和命令行证据
-
-每个W/T/E保存实际模型初值目标、原生目标/界/gap、节点数、第一可行/第一次改善时刻、整个标量进度轨迹、模型规模及原生状态。
-规范预试点与含旧零权支持的实际W模型初值分开计分。回到初值、QP/LP收尾改善和原生搜索改善分别记录。
-每10秒或获得新可行解时保存标量进度，不用callback改变停止策略或读取真值；每个阶段完成保存接受路径作为断点。
-正常CLI支持loss、总预算、W单步预算与文字/JSON进度；输出解释当前步骤、初值收益及尚未闭合的差距。
-
-## 6. 评价和判断
-
-主指标：完整内部结构、全部活动支持、逐支路precision/recall/F1、错误/遗漏数、候选真族覆盖。
-按真根深度≤2、下游终端比例≥1/2分别统计近根内部召回，公共全集项与末端单节点项单独列。
-错支持没有真实物理深度，按其预测层次及下游规模报误加，不给FP伪造真位置。
-R/X响应矩阵误差与成功匹配线路参数误差分开；漏线不从分母删除。另核实际电压范围和观测设计秩/条件信息。
-
-runtime报告全部任务和失败/超时比例，已完成子集与全计划分母同时列；不只比较成功解耗时。
-同输入同方法比较MAE−MSE的成对新增/丢失、时间比、原生改善及证明差距；长时限和短预算结果分别比较。
-网格展示两法各自表现，以及相对RNJ基线的新增/丢失区域，不把各档更换参数后的最好结果拼成一个算法。
-位置优势须与两法共用信息、真实线强度和噪声条件一起解释，不能仅凭根部线信号大宣称普遍优越。
-
-生产默认本批不自动切换。完整结果后，若MAE恢复不劣且耗时至少减半，可建议回MAE；
-若MSE恢复净增≥5个百分点且时间代价可接受，则保留MSE建议。16长输入只是配对机制/预算证据，判断还必须结合主网格各网正负结果。
-差异受限时、候选不足或观测不可辨识影响时保留双配置，不强给唯一胜者。
-
-## 7. 验证、保存与交付
-
-先做小维度独立枚举、LP原/对偶和MSE默认数值兼容检查，再锁执行代码、环境、全部输入/任务/预算哈希。
-每个任务独立目录，计划任务不丢失；增量报告标未完成，全部终结后自动生成同样口径的最终表与网格图。
-私人PQV、系数与轨迹留ignored outputs；提交统一引擎、CLI、协议、验证和聚合报告。
-完成逻辑阶段后按当前授权分支正常commit/push，不夹带rnj_wzzt_core的用户修改。
-
-实现参考为本机NumPy2.4.6/SciPy1.17.1/Gurobi13.0.3。官方定义见
-[HiGHS LP与边际量](https://docs.scipy.org/doc/scipy/reference/optimize.linprog-highs.html)、
-[Gurobi MIPGap](https://support.gurobi.com/hc/en-us/articles/8265539575953-What-is-the-MIPGap)、
-[原生callback与时限](https://support.gurobi.com/hc/en-us/articles/360047717291-How-do-I-use-callbacks-to-terminate-the-solver)。
+The predeclared decision compared the tradeoff in exact recovery and runtime. A switch to MAE required no loss in recovery and at least a halving of runtime. A five-percentage-point gain for MSE with acceptable runtime supported keeping MSE. The reported comparison remains specific to the tested inputs and budgets.

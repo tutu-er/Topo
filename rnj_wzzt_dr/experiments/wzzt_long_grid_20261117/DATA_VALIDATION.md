@@ -1,21 +1,17 @@
-# 2026-11-17 数据验收
+# Data Qualification
 
-状态：192/192份输入通过，未运行本批真实数据辨识。验收读取保存数组并独立复算，不修改数据或重新执行潮流。
+The November 17, 2026 qualification passed all 192 planned inputs before fitting. It independently reconstructed the saved arrays and checked their sources.
 
-| 检查 | 结果 |
-|---|---|
-| 不同输入 | 160主网格＋16根表误差＋16固定跨度取点，共192；长阶段16项原样引用主网格 |
-| 观测重建 | 576份训练/验证/新日NPZ，1,609,920个Y数值逐值一致 |
-| 随机流 | 32份完整标准噪声独立重建；划分、幅值及跨方法共用关系一致 |
-| 来源 | 1027个唯一文件哈希、24个运行源/快照和18个原输入核对通过 |
-| 物理一致性 | 最大KCL误差6.40e-13 pu；线路压降恒等误差≤3.88e-18 pu；功率平衡误差≤4.01e-10 kVA |
+| Check | Recorded result |
+| --- | --- |
+| Planned inputs | 160 main-grid, 16 root-meter, and 16 fixed-window sampling inputs. The long panel reuses 16 main-grid inputs. |
+| Observation arrays | 576 train, validation, and new-day NPZ files. All 1,609,920 stored squared-voltage drops matched the reconstruction. |
+| Noise draws | 32 complete streams reconstructed with the recorded split, component, and scaling rules |
+| Provenance | 1,027 unique file hashes, 24 runtime or source-snapshot entries, and 18 original inputs checked |
+| AC consistency | Maximum KCL error 6.40e-13 pu, branch voltage-drop identity error at most 3.88e-18 pu, and power-balance error at most 4.01e-10 kVA |
 
-全母线干净AC电压：Paper 0.998192–1.024592、Flynn 0.997606–1.024495、Soumalas 1.004763–1.024464、Pengwah 0.997405–1.024878 pu。
-均在0.95–1.05范围内。这里尚无灵活性调用。
+Clean simulated bus voltages ranged from 0.998192 to 1.024592 pu for Paper, 0.997606 to 1.024495 for Flynn, 1.004763 to 1.024464 for Soumalas, and 0.997405 to 1.024878 for Pengwah. All lie within 0.95 to 1.05 pu. The preparation used baseline loads and contains no device intervention. The source networks did not specify branch thermal ratings.
 
-八天干净P/Q中心化、标准化设计秩依次为30/30、32/32、22/22、36/36。逐节点P/Q相关系数约−0.174～0.678，
-Q对P线性回归后未解释标准差仍占Q标准差73.5%～99.6%，没有固定P/Q比例。满秩仍可能伴随较弱方向，不能保证R/X估计准确。
-原实测P/Q自身表记误差未知；0档表示不再附加模拟P/Q误差。原网络未提供线路热额定值，验收未给出热容量结论。
+The standardized eight-day P/Q designs were full rank across 30, 32, 22, and 36 columns respectively. Per-node P/Q correlations ranged from approximately −0.174 to 0.678. After regressing Q on P, the residual standard deviation was still 73.5% to 99.6% of Q's standard deviation. Full rank permits weak directions, so these checks characterize the inputs to the comparison.
 
-私人证据：`outputs/wzzt_long_grid_data_20261117_v1/{complete,protocol,qualification,attempts,worlds}.json`，
-其中`complete.json`保留输入及来源哈希。对照面板未改变物理P/Q、参数或网络。
+The original P/Q meter error is unknown. The 0% setting refers to additional simulated error. The local evidence lives in the `data/wzzt_long_grid_data_20261117_v1/` completion, protocol, qualification, attempt, and world records.

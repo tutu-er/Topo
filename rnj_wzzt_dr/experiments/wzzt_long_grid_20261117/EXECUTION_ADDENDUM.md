@@ -1,16 +1,10 @@
-# 正式辨识启动前的执行补充
+# Pre-run Budget Amendment
 
-2026-11-17。数据准备已完成，尚未启动任何本批真实数据拟合或查看辨识结果。
-原PROTOCOL.md继续按数据准备时的哈希保留；以下仅修正对照方法预算的公平性，不改变观测、候选、算法、指标或样本分母。
+On November 17, 2026, the direct RNJ baselines received the same outer budgets as method `101` in their corresponding panels. This change was made after data preparation and before fitting. The earlier 120-second allowance could end a task before all fixed families had been fitted, especially under the MAE LP.
 
-RNJ1/RNJ15的固定结构拟合也可能较慢，尤其MAE需要多次LP。原计划120秒外层总预算可能使其尚未完成全部族就整任务失败，
-从而把计算未完成误算成WZZT的结构优势。现将直接RNJ基线外层预算和输出预留与同面板101对齐：
+| Panel | RNJ1 / RNJ15 time budget (s) | Output reserve (s) | Per fixed-support fit (s) |
+| --- | ---: | ---: | ---: |
+| Long | 14,400 | 600 | 300 |
+| Grid, root-meter, and fixed-window sampling | 600 | 60 | 300 |
 
-| 面板 | RNJ1/RNJ15总额 | 输出预留 | 单次固定族拟合 |
-|---|---:|---:|---:|
-| long | 14400秒 | 600秒 | 300秒 |
-| grid/root_noise/sampling_control | 600秒 | 60秒 | 300秒 |
-
-直接方法拟合完毕立即结束，不为用满预算增加工作。整数搜索方法预算保持原样。
-实际超时仍保留，完整计划分母与已完成配对结果同时报告；不能将对照未完成表述成其拓扑识别错误。
-原协议202.7核时是整数搜索任务预算合计，未含固定拟合；96小时停止派发和原预算结束规则保持原样。
+The direct methods return as soon as their fits are ready. A time-limit or failure remains in the planned denominator. The original archive preserves the [locked amendment](https://github.com/tutu-er/Topo/blob/e66aae90cf49093483ac3dc8ece2e8d411296a99/rnj_wzzt_dr/experiments/wzzt_long_grid_20261117/EXECUTION_ADDENDUM.md) and its hash.

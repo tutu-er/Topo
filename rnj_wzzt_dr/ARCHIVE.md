@@ -1,9 +1,17 @@
-# 文件整理与恢复
+# Data and Archives
 
-2026-11-18 已将原独立目录的 AC 模拟器和四个网络提取到 physical/，当前算法集中在 identification/。旧 compat/ 物理桥、证据快照和旧验证成品退出当前校验，原来源记录保留在 PROVENANCE.json 的 archived_sources 中。
+The November 18, 2026 cleanup moved the AC simulator and four network tables into `physical/`. `identification/` contains the maintained topology estimator. The [provenance manifest](PROVENANCE.json) records the packaged source hashes and the original locations of extracted and archived files.
 
-本地数据统一放在父目录 data/，不提交 Git。旧封存 JSON 的字节和 SHA-256 保持不变；paths.py 将已保留资产的历史路径解析到新位置，io.read 只调整内存中的引用。296 项基准仍保留原观测、冻结模型及必要来源；退役压力项仅保留历史元数据。
+The package runs on user-supplied observations. The original benchmark and study data are local assets under the repository's ignored `data/` directory.
 
-最新长网格与 W 消融的完整目录压缩存入仓库外档案。data/frozen_studies/ 保存可交给 freeze_history 的最终模型文件，候选、R/X、最终选择、配置和收缩证据逐项保持；QP/MIQP 搜索轨迹与完整事件保存在原始档案。
+| Local path | Contents |
+| --- | --- |
+| `data/benchmarks/` | Retained inputs, frozen models, and related assets from the main benchmark |
+| `data/impedance_floor_20261116_v1/inputs.json` | Source catalog for the 296-entry default evaluation scope |
+| `data/frozen_studies/wzzt_long_grid_20261117_v2/` | Final candidate banks, per-task outcomes, and report for the paired loss study |
+| `data/frozen_studies/w_importance_20261117_v1/` | Final candidate banks, per-task outcomes, and report for the W ablation |
+| `data/legacy_sources/` | Small original source files required by legacy hash checks |
 
-根 cleanup_manifest.json 给出恢复目录。清理前 Git 数据库保留在该目录，可恢复旧分支、提交及当时的本地对象。旧未提交文件是否存在以恢复副本为准，不把已跟踪版本当成其未提交修改的替代。
+`paths.py` resolves references to retained assets when their historical paths have moved. The loader adjusts references in memory. The stored JSON and its SHA-256 digest remain the evidence used to check each original run.
+
+The full solver traces and controller outputs for the two studies live in private archives outside the development tree. To replay a sealed study, use the archived run and its source snapshot. A new run from this edition records its own source and protocol hashes. See the [cleanup manifest](../cleanup_manifest.json) for the archive inventory and the local backup locator.

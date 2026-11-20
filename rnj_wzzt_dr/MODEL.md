@@ -1,123 +1,93 @@
-# 从当前辨识器到 DR：一页接口
+# Topology Identification and Conditional Demand Response Model
 
-## 历史冻结
+## Observed response
 
-`fit_observed(training, validation, method='111')` 调用本目录辨识器。训练输入决定候选和参数，验证观测只作最终选择。2026-11-16起，所有输出候选先按以下训练规则收缩非末端支路，再冻结参数、按原验证MSE选择。
+For each time slot, the model predicts the squared-voltage drop `Y = root² − V²` from per-unit active and reactive power. A support `C` is a downstream set of measured terminals. Its indicator vector is $z_C$. Its two nonnegative coefficients $r_C$ and $x_C$ contribute to the response matrices.
 
-对支路下游观测节点集合 $C$，仅在 $|C|>1$ 时要求
+$$
+\widehat Y_t = R P_t + X Q_t,\qquad
+R = \sum_C r_C z_C z_C^\top,\qquad
+X = \sum_C x_C z_C z_C^\top.
+$$
 
-\[
-s_C=\frac{a r_C+b x_C}{m}\ge0.08,\qquad
-a=0.75/\mu_R,\quad b=0.25/\mu_X.
-\]
+A branch affects all terminals in its support and responds to their total downstream power. $R$ and $X$ are squared-voltage response matrices. Their coefficients use the power and voltage bases of the input.
 
-这里$r_C,x_C$为响应系数；$\mu_R,\mu_X$是训练前置矩阵的正节点间距离均值，
-$m=\operatorname{median}\operatorname{diag}(aR_0+bX_0)$。
-该式将支路的组合响应与训练数据中的典型根到用户响应比较；0.08是无量纲的8%，不代表0.08Ω，也不分别限制R和X。
-复用原训练校准$R_0,X_0$算一次$a,b,m$，删除时固定尺度。
-每次只删最弱的不达标支路，按原训练QP重拟合剩余系数，再检查至稳定。
-单节点末端接入线始终豁免；全部用户共用的上游项也需要过线。
-这是输出收缩规则，原W/T/E训练目标、搜索接受与MIQP界不变。
+## Training and structural search
 
-`freeze_history(result, validation)` 检查保存的R/X、参数、原选择和观测指纹，保留整个`frozen_candidates`，包括同拓扑不同参数点。新版本还核验每个候选的内部下限、参数指纹及完整收缩收据；追加候选也必须先按同一尺度处理。冻结和新日评分均不重拟合。缺少`internal_floor`的旧结果保持旧语义；显式0禁用新收缩。
+`fit_observed(train, validation, method="111")` uses training data for candidate generation and parameter fitting. Recursive Neighbor Joining (RNJ) provides a deduplicated pool from three distance weightings and five tolerances. With RNJ guidance enabled, the pool supplies support proposals for W and the domain for E. One fixed RNJ family with distance weighting 0.75 and tolerance 0.16 supplies the loss reference for every method and can initialize E when RNJ guidance is enabled.
 
-活动拓扑按响应权重超过原`zero_tol`的内部支持定义，零辅助支持沿用原展示接口口径。完整支持恢复另检查末端及公共项，不能由内部恢复率代替。
+W starts at a model with singleton supports and a common support. At each step it fits each compatible pool support that the time allowance permits, keeping the best feasible start. It then searches for one unknown support while refitting all weights. The accepted point can come from a completed pool trial. T jointly rebuilds a small neighborhood when its maximum number of direct blocks is at most five. E can add or remove internal supports in a finite pool formed from the guidance pool, the accepted path, T's proposals, and all two-terminal supports. E can start from either the current point or the fixed reference when the reference lies in its domain.
 
-第 j 个候选的预测是 `R_j P + X_j Q`；矩阵描述平方电压响应，并非原始线路阻抗。每时槽先拼 P、再拼 Q，节点顺序固定。记 `H_j=[R_j,X_j]`，以下平方范数覆盖新日所有时槽与节点。历史只包含原选择／验证集，训练集用于拟合及历史功率预测，不重复计入选择分数。
+The training criterion divides prediction loss by the corresponding loss of the fixed reference tree on training data, then adds a penalty for internal supports. With mean squared error (MSE), E solves
 
-W 每步只求一个新支持并联合调权，整体是贪心路径。T/E 的整数证书覆盖各自声明的局部或有限候选域；原生 gap 与完整拓扑的全域最优、唯一性分开解释。
+$$
+\min\ \frac{\|Y-\widehat Y\|_F^2}{N M_{\rm ref}} + 0.003\sum_C a_C,
+\qquad 0 \le r_C,x_C \le 2a_C,\qquad a_C\in\{0,1\}.
+$$
 
-## 当前RNJ和E的职责
+Here $N$ counts scalar training residuals, $M_{\rm ref}$ is the reference training MSE, and $a_C$ selects internal support $C$. The selected supports are nested or disjoint. For each containing support $D$ in the pool and for the full terminal set, the number of selected proper internal subsets of $D$ is at most $|D|-2$. The singleton and common coefficients have bounds $[0,2]$ and are outside the internal count penalty.
 
-RNJ三种距离、五档容差的15次结果贡献去重后的连接池及来源记录。
-W先对池中兼容集合逐个作单连接QP预试，取当前点与已完成预试中的较好者，
-给未知连接MIQP提供可行初值；没有改善时新增权重及激活初值为0。
-预试仅拟合当前树加一条连接，耗时计入原W预算；与完整RNJ整树预拟合分开。
-若原生求解未改善或无返回，已完成的合法预试点仍可按原接受规则保留，来源标为`pool_pretrial_QP`。
-固定参考RNJ树用于训练归一化，其已拟合参数还可供E初始化，未直接注入输出库。
+With `--loss mae`, the training loss becomes $\sum_{t,i}|Y_{ti}-\widehat Y_{ti}|/(N A_{\rm ref})$, where $A_{\rm ref}$ is the mean absolute error (MAE) of the refitted reference family. Each residual has an auxiliary variable $d_{ti}$ subject to $-d_{ti}\le Y_{ti}-\widehat Y_{ti}\le d_{ti}$. Minimizing their sum gives linear programs for fixed supports and mixed-integer linear programs for structure search. The same support constraints, coefficient bounds, and validation MSE apply to both training losses.
 
-E对固定连接池中的每个内部集合$C$设置选择变量$a_C$，共同求连接及R/X：
+The fit records the current objective, the objective at the solver start, the solver return, and the objective after fixed-support refitting. For W, the solver start counts old supports that still occupy active slots even when their coefficients start at zero. The record identifies gains from pool trials, integer search, and refitting. Native bounds and gaps cover the declared single-step or finite-pool models. W follows a greedy sequence of accepted supports.
 
-\[
-\min\ \frac{\|Y-\widehat Y(r,x)\|_F^2}{N_{cell}M_{ref}}+0.003\sum_C a_C,
-\qquad 0\le r_C,x_C\le2a_C,\quad a_C\in\{0,1\}.
-\]
+## Output contraction and validation
 
-这里$N_{cell}$是训练残差总数，$M_{ref}$是训练参考MSE；$r_C,x_C$是连接的响应系数，$a_C$表示是否选择该内部连接。
-交叉而互不包含的集合不能同时选择，即$a_C+a_D\le1$。
-每个池中内部集合及全体节点集合$W$，还满足$\sum_{C\subsetneq W}a_C\le |W|-2$，计数只含内部集合。
-这些约束要求被选连接可嵌套或分离，并控制允许的内部连接数。
-单节点及全节点基础支持保持系数0到2，不计上述内部条数罚项。
-此前W/T的内部连接都可被E撤销，E并非只在当前树上继续加线。
-这是线性约束、凸二次目标的混合整数优化；池中每条连接已知下游集合，选择组合由优化器完成。
+Before ranking the candidates, the output step processes the accepted path and the singleton-only protection model. It checks non-singleton supports, including a common upstream support, using the training calibration.
 
-2026-11-17起，可将训练项切为
-\[
- \frac{\sum_{t,i}|Y_{ti}-\widehat Y_{ti}|}{N_{cell}A_{ref}},
- \qquad A_{ref}=\text{同一固定参考树在MAE下的最小训练MAE}.
-\]
-每个残差引入非负变量$d_{ti}$及线性约束$-d_{ti}\le Y_{ti}-\widehat Y_{ti}\le d_{ti}$，最小化$d$之和。
-这使固定结构拟合成为LP、结构搜索成为MILP；连接域、系数界及计数罚项保持相同。
-前置几何和RNJ连接生成仍复用MSE版本，最终验证仍使用原$M_{ref}$归一化的strict MSE。
-MAE的$A_{ref}$只用于训练，避免同时改变候选生成、最终选模尺度及容差。
-默认保持MSE；两损失的成对长时限测试见[协议](experiments/wzzt_long_grid_20261117/PROTOCOL.md)。
+$$
+s_C=\frac{a r_C+b x_C}{m},\qquad
+a=\frac{0.75}{\mu_R},\quad b=\frac{0.25}{\mu_X},\quad
+m=\operatorname{median}\operatorname{diag}(aR_0+bX_0).
+$$
 
-E比较前一步W/T点与唯一固定参考点的训练目标，取较好者初始化。参考点固定为RNJ距离配比.75、容差.16，
-直接复用`prepare_common`已经拟合的参数，重算当前归一化目标，不新增QP、不用验证集选初值。
-参考点需在原E池内、包含基础支持且满足层次与系数界；R开关关闭时不注入。
-T始终使用当前点。15个RNJ整树的逐棵QP预试已取消。
-热启动是效率措施；模型本身无需初值也可求解。每次保存当前、实际初值、原生返回、固定族QP收尾四个目标，
-分别度量参考初值收益、优化器进一步改善、QP收尾改善。W的模型初值表示保留全部旧支持，规范预试点已删除的旧零权支持用0补齐再计分，
-规范预试点的清零收益另列；送给求解器的原参数与全部Start值不变。E没有原生返回时保留原当前点，参考树不会自动成为最终输出兜底。
-限时结果及gap如实保留，其证书仅覆盖该有限池。
+Here $R_0,X_0$ are the preliminary training response matrices and $\mu_R,\mu_X$ are the means of their positive pairwise distances. The ratio compares one branch's response with a typical root-to-terminal response. The default threshold is 0.08. The procedure removes the weakest support below the threshold, refits the remaining coefficients on training data, and repeats until the candidate passes. Singleton supports are exempt.
 
-总预算由`total_seconds`控制；`per_mip_seconds`在当前实现只限制W单次未知支持扩展，T/E按所在阶段剩余时间求解。
-正常CLI用`--step-seconds`显式传入W上限，省略时沿用原默认。近期总120秒、单步120秒会让逐条路径被一轮耗尽；
-相同总预算改为单步10秒的八输入诊断及早期计时审查见[贡献核查](experiments/identification_contribution_20261116/RESULTS.md)。
+Validation MSE is divided by $M_{\rm ref}$ for selection. Within the normalized tie tolerance $10^{-12}$, the selector uses the internal support count, then the score and original candidate index. `freeze_history(result, validation)` verifies the validation fingerprint, parameter fingerprints, R/X matrices, original selection, and applicable contraction receipts. It retains distinct parameter points from the same topology. Older banks without an output-floor setting retain their original semantics.
 
-后续默认评估使用`evaluation_scope.load_catalog()`的296个活动输入，旧压力160只作显式历史追溯。
-本次RNJ精简后的效果须用新版结果另报，前阶段收缩回放不替代新结果。
+An active internal support has more than one terminal and fewer than all terminals, with a weight above the zero tolerance. Exact recovery of all active supports also checks terminal and common supports.
 
-## 最终评分决定门槛
+## New-day score and the pairwise target
 
-目标为 t、竞争者为 j，历史验证 SSE 为 `S_t^h,S_j^h`，历史加新日共有 N 个残差。共同尺度 `K=1/M_ref`，原无量纲并列容差 `epsilon_scaled=1e-12`，故物理 MSE 容差 `epsilon=M_ref×1e-12`。
+Let $S_j^h$ be candidate $j$'s sum of squared errors (SSE) on the original validation data. Write $H_j=[R_j,X_j]$. Stack each future time slot's P values followed by its Q values in $p$. Apply $H_j$ separately to each slot and stack the predicted drops. Use $Y$ for the vector of observed future voltage drops. The updated score is the MSE over all $N_{\rm all}$ scalar residuals across validation and the new day.
 
-\[
- M_j=\frac{S_j^h+\|Y-H_jP\|^2}{N},\qquad
- \delta_j^{phys}=N\epsilon-S_j^h+S_t^h.
-\]
+$$
+M_j = \frac{S_j^h + \|Y-H_jp\|^2}{N_{\rm all}}.
+$$
 
-`M_j` 表示完整历史验证＋新日逐标量等权的 MSE。目标严格击败竞争者的充分条件是新日 SSE 差
+For target $t$, let $\epsilon=M_{\rm ref}\,10^{-12}$. A sufficient condition for $M_j - M_t>\epsilon$ is
 
-\[
- L_j=\|Y-H_jP\|^2-\|Y-H_tP\|^2>\delta_j^{phys}.
-\]
+$$
+L_j=\|Y-H_jp\|^2-\|Y-H_tp\|^2 >
+\delta_j,\qquad
+\delta_j=N_{\rm all}\epsilon-S_j^h+S_t^h.
+$$
 
-该式由 `M_j−M_t>epsilon` 直接移项，用于把最终选择规则转成 DR 门槛。`history.required_gap` 复用原 `selection_mse.required_new_sse_gap`。同拓扑不同参数胜出仍算该拓扑成功；固定目标点击败所有不同拓扑点给出充分条件。相同响应的并列按原支持数／序号处理，包括目标并非历史 winner 的情况。
+This threshold translates the final score into a required new-day SSE difference. Beating every candidate from a different active topology is sufficient for recovering the target topology. Equal-response ties follow the original support-count and index ordering. Scoring uses the saved coefficients.
 
-## 条件误差及指数界
+## Conditional error model and probability bound
 
-规划以目标候选正确为条件：`P=p_hat+B u+xi_P`，`Y=H_t P+e`。P 的各通道标准差为历史预测绝对峰值的 5%；同节点 P/Q 共享因子、节点间独立、时间 AR(.7)。e 独立于功率误差，其节点标准差取目标历史残差 RMS 和 `2sqrt(2)×voltage_sigma` 的较大者。`prepare_dr` 显式接收预测，误差参数写入报价收据；不会读取真实未来或网络线路。
+The planning interface assumes the target response is correct. It uses $p=\widehat p+B u+\xi_p$ and $Y=H_t p+e$, with supplied forecast $\widehat p$, control $u$, and device map $B$. The Gaussian power-error standard deviation of each channel defaults to 5% of its absolute forecast peak. P and Q at one node share a factor, different nodes are independent, and the default time correlation is the autoregressive law with parameter 0.7. The independent voltage-drop residual uses a nodewise standard deviation given by the larger of historical residual RMS and $2\sqrt{2}$ times the supplied voltage measurement standard deviation.
 
-令 s 为剩余电压误差的最大标准差，`z=(H_t−H_j)P/s`，`E=diag(Var(e)/s²)`。一个公共 s 仅换单位，保留未加权物理 MSE。固定 `lambda=1/4`、`A=diag(lambda(1−2lambda E_ii))`，C 为 z 的协方差，d(u) 为其均值。原两次高斯积分给出
+Let $s$ be the largest voltage-drop residual standard deviation. Let $d(u)$ and $C$ be the mean and covariance of $z=(H_t-H_j)p/s$, and let $D$ be the diagonal covariance of $e/s$. With $\lambda=1/4$ and $A=\lambda(I-2\lambda D)$, the Gaussian integral gives
 
-\[
- G=I+2A^{1/2}CA^{1/2},\quad
- T_j(u)=d(u)^\top A^{1/2}G^{-1}A^{1/2}d(u)+\tfrac12\log\det G,
-\]
-\[
- \Pr_t[L_j/s^2\le\delta_j^{phys}/s^2]
- \le\min\{1,\exp(\lambda\delta_j^{phys}/s^2-T_j(u))\}.
-\]
+$$
+G=I+2A^{1/2}CA^{1/2},\qquad
+T_j(u)=d(u)^\top A^{1/2} G^{-1} A^{1/2} d(u)
+       +\tfrac12\log\det G .
+$$
 
-T 表示固定误差法则下的指数分离强度；积分精确，概率上界来自 Markov 不等式。`zero_screen` 复用原谱实现；`pair_gate` 复用原稠密积分，明确映射 `current=competitor, reference=target, ref=target`。两种实现的小维度交叉核验覆盖两个目标方向。
+Markov's inequality gives the conditional pairwise failure bound
 
-## 报价及实际执行
+$$
+\Pr_t[L_j\le\delta_j]\ \le\
+\min\{1,\ \exp(\lambda\delta_j/s^2 - T_j(u))\}.
+$$
 
-单对优化为 `min C(u)`，保留原设备域并加 `T_j(u)>=lambda delta_j+log 10`。原小时请求、投影、能量／截止、效率及费用图均保留；含分段整数变量时如实记为带整数的非凸 QCQP。单对入口保存可行上界、求解器下界、时间和状态；未证最小的报价仍是可行报价。
+The scale $s$ changes the units of the calculation while keeping the unweighted MSE selection rule. The bound uses the specified error law. Empirical AC performance with realized device actions is a separate measurement.
 
-整库零动作使用各失败上界的 union bound，无需竞争事件独立。原设备零动作交付可行、费用 0，且费用域非负时，该点通过便得到最小费用 0。没有设备合同的零动作核算只报告概率充分界，不报告费用最优。
+## Zero-action screen and pricing
 
-多竞争者非零优化仍待接通。预锁 `alpha_j>0, sum alpha_j<=.1` 后分别加 `T_j(u)>=lambda delta_j+log(1/alpha_j)` 可保持二次约束；本包能构造这些单对门槛，尚无联合设备图求解入口。直接把指数和放进优化一般会改变问题类别。
+`zero_screen` combines the pairwise failure bounds with a union bound, which permits dependence between the pairwise events. With a device allocation, feasible zero delivery at zero cost is a minimum-fee solution when the aggregate failure bound is at most 10% and feasible costs are nonnegative. A screen without devices reports the probability bound.
 
-冻结报价后，原 `devices.draw/project/audit` 与 `compat/ac_bridge.py` 用于随机响应、设备截断和原 AC 观测。实际结果再用 `FrozenHistory.select(new)` 评分；评价中参数保持冻结。固定协方差尚未包含全部乘性响应／相关偏差／饱和；90% 条件界与实际 AC 成功率分开记录。
+When zero action falls short and there is one competitor, `plan` uses the retained device optimizer. It minimizes cost subject to the device constraints and $T_j(u)\ge\lambda\delta_j/s^2+\log 10$. It checks delivery and the bound against the returned schedule and records the feasible cost, lower bound, and solver status. This problem is a nonconvex quadratically constrained quadratic program and can include integer device variables. The generic planner supports this single-competitor case. Multi-competitor nonzero procurement is handled by separate research scripts.
