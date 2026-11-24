@@ -9,7 +9,7 @@
 **The user chose to lock the strong greedy at V = 2,000 CNY with linear DR prices and GLS scoring now, and to report the failed truth-removed test instead of first strengthening the trust gate.** This departs from the decision registered in §18, which required a stronger gate before the lock.
 - **Why.** All of T1's harm came from completed banks without the truth, which arose naturally in 2.4% of the inputs where probing is allowed. On natural misses probing changed little (§19). Weighted by that rate, the extra wrong confirmations are about 0.1 point against 11 points of extra correct ones, and each was a near-twin at most 0.27% off in voltage. A check of the leader alone cannot detect a missing truth, and the remaining remedy could only be tested on about 3,200 new meter-stress inputs.
 - **What it binds.** PROTOCOL §11 (Decided, 2026-11-23) lists the locked settings and the obligations: the paper reports the failure and the estimate; Stage M keeps measuring truth-removed and natural truth-missing runs, split by closure status. In code: `config.locked_settings()` and `config.LOCKED_ARM`, pinned by a unit test to the §18 settings (22 tests pass).
-- **Not locked.** The rest of the protocol (PROTOCOL §11 open rows, Stage 0, a real feeder) is still a draft.
+- **Not locked.** The rest of the protocol (PROTOCOL §11 open rows, Stage 0, a real feeder) is still a draft. *Later the same day: PROTOCOL v4 decides every remaining setting from these runs (the values used throughout are kept; the v3 planner's settings, the guard, the broad check and frozen replay are dropped) and leaves one item open, the Stage M input source.*
 
 ## Verdict after the fresh-seed lock test (2026-11-23, §18)
 

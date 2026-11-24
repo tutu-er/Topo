@@ -105,7 +105,11 @@ class Settings:
 LOCKED_ARM = "bgreedy_P"
 LOCKED = dict(meter_offsets=True, root_whitening=True, trust_gate=True, adequacy_max=1.2,
               cost_model="linear", price_down_cny=4., price_up_cny=1.2, hourly_cap_cny=20., daily_cap_cny=100.,
-              cert_value_cny=2000., bayes_members=10)
+              cert_value_cny=2000., bayes_members=10,
+              # protocol v4 section 11 (2026-11-23): the rules used in every development run
+              alpha=.05, confirm_hours=2, equivalence_pu=5e-4, gate_lead_hours=1, no_progress_hours=6,
+              no_progress_gain=1., horizon_hours=2, cert_rivals=20, voltage_band=(.96, 1.035), z_voltage=2.33,
+              plausible_weight=.01, unbalance_factor=6.)
 
 
 def locked_settings(**measurement):
