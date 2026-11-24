@@ -1,0 +1,382 @@
+% =====================================================================
+%  Block-selection strategies for hourly market probing:
+%  mathematical principles and code (development note, pre-lock)
+%
+%  GENERATED FILE: edit strategies_template.tex, then run
+%      python build_strategies_tex.py
+%  The code listings are copied from the study's source files at build
+%  time, with their real line numbers.
+%  Compile with pdfLaTeX (e.g. on Overleaf); standard packages only.
+% =====================================================================
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\tp}{^{\top}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\bu}{\bm{u}}
+\newcommand{\bs}{\bm{s}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cU}{\mathcal{U}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{blue!60!black},
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{red!50!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=4,
+  upquote=true
+}
+
+\begin{document}
+
+\title{Block-Selection Strategies for Hourly Market Probing:\\ Mathematical Principles and Code}
+\author{Development note of the hourly probing study (pre-lock, not evidence)}
+\date{%%BUILD_DATE%%}
+\maketitle
+
+\begin{abstract}
+At every market hour the operator may buy one block of active power from household batteries and EV chargers, observe the metered voltages, and refit every candidate topology. This note states, in one notation, how each strategy tested in the development runs chooses that block: passive, random, the crude greedy, query by committee, the v3 dictionary planner, the certified planner and the strong greedy. All strategies share the scoring, stopping and safety machinery of Section~\ref{sec:common}; they differ only in the block they buy. Section~\ref{sec:V} explains the price of certainty $V$ and checks the strong greedy's risk bound against the logged runs. Appendix~\ref{app:code} lists the code that implements every formula, copied from the source files with their line numbers.
+\end{abstract}
+
+\tableofcontents
+
+% =====================================================================
+\section{Setting and notation}\label{sec:setting}
+
+\begin{itemize}
+  \item Metered terminals $i=1,\dots,n$ (root excluded); 15-minute slots $t$; market hour $h$ holds slots $4h,\dots,4h+3$.
+  \item Measured per slot: net consumption $p_t,q_t\in\R^{n}$ (pu), the root's squared voltage $v_{0,t}^2$, and the squared-voltage drop
+        $y_{t,i}=v_{0,t}^2-v_{t,i}^2$.
+  \item \textbf{Candidate topology} $k$: a laminar family $\mathcal S_k$ of supports $C\subseteq\{1,\dots,n\}$ (the terminals downstream of a branch), with incidence $Z_k\in\{0,1\}^{S_k\times n}$, $(Z_k)_{C,i}=1$ if $i\in C$. Support flows $a_{t,C}=\sum_{j\in C}p_{t,j}$ and $b_{t,C}=\sum_{j\in C}q_{t,j}$.
+  \item \textbf{Response model} (branch-flow, loss-compensated), parameters $\theta_k=(r_C,x_C)_{C\in\mathcal S_k}$ with $r_C=2R_C/Z_{\rm base}$:
+  \begin{equation}\label{eq:model}
+    y_{t,i}=\sum_{C\ni i}\big(r_C\,a_{t,C}+x_C\,b_{t,C}\big)+\lambda_{k,t,i}(\theta_k)+o_i+\varepsilon_{t,i},
+    \qquad\text{in matrix form}\quad y=\Phi_k\theta_k+\lambda_k(\theta_k)+(\one\otimes o)+\varepsilon ,
+  \end{equation}
+  where $\Phi_k$ is the design matrix, $\lambda_k$ the loss term and $o\in\R^n$ the per-meter offsets (revised step~1).
+  \item \textbf{Block} $\bu\in\R^{n}$ (kW, held constant for one hour) is added to the metered consumption; $\bu>0$ is extra consumption (charging), $\bu<0$ a reduction (discharge or paused charging).
+  \item \textbf{Timing.} Gate $g$ is the start of hour $g$. It sees data up to the end of hour $g-1$ and seals the block for hour $g+1$ (gate lead 1~h). The block for hour $g$ is already sealed and still to run.
+\end{itemize}
+
+% =====================================================================
+\section{Machinery shared by every strategy}\label{sec:common}
+
+\subsection{GLS whitening for the shared root meter}
+Every terminal's $y$ subtracts the same root reading, so the noise of one slot has covariance proportional to $I+\rho\,\one\one\tp$ with $\rho=\overline{v_0^4}/\overline{v^4}$. Its inverse square root is
+\begin{equation}\label{eq:gls}
+  W=I-\gamma\,\tfrac{1}{n}\one\one\tp,\qquad \gamma=1-\frac{1}{\sqrt{1+n\rho}},
+\end{equation}
+applied to every slot (code: \code{model.root\_gamma}, \code{model.whiten\_slots}, \code{Gate.wh}). Every residual, design and difference below is whitened.
+
+\subsection{Hourly refit}
+With $D$ the per-terminal demeaning over time (a free offset per meter, by Frisch--Waugh--Lovell), each candidate is refitted on all data so far by bounded least squares,
+\begin{equation}\label{eq:refit}
+  \hat\theta_k=\arg\min_{\ell_k\le\theta\le\bar\theta_k}\big\|DW\big(y-\lambda_k(\hat\theta_k^{\rm prev})\big)-DW\Phi_k\,\theta\big\|^2,
+  \qquad \mathrm{SSE}_k=\text{its minimum},
+\end{equation}
+with $r_C\ge r_{\min}$ on non-singleton supports. The loss term uses the previous fit (one fixed-point step per gate, three at the first). The parameter covariance on the free coordinates $F$ (those not at a bound) is
+\begin{equation}\label{eq:cov}
+  \Sigma_k=\hat\sigma^2\big(A_{k,F}\tp A_{k,F}\big)^{-1},\qquad A_k=DW\Phi_k ,
+\end{equation}
+and zero on the bound coordinates (code: \code{Fit.refit}, \code{Fit.covariance}).
+
+\subsection{Scores, posterior and operational equivalence}
+With $N$ rows of data and $p_k=2S_k+n$ parameters (branch $r,x$ and the $n$ offsets),
+\begin{equation}\label{eq:bic}
+  J_k=\frac{\mathrm{SSE}_k}{2\hat\sigma^2}+\frac{p_k}{2}\ln N,\qquad \hat\sigma^2=\min_k\frac{\mathrm{SSE}_k}{N-p_k},
+  \qquad L=\arg\min_k J_k,\qquad E_k=J_k-J_L\ge0,
+\end{equation}
+and the posterior weights are $w_k=e^{-E_k}\big/\sum_l e^{-E_l}$.
+
+\begin{definition}[Operational equivalence]
+Candidate $k$ with $E_k<25$ is equivalent to the leader if its predicted voltages over the forecast day, $\hat v_{k,t,i}=\sqrt{v_{0,t}^2-\hat y_{k,t,i}}$, satisfy $\max_{t,i}|\hat v_{k,t,i}-\hat v_{L,t,i}|\le\varepsilon_V=5\cdot10^{-4}$~pu. $\cQ_L$ is the leader's equivalence class; the \emph{rivals} $R=\{k\notin\cQ_L\}$ are sorted by $E_k$.
+\end{definition}
+
+\subsection{Confirmation, stopping and the trust gate}
+\begin{itemize}
+  \item \textbf{Confirmation.} With $\tau=\alpha/(1-\alpha)=1/19$ ($\alpha=0.05$), gate $g$ passes when
+  \begin{equation}\label{eq:confirm}
+    \sum_{j\in R}e^{-E_j}\le\tau ,
+  \end{equation}
+  that is, the leader's class holds posterior mass of at least 0.95. The leader is \emph{confirmed} when the same leader passes at 2 consecutive gates.
+  \item \textbf{When a block may be bought.} The leader is not yet confirmed and \eqref{eq:confirm} fails, $R\neq\emptyset$, the no-progress rule has not stopped the run, and the \emph{trust gate} passes: the bank's closure finished without a cap binding, and the leader's adequacy ratio
+  \begin{equation}\label{eq:adequacy}
+    a_L=\frac{\mathrm{SSE}_L/(N-p_L)}{c\,\sigma_V^2\,1.02^4}\le 1.2,\qquad c=4\text{ with GLS ($8$ without)},
+  \end{equation}
+  where $c\,\sigma_V^2\,1.02^4$ is the meter-class variance of $y$. In the fresh-seed test (DEVELOPMENT\_RUNS \S18) $a_L$ had the same distribution with and without the truth in the bank (median 0.97), so the gate barely restricted probing on truth-removed banks (55\% of days against 58\%). A near-twin of the truth fits the meters as well as the truth does.
+  \item \textbf{No-progress rule.} At gates where a block was bought, record $G_g=\min_{j\in A}E_j$ over the strategy's active rivals $A$. Stop probing if $G$ has risen by less than 1 over the last 6 such gates.
+\end{itemize}
+
+\subsection{Predictions for the block hour and pairwise separation}
+For the next hour (4 slots), candidate $k$ predicts $\mu_k\in\R^{4n}$ under the load forecast, with the operating-point sensitivity $M_k=\partial y/\partial p\in\R^{4n\times n}$ ($R_k=Z_k\tp\,\mathrm{diag}(r)Z_k$ plus the loss term's Jacobian). Under a block,
+\begin{equation}\label{eq:mu}
+  \mu_k(\bu)=\mu_k+M_k\,\bu/P_{\rm base}.
+\end{equation}
+The \textbf{separation} of two candidates $a,b$ is the whitened Mahalanobis distance of their predictions,
+\begin{equation}\label{eq:q}
+  q_{ab}(\bu)=\big(W\Delta\mu_{ab}(\bu)\big)\tp\bar S_{ab}^{-1}\big(W\Delta\mu_{ab}(\bu)\big),\quad
+  \Delta\mu_{ab}(\bu)=\mu_a(\bu)-\mu_b(\bu),\quad
+  \bar S_{ab}=\hat\sigma^2I+\tfrac12\tilde\Phi_a\Sigma_a\tilde\Phi_a\tp+\tfrac12\tilde\Phi_b\Sigma_b\tilde\Phi_b\tp ,
+\end{equation}
+with $\tilde\Phi=W\Phi(P_f,Q_f)$ at the forecast operating point. The terms $\tilde\Phi\Sigma\tilde\Phi\tp$ count the unknown impedances as noise, so a rival that can re-tune its $r,x$ to mimic the leader gets little separation. For a block $\bu=\kappa\bs$ the separation is a convex quadratic in the level,
+\begin{equation}\label{eq:quad}
+  q_{ab}(\kappa\bs)=q^{(0)}_{ab}+2q^{(1)}_{ab}(\bs)\,\kappa+q^{(2)}_{ab}(\bs)\,\kappa^2,\qquad
+  q^{(0)}=d\tp\bar S^{-1}d,\ \ q^{(1)}=e\tp\bar S^{-1}d,\ \ q^{(2)}=e\tp\bar S^{-1}e\ge0,
+\end{equation}
+with $d=W\Delta\mu_{ab}(0)$ and $e=W(M_a-M_b)\bs/P_{\rm base}$. One Cholesky factor of $\bar S_{ab}$ per pair serves every shape and level.
+
+\subsection{Admissible blocks: dictionary, ceilings and cost}\label{sec:window}
+\textbf{Dictionary.} $\cD$ contains the single-home shapes $\pm\sigma_i e_i$ ($\sigma_i$: standard deviation of terminal $i$'s metered load, kW) and, for each of the three nearest rivals $j$, the group shapes $\pm\sigma\odot\one_{N_j}$ on the terminals $N_j$ whose non-singleton supports differ between $L$ and $j$ (when $1<|N_j|<n$). $\cD_1\subset\cD$ denotes the single-home shapes.
+
+\textbf{Ceiling.} A shape $\bs$ may be bought at level $0<\kappa\le\bar\kappa(\bs)$ with
+\begin{equation}\label{eq:ceiling}
+  \bar\kappa(\bs)=\min\{\kappa_A,\ \kappa_V,\ \kappa_S,\ \kappa_U,\ \kappa_L,\ \kappa_B\},
+\end{equation}
+taken over the $H_r=\min(2,24-h)$ planning hours:
+\begin{itemize}
+  \item $\kappa_A$, \emph{headroom and energy}: $\min_{i:s_i\neq0}\bar u_i^{\pm}/|s_i|$, with
+        $\bar u_i^{+}=\min\!\big(P^{\rm bat}_i,(\mathrm{soc}_{\max}-\mathrm{soc}_i)E_i^{\rm bat}/(\eta H_r)\big)+P^{\rm EV}_i\,\one[\text{plugged}]$ and
+        $\bar u_i^{-}=\min\!\big(P^{\rm bat}_i,(\mathrm{soc}_i-\mathrm{soc}_{\min})E_i^{\rm bat}\eta/H_r\big)+0.5\,P^{\rm EV}_i\,\one[\text{plugged}]$.
+        The state of charge includes the block already sealed for the current hour.
+  \item $\kappa_V$, \emph{robust voltage}: over the plausible candidates and every slot and terminal, the voltage under the forecast load scaled by $1\pm2\sigma_f$ ($\sigma_f=8\%$), moved by the block's first-order effect $g\kappa$ plus $z\,b\kappa$ for the impedance uncertainty ($z=2.33$), stays in $[0.96,1.035]$~pu.
+  \item $\kappa_S$, \emph{transformer}: $|P_0+\kappa\one\tp\bs|\le\sqrt{S_{\max}^2-Q_0^2}$ in every slot.
+  \item $\kappa_U=\kappa_V/6$, \emph{single-phase unbalance}.
+  \item $\kappa_L$, \emph{linearisation}: the second-order remainder of the block stays below the meter noise $\sigma$.
+  \item $\kappa_B$, \emph{budget}: $c(\kappa\bs)\le\min\big(c_{\rm hour},\,(c_{\rm day}-c_{\rm committed})/H_r\big)$, where $c_{\rm committed}$ is the day's spend including the block already sealed for the current hour.
+\end{itemize}
+
+\textbf{Cost.} The development runs since DEVELOPMENT\_RUNS \S16 settle every block as demand response, per kWh moved in the hour:
+\begin{equation}\label{eq:cost}
+  c(\bu)=\pi_\downarrow\sum_i\max(-u_i,0)+\pi_\uparrow\sum_i\max(u_i,0),\qquad \pi_\downarrow=4,\ \pi_\uparrow=1.2\ \text{CNY/kWh},
+\end{equation}
+with caps $c_{\rm hour}=20$ and $c_{\rm day}=100$~CNY. The v3 draft contract $c(\bu)=\sum_i\pi_i(h)\,u_i^2/\bar u_i$ is kept as an option. Both are homogeneous in the level, $c(\kappa\bs)=\kappa^{a}c(\bs)$ with $a=1$ (linear) or $a=2$ (contract), so the budget level is $\kappa_B=(c_{\max}/c(\bs))^{1/a}$.
+
+\textbf{Level search.} Every planner that optimises a level scans the 24 levels $\kappa\in\{\bar\kappa/24,\,2\bar\kappa/24,\dots,\bar\kappa\}$ for every admissible shape.
+
+% =====================================================================
+\section{The strategies}\label{sec:strategies}
+
+Every strategy below runs only at gates where a block may be bought (Section~\ref{sec:common}); otherwise it buys nothing. ``Greedy'' means deciding one hour at a time: at each gate, buy the block with the best value for the next hour given everything measured so far, without planning later hours.
+
+\subsection{Passive (\code{passive\_bic})}
+$\bu_g\equiv0$. The refit, scores and confirmation rule still run every hour.
+
+\subsection{Random, matched (\code{random\_matched\_P})}
+Replays the hours $h$ and the hourly costs $\bar c_h$ of the certified planner on the same input and path. At each such hour it draws a terminal $i$ and a sign $\varsigma\in\{+1,-1\}$ uniformly and buys
+\begin{equation}
+  \bu=\varsigma\,\min\!\big(\bar c_h/\pi_\varsigma,\ \bar u_i^{\varsigma}\big)\,e_i ,
+\end{equation}
+with $\pi_{+}=\pi_\uparrow$ and $\pi_{-}=\pi_\downarrow$. It is matched on hours and target spend, not targeted. When the headroom binds it spends less than the certified planner. The cap $\bar u_i^{\varsigma}$ is the state-of-charge-aware headroom used by every other arm. Before 2026-11-23 the upward cap ignored a full battery: in DEVELOPMENT\_RUNS \S18, 197 of 532 random runs delivered more than the batteries and EVs could give, most likely to the random arm's advantage. Rerun with the fixed cap, the random arm exceeded the headroom in no run and was correct in 187 runs against 190, and the strong greedy beat it 50 to 8 instead of 47 to 8.
+
+\subsection{Crude greedy (\code{greedy\_P})}
+Against the nearest rival $j_1=\arg\min_{j\in R}E_j$, at full ceiling, single homes only:
+\begin{equation}
+  \bs^\star=\arg\max_{\bs\in\cD_1}\big\|\mu_L(\bar\kappa(\bs)\bs)-\mu_{j_1}(\bar\kappa(\bs)\bs)\big\|^2,\qquad \bu=\bar\kappa(\bs^\star)\,\bs^\star .
+\end{equation}
+It ignores the other rivals, the shared root error, parameter uncertainty and cost.
+
+\subsection{Query by committee (\code{qbc\_P})}
+The committee $\cP$ is the up to 8 most probable candidates with $w_k\ge0.01$ (the leader always included), with renormalised weights $\bar w_k$:
+\begin{equation}
+  \bs^\star=\arg\max_{\bs\in\cD_1}\sum_{k\in\cP}\bar w_k\big\|\mu_k(\bu_{\bs})-\bar\mu(\bu_{\bs})\big\|^2,\qquad
+  \bar\mu(\bu)=\sum_{k\in\cP}\bar w_k\,\mu_k(\bu),\qquad \bu_{\bs}=\bar\kappa(\bs)\,\bs .
+\end{equation}
+It buys at the ceiling whenever a block may be bought. It has no stopping rule of its own, no whitening, no parameter uncertainty and no notion of operational equivalence, so it also pays to separate a leader from its own twins.
+
+\subsection{v3 dictionary planner (\code{t\_opt\_P}, PROTOCOL v3)}
+With Chernoff order $\omega=\tfrac12$, the v3 planner requires, for every rival $j$ in an active set $A$,
+\begin{equation}\label{eq:v3}
+  q_j(\bu)\ge\eta_j=\max\!\Big(\frac{2\gamma_j}{\omega(1-\omega)},0\Big),\qquad
+  \gamma_j=\omega\big(\ln\tfrac{1}{\tau}-E_j\big)+\ln\tfrac{1}{\delta_j},
+\end{equation}
+where $q_j$ is \eqref{eq:q} for the pair $(L,j)$ over the $H_r$ planning hours, with $\Phi$ evaluated at the probed operating point. The active set takes rivals in order of $E_j$ while the union-bound tail $\sum_{j\notin A}\tau^{-1/2}e^{-E_j/2}$ exceeds $\delta/2$ (at most 3 rivals), skipping rivals whose reach (the largest $q_j$ any dictionary plan could achieve today) is below $\eta_j$. If the skipped rivals' mass exceeds $\delta/2$, or the tail stays at or above $\delta$, the planner buys nothing. The allocation is $\delta_j=(\delta-\text{tail})/|A|$ with $\delta=0.1$. The block is the cheapest dictionary block meeting \eqref{eq:v3}, found by bisection on the level. With banks of up to 150 candidates the tail could not be covered by three rivals, so the planner bought nothing on 862 triggered gates (DEVELOPMENT\_RUNS \S12).
+
+\subsection{Certified planner (\code{cert\_P})}
+\begin{lemma}[Certified miss bound; PLANNER\_REVISION Theorem~1]\label{lem:cert}
+Assume that under $H_L$ the next $H_r$ hours of measurements are Gaussian around $\mu_L(\bu)$ with covariance $\bar S_{Lj}$, and hold the parameters at their current fits. Let $E_j^+=E_j+\beta_j+\Lambda_j$ be the BIC gap at the end of the window, with $\Lambda_j$ the log-likelihood-ratio increment and $\beta_j=\tfrac12(p_j-p_L)\ln(N^+/N)$ the drift of the penalty. Then
+\begin{equation}\label{eq:B}
+  \Pr\Big(\sum_{j\in R}e^{-E_j^+}>\tau\ \Big|\ H_L\Big)\le B(\bu)=\frac{1}{\sqrt\tau}\sum_{j\in R}\exp\!\Big(-\frac{E_j+\beta_j}{2}-\frac{q_j(\bu)}{8}\Big).
+\end{equation}
+\end{lemma}
+\begin{proof}
+$\Lambda_j\sim\mathcal N(q_j/2,q_j)$, so $\mathbb E[e^{-\Lambda_j/2}]=e^{-q_j/8}$. Square roots are subadditive, so $\sum_j x_j>\tau$ implies $\sum_j\sqrt{x_j}>\sqrt\tau$; Markov's inequality on $\sum_j e^{-E_j^+/2}$ gives \eqref{eq:B}. No independence between rivals is needed.
+\end{proof}
+The certified planner holds a block for the $H_r$ planning hours and solves
+\begin{equation}\label{eq:certP}
+  \bu^\star\in\arg\min_{\bu\in\cU}\ c(\bu)+V\,\big[B(\bu)-\delta\big]_+ ,
+\end{equation}
+over the dictionary for the three nearest rivals and the 24 levels, with the 20 nearest rivals in the sum and the others held at $q_j=0$ (conservative). If some block reaches $B\le\delta$, the hinge is an exact penalty and the planner buys the cheapest such block; otherwise it trades cost against $B$. The v3 condition \eqref{eq:v3} is one fixed allocation of the same budget $\delta$ (PLANNER\_REVISION Corollary~1).
+
+\subsection{Strong greedy (\code{bgreedy\_P}): one-step Bayes-risk minimisation}\label{sec:bgreedy}
+\textbf{Classes.} The leader's class is $\cQ_L$. The other candidates with $E_k<25$ are taken in order of $E_k$ and grouped around representatives by the same voltage test as in the definition of equivalence, up to $M=10$ classes. A candidate equivalent to no kept representative opens a new class while fewer than $M$ exist; otherwise it is left out. The class weights are
+\begin{equation}\label{eq:W}
+  W_c=\sum_{k\in c}w_k\ \ \text{(renormalised over the kept classes)},
+\end{equation}
+and the representative $r(c)$ (the first, most probable member) supplies the class's predictions.
+
+\begin{lemma}[Bhattacharyya bound on the class-level risk]\label{lem:U}
+Treat each class as one hypothesis with prior $W_c$ and Gaussian predictive density $p_c$ for the next hour's data, and let $\hat c$ be the MAP class after that hour. Then
+\begin{equation}\label{eq:U}
+  \Pr(\hat c\neq c_{\rm true})\le U(\bu)=\sum_{c<c'}\sqrt{W_cW_{c'}}\;\exp\!\Big(-\frac{q_{cc'}(\bu)}{8}\Big),
+\end{equation}
+with $q_{cc'}$ the separation \eqref{eq:q} of the representatives over the next hour.
+\end{lemma}
+\begin{proof}
+Let $a_c(y)$ be the posterior of class $c$ and $m(y)$ the MAP class. The error mass at $y$ is $1-a_m\le\sum_{c<c'}\min(a_c,a_{c'})$: every class $c\neq m$ appears in the pair $(c,m)$, where the minimum is $a_c$. Integrating against the predictive density,
+\[
+  \Pr(\text{error})\le\sum_{c<c'}\int\min(W_cp_c,W_{c'}p_{c'})\,dy\le\sum_{c<c'}\sqrt{W_cW_{c'}}\int\sqrt{p_cp_{c'}}\,dy ,
+\]
+using $\min(x,z)\le\sqrt{xz}$. For Gaussians with covariances $S_c,S_{c'}$ and average $\bar S$, the Bhattacharyya coefficient is $\exp\!\big(-q/8-\tfrac12\ln\frac{\det\bar S}{\sqrt{\det S_c\det S_{c'}}}\big)\le e^{-q/8}$, because the log-determinant term is non-negative.
+\end{proof}
+
+\textbf{The rule.} At each gate where a block may be bought,
+\begin{equation}\label{eq:bgreedy}
+  \boxed{\ \bu^\star\in\arg\min_{\bu\in\{0\}\cup\{\kappa\bs:\ \bs\in\cD,\ 0<\kappa\le\bar\kappa(\bs)\}}\ c(\bu)+V\,U(\bu)\ }
+\end{equation}
+over the next hour only. Equivalently, buy block $\bu$ only if the risk it removes is worth its price,
+\begin{equation}\label{eq:buy}
+  V\big(U(0)-U(\bu)\big)>c(\bu),
+\end{equation}
+and among such blocks take the one with the largest net value $V(U(0)-U(\bu))-c(\bu)$. If none qualifies, buy nothing. $V$ is the price of certainty (Section~\ref{sec:V}); \code{bgreedy\_P} uses $V=1000$~CNY and \code{bgreedy\_lowV\_P} $V=200$~CNY.
+
+\begin{proposition}[Near-optimality of greedy selection]\label{prop:sub}
+Fix a menu of blocks and freeze sensitivities and weights, and suppose separations add over executed blocks, $q_{cc'}(\mathcal A)=q_{cc'}(0)+\sum_{b\in\mathcal A}\delta q_{cc'}(b)$ with $\delta q\ge0$. Then the risk reduction
+\[
+  F(\mathcal A)=U(\varnothing)-U(\mathcal A)=\sum_{c<c'}\sqrt{W_cW_{c'}}\Big(e^{-q_{cc'}(0)/8}-e^{-q_{cc'}(\mathcal A)/8}\Big)
+\]
+is a non-negative sum of concave functions of modular functions, hence monotone submodular in the set $\mathcal A$ of executed blocks. Greedy selection is therefore within a factor $1-1/e$ of the best schedule of the same length (Nemhauser, Wolsey and Fisher, 1978).
+\end{proposition}
+Two approximations separate this from the executed policy: separations of different hours add only approximately (the parameter-uncertainty term couples hours, and the cross term $2q^{(1)}\kappa$ can be negative), and the hourly refit changes $W_c$ and the sensitivities, which makes the policy adaptive.
+
+\subsection{Broad check (\code{check\_then\_t\_opt}, dropped)}
+For the first two probing hours it buys a zero-sum block with random signs at half of every terminal's headroom, rescaled so that increases equal reductions, and then hands over to the v3 planner. It was dropped after it raised wrong confirmations and cost.
+
+\subsection{Summary}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Strategy & Objective & Rivals considered & Noise model & When it stops buying\\
+\midrule
+Passive & none & -- & -- & never buys\\
+Random & none (random home and sign) & -- & -- & replays the certified planner's hours\\
+Crude greedy & $\max\|\Delta\mu_{Lj_1}\|^2$ at the ceiling & nearest rival & white, known parameters & never (only the shared rules)\\
+Committee & $\max\sum\bar w_k\|\mu_k-\bar\mu\|^2$ at the ceiling & 8 most probable candidates & white, known parameters & never (only the shared rules)\\
+v3 planner & cheapest block with $q_j\ge\eta_j$ & active set of at most 3 & GLS, parameter uncertainty & when no active set covers the tail (almost always)\\
+Certified & $\min c+V[B-\delta]_+$ over 2~h & 20 nearest, leader-centred & GLS, parameter uncertainty & when no block lowers $B-\delta$ by more than its cost$/V$\\
+Strong greedy & $\min c+V\,U$ over 1~h & all class pairs, up to 10 classes & GLS, parameter uncertainty & when no block lowers $U$ by more than its cost$/V$\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent Hard-case test (DEVELOPMENT\_RUNS \S16, 550 ambiguous runs per arm, DR prices): correct confirmations at the end of the day were passive 29\%, random 31\%, committee 37\%, strong greedy 40\% at $V=200$ and at $V=1000$, certified 41\%; daily cost 0, 13.8, 16.3, 16.8, 23.8 and 26.7~CNY. These figures predate the battery-state fix (blocks were sized against the charge before the current block ran) and are optimistic: with the fix the strong greedy is 37--38\% correct at $V=200$--1000 (Section~\ref{sec:V}).
+
+% =====================================================================
+\section{The price of certainty \texorpdfstring{$V$}{V}}\label{sec:V}
+
+\textbf{What it means.} $V$ converts misidentification risk into money. By \eqref{eq:buy}, the strong greedy pays at most $V/100$~CNY to lower the bound $U$ by one percentage point: 2~CNY at $V=200$, 10~CNY at $V=1000$. A block costing 4~CNY must therefore lower $U$ by at least 0.02 at $V=200$, or by at least 0.004 at $V=1000$.
+
+\textbf{Two readings.}
+\begin{itemize}
+  \item \emph{Lagrangian.} $\min c(\bu)+V\,U(\bu)$ is the Lagrangian of ``minimise the risk bound subject to a spend limit''. Every $V$ gives a point on the cost--risk trade-off curve, and choosing $V$ means choosing the point.
+  \item \emph{Decision theory.} If naming the wrong class costs the operator $\mathcal L$~CNY (a field visit, or a wrong hosting-capacity decision) and $U$ were the exact error probability, the expected-loss-minimising choice would be $V=\mathcal L$. Because $U$ is an upper bound, $U=k\cdot\Pr(\text{error})$ with $k\ge1$, the consistent setting is $V=\mathcal L/k$.
+\end{itemize}
+
+\textbf{How loose is $U$?} The logged hard-case runs of both strong greedy arms record $U(\bu^\star)$ at 3{,}928 planned gates. Table~\ref{tab:calib} compares it with the realised rate of a wrong MAP class at the next gate, when the block's data have arrived.
+
+\begin{table}[h]
+\centering
+\caption{The risk bound $U$ after the chosen block against the realised wrong-class rate one hour later (DEVELOPMENT\_RUNS \S16 logs, both strong greedy arms).}\label{tab:calib}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+$U(\bu^\star)$ & Gates & Mean $U$ & Realised wrong-class rate & Ratio $k$\\
+\midrule
+0.1--0.2 & 147 & 0.171 & 0.143 & 1.2\\
+0.2--0.4 & 1304 & 0.306 & 0.252 & 1.2\\
+0.4--0.8 & 1481 & 0.559 & 0.318 & 1.8\\
+0.8--1.6 & 839 & 1.096 & 0.434 & 2.5\\
+$\ge1.6$ & 138 & 1.994 & 0.645 & 3.1\\
+\midrule
+All & 3928 & 0.623 & 0.325 & 1.9\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The bound holds in every bin and is loose by a factor of about $k\approx1.2$--$3$, about 2 overall. With a field visit at $\mathcal L\approx1000$~CNY, the decision-theoretic reading suggests $V\approx500$~CNY.
+
+\textbf{Were 200 and 1000 set by hand?} Yes. $V=1000$~CNY was set to about one field verification visit, and $V=200$~CNY to one fifth of it as a frugal variant. Neither was derived from data. The hard-case test found them equally accurate (9 runs to 9) with $V=200$ cheaper by 30\%.
+
+\textbf{The limit $V\to\infty$.} As $V$ grows, the buy rule \eqref{eq:buy} passes whenever the block lowers $U$ at all, and the minimiser of $c(\bu)+V\,U(\bu)$ moves to the minimiser of $U$ over the admissible set, which sits at the ceiling $\bar\kappa$. A large $V$ therefore cannot buy more hours than the gates allow; it can only make each block larger, up to the ceilings and the caps. A small $V$ buys only the hours where the bound falls steeply.
+
+\textbf{The sweep (DEVELOPMENT\_RUNS \S17).} The strong greedy at six values of $V$, with the committed-block fix, on the 550 ambiguous hard-case runs (Table~\ref{tab:vsweep}). The net value per run is
+\begin{equation}
+  \mathrm{NV}(V)=\mathcal L\,\frac{C(V)-C_0}{n}-\bar c(V),\qquad \mathcal L=1000~\text{CNY},
+\end{equation}
+where $C(V)$ and $C_0$ count the runs that confirm the true topology with $V$ and passively, $n=550$, and $\bar c(V)$ is the mean cost a day. The rule, registered before the results were read, takes the largest $\mathrm{NV}$; the secondary rule takes the cheapest $V$ not significantly less accurate than the most accurate one.
+
+\begin{table}[h]
+\centering
+\caption{The strong greedy against $V$ on the 550 ambiguous hard-case runs (DEVELOPMENT\_RUNS \S17). ``Gained / lost'': runs only this arm, or only passive, got right (exact McNemar, paired within condition).}\label{tab:vsweep}
+\begin{tabular}{@{}rrrrrr@{}}
+\toprule
+$V$ (CNY) & Correct & Gained / lost & Probed h/day & CNY/day & NV (CNY/run)\\
+\midrule
+passive & 162 & -- & 0 & 0 & 0\\
+50 & 190 & 33 / 5 & 1.9 & 6.8 & 44.1\\
+100 & 205 & 47 / 4 & 2.6 & 11.6 & 66.6\\
+200 & 206 & 47 / 3 & 3.0 & 16.5 & 63.5\\
+500 & 210 & 52 / 4 & 3.2 & 21.3 & 66.0\\
+1000 & 209 & 52 / 5 & 3.2 & 23.4 & 62.1\\
+2000 & 215 & 56 / 3 & 3.2 & 24.7 & 71.6\\
+100000 (limit) & 214 & 55 / 3 & 3.2 & 26.4 & 68.2\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Which $V$ is best?} The data do not single one out.
+\begin{itemize}
+  \item Accuracy rises from $V=50$ to $V=100$ and is then flat within noise up to 2{,}000 ($V=100$ against $V=2000$: 16 runs to 26, $p=0.16$). Probed hours saturate at about 3.2 a day from $V\approx500$, as the limit above predicts; beyond that a larger $V$ only buys larger blocks. The point $V=100{,}000$, run afterwards and never a candidate, confirms the limit: the same accuracy as $V=2000$ (the two differ in 5 runs), the same hours, slightly larger blocks and a lower $\mathrm{NV}$.
+  \item $\mathrm{NV}$ is 62--72~CNY per run for every $V$ from 100 to 2{,}000. The registered rule picks $V=2000$ by 5~CNY per run over $V=100$, about 10 correct runs in 550, which is inside the noise. The secondary rule picks $V=100$, at less than half the cost (11.6 against 24.7~CNY a day).
+  \item The decision-theoretic value $V\approx\mathcal L/k\approx500$~CNY lies inside the flat range, so the two readings agree.
+\end{itemize}
+On the sweep's inputs, any $V$ from about 100 to 2{,}000~CNY seemed to give the same value per run. The fresh seeds corrected this (below): $V=2000$ beat $V=100$ by 38 runs to 14 ($p=0.001$), in the same direction as the sweep's 26 to 16. ``Not significantly worse'' was not equivalence.
+
+\textbf{Fresh-seed confirmation (DEVELOPMENT\_RUNS \S18).} On 532 new ambiguous runs (seeds 65--96), the strong greedy at $V=2000$ confirmed the true topology in 43\% of runs against 32\% passive (61 gained, 2 lost), beat random blocks 47 to 8, matched the certified planner (21 to 15) and had the largest net value of the probing arms (88~CNY per run, against 76 certified and 73 committee). On the same inputs $V=100$ was 39\% correct at 10.7~CNY a day (55~CNY per run), against 43\% at 23.2~CNY a day for $V=2000$ (38 runs to 14): the larger $V$ probes more hours (3.2 against 2.5 a day) with larger blocks. With the truth removed from the same banks, it confirmed a wrong topology in 64\% of runs against 60\% passive (37 to 17, $p=0.009$), so the registered safety test failed. The extra wrong confirmations were near-twins of the truth, at most 0.14\% off in voltage on the short lines and 0.27\% under meter stress. The registered decision therefore required a stronger trust gate before the lock. A first check, in which every candidate predicts each hour's meter readings before seeing them, was correctly scaled but did not separate truth-missing banks (areas under the ROC curve 0.47--0.58): the twin's excess misfit over a day is smaller than the random spread of a test of the leader alone. On the 62 inputs whose truth the bank missed by itself (DEVELOPMENT\_RUNS \S19), probing barely changed wrong confirmations (45\% against 44\%, 4 runs to 2): in 51 of them the bank's closure had hit a cap, so the trust gate forbade probing. All of the truth-removed test's harm came from completed banks, a case that arose naturally in 2.4\% of the inputs where probing is allowed.
+
+\textbf{The lock (2026-11-23).} The strong greedy at $V=2000$~CNY, with linear DR settlement and GLS scoring, was locked by the authors' decision, departing from the registered rule. The failed safety test is disclosed with its estimated size: weighted by the 2.4\% rate, the extra wrong confirmations are about 0.1 percentage point of probe-eligible runs (0.4 under meter stress), against 11 points of extra correct confirmations, and each extra wrong topology was within 0.27\% of the truth in voltage. Stage~M keeps measuring truth-removed and natural truth-missing runs.
+
+% =====================================================================
+\appendix
+\section{Code}\label{app:code}
+The listings below are copied from the study's source files (\code{rnj\_wzzt\_dr/experiments/hourly\_probing\_20261118/}) when this file is built; the line numbers are those of the files.
+
+%%CODE%%
+
+\end{document}

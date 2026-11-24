@@ -1,6 +1,8 @@
 # Hourly Market Probing
 
-**Status: draft protocol v3 plus a design pre-check. The study code isn't written and nothing has run on real data.**
+**Status: draft protocol v3, a design pre-check, and first development code with pre-lock development runs on regenerated synthetic inputs ([DEVELOPMENT_RUNS.md](DEVELOPMENT_RUNS.md), 2026-11-20). Nothing has run on real data. The protocol is not locked as a whole; its block selector was locked on 2026-11-23 (PROTOCOL §11).**
+
+The development runs found that probing is safe and cheap but adds little under scenario R1. They also found that voltage-meter bias and short lines push the true topology out of the passive bank, after which wrong topologies are confirmed. Read them before settling the open decisions. A second round (2026-11-20/21: single phase only, typical meter bias 0.05%, all four case feeders) found that a revised step 1 keeps the truth in the bank (64 of 64 against 39 of 64). It also found that targeted probing then helps only with a best-effort planner (ambiguous inputs 89% → 100% correct, 8 h → 4 h), because the v3 planner's guarantee leaves it idle; see DEVELOPMENT_RUNS Sections 10–12. A pre-registered head-to-head (Section 13, 2026-11-22) found that targeting beats random excitation, but that a certified planner ([`PLANNER_REVISION.md`](PLANNER_REVISION.md)) does not beat a simple query-by-committee rule. A confirmation on fresh seeds (Sections 14–15, 2026-11-23) found that the refined pipeline (revised step 1, per-meter offsets, GLS scoring for the shared root-meter error) confirms the true topology in 100% of main-case runs and 78% of short-line runs, against 48% and 27% for the first-round pipeline. Probing added a non-significant 5 to 1 there. A hard-case test at realistic demand-response prices (Section 16, 2026-11-23) then found that, on inputs where one day of passive data is not enough, targeted probing raises correct confirmations from 29% to 40% (62 to 2) and beats random blocks (55 to 6), at 17–27 CNY a day. A sweep of the price of certainty V (Section 17) found every V from 100 to 2,000 CNY about equally good (37–39% correct against 29% passive, with all fixes). It also showed that a battery-state defect had inflated Section 16's accuracy by about 3 points. The fresh-seed lock test (Section 18) replicated the benefit (43% against 32% correct, 61 to 2; random blocks beaten 47 to 8) but failed its registered safety test with the truth removed: probing confirmed a near-twin of the missing truth more often than passive (64% against 60%, 37 to 17). The trust gate could not tell those banks apart. On the same fresh seeds V = 2,000 beat V = 100 (38 to 14), so Section 17's flat V curve was underpowered; V = 100,000 added nothing. On the 62 inputs whose truth the bank missed by itself (Section 19), probing changed little (45% against 44% wrong), because the gate's closure check blocked probing on 51 of them; all of the truth-removed test's harm came from completed banks, a case that arose in 2.4% of probe-eligible inputs. **On 2026-11-23 the user locked the block selector** (the strong greedy at V = 2,000 CNY, linear DR prices, GLS scoring; `config.locked_settings()`), departing from the registered rule and disclosing the failed safety test with its estimated size (about 0.1 point of extra wrong confirmations against 11 points of extra correct ones).
 
 This study tests whether an LVDG operator can resolve an ambiguous topology bank by buying hourly **active-power** blocks at chosen nodes from an aggregator of household batteries and EV chargers, then rescoring the candidates after each hour. Two premises shape the design:
 - **Only controls that exist in today's LV networks.** Reactive power is not dispatched, because household inverters run local volt-var by default and remote reactive set-points exist only in trials.
@@ -63,9 +65,27 @@ The earlier [method note](METHOD.md) documents the v2 reasoning (κ formulas, th
 | [`flexibility_grid_20261115`](../flexibility_grid_20261115/README.md) | Day-ahead | Frozen | 36 cells | No overall gain; a Pengwah gain and a Soumalas loss caused by frozen-X bias |
 | **This study (v3)** | 1 h active-power block, triggered; targeted, with a no-progress stop | Refit on all data, BIC scoring | Selected for ambiguity, plus two control strata | Pre-check only, see `PRECHECK.md` |
 
-## Planned code layout
+## Code layout
 
-The new code reuses the maintained and rolling-study modules. It does not modify them.
+The development code (2026-11-20) reuses the maintained package and does not modify it. It is a compact first version of the plan below:
+
+| File | Contents |
+| --- | --- |
+| `config.py` | v3 draft settings |
+| `scenario.py` | Multi-day load law, meter model (noise, gain bias, quantisation), R1 resources, prices |
+| `unbalanced.py` | Three-phase backward–forward sweep (Z0/Z1, seeded phases) |
+| `model.py` | Candidate model with the loss term, bounded refit with the resistance floor, Σ_k |
+| `scores.py` | BIC, equivalence (19), posterior rule (20), rival types |
+| `planner.py` | Reach test, active set, dictionary planner, windows (25)–(28), check and random blocks |
+| `run.py` | Seal-then-reveal hourly runner for the five arms, b/J, outcomes |
+| `bank.py` | Regenerated inputs: identifier bank plus one-edit neighbours, strata, short-line set |
+| `experiments.py`, `report.py`, `noise_check.py`, `identifier_remedies.py` | Development batches, summaries, the Proposition 6 noise check and the meter-bias remedy test |
+| `coverage.py` | Step-1 truth coverage on all four case feeders: current bank against the revised step 1 (per-meter offsets, pre-contraction paths, BIC neighbourhood closure) |
+| `test_hourly_probing.py` | PROTOCOL §9 unit tests the code covers |
+
+Not yet implemented: the score-test guard, program refinement (step 6), the `resources/r1_allocations.json` file, and the independent audit.
+
+The original plan:
 
 | New file | Reuses |
 | --- | --- |
