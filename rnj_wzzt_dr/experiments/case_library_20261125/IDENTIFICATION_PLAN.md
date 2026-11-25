@@ -27,6 +27,27 @@ recall, precision and F1 are always shown next to it.
   show RNJ with bootstrap as a main baseline. Only 1 false line exists in the 59 WZZT-C lines, so the margin's ranking
   is untested yet.
 
+### Source-aware run, complete for 25 meters and fewer (240 development cases, 0 errors)
+
+| | S2 | S1 | WZZT-C blind | RNJ, best tolerance (hindsight) | NJ, best tolerance |
+| --- | --- | --- | --- | --- | --- |
+| Star, source (72): F1 | **100** | 100 | 93.9 | 95.9 | 95.0 |
+| Street, source (72): F1 | 84.4 | 82.7 | 77.0 | **88.1** | 87.2 |
+| Street, source: root-side supported | **226/228** | 219 | 197 | 213 | 195 |
+| Random, source (36): F1 | **73.1** | 71.2 | 65.0 | 50.9 | 48.3 |
+| Random, source: root-side supported | **81/81** | 78 | 76 | 54 | 56 |
+| Random, no source (12): F1 | 71.9 | 71.9 | **72.9** | 50.7 | 47.8 |
+| Precision of S2 | 99-100 (star, street), 94 (random) | | 88-96 | 83-92 (star, street), 47 (random) | 88-91, 42 |
+
+- The source costs the blind method 6 to 8 F1 points (street 83 to 77, star 100 to 94, random 73 to 65), and S2 recovers almost all of it. Where
+  there is no source S2 is within one line of the blind method on the random cases (71.9 against 72.9).
+- Source existence: evidence above 4.6 in 0 of 60 no-source cases (largest 2.1) and in 160 of 180 source cases: 45 of 60 at
+  2% of the load, 58 of 60 at 5%, 57 of 60 at 10%; by kind 57 of 60 (lamp), 43 of 60 (house) and 60 of 60 (block).
+- Source place: exactly right among the returned lines in 163 of 180. **The true place is within 4.6 half-BIC units of the
+  best in 178 of 180 cases, with 1.4 places in the set on average**: the set is the honest output; a single place is not.
+- The wrong places are nearly all 2% sources, or the first place beyond the true one at a cost below 2.1 half-BIC units.
+  In two cases with high evidence the returned tree has a false line on the path.
+
 Two limits to state in the paper:
 - **Full binary trees.** On the named street feeders (two lines out of every node) RNJ with tolerance 0 gets F1 90
   against S2's 84, because it always returns a full binary tree and the true trees are full binary. S2 does not add lines
