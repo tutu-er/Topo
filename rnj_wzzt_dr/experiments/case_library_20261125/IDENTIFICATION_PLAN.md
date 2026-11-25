@@ -153,6 +153,20 @@ runs, so this is **not** a controlled comparison. WZZT-R was not run on cases ab
   (the truth pays for 11 lines, the returned tree for 5). The data cannot show these lines; the returned lines include
   two or three false ones that fit almost as well.
 
+### Repaired pipeline with the price continuation (v3, 6 no-source cases of 41-59 meters): the bonus is adopted
+
+| | F1 | Precision | Root-side lines | False lines per case |
+| --- | --- | --- | --- | --- |
+| Bonus (v3) | **69.6** | 88 | 33/34 | 2.5 |
+| Plain (v3) | 65.0 | 83 | 32/34 | 3.5 |
+| Bonus without the continuation (v2) | 62.6 | 73 | 30/34 | 6.7 |
+| WZZT-C | 63.9 | 84 | 32/34 | 3.3 |
+
+Per feeder the bonus is better than plain on 4, equal on 1 and worse on 1 (by 1.3 F1 points): **no loss at 41-59 meters in the mean or in precision, so the user's
+condition of 2026-11-25 is met and the bonus (lam = 1.96) is in the method** (`Settings.lam`, with `continuation` beyond 35 meters). It rests on
+six feeders, and the plain run differs from v2 by 0.2 F1 points because the MIQPs stop at their time limits. **Time: 1,913 s median (2,205 s maximum)
+at 41-59 meters**, about twice the plain pipeline, since the continuation solves the tree twice. Not solved.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
