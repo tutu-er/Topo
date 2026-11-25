@@ -60,14 +60,14 @@ def run_one(job):
         return dict(name=name, error=repr(exc), trace=traceback.format_exc()[-1500:])
 
 
-def run(mode, workers):
+def run(mode, workers, tag="", min_n=0, max_n=100):
     manifest = json.loads((build.HERE/"manifest_dev.json").read_text(encoding="utf-8"))
-    path = OUT[mode]
+    path = OUT[mode].with_name(OUT[mode].stem+tag+".jsonl")
     done = set()
     if path.exists():
         done = {r["name"] for r in map(json.loads, path.read_text().splitlines()) if "error" not in r}
     todo = [r["name"] for r in sorted(manifest, key=lambda r: (r["n"], r["name"])) if r["name"] not in done
-            and (mode == "source" or r["source"] == "none")]
+            and min_n <= r["n"] <= max_n and (mode == "source" or r["source"] == "none")]
     with open(path, "a") as fh, get_context("spawn").Pool(workers, maxtasksperchild=4) as pool:
         for k, row in enumerate(pool.imap_unordered(run_one, [(mode, x) for x in todo]), 1):
             fh.write(json.dumps(row, default=float)+"\n"); fh.flush()
@@ -126,8 +126,11 @@ def main():
     ap.add_argument("what", choices=("run", "table"))
     ap.add_argument("--mode", choices=("blind", "source"), default="blind")
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--tag", default="")
+    ap.add_argument("--min_n", type=int, default=0)
+    ap.add_argument("--max_n", type=int, default=100)
     args = ap.parse_args()
-    run(args.mode, args.workers) if args.what == "run" else table()
+    run(args.mode, args.workers, args.tag, args.min_n, args.max_n) if args.what == "run" else table()
 
 
 if __name__ == "__main__":

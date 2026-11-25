@@ -4,7 +4,9 @@ Differences from the frozen WZZT-C (combo.py, which the running confirmation use
 1. **Structural prior.** The price of a line is BIC minus `lam` half-BIC units. `lam` = ln(1/rho), rho = the odds of a node
    having more than two children on real feeders (geometric prior on the number of children above two; the sum over
    the nodes is linear in the number of lines, so the MIQPs and certificates keep their form).
-2. **Warm start of the pool MIQP** with a multi-start local search and its value as the cutoff: the same optimum, proved faster.
+2. **Two searches in the pool step.** A multi-start local search and the exact pool MIQP (warm-started and cut off up to
+   `warm_n` meters, cold beyond: with many lines the warm-started solver found no solution in time). The better tree is kept
+   and polished by local search. Beyond 35 meters the MIQP limits of WZZT-C (240 s) are used.
 3. **Completion of S2.** After S2's MIQP every union of child blocks of every node is priced; the best paying line is added to the
    pool and the MIQP decides again, until no line pays (source_cert.complete).
 4. The source is projected out (S1) before the tree search, then located (S2).
@@ -42,6 +44,9 @@ class Settings:
     max_blocks: int = 12
     seed: int = 7
     warm: bool = True
+    warm_n: int = 35                # beyond this many meters the pool MIQP starts cold, with the longer limit
+    long_seconds: float = 240.      # pool and root limit beyond warm_n meters
+    polish_seconds: float = 20.
 
 
 def priced(S, lam):
@@ -73,14 +78,23 @@ def tree(S, st=Settings()):
     # ---- T*: the exact best tree over every source's lines, warm-started
     fitter = rv.GramFitter(design, [*cand, *base], base, bound)
     prob0 = rv.Problem(fitter, cand, base, alpha)
-    kw = {}
+    kw, short = {}, n <= st.warm_n
+    solutions = []
     if st.warm:
-        ls_lines, ls_value = multistart(prob0, fams, st.warm_seconds)
-        kw = dict(warm=canonical([*base, *ls_lines]), cutoff=ls_value)
-    r0 = rv.select_miqp(design, cand, base, alpha, bound, st.pool_seconds, seed=st.seed, gap=1e-4, **kw)
-    kept = [C for C in (r0.get("family") or ()) if 1 < len(C) < n]
-    if st.warm and (not kept and ls_lines) or (st.warm and r0.get("family") and prob0.score(frozenset(kept)) > ls_value+1e-12):
-        kept = [C for C in ls_lines]
+        ls_lines, ls_value = multistart(prob0, fams, st.warm_seconds if short else 2*st.warm_seconds)
+        solutions.append(frozenset(ls_lines))
+        if short:
+            kw = dict(warm=canonical([*base, *ls_lines]), cutoff=ls_value)
+    r0 = rv.select_miqp(design, cand, base, alpha, bound, st.pool_seconds if short else st.long_seconds, seed=st.seed,
+                        gap=1e-4, **kw)
+    if r0.get("family"):
+        solutions.append(frozenset(C for C in r0["family"] if 1 < len(C) < n))
+    if not solutions:
+        solutions.append(frozenset())
+    kept = min(solutions, key=prob0.score)
+    if st.warm:                                                  # polish the better one
+        kept, _ = rv.local_search(prob0, kept, time.perf_counter()+st.polish_seconds)
+    kept = list(kept)
     rec["pool"] = dict(status=r0["status"], seconds=r0["seconds"], gap=r0.get("gap"))
     # ---- blocks by evidence margin
     ev = combo.line_evidence(prob0, kept, cand, N)
@@ -100,11 +114,12 @@ def tree(S, st=Settings()):
         best_S, best = None, math.inf
         u = set(universe)
         deadline = time.perf_counter()+st.search_seconds
-        for s0 in (frozenset(C for C in start if C in u), frozenset()):
+        for s0 in (frozenset(C for C in start if C in u), frozenset()) if short else (frozenset(C for C in start if C in u),):
             Sx, sx = rv.local_search(prob, s0, deadline)
             if sx < best:
                 best_S, best = Sx, sx
-        r1 = rv.select_miqp(design, universe, base, alpha, bound, st.root_seconds, warm=canonical([*base, *best_S]),
+        r1 = rv.select_miqp(design, universe, base, alpha, bound, st.root_seconds if short else st.long_seconds,
+                            warm=canonical([*base, *best_S]),
                             seed=st.seed, gap=1e-4, cutoff=best, solver_cutoff=False)
         fam = r1.get("family")
         if fam is not None and prob.score(frozenset(C for C in fam if 1 < len(C) < n)) < best-1e-12:
@@ -148,7 +163,7 @@ def tree(S, st=Settings()):
         family = single_repair(best_new)
     universe_all = canonical([*cand, *(C for C in family if 1 < len(C) < n)])
     if any(1 < len(C) < n and C not in set(cand) for C in family):
-        r2 = rv.select_miqp(design, universe_all, base, alpha, bound, st.pool_seconds, warm=family, seed=st.seed, gap=1e-4,
+        r2 = rv.select_miqp(design, universe_all, base, alpha, bound, st.pool_seconds if short else st.long_seconds, warm=family, seed=st.seed, gap=1e-4,
                             cutoff=crit(family), solver_cutoff=False)
         fam2 = r2.get("family")
         if fam2 is not None and trees.is_laminar(fam2) and crit(fam2) < crit(family)-1e-9:
