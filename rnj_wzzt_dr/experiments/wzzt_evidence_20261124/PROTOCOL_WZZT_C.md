@@ -118,3 +118,14 @@ Amendment D's HR1 on the large networks); every builder setting and the after-th
 
 `run_confirm_c.py --set synthetic` and `--set large` (3 workers), then `analyse_confirm_c.py`. Outputs in
 `outputs/wzzt_evidence_20261124/confirm_c/` (not in Git). Nothing in §1–4 changes after the first run.
+
+## 6. Log during the runs (no result read)
+
+- 2026-11-25: the synthetic run is complete: 192 of 192 rows (96 names in 2 conditions), no errors. Its results have not been read.
+- 2026-11-25: the large run has one failed job so far, `eulv_td400859_feeder31_s0` (one of the 13 clean inputs). The
+  traceback is inside `revised.extend_miqp` (Gurobi returned no MIPGap), which only WZZT-R calls (`combo.fit` does not).
+  The job wrote no result for any method. Nothing in the frozen code was changed. How this job counts is the user's
+  decision, because two sentences of section 4 point to different outcomes: "errors and crashes count against the method
+  that fails" (then WZZT-R gets an empty output) and "an input whose job fails as a whole counts as a failure of WZZT-C"
+  (written for the case where the runner cannot tell which method failed; here the traceback can). Until then C1b stays
+  undecided, and the analysis script is not run. Either way the comparators must be rerun on this input alone.

@@ -60,12 +60,12 @@ def run_one(name):
         return dict(name=name, error=repr(exc), trace=traceback.format_exc()[-1500:])
 
 
-def run(workers, max_n):
+def run(workers, max_n, min_n=0):
     manifest = json.loads((build.HERE/"manifest_dev.json").read_text(encoding="utf-8"))
     done = set()
     if OUT.exists():
         done = {r["name"] for r in map(json.loads, OUT.read_text().splitlines()) if "error" not in r}
-    todo = [r["name"] for r in sorted(manifest, key=lambda r: (r["n"], r["name"])) if r["n"] <= max_n and r["name"] not in done]
+    todo = [r["name"] for r in sorted(manifest, key=lambda r: (r["n"], r["name"])) if min_n <= r["n"] <= max_n and r["name"] not in done]
     with open(OUT, "a") as fh, get_context("spawn").Pool(workers, maxtasksperchild=8) as pool:
         for k, row in enumerate(pool.imap_unordered(run_one, todo), 1):
             fh.write(json.dumps(row)+"\n"); fh.flush()
@@ -142,8 +142,9 @@ def main():
     ap.add_argument("what", choices=("run", "table"))
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--max_n", type=int, default=25)
+    ap.add_argument("--min_n", type=int, default=0)
     args = ap.parse_args()
-    run(args.workers, args.max_n) if args.what == "run" else table()
+    run(args.workers, args.max_n, args.min_n) if args.what == "run" else table()
 
 
 if __name__ == "__main__":
