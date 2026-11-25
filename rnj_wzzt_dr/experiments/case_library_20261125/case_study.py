@@ -11,6 +11,8 @@ for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
     os.environ.setdefault(_v, "1")
 
 import json
+import pickle
+import sys
 
 import matplotlib
 matplotlib.use("Agg")
@@ -40,34 +42,56 @@ def analyse(name):
                 places=[(float(c), D) for c, D in r["places"]][:4], source=rec["source"], network=rec["network"], labels=rec["labels"])
 
 
-def layout(lines, order, n):
-    """Cladogram: y of the meters as given by `order`; every line at the depth of the number of lines that contain it."""
-    nodes = sorted(lines, key=len)
-    depth = {C: 1+sum(set(C) < set(D) for D in nodes) for C in nodes}
-    return depth
+def runs_of(positions):
+    """Contiguous runs of sorted positions: [(first, last), ...]."""
+    out = []
+    for p in positions:
+        if out and p == out[-1][1]+1:
+            out[-1][1] = p
+        else:
+            out.append([p, p])
+    return out
 
 
-def panel(ax, title, lines, truth, order, n, path=(), source_at=None):
-    """Nested brackets: one horizontal bar per line from its first to its last meter."""
+def rows_of(lines, pos):
+    """One row per line, smallest sets lowest, no two overlapping spans in a row."""
+    row, placed = {}, []                                    # placed: per row, the list of occupied spans
+    for C in sorted(lines, key=lambda c: (len(c), min(pos[m] for m in c))):
+        lo, hi = min(pos[m] for m in C), max(pos[m] for m in C)
+        need = 1+max((row[D] for D in lines if D in row and set(D) < set(C)), default=0)
+        r = need
+        while len(placed) >= r and any(not (hi < a or lo > b) for a, b in placed[r-1]):
+            r += 1
+        while len(placed) < r:
+            placed.append([])
+        placed[r-1].append((lo, hi))
+        row[C] = r
+    return row
+
+
+def panel(ax, title, lines, truth, order, n, path=()):
+    """Nested brackets: a bar over the meters of a line; a thin dotted line bridges meters that are not in it."""
     pos = {m: k for k, m in enumerate(order)}
-    depth = layout(lines, order, n)
-    top = max(depth.values(), default=0)+1
+    row = rows_of(lines, pos)
+    top = max(row.values(), default=0)+1
     for m in range(n):
         ax.plot(pos[m], 0, "o", ms=4, color=INK, zorder=4)
     for C in lines:
         xs = sorted(pos[m] for m in C)
-        ok = C in truth
-        on_path = C in path
-        color = PATH if on_path else RIGHT if ok else WRONG
-        ax.plot([xs[0]-.25, xs[-1]+.25], [depth[C], depth[C]], color=color, lw=2.4 if ok else 2.0,
-                ls="-" if ok else (0, (4, 2)), solid_capstyle="butt", zorder=2)
-        ax.plot([xs[0], xs[0]], [0, depth[C]], color="#d0cfca", lw=.7, zorder=1)
-        ax.plot([xs[-1], xs[-1]], [0, depth[C]], color="#d0cfca", lw=.7, zorder=1)
+        y, ok = row[C], C in truth
+        color = PATH if C in path else RIGHT if ok else WRONG
+        style = "-" if ok else (0, (4, 2))
+        for lo, hi in runs_of(xs):
+            ax.plot([lo-.25, hi+.25], [y, y], color=color, lw=2.4, ls=style, solid_capstyle="butt", zorder=2)
+        for (a0, a1), (b0, b1) in zip(runs_of(xs), runs_of(xs)[1:]):
+            ax.plot([a1+.25, b0-.25], [y, y], color=color, lw=.8, ls=":", zorder=2)
+        ax.plot([xs[0], xs[0]], [0, y], color="#d0cfca", lw=.7, zorder=1)
+        ax.plot([xs[-1], xs[-1]], [0, y], color="#d0cfca", lw=.7, zorder=1)
     ax.set_title(title, fontsize=8.5, color=INK, loc="left")
     ax.set_xticks(range(n)); ax.set_xticklabels([str(m+1) for m in order], fontsize=5)
     ax.set_yticks([]); ax.set_ylim(-.8, top+.5); ax.set_xlim(-.9, n-.1)
-    for s in ("top", "left", "right", "bottom"):
-        ax.spines[s].set_visible(False)
+    for s_ in ("top", "left", "right", "bottom"):
+        ax.spines[s_].set_visible(False)
     ax.set_facecolor(SURFACE)
 
 
@@ -87,8 +111,12 @@ def order_from(truth, n):
 
 def main():
     rows, table = [], []
+    cache = build.OUT/"case_study.pkl"
+    stored = pickle.loads(cache.read_bytes()) if cache.exists() and "--redo" not in sys.argv else {}
     for name in CASES:
-        a = analyse(name)
+        a = stored.get(name) or analyse(name)
+        stored[name] = a
+        cache.write_bytes(pickle.dumps(stored))
         rows.append(a)
         T = a["truth"]
         for label, got in (("ours", a["ours"]), ("RNJ 0.08", a["rnj"])):
