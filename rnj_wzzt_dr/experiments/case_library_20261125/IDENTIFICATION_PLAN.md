@@ -9,16 +9,29 @@ recall, precision and F1 are always shown next to it.
 
 | | Claim | Evidence so far (development) |
 | --- | --- | --- |
-| N1 | Deciding on the whole voltage map instead of a fitted distance matrix keeps the short root-side lines | random feeders, no source, 25 meters and fewer: F1 74 against 63 (RNJ best tolerance in hindsight) and 59 (NJ); 15 of 15 supported root-side lines against 13 and 13. Medium and large random feeders, source-blind: F1 72 and 69 against 45 and 44 (RNJ), 43 and 39 (NJ); 14 of 14 and 29 of 29 supported root-side lines against 7 and 16 |
+| N1 | Deciding on the whole voltage map instead of a fitted distance matrix keeps the short root-side lines | random feeders, no source, 25 meters and fewer (7 cases): F1 74 against 63 (RNJ best tolerance in hindsight) and 59 (NJ); 15 of 15 supported root-side lines against 13 and 13. Medium and large random feeders, source-blind (6 and 5 cases): F1 72 and 69 against 45 and 44 (RNJ), 43 and 39 (NJ); 14 of 14 and 29 of 29 supported root-side lines against 7 and 16 |
 | N2 | **An unmetered load is one more leaf with a known power and no voltage; the same exact MIQP chooses tree and path together** | with a source, S2 against the source-blind method: random F1 75 against 69, street 84 against 79; source placed correctly among the returned lines 101 of 112; false alarms without a source 0 of 37. Distance methods cannot place a leaf that has no voltage row |
 | N3 | Every tree comes with a certificate (S1: node MIQP; S2: exact enumeration of one more line, `source_cert.py`), and every line with an evidence margin | S1 certified as in the old study; S2 certificate in ablation B (running) |
 | N4 | Margins rank how far to trust a line | ablation C (running): against RNJ/NJ bootstrap support |
+
+### Ablation, interim (58 of 240 cases, at most 15 meters; the run continues)
+
+- **A. Search.** On the same candidate lines, local search with six starts found the exact optimum on all 14 no-source cases and
+  on 56 of 58 S2 pools (the other two were worse by at most 0.5 half-BIC units); plain greedy was worse on 1 of 14 and 9 of 58
+  (up to 7.7 units). The MIQP found and proved the optimum on every pool in 2.6 s on average, against 3.9 s for the local
+  search. So exactness has **not** changed the returned trees against a good local search; it replaces a search with
+  several starts by one proved answer. Greedy alone is not enough.
+- **B. S2 certificate.** 58 of 58 trees certified, none needed a further line. No node had more than 12 child blocks.
+- **C. Belief.** Bootstrap support of RNJ is a strong rival: its top half of lines (100% precision in hindsight) keeps
+  66% recall; WZZT-C keeps 76% recall at 98% precision with no threshold, and 70% at 100% precision. The paper must
+  show RNJ with bootstrap as a main baseline. Only 1 false line exists in the 59 WZZT-C lines, so the margin's ranking
+  is untested yet.
 
 Two limits to state in the paper:
 - **Full binary trees.** On the named street feeders (two lines out of every node) RNJ with tolerance 0 gets F1 90
   against S2's 84, because it always returns a full binary tree and the true trees are full binary. S2 does not add lines
   the data do not support. On random feeders, where nodes are wider, this advantage of RNJ is gone.
-- **Exactness of the search** is not what we claim unless ablation A shows it (see below). What the MIQP gives is the
+- **Exactness of the search** is not what we claim: ablation A finds no difference to local search so far. What the MIQP gives is the
   certificate, the evidence margin, and the one formulation that takes the source leaf.
 
 ## 2. Experiments, in order
