@@ -10,13 +10,15 @@ Differences from the frozen WZZT-C (combo.py, which the running confirmation use
 3. **Completion of S2.** After S2's MIQP every union of child blocks of every node is priced; the best paying line is added to the
    pool and the MIQP decides again, until no line pays (source_cert.complete).
 4. The source is projected out (S1) before the tree search, then located (S2).
+5. **Price continuation beyond `warm_n` meters.** The tree is first found at the plain BIC price and then used as a start of the search at
+   the lower price, so the bonus can only improve the score of a tree that was already good.
 
 `tree` follows combo.fit's "margin" pipeline step by step, with the pool MIQP warm-started; with lam = 0 and no warm
 start it returns combo.fit's trees (test_final.py).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 import time
 
@@ -47,6 +49,7 @@ class Settings:
     warm_n: int = 35                # beyond this many meters the pool MIQP starts cold, with the longer limit
     long_seconds: float = 240.      # pool and root limit beyond warm_n meters
     polish_seconds: float = 20.
+    continuation: bool = True       # beyond warm_n meters: solve at lam = 0 first and start from that tree
 
 
 def guarded(make, *args):
@@ -81,8 +84,10 @@ def multistart(prob, fams, seconds):
     return best
 
 
-def tree(S, st=Settings()):
-    """The tree of WZZT-C under the prices of S (S["alpha"] already includes the prior). Returns (family, record)."""
+def tree(S, st=Settings(), starts=()):
+    """The tree of WZZT-C under the prices of S (S["alpha"] already includes the prior). Returns (family, record).
+
+    starts: further families to start the pool search from (the plain-price tree, in the continuation)."""
     design, alpha, n, N, bound = S["design"], S["alpha"], S["n"], S["N"], 2.
     base = canonical(basis(n))
     crit = lambda fam: rv.exact_fit(design, fam, bound)["objective"]+alpha*rv.internal_count(fam, n)
@@ -104,6 +109,8 @@ def tree(S, st=Settings()):
                         gap=1e-4, **kw)
     if r0.get("family"):
         solutions.append(frozenset(C for C in r0["family"] if 1 < len(C) < n))
+    for F in starts:
+        solutions.append(frozenset(C for C in F if C in prob0.crosses))
     if not solutions:
         solutions.append(frozenset())
     kept = min(solutions, key=prob0.score)
@@ -188,6 +195,15 @@ def tree(S, st=Settings()):
     return family, rec
 
 
+def start_tree(S0, st, n):
+    """The tree at the plain price, when the continuation applies (one more family to start from)."""
+    if not (st.continuation and st.lam > 0 and n > st.warm_n):
+        return ()
+    plain = replace(st, lam=0., continuation=False)
+    family, _ = tree(priced(S0, 0.), plain)
+    return (family,)
+
+
 def fit(train, validation, ppcc=None, qpcc=None, st=Settings(), config=None):
     """Tree without a PCC (blind), or tree and source with it.
 
@@ -197,12 +213,14 @@ def fit(train, validation, ppcc=None, qpcc=None, st=Settings(), config=None):
     data = train.join(validation)
     n, T, bound = data.n, data.p.shape[0], 2.
     if ppcc is None:
-        S = priced(guarded(combo.setup, train, validation, config), st.lam)
-        family, rec = tree(S, st)
+        S0 = guarded(combo.setup, train, validation, config)
+        S = priced(S0, st.lam)
+        family, rec = tree(S, st, start_tree(S0, st, n))
         return dict(tree=family, record=rec, S=S, seconds=time.perf_counter()-started)
     up, uq = src.balance(ppcc, qpcc, data)
-    S = priced(guarded(src.setup_projected, train, validation, up, uq, config), st.lam)
-    family, rec = tree(S, st)                                                     # S1
+    S0 = guarded(src.setup_projected, train, validation, up, uq, config)
+    S = priced(S0, st.lam)
+    family, rec = tree(S, st, start_tree(S0, st, n))                              # S1
     out = dict(tree=family, record=rec, S=S, u=(up, uq), seconds_s1=time.perf_counter()-started)
     transform = rv.Transform(T, n, S["c"], config.offsets)
     scale = math.sqrt(S["sigma2"])
