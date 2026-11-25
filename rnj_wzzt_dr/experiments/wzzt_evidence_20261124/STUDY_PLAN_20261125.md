@@ -39,6 +39,16 @@ the methods receive PCC minus the meters minus estimated losses). Grid to decide
 size (2, 5, 10% of mean load), profile (intermittent, constant, PV-shaped). Losses are second order in the load, so AC
 data are needed here.
 
+### Update, same day: the case library is built
+
+`experiments/case_library_20261125/DESIGN.md`: the four old feeders as star and street twins, random street feeders of
+10 to 60 meters, real customers' loads, AC physics, and every case with and without one unmetered load at the head,
+middle or end. 288 development cases and 240 sealed held-out cases (60 new feeders). The generator was fixed and committed
+before any identifier ran on it. The old cases had no line with more than half of the meters downstream (real feeders
+of 13-25 connections: median 5), so they could not test the root lines.
+This answers decisions 1 (no impedance scale: physical lengths and conductors; linear misfit at most 9% of the meter
+noise in the largest case), 3 (a default source grid, still the user's to change) and 4 (built) of section 5.
+
 ### The gap that matters most: topology diversity
 
 New seeds do not give new trees. Two sources to add: a random feeder generator (topology, segment lengths and cable

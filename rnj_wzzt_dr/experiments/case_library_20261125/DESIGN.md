@@ -9,8 +9,8 @@ regimes where simple methods should do as well are kept next to them.
 | | Old cases (4) | Real EU LV feeders, 13-25 connections (15) |
 | --- | --- | --- |
 | Lines leaving the transformer side by side | 2 to 4 | 1 (a trunk) |
-| Nested depth (inner lines on one path) | 2 | median 10 (90%: 7 to 13) |
-| Inner lines with more than half of the meters | **0** | median **5** (90%: 2 to 6) |
+| Nested depth (inner lines on one path) | 2 | median 10 (5-95%: 7 to 13) |
+| Inner lines with more than half of the meters | **0** | median **5** (5-95%: 2 to 6) |
 | Children of a branching point | 3 to 4 | median 2 |
 | Resistance of inner lines | 20 to 40 milliohm | median 7 milliohm |
 | Loads | one smooth daily law for all | real customers |
@@ -116,6 +116,13 @@ This default grid is mine; the user has not chosen one.
 
 ## 7. Log
 
+- 2026-11-25, after the generator was committed (`draw.py`, `compare_dev.py` and the sealed set's manifest followed; the
+  generator is unchanged): the first development comparison showed that the four named street feeders are fully binary
+  (14 inner lines for 16 meters; real feeders about 12), which suits a builder that always returns a full binary tree
+  (RNJ with tolerance 0 gets the best F1 there). The rule of section 5 says not to change cases after a method's result,
+  so they stay, and this is reported with every street result.
+- The "supported" label comes from a BIC judge of the same kind as the MIQP's own score. It favours methods that use
+  that score, so recall of all true lines, precision and F1 are always reported next to it.
 - 2026-11-25, before any identifier ran: the first draft was too weak (2 root-side lines for 18 meters where real
   feeders have 5) and some customers were commercial (voltages down to 0.77 pu). Changed: at most 14.5 kW per customer,
   fewer side streets, thicker service cables, equal shares of the three styles, named streets screened like the random
