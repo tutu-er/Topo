@@ -95,6 +95,31 @@ runs, so this is **not** a controlled comparison. WZZT-R was not run on cases ab
   these are upper bounds). The "2.8 s" of the WZZT-R comparison describes cases up to 18 meters only and must not be quoted for the method.
 - All trees were certified (S1 sense) except 2 of the 18 huge cases with a source.
 
+### Development verification of the final method, first run (2026-11-25; a regression was found)
+
+72 no-source development cases, `final_blind.jsonl`, with the structural prior (bonus, lam = 1.96) and without it, in the same pipeline
+(0 errors):
+
+| | Bonus | Plain | WZZT-C |
+| --- | --- | --- | --- |
+| Star (24) | 100 | 100 | 100 |
+| Street (24) | **85.6** | 83.2 | 83.2 |
+| Random small (6) | **76.5** | 74.6 | 74.6 |
+| Random medium (6) | **73.3** (precision 88.9) | 72.0 (93.8) | 72.0 |
+| Random large (6) | **69.6** | 67.0 | 66.1 |
+| Random huge (6) | 54.0 (precision **56.4**) | 51.8 (54.5) | **63.9** (83.5) |
+
+- **Bonus, the user's condition (no loss at 41-59 meters):** against plain BIC in the same pipeline the bonus gains on the mean at every class (F1 per case
+  +2.5 street, +1.8 small, +1.9 medium, +2.4 large, +2.3 huge; huge better 4, worse 2; medium better 2, worse 2, with precision
+  93.8 to 88.9). So the condition as written holds at the huge size for the mean, not case by case.
+- **Regression found:** at 41-59 meters the first version of the final pipeline was far below WZZT-C (F1 54 against 64, 13 false lines per case
+  against 3.3). Cause: at 58 and 60 meters the warm-started pool MIQP found no solution in 120 s and the fallback was a weak
+  local search (the true tree scored 400 to 1,100 half-BIC units better than the returned one). On the other four large
+  cases the two pipelines' scores differ by at most 17 half-BIC units. `final.py` now runs a cold, longer MIQP beyond 35 meters and keeps the
+  better of the MIQP's and the local search's trees. **This has not been verified yet** (`final_blind_v2.jsonl` is running).
+- Time for the first version: 136 s median at 16-25 meters, 342 s at 26-40, 544 s at 41-59, so the pipeline is not faster than WZZT-C at
+  small sizes (5 against 3 s) and only about a third faster at 26-59.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
