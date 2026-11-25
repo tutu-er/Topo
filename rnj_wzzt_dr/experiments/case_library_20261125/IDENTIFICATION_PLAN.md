@@ -136,6 +136,23 @@ runs, so this is **not** a controlled comparison. WZZT-R was not run on cases ab
   proved optimum; S1's tree was certified in 47 of 48 (one huge source case not). Time: median 761 to 1,087 s per case (shared machine).
 - Precision falls from 95% at 26-40 meters to 84% at 41-59.
 
+### Repaired pipeline, second run (v2: cold MIQP beyond 35 meters, better of two searches; 12 no-source cases, 0 errors)
+
+| | Bonus | Plain | WZZT-C |
+| --- | --- | --- | --- |
+| Large (6): F1 (precision) | **69.6** (96) | 67.6 (95) | 66.1 (96) |
+| Huge (6): F1 (precision) | 62.6 (**73**) | 65.2 (84) | 63.9 (84) |
+
+- The repair restores the plain pipeline (F1 65.2 against 63.9 for WZZT-C; it was 51.8 in v1).
+- **The user's condition fails in this run:** at 41-59 meters the bonus loses 2.6 F1 points and 11 points of precision (3.3 false lines per case to
+  6.7), better 3, worse 2. **The loss is one feeder** (`dev_huge_004`, 60 meters): under the bonus's own objective its returned tree is 763 half-BIC
+  units worse than the plain tree, so the search failed there; the other five gain or tie. A price continuation (plain price first, then the bonus starting
+  from that tree) was added and is being rerun (v3). Until it is checked the bonus is not adopted.
+- **Worked example `dev_medium_003` (25 meters, urban, 14 kW mean, largest drop 1.6%).** Not a search failure and not a meter-error effect (removing the P/Q
+  gain and noise changes nothing): the truth scores 31 half-BIC units worse than the returned tree because 7 of its 11 lines are below the price
+  (the truth pays for 11 lines, the returned tree for 5). The data cannot show these lines; the returned lines include
+  two or three false ones that fit almost as well.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
