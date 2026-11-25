@@ -133,3 +133,7 @@ Amendment D's HR1 on the large networks); every builder setting and the after-th
   WZZT-C (an empty WZZT-C output; the comparators keep theirs), as the second sentence of section 4 says. It is applied as
   registered: after the large run, the comparators are rerun on this input alone, WZZT-C's result there is empty, and C1b is
   then decided. This is the strict reading, chosen before any result was read. (The run itself is unchanged.)
+- 2026-11-25: a second large job failed: `eulv_td009451_all_s0` (not one of the 13 clean inputs). The failure is inside `combo.setup`
+  (ordered QP, Gurobi status 12 NUMERIC), called by `combo.fit`, i.e. by WZZT-C's own set-up. By the rule of section 4 it counts
+  as a failure of WZZT-C (empty output) after the comparators are rerun on it. It is outside the decision's real part (13
+  clean inputs) and enters only the descriptive 46-input figures and C2b/C2c as written there. No result was read.

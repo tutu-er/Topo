@@ -57,3 +57,19 @@ def test_warm_start_does_not_change_the_optimum():
     crit = lambda f: rv.exact_fit(S["design"], f, 2.)["objective"]+S["alpha"]*rv.internal_count(f, inp.n)
     assert .5*S["N"]*(crit(warm)-crit(cold)) < .5
     assert np.isfinite(crit(warm))
+
+
+@needs_cases
+def test_a_numerical_failure_of_the_matrix_qp_falls_back(monkeypatch):
+    """If the Gurobi QP ends with a numerical error, the set-up is repeated with the SciPy solver and still returns a tree."""
+    inp, (tr, va) = series("soumalas11_star_l1_none")
+    real = rv.ordered_sensitivity
+
+    def broken(design, solver="slsqp"):
+        if solver == "gurobi":
+            raise RuntimeError("Ordered QP (Gurobi) ended with status 12")
+        return real(design, solver)
+    monkeypatch.setattr(rv, "ordered_sensitivity", broken)
+    r = final.fit(tr, va)
+    assert r["record"]["certified"]
+    assert rv.ordered_sensitivity is broken                    # the patch of the fallback is undone

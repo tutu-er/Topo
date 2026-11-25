@@ -49,6 +49,21 @@ class Settings:
     polish_seconds: float = 20.
 
 
+def guarded(make, *args):
+    """A set-up whose ordered QP ends with a numerical failure is repeated with the SciPy solver (SLSQP)."""
+    try:
+        return make(*args)
+    except RuntimeError as exc:
+        if "Ordered QP" not in str(exc):
+            raise
+    original = rv.ordered_sensitivity
+    rv.ordered_sensitivity = lambda design, solver="slsqp": original(design, "slsqp")
+    try:
+        return make(*args)
+    finally:
+        rv.ordered_sensitivity = original
+
+
 def priced(S, lam):
     """The set-up with the line price lowered by `lam` half-BIC units."""
     alpha = S["alpha"]-2*lam/S["N"]
@@ -182,11 +197,11 @@ def fit(train, validation, ppcc=None, qpcc=None, st=Settings(), config=None):
     data = train.join(validation)
     n, T, bound = data.n, data.p.shape[0], 2.
     if ppcc is None:
-        S = priced(combo.setup(train, validation, config), st.lam)
+        S = priced(guarded(combo.setup, train, validation, config), st.lam)
         family, rec = tree(S, st)
         return dict(tree=family, record=rec, S=S, seconds=time.perf_counter()-started)
     up, uq = src.balance(ppcc, qpcc, data)
-    S = priced(src.setup_projected(train, validation, up, uq, config), st.lam)
+    S = priced(guarded(src.setup_projected, train, validation, up, uq, config), st.lam)
     family, rec = tree(S, st)                                                     # S1
     out = dict(tree=family, record=rec, S=S, u=(up, uq), seconds_s1=time.perf_counter()-started)
     transform = rv.Transform(T, n, S["c"], config.offsets)
