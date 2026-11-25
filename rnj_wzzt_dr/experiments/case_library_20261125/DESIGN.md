@@ -71,7 +71,7 @@ and it is street lighting (19:00-06:00), three customers without a meter, or a p
 every location meets every size with every kind exactly once. The PCC's P and Q are stored in **every** twin, so a
 source-aware method must also recognise that there is no source.
 
-This default grid is mine; the user has not chosen one.
+The user confirmed this grid on 2026-11-25 ("Yes, keep it").
 
 ## 5. Sets, and how a favourable case set is kept honest
 
