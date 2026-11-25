@@ -45,8 +45,9 @@ recall, precision and F1 are always shown next to it.
   2% of the load, 58 of 60 at 5%, 57 of 60 at 10%; by kind 57 of 60 (lamp), 43 of 60 (house) and 60 of 60 (block).
 - Source place: exactly right among the returned lines in 163 of 180. **The true place is within 4.6 half-BIC units of the
   best in 178 of 180 cases, with 1.4 places in the set on average**: the set is the honest output; a single place is not.
-- The wrong places are nearly all 2% sources, or the first place beyond the true one at a cost below 2.1 half-BIC units.
-  In two cases with high evidence the returned tree has a false line on the path.
+- 13 of the 17 wrong places are 2% sources. In two of the others (`dev_medium_002_end`, `dev_medium_003_end`) the returned tree itself
+  has a false line on the source's path; `dev_medium_006_middle` misses a line that the path should contain. The other 14
+  were not inspected one by one.
 
 Two limits to state in the paper:
 - **Full binary trees.** On the named street feeders (two lines out of every node) RNJ with tolerance 0 gets F1 90
