@@ -129,3 +129,7 @@ Amendment D's HR1 on the large networks); every builder setting and the after-th
   that fails" (then WZZT-R gets an empty output) and "an input whose job fails as a whole counts as a failure of WZZT-C"
   (written for the case where the runner cannot tell which method failed; here the traceback can). Until then C1b stays
   undecided, and the analysis script is not run. Either way the comparators must be rerun on this input alone.
+- **User's decision (2026-11-25, no result read): "just WZZT-C".** The failed clean input `eulv_td400859_feeder31_s0` counts against
+  WZZT-C (an empty WZZT-C output; the comparators keep theirs), as the second sentence of section 4 says. It is applied as
+  registered: after the large run, the comparators are rerun on this input alone, WZZT-C's result there is empty, and C1b is
+  then decided. This is the strict reading, chosen before any result was read. (The run itself is unchanged.)
