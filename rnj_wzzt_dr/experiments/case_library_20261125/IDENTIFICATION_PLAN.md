@@ -34,6 +34,13 @@ Two limits to state in the paper:
 - **Exactness of the search** is not what we claim: ablation A finds no difference to local search so far. What the MIQP gives is the
   certificate, the evidence margin, and the one formulation that takes the source leaf.
 
+### WZZT-R against WZZT-C on the development library (60 no-source cases, at most 25 meters; complete)
+
+Same tree on 56 of 60. Of the four that differ, WZZT-C's tree scores better on two (6.2 and 5.5 half-BIC units, i.e.
+above m = 4.6) and WZZT-R's on two (1.9 and 0.3). Pooled: recall 76.3 against 75.6, precision 98.5 against 98.3, F1 86.0
+against 85.4, supported lines 400 against 397 of 404. Median time 2.8 s against 165 s, on a machine shared with other
+runs, so this is **not** a controlled comparison. WZZT-R was not run on cases above 25 meters.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
