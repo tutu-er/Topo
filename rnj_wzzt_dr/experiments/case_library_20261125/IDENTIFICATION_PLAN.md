@@ -55,6 +55,29 @@ above m = 4.6) and WZZT-R's on two (1.9 and 0.3). Pooled: recall 76.3 against 75
 against 85.4, supported lines 400 against 397 of 404. Median time 2.8 s against 165 s, on a machine shared with other
 runs, so this is **not** a controlled comparison. WZZT-R was not run on cases above 25 meters.
 
+### Why RNJ is good on the street cases, and what can be absorbed (price study, development inputs, no heuristic added)
+
+`price_study.py`: the same candidate lines for every setting; the tree is the best of six local-search starts of
+0.5 SSE / sigma^2 + sum of line prices. The method's price is BIC, 0.5 p_s ln N per line.
+
+- **Cause.** RNJ with tolerance 0 resolves every node into two-way nodes. On the street feeders 88% of the nodes are two-way (real feeders:
+  87% overall, 79 to 87% by size; the old star cases 7%), and 56% of the extra lines RNJ returns over WZZT-C are true; on random small 27%, medium
+  9%, star 0%. It is not a better search: it is a smaller price for a line.
+- **Not a property of real feeders.** On the 66 real development inputs (EU LV, days 0 and 6) RNJ gets F1 41 at its best tolerance and 39 at
+  tolerance 0, against 62.5 for the BIC price of our method.
+- **One number, from real-feeder statistics.** A geometric prior on the number of children above two makes every line worth lambda = ln(1/rho)
+  in log prior odds, where rho is the odds of a node having more than two children: rho = 0.14 over all 84 real feeders (0.15 to 0.22 by
+  size), so lambda = 1.5 to 2.0 half-BIC units. With price = BIC - 2 (F1 with BIC in brackets): star 100 (100), street 85.4 (83.2), random small
+  76.5 (74.6), medium 73.3 (69.9), real 66.7 (62.5). No loss on any set. The sum over nodes of (children - 2) is linear in the number of lines, so the pool
+  MIQP, the node certificate and the enumeration certificate are unchanged except for alpha.
+- **The real-feeder statistic is not independent of the cases:** the 84 feeders include the 33 development ones, and the random feeders were calibrated
+  on the same statistics. Estimated gains may shrink on other networks.
+- **Full marginal likelihood with a physical prior on r and x** (price 1.6 half-BIC units, the spread of real section resistances) is not adopted: star
+  precision falls to 80, F1 medium 68 (BIC 70), and the gain on street (93) is at the cost of false lines on star.
+- **The price as an operating point (precision-recall curve over a factor of BIC).** Our curve dominates RNJ's and NJ's on every set: for
+  example street, factor 0.1: recall 93 at precision 94.5 (RNJ tolerance 0: 94 at 83); real, factor 0.25: recall 65 at precision 74 (RNJ at its best tolerance
+  0.04 gets recall 49 at precision 35). The curve is the paper's way to show this; the single reported setting stays BIC with lambda.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
