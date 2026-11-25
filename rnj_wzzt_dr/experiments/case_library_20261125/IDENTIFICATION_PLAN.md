@@ -78,6 +78,23 @@ runs, so this is **not** a controlled comparison. WZZT-R was not run on cases ab
   example street, factor 0.1: recall 93 at precision 94.5 (RNJ tolerance 0: 94 at 83); real, factor 0.25: recall 65 at precision 74 (RNJ at its best tolerance
   0.04 gets recall 49 at precision 35). The curve is the paper's way to show this; the single reported setting stays BIC with lambda.
 
+### Source-blind comparison, complete (288 development cases, 0 errors)
+
+| No unmetered load | Cases | WZZT-C F1 (precision) | RNJ best tolerance | NJ best tolerance |
+| --- | --- | --- | --- | --- |
+| Star | 24 | 100 (100) | 95.8 | 95.5 |
+| Street | 24 | 83.2 (99) | **88.1** | 86.6 |
+| Random small | 6 | 74.6 (96) | 66.0 | 61.4 |
+| Random medium (16-25) | 6 | 72.0 (94) | 45.4 | 42.9 |
+| Random large (26-40) | 6 | 66.1 (96) | 43.1 | 35.5 |
+| Random huge (41-59) | 6 | 63.9 (**83**) | 29.1 | 24.3 |
+
+- **Two limits found here.** (i) Precision falls with size: 83% at 41-59 meters (3.3 false lines per case), lower again with an ignored source
+  (76% at 41-59 meters). The margins have not been checked at this size. (ii) **Time:** median 2 s at 10-15 meters, but 219 s at 16-25, 509 s at
+  26-40 and 843 s at 41-59 meters, because pool and root MIQPs reach their 240 s limits (all runs share the machine with other jobs, so
+  these are upper bounds). The "2.8 s" of the WZZT-R comparison describes cases up to 18 meters only and must not be quoted for the method.
+- All trees were certified (S1 sense) except 2 of the 18 huge cases with a source.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |

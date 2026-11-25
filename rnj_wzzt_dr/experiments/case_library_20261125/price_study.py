@@ -120,7 +120,7 @@ def run_real_one(name):
     return run_one(name, real=True)
 
 
-def run(workers, real=False):
+def run(workers, real=False, min_n=0, max_n=25):
     path = OUT_REAL if real else OUT
     done = set()
     if path.exists():
@@ -135,7 +135,7 @@ def run(workers, real=False):
     else:
         manifest = json.loads((build.HERE/"manifest_dev.json").read_text(encoding="utf-8"))
         todo = [r["name"] for r in sorted(manifest, key=lambda r: (r["n"], r["name"]))
-                if r["n"] <= 25 and r["source"] == "none" and r["name"] not in done]
+                if min_n <= r["n"] <= max_n and r["source"] == "none" and r["name"] not in done]
     with open(path, "a") as fh, get_context("spawn").Pool(workers, maxtasksperchild=6) as pool:
         for k, row in enumerate(pool.imap_unordered(run_real_one if real else run_one, todo), 1):
             fh.write(json.dumps(row)+"\n"); fh.flush()
@@ -148,7 +148,7 @@ def table(real=False):
     rows = [r for r in rows if "error" not in r]
     blind = {} if real else {r["name"]: r for r in map(json.loads, cd.OUT.read_text().splitlines()) if "error" not in r}
     print("median price per line, half-BIC units: info-0", np.median([r["price_info"][0] for r in rows]).round(2), "BIC", np.median([r["price_info"][1] for r in rows]).round(2))
-    for g in (("real",) if real else ("star", "street", "small", "medium")):
+    for g in (("real",) if real else ("star", "street", "small", "medium", "large", "huge")):
         sel = rows if real else [r for r in rows if cd.group_of(dict(set="named" if "_star_" in r["name"] or "_street_" in r["name"] else "random", name=r["name"])) == g]
         if not sel:
             continue
@@ -171,8 +171,10 @@ def main():
     ap.add_argument("what", choices=("run", "table"))
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--real", action="store_true")
+    ap.add_argument("--min_n", type=int, default=0)
+    ap.add_argument("--max_n", type=int, default=25)
     args = ap.parse_args()
-    run(args.workers, args.real) if args.what == "run" else table(args.real)
+    run(args.workers, args.real, args.min_n, args.max_n) if args.what == "run" else table(args.real)
 
 
 if __name__ == "__main__":
