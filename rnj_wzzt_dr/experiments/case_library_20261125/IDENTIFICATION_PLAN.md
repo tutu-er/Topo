@@ -42,8 +42,8 @@ The interim reading (first 58 cases) was too favourable and is replaced by this 
   binary street feeders bootstrapped RNJ is better. Ranking of true over false lines: 0.97 for the margin (5 false lines, little power), 0.94 for
   RNJ and 0.92 for NJ (161 and 232 false lines).
 
-**Conclusion for the paper.** The MIQP is not claimed as a better search: against a multi-start local search it gains at most 3.3 units, changes
-the tree in 2 of 60 no-source cases and leaves F1 unchanged (86.1 against 85.8). Plain greedy (add the best line, never
+**Conclusion for the paper.** The MIQP is not claimed as a better search: against a multi-start local search it gains at most 3.3 units, gives
+a different tree in 3 of 60 no-source cases and leaves F1 unchanged (86.1 against 85.8). Plain greedy (add the best line, never
 revise) is clearly insufficient, so a method that only adds lines is not enough. What is claimed is (i) the
 formulation that takes the source as a leaf, (ii) the certificate with completion, (iii) the evidence margin, whose advantage over bootstrapped
 RNJ and NJ is large on random feeders and reversed on full binary trees.
