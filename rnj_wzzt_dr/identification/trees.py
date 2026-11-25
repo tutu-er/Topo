@@ -94,13 +94,46 @@ def _observations(train):
     return p, q, y
 
 
-def fit_sensitivity(train):
+def ordered_qp_gurobi(feature, target, constraint, lower, threads=1, conv_tol=1e-10):
+    """min 0.5||feature v - target||^2 s.t. constraint v >= lower, as a convex QP solved by Gurobi's barrier.
+
+    The same problem the SLSQP path solves (no reformulation of the objective). When the first m rows of
+    `constraint` are the identity they become variable bounds; the order rows go in as sparse constraints.
+    Returns (v, info)."""
+    import gurobipy as gp
+    from scipy import sparse
+    m = feature.shape[1]
+    H = feature.T@feature; H = .5*(H+H.T); g = feature.T@target
+    as_bounds = constraint.shape[0] >= m and np.array_equal(constraint[:m], np.eye(m))
+    lb = lower[:m] if as_bounds else np.full(m, -np.inf)
+    rows, rhs = (constraint[m:], lower[m:]) if as_bounds else (constraint, lower)
+    with gp.Env(empty=True) as env:
+        env.setParam("OutputFlag", 0); env.start()
+        with gp.Model(env=env) as model:
+            model.Params.Threads = threads
+            model.Params.BarConvTol = conv_tol
+            v = model.addMVar(m, lb=lb, ub=np.inf)
+            if len(rows):
+                model.addMConstr(sparse.csr_matrix(rows), v, ">", rhs)
+            model.setMObjective(.5*H, -g, .5*float(target@target), sense=gp.GRB.MINIMIZE)
+            model.optimize()
+            if model.Status not in (gp.GRB.OPTIMAL, gp.GRB.SUBOPTIMAL):
+                raise RuntimeError(f"Ordered QP (Gurobi) ended with status {model.Status}")
+            info = dict(solver="Gurobi QP (barrier)", status=int(model.Status), iterations=int(model.BarIterCount),
+                        objective=float(model.ObjVal))
+            return np.array(v.X, float), info
+
+
+def fit_sensitivity(train, solver="slsqp"):
     """Fit symmetric nonnegative R/X with entrywise diagonal order, no ridge.
 
     The fixed 1e-6 diagonal margin is derived once from symmetric OLS. SLSQP
     solves a convex QP in equivalent preconditioned coordinates; the spectral
     scale floor changes coordinates only, never the objective's Hessian.
+    solver="gurobi" solves the same QP with Gurobi's barrier (`ordered_qp_gurobi`).
     """
+    if solver not in ("slsqp", "gurobi"):
+        raise ValueError("solver must be 'slsqp' or 'gurobi'")
     p, q, y = _observations(train); n = p.shape[1]
     design = np.c_[p, q]; ols = np.linalg.lstsq(design, y, rcond=None)[0]
     initial = np.stack([.5*(v+v.T) for v in (ols[:n], ols[n:])])
@@ -131,38 +164,46 @@ def fit_sensitivity(train):
                     row[block*k+position[i, i]] = 1.; row[block*k+position[i, j]] = -1.
                     rows.append(row); lower.append(float(margin))
     constraint, lower = np.asarray(rows), np.asarray(lower)
-    starts = []
-    for value in (np.maximum(initial, 0.), np.zeros_like(initial)):
-        for matrix, margin in zip(value, margins):
-            if n > 1:
-                off = matrix.copy(); np.fill_diagonal(off, -np.inf)
-                np.fill_diagonal(matrix, np.maximum(np.diag(matrix), off.max(axis=1)+margin))
-        starts.append((value[:, ii, jj]/scales[:, None]).ravel())
-    start = min(starts, key=lambda v: np.linalg.norm(feature@v-target))
-    hessian = feature.T@feature; hessian = .5*(hessian+hessian.T)
-    eigenvalues, eigenvectors = np.linalg.eigh(hessian); shift = np.zeros(2*k)
-    if eigenvalues[-1] > 0. and eigenvalues[0] > 1e-12*eigenvalues[-1]:
-        upper = np.linalg.cholesky(hessian).T
-        transform = solve_triangular(upper, np.eye(2*k), lower=False)
-        shift = -transform.T@(feature.T@target); start = upper@start+shift
-        objective = lambda u: (.5*float(u@u), u)
-        coordinates = "Cholesky_whitened"
+    if solver == "gurobi":
+        values, qp_info = ordered_qp_gurobi(feature, target, constraint, lower)
+        violation = max(0., float(np.max(lower-constraint@values)))
+        if not np.isfinite(values).all() or violation > 1e-8:
+            raise RuntimeError(f"Ordered sensitivity QP (Gurobi) failed; violation={violation:g}")
+        result_nit, coordinates = qp_info["iterations"], "original (Gurobi barrier)"
     else:
-        roots = np.sqrt(np.maximum(eigenvalues, 1e-6*eigenvalues[-1])) if eigenvalues[-1] > 0. else np.ones(2*k)
-        transform = eigenvectors/roots; start = roots*(eigenvectors.T@start)
-        transformed_feature = feature@transform
-        def objective(u):
-            residual = transformed_feature@u-target
-            return .5*float(residual@residual), transformed_feature.T@residual
-        coordinates = "spectral_preconditioned"
-    c = constraint@transform; d = lower+c@shift; norms = np.linalg.norm(c, axis=1)
-    result = minimize(objective, start, jac=True, method="SLSQP",
-                      constraints=LinearConstraint(c/norms[:, None], d/norms, np.inf),
-                      options={"maxiter": 500, "ftol": 1e-12})
-    values = transform@(result.x-shift)
-    violation = max(0., float(np.max(lower-constraint@values)))
-    if not result.success or not np.isfinite(values).all() or violation > 1e-8:
-        raise RuntimeError(f"Ordered sensitivity QP failed: {result.message}; violation={violation:g}")
+        starts = []
+        for value in (np.maximum(initial, 0.), np.zeros_like(initial)):
+            for matrix, margin in zip(value, margins):
+                if n > 1:
+                    off = matrix.copy(); np.fill_diagonal(off, -np.inf)
+                    np.fill_diagonal(matrix, np.maximum(np.diag(matrix), off.max(axis=1)+margin))
+            starts.append((value[:, ii, jj]/scales[:, None]).ravel())
+        start = min(starts, key=lambda v: np.linalg.norm(feature@v-target))
+        hessian = feature.T@feature; hessian = .5*(hessian+hessian.T)
+        eigenvalues, eigenvectors = np.linalg.eigh(hessian); shift = np.zeros(2*k)
+        if eigenvalues[-1] > 0. and eigenvalues[0] > 1e-12*eigenvalues[-1]:
+            upper = np.linalg.cholesky(hessian).T
+            transform = solve_triangular(upper, np.eye(2*k), lower=False)
+            shift = -transform.T@(feature.T@target); start = upper@start+shift
+            objective = lambda u: (.5*float(u@u), u)
+            coordinates = "Cholesky_whitened"
+        else:
+            roots = np.sqrt(np.maximum(eigenvalues, 1e-6*eigenvalues[-1])) if eigenvalues[-1] > 0. else np.ones(2*k)
+            transform = eigenvectors/roots; start = roots*(eigenvectors.T@start)
+            transformed_feature = feature@transform
+            def objective(u):
+                residual = transformed_feature@u-target
+                return .5*float(residual@residual), transformed_feature.T@residual
+            coordinates = "spectral_preconditioned"
+        c = constraint@transform; d = lower+c@shift; norms = np.linalg.norm(c, axis=1)
+        result = minimize(objective, start, jac=True, method="SLSQP",
+                          constraints=LinearConstraint(c/norms[:, None], d/norms, np.inf),
+                          options={"maxiter": 500, "ftol": 1e-12})
+        values = transform@(result.x-shift)
+        violation = max(0., float(np.max(lower-constraint@values)))
+        if not result.success or not np.isfinite(values).all() or violation > 1e-8:
+            raise RuntimeError(f"Ordered sensitivity QP failed: {result.message}; violation={violation:g}")
+        result_nit = int(result.nit)
     matrices = np.zeros((2, n, n)); matrices[:, ii, jj] = values.reshape(2, k)*scales[:, None]
     matrices[:, jj, ii] = matrices[:, ii, jj]; matrices = np.maximum(matrices, 0.)
     for matrix, margin in zip(matrices, margins):
@@ -170,7 +211,8 @@ def fit_sensitivity(train):
             off = matrix.copy(); np.fill_diagonal(off, -np.inf)
             np.fill_diagonal(matrix, np.maximum(np.diag(matrix), off.max(axis=1)+margin))
     residual = p@matrices[0]+q@matrices[1]-y
-    diagnostics = dict(solver="SciPy SLSQP convex_QP", success=True, iterations=int(result.nit),
+    diagnostics = dict(solver="SciPy SLSQP convex_QP" if solver == "slsqp" else "Gurobi barrier convex_QP",
+                       success=True, iterations=int(result_nit),
                        coordinates=coordinates, r_margin=float(margins[0]), x_margin=float(margins[1]),
                        squared_residual_sum=float(np.sum(residual**2)), maximum_scaled_violation=violation,
                        constraint_mode="ordered", ridge=0., diagonal_margin_ratio=1e-6)
@@ -272,7 +314,91 @@ def nj(shared, depth, collapse_factor=0.):
     return _tree_family(edges, n, max(1e-10, threshold))
 
 
-def rnj_guidance(train):
+def rg(shared, depth, tolerance=0.):
+    """Recursive grouping (Choi, Tan, Anandkumar and Willsky, JMLR 2011) on the additive path metric.
+
+    Observed nodes: the root (-1) and the n meters; d(i, j) = depth_i + depth_j - 2 shared_ij, d(root, i) = depth_i.
+    With Phi_ijk = d_ik - d_jk over the other active nodes k: j is the parent of leaf i when Phi_ijk = d_ij for every
+    k; i and j are siblings when Phi_ijk is the same for every k. Tests use the threshold eps = tolerance x median
+    root-to-terminal depth (a 1e-9 floor for exact metrics). Related nodes form families (connected components); a
+    family gets its observed parent when one passes the parent test against all members, else a new hidden parent
+    with limbs d_ih = mean_j (d_ij + mean_k Phi_ijk)/2 over k outside the family. Observed meters may therefore sit at
+    internal nodes, which NJ and RNJ cannot represent. When no pair is related (noisy data, small eps) the most
+    sibling-like pair (smallest Phi spread) is grouped, so the recursion always ends. Hidden edges not longer than
+    eps are contracted, as in nj and rnj.
+    """
+    shared, depth, threshold = _tree_inputs(shared, depth, tolerance); n = len(depth)
+    eps = max(threshold, 1e-9*max(float(np.median(depth)), 1e-12))
+    dist = {}
+    def setd(a, b, v): dist[(min(a, b), max(a, b))] = float(v)
+    def d(a, b): return 0. if a == b else dist[(min(a, b), max(a, b))]
+    for i in range(n):
+        setd(-1, i, depth[i])
+        for j in range(i+1, n):
+            setd(i, j, depth[i]+depth[j]-2*shared[i, j])
+    active, edges, hidden = [-1, *range(n)], [], -2
+    while len(active) > 2:
+        m = len(active)
+        D = np.array([[d(a, b) for b in active] for a in active])
+        phi = D[:, None, :]-D[None, :, :]                      # phi[a, b, k] = d(a, k) - d(b, k)
+        idx = np.arange(m)
+        phi[idx, :, idx] = np.nan; phi[:, idx, idx] = np.nan    # exclude k = a and k = b
+        with np.errstate(invalid="ignore"):
+            spread = np.nanmax(phi, axis=2)-np.nanmin(phi, axis=2)
+            is_parent = np.nanmax(np.abs(phi-D[:, :, None]), axis=2) <= eps    # [a, b]: b is the parent of leaf a
+        related = (spread <= eps) | is_parent | is_parent.T
+        np.fill_diagonal(related, False)
+        if not related.any():
+            masked = spread+np.diag(np.full(m, np.inf))
+            a, b = np.unravel_index(int(np.argmin(masked)), masked.shape)
+            related[a, b] = related[b, a] = True
+        root = list(range(m))
+        def find(x):
+            while root[x] != x:
+                root[x] = root[root[x]]; x = root[x]
+            return x
+        for a, b in zip(*np.nonzero(np.triu(related, 1))):
+            root[find(a)] = find(b)
+        groups = {}
+        for a in range(m):
+            groups.setdefault(find(a), []).append(a)
+        new_active, new_hidden = [], {}
+        for members in groups.values():
+            if len(members) == 1:
+                new_active.append(active[members[0]]); continue
+            parent = next((p for p in members if all(is_parent[i, p] for i in members if i != p)), None)
+            if parent is not None:
+                for i in members:
+                    if i != parent:
+                        edges.append((active[parent], active[i], max(0., D[i, parent])))
+                new_active.append(active[parent]); continue
+            h = hidden; hidden -= 1
+            outside = [k for k in range(m) if k not in members]
+            for i in members:
+                values = []
+                for j in members:
+                    if j != i:
+                        ks = outside or [k for k in range(m) if k not in (i, j)]
+                        values.append(.5*(D[i, j]+(float(np.mean(D[i, ks]-D[j, ks])) if ks else 0.)))
+                limb = max(0., float(np.mean(values)))
+                setd(active[i], h, limb); edges.append((h, active[i], limb))
+            new_hidden[h] = [active[i] for i in members]; new_active.append(h)
+        for h, kids in new_hidden.items():
+            for x in new_active:
+                if x == h or (min(x, h), max(x, h)) in dist:
+                    continue
+                if x in new_hidden:
+                    value = np.mean([d(i, j)-d(i, h)-d(j, x) for i in kids for j in new_hidden[x]])
+                else:
+                    value = np.mean([d(i, x)-d(i, h) for i in kids])
+                setd(h, x, max(0., float(value)))
+        active = new_active
+    if len(active) == 2:
+        edges.append((active[0], active[1], max(0., d(*active))))
+    return _tree_family(edges, n, max(1e-10, threshold))
+
+
+def rnj_guidance(train, solver="slsqp"):
     """One ordered fit, fifteen raw families for a connection pool only.
 
     This preserves the original generated supports. Historical experiments
@@ -281,7 +407,7 @@ def rnj_guidance(train):
     current-point warm starts. E may reuse the one already-fitted .75/.16
     reference as an alternative initial point. No tree QP contest is required.
     """
-    R, X, diagnostics = fit_sensitivity(train); families, origins = [], []
+    R, X, diagnostics = fit_sensitivity(train, solver); families, origins = [], []
     for weight in (1., .75, 0.):
         shared, depth, calibration = geometry(R, X, weight)
         for tolerance in (0., .04, .08, .16, .24):
