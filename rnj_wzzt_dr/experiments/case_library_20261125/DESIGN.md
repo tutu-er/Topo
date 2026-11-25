@@ -128,6 +128,24 @@ The user confirmed this grid on 2026-11-25 ("Yes, keep it").
   fewer side streets, thicker service cables, equal shares of the three styles, named streets screened like the random
   ones.
 
+## 7b. Independent audit of the stored cases (2026-11-25, no identifier)
+
+An audit script outside the generator, reading the files: all 528 files match the committed SHA-256 lists; no result file
+holds a test case; the truth was recomputed from each network by a separate routine in all 528 cases (0 differences,
+both exact and identifiable); voltages agree with the other studies' AC solver with the source entered as an ordinary
+load (largest difference 4e-12 pu, every 7th case); all 132 groups have four twins with identical loads, root voltage, truth and meter
+errors; all 27 cells of the source grid are filled (dev 7-9, test 6-7 each); the customer pools are disjoint and no
+feeder or terminal load series occurs in both sets; two random feeders were rebuilt identically from the code.
+
+Found and kept:
+- In 12 development groups (all load draws of the `flynn16` and `paper15` star feeders) and 1 test group (`test_small_009`), two of head, middle and end are the same node,
+  because a two-level tree has no three different places. The size and kind still differ.
+- Sources push 5 development and 3 test twins above the 7% drop that the random feeders were screened for without a
+  source (largest 8.7%). They stay: a source this large is realistic and the study reports the drop.
+- 33 of the 132 no-source cases have at least one meter below 50 W mean (homes with almost no use). This is real and is why some
+  terminal lines cannot be identified; "identifiable" in this study means supported by the data, not by every meter.
+- A random feeder has one load draw; the named feeders have six.
+
 ## 8. Known limits
 
 Single phase, balanced; no missing readings, no clock errors, no PV; one unmetered load; the 15-minute split is assumed;

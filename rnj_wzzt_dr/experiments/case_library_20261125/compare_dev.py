@@ -77,7 +77,7 @@ def run(workers, with_r):
     if path.exists():
         done = {r["name"] for r in map(json.loads, path.read_text().splitlines()) if "error" not in r}
     todo = [r for r in manifest if r["name"] not in done and (not with_r or (r["n"] <= 25 and r["source"] == "none"))]
-    todo.sort(key=lambda r: (r["source"] != "none", r["n"]))    # cases without a source first, small ones first
+    todo.sort(key=lambda r: (r["n"] > 25, r["source"] != "none" if r["n"] > 25 else False, r["n"], r["name"]))   # up to 25 meters first
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a") as fh, get_context("spawn").Pool(workers, maxtasksperchild=8) as pool:
         for k, row in enumerate(pool.imap_unordered(run_one, [(r["name"], with_r) for r in todo]), 1):
