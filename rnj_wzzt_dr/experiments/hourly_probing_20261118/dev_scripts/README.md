@@ -25,6 +25,28 @@ These are the run chains and analysis scripts behind the numbers in [DEVELOPMENT
 | `run_s3nat.sh` | §19 | Natural truth-missing inputs (tag `s3nat`) |
 | `s3nat_analyse.py` | §19 | The §19 tables and the N1 test |
 | `closure_split.py` | §19 exploratory | Natural misses and T1 split by whether the bank's closure finished |
+| `eu_lv_map.py` | real-network case | Maps the Non-Synthetic European LV Test System into transformers, feeders and service connections (`REAL_NETWORK_CASE.md`): `python -I eu_lv_map.py <extracted>/Sim_files_190128_OK_V0/RunDss <out.json>` |
+| `eulv_check.py` | real-network case | AC voltages on the real loads and internal segment sizes of the 33 converted feeders |
+| `eulv_smoke.py` | real-network case | Builds four real-feeder inputs and runs passive and the strong greedy on them |
+| `eulv_diag.py` | real-network case | Why the truth is missing: the truth, its contractions and the bank leader on the passive history |
+| `eulv_hist.py` | real-network case | Longer hourly histories, and the score with one identifiable parameter per support |
+| `q_indep.py` | real-network case | How much each support's downstream Q varies independently of its P: real feeders against synthetic inputs |
+| `verify_ident.py` | real-network case | Over every section 18 synthetic S1 input, the candidates whose identifiable-parameter count differs from 2 x supports (115 of 75,573) |
+| `regress_sph.py` | real-network case | Regression after making the slot length a setting and adding the identifiable options: stored section 18 runs reproduce |
+| `eulv_pilot.py` | real-network case | Pilot: 33 feeders x start days 0 and 6, 8-day history, identifiable-parameter BIC and identifiable truth; passive and the strong greedy |
+| `eulv_pilot_analyse.py` | real-network case | Pilot summary: strata, truth in bank, closure, outcomes per arm, McNemar |
+| `eulv_pilot_diag.py` | real-network case | Pilot diagnosis: search failure vs identifiability limit (truth vs bank leader BIC), per-segment support, first confirmation gate |
+| `eulv_explore.py` | real-network case | Exploratory: the strong greedy with the trust gate off on the pilot inputs, and the identifiable truth's own voltage error (harm baseline) |
+| `eulv_truth_eq.py` | real-network case | Pilot: whether the truth was in a wrongly confirmed leader's equivalence set, and the wrong confirmations' voltage error |
+| `wzzt_meta.py` | WZZT revision | WZZT's own output on real and synthetic inputs: time, selected correct, truth in its output (`WZZT_REVISION.md`) |
+| `wzzt_criterion.py` | WZZT revision | Per segment of the identifiable truth (33 real feeders): supported by the study BIC (8 and 18 days), by WZZT's criterion (levels, demeaned), and kept by the 0.08 output floor |
+| `wzzt_crosstab.py` | WZZT revision | Cross-tabulation of `wzzt_criterion.py`: data-supported segments that WZZT's criterion or floor discards |
+| `wzzt_profile.py` | WZZT revision | WZZT (111, demeaned) on seven real feeders at 8 and 18 days: time per stage, MIQP size and status, true segments recovered |
+| `wzzt_compress.py` | WZZT revision | Exact speed-up test: E-stage MIQP with the data rows compressed by QR against the original (same optimum) |
+| `build_profile.py` | WZZT revision | cProfile of one real-feeder input build: identifier against closure time |
+| `rnj_wzzt_sweep.py` | WZZT revision | RNJ pool and tree recall (joint P,Q fit against P-only fit), and WZZT 111 under price, floor and P-only variants; 33 real and 33 synthetic inputs |
+| `rnj_wzzt_sweep_analyse.py` | WZZT revision | Summary of `rnj_wzzt_sweep.py`, with the real feeders' data-supported ceiling (finding 7 of `WZZT_REVISION.md`) |
+| `eulv_explore_analyse.py` | real-network case | Summary of `eulv_explore.py`: the strong greedy without the trust gate against passive, and wrong confirmations' voltage error against the truth's own |
 | `lint_tex.py`, `lint_tables.py` | paper | Heuristic LaTeX checks for `paper/strategies.tex` (no TeX engine installed): `python lint_tex.py <file>` |
 
 ## Section 16 (2026-11-22/23)

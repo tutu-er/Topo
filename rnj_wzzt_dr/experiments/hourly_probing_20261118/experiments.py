@@ -41,6 +41,16 @@ HARD = dict(meter_bias_sigma=.0005, meter_offsets=True, trust_gate=True, root_wh
             cost_model="linear", price_down_cny=4., price_up_cny=1.2,
             hourly_cap_cny=20., daily_cap_cny=100., cert_value_cny=1000.)
 
+
+
+def _seeds_eulv():
+    """Real feeders (REAL_NETWORK_CASE.md): seed = first day of a 9-day window of the 20 recorded days;
+    8 days of hourly history (6 training, 2 validation; user decision 2026-11-23), then the new day (days 8-19)."""
+    path = sc.EULV_CASES/"index.json"
+    cases = [c["case"] for c in json.loads(path.read_text())] if path.exists() else []
+    return {c: [(d, (144, 48)) for d in range(12)] for c in cases}
+
+
 STRESS_SEEDS = {"soumalas11": [(s, (96, 48)) for s in range(1, 5)]+[(s, (48, 24)) for s in range(101, 113)],
                 "pengwah18": [(s, (96, 48)) for s in range(1, 7)]+[(s, (48, 24)) for s in range(101, 109)]}
 
@@ -101,6 +111,13 @@ CONDITIONS = {
     "lock_short005": dict(seeds="lock", settings=dict(HARD), rebuild=True, step1="v2", short_line=.005),
     "lock_noisy": dict(seeds="lock", settings=dict(HARD, meter_bias_sigma=.001, voltage_sigma=.001),
                        rebuild=True, step1="v2"),
+    # real-network case (REAL_NETWORK_CASE.md, 2026-11-23): 33 converted feeders of the Non-Synthetic European
+    # LV Test System with their customers' hourly loads; locked settings, typical meter bias, hourly slots
+    # (2026-11-23 user decision after the first smoke test: 8-day history, identifiable-parameter BIC, and the
+    # identifiable truth as the evaluation target)
+    "eulv": dict(seeds="eulv", settings=dict(config.LOCKED, meter_bias_sigma=.0005, slots_per_hour=1,
+                                             identifiable_params=True, identifiable_truth=True),
+                 rebuild=True, step1="v2"),
 }
 
 
@@ -161,6 +178,8 @@ def build(condition, workers=14, seeds=None):
     else:
         jobs = []
         default = {"1d": SEEDS_1D, "conf": SEEDS_CONF, "hard": SEEDS_HARD, "lock": SEEDS_LOCK}.get(cond.get("seeds"), SEEDS)
+        if cond.get("seeds") == "eulv":
+            default = _seeds_eulv()
         for case, lst in (seeds or default).items():
             for seed, hist in lst:
                 jobs.append((condition, case, seed, tuple(hist)))

@@ -16,7 +16,6 @@ import numpy as np
 from . import model, planner, scores
 from . import scenario as sc
 
-SPH = 4
 
 
 @dataclass
@@ -30,14 +29,14 @@ class Input:
     n: int
     base_kw: float
     hist: dict                  # metered P, Q, Y, V0sq (T x n / T)
-    day: dict                   # true background P, Q, root (96 x n / 96)
+    day: dict                   # true background P, Q, root (slots of the day x n / slots)
     families: list
     theta0: list
     truth_key: frozenset
     truth_in_bank: bool
     res: dict
     sigma_kw: np.ndarray
-    root_profile: np.ndarray    # history mean root voltage per slot (96)
+    root_profile: np.ndarray    # history mean root voltage per slot of the day
     meta: dict = field(default_factory=dict)
 
 
@@ -70,11 +69,15 @@ def run(inp, arm, path, settings, replay=None):
     """Return the trajectory record of `arm` on `path` (paired across arms)."""
     started = time.perf_counter()
     n, s = inp.n, settings
+    SPH = s.slots_per_hour                        # rows per hour (4: 15-minute data, 1: hourly)
     if arm == "bgreedy_lowV_P":                       # frugal strong greedy: price of certainty V/5
         s = s.with_(cert_value_cny=s.cert_value_cny/5.)
     elif arm.startswith("bgreedy_V") and arm.endswith("_P"):   # V sweep: bgreedy_V<CNY>_P
         s = s.with_(cert_value_cny=float(arm[len("bgreedy_V"):-2]))
     cands = [model.Candidate(f, n) for f in inp.families]
+    if s.identifiable_params:                         # count identifiable parameters only (REAL_NETWORK_CASE.md)
+        for c in cands:
+            c.p = model.identifiable_p(c, inp.hist["P"], inp.hist["Q"], s.pq_sigma)
     K = len(cands)
     truth_idx = next((k for k, c in enumerate(cands) if c.key == inp.truth_key), None)
     streams = np.random.SeedSequence([2026111901, int(inp.seed), int(path)]).spawn(6)
@@ -87,7 +90,8 @@ def run(inp, arm, path, settings, replay=None):
     v_bg = physics.voltages(inp.day["P"], inp.day["Q"], inp.day["root"])     # evaluation only
 
     H = inp.hist
-    day_P = np.zeros((96, n)); day_Q = np.zeros((96, n)); day_Y = np.zeros((96, n)); day_V0 = np.zeros(96)
+    T_day = SPH*s.hours
+    day_P = np.zeros((T_day, n)); day_Q = np.zeros((T_day, n)); day_Y = np.zeros((T_day, n)); day_V0 = np.zeros(T_day)
     blocks = np.zeros((s.hours, n))
     fits = [model.Fit(c, th, 2*s.r_min_ohm/(inp.network["base_kv"]**2/inp.network["base_mva"]), s.upper_bound)
             for c, th in zip(cands, inp.theta0)]
@@ -272,7 +276,7 @@ def run(inp, arm, path, settings, replay=None):
         if g >= s.hours:
             break
         # --------------------------------------------------------- reveal hour g
-        sl = planner.hour_slots(g)
+        sl = planner.hour_slots(g, SPH)
         u_kw = blocks[g]
         delivered = gains*u_kw
         probe = np.repeat((delivered/inp.base_kw)[None, :], SPH, axis=0)
@@ -327,6 +331,11 @@ def run(inp, arm, path, settings, replay=None):
                                          reach=last_reach.get(int(j))) for j in last_beyond],
                gates=gate_log, blocks=[_clean(e, cands, inp) for e in block_log],
                seconds=time.perf_counter()-started, K=K, truth_in_bank=truth_idx is not None,
+               exact_truth=None if "exact_truth_key" not in inp.meta else dict(
+                   in_bank=bool(inp.meta.get("exact_truth_in_bank")),
+                   final_confirmed=bool(status["confirmed"] and cands[Lf].key == inp.meta["exact_truth_key"]),
+                   ever_confirmed=any(g_["confirmed"] and cands[g_["leader"]].key == inp.meta["exact_truth_key"]
+                                      for g_ in gate_log)),
                refit_failures=int(sum(getattr(f, "failures", 0) for f in fits)),
                schedule=dict(blocks=blocks.tolist(),
                              costs=[planner.block_cost(s, inp.res, h, blocks[h]) for h in range(s.hours)]))

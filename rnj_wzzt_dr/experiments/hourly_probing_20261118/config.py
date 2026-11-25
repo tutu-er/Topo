@@ -81,6 +81,9 @@ class Settings:
     trust_gate: bool = False          # probe only if the closure completed and the leader is adequate
     adequacy_max: float = 1.2         # trust gate: leader residual variance / meter-class variance
     prequential_check: bool = False   # evaluation only: log one-hour-ahead prediction errors (DEVELOPMENT_RUNS section 18)
+    # real feeders (REAL_NETWORK_CASE.md, user decision 2026-11-23); off for every synthetic condition
+    identifiable_params: bool = False # BIC counts x_C only where Q varies independently of P (model.identifiable_p)
+    identifiable_truth: bool = False  # evaluation target: truth with segments below r_min_ohm merged; exact truth reported
     delivery_gain: tuple = (.9, 1.)
     # Physics of the evaluation (single phase; the three-phase option is out of scope since 2026-11-20)
     unbalanced: bool = False

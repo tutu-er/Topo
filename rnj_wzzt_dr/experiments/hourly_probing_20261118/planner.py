@@ -13,11 +13,11 @@ from scipy.linalg import cho_factor, cho_solve
 from . import model, scores
 from . import scenario as sc
 
-SPH = 4
+SPH = 4      # default slots per hour (15-minute data); a run uses settings.slots_per_hour
 
 
-def hour_slots(h):
-    return np.arange(SPH*h, SPH*h+SPH)
+def hour_slots(h, sph=SPH):
+    return np.arange(sph*h, sph*h+sph)
 
 
 class Gate:
@@ -28,12 +28,14 @@ class Gate:
         self.inp, self.s, self.cands = inp, settings, cands
         self.thetas, self.covs, self.sigma2 = thetas, covs, sigma2
         self.E, self.L, self.eq, self.w = np.asarray(E), leader, equivalent, weights
-        self.Pf, self.Qf, self.V0f = forecast            # 96 x n pu, 96 x n pu, 96 (v0 squared)
+        self.Pf, self.Qf, self.V0f = forecast            # day x n pu, day x n pu, day (v0 squared)
+        self.sph = settings.slots_per_hour               # rows per hour of data (4: 15-minute, 1: hourly)
         self.soc, self.spent, self.hb = soc, spent, block_hour
         self.res, self.base_kw = inp.res, inp.base_kw
         self.sig_kw = inp.sigma_kw
         self.n = inp.n
-        self.smax = settings.transformer_kva[inp.case]/inp.base_kw
+        kva = settings.transformer_kva.get(inp.case) or inp.network["metadata"]["transformer_kva"]
+        self.smax = kva/inp.base_kw
         self.tr = max(0, min(settings.horizon_hours, settings.hours-block_hour))
         self.plan_hours = list(range(block_hour, block_hour+self.tr))
         self.rest_hours = list(range(block_hour, settings.hours))
@@ -46,7 +48,7 @@ class Gate:
     def cdata(self, k):
         """Forecast predictions and operating-point sensitivity of candidate k, rest of day."""
         if k not in self._cache:
-            sl = np.concatenate([hour_slots(h) for h in self.rest_hours])
+            sl = np.concatenate([hour_slots(h, self.sph) for h in self.rest_hours])
             c, th = self.cands[k], self.thetas[k]
             P, Q, V0 = self.Pf[sl], self.Qf[sl], self.V0f[sl]
             loss = self.s.use_loss_term
@@ -67,7 +69,7 @@ class Gate:
 
     def rows(self, k, hours):
         d = self.cdata(k)
-        idx = np.concatenate([np.arange(SPH*(h-self.hb), SPH*(h-self.hb)+SPH) for h in hours])
+        idx = np.concatenate([np.arange(self.sph*(h-self.hb), self.sph*(h-self.hb)+self.sph) for h in hours])
         return d["mu"][idx], d["M"][idx], d["slots"][idx]
 
     # --------------------------------------------------------------- evidence
@@ -89,13 +91,13 @@ class Gate:
     def delta_mu(self, j, hours, u_pu_hours):
         muL, ML, _ = self.rows(self.L, hours)
         muj, Mj, _ = self.rows(j, hours)
-        U = np.repeat(np.asarray(u_pu_hours), SPH, axis=0)          # T x n
+        U = np.repeat(np.asarray(u_pu_hours), self.sph, axis=0)          # T x n
         return (muL-muj)+np.einsum("tim,tm->ti", ML-Mj, U)
 
     def q_full(self, j, hours, u_pu_hours):
         """q_j(U) = dmu' S_jw^-1 dmu with parameter uncertainty (15a)."""
         dmu = self.wh(self.delta_mu(j, hours, u_pu_hours)).ravel()
-        U = np.repeat(np.asarray(u_pu_hours), SPH, axis=0)
+        U = np.repeat(np.asarray(u_pu_hours), self.sph, axis=0)
         _, _, sl = self.rows(j, hours)
         P, Q = self.Pf[sl]+U, self.Qf[sl]
         S = self.sigma2*np.eye(dmu.size)
@@ -177,7 +179,7 @@ class Gate:
         nz = np.abs(s_kw) > 1e-12
         kA = float(np.min(cap[nz]/np.abs(s_kw[nz]))) if np.any(nz) else np.inf
         s_pu = s_kw/self.base_kw
-        sl = hour_slots(h)
+        sl = hour_slots(h, self.sph)
         V0 = self.V0f[sl]
         # robust voltage over plausible candidates
         kV = np.inf
@@ -314,7 +316,7 @@ class Gate:
         N_now = getattr(self, "N_rows", None)
         beta = 0.
         if N_now:
-            N_end = N_now+SPH*self.tr*self.n
+            N_end = N_now+self.sph*self.tr*self.n
             beta = .5*(self.cands[j].p-self.cands[self.L].p)*math.log(N_end/N_now)
         return math.exp(-.5*(self.E[j]+beta))/math.sqrt(t)
 
@@ -357,7 +359,7 @@ class Gate:
             kmax, parts, unit = self.window(s_kw)
             if not np.isfinite(kmax) or kmax <= 0 or not np.isfinite(unit):
                 continue
-            U = np.repeat((s_kw/self.base_kw)[None, :], SPH*self.tr, axis=0)
+            U = np.repeat((s_kw/self.base_kw)[None, :], self.sph*self.tr, axis=0)
             quad = []
             for c, D, cf, Sd, a in data:
                 g = self.wh(np.einsum("tim,tm->ti", D, U)).ravel()
@@ -451,7 +453,7 @@ class Gate:
             kmax, parts, unit = self.window(s_kw)
             if not np.isfinite(kmax) or kmax <= 0 or not np.isfinite(unit):
                 continue
-            U = np.repeat((s_kw/self.base_kw)[None, :], SPH, axis=0)
+            U = np.repeat((s_kw/self.base_kw)[None, :], self.sph, axis=0)
             quad = []
             for om, D, cf, Sd, a in data:
                 g = self.wh(np.einsum("tim,tm->ti", D, U)).ravel()
@@ -496,7 +498,7 @@ class Gate:
             if not np.isfinite(kmax) or kmax <= 0 or not np.isfinite(unit) or unit <= 0:
                 continue
             k = kmax if target_cost is None else min(kmax, self.level_for_cost(target_cost, unit))
-            u = np.repeat((k*s_kw/self.base_kw)[None, :], SPH, axis=0)
+            u = np.repeat((k*s_kw/self.base_kw)[None, :], self.sph, axis=0)
             pred = {m: rows[m][0]+np.einsum("tim,tm->ti", rows[m][1], u) for m in members}
             if kind == "greedy":
                 score = float(np.sum((pred[members[0]]-pred[members[1]])**2))

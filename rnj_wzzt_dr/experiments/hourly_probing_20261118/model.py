@@ -14,6 +14,8 @@ nodes, so it is exact up to that third-order term for the true candidate.
 """
 from __future__ import annotations
 
+import math
+
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 from scipy.optimize import lsq_linear
@@ -69,6 +71,28 @@ def whiten_slots(A, n, gamma):
     T = A.shape[0]//n
     B = A.reshape(T, n, -1)
     return (B-gamma*B.mean(axis=1, keepdims=True)).reshape(A.shape)
+
+
+def identifiable_p(cand, P, Q, pq_sigma, demean=True, k=2.):
+    """Number of identifiable parameters of a candidate on metered history P, Q (REAL_NETWORK_CASE.md).
+
+    Each support C has r_C (always identifiable) and x_C, which is identifiable only if the reactive flow b_C
+    varies independently of the active flow a_C. The share of b_C not explained by a_C (after removing the
+    meter offsets' means), relative to the level of b_C, is about sqrt(2) pq_sigma or less when Q is a fixed
+    fraction of P and only the P/Q meter errors differ; x_C counts only above k times that. On the real
+    feeders, whose data set fixes the power factor, every support counts 1 (ratios 0.003-0.009). On the 541
+    synthetic S1 inputs of DEVELOPMENT_RUNS sections 16-18 the count would differ from 2 x supports for 115 of
+    75,573 candidates (0.15%); it is switched on only for the real feeders (settings.identifiable_params).
+    """
+    a, b = cand.flows(P, Q)
+    ad, bd = (a-a.mean(0), b-b.mean(0)) if demean else (a, b)
+    count = 0
+    for s in range(cand.S):
+        level = float(np.linalg.norm(b[:, s]))
+        coef = float(ad[:, s]@bd[:, s])/max(float(ad[:, s]@ad[:, s]), 1e-300)
+        resid = float(np.linalg.norm(bd[:, s]-coef*ad[:, s]))
+        count += 1+(level > 0 and resid > k*math.sqrt(2)*pq_sigma*level)
+    return count
 
 
 class Candidate:

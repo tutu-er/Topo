@@ -419,3 +419,52 @@ def test_locked_settings_are_the_confirmed_ones():
     assert config.LOCKED_ARM == "bgreedy_P"
     with pytest.raises(ValueError):
         config.locked_settings(cert_value_cny=200.)
+
+
+def test_eulv_tree_reduction_and_converted_cases():
+    """Real-feeder converter: branches without customers are dropped, hidden degree-2 chains merged with series
+    impedance; every converted case loads, is radial and its truth family covers each terminal once."""
+    from . import eulv_convert as ec
+    codes = {"c": (1., .5)}                                   # ohm/km
+    e = lambda a, b, L: dict(name=f"{a}{b}", a=a, b=b, code="c", length=L)
+    # LV - a - b - c(load); b - d - e(load); a - f (no load downstream, dropped)
+    edges = [e("LV", "a", 100.), e("a", "b", 50.), e("b", "c", 10.), e("b", "d", 20.), e("d", "e", 30.), e("a", "f", 5.)]
+    adj = {}
+    for x in edges:
+        adj.setdefault(x["a"], []).append(x); adj.setdefault(x["b"], []).append(x)
+    parent, edge, order = ec.feeder_tree("LV", edges[0], adj)
+    kids, par, z = ec.reduce_tree("LV", parent, edge, order, {"c": [1], "e": [1]}, codes)
+    assert set(par) == {"b", "c", "e"} and par["b"] == "LV" and par["c"] == "b" and par["e"] == "b"
+    assert z["b"] == pytest.approx((.15, .075, 150.)) and z["e"] == pytest.approx((.05, .025, 50.))
+    if not sc.EULV_CASES.joinpath("index.json").exists():
+        return
+    import json as _json
+    for c in _json.loads(sc.EULV_CASES.joinpath("index.json").read_text()):
+        net = sc.load_network(c["case"])
+        _, labels, _, _ = sc.network_info(c["case"], net)
+        assert len(labels) == c["terminals"] and sc.households_of(net).sum() == c["customers"]
+        fam = model.canonical_family(sc.truth_family(net, labels), len(labels))
+        assert sum(1 for C in fam if len(C) == 1) == len(labels)
+        backend._radial_order(net)                            # raises unless connected and radial
+
+
+def test_identifiable_params_and_identifiable_truth():
+    """x_C counts only where Q varies independently of P; segments below the floor merge out of the truth."""
+    rng = np.random.default_rng(3)
+    T, n = 200, 3
+    P = 1.+.4*rng.random((T, n))
+    c = model.Candidate([(0, 1), (0, 1, 2)], n)                # 3 singletons + 2 supports
+    noisy = lambda X: X*(1.+.005*rng.normal(size=X.shape))
+    Q_fixed_pf = .33*P                                         # data set with a fixed power factor
+    Q_indep = .33*P*(1.+.15*rng.normal(size=P.shape))         # reactive power that varies on its own
+    assert model.identifiable_p(c, noisy(P), noisy(Q_fixed_pf), .005) == c.S
+    assert model.identifiable_p(c, noisy(P), noisy(Q_indep), .005) == 2*c.S == c.p
+    # root 1 - 2 (0.002 ohm, below the 0.003 floor) - {3, 4}; root - 5
+    net = dict(root_bus=1, buses=[dict(bus_id=b) for b in (1, 2, 3, 4, 5)],
+               branches=[dict(from_bus=1, to_bus=2, r_ohm=.002, x_ohm=.001, status=True),
+                         dict(from_bus=2, to_bus=3, r_ohm=.02, x_ohm=.01, status=True),
+                         dict(from_bus=2, to_bus=4, r_ohm=.02, x_ohm=.01, status=True),
+                         dict(from_bus=1, to_bus=5, r_ohm=.02, x_ohm=.01, status=True)])
+    fam, merged = sc.identifiable_truth_family(net, (3, 4, 5), .003)
+    assert merged == 1 and (0, 1) not in fam and set(fam) == {(0,), (1,), (2,)}
+    assert (0, 1) in sc.truth_family(net, (3, 4, 5))

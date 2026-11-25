@@ -7,7 +7,10 @@ to simulate the physics and to evaluate; fitting sees metered arrays only.
 """
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
+import json
+from pathlib import Path
 import numpy as np
 
 from rnj_wzzt_dr.physical import backend
@@ -16,10 +19,73 @@ from . import unbalanced
 
 SLOTS = 96
 NOMINAL_V = 230.9
+# Real-network case (REAL_NETWORK_CASE.md): feeders of the Non-Synthetic European LV Test System converted by
+# eulv_convert.py. Network tables live in the study folder; the customers' load data stay outside Git.
+EULV_CASES = Path(__file__).resolve().parent/"cases_eulv"
+EULV_LOADS = Path(__file__).resolve().parents[3]/"data"/"nonsynthetic_eu_lv_20261123"/"loads"
+
+
+def load_network(case):
+    """A bundled case of physical.backend, or a converted real feeder (`eulv_*`), in the same format."""
+    if case in backend.CASES:
+        return backend.load_case(case)
+    directory = EULV_CASES/case
+    if not directory.is_dir():
+        raise ValueError(f"Unknown case {case!r}")
+    metadata = json.loads((directory/"metadata.json").read_text(encoding="utf-8"))
+    with (directory/"buses.csv").open(encoding="utf-8", newline="") as stream:
+        buses = list(csv.DictReader(stream))
+    with (directory/"branches.csv").open(encoding="utf-8", newline="") as stream:
+        branches = list(csv.DictReader(stream))
+    for row in buses:
+        row["bus_id"] = int(row["bus_id"])
+        for f in ("pd_kw", "qd_kvar"):
+            row[f] = float(row[f])
+        for f in ("is_terminal", "is_observed", "has_load"):
+            row[f] = row[f].strip().lower() == "true"
+        row["customers"] = int(row.get("customers") or 0)
+    for row in branches:
+        for f in ("from_bus", "to_bus"):
+            row[f] = int(row[f])
+        for f in ("r_ohm", "x_ohm"):
+            row[f] = float(row[f])
+        row["status"] = row["status"].strip().lower() == "true"
+    return dict(metadata=metadata, buses=buses, branches=branches, root_bus=int(metadata["root_bus"]),
+                base_kw=1000.*float(metadata["base_mva"]), base_kv=float(metadata["base_kv"]),
+                base_mva=float(metadata["base_mva"]))
+
+
+def households_of(network):
+    """Customers per terminal when the case records them (real feeders), else None."""
+    terminals = [row for row in network["buses"] if row["is_terminal"]]
+    counts = [row.get("customers", 0) for row in terminals]
+    return np.array(counts, float) if counts and all(c > 0 for c in counts) else None
+
+
+def identifiable_truth_family(network, labels, r_floor_ohm):
+    """The truth with every non-singleton segment below the resistance floor merged into its parent.
+
+    Such a segment changes voltages far less than the meters resolve, and the refit holds it at the floor, so no
+    data can establish it; the evaluation target on real feeders is this identifiable truth. Returns the family
+    and the number of merged segments."""
+    order, parent, incoming = backend._radial_order(network)
+    descendants = {node: set() for node in order}
+    for index, label in enumerate(labels):
+        descendants[label].add(index)
+    supports, merged = set(), 0
+    for child in reversed(order[1:]):
+        d = descendants[child]
+        if d:
+            if len(d) > 1 and incoming[child]["r_ohm"] < r_floor_ohm:
+                merged += 1
+            else:
+                supports.add(tuple(sorted(d)))
+        descendants[parent[child]].update(d)
+    return tuple(sorted(supports, key=lambda s: (len(s), s))), merged
 
 
 def network_info(case, network=None):
-    network = network or backend.load_case(case)
+    network = network or load_network(case)
     terminals = [row for row in network["buses"] if row["is_terminal"]]
     labels = tuple(row["bus_id"] for row in terminals)
     p_nominal = np.array([row["pd_kw"] for row in terminals])/network["base_kw"]
@@ -41,8 +107,32 @@ def truth_family(network, labels):
     return tuple(sorted(supports, key=lambda s: (len(s), s)))
 
 
-def generate_load(case, seed, days, *, network=None):
+def eulv_load(case, start_day, days, network, sph):
+    """Real hourly loads of a converted feeder: `days` days from day `start_day` of the 20 recorded days.
+
+    P is the sum of the customers' smart-meter readings at each terminal; Q follows from the dataset's power
+    factor. The root (transformer secondary) voltage was not recorded, so it follows the same law as the
+    synthetic days, sampled hourly.
+    """
+    if sph != 1:
+        raise ValueError("the real feeders' loads are hourly: use slots_per_hour = 1")
+    data = np.load(EULV_LOADS/f"{case}.npz")
+    p_kw, pf = data["p_kw"], float(data["power_factor"])
+    a, b = 24*int(start_day), 24*(int(start_day)+days)
+    if b > p_kw.shape[0]:
+        raise ValueError(f"{case}: days {start_day}..{start_day+days-1} exceed the {p_kw.shape[0]//24} recorded days")
+    P = p_kw[a:b]/network["base_kw"]
+    Q = P*np.tan(np.arccos(pf))
+    rng = np.random.default_rng(np.random.SeedSequence([20261123, int(start_day), P.shape[1]]))
+    phase = 2*np.pi*np.arange(24)/24
+    root = np.concatenate([1.02+.003*(.7*np.sin(phase+.3)+.3*rng.normal(size=24)) for _ in range(days)])
+    return P, Q, root
+
+
+def generate_load(case, seed, days, *, network=None, sph=4):
     """True P/Q (pu, consumption positive) and physical root voltage for `days` days."""
+    if case.startswith("eulv_"):
+        return eulv_load(case, seed, days, network or load_network(case), sph)
     network, labels, p_nominal, q_nominal = network_info(case, network)
     n = len(labels)
     rng = np.random.default_rng(np.random.SeedSequence([20261120, int(seed), len(labels)]))
@@ -107,9 +197,12 @@ class Physics:
         return self.three_phase.terminal_voltages(p, q, root, probe)
 
 
-def resources(settings, p_mean_kw, base_kw):
-    """Scenario R1 envelope per node: battery (+/-) and EV (night only), in kW."""
-    households = np.maximum(p_mean_kw/settings.household_kw, 1.)
+def resources(settings, p_mean_kw, base_kw, households=None):
+    """Scenario R1 envelope per node: battery (+/-) and EV (night only), in kW.
+
+    `households`: customers per node when known (real feeders); otherwise mean load / 0.8 kW."""
+    if households is None:
+        households = np.maximum(p_mean_kw/settings.household_kw, 1.)
     enrolled = settings.enrolled_share
     battery_kw = households*settings.battery_share*enrolled*settings.battery_kw
     battery_kwh = households*settings.battery_share*enrolled*settings.battery_kwh

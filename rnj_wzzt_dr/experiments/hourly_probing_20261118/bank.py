@@ -83,15 +83,17 @@ def neighbours(family, n, max_children=8):
 
 
 # ------------------------------------------------------------------ passive fit
-def passive_fit(families, n, hist, r_min, upper, steps=3, use_loss=True, offsets=False, whiten=False):
-    fits = [fit_one(fam, n, hist, r_min, upper, steps, use_loss, offsets, whiten) for fam in families]
+def passive_fit(families, n, hist, r_min, upper, steps=3, use_loss=True, offsets=False, whiten=False, pq_sigma=None):
+    fits = [fit_one(fam, n, hist, r_min, upper, steps, use_loss, offsets, whiten, pq_sigma) for fam in families]
     J, sigma2 = scores.bic([f.sse for f in fits], [f.c.p+(n if offsets else 0) for f in fits], hist["Y"].size)
     return fits, J, sigma2
 
 
-def fit_one(fam, n, hist, r_min, upper, steps=3, use_loss=True, offsets=False, whiten=False):
+def fit_one(fam, n, hist, r_min, upper, steps=3, use_loss=True, offsets=False, whiten=False, pq_sigma=None):
     gamma = model.root_gamma(hist["V0sq"], hist["Y"]) if whiten else 0.
     c = model.Candidate(fam, n)
+    if pq_sigma is not None:                     # count identifiable parameters only (settings.identifiable_params)
+        c.p = model.identifiable_p(c, hist["P"], hist["Q"], pq_sigma)
     Phi = c.design(hist["P"], hist["Q"])
     f = model.Fit(c, np.full(2*c.S, r_min), r_min, upper)
     f.theta = np.clip(f.theta, f.lb, f.ub)
@@ -123,7 +125,7 @@ def identifier_families(obs_train, obs_val, n, seconds, demean=False):
 
 
 def closure(bank, n, hist, r_min, upper, margin=6., max_seeds=12, max_rounds=4, max_size=1500, whiten=False,
-            offsets=True, steps=2):
+            offsets=True, steps=2, pq_sigma=None):
     """BIC neighbourhood closure: add every one-edit neighbour of each candidate
     within `margin` of the BIC leader, refit, repeat until no candidate within the
     margin is left unexpanded (or a size/round cap binds).
@@ -132,7 +134,7 @@ def closure(bank, n, hist, r_min, upper, margin=6., max_seeds=12, max_rounds=4, 
     """
     bank = list(dict.fromkeys(bank))
     keys = {model.nonsingleton(f): k for k, f in enumerate(bank)}
-    fits = [fit_one(f, n, hist, r_min, upper, steps, True, offsets, whiten) for f in bank]
+    fits = [fit_one(f, n, hist, r_min, upper, steps, True, offsets, whiten, pq_sigma) for f in bank]
     N = hist["Y"].size
     extra = n if offsets else 0
     expanded, rounds, capped = set(), 0, None
@@ -154,7 +156,7 @@ def closure(bank, n, hist, r_min, upper, margin=6., max_seeds=12, max_rounds=4, 
                 key = model.nonsingleton(f)
                 if key not in keys:
                     keys[key] = len(bank); bank.append(f)
-                    fits.append(fit_one(f, n, hist, r_min, upper, steps, True, offsets, whiten))
+                    fits.append(fit_one(f, n, hist, r_min, upper, steps, True, offsets, whiten, pq_sigma))
     unexpanded = sum(1 for k in np.flatnonzero(E <= margin) if k not in expanded)
     return bank, fits, J, sigma2, dict(rounds=rounds, capped=capped, size=len(bank),
                                        unexpanded_within_margin=int(unexpanded))
@@ -200,8 +202,9 @@ def build(case, seed, settings, history=(192, 96), short_line=None, identifier_s
     step1="v2": the revised step 1 (identifier_families on levels and demeaned
     data, then `closure`), pruned to BIC gap <= prune_E and at most max_bank.
     """
-    network = backend.load_case(case)
+    network = sc.load_network(case)
     network, labels, _, _ = sc.network_info(case, network)
+    spd = settings.slots_per_hour*settings.hours             # rows per day (96 for 15-minute data, 24 hourly)
     meta = dict(history=list(history), short_line=None, unbalanced=settings.unbalanced,
                 meter_bias_sigma=settings.meter_bias_sigma, voltage_resolution_v=settings.voltage_resolution_v)
     if short_line is not None:
@@ -211,11 +214,12 @@ def build(case, seed, settings, history=(192, 96), short_line=None, identifier_s
     zbase = network["base_kv"]**2/network["base_mva"]
     r_min = 2*settings.r_min_ohm/zbase
     T_hist = sum(history)
-    days = math.ceil(T_hist/96)+1
-    P, Q, root = sc.generate_load(case, seed, days, network=network)
-    hs = slice(96*(days-1)-T_hist, 96*(days-1))
-    day = dict(P=P[96*(days-1):], Q=Q[96*(days-1):], root=root[96*(days-1):])
-    res_tmp = sc.resources(settings, P[hs].mean(axis=0)*network["base_kw"], network["base_kw"])
+    days = math.ceil(T_hist/spd)+1
+    P, Q, root = sc.generate_load(case, seed, days, network=network, sph=settings.slots_per_hour)
+    hs = slice(spd*(days-1)-T_hist, spd*(days-1))
+    day = dict(P=P[spd*(days-1):], Q=Q[spd*(days-1):], root=root[spd*(days-1):])
+    households = sc.households_of(network)
+    res_tmp = sc.resources(settings, P[hs].mean(axis=0)*network["base_kw"], network["base_kw"], households)
     physics = sc.Physics(network, labels, settings, seed=seed, households=res_tmp["households"])
     v = physics.voltages(P[hs], Q[hs], root[hs])
     meters = sc.make_meters(settings, n, seed)
@@ -225,6 +229,7 @@ def build(case, seed, settings, history=(192, 96), short_line=None, identifier_s
     tr = slice(0, history[0]); va = slice(history[0], T_hist)
     obs = [Observation(p_m[s_], q_m[s_], y_m[s_], labels, v_m[s_], r_m[s_]) for s_ in (tr, va)]
     offs = settings.meter_offsets
+    pq = settings.pq_sigma if settings.identifiable_params else None
     if step1 == "v2":
         # revised step 1: levels and demeaned identifier runs, both before and after
         # the 0.08 contraction, closed under one-edit neighbours within a BIC margin
@@ -235,7 +240,7 @@ def build(case, seed, settings, history=(192, 96), short_line=None, identifier_s
         ident = dict(total_seconds=lv["seconds"]+dm["seconds"])
         C = list(dict.fromkeys(uniq+lv["uncontracted"]+dm["contracted"]+dm["uncontracted"]))
         D, cfits, cJ, _, crec = closure(C, n, hist, r_min, settings.upper_bound, offsets=offs,
-                                        whiten=settings.root_whitening)
+                                        whiten=settings.root_whitening, pq_sigma=pq)
         order = np.argsort(cJ-cJ.min())
         keep = [k for k in order if cJ[k]-cJ.min() <= prune_E][:max_bank]
         bank = [D[k] for k in keep]
@@ -251,7 +256,8 @@ def build(case, seed, settings, history=(192, 96), short_line=None, identifier_s
             selected = model.canonical_family(sc.truth_family(network, labels), n)
             fams, ident = [selected], dict(total_seconds=0.)
         uniq = list(dict.fromkeys(fams))
-        fits, J, _ = passive_fit(uniq, n, hist, r_min, settings.upper_bound, offsets=offs, whiten=settings.root_whitening)
+        fits, J, _ = passive_fit(uniq, n, hist, r_min, settings.upper_bound, offsets=offs, whiten=settings.root_whitening,
+                                 pq_sigma=pq)
         leader = uniq[int(np.argmin(J))]
         bank = list(uniq)
         if extra_neighbours:
@@ -260,14 +266,23 @@ def build(case, seed, settings, history=(192, 96), short_line=None, identifier_s
                 f = model.canonical_family(nb, n)
                 if model.nonsingleton(f) not in keys:
                     bank.append(f); keys.add(model.nonsingleton(f))
-    fits, J, sigma2 = passive_fit(bank, n, hist, r_min, settings.upper_bound, offsets=offs, whiten=settings.root_whitening)
+    fits, J, sigma2 = passive_fit(bank, n, hist, r_min, settings.upper_bound, offsets=offs, whiten=settings.root_whitening,
+                                  pq_sigma=pq)
     truth = sc.truth_family(network, labels)
     truth_key = model.nonsingleton(model.canonical_family(truth, n))
+    if settings.identifiable_truth:
+        # evaluation target: the truth with its segments below the resistance floor merged (REAL_NETWORK_CASE.md);
+        # the exact truth is kept for reporting
+        meta["exact_truth_key"] = truth_key
+        ident_truth, merged = sc.identifiable_truth_family(network, labels, settings.r_min_ohm)
+        truth_key = model.nonsingleton(model.canonical_family(ident_truth, n))
+        meta["sub_floor_segments_merged"] = merged
+        meta["exact_truth_in_bank"] = any(model.nonsingleton(f) == meta["exact_truth_key"] for f in bank)
     p_mean_kw = p_m.mean(axis=0)*network["base_kw"]
-    res = sc.resources(settings, p_mean_kw, network["base_kw"])
+    res = sc.resources(settings, p_mean_kw, network["base_kw"], households)
     sigma_kw = p_m.std(axis=0)*network["base_kw"]
-    slot = (np.arange(T_hist)+(96-(T_hist % 96))) % 96
-    root_profile = np.array([r_m[slot == t].mean() if np.any(slot == t) else r_m.mean() for t in range(96)])
+    slot = (np.arange(T_hist)+(spd-(T_hist % spd))) % spd
+    root_profile = np.array([r_m[slot == t].mean() if np.any(slot == t) else r_m.mean() for t in range(spd)])
     meta.update(identifier_bank=len(uniq), bank=len(bank), identifier_seconds=ident["total_seconds"],
                 identifier_selected_correct=model.nonsingleton(selected) == truth_key,
                 identifier_bank_has_truth=any(model.nonsingleton(f) == truth_key for f in uniq),
@@ -288,7 +303,8 @@ def classify(inp, settings, J=None):
     if J is None:
         zbase = inp.network["base_kv"]**2/inp.network["base_mva"]
         fits, J, _ = passive_fit(inp.families, n, inp.hist, 2*settings.r_min_ohm/zbase, settings.upper_bound,
-                                 offsets=settings.meter_offsets, whiten=settings.root_whitening)
+                                 offsets=settings.meter_offsets, whiten=settings.root_whitening,
+                                 pq_sigma=settings.pq_sigma if settings.identifiable_params else None)
     J = np.asarray(J); L = int(np.argmin(J)); E = J-J[L]
     V0 = inp.root_profile**2
     vL = scores.voltages(cands[L], inp.theta0[L], inp.day["P"], inp.day["Q"], V0)
