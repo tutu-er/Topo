@@ -128,7 +128,7 @@ runs, so this is **not** a controlled comparison. WZZT-R was not run on cases ab
 | 41-59 meters, source (18) | **62.4** (84) | 55.2 (76) | 27.7 | 24.0 |
 | 26-40 meters, no source (6) | 65.4 | 66.1 | 44.0 | 38.4 |
 | 41-59 meters, no source (6) | 61.9 (84) | 63.9 (84) | 26.7 | 23.9 |
-| Root-side supported lines, source | 92/93 and 86/102 | 79/93 and 74/102 | 54/93 and 24/102 | 33/93 and 32/102 |
+| Root-side supported lines, source | 92/93 and 86/102 | 79/93 and 74/102 | 54/93 and 24/102 | 33/93 and 13/102 |
 
 - Source: no false alarm in 12 no-source cases (largest evidence 2.1); evidence above 4.6 in 30 of 36 source cases; the exact place is right in 26
   of 36; the true place is within 4.6 of the best in **36 of 36**.
