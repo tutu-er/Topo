@@ -14,48 +14,39 @@ recall, precision and F1 are always shown next to it.
 | N3 | Every tree comes with a certificate (S1: node MIQP; S2: exact enumeration of one more line, `source_cert.py`), and every line with an evidence margin | S1 certified as in the old study; S2 certificate in ablation B (running) |
 | N4 | Margins rank how far to trust a line | ablation C (running): against RNJ/NJ bootstrap support |
 
-### Ablation, interim (58 of 240 cases, at most 15 meters; the run continues)
+### Ablation, complete (240 development cases, 25 meters and fewer, no errors)
 
-- **A. Search.** On the same candidate lines, local search with six starts found the exact optimum on all 14 no-source cases and
-  on 56 of 58 S2 pools (the other two were worse by at most 0.5 half-BIC units); plain greedy was worse on 1 of 14 and 9 of 58
-  (up to 7.7 units). The MIQP found and proved the optimum on every pool in 2.6 s on average, against 3.9 s for the local
-  search. So exactness has **not** changed the returned trees against a good local search; it replaces a search with
-  several starts by one proved answer. Greedy alone is not enough.
-- **B. S2 certificate.** 58 of 58 trees certified, none needed a further line. No node had more than 12 child blocks.
-- **C. Belief.** Bootstrap support of RNJ is a strong rival: its top half of lines (100% precision in hindsight) keeps
-  66% recall; WZZT-C keeps 76% recall at 98% precision with no threshold, and 70% at 100% precision. The paper must
-  show RNJ with bootstrap as a main baseline. Only 1 false line exists in the 59 WZZT-C lines, so the margin's ranking
-  is untested yet.
+The interim reading (first 58 cases) was too favourable and is replaced by this one.
 
-### Source-aware run, complete for 25 meters and fewer (240 development cases, 0 errors)
+- **A. Search, no source (60 cases, the same candidate lines, half-BIC units above the exact optimum).** Local search (six starts) is worse in 2 of 60 (at
+  most 3.3), plain greedy in 14 of 60 (up to 15.9). Recall, precision and F1 of the resulting trees: exact 76.3, 98.8, 86.1; local
+  75.9, 98.5, 85.8; greedy 75.9, 96.0, 84.8. Pool MIQP proved optimal in 58 of 60.
+- **A. Search, S2 (tree and source path together, 240 cases).** Local search is worse in 8 (at most 1.7); greedy in 64 (up to 100, when
+  it fixes a wrong path early). **The MIQP was not warm-started here and proved the optimum in only 222 of 240** (time limit 240 s, 6.3 s
+  median, 29 s mean; local 13 s median, 17 s mean); in the other 18 local search found better trees (hence the negative mean
+  gap of local, -0.97). So the exact MIQP is **not** faster and not always proved at this size; the method itself
+  warm-starts it. The earlier "2.6 s on every pool" was true only of the smallest cases.
+- **B. S2 certificate by enumeration.** Certified in 229 of 240; in 9 cases one more line would have improved the tree, so
+  the completion step (`source_cert.complete`) belongs in the method; 3 cases had a node with more than 12 child blocks and cannot be certified by
+  enumeration.
+- **C. Belief (share of true lines found at 95% precision, threshold in hindsight for each method).**
 
-| | S2 | S1 | WZZT-C blind | RNJ, best tolerance (hindsight) | NJ, best tolerance |
-| --- | --- | --- | --- | --- | --- |
-| Star, source (72): F1 | **100** | 100 | 93.9 | 95.9 | 95.0 |
-| Street, source (72): F1 | 84.4 | 82.7 | 77.0 | **88.1** | 87.2 |
-| Street, source: root-side supported | **226/228** | 219 | 197 | 213 | 195 |
-| Random, source (36): F1 | **73.1** | 71.2 | 65.0 | 50.9 | 48.3 |
-| Random, source: root-side supported | **81/81** | 78 | 76 | 54 | 56 |
-| Random, no source (12): F1 | 71.9 | 71.9 | **72.9** | 50.7 | 47.8 |
-| Precision of S2 | 99-100 (star, street), 94 (random) | | 88-96 | 83-92 (star, street), 47 (random) | 88-91, 42 |
+  | | WZZT-C margin | RNJ bootstrap support | NJ bootstrap support |
+  | --- | --- | --- | --- |
+  | Star | 100.0 | 98.6 | 97.1 |
+  | Street | 71.7 | **77.5** | 77.2 |
+  | Random small | **61.0** | 34.1 | 24.4 |
+  | Random medium | **58.4** | 28.6 | 16.9 |
 
-- The source costs the blind method 6 to 8 F1 points (street 83 to 77, star 100 to 94, random 73 to 65), and S2 recovers almost all of it. Where
-  there is no source S2 is within one line of the blind method on the random cases (71.9 against 72.9).
-- Source existence: evidence above 4.6 in 0 of 60 no-source cases (largest 2.1) and in 160 of 180 source cases: 45 of 60 at
-  2% of the load, 58 of 60 at 5%, 57 of 60 at 10%; by kind 57 of 60 (lamp), 43 of 60 (house) and 60 of 60 (block).
-- Source place: exactly right among the returned lines in 163 of 180. **The true place is within 4.6 half-BIC units of the
-  best in 178 of 180 cases, with 1.4 places in the set on average**: the set is the honest output; a single place is not.
-- 13 of the 17 wrong places are 2% sources, 4 are 5% sources, none is 10%. Five were inspected: in `dev_medium_002_end` and
-  `dev_medium_003_end` the returned tree itself has a false line on the source's path; in `soumalas11_street_l4_middle`,
-  `dev_small_003_middle` and `dev_medium_006_middle` the place is one line off and the true one is within 3 half-BIC units
-  of the best. The other 12 were not inspected one by one.
+  On the random feeders the evidence margin finds about twice as many true lines at 95% precision as bootstrapped RNJ; on the
+  binary street feeders bootstrapped RNJ is better. Ranking of true over false lines: 0.97 for the margin (5 false lines, little power), 0.94 for
+  RNJ and 0.92 for NJ (161 and 232 false lines).
 
-Two limits to state in the paper:
-- **Full binary trees.** On the named street feeders (two lines out of every node) RNJ with tolerance 0 gets F1 90
-  against S2's 84, because it always returns a full binary tree and the true trees are full binary. S2 does not add lines
-  the data do not support. On random feeders, where nodes are wider, this advantage of RNJ is gone.
-- **Exactness of the search** is not what we claim: ablation A finds no difference to local search so far. What the MIQP gives is the
-  certificate, the evidence margin, and the one formulation that takes the source leaf.
+**Conclusion for the paper.** The MIQP is not claimed as a better search: against a multi-start local search it gains at most 3.3 units, changes
+the tree in 2 of 60 no-source cases and leaves F1 unchanged (86.1 against 85.8). Plain greedy (add the best line, never
+revise) is clearly insufficient, so a method that only adds lines is not enough. What is claimed is (i) the
+formulation that takes the source as a leaf, (ii) the certificate with completion, (iii) the evidence margin, whose advantage over bootstrapped
+RNJ and NJ is large on random feeders and reversed on full binary trees.
 
 ### WZZT-R against WZZT-C on the development library (60 no-source cases, at most 25 meters; complete)
 
