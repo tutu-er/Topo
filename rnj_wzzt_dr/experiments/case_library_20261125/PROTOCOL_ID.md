@@ -1,9 +1,14 @@
-# Protocol: the sealed identification test (DRAFT, not registered, not run)
+# Protocol: the sealed identification test (REGISTERED 2026-11-25)
 
-Status: draft of 2026-11-25. It becomes binding only when (i) the development verification of `final_dev.py` is finished and
-recorded in section 7, (ii) every blank is filled from development data only (done: section 3), and (iii) the file is committed
-and pushed with the status line changed to REGISTERED. Until then nothing of the sealed set (`test`, 240 cases, 60 feeders) has
-been opened by any identifier.
+Status: **REGISTERED** on 2026-11-25 by the commit that contains this line, pushed before the sealed run starts. The three
+conditions of the draft are met:
+- (i) the development verification of `final_dev.py` is finished and recorded in section 7;
+- (ii) every blank is filled from development data only (section 3);
+- (iii) the file is committed and pushed with this status line.
+
+Up to this commit, nothing of the sealed set (`test`, 240 cases, 60 feeders) has been opened by any identifier; the only check
+before use is each file against its manifest SHA-256. Sections 1 to 6 do not change after this commit. Anything that happens
+during the run (failures, interruptions) is logged in section 7 and analysed by the rules of section 4.
 
 ## 1. Method, frozen
 
@@ -182,3 +187,11 @@ It resumes after an interruption without rerunning finished cases.
 `python -m rnj_wzzt_dr.experiments.case_library_20261125.sealed_test analyse --stream test`. The output
 (`outputs/case_library_20261125/sealed_test.jsonl`, `sealed_test_primary.json`) is not committed; the analysis printout and
 its numbers go into the study record.
+
+## 9. Registration and run log
+
+- 2026-11-25, **registered.**
+  - The method is `identification/final.py` and its modules at this commit (the completion fix of `ada0d65` included).
+  - The runner and analysis are `sealed_test.py` at this commit.
+  - The tests of the study pass (33 of 33).
+  - The sealed run starts after this commit is pushed: `sealed_test run --stream test --workers 9`, once.

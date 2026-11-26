@@ -311,7 +311,7 @@ missing were recomputed on their final S1 trees.
 | I4 | Size: 26 to 60 meters, time, certified share | **complete** (blind and S2; time 1,913 s median at 41-59 meters with the bonus) | the scaling claim |
 | I5 | Resolution and data: hourly against quarter-hourly, history 2/4/8 days, meter classes | **complete** (840 runs; section above) | robustness |
 | I6 | Source size: 2, 5, 10%; kind; place (in I3) | **complete** (in I3) | when is a source locatable |
-| I7 | **Registered test on the sealed set** (`test`, 240 cases, 60 new feeders), opened once | not started | the paper's numbers |
+| I7 | **Registered test on the sealed set** (`test`, 240 cases, 60 new feeders), opened once | **registered; running** | the paper's numbers |
 
 ### What I7 will contain (to be registered before the sealed set is opened)
 
@@ -334,7 +334,7 @@ missing were recomputed on their final S1 trees.
    - All 288 twins are now certified, with 0 errors (section "The final method with the PCC" above).
 2. A fixed rule for the source evidence threshold: **fixed**, 4.6 half-BIC units = Bayes factor 100, as for lines.
 3. The tolerance choice of the baselines on development: **filled** (PROTOCOL_ID.md section 3, from `compare_dev` / `compare_source`).
-4. The protocol text: drafted (PROTOCOL_ID.md). **The user's go-ahead: given on 2026-11-25** ("do the first and second": adopt the bonus if it
+4. The protocol text: **registered** (PROTOCOL_ID.md, 2026-11-25). **The user's go-ahead: given on 2026-11-25** ("do the first and second": adopt the bonus if it
    costs nothing at 41-59 meters, then freeze, register and run the sealed test once). Item 1 is done.
 5. WZZT-R as a secondary comparator on the 60 no-source sealed cases: added after the WZZT-C confirmation ended "not confirmed"
    (PROTOCOL_ID.md sections 3 and 7). Dry run done: its trees are identical to the development WZZT-R run.
