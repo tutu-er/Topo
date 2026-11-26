@@ -167,16 +167,72 @@ condition of 2026-11-25 is met and the bonus (lam = 1.96) is in the method** (`S
 six feeders, and the plain run differs from v2 by 0.2 F1 points because the MIQPs stop at their time limits. **Time: 1,913 s median (2,205 s maximum)
 at 41-59 meters**, about twice the plain pipeline, since the continuation solves the tree twice. Not solved.
 
+### Robustness to less and poorer data (I5, complete: 840 runs, 0 errors; `robustness.py`)
+
+Development twins of at most 25 meters (24 star, 24 street, 12 random feeders), without a source and with one at the end; one change at a time
+from the baseline (hourly, 6 + 2 days, voltage 0.05%, P/Q 0.3% gain and 0.5% noise). The final method ran as it will be frozen: the rows
+started after the v2 commit, and the later two changes act only beyond 35 meters (continuation) or on a solver failure (fallback, not triggered).
+F1 against the identifiable truth (all segments of at least 3 milliohm), pooled over cases. **RNJ and NJ get their best tolerance in hindsight
+in every cell** (optimistic for them).
+
+| Condition | Star: S2 / RNJ | Street, no source: S2 / RNJ | Street, end source: S2 / RNJ | Random, no source: S2 / RNJ | Random, end source: S2 / RNJ |
+| --- | --- | --- | --- | --- | --- |
+| Baseline | **100** / 95.5 | 85.6 / **88.8** | 86.2 / **87.8** | **72.7** / 49.2 | **77.1** / 49.8 |
+| 3 + 1 days | **99.6** / 88.0 | **81.8** / 79.9 | **83.2** / 80.3 | **65.6** / 35.3 | **68.4** / 41.1 |
+| 1.5 + 0.5 days | **94.2** / 65.8 | **76.4** / 70.4 | **77.8** / 71.4 | **58.0** / 20.4 | **58.4** / 23.8 |
+| Quarter-hourly, 2 days | **100** / 98.6 | 87.5 / **89.8** | **90.1** / 89.8 | **73.9** / 57.3 | **74.6** / 58.7 |
+| Voltage 0.10% | **98.5** / 79.2 | 75.2 / **77.9** | 77.7 / **78.1** | **55.8** / 27.5 | **59.1** / 26.7 |
+| Voltage 0.20% | **76.3** / 50.3 | **58.5** / 57.1 | **60.7** / 57.5 | **30.9** / 15.1 | **35.3** / 18.5 |
+| P/Q 1.0% (PCC too) | **100** / 94.5 | 85.6 / **89.1** | 86.4 / **87.8** | **73.7** / 49.4 | **76.5** / 51.9 |
+
+(Star column: the no-source cases. With a source at the end, star S2 is 97 to 100 in every row except 79.7 at 0.20% voltage error; RNJ 66 to 98, and 52.)
+
+- **Our advantage grows as the data get worse.** With 2 days of hourly data the star F1 is 94 against 66, random 58 against 20. On the street
+  feeders RNJ, with its best tolerance, leads by 0.4 to 3.5 points when the data are as informative as the baseline (baseline, quarter-hourly,
+  1% P/Q, 0.10% voltage; the one exception is quarter-hourly with a source, +0.3 for us). We lead by 1.4 to 6.4 points with 4 days or fewer
+  and at 0.20% voltage error.
+- **Precision of S2:** at least 92% on star and street in every condition, and at least 94% except at 0.20% voltage error; 86-93% on random feeders,
+  and 74-77% at 0.20% voltage error. When information is lost the method drops lines; it rarely invents them.
+- **Voltage accuracy is what matters.** 1% P/Q error changes nothing. Doubling the voltage error costs 2 points on star, 8-10 on street and
+  17-18 on random; quadrupling it costs 20 to 42. Quarter-hourly readings over 2 days are as good as hourly ones over 8.
+- **Source (end):** placed within the 4.6-unit set in 418 of 420 runs (the two misses: one street run at 1% P/Q, one random run with 2 days).
+  Evidence above 4.6 in 403 of 420; it falls at 0.20% voltage error (51 of 60). **False alarms without a source: 0 of 420.**
+- **S2 against S1:** with a source, S2 is better in 17 of 21 cells (by up to 9.5 points), equal in 3 (star at 100) and worse in one (by 0.7).
+  Without a source the two agree within 0.4 points or S2 is better (up to 3.6 on star).
+
+### Worked examples (case study, 6 development cases; `case_study.py`, figure `outputs/case_library_20261125/case_study.png`)
+
+Chosen to show both strengths and the failure mode: three street twins of the old feeders, two random feeders where we do well, and the
+worst case of the development library. Same method version as the robustness study (the cases have at most 25 meters).
+
+| Case | Meters | Source | True lines | Ours: found / false | RNJ 0.08: found / false | Root-side lines, ours / RNJ |
+| --- | --- | --- | --- | --- | --- | --- |
+| paper15, street, load 1 | 15 | end | 13 | 9 / 0 | 8 / 0 | 4 / 3 of 5 |
+| flynn16, street, load 2 | 16 | none | 13 | 11 / 0 | 10 / 1 | 1 / 0 of 1 |
+| pengwah18, street, load 3 | 18 | end | 13 | 11 / 0 | 9 / 2 | 5 / 3 of 5 |
+| dev_small_002 | 14 | end | 9 | 7 / 0 | 6 / 1 | 5 / 3 of 5 |
+| dev_medium_005 | 16 | end | 11 | 7 / 0 | 7 / 7 | 2 / 2 of 2 |
+| dev_medium_003 (worst case) | 25 | none | 11 | 2 / 3 | 2 / 16 | 2 / 2 of 3 |
+| **Total** | | | **70** | **47 / 3** | **42 / 27** | **19 / 13 of 21** |
+
+- **What the examples show.** On the street twins, which favour RNJ on average, our method finds more lines and none false, and it finds the
+  lines near the transformer (root side) that a utility needs to map the trunk: 19 of 21 against 13 (RNJ misses 8 root-side lines, we miss 2).
+  RNJ's false lines are mostly small wrong groups (18 of its 27 are pairs or triples) that cut across the true groups.
+- **The source path is right in all four examples with a source:** every line of the returned path is on the true path (29 of 29, drawn in
+  green), and the place is the smallest returned line on it. The two examples without a source have evidence below zero (no false alarm).
+- **The failure (`dev_medium_003`)** is low information, not search: the true tree scores 31 half-BIC units worse than the returned one, because 7 of
+  its 11 lines are below the price (see above). Our method returns 5 lines, 3 of them false; RNJ returns 18, 16 of them false.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
 | --- | --- | --- | --- |
 | I1 | WZZT-C confirmation on the old inputs (running, unread) | running | non-inferiority to WZZT-R on the old cases |
-| I2 | **Ablation A:** the same candidate lines, exact MIQP against local search and greedy; B: S2 certificate; C: belief | running, development, 25 meters and fewer | whether exactness changes the trees; whether the certificate is needed |
-| I3 | Comparison on the development library: S2, S1, blind, RNJ, NJ, RG (each at all tolerances) with and without a source; n up to 59 | running | the numbers in N1 and N2 |
-| I4 | Size: 26 to 60 meters, time, certified share | running (blind), S2 still to do | the scaling claim |
-| I5 | Resolution and data: hourly against quarter-hourly, history 2/4/8 days, meter classes | not started | robustness |
-| I6 | Source size: 2, 5, 10%; kind; place (in I3) | running | when is a source locatable |
+| I2 | **Ablation A:** the same candidate lines, exact MIQP against local search and greedy; B: S2 certificate; C: belief | **complete** (240 cases), development, 25 meters and fewer | whether exactness changes the trees; whether the certificate is needed |
+| I3 | Comparison on the development library: S2, S1, blind, RNJ, NJ, RG (each at all tolerances) with and without a source; n up to 59 | **complete** (288 blind; with the PCC 240 cases of at most 25 meters and 48 of 26-59) | the numbers in N1 and N2 |
+| I4 | Size: 26 to 60 meters, time, certified share | **complete** (blind and S2; time 1,913 s median at 41-59 meters with the bonus) | the scaling claim |
+| I5 | Resolution and data: hourly against quarter-hourly, history 2/4/8 days, meter classes | **complete** (840 runs; section above) | robustness |
+| I6 | Source size: 2, 5, 10%; kind; place (in I3) | **complete** (in I3) | when is a source locatable |
 | I7 | **Registered test on the sealed set** (`test`, 240 cases, 60 new feeders), opened once | not started | the paper's numbers |
 
 ### What I7 will contain (to be registered before the sealed set is opened)
@@ -194,7 +250,8 @@ at 41-59 meters**, about twice the plain pipeline, since the continuation solves
 
 ## 3. What is missing before I7
 
-1. S2 with the completion step, run on development (2 to 59 meters) with times.
-2. A fixed rule for the source evidence threshold (4.6 half-BIC units = Bayes factor 100, as for lines).
-3. The tolerance choice of the baselines on development.
-4. The protocol text, and the user's go-ahead.
+1. S2 with the completion step and the bonus (the final method), on all 288 development twins with times: **running** (`final_dev --mode source`).
+2. A fixed rule for the source evidence threshold: **fixed**, 4.6 half-BIC units = Bayes factor 100, as for lines.
+3. The tolerance choice of the baselines on development: to fill in PROTOCOL_ID.md from `compare_dev` / `compare_source`.
+4. The protocol text: drafted (PROTOCOL_ID.md). **The user's go-ahead: given on 2026-11-25** ("do the first and second": adopt the bonus if it
+   costs nothing at 41-59 meters, then freeze, register and run the sealed test once). Registration waits only for item 1.
