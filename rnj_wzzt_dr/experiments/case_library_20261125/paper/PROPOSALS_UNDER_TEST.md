@@ -86,6 +86,10 @@ So the old 5e-4 pu equivalence level cannot mean "absent": it would also remove 
 Side finding: in `flynn16_street_l2_none` one true line is fitted at r = x = 0, with an effect of about 1e-22 pu. That
 line is invisible to the data; this is the identifiability limit of Theorem 1, and it needs a look.
 
+**Update (2026-11-26):** the development run of v12 on 240 twins (`DEV_RESULTS_V12.md`) gives first numbers for SR1
+(passes: 0 of 240 true trees flagged), SR3 (0.2% of decided groupings wrong) and TR2/TR4 (235 true lines nested and
+open, so T1 fails its criterion by far).
+
 ## 5. Tests that decide
 
 The pass criteria are written here before the tests run.
