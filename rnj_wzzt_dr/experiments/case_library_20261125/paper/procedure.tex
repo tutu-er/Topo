@@ -21,6 +21,9 @@
 %  one line (glue lemma, Wald form, consistency theorem); nested anchors
 %  certified by flip tests replace the top-level blocks; the anchored
 %  universe (exact decomposition) replaces the root step.
+%  Settings decided by the user (2026-11-26): psi at the knee of the
+%  development cost-coverage curve; flip tests get at least the time limit
+%  of the free tree MIQP (more time is preferred to more unsettled lines).
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -394,6 +397,13 @@ and it is bought only if $J_h(u^\ast)>0$. The bracket is the expected evidence t
 variation, counted only up to what each line still needs; $\psi$ prices one unit of evidence, so deciding a line from
 scratch is worth $\psi m$. The search covers the single-meter blocks and the rival-difference blocks at a grid of sizes.
 
+\paragraph*{Choice of $\psi$} On the development cases, Algorithm~\ref{alg:probe} runs for every $\psi$ on a grid
+$\psi_1<\dots<\psi_G$, which gives the mean cost per day $\bar c(\psi)$ and the coverage $\bar d(\psi)$, the share of target
+lines decided by the end of the day. With both scaled to $[0,1]$ over the grid, the default $\psi^\circ$ is the grid point
+farthest above the straight line from the first point to the last: the knee of the cost--coverage curve, beyond which each
+further share of coverage costs more than the average. The grid and $\psi^\circ$ are fixed before any test of probing runs,
+and the whole curve is reported.
+
 \paragraph*{Greedy, in plain words} Each hour the rule buys the one block that is worth most for the next hour alone. It does
 not plan the rest of the day and never revises a block; it chooses again when the next hour's data arrive, and stops buying
 when no block is worth its price.
@@ -602,7 +612,9 @@ Setting & Value\\
 $\lambda$; $m$ & 1.96; 4.6 (half-BIC units)\\
 $K$ & 9 units: larger nodes are searched by node pricing\\
 Anchor loop & at most two rounds\\
-Flip test & (\ref{eq:master}) with cutoff $H(T)+m$; local flips first; time limit to be set on development cases\\
+Flip test & (\ref{eq:master}) with cutoff $H(T)+m$; local flips first; stops as soon as the label is settled; time limit
+at least that of the free tree MIQP (120 s up to 35 meters, 240 s beyond), raised if development cases leave lines
+unsettled at the limit; the share that reaches the limit is reported\\
 Local-search incumbent & starts from the empty tree and the first three builders' trees; 20 s per start (40 s beyond 35
 meters); polish 20 s\\
 Tree MIQP limits & 120 s up to 35 meters (warm start and cutoff); 240 s beyond (cold start; the tree at $\lambda=0$ is an
@@ -612,7 +624,8 @@ hold the load\\
 Solver & Gurobi, one thread per case; a failed convex QP is repeated with SLSQP\\
 \midrule
 Probing & $c^\downarrow=4$, $c^\uparrow=1.2$ CNY/kWh; caps 20 CNY/h, 100 CNY/day; band $[0.96,1.035]$, $z=2.33$;
-$\kappa_A=1.2$; $\psi$ swept, default chosen on development cases\\
+$\kappa_A=1.2$; $\psi$ swept over a grid, default $\psi^\circ$ at the knee of the development cost--coverage curve
+(Section~\ref{sec:probe})\\
 \bottomrule
 \end{tabular}
 \end{table}
