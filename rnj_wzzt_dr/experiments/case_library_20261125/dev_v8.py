@@ -114,7 +114,7 @@ def run_one(task):
                    score=f1(tree, truth), truth=[list(M) for M in sorted(truth)], label_truth=label_truth,
                    adequacy=fits,
                    complete=bool(priced) and priced[-1]["still_paying"] is None and bool(priced[-1]["certified"]),
-                   **{k: v for k, v in r.items() if k != "lines"})
+                   **{k: v for k, v in r.items() if k not in ("lines", "pool")})
         return name, row, None, time.perf_counter()-started
     except Exception:
         return name, None, traceback.format_exc(), time.perf_counter()-started

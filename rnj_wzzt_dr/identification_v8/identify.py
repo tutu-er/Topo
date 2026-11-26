@@ -1,4 +1,4 @@
-"""Algorithm 1 of method draft v11 (Identify): load gate, tree, anchors and labels. Development only.
+"""Algorithm 1 of method draft v12 (Identify): load gate, tree, anchors and labels. Development only.
 
     python -m rnj_wzzt_dr.identification_v8.identify --names dev_small_003_head [--blind] [--out FILE]
 
@@ -9,9 +9,10 @@ Lines of Algorithm 1 and where they are:
         load placed in each builder tree at its best place                                       with_load, place_load
   3     first tree: local search, then the tree MIQP                                             solve
   4-8   anchors = decided groupings (labels.py); the anchored universe (anchors.py); the tree MIQP over it with every
-        anchor required; pricing and a re-solve (price); until the stopping rule holds or `rounds` searches were made
+        anchor required; pricing and a re-solve (price); until the stopping rule holds or `rounds` searches were
+        made (refine, which Algorithm 2 also calls at every gate)
   9-11  labels of the last tree
-  12    with a load: its path, its places, and its evidence with bounds (evidence)
+  12    with a load: its path, its places (place_costs), and its evidence with bounds (evidence)
 """
 from __future__ import annotations
 
@@ -145,7 +146,8 @@ def evidence(model, tree, meter_pool, seconds, st):
 def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     """Algorithm 1 on all slots of one feeder (P, Q, Y = V0^2 - V^2: T x n; V0sq: T; Ppcc, Qpcc: T or None).
 
-    Returns dict(gate, tree (meter groupings), lines (over all leaves), anchors, labels, rounds, stop, model) and,
+    Returns dict(gate, tree (meter groupings), lines and pool (over all leaves), anchors, labels, rounds, stop,
+    model) and,
     with a load, dict(path, places, evidence) as well."""
     say = log or (lambda *_: None)
     started = time.perf_counter()
@@ -176,8 +178,31 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     timing["first_tree"] = time.perf_counter()-t0
     say(f"  first tree: {len(tree)} lines over {first['pool']} candidates, MIQP status {first['status']}")
 
+    r = refine(model, tree, pool, st, say)                                   # lines 4-11
+    tree, pool, labels, anchors = r["tree"], r["pool"], r["labels"], r["anchors"]
+    meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
+    out = dict(gate=gate, tree=meter_tree, lines=tree, pool=pool, anchors=anchors, rounds=r["rounds"], stop=r["stop"],
+               labels=label_rows(labels, anchors),
+               model=dict(sigma2=model.sigma2, alpha=model.alpha, gamma=model.gamma, p_s=model.p_s, N=model.N,
+                          crit=Fitter(model, tree).crit(tree)), settings=asdict(st))
+    if load:                                                                 # line 12
+        out["places"] = [(gap, str(D)) for gap, D, _ in place_costs(model, meter_tree)]
+        out["path"] = [list(tuple(i for i in C if i < n)) for C in sorted(tree, key=len, reverse=True) if n in C]
+        if st.evidence:
+            out["evidence"] = evidence(model, tree, [g for g in (grouping(C, n) for C in pool) if g], seconds, st)
+    timing["total"] = time.perf_counter()-started
+    out["timing"] = timing
+    return out
+
+
+def refine(model, tree, pool, st, say=lambda *_: None):
+    """Lines 4-11 from a tree and a pool: label, take the decided groupings as anchors, solve over the anchored universe
+    with every anchor required, price; until the stopping rule (Lemma 3) holds or `rounds` searches were made.
+    Algorithm 2 calls it at every gate on all data so far. Returns dict(tree, pool, labels, anchors, rounds, stop)."""
+    n, load = model.n, model.leaves > model.n
+    seconds = st.short_seconds if n <= st.warm_n else st.long_seconds
     rounds, previous, stop = [], None, None
-    for rnd in range(st.rounds+1):                                           # lines 4-11
+    for rnd in range(st.rounds+1):
         t0 = time.perf_counter()
         labels, linfo = label_groupings(model, tree, pool, st.m, st.flip_seconds or seconds, st.seed, say, st.tighten)
         anchors = canonical(M for M, l in labels.items() if l["inside"] and l["label"] == DECIDED)
@@ -208,27 +233,23 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
         rounds.append(record)
         previous = anchors
     say(f"  stop: {stop}")
+    return dict(tree=tree, pool=pool, labels=labels, anchors=anchors, rounds=rounds, stop=stop)
 
-    meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
-    out = dict(gate=gate, tree=meter_tree, lines=tree, anchors=anchors, rounds=rounds, stop=stop,
-               labels=[dict(grouping=list(M), inside=l["inside"], anchor=M in set(anchors), label=l["label"],
-                            gap=[None if g is None else float(g) for g in l["gap"]], status=l["status"],
-                            seconds=l["seconds"], rival=None if l["rival"] is None else [list(C) for C in l["rival"]])
-                       for M, l in sorted(labels.items(), key=lambda kv: (len(kv[0]), kv[0]))],
-               model=dict(sigma2=model.sigma2, alpha=model.alpha, gamma=model.gamma, p_s=model.p_s, N=model.N,
-                          crit=Fitter(model, tree).crit(tree)), settings=asdict(st))
-    if load:                                                                 # line 12
-        half = model.N/2
-        options = load_options(meter_tree, n)
-        fit = Fitter(model, [C for _, o in options for C in o])
-        costs = sorted((fit.crit(o), str(D)) for D, o in options)
-        out["places"] = [(half*(c-costs[0][0]), D) for c, D in costs]
-        out["path"] = [list(tuple(i for i in C if i < n)) for C in sorted(tree, key=len, reverse=True) if n in C]
-        if st.evidence:
-            out["evidence"] = evidence(model, tree, [g for g in (grouping(C, n) for C in pool) if g], seconds, st)
-    timing["total"] = time.perf_counter()-started
-    out["timing"] = timing
-    return out
+
+def label_rows(labels, anchors):
+    """The labels as plain rows (lists, floats), smallest groupings first."""
+    return [dict(grouping=list(M), inside=l["inside"], anchor=M in set(anchors), label=l["label"],
+                 gap=[None if g is None else float(g) for g in l["gap"]], status=l["status"],
+                 seconds=l["seconds"], rival=None if l["rival"] is None else [list(C) for C in l["rival"]])
+            for M, l in sorted(labels.items(), key=lambda kv: (len(kv[0]), kv[0]))]
+
+
+def place_costs(model, meter_tree):
+    """Line 12: every place of the load in the tree, [(gap to the best in half-BIC units, place, lines)], best first."""
+    options = load_options(meter_tree, model.n)
+    fit = Fitter(model, [C for _, o in options for C in o])
+    costs = sorted((fit.crit(o), str(D), o) for D, o in options)
+    return [(model.N/2*(c-costs[0][0]), D, o) for c, D, o in costs]
 
 
 # ------------------------------------------------------------------ development runs (never the sealed set)

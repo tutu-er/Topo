@@ -1,4 +1,4 @@
-"""Checks of draft v8's code.
+"""Checks of draft v12's code (identification and probing).
 
     python -m rnj_wzzt_dr.identification_v8.test_v8          set logic, against brute force (no solver, no data)
     python -m rnj_wzzt_dr.identification_v8.test_v8 --data   also: the model and the MIQP reproduce the registered
@@ -152,9 +152,42 @@ def test_gate_bounds_and_node_miqp(group="dev_small_003"):
     assert abs(f.crit([enum_line])-f.crit([miqp_line])) <= 1e-7, (enum_line, miqp_line)
 
 
+def test_kappa():
+    """Eq. 15: kappa(delta, q) = E min(delta, Z), Z ~ N(q/2, q): the draft's example (q = 2, delta = 1 gives 0.436) and a
+    Monte Carlo estimate."""
+    import math
+    import numpy as np
+    from .probe import kappa
+    assert abs(kappa(1., 2.)-.436) < 1e-3
+    rng = np.random.default_rng(1)
+    for delta, q in ((.5, .3), (3., 8.), (0., 1.), (-.2, .05)):
+        z = rng.normal(q/2, math.sqrt(q), 400_000)
+        assert abs(kappa(delta, q)-np.minimum(delta, z).mean()) < 5e-3, (delta, q)
+
+
+def test_block_gradients(name="dev_small_003_head"):
+    """probe.prediction: a block of size eps at meter i moves the S-weighted prediction by eps ds[:, i] and the
+    predicted V0^2 - V^2 by eps dy[:, i] (both are linear in the meters' flows), with the load modelled."""
+    import numpy as np
+    from .identify import load_dev_case, with_load
+    from .probe import forecast, prediction, setup
+    rec, inp = load_dev_case(name)
+    data = {k: np.asarray(inp.hist[k], float) for k in ("P", "Q", "Y", "V0sq", "Ppcc", "Qpcc")}
+    model, fp, fq = setup(data, True, type("St", (), {"lam": 1.96})())
+    n = model.n
+    family = with_load(canonical(C for C in rec["truth"] if 1 < len(C) < n), n)[:6]
+    fc = forecast(data, fp, fq, 13)
+    base = prediction(model, family, fc)
+    for i in (0, n-1):
+        moved = dict(fc, p=fc["p"]+1e-3*np.eye(model.leaves)[i])
+        after = prediction(model, family, moved)
+        assert np.allclose(after["s"]-base["s"], 1e-3*base["ds"][:, i], atol=1e-13)
+        assert np.allclose(after["y"]-base["y"], 1e-3*base["dy"][:, i], atol=1e-13)
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
-        needs_data = name in ("test_matches_registered_code", "test_gate_bounds_and_node_miqp")
+        needs_data = name in ("test_matches_registered_code", "test_gate_bounds_and_node_miqp", "test_block_gradients")
         if name.startswith("test_") and (not needs_data or "--data" in sys.argv):
             fn()
             print("ok", name, flush=True)
