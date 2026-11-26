@@ -112,3 +112,20 @@ The pass criteria are written here before the tests run.
 - **Operational equivalence** (5e-4 pu) for near-twin crossing rivals, so that they do not become targets. Section 4
   shows it cannot be used to call a line absent.
 - **Low-belief report in identification** (the F of S1), reported even when no probing is planned.
+
+## 7. Issue found while coding Algorithm 2 (2026-11-26; not changed)
+
+**kappa is not monotone in q.** kappa(delta, q) = E min(delta, Z), Z ~ N(q/2, q), first falls and then rises as q
+grows when the deficit delta is small. The spread of Z grows like sqrt(q), faster than its mean q/2, and the lower tail
+counts in full.
+
+- Numbers from `identification_v8/probe.py` on `dev_small_003_head`: a target with gap 4.58 (delta = 0.02) has
+  kappa = -0.018 passively (q = 0.005) and -0.108 with a 9 kW block (q = 0.15).
+- So eq. 15 can give a block a *negative* value for a target that is almost decided. J then avoids probing exactly the
+  targets that need the least evidence.
+- A monotone alternative to test: the chance that the hour's evidence closes the deficit,
+  P(Z >= delta) = F0((q/2 - delta)/sqrt(q)), with psi in CNY per decision. Its argument increases in q for every
+  delta >= 0.
+
+**Draft gap fixed in the code.** In Algorithm 2 the block bought at gate 22 runs in hour 23, after the last relabelling,
+so its readings were never used. `probe.py` adds one gate after hour 23.
