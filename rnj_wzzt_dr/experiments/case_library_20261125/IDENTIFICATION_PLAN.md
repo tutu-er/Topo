@@ -243,25 +243,61 @@ Per-case F1 against the identifiable truth, the protocol's own statistic (one ca
 - RNJ's tolerance 0.04 is the one chosen on the random feeders, the only kind in the sealed set; on star and street feeders a
   higher tolerance suits it better (section 3 of PROTOCOL_ID.md).
 
+### The final method with the PCC on all 288 development twins (after the completion fix; `final_source.jsonl`, 0 errors)
+
+The 39 twins affected by the completion defect were rerun with the fix (PROTOCOL_ID.md section 7). The other 249 twins take the
+same code path and keep their first-run results. Per-case F1, with precision in brackets:
+
+| With an unmetered load | S2, final | S1, final | S2 before (no bonus, no completion) | Final method without the PCC | RNJ, projected, 0.08 | Place covered | Time, median / 90% / max |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Star (72) | 100 (100) | 100 | 100 | 94.7 | 79.8 | 71 of 72 | 8 / 12 / 15 s |
+| Street (72) | **85.8** (99) | 84.1 | 84.0 | 76.1 | 84.1 | 71 of 72 | 10 / 19 / 31 s |
+| Random small (18) | **77.7** (96) | 76.1 | 76.1 | 69.9 | 62.9 | 18 of 18 | 7 / 28 / 38 s |
+| Random medium (18) | **70.8** (86) | 67.5 | 68.8 | 59.3 | 42.9 | 18 of 18 | 260 / 561 / 761 s |
+| Random large (18) | **71.5** (96) | 65.9 | 64.5 | 57.2 | 41.8 | 18 of 18 | 651 / 1,326 / 1,621 s |
+| Random huge (18) | **69.5** (85) | 65.4 | 62.5 | 54.3 | 26.3 | 18 of 18 | 2,351 / 2,862 / 2,880 s |
+
+- **Without an unmetered load** (72 twins), S2 is as good as the blind tree or better: star 100, street 85.2, random 76.1, 68.4,
+  70.3 and 68.6 by size. The source evidence is above 4.6 on 0 of the 72 (false alarms). With a source, it is above 4.6 on 53 of 72
+  at the head, 66 of 72 in the middle and 71 of 72 at the end.
+- **Certificates:** all 288 twins are certified, and no completion step is stuck. Before the fix, 31 cases of 16 meters or more
+  ended uncertified after 10 rounds. Completion rounds per case:
+  - huge: 1 to 5;
+  - large: 1 to 5, and 10 of 24 need one round;
+  - medium: 1 to 3;
+  - small, star and street: always 1.
+- **What the fix changed** (35 twins with results before and after; 4 twins of `dev_huge_004` had not finished before):
+  - S2 F1 rose from 69.7 to 74.3: better on 27 twins, equal on 3, worse on 5.
+  - Certified twins went from 4 to 35.
+  - The median time fell from 2,041 s to 1,132 s, and the maximum from 4,341 s to 2,878 s.
+  - S1 runs the same code as before and is identical on 28 of the 35 twins; the other 7 are wall-clock differences beyond 35
+    meters.
+  - The fix was kept before the rerun was read (PROTOCOL_ID.md section 7).
+- **Sealed-test duration:** a huge case needs about 2,350 s with the PCC plus about 1,900 s blind, so 70 minutes or more. With
+  the large and medium cases, the estimate is about 110 CPU hours, or roughly 10 hours on 12 workers.
+
 ### Likely lines (development check of the secondary output; `identification/likely.py`, `likely_dev.py`; 0 errors)
 
 The candidate lines left out of a returned tree whose evidence misses the line price by less than 4.6 half-BIC units (the line swapped
 into the tree, the tree lines it crosses removed). Computed after the tree; it never changes it.
 
-| Feeders | Blind trees (72 no-source cases): listed per case, share true | S1 trees (277 twins): listed per case, share true |
+| Feeders | Blind trees (72 no-source cases): listed per case, share true | S1 trees (all 288 twins, after the completion fix): listed per case, share true |
 | --- | --- | --- |
 | Star | 1.1, 0% (0/26) | 1.4, 0% (0/131) |
 | Street | 2.0, 81% (38/47) | 2.1, 82% (163/199) |
 | Random small | 3.5, 33% (7/21) | 3.4, 29% (24/82) |
 | Random medium | 6.0, 31% (11/36) | 5.5, 38% (50/132) |
-| Random large | 6.3, 66% (25/38) | 6.3, 64% (97/152) |
-| Random huge | 8.0, 46% (22/48) | 7.0, 44% (40/91; 13 twins) |
-| **All** | **3.0, 47.7% (103/216); holds 103 of the 259 missed true lines** | **2.8, 47.5% (374/787); holds 374 of 929** |
+| Random large | 6.3, 66% (25/38) | 6.3, 64% (96/151) |
+| Random huge | 8.0, 46% (22/48) | 8.8, 40% (84/211) |
+| **All** | **3.0, 47.7% (103/216); holds 103 of the 259 missed true lines** | **3.1, 46.0% (417/906); holds 417 of 1,101** |
 
-- **Closeness to the price is what counts.** Within 2 units: 66% true on blind trees (25/38) and 79% on S1 trees (107/135); 2 to 4.6
-  units: 44% (78/177) and 41% (267/648). Lines that would improve the score (the search stopped short, large feeders only) are 0 of 1
-  and 0 of 4 true.
-- **The source does not matter:** 45 to 52% true at every source place (none, head, middle, end).
+The S1 column first covered 277 twins: 2.8 lines per case, 47.5% true. The 40 twins that the completion rerun touched or that were
+missing were recomputed on their final S1 trees.
+
+- **Closeness to the price is what counts.** Within 2 units of the price, 66% of the listed lines are true on blind trees (25/38)
+  and 71% on S1 trees (117/165). From 2 to 4.6 units: 44% (78/177) and 41% (298/724). Lines that would improve the score, where the
+  search stopped short (huge feeders only), are 0 of 1 and 2 of 17 true.
+- **The source does not matter:** 45 to 48% true at every source place (none, head, middle, end).
 - **Star trees miss nothing**, so every listed line there is false (about one per case). The list reads "check these", not "these
   are there": on street feeders and large random feeders it holds many of the lines the tree misses.
 
@@ -292,10 +328,13 @@ into the tree, the tree lines it crosses removed). Computed after the tree; it n
 
 ## 3. What is missing before I7
 
-1. S2 with the completion step and the bonus (the final method), on all 288 development twins with times: 283 finished; a defect
-   of the completion step was found (the MIQP stopped at its time limit and returned the tree without the paying line, so 31
-   of 67 cases of 16 meters or more never completed) and fixed; **rerun of the 39 affected twins running** (PROTOCOL_ID.md section 7).
+1. S2 with the completion step and the bonus (the final method) on all 288 development twins, with times: **done**.
+   - A defect of the completion step was found: the MIQP stopped at its time limit and returned the tree without the paying line,
+     so 31 of 67 cases of 16 meters or more never completed. It was fixed, and the 39 affected twins were rerun.
+   - All 288 twins are now certified, with 0 errors (section "The final method with the PCC" above).
 2. A fixed rule for the source evidence threshold: **fixed**, 4.6 half-BIC units = Bayes factor 100, as for lines.
 3. The tolerance choice of the baselines on development: **filled** (PROTOCOL_ID.md section 3, from `compare_dev` / `compare_source`).
 4. The protocol text: drafted (PROTOCOL_ID.md). **The user's go-ahead: given on 2026-11-25** ("do the first and second": adopt the bonus if it
-   costs nothing at 41-59 meters, then freeze, register and run the sealed test once). Registration waits only for item 1.
+   costs nothing at 41-59 meters, then freeze, register and run the sealed test once). Item 1 is done.
+5. WZZT-R as a secondary comparator on the 60 no-source sealed cases: added after the WZZT-C confirmation ended "not confirmed"
+   (PROTOCOL_ID.md sections 3 and 7). Dry run done: its trees are identical to the development WZZT-R run.

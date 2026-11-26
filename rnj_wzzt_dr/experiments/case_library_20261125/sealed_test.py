@@ -10,6 +10,7 @@ Per case (the same readings for every method: `build.to_input` defaults, hourly,
   blind    the final method without the PCC (identification/final.py, default Settings, lam = 1.96)
   source   the final method with the PCC: S1 tree, S2 located tree, path, places, source evidence
   plain    the final method without the PCC and without the structural prior (lam = 0); no-source twins only (secondary)
+  wzzt_r   WZZT-R (revised.fit, RevisedConfig defaults, frozen by D2), no-source twins only (secondary comparator)
   likely   the likely-lines list (identification/likely.py) of the blind tree and of the S1 tree (secondary output)
   blind|<builder>|<tol>      RNJ, NJ, RG on the blind matrix (combo.setup's R), every tolerance
   projected|<builder>|<tol>  the same on the source-projected matrix (source.setup_projected's R)
@@ -135,6 +136,13 @@ def run_one(job):
             out["plain"] = dict(lines=cd.as_lists(inner(r["tree"], n)), seconds=time.perf_counter()-t0)
         except Exception:
             out["errors"]["plain"] = traceback.format_exc()[-1500:]
+        try:                                                                        # secondary comparator: WZZT-R (frozen, D2)
+            t0 = time.perf_counter()
+            w = rv.fit(tr, va, rv.RevisedConfig())                                  # as in compare_dev.py --wzzt_r
+            out["methods"]["wzzt_r"] = cd.as_lists(inner(w["selected"], n))
+            out["wzzt_r"] = dict(seconds=time.perf_counter()-t0, certified=w["e"].get("certified"))
+        except Exception:
+            out["errors"]["wzzt_r"] = traceback.format_exc()[-1500:]
     return json.loads(json.dumps(out, default=plain_value))
 
 
@@ -300,8 +308,8 @@ def analyse(stream):
     broken = [r for r in rows if "error" in r]
     rows = [r for r in rows if "error" not in r]
     print(f"{stream}: {len(rows)} cases, {len(broken)} unreadable, method failures:",
-          {k: sum(k in r["errors"] for r in rows) for k in ("blind", "source_aware", "plain", "blind_builders", "projected_builders",
-                                                        "likely_blind", "likely_s1")})
+          {k: sum(k in r["errors"] for r in rows) for k in ("blind", "source_aware", "plain", "wzzt_r", "blind_builders",
+                                                        "projected_builders", "likely_blind", "likely_s1")})
     print("\nPRIMARY (feeder-cluster bootstrap within size class, equal class weight, Holm over H1-H4 at 5%)")
     res = hypotheses(rows)
     for h, v in res.items():
@@ -315,7 +323,7 @@ def analyse(stream):
     none = [r for r in rows if r["source"] is None]
     some = [r for r in rows if r["source"] is not None]
     for label, sub, methods in (
-            ("no source", none, ["blind", "plain"]+[f"blind|{b}|{t}" for b in BUILDERS for t in TOLERANCES]),
+            ("no source", none, ["blind", "plain", "wzzt_r"]+[f"blind|{b}|{t}" for b in BUILDERS for t in TOLERANCES]),
             ("with a source", some, ["s2", "s1", "blind"]+[f"projected|{b}|{t}" for b in BUILDERS for t in TOLERANCES])):
         for c in CLASSES+("all",):
             rs = [r for r in sub if c == "all" or size_class(r) == c]
@@ -333,6 +341,13 @@ def analyse(stream):
                 pre = "blind" if label == "no source" else "projected"
                 best = max(TOLERANCES, key=lambda t: pooled(rs, f"{pre}|{b}|{t}")["mean_case_f1"])
                 print(f"    {b} best in hindsight: {best} (case-F1 {pooled(rs, f'{pre}|{b}|{best}')['mean_case_f1']:.1f})")
+    print("\n  final method without the PCC against WZZT-R (no-source cases; feeder bootstrap as for H1; no decision rests on it)")
+    for a, b in (("blind", "wzzt_r"), ("plain", "wzzt_r")):
+        fm = feeder_means(none, lambda r, a=a, b=b: f1(r, lines_of(r, a))-f1(r, lines_of(r, b)))
+        if fm:
+            bs = bootstrap(fm)
+            print(f"    F1 {a} minus {b}: {100*estimate(fm):+.1f} points [{np.percentile(100*bs, 2.5):+.1f}, {np.percentile(100*bs, 97.5):+.1f}]"
+                  f" ({len(none)} cases)")
     print("\n  by source place / share / kind: S2 case-F1, blind case-F1, coverage, evidence > 4.6")
     for key in ("source", "share", "kind"):
         for v in sorted({r[key] for r in some}, key=str):
@@ -342,11 +357,12 @@ def analyse(stream):
     print("\n  certified and time (seconds per case, one solver thread, several cases in parallel)")
     for c in CLASSES:
         rs = [r for r in rows if size_class(r) == c]
-        for part in ("blind", "source_aware"):
+        for part in ("blind", "source_aware", "wzzt_r"):
             sec = [r[part]["seconds"] for r in rs if part in r]
-            cert = sum(r[part]["certified"] for r in rs if part in r)
+            cert = sum(bool(r[part]["certified"]) for r in rs if part in r)
+            runs = len([r for r in rs if r["source"] is None]) if part == "wzzt_r" else len(rs)   # WZZT-R: no-source cases only
             if sec:
-                print(f"    {c:6s} {part:12s} certified {cert}/{len(rs)}  median {np.median(sec):6.0f}  p90 {np.percentile(sec, 90):6.0f}  max {max(sec):6.0f}")
+                print(f"    {c:6s} {part:12s} certified {cert}/{runs}  median {np.median(sec):6.0f}  p90 {np.percentile(sec, 90):6.0f}  max {max(sec):6.0f}")
     print("\n  likely lines (identification/likely.py, excluded candidate lines with evidence above -4.6; secondary output)")
     for label, part, key, sub in (("blind tree, no source", "blind", "likely", none), ("blind tree, with a source", "blind", "likely", some),
                                   ("S1 tree, no source", "source_aware", "likely_s1", none), ("S1 tree, with a source", "source_aware", "likely_s1", some)):

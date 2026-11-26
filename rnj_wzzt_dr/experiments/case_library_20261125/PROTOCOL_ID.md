@@ -47,6 +47,10 @@ the choice above for RNJ and NJ, and 0.7 and 3.4 points for RG.) Every tolerance
 after-the-fact best. The final method without the structural prior (`lam = 0`) is run on the no-source cases only, as a
 secondary ablation.
 
+**WZZT-R** (`revised.fit`, `RevisedConfig` defaults, frozen by D2, as in `compare_dev.py --wzzt_r`) is run on the 60 no-source
+cases as a secondary comparator. It was added after the WZZT-C confirmation ended "not confirmed"
+(`wzzt_evidence_20261124/RESULTS_WZZT_C.md`), which keeps WZZT-R as the reference method (section 7). No hypothesis uses it.
+
 ## 4. Failure rule
 
 A method that crashes or returns nothing gets an empty tree for that case, for every metric (source evidence 0, place not
@@ -82,7 +86,9 @@ not the "supported" lines, because the support judge uses our own score), exact 
 share and kind; S1 against S2; the share of certified trees; time per case (median, 90th percentile, maximum), with one
 solver thread per case (Gurobi Threads = 1, BLAS 1 thread) and several cases in parallel on a 16-core machine; every
 tolerance and the after-the-fact best of each builder; the structural prior on and off (H1 cases); the margin's calibration
-(share of true lines by margin class). No decision rests on them.
+(share of true lines by margin class). The final method without the PCC (with and without the structural prior) against
+WZZT-R on the no-source cases: the F1 difference with the H1 bootstrap, its interval, WZZT-R's time and certified share. No
+decision rests on them.
 
 **Likely lines** (added by the user's decision of 2026-11-25, before registration). For the blind tree and for the S1 tree of
 every case: the candidate lines of the method's own candidate families that are not in the tree and whose evidence misses the
@@ -138,12 +144,41 @@ true lines the list holds; by size class and with and without a source. A failed
     take the same code path as before.
   - **Check.** On `dev_small_003_none` and `dev_small_003_middle`, with `final.fit` forced to fail, all 30 comparator results
     are identical to the stored dry run, and the analysis reads the final method as empty.
-- (pending) development verification of the final method with the source: the rerun of the 39 twins.
+- 2026-11-25, **development verification complete** (`final_source.jsonl`, 288 twins, 0 errors).
+  - **The rerun.** The 39 twins were rerun with the fix and merged with the 249 twins that never reached the defect.
+  - **Certificates.** All 288 are certified, and no completion step is stuck. Completion takes 1 to 5 rounds.
+  - **Accuracy.** S2 F1 by group, against RNJ (projected, 0.08):
+    - star 100 against 80; street 85.8 against 84.1;
+    - random small 77.7 against 62.9, medium 70.8 against 42.9, large 71.5 against 41.8, huge 69.5 against 26.3.
+  - **The source.** The place is covered in 214 of 216 source twins. The evidence is above 4.6 on 0 of the 72 no-source twins.
+  - **What the fix changed** (35 twins with results before and after; as decided, it stays whatever the rerun shows):
+    - S2 F1 rose from 69.7 to 74.3: better on 27, equal on 3, worse on 5;
+    - certified twins went from 4 to 35;
+    - the median time fell from 2,041 s to 1,132 s;
+    - S1 is identical on 28 of the 35 twins; the rest are wall-clock differences beyond 35 meters.
+  - **Time with the PCC:** 2,351 s median at 41-59 meters (90th percentile 2,862 s).
+  - **Likely lines** on all 288 S1 trees: 3.1 lines listed per case, 46.0% of them true, holding 417 of the 1,101 missed true
+    lines.
+  - Details: IDENTIFICATION_PLAN.md.
+- 2026-11-25, **dry run repeated** with the isolated runner on the same eight development cases: 0 failures. Every comparator at
+  every tolerance on both matrices, and S1 and S2, are identical to `compare_dev`, `compare_source` and the merged
+  `final_source`. The analysis runs end to end.
+- 2026-11-25, **WZZT-R added as a secondary comparator** (section 3), before registration.
+  - The user had been asked. Under the standing instruction "self decide what to do", I added it without waiting for the answer,
+    because leaving it out could not be undone after the sealed set is opened, while adding it can still be dropped from the
+    report. The user may still remove it before the run.
+  - It runs last in each no-source job, in its own try block. No hypothesis uses it.
+  - Dry run on the same eight cases: 0 failures. WZZT-R's trees on the three no-source cases are identical to
+    `compare_dev_wzzt_r.jsonl`, and it is not run on the source twins. Everything else is identical, as before.
 
 ## 8. Running
 
-`python -m rnj_wzzt_dr.experiments.case_library_20261125.sealed_test run --stream test --workers <k>`, largest cases first,
-once; it resumes after an interruption without rerunning finished cases. Then
+`python -m rnj_wzzt_dr.experiments.case_library_20261125.sealed_test run --stream test --workers 9`, largest cases first, once.
+It resumes after an interruption without rerunning finished cases.
+- Nine workers is the load of the development verification. The searches stop at wall-clock limits, so the machine load is part
+  of the method's conditions.
+- Expected duration: about 130 CPU hours, which is 14 to 16 hours on nine workers.
+- There is no overall time limit: every case runs to its end. Then
 `python -m rnj_wzzt_dr.experiments.case_library_20261125.sealed_test analyse --stream test`. The output
 (`outputs/case_library_20261125/sealed_test.jsonl`, `sealed_test_primary.json`) is not committed; the analysis printout and
 its numbers go into the study record.
