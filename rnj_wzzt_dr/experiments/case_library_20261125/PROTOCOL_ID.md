@@ -51,6 +51,9 @@ secondary ablation.
 
 A method that crashes or returns nothing gets an empty tree for that case, for every metric (source evidence 0, place not
 covered). The log keeps the trace. A case where the comparators crash counts as an empty tree for them. Nothing is removed.
+Every method runs in its own try block. When the final method fails, the comparators' set-up (`combo.setup`, or
+`source.setup_projected`) is run alone for them, so one failure cannot empty another method. A case whose file fails its hash
+check, or whose readings cannot be built, has no data for any method. It is listed and left out for all methods alike.
 
 ## 5. Primary endpoints
 
@@ -125,6 +128,16 @@ true lines the list holds; by size class and with and without a source. A failed
   rerun: the fix stays whatever the rerun shows**, because it makes the step do what it states. The 39 affected twins (more
   than one completion round, or unfinished when the defect was found) are rerun (`final_dev run --mode source --tag _fix
   --names ...`); twins certified in the first round take the same code path and keep their results.
+- 2026-11-25, **runner isolation** (before registration).
+  - **What happened.** In the WZZT-C confirmation (`wzzt_evidence_20261124/RESULTS_WZZT_C.md`), one job ran WZZT-C to the end.
+    WZZT-R then crashed in the same job, and WZZT-C's result was lost.
+  - **The gap in `sealed_test.run_one`.** The blind and projected comparators reused the final method's set-up inside the same
+    try block. So a failure of the final method would also have emptied them, which turns a loss for us into a tie.
+  - **The change.** Each method now has its own try block. When the final method fails, its set-up (`final.guarded` around
+    `combo.setup`, or around `source.setup_projected`) is run alone for the comparators. Cases where the final method works
+    take the same code path as before.
+  - **Check.** On `dev_small_003_none` and `dev_small_003_middle`, with `final.fit` forced to fail, all 30 comparator results
+    are identical to the stored dry run, and the analysis reads the final method as empty.
 - (pending) development verification of the final method with the source: the rerun of the 39 twins.
 
 ## 8. Running

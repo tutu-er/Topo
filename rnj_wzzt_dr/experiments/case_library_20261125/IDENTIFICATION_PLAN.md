@@ -269,7 +269,7 @@ into the tree, the tree lines it crosses removed). Computed after the tree; it n
 
 | # | Experiment | State | What it decides |
 | --- | --- | --- | --- |
-| I1 | WZZT-C confirmation on the old inputs (running, unread) | running | non-inferiority to WZZT-R on the old cases |
+| I1 | WZZT-C confirmation on the old inputs | **done: not confirmed** (C1a, C2a-c hold; C1b on the 13 clean inputs not shown, decided by one failed job; `wzzt_evidence_20261124/RESULTS_WZZT_C.md`) | non-inferiority to WZZT-R on the old cases |
 | I2 | **Ablation A:** the same candidate lines, exact MIQP against local search and greedy; B: S2 certificate; C: belief | **complete** (240 cases), development, 25 meters and fewer | whether exactness changes the trees; whether the certificate is needed |
 | I3 | Comparison on the development library: S2, S1, blind, RNJ, NJ, RG (each at all tolerances) with and without a source; n up to 59 | **complete** (288 blind; with the PCC 240 cases of at most 25 meters and 48 of 26-59) | the numbers in N1 and N2 |
 | I4 | Size: 26 to 60 meters, time, certified share | **complete** (blind and S2; time 1,913 s median at 41-59 meters with the bonus) | the scaling claim |

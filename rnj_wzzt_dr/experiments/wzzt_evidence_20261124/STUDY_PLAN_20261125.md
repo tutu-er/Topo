@@ -64,7 +64,7 @@ dataset, if one can be found.
   on new days, not an independent confirmation.
 - The certificate scales: every node MIQP proved optimal up to 77 meters, at most 23 s.
 - Evidence margins rank lines by truth on the development data (67% true below 2, 100% at 50 or more).
-- WZZT-C is within 2% of WZZT-R on the development inputs. Its confirmation is running.
+- WZZT-C is within 2% of WZZT-R on the development inputs. Its confirmation (2026-11-25) is **not confirmed**: C1a, C2a, C2b and C2c hold, but C1b on the 13 clean real inputs is not shown. The whole deficit comes from one failed job (WZZT-R crashed in the same job, and WZZT-C counts as empty by the strict rule). Details: [RESULTS_WZZT_C.md](RESULTS_WZZT_C.md).
 
 ### What is not established
 
@@ -90,7 +90,7 @@ its test, the paper keeps WZZT-R. The decision on whether the exact MIQP helps f
 
 | # | Experiment | Purpose |
 | --- | --- | --- |
-| I1 | WZZT-C confirmation (running): synthetic set, the 13 clean real inputs | non-inferiority to WZZT-R, better than baselines; "new data on known topologies" |
+| I1 | WZZT-C confirmation (done: **not confirmed**, C1b not shown; RESULTS_WZZT_C.md): synthetic set, the 13 clean real inputs | non-inferiority to WZZT-R, better than baselines; "new data on known topologies" |
 | I2 | **Ablation: same candidates, MIQP against a heuristic search** at steps 3 and 5, on development inputs | does exactness change trees, or only prove them |
 | I3 | **New topologies:** a random-feeder set (30 or more trees, 10-60 meters, drops 0.5-8%), generated once, held out | generalisation, the claim the present sets cannot support |
 | I4 | **Belief:** margin against truth on I3, with the budget "lines to check in the field to catch 90% of errors", against bootstrap support of RNJ | is the margin useful, not just ordered |

@@ -145,3 +145,16 @@ Amendment D's HR1 on the large networks); every builder setting and the after-th
   try block, so a crash in the rerun empties only that method; the builders need `combo.setup`'s matrix and are empty if
   that set-up fails). The analysis reads the rerun rows in place of the failed jobs and leaves the failed jobs out of the
   secondary score comparison (a mechanical change, made before any result was read; the decision formulas are unchanged).
+- 2026-11-25, **the rerun of the comparators on the four failed jobs is complete** (`large_failed_rerun.jsonl`):
+  - WZZT-R crashed again on `td400291_all_s0` (no MIPGap).
+  - On `td009451_all_s0` the set-up shared by every method failed (ordered QP, Gurobi status 12), so every method is empty
+    there.
+  - WZZT-R completed on `td400859_feeder31_s0` and `td400079_all_s0`.
+
+## 7. Result
+
+The analysis was run once, after every run was complete: **NOT confirmed**. C1a, C2a, C2b and C2c hold. C1b on the 13 clean
+inputs is not shown: supported recall −4.5 points [−29.4, +16.4]; precision +4.7 points [−1.0, +12.6]. By the rule at the top,
+the paper keeps WZZT-R, and WZZT-C is reported as the fast certified variant. The numbers, and a descriptive breakdown made
+after the decision, are in [RESULTS_WZZT_C.md](RESULTS_WZZT_C.md). The breakdown shows that the whole deficit is the failed job
+`td400859_feeder31_s0`: there WZZT-C finished, but its result was lost when WZZT-R crashed later in the same job.

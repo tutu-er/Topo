@@ -13,7 +13,9 @@ Per case (the same readings for every method: `build.to_input` defaults, hourly,
   likely   the likely-lines list (identification/likely.py) of the blind tree and of the S1 tree (secondary output)
   blind|<builder>|<tol>      RNJ, NJ, RG on the blind matrix (combo.setup's R), every tolerance
   projected|<builder>|<tol>  the same on the source-projected matrix (source.setup_projected's R)
-A method that fails gets an empty tree for that case (failure rule); its trace is kept in `errors`.
+A method that fails gets an empty tree for that case (failure rule); its trace is kept in `errors`. Every method has its own
+try block; when the final method fails, the comparators' set-up (the same `combo.setup` / `source.setup_projected`) is run
+alone for them, so a failure of ours does not also empty the comparators.
 Output: outputs/case_library_20261125/sealed_<stream>.jsonl (resumable: finished cases are skipped).
 """
 from __future__ import annotations
@@ -64,7 +66,7 @@ def builders(R, n):
 def run_one(job):
     stream, name, sha = job
     from rnj_wzzt_dr.experiments.wzzt_evidence_20261124 import run_phase2 as p2
-    from rnj_wzzt_dr.identification import final, likely
+    from rnj_wzzt_dr.identification import combo, final, likely, revised as rv, source as src
     try:
         data = (build.OUT/stream/f"{name}.pkl").read_bytes()
         if hashlib.sha256(data).hexdigest() != sha:
@@ -78,18 +80,30 @@ def run_one(job):
     out = dict(name=name, group=rec["group"], set=rec["set"], n=n, source=src_ and src_["where"], share=src_ and src_["share"],
                kind=src_ and src_["kind"], truth=cd.as_lists(inner(rec["truth"], n)),
                true_path=[list(C) for C in src_["path"]] if src_ else None, methods={}, errors={})
+    # Each method has its own try block. The comparators use the final method's set-up matrix; when the final method fails,
+    # that set-up is run alone for them (`alone`), so a failure of ours never empties the comparators (failure rule).
+    def alone(make, *args):
+        return final.guarded(make, *args, rv.RevisedConfig())["R"]
+    r = None
     try:                                                                            # blind
         t0 = time.perf_counter()
         r = final.fit(tr, va)
         out["blind"] = dict(lines=cd.as_lists(inner(r["tree"], n)), seconds=time.perf_counter()-t0,
                             certified=bool(r["record"]["certified"]), margins=r["record"].get("evidence"))
-        out["methods"].update({f"blind|{k}": v for k, v in builders(r["S"]["R"], n).items()})
+    except Exception:
+        out["errors"]["blind"] = traceback.format_exc()[-1500:]
+        r = None
+    try:
+        R = r["S"]["R"] if r is not None else alone(combo.setup, tr, va)
+        out["methods"].update({f"blind|{k}": v for k, v in builders(R, n).items()})
+    except Exception:
+        out["errors"]["blind_builders"] = traceback.format_exc()[-1500:]
+    if r is not None:
         try:
             out["blind"]["likely"] = [[list(C), e] for C, e in likely.likely_lines(r["S"], r["tree"], n)]
         except Exception:
             out["errors"]["likely_blind"] = traceback.format_exc()[-1500:]
-    except Exception:
-        out["errors"]["blind"] = traceback.format_exc()[-1500:]
+    r = None
     try:                                                                            # with the PCC
         t0 = time.perf_counter()
         r = final.fit(tr, va, inp.hist["Ppcc"], inp.hist["Qpcc"])
@@ -97,13 +111,23 @@ def run_one(job):
                                    seconds=time.perf_counter()-t0, certified=bool(r["record"]["certified"]),
                                    evidence=float(r["source_evidence"]), path=[list(C) for C in r["path"]],
                                    places=[[float(c), None if D is None else list(D)] for c, D in r["places"]], s2_record=r["s2"])
-        out["methods"].update({f"projected|{k}": v for k, v in builders(r["S"]["R"], n).items()})
+    except Exception:
+        out["errors"]["source_aware"] = traceback.format_exc()[-1500:]
+        r = None
+    try:
+        if r is not None:
+            R = r["S"]["R"]
+        else:
+            up, uq = src.balance(inp.hist["Ppcc"], inp.hist["Qpcc"], tr.join(va))
+            R = alone(src.setup_projected, tr, va, up, uq)
+        out["methods"].update({f"projected|{k}": v for k, v in builders(R, n).items()})
+    except Exception:
+        out["errors"]["projected_builders"] = traceback.format_exc()[-1500:]
+    if r is not None:
         try:
             out["source_aware"]["likely_s1"] = [[list(C), e] for C, e in likely.likely_lines(r["S"], r["tree"], n)]
         except Exception:
             out["errors"]["likely_s1"] = traceback.format_exc()[-1500:]
-    except Exception:
-        out["errors"]["source_aware"] = traceback.format_exc()[-1500:]
     if src_ is None:                                                                # secondary ablation
         try:
             t0 = time.perf_counter()
@@ -276,7 +300,8 @@ def analyse(stream):
     broken = [r for r in rows if "error" in r]
     rows = [r for r in rows if "error" not in r]
     print(f"{stream}: {len(rows)} cases, {len(broken)} unreadable, method failures:",
-          {k: sum(k in r["errors"] for r in rows) for k in ("blind", "source_aware", "plain", "likely_blind", "likely_s1")})
+          {k: sum(k in r["errors"] for r in rows) for k in ("blind", "source_aware", "plain", "blind_builders", "projected_builders",
+                                                        "likely_blind", "likely_s1")})
     print("\nPRIMARY (feeder-cluster bootstrap within size class, equal class weight, Holm over H1-H4 at 5%)")
     res = hypotheses(rows)
     for h, v in res.items():

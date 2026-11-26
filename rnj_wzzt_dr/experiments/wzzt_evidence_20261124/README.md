@@ -4,6 +4,7 @@ Phases 1–3 of [WZZT_EVIDENCE_PLAN.md](../hourly_probing_20261118/WZZT_EVIDENCE
 - **Phase 1** (the MIQP's role): [PROTOCOL.md](PROTOCOL.md), [RESULTS.md](RESULTS.md).
 - **Phase 2** (the revised WZZT, WZZT-R; development): [PROTOCOL_PHASE2.md](PROTOCOL_PHASE2.md), [RESULTS_PHASE2.md](RESULTS_PHASE2.md).
 - **Phase 3** (confirmation on unseen inputs): [PROTOCOL_PHASE3.md](PROTOCOL_PHASE3.md), registered before its runs.
+- **WZZT-C confirmation**: [PROTOCOL_WZZT_C.md](PROTOCOL_WZZT_C.md), [RESULTS_WZZT_C.md](RESULTS_WZZT_C.md) (not confirmed: C1b not shown).
 
 ## Modules
 
