@@ -79,6 +79,13 @@ solver thread per case (Gurobi Threads = 1, BLAS 1 thread) and several cases in 
 tolerance and the after-the-fact best of each builder; the structural prior on and off (H1 cases); the margin's calibration
 (share of true lines by margin class). No decision rests on them.
 
+**Likely lines** (added by the user's decision of 2026-11-25, before registration). For the blind tree and for the S1 tree of
+every case: the candidate lines of the method's own candidate families that are not in the tree and whose evidence misses the
+line price by less than 4.6 half-BIC units (`identification/likely.py`: the line is swapped into the tree with the tree lines it
+crosses removed, under the same prices; 4.6 is the method's own threshold, so no new number is tuned). It is computed after the
+tree and never changes it. Reported: lines listed per case, the share of them that is true, and how many of the tree's missed
+true lines the list holds; by size class and with and without a source. A failed run lists nothing. No decision rests on it.
+
 ## 7. Log
 
 - 2026-11-25, **bonus decision.** First development run of `final.py` (v1): the bonus gained on the mean but the pipeline
@@ -97,6 +104,7 @@ tolerance and the after-the-fact best of each builder; the structural prior on a
   every tolerance on both matrices, and S1 and S2 of the final method, are identical to `compare_dev`, `compare_source` and
   `final_dev --mode source`; the analysis runs end to end. The Holm and bootstrap helpers were checked on known inputs. The
   sealed set has not been opened.
+- 2026-11-25, **likely lines** added as a secondary output (the user: "add as secondary"); development check below.
 - (pending) development verification of the final method with the source on all 288 twins (`final_dev --mode source`).
 
 ## 8. Running

@@ -10,6 +10,7 @@ Per case (the same readings for every method: `build.to_input` defaults, hourly,
   blind    the final method without the PCC (identification/final.py, default Settings, lam = 1.96)
   source   the final method with the PCC: S1 tree, S2 located tree, path, places, source evidence
   plain    the final method without the PCC and without the structural prior (lam = 0); no-source twins only (secondary)
+  likely   the likely-lines list (identification/likely.py) of the blind tree and of the S1 tree (secondary output)
   blind|<builder>|<tol>      RNJ, NJ, RG on the blind matrix (combo.setup's R), every tolerance
   projected|<builder>|<tol>  the same on the source-projected matrix (source.setup_projected's R)
 A method that fails gets an empty tree for that case (failure rule); its trace is kept in `errors`.
@@ -63,7 +64,7 @@ def builders(R, n):
 def run_one(job):
     stream, name, sha = job
     from rnj_wzzt_dr.experiments.wzzt_evidence_20261124 import run_phase2 as p2
-    from rnj_wzzt_dr.identification import final
+    from rnj_wzzt_dr.identification import final, likely
     try:
         data = (build.OUT/stream/f"{name}.pkl").read_bytes()
         if hashlib.sha256(data).hexdigest() != sha:
@@ -83,6 +84,10 @@ def run_one(job):
         out["blind"] = dict(lines=cd.as_lists(inner(r["tree"], n)), seconds=time.perf_counter()-t0,
                             certified=bool(r["record"]["certified"]), margins=r["record"].get("evidence"))
         out["methods"].update({f"blind|{k}": v for k, v in builders(r["S"]["R"], n).items()})
+        try:
+            out["blind"]["likely"] = [[list(C), e] for C, e in likely.likely_lines(r["S"], r["tree"], n)]
+        except Exception:
+            out["errors"]["likely_blind"] = traceback.format_exc()[-1500:]
     except Exception:
         out["errors"]["blind"] = traceback.format_exc()[-1500:]
     try:                                                                            # with the PCC
@@ -93,6 +98,10 @@ def run_one(job):
                                    evidence=float(r["source_evidence"]), path=[list(C) for C in r["path"]],
                                    places=[[float(c), None if D is None else list(D)] for c, D in r["places"]], s2_record=r["s2"])
         out["methods"].update({f"projected|{k}": v for k, v in builders(r["S"]["R"], n).items()})
+        try:
+            out["source_aware"]["likely_s1"] = [[list(C), e] for C, e in likely.likely_lines(r["S"], r["tree"], n)]
+        except Exception:
+            out["errors"]["likely_s1"] = traceback.format_exc()[-1500:]
     except Exception:
         out["errors"]["source_aware"] = traceback.format_exc()[-1500:]
     if src_ is None:                                                                # secondary ablation
@@ -249,12 +258,25 @@ def pooled(rows, method):
                 false_per_case=fp/max(len(rows), 1), mean_case_f1=100*float(np.mean([f1(r, lines_of(r, method)) for r in rows])))
 
 
+def likely_summary(rows, part, key):
+    """Listed lines per case, share true, and the tree's missed true lines that the list holds (a failed run lists nothing)."""
+    listed = true = missed = recovered = 0
+    for r in rows:
+        t = {tuple(C) for C in r["truth"]}
+        tree = {tuple(C) for C in (lines_of(r, "blind") if part == "blind" else lines_of(r, "s1"))}
+        L = [tuple(C) for C, _ in (r.get(part, {}).get(key) or [])]
+        listed += len(L); true += sum(C in t for C in L)
+        missed += len(t-tree); recovered += sum(C in t-tree for C in L)
+    return (f"{len(rows):3d} cases, {listed/len(rows):4.1f} listed per case, {100*true/max(listed, 1):5.1f}% true ({true}/{listed}),"
+            f" missed true lines on the list {recovered}/{missed}")
+
+
 def analyse(stream):
     rows = [json.loads(x) for x in out_path(stream).read_text().splitlines()]
     broken = [r for r in rows if "error" in r]
     rows = [r for r in rows if "error" not in r]
     print(f"{stream}: {len(rows)} cases, {len(broken)} unreadable, method failures:",
-          {k: sum(k in r["errors"] for r in rows) for k in ("blind", "source_aware", "plain")})
+          {k: sum(k in r["errors"] for r in rows) for k in ("blind", "source_aware", "plain", "likely_blind", "likely_s1")})
     print("\nPRIMARY (feeder-cluster bootstrap within size class, equal class weight, Holm over H1-H4 at 5%)")
     res = hypotheses(rows)
     for h, v in res.items():
@@ -300,6 +322,13 @@ def analyse(stream):
             cert = sum(r[part]["certified"] for r in rs if part in r)
             if sec:
                 print(f"    {c:6s} {part:12s} certified {cert}/{len(rs)}  median {np.median(sec):6.0f}  p90 {np.percentile(sec, 90):6.0f}  max {max(sec):6.0f}")
+    print("\n  likely lines (identification/likely.py, excluded candidate lines with evidence above -4.6; secondary output)")
+    for label, part, key, sub in (("blind tree, no source", "blind", "likely", none), ("blind tree, with a source", "blind", "likely", some),
+                                  ("S1 tree, no source", "source_aware", "likely_s1", none), ("S1 tree, with a source", "source_aware", "likely_s1", some)):
+        for c in CLASSES+("all",):
+            rs = [r for r in sub if c == "all" or size_class(r) == c]
+            if rs:
+                print(f"    {label:26s} {c:6s} {likely_summary(rs, part, key)}")
     print("\n  margin calibration (blind, pool-step lines): share true by margin class")
     bins = [(-np.inf, 0.), (0., 2.), (2., THRESHOLD), (THRESHOLD, 10.), (10., np.inf)]
     tally = np.zeros((len(bins), 2))

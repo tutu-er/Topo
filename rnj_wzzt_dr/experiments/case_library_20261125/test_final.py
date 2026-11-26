@@ -73,3 +73,17 @@ def test_a_numerical_failure_of_the_matrix_qp_falls_back(monkeypatch):
     r = final.fit(tr, va)
     assert r["record"]["certified"]
     assert rv.ordered_sensitivity is broken                    # the patch of the fallback is undone
+
+
+@needs_cases
+def test_likely_lines_are_excluded_near_misses():
+    """The likely-lines list holds only lines outside the tree, with evidence above -4.6, largest first; the tree is unchanged."""
+    from rnj_wzzt_dr.identification import likely
+    inp, (tr, va) = series("dev_small_002_none")
+    r = final.fit(tr, va)
+    before = sorted(map(tuple, r["tree"]))
+    L = likely.likely_lines(r["S"], r["tree"], inp.n)
+    inner = {tuple(sorted(C)) for C in r["tree"] if 1 < len(C) < inp.n}
+    assert L and all(C not in inner for C, _ in L)
+    assert all(e > -4.6 for _, e in L) and [e for _, e in L] == sorted((e for _, e in L), reverse=True)
+    assert sorted(map(tuple, r["tree"])) == before
