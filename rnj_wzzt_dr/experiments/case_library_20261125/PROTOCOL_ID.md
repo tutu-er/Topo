@@ -104,7 +104,16 @@ true lines the list holds; by size class and with and without a source. A failed
   every tolerance on both matrices, and S1 and S2 of the final method, are identical to `compare_dev`, `compare_source` and
   `final_dev --mode source`; the analysis runs end to end. The Holm and bootstrap helpers were checked on known inputs. The
   sealed set has not been opened.
-- 2026-11-25, **likely lines** added as a secondary output (the user: "add as secondary"); development check below.
+- 2026-11-25, **likely lines** added as a secondary output (the user: "add as secondary"). Development check (0 errors): on fresh
+  blind trees of the 72 no-source cases 3.0 lines listed per case, 47.7% true, holding 103 of the 259 missed true lines; on the
+  stored S1 trees of 277 twins 2.8 per case, 47.5% true, holding 374 of 929. Star 0% true (the trees miss nothing), street 81-82%,
+  random 29-66% by size; within 2 units of the price 66% and 79% true. This is the expectation for the sealed test; no decision
+  rests on it.
+- 2026-11-25, **blind repeat:** the check above refits the final method without the PCC on the 72 no-source development cases.
+  66 trees are identical to the first run (all but the six of 41-59 meters); against the stored v3 run 4 of those 6 are
+  identical, one has one more true line and one has one line swapped. The searches stop at wall-clock limits, so beyond 35
+  meters a repeat can differ slightly; the sealed test is one run. Per-case F1: random 76.1 / 70.5 / 68.7 / 69.9 by size, against
+  RNJ (0.04) 62.2 / 44.0 / 41.8 / 29.4; street 85.2 against 87.0.
 - (pending) development verification of the final method with the source on all 288 twins (`final_dev --mode source`).
 
 ## 8. Running

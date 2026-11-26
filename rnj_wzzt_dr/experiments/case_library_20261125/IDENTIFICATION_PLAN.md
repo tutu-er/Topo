@@ -223,6 +223,48 @@ worst case of the development library. Same method version as the robustness stu
 - **The failure (`dev_medium_003`)** is low information, not search: the true tree scores 31 half-BIC units worse than the returned one, because 7 of
   its 11 lines are below the price (see above). Our method returns 5 lines, 3 of them false; RNJ returns 18, 16 of them false.
 
+### The final method without the PCC on all 72 no-source development cases (repeated inside the likely-lines check)
+
+Per-case F1 against the identifiable truth, the protocol's own statistic (one case per feeder here), and precision over all lines:
+
+| No unmetered load | Final method (bonus, v3): F1 (precision) | WZZT-C | RNJ at its registered tolerance 0.04 |
+| --- | --- | --- | --- |
+| Star (24) | 100 (100) | 100 | 69.0 |
+| Street (24) | 85.2 (99) | 82.7 | **87.0** |
+| Random small (6) | **76.1** (96) | 74.4 | 62.2 |
+| Random medium (6) | **70.5** (89) | 68.6 | 44.0 |
+| Random large (6) | **68.7** (96) | 65.2 | 41.8 |
+| Random huge (6) | **69.9** (88) | 63.8 | 29.4 |
+
+- 66 of the 72 trees are identical to the first run (all but the six of 41-59 meters, where v2 and v3 changed the pipeline).
+- **Run to run:** against the stored v3 run, 4 of the 6 huge trees are identical; one has one more true line (F1 70.8 to 73.5) and
+  one has one line swapped (F1 unchanged). The searches stop at wall-clock limits, so beyond 35 meters a run on a busier machine can
+  end elsewhere. The sealed test is one run, and this variation is part of its result.
+- RNJ's tolerance 0.04 is the one chosen on the random feeders, the only kind in the sealed set; on star and street feeders a
+  higher tolerance suits it better (section 3 of PROTOCOL_ID.md).
+
+### Likely lines (development check of the secondary output; `identification/likely.py`, `likely_dev.py`; 0 errors)
+
+The candidate lines left out of a returned tree whose evidence misses the line price by less than 4.6 half-BIC units (the line swapped
+into the tree, the tree lines it crosses removed). Computed after the tree; it never changes it.
+
+| Feeders | Blind trees (72 no-source cases): listed per case, share true | S1 trees (277 twins): listed per case, share true |
+| --- | --- | --- |
+| Star | 1.1, 0% (0/26) | 1.4, 0% (0/131) |
+| Street | 2.0, 81% (38/47) | 2.1, 82% (163/199) |
+| Random small | 3.5, 33% (7/21) | 3.4, 29% (24/82) |
+| Random medium | 6.0, 31% (11/36) | 5.5, 38% (50/132) |
+| Random large | 6.3, 66% (25/38) | 6.3, 64% (97/152) |
+| Random huge | 8.0, 46% (22/48) | 7.0, 44% (40/91; 13 twins) |
+| **All** | **3.0, 47.7% (103/216); holds 103 of the 259 missed true lines** | **2.8, 47.5% (374/787); holds 374 of 929** |
+
+- **Closeness to the price is what counts.** Within 2 units: 66% true on blind trees (25/38) and 79% on S1 trees (107/135); 2 to 4.6
+  units: 44% (78/177) and 41% (267/648). Lines that would improve the score (the search stopped short, large feeders only) are 0 of 1
+  and 0 of 4 true.
+- **The source does not matter:** 45 to 52% true at every source place (none, head, middle, end).
+- **Star trees miss nothing**, so every listed line there is false (about one per case). The list reads "check these", not "these
+  are there": on street feeders and large random feeders it holds many of the lines the tree misses.
+
 ## 2. Experiments, in order
 
 | # | Experiment | State | What it decides |
@@ -252,6 +294,6 @@ worst case of the development library. Same method version as the robustness stu
 
 1. S2 with the completion step and the bonus (the final method), on all 288 development twins with times: **running** (`final_dev --mode source`).
 2. A fixed rule for the source evidence threshold: **fixed**, 4.6 half-BIC units = Bayes factor 100, as for lines.
-3. The tolerance choice of the baselines on development: to fill in PROTOCOL_ID.md from `compare_dev` / `compare_source`.
+3. The tolerance choice of the baselines on development: **filled** (PROTOCOL_ID.md section 3, from `compare_dev` / `compare_source`).
 4. The protocol text: drafted (PROTOCOL_ID.md). **The user's go-ahead: given on 2026-11-25** ("do the first and second": adopt the bonus if it
    costs nothing at 41-59 meters, then freeze, register and run the sealed test once). Registration waits only for item 1.
