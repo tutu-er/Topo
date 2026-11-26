@@ -1,7 +1,7 @@
 % =====================================================================
 %  Partial topology identification and cost-aware probing for
 %  low-voltage feeders: method and algorithms
-%  Paper-style draft v11 (simple proofs only), 2026-11-26
+%  Paper-style draft v12 (the true-line guarantee restored), 2026-11-26
 %
 %  Status of the parts (read before quoting anything from this file):
 %   * Algorithm 1 is implemented in rnj_wzzt_dr/identification_v8 (self-
@@ -19,6 +19,13 @@
 %  (no consistency claim is made; reliability is measured on data), the
 %  evidence proposition (now two lines of text), the parts of the reach
 %  lemma that needed extra conditions (now an example in the text).
+%  v12 (user, 2026-11-26): the guarantee the user proposed is back, in an
+%  elementary, non-asymptotic form: Theorem 1 (removing a true line costs
+%  the true signal the remaining tree cannot reproduce, minus noise in a few
+%  directions; a redundant line gains only noise) and Corollary 1 (when
+%  these hold, the true tree is the best, its groupings are decided, and the
+%  anchored search keeps it). Proof: two facts about least squares and
+%  Pythagoras for projections. The other results are labelled bookkeeping.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -32,6 +39,8 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
 \newtheorem{lemma}{Lemma}
 \newtheorem{proposition}{Proposition}
 \newtheorem{definition}{Definition}
@@ -55,7 +64,7 @@
 \begin{document}
 
 \title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v11 of 26~November~2026 (authors to be added)}
+\author{Method draft v12 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
@@ -65,9 +74,11 @@ decides this before any topology is fitted. Which groupings of meters does the d
 structural prior scores laminar families of meter sets, with the unmetered load as one more leaf, and one mixed-integer
 quadratic program (MIQP) finds the best tree over a pool of candidate lines. A grouping is \emph{decided} when a solve of the
 same MIQP without it proves that no tree within a fixed score margin exists, and \emph{open} when such a tree is found. How
-certain is the computation? Every label carries the solver's interval, and every certificate its scope. We show that the
-load's path needs no extra constraints and that decided groupings (anchors) reduce the exact search to unions of a few units
-per anchor. Probing buys demand-response blocks for the open alternatives that a feasible block can separate, each hour the
+certain is the computation? Every label carries the solver's interval, and every certificate its scope. We show that
+removing a true line costs the part of the true voltage signal that the remaining tree cannot reproduce, which grows with
+the data, while a redundant line gains only noise; under stated conditions the search therefore finds the true tree,
+decides its groupings, and the anchored search, which reduces the exact search to unions of a few units per decided
+grouping, keeps it. Probing buys demand-response blocks for the open alternatives that a feasible block can separate, each hour the
 block whose expected capped predictive log-likelihood ratio is worth its price.
 \end{abstract}
 
@@ -228,6 +239,39 @@ with $T_{|D}=\{E\in T:\neg(E\cross D)\}$.
 $e_M(T)\le m_M(T)$ for $M\in\Gset(T)$, and $e_{\pi(D)}(T)\le-\ell_D(T)$ for $\pi(D)\notin\Gset(T)$. Local flips can prove a
 grouping open, never decided.
 \end{lemma}
+
+\paragraph*{Why a true line is decided} Labels and anchors are useful only if removing a true line costs a lot. Let the data
+follow (\ref{eq:model}) with the true tree $T^0$ and coefficients inside the bounds. After $M$, write the data as
+$\tilde y=\mu+\varepsilon$: $\mu$ is the true voltage signal and $\varepsilon$ the noise. For a tree $F$, let $P_F$ project
+onto everything $F$ can predict (the span of its columns), and let $d_F=\|\mu-P_F\mu\|$: the part of the true signal that $F$
+cannot reproduce with any coefficients. $\mathrm{RSS}(F)$ is the residual of $F$'s bounded fit, the numerator of
+(\ref{eq:score}).
+\begin{theorem}[Removing a true line costs a lot]\label{thm:cost}
+(a) If $F$ lacks a line of $T^0$, then, with $\xi_F=\langle\mu-P_F\mu,\ \varepsilon\rangle/d_F$,
+\[
+\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ \ge\ d_F^2-2\,d_F\,|\xi_F|-\|P_F\varepsilon\|^2 .
+\]
+(b) If $T$ contains every line of $T^0$ and one more line $C$, then
+$0\le\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)\le\|P_T\varepsilon\|^2$.
+\end{theorem}
+In words: removing a true line costs at least the true signal that the remaining lines cannot reproduce, $d_F^2$, minus two
+noise terms; adding a redundant line gains at most noise. The sizes decide everything. If the noise after $M$ is white with
+variance $\sigma^2$, then $\xi_F$ is the noise along one direction, with standard deviation $\sigma$, and
+$\|P_F\varepsilon\|^2$ is the noise along as many directions as $F$ has coefficients, with mean $\sigma^2$ times that number;
+neither grows with the number of slots. $d_F^2$ is a sum over slots: it grows in proportion to their number as long as the
+loads on the two sides of the missing line's branching point keep varying differently, and probing makes it grow faster. So
+the cost of removing a true line, about $d_F^2/(2\sigma^2)$ in score units, grows with the data, while a redundant line gains
+a few units of noise and pays the price $\beta$. When the loads on the two sides move together, $d_F$ stays small and the line
+stays open: the data cannot decide it.
+\begin{corollary}[When the search finds the true tree]\label{cor:truth}
+Suppose the pool contains $T^0$, and (A) every tree $F$ of the pool that lacks a line of $T^0$ has
+$\big(d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2\big)/(2\hat\sigma^2)>m+\beta\,\big(k(T^0)-k(F)\big)$, and (B) every tree
+$T\supseteq T^0$ of the pool has $\|P_T\varepsilon\|^2<2\hat\sigma^2\beta$. Then $T^0$ is the unique best tree over the pool;
+when the flip tests finish, every grouping of $T^0$ is decided; and since these anchors are groupings of $T^0$, the anchored
+search of Proposition~\ref{prop:anchor} still contains $T^0$, so restricting the search to it loses nothing.
+\end{corollary}
+Conditions (A) and (B) involve the unknown true signal, so they cannot be checked on a given feeder; they say when the labels
+and the anchored search are right, and how often they hold is measured on data (V8).
 
 % ---------------------------------------------------------------------
 \section{Identification}\label{sec:id}
@@ -447,13 +491,17 @@ always reported together.
 \section{Contributions, limits and tests}\label{sec:tests}
 
 \paragraph*{Contributions} Organised by three separate questions (is there a load, which groupings are decided, how
-certain is the computation): (i) a representation in which the load is a leaf whose path the laminar constraints encode
-(Proposition~\ref{prop:path}), with search spaces that are exact given the anchors (Proposition~\ref{prop:anchor}); (ii)
-labels that state agreement within a competitive set, valid under time limits, with intervals and scopes
-(Proposition~\ref{prop:label}); (iii) a predictive likelihood-ratio criterion for choosing probes (Lemma~\ref{lem:evidence}).
+certain is the computation): (i) a guarantee that removing a true line costs the true signal the remaining tree cannot
+reproduce, while a redundant line gains only noise, so that the search finds the true tree, decides its groupings and the
+anchored search keeps it (Theorem~\ref{thm:cost}, Corollary~\ref{cor:truth}); (ii) a representation in which the load is a
+leaf whose path the laminar constraints encode (Proposition~\ref{prop:path}), with search spaces that are exact given the
+anchors (Proposition~\ref{prop:anchor}); (iii) labels that state agreement within a competitive set, valid under time
+limits, with intervals and scopes (Proposition~\ref{prop:label}); (iv) a predictive likelihood-ratio criterion for choosing
+probes (Lemma~\ref{lem:evidence}).
 
 \paragraph*{Limits} The gate is a prior: loads under 1\% of the metered power are ignored, and its threshold is calibrated for
-one meter class. No asymptotic consistency is claimed: whether decided groupings are right is measured on data (V8 below).
+one meter class. Theorem~\ref{thm:cost} assumes the model; its conditions involve the unknown true signal, so how often
+decided groupings are right is measured on data (V8 below).
 Labels and anchors are relative to the data and the pool; certificates have the scopes above and price single lines only;
 the evidence interval holds over the pools searched. The probing objective is a forecast with fits and covariance held
 fixed.
@@ -474,7 +522,37 @@ probing. (V8) Whether decided groupings are wrong at a rate consistent with the 
 \appendices
 \section{Proofs}
 
-All proofs are elementary: counting, set inclusions, and one Gaussian calculation.
+Theorem~\ref{thm:cost} and Corollary~\ref{cor:truth} are the statistical guarantee. The other results are bookkeeping: they
+make sure that the searches cover what they claim and that the labels mean what they say. All proofs are elementary: two
+facts about least squares, Pythagoras' theorem for projections, counting, set inclusions, and one Gaussian calculation.
+
+\begin{IEEEproof}[Proof of Theorem~\ref{thm:cost}]
+Two facts about least squares. (F1) A tree that contains every line of $T^0$ can use the true coefficients (and zero on its
+other lines), which leave the residual $\tilde y-\mu=\varepsilon$; its best fit is no worse, so its RSS is at most
+$\|\varepsilon\|^2$. (F2) No fit of $F$, bounded or not, beats the unbounded least-squares fit, whose residual is
+$Q_F\tilde y$ with $Q_F=I-P_F$; so $\mathrm{RSS}(F)\ge\|Q_F\tilde y\|^2$.
+(a) By (F1) for $T^0$ and (F2) for $F$, $\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ge\|Q_F(\mu+\varepsilon)\|^2-\|\varepsilon\|^2$.
+Expanding the square, and using $\|Q_F\varepsilon\|^2=\|\varepsilon\|^2-\|P_F\varepsilon\|^2$ (Pythagoras),
+\[
+\|Q_F(\mu+\varepsilon)\|^2-\|\varepsilon\|^2=\|Q_F\mu\|^2+2\langle Q_F\mu,\varepsilon\rangle-\|P_F\varepsilon\|^2
+=d_F^2+2d_F\xi_F-\|P_F\varepsilon\|^2\ \ge\ d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2 ,
+\]
+since $Q_F$ is symmetric and $Q_F^2=Q_F$, so that $\langle Q_F\mu,Q_F\varepsilon\rangle=\langle Q_F\mu,\varepsilon\rangle$.
+(b) $T$ can reproduce any fit of $T\setminus\{C\}$ by setting $C$'s coefficients to zero, so the difference is at least $0$.
+$T\setminus\{C\}$ contains every line of $T^0$, so (F1) gives $\mathrm{RSS}(T\setminus\{C\})\le\|\varepsilon\|^2$. $\mu$ lies
+in the span of $T$'s columns, so $Q_T\mu=0$ and (F2) gives $\mathrm{RSS}(T)\ge\|Q_T\varepsilon\|^2=\|\varepsilon\|^2-
+\|P_T\varepsilon\|^2$. Subtracting gives the upper bound.
+\end{IEEEproof}
+
+\begin{IEEEproof}[Proof of Corollary~\ref{cor:truth}]
+The score is $H=\mathrm{RSS}/(2\hat\sigma^2)+\beta k$. Take a tree $F\ne T^0$ of the pool. If $F$ lacks a line of $T^0$,
+Theorem~\ref{thm:cost}(a) and (A) give $H(F)-H(T^0)>m$. Otherwise $F$ contains every line of $T^0$ and more; removing one of
+the extra lines changes $H$ by at most $\|P_F\varepsilon\|^2/(2\hat\sigma^2)-\beta<0$ by Theorem~\ref{thm:cost}(b) and (B),
+and the smaller tree still contains $T^0$; repeating until $T^0$ is reached shows $H(F)>H(T^0)$. So $T^0$ is the unique best
+tree. Every tree that flips a grouping of $T^0$ lacks the line of that grouping, so it scores more than $H(T^0)+m$, and a
+finished flip test proves the grouping decided. The anchors are groupings of $T^0$, so $T^0$ keeps them, and by
+Proposition~\ref{prop:anchor} it lies in the anchored universe.
+\end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Proposition~\ref{prop:prior}]
 A tree with $n^+$ leaves (the load counts as one) and $k+1$ internal nodes has $n^++k$ edges, one from each node except the
