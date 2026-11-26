@@ -1,7 +1,7 @@
 % =====================================================================
 %  Partial topology identification and cost-aware probing for
 %  low-voltage feeders: method and algorithms
-%  Paper-style draft v9 (load gate; meter-level labels), 2026-11-26
+%  Paper-style draft v10 (load gate; meter-level labels; proofs repaired), 2026-11-26
 %
 %  Status of the parts (read before quoting anything from this file):
 %   * Algorithm 1 is implemented in rnj_wzzt_dr/identification_v8 (self-
@@ -19,6 +19,15 @@
 %  is reported separately; per-meter bounds optional; wide nodes priced by
 %  a node MIQP; certificate scopes; re-solve after pricing; a stopping rule
 %  with a proof; the load evidence from two optimised models, with bounds.
+%  v10 (a review of the proofs, 2026-11-26): the shared PCC error is a
+%  random effect weighted by GLS (not eliminated by FWL); whiteness on the
+%  retained coordinates; Lemma 3 needs both fits unconstrained-optimal;
+%  Theorem 1 restated (linear separation in probability, redundant lines at
+%  -beta + O_p(1)) with a new proof (no inactive bounds, no chi-square);
+%  Lemma 6 is a predictive log-likelihood ratio; the probing objective uses
+%  the expected capped ratio; Lemma 7 (ii) corrected (load paths can be
+%  probed); labels refreshed with data and pool; pricing certifies single
+%  lines only; anchored exactness conditional. Counterexamples checked.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -57,7 +66,7 @@
 \begin{document}
 
 \title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v9 of 26~November~2026 (authors to be added)}
+\author{Method draft v10 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
@@ -69,10 +78,11 @@ unmetered load as one more leaf whose path the laminar constraints encode, and o
 finds the best tree over a pool of candidate lines. A grouping of meters is \emph{decided} when a solve of the same MIQP
 without it proves that no tree within a fixed score margin exists, and \emph{open} when such a tree is found; where the
 load sits is reported separately. How certain is the computation? Every label carries the solver's interval, and every
-certificate its scope. We show that the evidence for a grouping comes only from the voltage couplings across its children,
-that it grows linearly with the data for a true grouping and stays bounded for a false one, and that decided groupings
-(anchors) reduce the exact search to unions of a few units per anchor. Probing buys demand-response blocks for the open
-groupings that feasible blocks can reach, each hour the one block whose expected evidence is worth its price.
+certificate its scope. We show that the branching evidence for a grouping is its voltage coupling across its children,
+that the exact score separates omitted true lines (by a margin linear in the data) from redundant ones (removed by the
+price), and that decided groupings (anchors) reduce the exact search to unions of a few units per anchor. Probing buys
+demand-response blocks for the open alternatives whose fitted predictions a feasible block can separate, each hour the block
+whose expected capped predictive log-likelihood ratio is worth its price.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -167,15 +177,20 @@ Load of 10\% & 72 & $9.51\%$ / $10.2\%$ / $11.68\%$\\
 % ---------------------------------------------------------------------
 \section{Score and labels}\label{sec:score}
 
-\paragraph*{Score} The nuisance terms $o$ and $\varepsilon_{0,t}\one$ are removed by $M=D\otimes S_\gamma$, with
-$D=I_T-\Pi_{[\one]}$ and $S_\gamma=I_n-\gamma\one\one\tp/n$ ($\gamma$ the generalised least squares weight of the shared PCC
-error). The score is
+\paragraph*{Score} The meter offsets $o$ are unrestricted constants. The shared PCC error is random, independent across
+slots and of the meter noise, with $\operatorname{Var}\varepsilon_{0,t}=\sigma_0^2$ and $\operatorname{Cov}e_t=\sigma_e^2I_n$,
+so each slot's error covariance is $\Sigma=\sigma_e^2(I_n+\rho\one\one\tp)$ with $\rho=\sigma_0^2/\sigma_e^2$. The operator
+$M=D\otimes S_\gamma$ removes the offsets, $D=I_T-\Pi_{[\one]}$, and whitens the shared error,
+$S_\gamma=I_n-\gamma\one\one\tp/n$ with $\gamma=1-(1+n\rho)^{-1/2}$, so that $S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}$; $\rho$
+is taken as the mean of $V_0^4/V^4$ (the PCC meter as accurate as a household meter, in relative terms). The score is
 \begin{equation}\label{eq:score}
 H(F)=\min_{\theta}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
 \end{equation}
 with $p_s\in\{1,2\}$ identifiable parameters per line (2 when most meters' $q$ is not a fixed multiple of their $p$ within
-the meter class). $D$ and $S_\gamma$ act on different axes, and minimising over $o$ and $\varepsilon_0$ gives
-(\ref{eq:score}) exactly (Frisch--Waugh--Lovell). \emph{Free load term.} If the load's term in (\ref{eq:model}) is replaced by
+the meter class). Minimising over the offsets gives $D$ exactly (Frisch--Waugh--Lovell); the shared error is not
+eliminated but weighted by generalised least squares (treating it as an unrestricted nuisance would give $\gamma=1$, a full
+projection). $D$ is singular, so whiteness is meant on its retained coordinates: in an orthonormal basis of the range of $D$
+(and of $D_1$ below), the transformed noise has covariance $\sigma_e^2I$. \emph{Free load term.} If the load's term in (\ref{eq:model}) is replaced by
 $\rho_iu^P_t+\chi_iu^Q_t$ with free $\rho,\chi\in\mathbb R^n$, minimising over them replaces $D$ by
 \begin{equation}\label{eq:free}
 D_1=I_T-\Pi_{[\one,\,u^P,\,u^Q]}
@@ -220,9 +235,12 @@ cutoff; it stops as soon as ``decided'' is proved, and otherwise runs to its lim
 If $M$ is decided, every tree in $\Sset_m$ agrees with $T$ on whether $M$ is a grouping. If $T$ is a proven optimum and $M$
 is open, $\Sset_m$ contains trees that disagree.
 \end{proposition}
-Labels are statements about the model and the pool, not about the truth. They separate three cases: certified decided,
-certified open, and unsettled (computation unresolved); the interval (\ref{eq:gap}) carries the solver's uncertainty into
-probing.
+Labels are statements about the model, the data and the pool of the solve that produced them, not about the truth, and
+they are recomputed whenever the data or the pool change. A decided label is valid for any feasible incumbent $T$. An open
+label always certifies a flipped competitor within $m$ of $T$; it certifies disagreement within $\Sset_m$ only when $T$ is a
+proven optimum. Unsettled means the computation did not resolve the question. In the solver, ``decided'' requires the bound
+to exceed $H(T)+m$ beyond its tolerances (the cutoff is set slightly above the threshold). The interval (\ref{eq:gap})
+carries the solver's uncertainty into probing.
 
 \paragraph*{Local flips} Removing the lines of grouping $M$ from $T$, or swapping in a pool line $D$ whose grouping crosses
 $M$ (the lines of $T$ that cross $D$ removed), gives flipped trees without solving an MIQP:
@@ -246,40 +264,58 @@ With $Z^\times_C$ the indicator of $\times(C)$,
 \begin{equation}\label{eq:glue}
 r_C\,z_Cz_C^{+\top}=\sum_{a=1}^{c}r_C\,z_{A_a}z_{A_a}^{+\top}+r_C\,Z^\times_C .
 \end{equation}
-Removing $C$ and adding $r_C,x_C$ to every child reproduces every prediction of $T$ except the entries on $\times(C)$, and no
-other line of $T$ can change those entries alone. The evidence for $C$ therefore comes only from its cross-child pairs; a
-meter's own cable has none, so a line needs at least two leaves to carry evidence.
+Removing $C$ and adding $r_C,x_C$ to every child reproduces every prediction of $T$ except the entries on $\times(C)$; it
+keeps every meter's path sums $\sum_{D\ni i}r_D$ and $\sum_{D\ni i}x_D$, so it stays within the per-meter bounds of
+(\ref{eq:master}); and no other line of $T$ can change the entries on $\times(C)$ alone. The incremental, branching
+contribution of $C$ is therefore its cross-child response. A meter's own cable has no branching contribution (its only entry
+is $R_{ii}$), although its impedance may be identifiable; only lines with at least two leaves are topology decisions.
 \end{lemma}
 \begin{lemma}[Removal gap]\label{lem:wald}
-For $C\in\Lin(T)$, with the bounds inactive at the fitted parameters,
+For $C\in\Lin(T)$, if both the fit of $T$ and the fit of $T\setminus\{C\}$ attain their unconstrained least-squares optima
+(the bounds change neither),
 \begin{equation}\label{eq:wald}
 H(T\setminus\{C\})-H(T)=\frac{\hat\theta_C\tp S_C\,\hat\theta_C}{2\hat\sigma^2}-\beta,\qquad
 S_C=\Phi^{\times\top}_C\big(I-\Pi_{T\setminus\{C\}}\big)\Phi^\times_C ,
 \end{equation}
-where $\Phi^\times_C$ are the columns of $C$ in which meter $i$ sees only the flows of the leaves of $C$ outside its own child.
-The first term is half the Wald statistic of $C$: the information about $C$ left after every other line.
+where $\Phi^\times_C$ are the columns of $C$, in whitened retained coordinates, in which meter $i$ sees only the flows of the
+leaves of $C$ outside its own child. The first term is half the Wald statistic of $C$ on the identifiable subspace of $S_C$
+(with a singular $S_C$ its degrees of freedom are the rank of $S_C$, not $p_s$).
 \end{lemma}
-\begin{theorem}[Evidence grows for true lines only]\label{thm:gap}
-Let $n$ be fixed and $T\to\infty$. Assume (A1) the data follow (\ref{eq:model}) with tree $T^0$ and noise that is white under
-$M$ with variance $\sigma^2$, and $\hat\sigma^2\to\sigma^2$; (A2) every line of $T^0$ has $r_C\ge r_{\min}>0$ and its
-parameters lie inside the bounds; (A3) for every $C\in\Lin(T^0)$,
-\[
-\kappa_C=\liminf_{N\to\infty}\ \frac1{N\sigma^2}\ \min_{F\not\ni C}\big\|(I-\Pi_F)\,M\Phi_{T^0}\theta^0\big\|^2>0,
-\]
-the minimum over the finitely many laminar families without $C$. Then (a) if $C\in\Lin(T^0)$,
-$H(F)-H(T^0)\ge\tfrac12N\kappa_C-O_p(\sqrt N)-O(\ln N)$ uniformly over families $F\not\ni C$, so $e_C(T^0)\to\infty$ and
-$m_C(T^0)\to\infty$ in probability, for every pool; (b) if $C\notin T^0$ and $T\supseteq T^0\cup\{C\}$ is laminar,
-$H(T\setminus\{C\})-H(T)\le O_p(1)-\beta\to-\infty$.
+\begin{remark}
+The condition on the reduced fit matters. Three meters, resistance only, $PP\tp=I$: the root and the cables have $0.1$ and
+$C=\{1,2\}$ has $1$. The full tree fits exactly. Without $C$, the unconstrained star fit needs cable 3 at $-7/30$ and leaves
+$\mathrm{RSS}=4/3$, while the nonnegative fit leaves $1.38$: the identity gives $4/3$, the removal loss is $1.38$.
+\end{remark}
+\begin{theorem}[Asymptotic separation of omitted and redundant lines]\label{thm:gap}
+Let $n$ be fixed, so that the laminar families form a finite set, and let $T\to\infty$. Work in retained, whitened
+coordinates, $\tilde y=\mu+\varepsilon$ with $\mu=W\Phi_{T^0}\theta^0$, and assume:
+(A1) the design is deterministic (or what follows holds conditionally on it), and $\varepsilon$ has mean zero and covariance
+$\sigma^2I$, $\sigma^2>0$;
+(A2) the true parameters are feasible in $T^0$ and in every family that contains it (a line absent from $T^0$ enters with
+zero coefficients);
+(A3) for every $C\in\Lin(T^0)$, $\kappa_C=\liminf_{N\to\infty}\min_{F\not\ni C}\|(I-P_F)\mu\|^2/(N\sigma^2)>0$, with $P_F$ the
+orthogonal projector on the columns of $F$ and the minimum over the laminar families without $C$;
+(A4) $\hat\sigma^2\to\sigma^2$ in probability;
+(A5) $\beta_N\to\infty$ and $\beta_N=o(N)$ (as $\beta_N=\tfrac12p_s\ln N-\lambda$ does).
+Then (a) for every $C\in\Lin(T^0)$ and every $0<a<\kappa_C/2$,
+$\Pr\big[\min_{F\not\ni C}\{H(F)-H(T^0)\}\ge aN\big]\to1$; and (b) if $C\notin T^0$ and $T\supseteq T^0\cup\{C\}$ is
+laminar, $H(T\setminus\{C\})-H(T)=-\beta_N+O_p(1)\to-\infty$ in probability.
 \end{theorem}
-With a load, the same statements hold for groupings, with ``families without $C$'' read as ``families without grouping $M$''
-in (A3); the proof is unchanged.
-\begin{corollary}[Anchors are true groupings]\label{cor:true}
-If $\Lin(T^0)\subseteq\Omega$, then with probability tending to one $T^0$ is the best tree over $\Omega$ and every grouping
-of $T^0$ is decided, for any fixed $m$.
+Part (a): omitting a true line costs a score linear in the data, so its flip gap and its local margin diverge ($m_C\ge e_C$
+by Lemma~\ref{lem:local}). Part (b): a redundant line improves the unpenalised fit only by $O_p(1)$, so the price removes it.
+With a load, the same holds for groupings, reading ``families without $C$'' as ``families without grouping $M$''. The theorem
+needs no Gaussian law and no inactive bounds; it does not cover regressors measured with error, nor designs chosen
+adaptively from past data, as in probing.
+\begin{corollary}[Selection consistency of the exact score]\label{cor:true}
+If $\Lin(T^0)\subseteq\Omega$, then with probability tending to one $T^0$ is the unique minimiser of $H$ over $\Omega$ and
+every family that flips a grouping of $T^0$ scores more than $m$ above it, for any fixed $m$. The labels the algorithm
+reports agree with this only when its flip tests finish, or their bounds exceed the threshold.
 \end{corollary}
 \begin{remark}
-(A3) fails for voltage twins, whose couplings another family reproduces: their gap does not grow and they stay open, which
-is the right answer. (A3) is a property of the loads, and probing can create it (Section~\ref{sec:probe}).
+When (A3) fails the theorem gives no guarantee. A separation that grows more slowly than $N$ (say $N^{3/4}$) can still make
+the gap diverge; observationally equivalent families with different numbers of lines are separated by the price, at order
+$\ln N$; voltage twins whose couplings another family reproduces exactly are not separated at all. (A3) is a property of the
+loads, and probing can create it (Section~\ref{sec:probe}).
 \end{remark}
 
 % ---------------------------------------------------------------------
@@ -323,14 +359,20 @@ g_v(T)=\max_{S:\ 2\le|S|<c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j
 A node with at most 12 children is priced by enumeration: every union is fitted. A wider node is priced by a node MIQP with
 a binary $z_a$ per child; the new line's coefficient enters as $u_{ab}=rz_az_b$, linearised exactly by McCormick inequalities
 ($u_{ab}\le r$, $u_{ab}\le\bar\theta z_a$, $u_{ab}\le\bar\theta z_b$, $u_{ab}\ge r-\bar\theta(2-z_a-z_b)$), so that meters of
-child $a$ see the flow of child $b$; every coefficient of $T$ is refitted. Both give $\max_vg_v$ exactly when they finish. We
-distinguish three \emph{certificate scopes}: (a) \emph{complete}: every node was enumerated or its MIQP proved optimal, and no
-line pays, so no single line compatible with $T$, among all supports, lowers the score; (b) \emph{restricted}: statements over
-the anchored universe below, which covers every combination of new lines inside anchor nodes with at most $K$ units (so pair
-moves need no separate search there) but not inside wider nodes; (c) \emph{incomplete}: a node MIQP stopped at its time
-limit. Neither certificate shows that no line is missing: a wrong tree may need lines removed, and a node with two children
-has nothing to price. We report the scope, the number of nodes priced each way, and the share of internal nodes with at
-least three children.
+child $a$ see the flow of child $b$; every coefficient of $T$ is refitted. Both give $\max_vg_v$ exactly when they finish.
+Pricing certifies single lines only: two lines can pay together when neither pays alone (Remark~\ref{rem:pairs}). We
+distinguish three \emph{certificate scopes}: (a) \emph{single-line, complete}: every node was enumerated or its MIQP proved
+optimal, and no line pays, so no single line compatible with $T$, among all supports, lowers the score; (b)
+\emph{restricted}: when the anchored MIQP below is solved to optimality, no combination of lines inside anchor nodes with at
+most $K$ units, given the anchors, lowers the score; nothing is certified for combinations inside wider nodes; (c)
+\emph{incomplete}: a node was skipped or its MIQP stopped at its time limit; such nodes are not counted as certified. No
+certificate shows that no line is missing: a wrong tree may need lines removed, and a node with two children has nothing to
+price. We report the scope, the nodes priced each way, and the share of internal nodes with at least three children.
+\begin{remark}\label{rem:pairs}
+Four meters, $PP\tp=I$, fit term $\tfrac12\|R_{\rm obs}-R\|_F^2$ and price $0.6$; $R_{\rm obs}$ has diagonal $100$ and
+off-diagonal $1$, except $2$ for the pairs $\{1,2\}$ and $\{3,4\}$. The star scores $4/3$, the best single line $1.4$, and
+the two lines $\{1,2\}$ and $\{3,4\}$ together $1.2$.
+\end{remark}
 
 \paragraph*{Anchors}
 \begin{definition}[Anchors and units]
@@ -349,12 +391,14 @@ without $s$, the supports $\{i,s\}$, and $\Nset$; without a load, $\Omega^+_K=\O
 Let $F$ be a laminar family over $\Nset^+$ with $\Aset\subseteq\Gset(F)$. Every support $C\in\Lin(F)$ has $\pi(C)$ equal to an
 anchor, to a union of 2 to $k_A-1$ units of one $A\in\Aset\cup\{\Nset\}$, to a single meter, or to $\Nset$. Hence, if every
 $k_A\le K$, $\Lin(F)\subseteq\Omega^+_K(\Aset)$, and (\ref{eq:master}) over $\Omega^+_K(\Aset)$ with the anchors' groupings
-required returns the best family that keeps every anchor, among all supports and every admissible place of the load. Its
+required, solved to optimality, returns the best family that keeps every anchor, among all supports and every admissible
+place of the load. Its
 union binaries number $\sum_A(2^{k_A}-k_A-2)$ (twice that with a load) instead of $2^n-n-2$.
 \end{proposition}
-Proposition~\ref{prop:anchor} turns ``the anchors are right'' into ``the search is exact''. The flip tests check that premise
-over the pool, and by Theorem~\ref{thm:gap} and Corollary~\ref{cor:true} it holds with probability tending to one. The
-anchors put the exact search where the data have not decided; a large anchor is refined, not replaced, since its own anchors
+Proposition~\ref{prop:anchor} is conditional: exact over the trees that keep the anchors, at nodes with at most $K$ units,
+and for a solve that finishes. Whether the anchors are right is checked by the flip tests over the pool, and for the exact
+score by Corollary~\ref{cor:true}; the anchors are re-tested, and may be flipped, in every round on the current data and pool.
+The anchors put the exact search where the data have not decided; a large anchor is refined, not replaced, since its own anchors
 become its units. A node with more than $K$ units keeps the pool's lines inside it and is priced by (\ref{eq:price}).
 
 \paragraph*{Pricing, re-solve and stopping} Pricing adds a paying line to the tree and to the pool (the universe of later
@@ -404,7 +448,9 @@ labels with gap intervals and rivals; with a load, its places and evidence inter
 build a first tree from cheap candidate lines. Lines 5--9 are the core: decided groupings become anchors; the anchored
 universe offers every line compatible with them at the nodes that are small enough, which is exact by
 Proposition~\ref{prop:anchor}; pricing searches the wider nodes and checks the result against any single line, proposed or
-not; the loop stops by Lemma~\ref{lem:stop} or after $R$ searches, and the output says which. Lines 10--11 report what remains
+not; the loop stops by Lemma~\ref{lem:stop} or after $R$ searches, and the output says which. Every round labels all groupings of
+the current tree on the current pool, anchors included, so an anchor can be flipped; the final labels are those of the final
+tree and pool. Lines 10--11 report what remains
 open and, with a load, where it sits and how strongly the voltages show it.
 
 % ---------------------------------------------------------------------
@@ -417,9 +463,9 @@ never lists whole trees. A block that changes the flows across a grouping's chil
 
 \paragraph*{Values used in probing} For an open grouping $M$ with rival $F_M$, at the gate of hour $h$:
 \begin{itemize}
-\item the gap interval (\ref{eq:gap}) and the \emph{deficit} $\delta_M=m-(U_M-H(\hat L))$, from the upper end, so that the
-deficit is never overstated; unsettled groupings are not targets (probing cannot repair a solver's time limit) and are tested
-again at each gate with the new data;
+\item the gap interval (\ref{eq:gap}) and the \emph{deficit} $\underline\delta_M=m-\bar e_M$ with $\bar e_M=U_M-H(\hat L)\ge
+e_M$: a lower estimate of what the alternative still needs, never overstated, but not a certified amount; unsettled
+groupings are not targets (probing cannot repair a solver's time limit) and are labelled again at each gate;
 \item the fitted parameters $\hat\theta$ of the leader and the rival, and their covariances $P=\hat\sigma^2(\Phi\tp\Phi)^{-1}$
 on the coordinates not at a bound;
 \item the predicted voltage drops of hour $h+1$ under each tree, from the day-ahead forecast $\tilde x$ of the meters' load plus
@@ -432,29 +478,45 @@ with $\Sigma_M$ evaluated at $\tilde x$;
 \emph{and every rival}, the transformer rating, and the price caps; the price
 $c(u)=c^\uparrow\sum_i\max(u_i,0)+c^\downarrow\sum_i\max(-u_i,0)$.
 \end{itemize}
-\begin{lemma}[Expected evidence]\label{lem:evidence}
-If the next hour's data are Gaussian with covariance $\Sigma_M$ and mean given by the leader (or the rival), the expected
-change of $H(F_M)-H(\hat L)$ over that hour is $+\tfrac12q_M(u)$ (or $-\tfrac12q_M(u)$).
+\begin{lemma}[Expected predictive log-likelihood ratio]\label{lem:evidence}
+With the two fitted predictive means $\mu_{\hat L}(u)$, $\mu_{F_M}(u)$ and the covariance $\Sigma_M$ held fixed, let
+\begin{equation}\label{eq:llr}
+\ell_M(Y;u)=\ln\frac{\mathcal N\big(Y;\mu_{\hat L}(u),\Sigma_M\big)}{\mathcal N\big(Y;\mu_{F_M}(u),\Sigma_M\big)} .
+\end{equation}
+If the next hour's data are $\mathcal N(\mu_{\hat L},\Sigma_M)$, then $\ell_M\sim\mathcal N(\tfrac12q_M,q_M)$; under the rival
+its mean is $-\tfrac12q_M$.
 \end{lemma}
+So $\tfrac12q_M$ is a predictive surrogate for the change of the refitted score $H(F_M)-H(\hat L)$, not that change: the
+score refits both trees, its price grows with $N$, and it uses $\hat\sigma^2$ rather than $\Sigma_M$; refitting can move the
+realised change either way.
 \begin{lemma}[Reach]\label{lem:reach}
-If $G_M=0$, no block changes $q_M$. (i) If the two trees differ only in grouping $M$, $G_M=0$ exactly when no meter with a
-controllable battery or EV lies below $M$. (ii) Trees that differ only in where the load sits have $G=0$: the load's place
-is decided by the natural variation of the load, never by probing.
+If $G_Mv=0$ for every feasible block direction $v$, no feasible block changes $q_M$, for the current fitted pair and frozen
+covariance. (i) If the two trees differ only in grouping $M$, have equal other coefficients, $r_M>0$, and the controls act as
+independent inputs, then $G_M\ne0$ exactly when a meter with a controllable battery or EV lies below $M$. (ii) Trees with
+equal coefficients that differ only in whether lines carry the load have $G=0$; independently fitted trees can differ in
+sensitivity, so reach is always evaluated from the fitted difference $G_M$.
 \end{lemma}
 
-\paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings with $G_M\ne0$; it stays
-fixed during the day. The block for hour $h+1$ is
+\paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings, and of load places
+within $m$ of the best, whose fitted difference $G$ moves on some feasible block direction; it stays fixed during the day.
+With $\kappa(\delta,q)=\mathbb E\min(\delta,Z)$ for $Z\sim\mathcal N(q/2,q)$, that is
+$\kappa=\tfrac q2-(\tfrac q2-\delta)\,\mathrm F_0\big(\tfrac{q/2-\delta}{\sqrt q}\big)-\sqrt q\,\mathrm f_0\big(\tfrac{q/2-\delta}{\sqrt q}\big)$
+with $\mathrm F_0$ and $\mathrm f_0$ the standard normal distribution and density ($\kappa=\min(\delta,0)$ at $q=0$), the
+block for hour $h+1$ is
 \begin{equation}\label{eq:block}
 u^\ast=\arg\max_{u\in\Uset_{h+1}}\ J_h(u),\qquad
-J_h(u)=\psi\sum_{M\in\Tset\ \text{open}}\Big[\min\big(\delta_M,\tfrac12q_M(u)\big)-\min\big(\delta_M,\tfrac12q_M(0)\big)\Big]-c(u),
+J_h(u)=\psi\sum_{M\in\Tset\ \text{open}}\Big[\kappa\big(\underline\delta_M,q_M(u)\big)-\kappa\big(\underline\delta_M,q_M(0)\big)\Big]-c(u),
 \end{equation}
-bought only if $J_h(u^\ast)>0$: the expected evidence beyond the natural load variation, counted up to what each grouping
-still needs, against the price. \emph{Choice of $\psi$:} on the development cases, Algorithm~\ref{alg:probe} runs for every
+bought only if $J_h(u^\ast)>0$: the expected capped predictive log-likelihood ratio (\ref{eq:llr}) gained over passive
+operation, counted up to what each target still needs, against the price. It is a surrogate: it assumes the leader generates
+the data and holds both fits and the covariance fixed. Capping the mean instead, $\min(\delta,q/2)$, would overstate it,
+since $\mathbb E\min(\delta,Z)\le\min(\delta,\mathbb EZ)$ (at $q=2$, $\delta=1$: $0.436$ against $1$). \emph{Choice of $\psi$:} on the development cases, Algorithm~\ref{alg:probe} runs for every
 $\psi$ on a grid; with mean cost and coverage scaled to $[0,1]$, the default is the grid point farthest above the straight line
 from the first point to the last (the knee). Grid and default are fixed before any probing test; the whole curve is reported.
 \emph{Greedy, in plain words:} each hour the rule buys the one block worth most for the next hour alone; it chooses again
-when the next hour's data arrive. \emph{Stopping and trust gate:} the day ends when every target is decided at two
-consecutive gates; blocks are bought only when the leader fits as well as the meter noise allows,
+when the next hour's data arrive. \emph{Stopping and trust gate:} the day ends when every target holds a fresh decided
+label, computed on that gate's data and pool, at two consecutive gates; blocks are bought only when the leader fits as well
+as the meter noise allows,
 $s^2_{\hat L}/\sigma^2_y\le\kappa_A$.
 
 \begin{algorithm}[t]
@@ -465,8 +527,8 @@ $s^2_{\hat L}/\sigma^2_y\le\kappa_A$.
 \State $\Tset\gets$ open groupings with $G_M\ne0$ \Comment{fixed for the day; Lemma~\ref{lem:reach}}
 \For{$h=0,1,\dots,23$} \Comment{gate at the start of hour $h$; block for $h+1$ sealed now}
   \State $\hat L\gets$ Algorithm~\ref{alg:identify}, lines 5--9, on all data so far
-  \State relabel the groupings of $\Tset$ that are still open: their gap intervals, deficits and rivals
-  \State \textbf{if} every grouping of $\Tset$ is decided at two consecutive gates: \Return $\hat L$ with its labels
+  \State relabel every target on the current data and pool (a decided target can become open): intervals, deficits, rivals
+  \State \textbf{if} every target has a fresh decided label at this gate and the previous one: \Return $\hat L$ with its labels
   \State $u_{h+1}\gets u^\ast$ of (\ref{eq:block}) if $s^2_{\hat L}/\sigma^2_y\le\kappa_A$ and $J_h(u^\ast)>0$, else $0$
   \State hour $h$ runs with $u_h$; add its readings to the data
 \EndFor
@@ -492,20 +554,23 @@ always reported together.
 % ---------------------------------------------------------------------
 \section{Contributions, limits and tests}\label{sec:tests}
 
-\paragraph*{Contributions} (i) A separation of three questions: whether there is an unmetered load (a gate on the PCC
-balance), which meter groupings the data decide (labels and anchors), and how certain the computation is (intervals and
-certificate scopes), all feeding probing. (ii) One MIQP over laminar families in which the load is a leaf without voltage,
-so its path costs no constraint and no product (Proposition~\ref{prop:path}). (iii) The evidence for one line: only the
-couplings across its children count, and it grows linearly with the data for a true line and stays bounded for a false one
-(Lemmas~\ref{lem:glue}--\ref{lem:wald}, Theorem~\ref{thm:gap}). (iv) Anchors, certified by flipped solves of the same MIQP,
-that reduce the exact search to unions of a few units per anchor (Proposition~\ref{prop:anchor}). (v) Probing targeted at
-the open groupings that the available batteries and EVs can reach.
+\paragraph*{Contributions} Four results, each with its own assumptions and scope, organised by three separate questions
+(is there a load, which groupings are decided, how certain is the computation). (i) A combinatorial representation: the load
+as a leaf whose path the laminar constraints encode (Proposition~\ref{prop:path}), and conditional search spaces that are
+exact given the anchors (Proposition~\ref{prop:anchor}). (ii) Optimisation certificates: labels that state agreement within
+a competitive set, valid under time limits, with intervals and scopes (Proposition~\ref{prop:label}). (iii) Asymptotic
+separation of omitted true lines and redundant lines for the exact score, under explicit excitation and noise assumptions
+(Theorem~\ref{thm:gap}). (iv) A predictive likelihood-ratio criterion for choosing probes (Lemma~\ref{lem:evidence}),
+applied to the alternatives whose fitted predictions a feasible block can separate.
 
 \paragraph*{Limits} The gate is a prior: loads under 1\% of the metered power are ignored, and its threshold is calibrated
-for one meter class. Theorem~\ref{thm:gap} is asymptotic and assumes the model. Labels and anchors are relative to the pool;
-certificates have the scopes above; the evidence interval holds over the pools searched; thresholds are calibrated on data,
-since the topology is discrete and, without a load, the load's place is not identified, so standard likelihood-ratio
-asymptotics do not apply. The probing objective is a surrogate with fixed parameters.
+for one meter class. Theorem~\ref{thm:gap} is asymptotic and concerns the exact score; it assumes the model, a fixed design
+and white noise in the retained coordinates, and excludes errors in the regressors and adaptive designs; finite-time solver
+performance is a separate question. Labels and anchors are relative to the data and the pool and are recomputed when either
+changes; certificates have the scopes above and price single lines only; the evidence interval holds over the pools
+searched; thresholds are calibrated on data, since the topology is discrete and, without a load, the load's place is not
+identified, so standard likelihood-ratio asymptotics do not apply. The probing objective is a surrogate with frozen fits and
+covariance.
 
 \paragraph*{Relation to the registered test} The registered sealed test evaluates the predecessor (final.py at 71684ff). It
 has no gate (with the PCC power it always models a load), removes the load with (\ref{eq:free}) during the search and places
@@ -527,7 +592,7 @@ reported as recovery and certification, not only as scores.
 \section{Proofs}
 
 \begin{IEEEproof}[Proof of Proposition~\ref{prop:prior}]
-$F$ is a rooted tree with $n^+=|\Nset^+|$ leaves and $k(F)+1$ internal nodes, each with at least two children; every node but
+$F$ is a rooted tree with $n^+=|\Nset^+|$ leaves (the load, when modelled, counts as one) and $k(F)+1$ internal nodes, each with at least two children; every node but
 the root has one parent, so $\sum_vc_v=n^++k(F)$, $\sum_v(c_v-2)=n^+-k(F)-2$ and $P(F)\propto\rho^{\,n^+-2}\rho^{-k(F)}$.
 \end{IEEEproof}
 
@@ -549,32 +614,45 @@ The children partition $C$, so $z_Cz_C^{+\top}=\sum_{a,b}z_{A_a}z_{A_b}^{+\top}$
 (\ref{eq:glue}) and the terms $a\ne b$ give $Z^\times_C$. Every child is still a support of $T\setminus\{C\}$, so adding $r_C$
 to its parameter reproduces the sum exactly, and likewise for $x_C$. In $T\setminus\{C\}$ the supports that contain a pair of
 $\times(C)$ are those strictly above $C$; each adds the same value to every entry of $C\times C$, so none can change the
-cross-child entries alone. A meter's cable $\{i\}$ has only the entry $(i,i)$, which lies in no $\times(C)$.
+cross-child entries alone. A meter's cable $\{i\}$ has only the entry $(i,i)$, which lies in no $\times(C)$. For meter $i$
+in child $A_a$, the supports containing $i$ lose $C$ while $A_a$ gains $r_C$, so $\sum_{D\ni i}r_D$ is unchanged, and
+likewise for $x$: the per-meter bounds still hold, and so does $\bar r_{A_a}=\min_{i\in A_a}\bar R_i$, since a nonnegative
+coefficient is at most each path sum it belongs to.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:wald}]
-By the Frisch--Waugh--Lovell theorem, $\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)=\hat\theta_C\tp\Phi_C\tp(I-\Pi_{T\setminus
+By assumption both fits are unconstrained least-squares fits, in whitened retained coordinates, so by the
+Frisch--Waugh--Lovell theorem, $\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)=\hat\theta_C\tp\Phi_C\tp(I-\Pi_{T\setminus
 \{C\}})\Phi_C\hat\theta_C$. By (\ref{eq:glue}), $\Phi_C=\sum_a\Phi_{A_a}+\Phi^\times_C$ with every $\Phi_{A_a}$ in the column
 space of $T\setminus\{C\}$. Divide by $2\hat\sigma^2$ and subtract the price $\beta$ of one line.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Theorem~\ref{thm:gap}]
-Let $\mu=M\Phi_{T^0}\theta^0$, so the data under $M$ are $\mu+\tilde\varepsilon$ with $\tilde\varepsilon$ white (A1). By
-(A2), with probability tending to one the bounded fits of $T^0$ and of every family containing it are unbounded fits, and a
-bounded fit never has a smaller residual than the unbounded one. (a) For $F\not\ni C$,
-$\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ge\|(I-\Pi_F)\mu\|^2+2\langle(I-\Pi_F)\mu,\tilde\varepsilon\rangle+\|\Pi_{T^0}\tilde\varepsilon
-\|^2-\|\Pi_F\tilde\varepsilon\|^2$. The first term is at least $N\sigma^2\kappa_C$ for large $N$; the second has mean zero and
-variance $O(N)$; the last is $O_p(1)$. The penalties differ by at most $\beta n^+=O(\ln N)$. There are finitely many $F$. Every
-flipped family of $C$ omits $C$, and $m_C\ge e_C$ by Lemma~\ref{lem:local}. (b) $T$ and $T\setminus\{C\}$ contain $T^0$, so
-$\mu$ lies in both column spaces and the difference of residuals is $\sigma^2$ times a $\chi^2$ with $p_s$ degrees of freedom
-(the bounded one is no larger), while $\beta\to\infty$.
+RSS denotes the constrained residual in the whitened retained coordinates, so $H=\mathrm{RSS}/(2\hat\sigma^2)+\beta_Nk$. (a) By
+(A2) the true parameters are feasible in $T^0$, so $\mathrm{RSS}(T^0)\le\|\varepsilon\|^2$; a constrained fit is never better
+than unrestricted least squares, so $\mathrm{RSS}(F)\ge\|(I-P_F)(\mu+\varepsilon)\|^2$. With $d_F^2=\|(I-P_F)\mu\|^2$,
+\[
+\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ \ge\ d_F^2+2\langle(I-P_F)\mu,\varepsilon\rangle-\|P_F\varepsilon\|^2 ,
+\]
+and no bound needs to be inactive. The finitely many $P_F$ have bounded ranks, so $\mathbb E\|P_F\varepsilon\|^2=\sigma^2\,
+\mathrm{rank}\,P_F=O(1)$ and $\max_F\|P_F\varepsilon\|^2=O_p(1)$. The cross term has mean zero and variance $4\sigma^2d_F^2$,
+so it is $O_p(d_F)$. By (A3), for any $\kappa'<\kappa_C$ and all large $N$, $d_F^2\ge N\sigma^2\kappa'$ for every $F\not\ni C$;
+then the cross term and $\|P_F\varepsilon\|^2$ are $o_p(d_F^2)$, uniformly over the finite set. The prices differ by at most
+$\beta_Nn^+=o(N)$ by (A5), and $\hat\sigma^2\to\sigma^2$ by (A4). So $H(F)-H(T^0)\ge(1-o_p(1))N\kappa'/2-o(N)$ for every
+$F\not\ni C$, which exceeds $aN$ with probability tending to one when $a<\kappa'/2$, and $\kappa'$ can be taken as close to
+$\kappa_C$ as wanted. Every family that flips $C$ omits it, so the flip gap diverges, and $m_C\ge e_C$ by
+Lemma~\ref{lem:local}. (b) $T$ and $T\setminus\{C\}$ both contain $T^0$, where the true parameters are feasible. Nesting gives
+$\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)\ge0$; $\mathrm{RSS}(T\setminus\{C\})\le\|\varepsilon\|^2$ and
+$\mathrm{RSS}(T)\ge\|(I-P_T)\varepsilon\|^2$ (as $\mu$ lies in the columns of $T$) give
+$\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)\le\|P_T\varepsilon\|^2=O_p(1)$. With the price of one line,
+$H(T\setminus\{C\})-H(T)=-\beta_N+O_p(1)$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Corollary~\ref{cor:true}]
-A family $F\ne T^0$ either omits a line of $T^0$, and then $H(F)-H(T^0)\to\infty$ by (a), or strictly contains $T^0$, and then
-its residual is lower by $O_p(1)$ while its penalty is higher by at least $\beta\to\infty$. With finitely many $F$, $T^0$ is
-the unique best tree with probability tending to one, and every flipped family of a grouping of $T^0$ scores above
-$H(T^0)+m$, which a solve to optimality proves.
+A laminar $F\ne T^0$ in the pool either omits a line of $T^0$, and then $H(F)-H(T^0)\ge aN$ with probability tending to one
+by (a), or strictly contains $T^0$; then, as in (b), $0\le\mathrm{RSS}(T^0)-\mathrm{RSS}(F)\le\|P_F\varepsilon\|^2=O_p(1)$
+while its price is higher by at least $\beta_N\to\infty$. Both differences exceed $m$ with probability tending to one, and
+there are finitely many $F$. Every family that flips a grouping of $T^0$ is such an $F$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Proposition~\ref{prop:path}]
@@ -616,15 +694,22 @@ $\min H\le U_1$ give $D^*\ge L_0-U_1$, and $\min H_0\le U_0$ and $\min H\ge L_1$
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:evidence}]
-$H(F_M)-H(\hat L)$ changes by the log-likelihood ratio of the new data, the penalties being unchanged. For two Gaussians with
-common covariance its expectation under the leader is the Kullback--Leibler divergence $\tfrac12d\tp\Sigma^{-1}d$, and minus
-that under the rival.
+With $d=\mu_{\hat L}-\mu_{F_M}$, the quadratic terms of two Gaussian densities with a common covariance cancel, and
+$\ell_M=d\tp\Sigma_M^{-1}\big(Y-\tfrac12(\mu_{\hat L}+\mu_{F_M})\big)$ is linear in $Y$. Under $Y\sim\mathcal N(\mu_{\hat L},
+\Sigma_M)$ its mean is $\tfrac12d\tp\Sigma_M^{-1}d=\tfrac12q_M$ and its variance $d\tp\Sigma_M^{-1}d=q_M$; under the rival its
+mean is $-\tfrac12q_M$. The refitted score is a different quantity: in one dimension with means $0$ and $1$,
+$\hat\sigma^2=1$ and $\Sigma_M=2$, the frozen score increment $\tfrac12[(Y-1)^2-Y^2]$ has mean $\tfrac12$, while
+$\tfrac12q_M=\tfrac14$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:reach}]
-$d_M(u)=d_M(0)+G_Mu$, so $G_M=0$ gives $q_M(u)=q_M(0)$. (i) With the same other parameters, the block's part of the
-difference is $r_Mz_M(z_M\tp B)u$, $B$ selecting the meters with a controllable device; it vanishes exactly when $z_M\tp B=0$.
-(ii) Trees that differ only in whether lines carry the load predict drops that differ by terms in $u^P$ and $u^Q$ only.
+$d_M(u)=d_M(0)+G_Mu$ with $\Sigma_M$ frozen, so $G_Mv=0$ on every feasible direction leaves $q_M$ unchanged by every feasible
+block. (i) With the same other coefficients, the block's part of the difference is $r_Mz_M(z_M\tp B)u$, with $B$ the
+controllable meters; with $r_M>0$ and independent inputs it vanishes exactly when $z_M\tp B=0$. (ii) With equal coefficients,
+moving the load in or out of a line changes only terms in $u^P,u^Q$. With independent fits it need not: let $C=\{1,2\}$ and
+let the history have $u^P=p_C=p_1+p_2$; tree A has $C$ without the load and $r_C=2$, tree B has $C\cup\{s\}$ with $r=1$, and
+both predict $2z_Cp_C$ on the history. A block $a$ inside $C$ gives $2z_C(p_C+a)$ against $z_C(2p_C+a)$: they differ by
+$z_Ca$.
 \end{IEEEproof}
 
 \section{Initial candidate lines used in this work}\label{app:pool}

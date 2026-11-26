@@ -1,4 +1,4 @@
-"""Identification of method draft v9 (experiments/case_library_20261125/paper/procedure.tex), development only.
+"""Identification of method draft v10 (experiments/case_library_20261125/paper/procedure.tex), development only.
 
 Self-contained (numpy and gurobipy), one module per element of the draft, so it can be checked by hand:
     sets.py        supports, trees, children, unions                                  Section I

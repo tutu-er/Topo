@@ -2,7 +2,8 @@
 
 Pricing asks, at every node of a tree, for the best new line: a union of 2 to c-1 of its c children. Nodes with at most
 `max_children` children are enumerated (every union fitted); wider nodes are solved by `node_miqp`. The certificate is
-complete only when every node was enumerated or its MIQP proved optimal.
+for single lines only (two lines can pay together when neither pays alone: draft Remark 3), and it is complete only when
+every node was enumerated or its MIQP proved optimal; skipped or unproved nodes are not certified.
 """
 from __future__ import annotations
 
@@ -104,7 +105,7 @@ def node_miqp(model, tree, kids, seconds, seed=7):
 
 def best_addition(model, tree, max_children=12, node_seconds=60., chunk=200):
     """Lemma 4 and eq. (12): the line that lowers crit most among all lines compatible with the tree, or None.
-    Returns (line, info); info["certified"]: no line pays and every node was priced exactly."""
+    Returns (line, info); info["certified"]: no single line pays and every node was priced exactly."""
     leaves = model.leaves
     tree = lines_of(tree, leaves)
     family = canonical([*basis(leaves), *tree])
