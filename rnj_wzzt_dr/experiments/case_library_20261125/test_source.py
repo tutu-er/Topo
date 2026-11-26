@@ -104,3 +104,22 @@ def test_completion_finds_a_missing_line_and_certifies():
     tree, path = src.meters_only(done, N)
     assert {C for C in tree if 1 < len(C) < N} == set(TREE) and rec["certified"]
     assert path == [tuple(range(N)), (0, 1, 2)]
+
+
+def test_completion_adds_the_paying_line_when_the_miqp_stops_at_its_start(monkeypatch):
+    """When the pool MIQP stops at its time limit it returns its warm start; the paying line must still be added."""
+    from rnj_wzzt_dr.identification import source_cert as sc2
+    data, up, uq = make((0, 1, 2), seed=4)
+    T = len(up)
+    alpha = 2*np.log(T*N)/(T*N)
+    d = src.LeafDesign(data, rv.Transform(T, N, 0., True), 1e-5, up, uq)
+    start = [C for C in src.attach([C for C in TREE if C != (4, 5)], N, (0, 1, 2)) if 1 < len(C) < N+1]
+    fam = canonical([*start, *basis(N+1)])
+
+    def stops_at_start(design, universe, keep, alpha, bound, seconds, *, warm=None, **kw):
+        return dict(status=9, family=canonical([*warm]))
+    monkeypatch.setattr(sc2.rv, "select_miqp", stops_at_start)
+    done, rec = sc2.complete(d, fam, [*start], alpha, 2., N)
+    tree, _ = src.meters_only(done, N)
+    assert {C for C in tree if 1 < len(C) < N} == set(TREE) and rec["certified"]
+    assert len(rec["rounds"]) == 2

@@ -5,8 +5,9 @@ union of two or more of its child blocks (the source leaf counts as a block; not
 fitted exactly and priced. A node with more than `max_blocks` child blocks is not enumerated and the tree is then not
 certified.
 
-`complete` adds the best paying line to the candidate pool and lets the exact pool MIQP decide again, until the tree is
-certified or no line pays. The MIQP re-decides every line in each round, so no line is fixed by an earlier round.
+`complete` adds the best paying line to the tree and to the candidate pool and lets the exact pool MIQP, started from that
+tree, decide again, until the tree is certified or no line pays. The MIQP re-decides every line in each round, so no line
+is fixed by an earlier round; its tree replaces the one with the added line only when its exact score is lower.
 """
 from __future__ import annotations
 
@@ -45,22 +46,30 @@ def certify(design, family, alpha, bound, leaves, max_blocks=12):
 
 
 def complete(design, family, lines, alpha, bound, n, *, rounds=10, seconds=120., max_blocks=12, seed=7):
-    """Repeat: certify; if a line pays, add it to the pool and solve the pool MIQP again.
+    """Repeat: certify; if a line pays, add it to the tree and to the pool and solve the pool MIQP again, started from
+    the tree with the line. The better of that tree and the MIQP's tree (exact score) is kept, so the score falls in
+    every round even when the MIQP stops at its time limit. At most `rounds` additions; the last tree is certified too.
 
     Returns (family over n + 1 leaves, record)."""
     keep = canonical(basis(n+1))
     pool = canonical([*lines, *(C for C in family if 1 < len(C) < n+1)])
     history, certified, family = [], False, canonical(family)
-    for _ in range(rounds):
+
+    def score(f):
+        return rv.exact_fit(design, f, bound)["objective"]+alpha*rv.internal_count(f, n+1)
+    for k in range(rounds+1):
         c = certify(design, family, alpha, bound, n+1, max_blocks)
         history.append(dict(best=None if c["best"] is None else list(c["best"]), gain=c["gain"], skipped=c["skipped"]))
         if c["best"] is None:
             certified = c["certified"]
             break
-        pool = canonical([*pool, c["best"]])
-        rec = rv.select_miqp(design, [C for C in pool if 1 < len(C) < n+1], keep, alpha, bound, seconds, warm=family,
-                             seed=seed, gap=1e-5)
-        if not rec.get("family"):
+        if k == rounds:
             break
-        family = canonical([*keep, *rec["family"]])
+        pool = canonical([*pool, c["best"]])
+        plus = canonical([*family, c["best"]])
+        rec = rv.select_miqp(design, [C for C in pool if 1 < len(C) < n+1], keep, alpha, bound, seconds, warm=plus,
+                             seed=seed, gap=1e-5)
+        found = canonical([*keep, *rec["family"]]) if rec.get("family") else None
+        history[-1]["miqp"] = dict(status=rec.get("status"), taken=found is not None and score(found) < score(plus))
+        family = found if history[-1]["miqp"]["taken"] else plus
     return family, dict(certified=certified, rounds=history)

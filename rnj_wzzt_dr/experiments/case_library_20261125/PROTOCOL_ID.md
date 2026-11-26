@@ -11,8 +11,10 @@ been opened by any identifier.
 (alpha' = alpha - 2 lam / N), evidence margin m = 4.6, k_max = 9; pool and root MIQP 120 s, node MIQP 60 s, local search 30 s,
 warm start 20 s; up to 35 meters the pool MIQP is warm-started and cut off by the local search, beyond 35 meters it starts cold
 with 240 s and the tree is first found at the plain price and used as a start at the lower price (price continuation); the
-better of local search and MIQP is kept and polished for 20 s; S2 MIQP 120 s, completion up to 10 rounds with the
-enumeration certificate up to 12 blocks; a numerical failure of the ordered QP repeats the set-up with SLSQP. Seeds fixed (7).
+better of local search and MIQP is kept and polished for 20 s; S2 MIQP 120 s; completion: up to 10 additions of the best
+paying line found by the enumeration certificate (nodes up to 12 blocks), each followed by the pool MIQP (120 s) started from
+the tree with that line, whose tree is kept only when its exact score is lower, and the last tree is certified too; a
+numerical failure of the ordered QP repeats the set-up with SLSQP. Seeds fixed (7).
 It is not changed afterwards.
 
 The structural prior is in the method because the development verification showed no loss at 41-59 meters (the user's
@@ -114,7 +116,16 @@ true lines the list holds; by size class and with and without a source. A failed
   identical, one has one more true line and one has one line swapped. The searches stop at wall-clock limits, so beyond 35
   meters a repeat can differ slightly; the sealed test is one run. Per-case F1: random 76.1 / 70.5 / 68.7 / 69.9 by size, against
   RNJ (0.04) 62.2 / 44.0 / 41.8 / 29.4; street 85.2 against 87.0.
-- (pending) development verification of the final method with the source on all 288 twins (`final_dev --mode source`).
+- 2026-11-25, **completion defect found and fixed** (before registration). The regression check of `final_dev --mode source`
+  (283 of 288 twins finished) showed that in 31 of the 67 cases of 16 meters or more the completion step reported the same
+  paying line in all 10 rounds and ended uncertified (medium 4 of 24, large 13 of 24, huge 14 of 19), at up to 20 minutes per
+  case. Cause, reproduced on dev_medium_006_none: the pool MIQP stopped at its 120 s limit (gap 3%) and returned its warm
+  start, the tree without the line; started from the tree with the line it kept the line, and the next certificate found
+  nothing. Fix in `source_cert.complete` (section 1), with a unit test whose MIQP returns its start. **Decided before the
+  rerun: the fix stays whatever the rerun shows**, because it makes the step do what it states. The 39 affected twins (more
+  than one completion round, or unfinished when the defect was found) are rerun (`final_dev run --mode source --tag _fix
+  --names ...`); twins certified in the first round take the same code path and keep their results.
+- (pending) development verification of the final method with the source: the rerun of the 39 twins.
 
 ## 8. Running
 

@@ -292,7 +292,9 @@ into the tree, the tree lines it crosses removed). Computed after the tree; it n
 
 ## 3. What is missing before I7
 
-1. S2 with the completion step and the bonus (the final method), on all 288 development twins with times: **running** (`final_dev --mode source`).
+1. S2 with the completion step and the bonus (the final method), on all 288 development twins with times: 283 finished; a defect
+   of the completion step was found (the MIQP stopped at its time limit and returned the tree without the paying line, so 31
+   of 67 cases of 16 meters or more never completed) and fixed; **rerun of the 39 affected twins running** (PROTOCOL_ID.md section 7).
 2. A fixed rule for the source evidence threshold: **fixed**, 4.6 half-BIC units = Bayes factor 100, as for lines.
 3. The tolerance choice of the baselines on development: **filled** (PROTOCOL_ID.md section 3, from `compare_dev` / `compare_source`).
 4. The protocol text: drafted (PROTOCOL_ID.md). **The user's go-ahead: given on 2026-11-25** ("do the first and second": adopt the bonus if it
