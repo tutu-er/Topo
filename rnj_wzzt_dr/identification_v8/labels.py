@@ -1,4 +1,4 @@
-"""Labels of meter groupings (draft v9: Definition 1, Lemma 1, eqs 6-8).
+"""Labels of meter groupings (draft v11: Definition 1, Lemma 1, eqs 6-8).
 
 With the load as a leaf, one meter grouping M can appear as the line M or as M + load: the same grouping of meters,
 with the load inside it or not. Labels and anchors are about groupings: flipping M means a tree with neither of the two.

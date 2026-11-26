@@ -1,4 +1,4 @@
-"""Anchors, their units and the anchored universe (draft v9, Definition 2 and Proposition 4).
+"""Anchors, their units and the anchored universe (draft v11, Definition 2 and Proposition 4).
 
 Here everything is over the meters: anchors are meter groupings (sets of 2 to n-1 meters) that are pairwise compatible.
 With the load, identify.with_load turns the meter lines into lines with and without the load leaf.
@@ -32,7 +32,7 @@ def enclosing(C, anchors, n):
 
 
 def anchored_universe(anchors, n, pool=(), K=9):
-    """Eq. (13): the anchors; every union of 2 to k-1 units of each anchor or root with k <= K units; and the lines of
+    """Eq. (11): the anchors; every union of 2 to k-1 units of each anchor or root with k <= K units; and the lines of
     `pool` compatible with every anchor whose smallest enclosing anchor (or root) has more than K units.
     Returns (lines, info)."""
     anchors = canonical(anchors)

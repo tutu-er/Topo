@@ -1,4 +1,4 @@
-"""Algorithm 1 of method draft v9 (Identify): load gate, tree, anchors and labels. Development only.
+"""Algorithm 1 of method draft v11 (Identify): load gate, tree, anchors and labels. Development only.
 
     python -m rnj_wzzt_dr.identification_v8.identify --names dev_small_003_head [--blind] [--out FILE]
 
@@ -188,7 +188,7 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
         last = rounds[-1] if rounds else None
         if last is not None and anchors == previous and not last["price"]["added"] \
                 and last["price"]["still_paying"] is None and last["solve"]["status"] == 2:
-            stop = "converged: same anchors, pricing added nothing, last MIQP optimal (Lemma 5)"
+            stop = "converged: same anchors, pricing added nothing, last MIQP optimal (Lemma 3)"
         elif rnd == st.rounds:
             stop = "round limit"
         if stop:

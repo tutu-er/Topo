@@ -1,4 +1,4 @@
-"""Supports and families (draft v9, Section I).
+"""Supports and families (draft v11, Section I).
 
 A support is a sorted tuple of leaf numbers. Leaves 0..n-1 are the meters; with the PCC power, leaf n is the unmetered
 load. A family is a collection of supports; a tree is a laminar family that contains the basis (every leaf alone and the
@@ -43,7 +43,7 @@ def children(family, leaves):
 
 
 def unions(blocks):
-    """Every union of 2 to k-1 of the k blocks (the new lines a node can take, Lemma 4)."""
+    """Every union of 2 to k-1 of the k blocks (the new lines a node can take, Lemma 2)."""
     k = len(blocks)
     return [tuple(sorted(i for b in c for i in b)) for size in range(2, k) for c in combinations(blocks, size)]
 

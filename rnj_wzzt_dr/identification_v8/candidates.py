@@ -1,4 +1,4 @@
-"""Initial candidate lines (draft v9, Appendix B): the nine builder trees of the registered code.
+"""Initial candidate lines (draft v11, Appendix B): the nine builder trees of the registered code.
 
 Algorithm 1 takes these trees as an input; any builders could supply them. This is the only module of the package that
 uses identification/ (the frozen predecessor): its R-hat QP with the free load term and its nine hierarchies.

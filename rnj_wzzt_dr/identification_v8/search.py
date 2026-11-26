@@ -1,8 +1,8 @@
-"""Local search, and node pricing (draft v9: the incumbent of eq. (11), and eq. (12) with Lemma 4).
+"""Local search, and node pricing (draft v11: the incumbent of eq. (9), and eq. (10) with Lemma 2).
 
 Pricing asks, at every node of a tree, for the best new line: a union of 2 to c-1 of its c children. Nodes with at most
 `max_children` children are enumerated (every union fitted); wider nodes are solved by `node_miqp`. The certificate is
-for single lines only (two lines can pay together when neither pays alone: draft Remark 3), and it is complete only when
+for single lines only (two lines can pay together when neither pays alone: draft Remark 1), and it is complete only when
 every node was enumerated or its MIQP proved optimal; skipped or unproved nodes are not certified.
 """
 from __future__ import annotations
@@ -50,7 +50,7 @@ def columns(model, family):
 
 
 def node_miqp(model, tree, kids, seconds, seed=7):
-    """Eq. (12) at one node as an MIQP: the best union of 2 to c-1 of the node's children `kids`, with every
+    """Eq. (10) at one node as an MIQP: the best union of 2 to c-1 of the node's children `kids`, with every
     coefficient of the tree refitted. z_a = 1 when child a is in the new line. The new line's coefficient r enters as
     u_ab = r z_a z_b (a <= b): meter rows of child a see the flow of child b and vice versa. McCormick inequalities make
     u_ab equal to r z_a z_b at binary z, so the fit stays linear; x likewise with v_ab.
@@ -104,7 +104,7 @@ def node_miqp(model, tree, kids, seconds, seed=7):
 
 
 def best_addition(model, tree, max_children=12, node_seconds=60., chunk=200):
-    """Lemma 4 and eq. (12): the line that lowers crit most among all lines compatible with the tree, or None.
+    """Lemma 2 and eq. (10): the line that lowers crit most among all lines compatible with the tree, or None.
     Returns (line, info); info["certified"]: no single line pays and every node was priced exactly."""
     leaves = model.leaves
     tree = lines_of(tree, leaves)
