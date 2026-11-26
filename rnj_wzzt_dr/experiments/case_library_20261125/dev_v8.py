@@ -2,7 +2,7 @@
 that the tests of paper/PROPOSALS_UNDER_TEST.md need. Development cases only: load_dev_case checks every file against
 the development manifest, and the sealed set is never opened.
 
-    python -m rnj_wzzt_dr.experiments.case_library_20261125.dev_v8 run --workers 8 [--blind] [--names a,b]
+    python -m rnj_wzzt_dr.experiments.case_library_20261125.dev_v8 run --workers 8 [--blind] [--names a,b] [--max-n 25]
     python -m rnj_wzzt_dr.experiments.case_library_20261125.dev_v8 summary [--blind]
 
 `run` is resumable: cases already in the output file are skipped. Each row is the identifier's output plus
@@ -40,11 +40,12 @@ OUT = HERE.parents[2]/"outputs"/"case_library_20261125"
 
 
 # ------------------------------------------------------------------ S1: adequacy against the saturated model
-def adequacy(P, Q, Y, V0sq, u, groupings):
-    """F = [(RSS_tree - RSS_sat) / df1] / [RSS_sat / df2], both unbounded least squares under the saturated model's
-    projection (offsets and, with u, the load's profiles removed; S on the meters). The tree is nested in the saturated
-    model (R_ij = sum of r_C over the lines C holding i and j), so F ~ F(df1, df2) when the tree is right and the noise
-    is Gaussian. Returns dict(F, df1, df2, p, sigma2)."""
+def adequacy(P, Q, Y, V0sq, u, trees):
+    """For each tree (name -> meter groupings): F = [(RSS_tree - RSS_sat) / df1] / [RSS_sat / df2], both unbounded
+    least squares under the saturated model's projection (offsets and, with u, the load's profiles removed; S on the
+    meters). A tree is nested in the saturated model (R_ij = sum of r_C over the lines C holding i and j), so
+    F ~ F(df1, df2) when the tree is right and the noise is Gaussian. The saturated fit is done once.
+    Returns {name: dict(F, df1, df2, p)} and sigma2 = RSS_sat / df2."""
     T, n = P.shape
     gamma = gls_gamma(V0sq, Y)
     E = time_basis(T, u)
@@ -57,12 +58,6 @@ def adequacy(P, Q, Y, V0sq, u, groupings):
         theta, _, rank, _ = np.linalg.lstsq(X, y, rcond=1e-10)
         return float(np.sum((y-X@theta)**2)), int(rank)
 
-    tree_cols = []
-    for C in [*basis(n), *groupings]:                     # line C: each meter of C sees the summed flow of C
-        Z = np.zeros(n)
-        Z[list(C)] = 1.
-        for F0 in (Pp, Qp):
-            tree_cols.append(after_S(F0[:, list(C)].sum(1)[:, None]*Z[None, :]))
     ii, jj = np.triu_indices(n)
     sat_cols = []
     for F0 in (Pp, Qp):                                    # entry (i, j): meter i sees flow j, meter j sees flow i
@@ -72,12 +67,22 @@ def adequacy(P, Q, Y, V0sq, u, groupings):
             if i != j:
                 F[:, j] += F0[:, i]
             sat_cols.append(after_S(F))
-    rss_t, rank_t = fit(tree_cols)
     rss_s, rank_s = fit(sat_cols)
-    df1 = rank_s-rank_t
+    del sat_cols
     df2 = (T-E.shape[1])*(n-int(gamma == 1.))-rank_s
-    F = ((rss_t-rss_s)/df1)/(rss_s/df2)
-    return dict(F=F, df1=df1, df2=df2, p=float(stats.f.sf(F, df1, df2)), sigma2=rss_s/df2)
+    out = {}
+    for name, groupings in trees.items():
+        tree_cols = []
+        for C in [*basis(n), *groupings]:                 # line C: each meter of C sees the summed flow of C
+            Z = np.zeros(n)
+            Z[list(C)] = 1.
+            for F0 in (Pp, Qp):
+                tree_cols.append(after_S(F0[:, list(C)].sum(1)[:, None]*Z[None, :]))
+        rss_t, rank_t = fit(tree_cols)
+        df1 = rank_s-rank_t
+        F = ((rss_t-rss_s)/df1)/(rss_s/df2)
+        out[name] = dict(F=F, df1=df1, df2=df2, p=float(stats.f.sf(F, df1, df2)))
+    return out, rss_s/df2
 
 
 # ------------------------------------------------------------------ one case
@@ -103,13 +108,13 @@ def run_one(task):
         if r["gate"]["load"]:
             u = balance(h["P"], h["Q"], h["Y"], h["V0sq"], h["Ppcc"], h["Qpcc"])
         priced = [x["price"] for x in r["rounds"] if "price" in x]
+        fits, sigma2 = adequacy(h["P"], h["Q"], h["Y"], h["V0sq"], u, dict(leader=sorted(tree), truth=sorted(truth)))
+        assert abs(sigma2/r["model"]["sigma2"]-1) < 1e-6, "the saturated fit differs from the identifier's"
         row = dict(name=name, n=n, load=rec["source"] and rec["source"]["where"], blind=blind,
                    score=f1(tree, truth), truth=[list(M) for M in sorted(truth)], label_truth=label_truth,
-                   adequacy=dict(leader=adequacy(h["P"], h["Q"], h["Y"], h["V0sq"], u, sorted(tree)),
-                                 truth=adequacy(h["P"], h["Q"], h["Y"], h["V0sq"], u, sorted(truth))),
+                   adequacy=fits,
                    complete=bool(priced) and priced[-1]["still_paying"] is None and bool(priced[-1]["certified"]),
                    **{k: v for k, v in r.items() if k != "lines"})
-        assert abs(row["adequacy"]["leader"]["sigma2"]/r["model"]["sigma2"]-1) < 1e-6, "saturated fit differs"
         return name, row, None, time.perf_counter()-started
     except Exception:
         return name, None, traceback.format_exc(), time.perf_counter()-started
@@ -121,7 +126,8 @@ def out_path(blind):
 
 def run(args):
     manifest = json.loads((HERE/"manifest_dev.json").read_text(encoding="utf-8"))
-    names = [r["name"] for r in sorted(manifest, key=lambda r: -r["n"])]          # largest first
+    names = [r["name"] for r in sorted(manifest, key=lambda r: -r["n"])            # largest first
+             if args.max_n is None or r["n"] <= args.max_n]
     if args.names:
         names = [x for x in names if x in set(args.names.split(","))]
     path = out_path(args.blind)
@@ -173,6 +179,7 @@ def main():
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--blind", action="store_true", help="without the PCC power")
     ap.add_argument("--names", default=None, help="only these development cases, comma-separated")
+    ap.add_argument("--max-n", type=int, default=None, help="only cases with at most this many meters")
     args = ap.parse_args()
     run(args) if args.command == "run" else summary(args)
 
