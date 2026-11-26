@@ -1,4 +1,4 @@
-"""The model and the score of draft v8 (eqs 1-4).
+"""The model and the score of draft v9 (eqs 1-5; the load gate is eq. 3).
 
 Data, all slots (hourly, pu): P, Q and Y = V0^2 - V^2 (T x n), V0sq (T); with the PCC power, the unmetered power
 u = (uP, uQ) from the balance (eq. 2). Leaf n is then the load: its flow is u and it has no voltage row.
@@ -20,6 +20,7 @@ import numpy as np
 from .sets import basis, canonical, is_line
 
 BOUND = 2.                    # upper bound of every r_C and x_C (pu), as in the registered code
+GATE = .01                    # a load is modelled only when its mean power is at least 1% of the metered mean power
 _ENV = None
 
 
@@ -40,6 +41,12 @@ def balance(P, Q, Y, V0sq, Ppcc, Qpcc):
     v = np.sqrt(V0sq[:, None]-Y)
     rise = (v0-v)/v
     return Ppcc-(P*(1+rise)).sum(1), Qpcc-(Q*(1+rise)).sum(1)
+
+
+def load_share(P, u):
+    """The gate's statistic (Section II): the unmetered mean power as a share of the metered mean power. Below GATE no
+    load is modelled (a prior setting: on the development cases no-load feeders stay within +-0.66%, loads are >= 1.53%)."""
+    return float(np.mean(u[0])/np.mean(P.sum(1)))
 
 
 def gls_gamma(V0sq, Y):
@@ -121,6 +128,11 @@ class Model:
             other.Pt[:, self.n] = 0.
             other.Qt[:, self.n] = 0.
         return other
+
+    def flow(self, support, which="p"):
+        """Summed (offset-free) flow of a support's leaves, T values."""
+        F = self.Pt if which == "p" else self.Qt
+        return F[:, list(support)].sum(1)
 
     def gram(self, family):
         """G = F'F / sigma2 and b = F'Y / sigma2 for the columns of the supports (all r columns, then all x columns).

@@ -1,16 +1,17 @@
-"""Algorithm 1 of method draft v8 (Identify): tree, anchors and labels. Development only.
+"""Algorithm 1 of method draft v9 (Identify): load gate, tree, anchors and labels. Development only.
 
     python -m rnj_wzzt_dr.identification_v8.identify --names dev_small_003_head [--blind] [--out FILE]
 
 Lines of Algorithm 1 and where they are:
-  1     the model: balance, M, noise variance, price                           model.Model
-  2     initial lines: the nine builder trees (candidates.py), every grouping with and without the load; the load
-        placed in each builder tree at its best place                          with_load, place_load
-  3     first tree: local search, then the tree MIQP                            solve (search.py, miqp.py)
+  0     the load gate: a load is modelled only when its mean power is at least 1% of the metered power   model.load_share
+  1     the model: balance, M, noise variance, price                                             model.Model
+  2     initial lines: the nine builder trees (candidates.py); with a load, every grouping with and without it, and the
+        load placed in each builder tree at its best place                                       with_load, place_load
+  3     first tree: local search, then the tree MIQP                                             solve
   4-8   anchors = decided groupings (labels.py); the anchored universe (anchors.py); the tree MIQP over it with every
-        anchor required; node pricing (search.best_addition); until the anchors repeat, at most `rounds` times
+        anchor required; pricing and a re-solve (price); until the stopping rule holds or `rounds` searches were made
   9-11  labels of the last tree
-  12    with the load: its path, places and evidence
+  12    with a load: its path, its places, and its evidence with bounds (evidence)
 """
 from __future__ import annotations
 
@@ -30,25 +31,29 @@ from .anchors import anchored_universe
 from .candidates import builder_trees
 from .labels import DECIDED, grouping, label_groupings
 from .miqp import tree_miqp
-from .model import Fitter, Model, balance
+from .model import GATE, Fitter, Model, balance, load_share
 from .search import best_addition, local_search
 from .sets import canonical, crossing_map, lines_of
 
 
 @dataclass(frozen=True)
 class Settings:
+    gate: float = GATE           # load modelled only above this share of the metered power (prior setting)
     lam: float = 1.96            # structural prior, half-BIC units (ln(1/rho), rho = 0.141 on 84 real feeders)
     m: float = 4.6               # margin of labels and anchors, half-BIC units (ln 100)
     K: int = 9                   # nodes with at most K units are searched by all their unions
-    rounds: int = 2              # anchor rounds (lines 4-8)
+    rounds: int = 2              # anchored searches at most (lines 4-8)
     warm_n: int = 35             # up to this many meters the MIQP starts from the local-search tree
     short_seconds: float = 120.  # tree MIQP limit up to warm_n meters
     long_seconds: float = 240.   # beyond warm_n meters
     flip_seconds: float = 0.     # 0: the tree MIQP's limit (the user's choice of 2026-11-26: at least that)
+    tighten: bool = True         # per-meter response bounds in every MIQP (False: the ablation)
     start_seconds: float = 20.   # local search per start (doubled beyond warm_n meters)
     polish_seconds: float = 20.
     repairs: int = 10            # lines added by pricing per round
-    max_children: int = 12       # pricing enumerates nodes with at most this many children
+    max_children: int = 12       # wider nodes are priced by the node MIQP
+    node_seconds: float = 60.    # node MIQP limit
+    evidence: bool = True        # with a load: solve the no-load model too, for the evidence and its bounds
     seed: int = 7
 
 
@@ -64,8 +69,8 @@ def with_load(groupings, n):
 
 
 def load_options(meter_tree, n):
-    """The meter tree with the load at each place: below one of its lines, below the trunk, or at the PCC.
-    Returns [(place, lines over n + 1 leaves)]."""
+    """The admissible places of the load in a meter tree: below one of its lines, below the trunk, or at the PCC
+    (beside the trunk). Returns [(place, lines over n + 1 leaves)]."""
     options = []
     for D in [*meter_tree, None]:
         options.append((D, lines_of([(*C, n) if D is not None and set(D) <= set(C) else C for C in meter_tree], n+1)))
@@ -83,7 +88,8 @@ def place_load(model, meter_tree):
 # ------------------------------------------------------------------ the searches
 def solve(model, pool, starts, seconds, st, require=()):
     """Lines 3 and 6: local search from the empty tree and every start, the tree MIQP (warm-started up to warm_n
-    meters), the better tree, a polish. Every tree keeps a line of each `require` group. Returns (lines, info)."""
+    meters, tightened at the incumbent's level), the better tree, a polish. Every tree keeps a line of each `require`
+    group. Returns (lines, info); info["bound"] is the MIQP's lower bound over this pool."""
     lines = lines_of(pool, model.leaves)
     fitter, crosses = Fitter(model, lines), crossing_map(lines)
     ok = lambda S: all(any(C in S for C in group) for group in require)
@@ -92,45 +98,66 @@ def solve(model, pool, starts, seconds, st, require=()):
              for s in [frozenset(), *starts] if ok(s)]
     incumbent, value = min(tried, key=lambda x: x[1])
     r = tree_miqp(model, lines, seconds, require=require, seed=st.seed,
-                  warm=incumbent if model.n <= st.warm_n else None)
+                  warm=incumbent if model.n <= st.warm_n else None, tighten_at=value if st.tighten else None)
     chosen = incumbent
     if r["family"] is not None and fitter.crit(lines_of(r["family"], model.leaves)) < value:
         chosen = frozenset(lines_of(r["family"], model.leaves))
     chosen, value = local_search(fitter, crosses, chosen, time.perf_counter()+st.polish_seconds, require)
     return lines_of(chosen, model.leaves), dict(status=r["status"], miqp_seconds=r["seconds"], pool=len(lines),
-                                                crit=value)
+                                                crit=value, bound=r["bound"])
 
 
 def price(model, tree, universe, require, seconds, st):
-    """Line 7: add the best paying line (node pricing) while one exists; after additions, solve again over the
-    universe and the new lines. Returns (tree, info)."""
+    """Line 7: add the best paying line while one exists; after additions, solve again over the universe and the new
+    lines and keep the better tree (the score never rises). Returns (tree, info)."""
     added = []
-    best, info = best_addition(model, tree, st.max_children)
+    best, info = best_addition(model, tree, st.max_children, st.node_seconds)
     while best is not None and len(added) < st.repairs:
         tree = lines_of([*tree, best], model.leaves)
         added.append(best)
-        best, info = best_addition(model, tree, st.max_children)
+        best, info = best_addition(model, tree, st.max_children, st.node_seconds)
     if added:
         again, _ = solve(model, [*universe, *tree], [frozenset(tree)], seconds, st, require)
         fit = Fitter(model, [*again, *tree])
         if fit.crit(again) < fit.crit(tree)-1e-12:
             tree = again
-            best, info = best_addition(model, tree, st.max_children)
-    return tree, dict(added=[list(C) for C in added], certified=info["certified"], skipped_nodes=info["skipped"],
-                      still_paying=None if best is None else list(best))
+            best, info = best_addition(model, tree, st.max_children, st.node_seconds)
+    return tree, dict(added=[list(C) for C in added], still_paying=None if best is None else list(best),
+                      certified=info["certified"], enumerated=info["enumerated"], by_miqp=info["by_miqp"],
+                      unproved=info["unproved"])
+
+
+def evidence(model, tree, meter_pool, seconds, st):
+    """Line 12: the load's evidence D = H0* - H1* (half-BIC units), with the no-load model (same data, same sigma2,
+    u = 0) solved over the meter groupings. Returns dict(estimate = U0 - U1, lower = L0 - U1): H0* >= L0 (the MIQP's
+    bound over the meter pool) and H1* <= U1 = H(tree), so D >= L0 - U1 over the pools searched."""
+    half = model.N/2
+    off = model.without_load()
+    meter_tree = canonical(g for g in (grouping(C, model.n) for C in tree) if g)
+    tree0, info = solve(off, meter_pool, [frozenset(meter_tree)], seconds, st)
+    U1 = Fitter(model, tree).crit(tree)
+    U0 = min(info["crit"], Fitter(off, meter_tree).crit(meter_tree))
+    return dict(estimate=half*(U0-U1), lower=None if info["bound"] is None else half*(info["bound"]-U1),
+                no_load_tree=[list(C) for C in tree0], status=info["status"])
 
 
 # ------------------------------------------------------------------ Algorithm 1
 def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     """Algorithm 1 on all slots of one feeder (P, Q, Y = V0^2 - V^2: T x n; V0sq: T; Ppcc, Qpcc: T or None).
 
-    Returns dict(tree (meter groupings), lines (over all leaves), anchors, labels, rounds, model) and, with the PCC
-    power, dict(path, places, evidence) as well."""
+    Returns dict(gate, tree (meter groupings), lines (over all leaves), anchors, labels, rounds, stop, model) and,
+    with a load, dict(path, places, evidence) as well."""
     say = log or (lambda *_: None)
     started = time.perf_counter()
     P, Q, Y, V0sq = (np.asarray(a, float) for a in (P, Q, Y, V0sq))
     n = P.shape[1]
-    u = None if Ppcc is None else balance(P, Q, Y, V0sq, np.asarray(Ppcc, float), np.asarray(Qpcc, float))
+    u, gate = None, dict(share=None, threshold=st.gate, load=False)
+    if Ppcc is not None:                                                     # line 0: the gate
+        u = balance(P, Q, Y, V0sq, np.asarray(Ppcc, float), np.asarray(Qpcc, float))
+        gate.update(share=load_share(P, u), load=load_share(P, u) >= st.gate)
+        if not gate["load"]:
+            u = None
+    say(f"  gate: share {gate['share']}, load modelled: {gate['load']}")
     model = Model(P, Q, Y, V0sq, u, st.lam)                                   # line 1
     load = u is not None
     seconds = st.short_seconds if n <= st.warm_n else st.long_seconds
@@ -143,23 +170,28 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
         starts = [frozenset(place_load(model, t)[0]) for t in trees]
     else:
         pool, starts = groupings, [frozenset(t) for t in trees]
-    timing["candidates"] = time.perf_counter()-started-timing["model"]
 
     t0 = time.perf_counter()
     tree, first = solve(model, pool, list(dict.fromkeys(starts)), seconds, st)  # line 3
     timing["first_tree"] = time.perf_counter()-t0
     say(f"  first tree: {len(tree)} lines over {first['pool']} candidates, MIQP status {first['status']}")
 
-    rounds, previous = [], None
+    rounds, previous, stop = [], None, None
     for rnd in range(st.rounds+1):                                           # lines 4-11
         t0 = time.perf_counter()
-        labels, linfo = label_groupings(model, tree, pool, st.m, st.flip_seconds or seconds, st.seed, say)
+        labels, linfo = label_groupings(model, tree, pool, st.m, st.flip_seconds or seconds, st.seed, say, st.tighten)
         anchors = canonical(M for M, l in labels.items() if l["inside"] and l["label"] == DECIDED)
         record = dict(round=rnd, lines=len(tree), anchors=len(anchors), pool=len(pool), label_info=linfo,
                       labels=dict(Counter(l["label"] for l in labels.values() if l["inside"])))
         say(f"  round {rnd}: {len(tree)} lines, {len(anchors)} anchors, labels {record['labels']}, "
             f"{time.perf_counter()-t0:.0f} s")
-        if anchors == previous or rnd == st.rounds:
+        last = rounds[-1] if rounds else None
+        if last is not None and anchors == previous and not last["price"]["added"] \
+                and last["price"]["still_paying"] is None and last["solve"]["status"] == 2:
+            stop = "converged: same anchors, pricing added nothing, last MIQP optimal (Lemma 5)"
+        elif rnd == st.rounds:
+            stop = "round limit"
+        if stop:
             rounds.append(record)
             break
         t0 = time.perf_counter()
@@ -175,9 +207,10 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
             f"MIQP status {sinfo['status']}, priced +{len(pinfo['added'])}, {record['search_seconds']:.0f} s")
         rounds.append(record)
         previous = anchors
+    say(f"  stop: {stop}")
 
     meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
-    out = dict(tree=meter_tree, lines=tree, anchors=anchors, rounds=rounds,
+    out = dict(gate=gate, tree=meter_tree, lines=tree, anchors=anchors, rounds=rounds, stop=stop,
                labels=[dict(grouping=list(M), inside=l["inside"], anchor=M in set(anchors), label=l["label"],
                             gap=[None if g is None else float(g) for g in l["gap"]], status=l["status"],
                             seconds=l["seconds"], rival=None if l["rival"] is None else [list(C) for C in l["rival"]])
@@ -188,12 +221,11 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
         half = model.N/2
         options = load_options(meter_tree, n)
         fit = Fitter(model, [C for _, o in options for C in o])
-        costs = sorted((fit.crit(o), D) for D, o in options)
-        out["places"] = [(half*(c-costs[0][0]), D if D in (None, "pcc") else list(D)) for c, D in costs]
-        out["path"] = [list(grouping(C, n) or tuple(i for i in C if i < n)) for C in sorted(tree, key=len, reverse=True)
-                       if n in C]
-        off = model.without_load()
-        out["evidence"] = half*(Fitter(off, meter_tree).crit(meter_tree)-Fitter(model, tree).crit(tree))
+        costs = sorted((fit.crit(o), str(D)) for D, o in options)
+        out["places"] = [(half*(c-costs[0][0]), D) for c, D in costs]
+        out["path"] = [list(tuple(i for i in C if i < n)) for C in sorted(tree, key=len, reverse=True) if n in C]
+        if st.evidence:
+            out["evidence"] = evidence(model, tree, [g for g in (grouping(C, n) for C in pool) if g], seconds, st)
     timing["total"] = time.perf_counter()-started
     out["timing"] = timing
     return out
@@ -226,20 +258,23 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--names", required=True, help="development case names, comma-separated")
     ap.add_argument("--blind", action="store_true", help="without the PCC power")
+    ap.add_argument("--no-tighten", action="store_true", help="ablation: no per-meter bounds in the MIQPs")
     ap.add_argument("--out", default=None, help="jsonl file to append to")
     args = ap.parse_args()
+    st = Settings(tighten=not args.no_tighten)
     for name in args.names.split(","):
         rec, inp = load_dev_case(name)
         h, n = inp.hist, inp.n
         print(f"{name}: n={n}, load={rec['source'] and rec['source']['where']}", flush=True)
         pcc = () if args.blind else (h["Ppcc"], h["Qpcc"])
-        r = identify(h["P"], h["Q"], h["Y"], h["V0sq"], *pcc, log=lambda s: print(s, flush=True))
+        r = identify(h["P"], h["Q"], h["Y"], h["V0sq"], *pcc, st=st, log=lambda s: print(s, flush=True))
         inner = lambda f: {tuple(sorted(C)) for C in f if 1 < len(C) < n}
         truth = inner(rec["truth"])
         score = f1(inner(r["tree"]), truth)
         false_anchors = sum(1 for A in r["anchors"] if tuple(A) not in truth)
         print(f"  F1 {score['f1']:.3f} (P {score['precision']:.2f}, R {score['recall']:.2f}), anchors {len(r['anchors'])} "
-              f"({false_anchors} not true), evidence {r.get('evidence')}, {r['timing']['total']:.0f} s", flush=True)
+              f"({false_anchors} not true), evidence {r.get('evidence', {}).get('estimate')}, "
+              f"{r['timing']['total']:.0f} s", flush=True)
         if args.out:
             row = dict(name=name, n=n, load=rec["source"] and rec["source"]["where"], blind=args.blind, score=score,
                        false_anchors=false_anchors, truth=[list(C) for C in sorted(truth)],

@@ -1,4 +1,4 @@
-"""Labels of meter groupings (draft v8: Definition 1, Lemma 1, eqs 6-8).
+"""Labels of meter groupings (draft v9: Definition 1, Lemma 1, eqs 6-8).
 
 With the load as a leaf, one meter grouping M can appear as the line M or as M + load: the same grouping of meters,
 with the load inside it or not. Labels and anchors are about groupings: flipping M means a tree with neither of the two.
@@ -56,12 +56,13 @@ def local_flips(fitter, tree, pool, n):
     return inside, outside, s0
 
 
-def flip_test(model, pool, M, threshold, seconds, seed=7):
+def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True):
     """Definition 1 for grouping M of the tree: the tree MIQP without any line of grouping M, with the threshold as its
-    cutoff. Decided when nothing is found below it, open when a tree is found (the rival)."""
+    cutoff (and as the level of the per-meter bounds). Decided when nothing is found below it, open when a tree is
+    found (the rival), unsettled when the time runs out first."""
     n = model.n
     universe = [C for C in canonical(pool) if grouping(C, n) != M]
-    r = tree_miqp(model, universe, seconds, cutoff=threshold, seed=seed)
+    r = tree_miqp(model, universe, seconds, cutoff=threshold, tighten_at=threshold if tighten else None, seed=seed)
     out = dict(status=r["status"], seconds=r["seconds"], low=r["bound"], high=None, rival=None)
     if r["family"] is not None:
         value = Fitter(model, r["family"]).crit(r["family"])
@@ -72,7 +73,7 @@ def flip_test(model, pool, M, threshold, seconds, seed=7):
     return dict(out, label=UNSETTLED)
 
 
-def label_groupings(model, tree, pool, m, seconds, seed=7, log=None):
+def label_groupings(model, tree, pool, m, seconds, seed=7, log=None, tighten=True):
     """Labels relative to the tree. Groupings of the tree: open when a local flip is within m (Lemma 1), otherwise the
     flip test. Groupings outside: open when swapping one in costs at most m; the others are not labelled.
     Returns (labels, info); labels[M] = dict(inside, label, gap=(low, high) in half-BIC units, rival, status, seconds)."""
@@ -88,7 +89,7 @@ def label_groupings(model, tree, pool, m, seconds, seed=7, log=None):
             labels[M] = dict(inside=True, label=OPEN, gap=(None, mm*half), rival=rival, status=None, seconds=0.)
     tests = sorted((M for M in inside if M not in labels), key=lambda M: inside[M][0])
     for k, M in enumerate(tests):
-        r = flip_test(model, pool, M, threshold, seconds, seed)
+        r = flip_test(model, pool, M, threshold, seconds, seed, tighten)
         low = None if r["low"] is None else (r["low"]-s0)*half
         high = inside[M][0]*half if r["high"] is None else (r["high"]-s0)*half
         labels[M] = dict(inside=True, label=r["label"], gap=(low, high), rival=r["rival"], status=r["status"],

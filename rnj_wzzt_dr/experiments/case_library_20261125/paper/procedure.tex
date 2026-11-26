@@ -1,29 +1,24 @@
 % =====================================================================
 %  Partial topology identification and cost-aware probing for
 %  low-voltage feeders: method and algorithms
-%  Paper-style draft v8 (load as a leaf in every step, anchors), 2026-11-26
+%  Paper-style draft v9 (load gate; meter-level labels), 2026-11-26
 %
 %  Status of the parts (read before quoting anything from this file):
-%   * Algorithm 1 (v8) and Algorithm 2 are PROPOSED. Their building blocks
-%     exist in identification/ (tree MIQP over n+1 leaves, node MIQP over
-%     meters, the nine builders, local margins); the flip test, the nested
-%     anchors, the anchored universe and the labels are new code.
+%   * Algorithm 1 is implemented in rnj_wzzt_dr/identification_v8 (self-
+%     contained; development only) and smoke-tested on two small
+%     development cases; it has NOT been run at scale. Algorithm 2
+%     (probing) is PROPOSED and not implemented.
 %   * The registered sealed test evaluates the predecessor of Algorithm 1
-%     (identification/final.py at commit 71684ff); Section VII lists the
-%     differences. Its sealed result is not known yet and does not carry
-%     over to v8, which needs a development check and its own registered
-%     test on fresh cases.
-%  History: v4 f5299d4 (five algorithms), v5 5e36b4c (two algorithms),
-%  v6 4881a92 (candidate lines as input), v7 dd8cd4a (competitive set,
-%  labels, fixed probing target set). v8: the unmetered load is a leaf in
-%  every step (no projection in the search); tree MIQP as coded (no
-%  resistance floor, count cut, per-meter response bounds); evidence for
-%  one line (glue lemma, Wald form, consistency theorem); nested anchors
-%  certified by flip tests replace the top-level blocks; the anchored
-%  universe (exact decomposition) replaces the root step.
-%  Settings decided by the user (2026-11-26): psi at the knee of the
-%  development cost-coverage curve; flip tests get at least the time limit
-%  of the free tree MIQP (more time is preferred to more unsettled lines).
+%     (identification/final.py at commit 71684ff); Section VIII lists the
+%     differences. Its result does not carry over to this method, which
+%     needs development checks and its own registered test.
+%  History: v4 f5299d4, v5 5e36b4c, v6 4881a92, v7 dd8cd4a, v8 52313c3 and
+%  b1c5e4d. v9 (user's decision and an external review, 2026-11-26): a load
+%  is modelled only when the PCC balance shows one (gate at 1% of the
+%  metered power); labels and anchors are meter groupings, the load's place
+%  is reported separately; per-meter bounds optional; wide nodes priced by
+%  a node MIQP; certificate scopes; re-solve after pricing; a stopping rule
+%  with a proof; the load evidence from two optimised models, with bounds.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -54,6 +49,7 @@
 \newcommand{\Uset}{\mathcal{U}}
 \newcommand{\Aset}{\mathcal{A}}
 \newcommand{\Kset}{\mathcal{K}}
+\newcommand{\Gset}{\mathcal{G}}
 \newcommand{\cross}{\pitchfork}
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
@@ -61,50 +57,50 @@
 \begin{document}
 
 \title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v8 of 26~November~2026 (authors to be added)}
+\author{Method draft v9 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
 Smart meters at the customers of a low-voltage feeder rarely determine its whole topology: some lines are fixed by the
-data, others are not. We identify what the data decide and buy demand-response probes for the rest. The feeder is a laminar
-family of sets of leaves; the leaves are the meters and, when the power at the point of common coupling is metered, one
-unmetered load with known power and no voltage reading, whose path the laminar constraints already encode. A penalised
-likelihood with a structural prior scores each family, and one mixed-integer quadratic program (MIQP) finds the best tree
-over a pool of candidate lines. A line is \emph{decided} when a solve of the same MIQP with that line's decision flipped
-proves that no tree within a fixed score margin disagrees, and \emph{open} when such a tree is found. We show that the
-evidence for a line comes only from the voltage couplings across its children, that it grows linearly with the data for a
-true line and stays bounded for a false one, and that decided lines, the \emph{anchors}, reduce the exact search to unions of
-a few units per anchor. Probing targets the open lines that feasible blocks can reach: each hour, a greedy rule buys the block
-whose expected evidence, counted up to what each open line still needs, is worth more than its price, and the day ends when
-every target line is decided.
+data, others are not. We separate three questions. Is there an unmetered load? The balance at the point of common coupling
+decides this before any topology is fitted, and a load is modelled only when it is clearly present. Which groupings of
+meters does the data decide? A penalised likelihood with a structural prior scores laminar families of meter sets, with the
+unmetered load as one more leaf whose path the laminar constraints encode, and one mixed-integer quadratic program (MIQP)
+finds the best tree over a pool of candidate lines. A grouping of meters is \emph{decided} when a solve of the same MIQP
+without it proves that no tree within a fixed score margin exists, and \emph{open} when such a tree is found; where the
+load sits is reported separately. How certain is the computation? Every label carries the solver's interval, and every
+certificate its scope. We show that the evidence for a grouping comes only from the voltage couplings across its children,
+that it grows linearly with the data for a true grouping and stays bounded for a false one, and that decided groupings
+(anchors) reduce the exact search to unions of a few units per anchor. Probing buys demand-response blocks for the open
+groupings that feasible blocks can reach, each hour the one block whose expected evidence is worth its price.
 \end{abstract}
 
 \begin{IEEEkeywords}
 Topology identification, smart meters, partial identification, laminar families, mixed-integer quadratic programming,
-active probing, demand response.
+unmetered load, active probing, demand response.
 \end{IEEEkeywords}
 
-\noindent\textbf{Status of each part.} Algorithms~\ref{alg:identify} and~\ref{alg:probe} are proposed and not yet
-implemented as a whole. A registered sealed test evaluates the predecessor of Algorithm~\ref{alg:identify};
-Section~\ref{sec:tests} lists the differences and the runs this version needs.
+\noindent\textbf{Status of each part.} Algorithm~\ref{alg:identify} is implemented for development and checked on two small
+cases only; Algorithm~\ref{alg:probe} is proposed. A registered sealed test evaluates the predecessor of
+Algorithm~\ref{alg:identify}; Section~\ref{sec:tests} lists the differences and the runs this version needs.
 
 % ---------------------------------------------------------------------
 \section*{Nomenclature}
 \begin{tabular}{@{}p{0.27\textwidth}p{0.68\textwidth}@{}}
 \toprule
-$\Nset=\{1,\dots,n\}$, $t$, $N$ & Metered customers, time slots, rows of data\\
-$s$; $\Nset^+=\Nset\cup\{s\}$ & Unmetered load, a leaf with known power and no voltage; all leaves\\
+$\Nset=\{1,\dots,n\}$, $t$, $N$ & Metered customers, time slots, rows of data ($N=Tn$)\\
+$s$; $\Nset^+$ & Unmetered load, a leaf with known power and no voltage; all leaves ($\Nset\cup\{s\}$ or $\Nset$)\\
+$\varsigma$, $\varsigma_0$ & Unmetered share of the metered power (\ref{eq:gate}); gate threshold (1\%)\\
 $y_{i,t}=V_{0,t}^2-V_{i,t}^2$ & Squared-voltage drop at meter $i$\\
 $C\subseteq\Nset^+$; $z_C$, $h_C$; $C\cross D$ & Support of a line; its meters, whether it carries the load; $C$ and $D$ cross\\
+$\pi(C)=C\cap\Nset$; $\Gset(F)$ & Meters of a support; the groupings of a family (Section~\ref{sec:score})\\
 $F\supseteq\Bset$, $\Lin(F)$, $k(F)$ & Topology as a laminar family; its lines; their number\\
 $\Omega_0$; $\Omega$ & Initial candidate lines (Appendix~\ref{app:pool}); current pool\\
-$H(F)$; $H^{\rm f}_C$ & Score (\ref{eq:score}), half-BIC units; flip problem (\ref{eq:flip})\\
-$m=\ln100\approx4.6$ & Score margin of the competitive set\\
-$\Sset_m$; $e_C$, $F_C$ & Competitive set (\ref{eq:compset}); gap of line $C$ (\ref{eq:gap}) and its rival tree\\
+$H(F)$; $H^{\rm f}_M$ & Score (\ref{eq:score}), half-BIC units; flip problem (\ref{eq:flip})\\
+$m=\ln100\approx4.6$ & Score margin of labels and anchors\\
+$e_M$, $F_M$ & Gap of grouping $M$ (\ref{eq:gap}) and its rival tree\\
 $\Aset$; $\Kset_A$, $k_A$; $K$ & Anchors; units of anchor $A$ and their number; largest node searched by unions\\
-$\Tset$ & Target set of probing, fixed for the day\\
-$u$, $\Uset_h$, $c(u)$ & Demand-response block, feasible blocks of hour $h$, price\\
-$\psi$ & Value of one unit of evidence (CNY)\\
+$\Tset$; $u$, $\Uset_h$, $c(u)$; $\psi$ & Probing target set; block, feasible blocks, price; value of one unit of evidence\\
 \bottomrule
 \end{tabular}
 
@@ -112,29 +108,61 @@ $\psi$ & Value of one unit of evidence (CNY)\\
 \section{Model}\label{sec:model}
 
 A feeder has a root, the point of common coupling (PCC), and $n$ metered customers. Meter $i$ reports $p_{i,t}$,
-$q_{i,t}$, $V_{i,t}$; the PCC reports $V_{0,t}$ and, where metered, $P^{\rm pcc}_t$, $Q^{\rm pcc}_t$. One unmetered load is
-allowed. It is one more leaf $s$ of the tree, with known power and no voltage reading, so the leaves are
-$\Nset^+=\Nset\cup\{s\}$ (without the PCC power, $\Nset^+=\Nset$). Every line feeds a set of leaves, its \emph{support}; the
-supports of a tree are laminar, and a laminar family containing $\Bset=\{\{1\},\dots,\{n\},\Nset^+\}$ fixes the tree up to
-internal nodes without leaves, which voltages cannot see: only the summed impedance through a node of degree two can be
-recovered. A topology is a laminar family $F\supseteq\Bset$ over $\Nset^+$ with lines $\Lin(F)=F\setminus\Bset$. For a
-support $C$, $z_C\in\{0,1\}^n$ marks its meters and $h_C=1$ if $s\in C$. With the linearised DistFlow equations,
+$q_{i,t}$, $V_{i,t}$; the PCC reports $V_{0,t}$ and, where metered, $P^{\rm pcc}_t$, $Q^{\rm pcc}_t$. Every line feeds a set
+of leaves, its \emph{support}; the supports of a tree are laminar, and a laminar family containing
+$\Bset=\{\{1\},\dots,\{n\},\Nset^+\}$ fixes the tree up to internal nodes without leaves, which voltages cannot see: only the
+summed impedance through a node of degree two can be recovered. A topology is a laminar family $F\supseteq\Bset$ over
+$\Nset^+$ with lines $\Lin(F)=F\setminus\Bset$. With the linearised DistFlow equations,
 \begin{equation}\label{eq:model}
 y_t=\sum_{C\in F} z_C\big[r_C\,(z_C\tp p_t+h_C u^P_t)+x_C\,(z_C\tp q_t+h_C u^Q_t)\big]+\varepsilon_{0,t}\one+o+e_t ,
 \end{equation}
-with $r_C,x_C\ge0$ twice the line's resistance and reactance in pu (nuisance), $\varepsilon_{0,t}$ the error of the PCC
-voltage reading, $o$ fixed meter offsets and $e_t$ meter noise. The load's power is the PCC balance minus the losses
-estimated from the meters' own voltages,
+with $z_C\in\{0,1\}^n$ the meters of $C$, $h_C=1$ if $s\in C$, $0\le r_C,x_C\le\bar\theta$ twice the line's resistance and
+reactance in pu (nuisance; $\bar\theta=2$ never binds), $\varepsilon_{0,t}$ the error of the PCC voltage reading, $o$ fixed
+meter offsets and $e_t$ meter noise. One unmetered load is allowed. Its power is the PCC balance minus the losses estimated
+from the meters' own voltages,
 \begin{equation}\label{eq:balance}
 u^P_t=P^{\rm pcc}_t-\sum_i p_{i,t}\Big(1+\frac{V_{0,t}-V_{i,t}}{V_{i,t}}\Big),\qquad u^Q_t\ \text{likewise}.
 \end{equation}
-The supports that carry the load all contain $s$, so in a laminar family they are nested: they are the path from the PCC to
-the load (Proposition~\ref{prop:path}). The load's own branch $\{s\}$ affects no voltage and is left out. In matrix form,
-$y_t=Rp^+_t+Xq^+_t+\dots$ with $p^+_t=(p_t,u^P_t)$ and $R=\sum_Cr_Cz_Cz_C^{+\top}\in\mathbb R^{n\times(n+1)}$, $z^+_C$ the
-leaves of $C$: $R_{ij}$ is the resistance shared by the paths of meter $i$ and leaf $j$. The data come from AC power flow;
-(\ref{eq:model}) is used inside the method only. \emph{Assumptions stated, not modelled:} the loss estimate
-(\ref{eq:balance}) is approximate, several unmetered loads with different profiles are not one aggregate, and errors in the
-measured $p,q$ enter the regressors.
+When the gate of Section~\ref{sec:gate} finds a load, it is one more leaf $s$, with known power and no voltage reading;
+otherwise there is no leaf $s$ and $h\equiv0$. The supports that carry the load all contain $s$, so in a laminar family they
+are nested: they are the path from the PCC to the load (Proposition~\ref{prop:path}). The admissible places of the load are
+below any line, below the trunk (the load shares the trunk), and at the PCC (beside the trunk: the meters' trunk is then the
+line $\Nset$ without $s$). The load's own branch $\{s\}$ affects no voltage: its columns are zero, it carries no price, it is
+compatible with every support, and in pricing it is a child like any leaf. In matrix form, $y_t=Rp^+_t+Xq^+_t+\dots$ with
+$p^+_t=(p_t,u^P_t)$ and $R=\sum_Cr_Cz_Cz_C^{+\top}$, $z^+_C$ the leaves of $C$: $R_{ij}$ is the resistance shared by the
+paths of meter $i$ and leaf $j$. The data come from AC power flow; (\ref{eq:model}) is used inside the method only.
+\emph{Assumptions stated, not modelled:} the loss estimate (\ref{eq:balance}) is approximate, several unmetered loads with
+different profiles are not one aggregate, and errors in the measured $p,q$ enter the regressors.
+
+% ---------------------------------------------------------------------
+\section{Is there an unmetered load?}\label{sec:gate}
+
+Before any topology is fitted, the PCC balance decides whether a load is modelled at all. With $u^P$ from
+(\ref{eq:balance}),
+\begin{equation}\label{eq:gate}
+\varsigma=\frac{\sum_tu^P_t}{\sum_t\sum_ip_{i,t}},\qquad\text{a load is modelled if and only if }\varsigma\ge\varsigma_0=1\%.
+\end{equation}
+This is a prior setting, not a test inside the fit: a load whose mean power is below 1\% of the metered power is treated as
+absent. Fitting a load of about zero would be wrong, not merely useless: a line $M$ and the same line carrying the load
+would fit equally well, and the load's path would be chosen by the noise of $u$. On the 288 development cases the statistic
+separates cleanly (Table~\ref{tab:gate}): without a load it stays within $-0.49\%$ and $0.66\%$; the smallest load is
+$1.53\%$. The threshold is fixed from these cases before any test of the method, and the gate's error rates (loads missed,
+no-load feeders given a load) are reported by load share and kind. The spread without a load comes from the meters' gain
+errors (0.3\%, 0.2\% at the PCC) and the loss estimate, so other meter classes need their own calibration.
+\begin{table}[h]
+\caption{Unmetered share $\varsigma$ on the development cases (no identifier involved)}\label{tab:gate}
+\centering
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Cases & Number & $\varsigma$: min / median / max\\
+\midrule
+No load & 72 & $-0.49\%$ / $0.03\%$ / $0.66\%$\\
+Load of 2\% (three kinds) & 72 & $1.53\%$ / $2.0\%$ / $2.61\%$\\
+Load of 5\% & 72 & $4.59\%$ / $5.0\%$ / $5.81\%$\\
+Load of 10\% & 72 & $9.51\%$ / $10.2\%$ / $11.68\%$\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ---------------------------------------------------------------------
 \section{Score and labels}\label{sec:score}
@@ -145,77 +173,82 @@ error). The score is
 \begin{equation}\label{eq:score}
 H(F)=\min_{\theta}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
 \end{equation}
-with $\hat\sigma^2$ from the saturated model under $M$ and $p_s\in\{1,2\}$ identifiable parameters per line. $D$ and
-$S_\gamma$ act on different axes, and minimising over $o$ and $\varepsilon_0$ gives (\ref{eq:score}) exactly
-(Frisch--Waugh--Lovell): $M$ is the elimination of the nuisance terms, not a preprocessing step.
-
-\paragraph*{Free load term} If the load's term in (\ref{eq:model}) is replaced by $\rho_iu^P_t+\chi_iu^Q_t$ with free
-$\rho,\chi\in\mathbb R^n$, minimising over them replaces $D$ by
+with $p_s\in\{1,2\}$ identifiable parameters per line (2 when most meters' $q$ is not a fixed multiple of their $p$ within
+the meter class). $D$ and $S_\gamma$ act on different axes, and minimising over $o$ and $\varepsilon_0$ gives
+(\ref{eq:score}) exactly (Frisch--Waugh--Lovell). \emph{Free load term.} If the load's term in (\ref{eq:model}) is replaced by
+$\rho_iu^P_t+\chi_iu^Q_t$ with free $\rho,\chi\in\mathbb R^n$, minimising over them replaces $D$ by
 \begin{equation}\label{eq:free}
 D_1=I_T-\Pi_{[\one,\,u^P,\,u^Q]}
 \end{equation}
-for every family at once. This form needs no place for the load. It is used only to fit the matrix from which the initial
-candidate lines are built (Appendix~\ref{app:pool}); every MIQP uses (\ref{eq:score}) with the load as a leaf.
+for every family at once. \emph{Noise variance.} $\hat\sigma^2$ is the residual variance of the saturated model (every
+$R_{ij}$, $X_{ij}$ free) under $M$, and under (\ref{eq:free}) when a load is modelled, so that it does not depend on the
+load's place; its degrees of freedom are the rank of the operator minus the effective (numerical) rank of the saturated
+design. This assumes noise that is white across slots and meters after $M$; unequal or correlated meter errors are not
+modelled, which is why every threshold is calibrated on data rather than taken from asymptotics.
 \begin{proposition}[Structural prior]\label{prop:prior}
 Under the Gibbs prior $P(F)\propto\prod_v\rho^{c_v-2}$ over laminar families ($c_v$ the children of internal node $v$),
 $-\ln P(F)=\mathrm{const}-\lambda\,k(F)$ with $\lambda=\ln(1/\rho)$.
 \end{proposition}
-So $H$ approximates the negative log posterior and score differences approximate log posterior odds. We set
-$\rho=0.141$, the odds of a branching point having more than two children on 84 real LV feeders ($\lambda=1.96$); the same
-feeders set the statistics of our case generator, so results with $\lambda=0$ are reported alongside.
+So score differences approximate log posterior odds. We set $\rho=0.141$, the odds of a branching point having more than two
+children on 84 real LV feeders ($\lambda=1.96$); the same feeders set the statistics of our case generator, so results with
+$\lambda=0$ are reported alongside.
+
+\paragraph*{Groupings} With a load, one grouping of meters can appear as two supports, $M$ and $M\cup\{s\}$: the same
+statement about the meters, with the load inside the line or not. Write $\pi(C)=C\cap\Nset$ and call
+$\Gset(F)=\{\pi(C):C\in F,\ 2\le|\pi(C)|\le n-1\}$ the \emph{groupings} of $F$: its meter topology. Two topologies with the
+same groupings differ only in where the load sits. Labels, anchors and probing concern groupings; the load's place is
+reported separately (Section~\ref{sec:id}). Without a load, $\pi$ is the identity and groupings are lines.
 
 \paragraph*{Competitive set and labels} For a pool $\Omega$ and $H^*=\min_FH(F)$,
-\begin{equation}\label{eq:compset}
-\Sset_m=\{F\subseteq\Omega\cup\Bset\ \text{laminar}:\ H(F)\le H^*+m\}.
-\end{equation}
-For a tree $T$ and a candidate line $C$, the \emph{flip problem} asks for the best tree that decides $C$ the other way,
+$\Sset_m=\{F\subseteq\Omega\cup\Bset\ \text{laminar}:\ H(F)\le H^*+m\}$. For a tree $T$ and a grouping $M$, the \emph{flip
+problem} asks for the best tree that decides $M$ the other way,
 \begin{equation}\label{eq:flip}
-H^{\rm f}_C(T)=\min\{H(F):\ F\subseteq\Omega\cup\Bset\ \text{laminar},\ [C\in F]\neq[C\in T]\},
+H^{\rm f}_M(T)=\min\{H(F):\ F\subseteq\Omega\cup\Bset\ \text{laminar},\ [M\in\Gset(F)]\neq[M\in\Gset(T)]\},
 \end{equation}
-which is the tree MIQP (\ref{eq:master}) with $C$ removed from the pool ($C\in T$) or fixed in it ($C\notin T$). Its
+which for $M\in\Gset(T)$ is the tree MIQP (\ref{eq:master}) with every support of grouping $M$ removed from the pool. Its
 \emph{gap} is
 \begin{equation}\label{eq:gap}
-e_C(T)=H^{\rm f}_C(T)-H(T)\ \in\ \big[\,L_C-H(T),\ U_C-H(T)\,\big],
+e_M(T)=H^{\rm f}_M(T)-H(T)\ \in\ \big[\,L_M-H(T),\ U_M-H(T)\,\big],
 \end{equation}
-with $L_C$ the solver's lower bound and $U_C$ the score of the best flipped tree found, the \emph{rival} $F_C$.
+with $L_M$ the solver's lower bound and $U_M$ the score of the best flipped tree found, the \emph{rival} $F_M$.
 \begin{definition}[Labels]
-Relative to $T$, line $C$ is \emph{decided} if $L_C>H(T)+m$, \emph{open} if a flipped tree with $H\le H(T)+m$ is found, and
-\emph{unsettled} otherwise. The \emph{flip test} is (\ref{eq:flip}) solved only as far as needed to give the label, with the
-threshold $H(T)+m$ as the solver's cutoff.
+Relative to $T$, grouping $M$ is \emph{decided} if $L_M>H(T)+m$, \emph{open} if a flipped tree with $H\le H(T)+m$ is found,
+and \emph{unsettled} otherwise. The \emph{flip test} solves (\ref{eq:flip}) with the threshold $H(T)+m$ as the solver's
+cutoff; it stops as soon as ``decided'' is proved, and otherwise runs to its limit to find the best rival.
 \end{definition}
 \begin{proposition}[What a label certifies]\label{prop:label}
-If $C$ is decided, every tree in $\Sset_m$ agrees with $T$ on $C$. If $T$ is a proven optimum and $C$ is open, $\Sset_m$
-contains trees that disagree on $C$.
+If $M$ is decided, every tree in $\Sset_m$ agrees with $T$ on whether $M$ is a grouping. If $T$ is a proven optimum and $M$
+is open, $\Sset_m$ contains trees that disagree.
 \end{proposition}
-The labels are statements about the model and the pool: they say what every competitive explanation agrees on, not that the
-agreed answer is true. They hold for any feasible $T$, so a time-limited solve weakens them only into ``unsettled''.
+Labels are statements about the model and the pool, not about the truth. They separate three cases: certified decided,
+certified open, and unsettled (computation unresolved); the interval (\ref{eq:gap}) carries the solver's uncertainty into
+probing.
 
-\paragraph*{Local flips} Removing a line $C\in T$, or replacing it by a crossing candidate $D$ (lines crossing $D$ removed),
-gives flipped trees without solving an MIQP:
+\paragraph*{Local flips} Removing the lines of grouping $M$ from $T$, or swapping in a pool line $D$ whose grouping crosses
+$M$ (the lines of $T$ that cross $D$ removed), gives flipped trees without solving an MIQP:
 \begin{equation}\label{eq:local}
-m_C(T)=\min\Big\{H(T\setminus\{C\}),\ \min_{D\in\Omega,\,D\cross C}H(T_{|D}\cup\{D\})\Big\}-H(T),\qquad
+m_M(T)=\min\Big\{H(T\setminus\pi^{-1}(M)),\ \min_{D:\ \pi(D)\cross M}H(T_{|D}\cup\{D\})\Big\}-H(T),\qquad
 \ell_D(T)=H(T)-H(T_{|D}\cup\{D\}),
 \end{equation}
 with $T_{|D}=\{E\in T:\neg(E\cross D)\}$.
 \begin{lemma}[Direction of the local bounds]\label{lem:local}
-$e_C(T)\le m_C(T)$ for $C\in T$ and $e_D(T)\le-\ell_D(T)$ for $D\notin T$. Local flips can prove a line open, never decided.
+$e_M(T)\le m_M(T)$ for $M\in\Gset(T)$, and $e_{\pi(D)}(T)\le-\ell_D(T)$ for $\pi(D)\notin\Gset(T)$. Local flips can prove a
+grouping open, never decided.
 \end{lemma}
 
 % ---------------------------------------------------------------------
 \section{Evidence for one line}\label{sec:evidence}
 
 Let $C\in\Lin(T)$ have children $A_1,\dots,A_c$ in $T$ ($c\ge2$): the largest supports of $T$ inside $C$ and the leaves of
-$C$ outside them. Its \emph{cross-child pairs} are $\times(C)=\{(i,j):\ i\in A_a\cap\Nset,\ j\in A_b,\ a\ne b\}$, a meter and a
-leaf under different children.
+$C$ outside them. Its \emph{cross-child pairs} are $\times(C)=\{(i,j):\ i\in A_a\cap\Nset,\ j\in A_b,\ a\ne b\}$.
 \begin{lemma}[Glue]\label{lem:glue}
 With $Z^\times_C$ the indicator of $\times(C)$,
 \begin{equation}\label{eq:glue}
 r_C\,z_Cz_C^{+\top}=\sum_{a=1}^{c}r_C\,z_{A_a}z_{A_a}^{+\top}+r_C\,Z^\times_C .
 \end{equation}
-Removing $C$ and adding $r_C,x_C$ to the parameters of every child reproduces every prediction of $T$ except the entries
-of $R,X$ on $\times(C)$, and no other line of $T$ can change those entries alone. The evidence for $C$ therefore comes only
-from its cross-child pairs. A meter's own cable has none (its only entry is $R_{ii}$), so a line needs at least two leaves
-to carry evidence.
+Removing $C$ and adding $r_C,x_C$ to every child reproduces every prediction of $T$ except the entries on $\times(C)$, and no
+other line of $T$ can change those entries alone. The evidence for $C$ therefore comes only from its cross-child pairs; a
+meter's own cable has none, so a line needs at least two leaves to carry evidence.
 \end{lemma}
 \begin{lemma}[Removal gap]\label{lem:wald}
 For $C\in\Lin(T)$, with the bounds inactive at the fitted parameters,
@@ -223,12 +256,9 @@ For $C\in\Lin(T)$, with the bounds inactive at the fitted parameters,
 H(T\setminus\{C\})-H(T)=\frac{\hat\theta_C\tp S_C\,\hat\theta_C}{2\hat\sigma^2}-\beta,\qquad
 S_C=\Phi^{\times\top}_C\big(I-\Pi_{T\setminus\{C\}}\big)\Phi^\times_C ,
 \end{equation}
-where $\hat\theta_C=(\hat r_C,\hat x_C)$, $\Pi_{T\setminus\{C\}}$ projects on the columns of $T\setminus\{C\}$ under $M$, and
-$\Phi^\times_C$ are the columns of $C$ in which meter $i$ sees only the flows of the leaves of $C$ outside its own child.
-The first term is half the Wald statistic of $C$: the information about $C$ left after every other line, which by
-Lemma~\ref{lem:glue} comes only from the cross-child pairs.
+where $\Phi^\times_C$ are the columns of $C$ in which meter $i$ sees only the flows of the leaves of $C$ outside its own child.
+The first term is half the Wald statistic of $C$: the information about $C$ left after every other line.
 \end{lemma}
-So removing a line does not remove its subtree, and what the lines below can absorb is not counted as evidence for it.
 \begin{theorem}[Evidence grows for true lines only]\label{thm:gap}
 Let $n$ be fixed and $T\to\infty$. Assume (A1) the data follow (\ref{eq:model}) with tree $T^0$ and noise that is white under
 $M$ with variance $\sigma^2$, and $\hat\sigma^2\to\sigma^2$; (A2) every line of $T^0$ has $r_C\ge r_{\min}>0$ and its
@@ -236,46 +266,50 @@ parameters lie inside the bounds; (A3) for every $C\in\Lin(T^0)$,
 \[
 \kappa_C=\liminf_{N\to\infty}\ \frac1{N\sigma^2}\ \min_{F\not\ni C}\big\|(I-\Pi_F)\,M\Phi_{T^0}\theta^0\big\|^2>0,
 \]
-the minimum over the finitely many laminar families over $\Nset^+$ without $C$. Then:
-(a) if $C\in\Lin(T^0)$, $H(F)-H(T^0)\ge\tfrac12N\kappa_C-O_p(\sqrt N)-O(\ln N)$ uniformly over families $F\not\ni C$, so
-$e_C(T^0)\to\infty$ and $m_C(T^0)\to\infty$ in probability, for every pool;
-(b) if $C\notin T^0$ and $T\supseteq T^0\cup\{C\}$ is laminar, $H(T\setminus\{C\})-H(T)\le O_p(1)-\beta\to-\infty$, so
-$m_C(T)\to-\infty$ in probability.
+the minimum over the finitely many laminar families without $C$. Then (a) if $C\in\Lin(T^0)$,
+$H(F)-H(T^0)\ge\tfrac12N\kappa_C-O_p(\sqrt N)-O(\ln N)$ uniformly over families $F\not\ni C$, so $e_C(T^0)\to\infty$ and
+$m_C(T^0)\to\infty$ in probability, for every pool; (b) if $C\notin T^0$ and $T\supseteq T^0\cup\{C\}$ is laminar,
+$H(T\setminus\{C\})-H(T)\le O_p(1)-\beta\to-\infty$.
 \end{theorem}
-\begin{corollary}[Anchors are true lines]\label{cor:true}
-If $\Lin(T^0)\subseteq\Omega$, then with probability tending to one $T^0$ is the best tree over $\Omega$ and every line of
-$T^0$ is decided, for any fixed $m$.
+With a load, the same statements hold for groupings, with ``families without $C$'' read as ``families without grouping $M$''
+in (A3); the proof is unchanged.
+\begin{corollary}[Anchors are true groupings]\label{cor:true}
+If $\Lin(T^0)\subseteq\Omega$, then with probability tending to one $T^0$ is the best tree over $\Omega$ and every grouping
+of $T^0$ is decided, for any fixed $m$.
 \end{corollary}
 \begin{remark}
-(A3) says that the loads across a line's children are not reproduced by any family without that line. It fails for voltage
-twins, where another family explains the same couplings: their gap does not grow and they stay open, which is the right
-answer. (A3) is a property of the loads, not of the method, and probing can create it (Section~\ref{sec:probe}).
+(A3) fails for voltage twins, whose couplings another family reproduces: their gap does not grow and they stay open, which
+is the right answer. (A3) is a property of the loads, and probing can create it (Section~\ref{sec:probe}).
 \end{remark}
 
 % ---------------------------------------------------------------------
 \section{Identification}\label{sec:id}
 
-\paragraph*{Tree MIQP} For a pool $\Omega$ of supports over $\Nset^+$, with a binary $b_C$ per support,
+\paragraph*{Tree MIQP} For a pool $\Omega$ of supports, with a binary $b_C$ per support,
 \begin{equation}\label{eq:master}
 \begin{aligned}
-\min_{b,r,x}\ &\frac{\|M(y-\Phi(r,x))\|^2}{2\hat\sigma^2}+\beta\sum_{C\in\Omega}b_C\quad\text{s.t.}\quad
-0\le r_C\le\bar r_Cb_C,\ \ 0\le x_C\le\bar x_Cb_C\ \ (C\in\Omega),\quad b_C+b_D\le1\ \ (C\cross D),\\
-&\textstyle\sum_{C\in\Omega,\,C\subsetneq W}b_C\le|W|-2\ \ (W\in\Omega\cup\{\Nset^+\}),\qquad
-\sum_{C\ni i}r_C\le\bar R_i,\ \ \sum_{C\ni i}x_C\le\bar X_i\ \ (i\in\Nset),
+\min_{b,r,x}\ &\frac{\|M(y-\Phi(r,x))\|^2}{2\hat\sigma^2}+\beta\sum_{C\in\Omega}b_C\\
+\text{s.t.}\ \ &0\le r_C\le\bar r_Cb_C,\quad0\le x_C\le\bar x_Cb_C\quad(C\in\Omega),\qquad b_C+b_D\le1\quad(C\cross D),\\
+&\textstyle\sum_{C\in\Omega,\,C\subsetneq W}b_C\le|W|-2\quad(W\in\Omega\cup\{\Nset^+\}),\qquad
+\sum_{C\in\Omega,\ \pi(C)=A}b_C\ge1\quad(A\in\Aset),\\
+&\textstyle\sum_{C\ni i}r_C\le\bar R_i,\quad\sum_{C\ni i}x_C\le\bar X_i\quad(i\in\Nset;\ \text{optional}),
 \end{aligned}
 \end{equation}
 with $\Bset$ always on. The count cut holds for every laminar family (a tree on $|W|$ leaves has at most $|W|-2$ lines
-strictly inside $W$) and only tightens the relaxation. Given a threshold known to be attained, or a flip test's $H(T)+m$,
-$\bar R_i$ and $\bar X_i$ are the largest diagonal responses of any coefficients whose fit is within it, from one convex
-quadratically constrained program per meter, and $\bar r_C=\min_{i\in C}\bar R_i$; every tree under the threshold stays
-feasible. Each solve starts from a local-search incumbent and keeps the better tree.
+strictly inside $W$). The fourth constraint keeps every anchor's grouping, with the load inside or not. Given a level $\ell$
+that some tree reaches (an incumbent's score, or a flip test's threshold), $\bar R_i$ and $\bar X_i$ are the largest
+diagonal responses of any coefficients whose residual fits under $\ell$, from one convex quadratically constrained program
+per meter with the binaries dropped, and $\bar r_C=\min(\bar\theta,\min_{i\in\pi(C)}\bar R_i)$. These are valid
+inequalities: every tree with $H\le\ell$ satisfies them, so they change neither the optimum nor a flip test's verdict when
+the solver finishes; they only strengthen the relaxation, and their effect is measured by an ablation. Each solve starts
+from a local-search incumbent and keeps the better tree.
 \begin{proposition}[The load's path needs no constraints]\label{prop:path}
 For a set of meters $C$ write $C^1=C\cup\{s\}$. Over $\Nset^+$ the crossing constraints of (\ref{eq:master}) are exactly:
 (i) the crossings of the meter sets; (ii) one place: $b_{C^1}+b_{D^1}\le1$ unless $C\subseteq D$ or $D\subseteq C$; (iii) a
 line above a line that carries the load carries it too: $b_{C^1}+b_D\le1$ for meter sets $C\subsetneq D$. The indicator
-formulation ($h_C\le b_C$; $h_C+b_D-h_D\le1$ for $C\subsetneq D$; $h_C+h_D\le1$ for $C,D$ not nested; products $r_Ch_C$)
-is the special case in which no meter set appears both with and without $s$; the leaf form needs neither its constraints
-nor its products, and also lets the load join in the middle of a line.
+formulation ($h_C\le b_C$; $h_C+b_D-h_D\le1$ for $C\subsetneq D$; $h_C+h_D\le1$ for $C,D$ not nested; products $r_Ch_C$) is
+the special case in which no meter set appears both with and without $s$; the leaf form needs neither its constraints nor its
+products, and also lets the load join in the middle of a line.
 \end{proposition}
 
 \paragraph*{Node pricing} Let $v$ be an internal node of $T$ with children $A_1,\dots,A_{c_v}$ (supports or leaves).
@@ -284,202 +318,209 @@ A support $C\notin T$ with at least two leaves is compatible with $T$ if and onl
 internal node $v$ and a set $S$ of its children with $2\le|S|<c_v$.
 \end{lemma}
 \begin{equation}\label{eq:price}
-g_v(T)=\max_{S:\ 2\le|S|<c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big)
+g_v(T)=\max_{S:\ 2\le|S|<c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big).
 \end{equation}
-is a small MIQP with one binary per child; the load lies in one child, so a priced line carries it exactly when it contains
-that child. Its two-line version chooses two disjoint or nested sets. $\max_vg_v(T)\le0$ certifies that no single line
-compatible with $T$, nor two such lines under one node, lowers the score, among all supports. It does not certify that no
-line is missing: a wrong tree may need lines removed, and a node with two children has nothing to price. We report the
-share of internal nodes with at least three children as the certificate's coverage. The time-free form of (\ref{eq:price})
-for a leaf without voltage needs response maps with $n$ rows and $n+1$ columns; until it exists, nodes that hold the load
-are priced by enumeration up to 12 children.
+A node with at most 12 children is priced by enumeration: every union is fitted. A wider node is priced by a node MIQP with
+a binary $z_a$ per child; the new line's coefficient enters as $u_{ab}=rz_az_b$, linearised exactly by McCormick inequalities
+($u_{ab}\le r$, $u_{ab}\le\bar\theta z_a$, $u_{ab}\le\bar\theta z_b$, $u_{ab}\ge r-\bar\theta(2-z_a-z_b)$), so that meters of
+child $a$ see the flow of child $b$; every coefficient of $T$ is refitted. Both give $\max_vg_v$ exactly when they finish. We
+distinguish three \emph{certificate scopes}: (a) \emph{complete}: every node was enumerated or its MIQP proved optimal, and no
+line pays, so no single line compatible with $T$, among all supports, lowers the score; (b) \emph{restricted}: statements over
+the anchored universe below, which covers every combination of new lines inside anchor nodes with at most $K$ units (so pair
+moves need no separate search there) but not inside wider nodes; (c) \emph{incomplete}: a node MIQP stopped at its time
+limit. Neither certificate shows that no line is missing: a wrong tree may need lines removed, and a node with two children
+has nothing to price. We report the scope, the number of nodes priced each way, and the share of internal nodes with at
+least three children.
 
 \paragraph*{Anchors}
 \begin{definition}[Anchors and units]
-An \emph{anchor} of $T$ is a line with at least two leaves that is decided. For a laminar set of anchors $\Aset$ and each
-$A\in\Aset\cup\{\Nset^+\}$, the \emph{units} $\Kset_A$ are the largest anchors strictly inside $A$ and the leaves of $A$
-outside them; $k_A=|\Kset_A|$. For $K\ge2$ the \emph{anchored universe} is
+An \emph{anchor} is a decided grouping of $T$. For a laminar set of anchors $\Aset$ (sets of meters) and each
+$A\in\Aset\cup\{\Nset\}$, the \emph{units} $\Kset_A$ are the largest anchors strictly inside $A$ and the meters of $A$ outside
+them; $k_A=|\Kset_A|$. For $K\ge2$ the \emph{anchored universe} is the set of meter lines
 \begin{equation}\label{eq:universe}
 \Omega_K(\Aset)=\Aset\ \cup\bigcup_{A:\,k_A\le K}\Big\{\textstyle\bigcup_{B\in S}B:\ S\subseteq\Kset_A,\ 2\le|S|\le k_A-1\Big\}
 \ \cup\ \Omega_{>K}(\Aset),
 \end{equation}
-with $\Omega_{>K}(\Aset)$ the lines of $\Omega$ compatible with $\Aset$ whose smallest enclosing member of
-$\Aset\cup\{\Nset^+\}$ has more than $K$ units.
+with $\Omega_{>K}(\Aset)$ the groupings of the pool compatible with $\Aset$ whose smallest enclosing member of
+$\Aset\cup\{\Nset\}$ has more than $K$ units. With a load, $\Omega^+_K(\Aset)$ is every line of $\Omega_K(\Aset)$ with and
+without $s$, the supports $\{i,s\}$, and $\Nset$; without a load, $\Omega^+_K=\Omega_K$.
 \end{definition}
 \begin{proposition}[Anchored universe]\label{prop:anchor}
-Every line of every laminar family that contains $\Aset$ is an anchor or a union of 2 to $k_A-1$ units of one
-$A\in\Aset\cup\{\Nset^+\}$. Hence, if every $k_A\le K$, (\ref{eq:master}) over $\Omega_K(\Aset)$ with $b_A=1$ for
-$A\in\Aset$ returns the best tree that contains $\Aset$ among all supports, not only those of the pool, with
-$\sum_{A}(2^{k_A}-k_A-2)$ union binaries instead of $2^{|\Nset^+|}-|\Nset^+|-2$.
+Let $F$ be a laminar family over $\Nset^+$ with $\Aset\subseteq\Gset(F)$. Every support $C\in\Lin(F)$ has $\pi(C)$ equal to an
+anchor, to a union of 2 to $k_A-1$ units of one $A\in\Aset\cup\{\Nset\}$, to a single meter, or to $\Nset$. Hence, if every
+$k_A\le K$, $\Lin(F)\subseteq\Omega^+_K(\Aset)$, and (\ref{eq:master}) over $\Omega^+_K(\Aset)$ with the anchors' groupings
+required returns the best family that keeps every anchor, among all supports and every admissible place of the load. Its
+union binaries number $\sum_A(2^{k_A}-k_A-2)$ (twice that with a load) instead of $2^n-n-2$.
 \end{proposition}
-Proposition~\ref{prop:anchor} turns ``the anchors are right'' into ``the search is exact''. The flip tests check that
-premise over the pool, and by Theorem~\ref{thm:gap} and Corollary~\ref{cor:true} it holds with probability tending to one.
-With $\Aset=\emptyset$ the anchored universe is every support; when every line of a binary tree is an anchor, every $k_A=2$
-and nothing is left to search. The anchors thus put the exact search where the data have not decided. A large anchor is
-refined, not replaced: it stays fixed while its own anchors become its units. A node with more than $K$ units keeps the
-pool's lines inside it and is searched by (\ref{eq:price}), one line at a time: exact over unions when a node is small,
-greedy when it is large.
+Proposition~\ref{prop:anchor} turns ``the anchors are right'' into ``the search is exact''. The flip tests check that premise
+over the pool, and by Theorem~\ref{thm:gap} and Corollary~\ref{cor:true} it holds with probability tending to one. The
+anchors put the exact search where the data have not decided; a large anchor is refined, not replaced, since its own anchors
+become its units. A node with more than $K$ units keeps the pool's lines inside it and is priced by (\ref{eq:price}).
+
+\paragraph*{Pricing, re-solve and stopping} Pricing adds a paying line to the tree and to the pool (the universe of later
+solves); when it has added any, (\ref{eq:master}) is solved again over the universe and the tree, and the better tree is
+kept.
+\begin{lemma}[Re-solve and stopping]\label{lem:stop}
+(i) The score never rises in a round. (ii) If a round leaves the anchors unchanged, its pricing adds no line and finds none
+that pays, and its MIQP ends optimal, then a further round cannot lower the score.
+\end{lemma}
+
+\paragraph*{Load evidence} Whether a load is modelled is decided by the gate (\ref{eq:gate}), not by the fit. The fit
+reports, as a diagnostic, the evidence that the voltages show the load: with $H_0$ the score of the same data and
+$\hat\sigma^2$ with $u\equiv0$, minimised over meter topologies, and $H$ minimised with the load,
+\begin{equation}\label{eq:evidence}
+D^*=\min H_0-\min H,\qquad L_0-U_1\ \le\ D^*\ \le\ U_0-L_1,
+\end{equation}
+when the two minima are bracketed by $[L_0,U_0]$ and $[L_1,U_1]$ (solver bounds and incumbents).
+\begin{proposition}[Evidence from two optimised models]\label{prop:evidence}
+Evaluating $H_0$ at the meter topology of the load-present tree, $\pi(\hat T)$, can only overstate $D^*$ for the same
+$\hat T$, since $\min H_0\le H_0(\pi(\hat T))$. The bounds of (\ref{eq:evidence}) hold for any brackets; we report the
+estimate $U_0-U_1$ and the lower end $L_0-U_1$, both over the pools searched.
+\end{proposition}
+The places of the load are the admissible places in $\hat T$'s meter topology whose score is within $m$ of the best.
 
 \begin{algorithm}[t]
-\caption{\textsc{Identify}: tree, anchors and line labels (proposed)}\label{alg:identify}
+\caption{\textsc{Identify}: gate, tree, anchors and labels}\label{alg:identify}
 \begin{algorithmic}[1]
-\Require data; $\lambda$, $m$, $K$
-\Ensure tree $\hat T$ with the load's path; certificate and its coverage; anchors $\Aset$; pool $\Omega$; labels, gap
-intervals and rivals; with the PCC power, the load's evidence and its places within $m$
-\State $u$ by (\ref{eq:balance}); $M$, $\hat\sigma^2$, $\beta$; $\hat R$ by (\ref{eq:rhat}) with the free load term (\ref{eq:free}) \Comment{set-up}
-\State $\Omega\gets\Omega_0$: lines of nine builder trees on $\hat R$, each with and without $s$ \Comment{Appendix~\ref{app:pool}}
-\State $T\gets$ (\ref{eq:master}) over $\Omega$, from a local-search incumbent and the builder trees
-\Repeat \Comment{at most twice}
-  \State $\Aset\gets$ lines $C$ of $T$ with at least two leaves, $m_C(T)\ge m$ and a flip test that decides them \Comment{Lemma~\ref{lem:local}}
-  \State $T\gets$ (\ref{eq:master}) over $\Omega_K(\Aset)\cup\Lin(T)$ with $\Aset$ fixed, from $T$; $\Omega\gets\Omega\cup\Omega_K(\Aset)$
-  \State \textbf{while} (\ref{eq:price}) finds a line, or a pair under one node, that lowers $H(T)$: add it to $T$ and to $\Omega$
-\Until{$\Aset$ is unchanged}
-\State $\hat T\gets T$
-\For{each line $C$ of $\hat T$ outside $\Aset$, and each $D\in\Omega\setminus\hat T$ with $\ell_D(\hat T)>-m$}
-  \State open if a local flip (\ref{eq:local}) lies within $m$ (its rival is that flip); else the flip test: decided, open or unsettled
+\Require data; $\varsigma_0$, $\lambda$, $m$, $K$, $R$
+\Ensure the gate's decision; tree $\hat T$ (groupings, and with a load its path); certificate and scope; anchors; pool;
+labels with gap intervals and rivals; with a load, its places and evidence interval
+\State \textbf{if} the PCC power is metered: $\varsigma$ by (\ref{eq:gate}); a load is modelled iff $\varsigma\ge\varsigma_0$ \Comment{gate}
+\State $M$, $\hat\sigma^2$, $\beta$; $\hat R$ by (\ref{eq:rhat}) \Comment{set-up}
+\State $\Omega\gets\Omega_0$ and nine starting trees \Comment{Appendix~\ref{app:pool}}
+\State $T\gets$ (\ref{eq:master}) over $\Omega$, from a local-search incumbent
+\For{$r=0,1,\dots,R$}
+  \State label the groupings of $T$: local flips (\ref{eq:local}), then flip tests (\ref{eq:flip}); $\Aset\gets$ the decided ones
+  \State \textbf{if} the stopping rule of Lemma~\ref{lem:stop} holds, or $r=R$: \textbf{break}
+  \State $T\gets$ (\ref{eq:master}) over $\Omega^+_K(\Aset)\cup\Lin(T)$, anchors required; $\Omega\gets\Omega\cup\Omega^+_K(\Aset)$
+  \State pricing (\ref{eq:price}): add paying lines to $T$ and $\Omega$; if any, (\ref{eq:master}) again; keep the better tree
 \EndFor
-\State with the PCC power: evidence $=H(\hat T\ \text{with}\ u\equiv0)-H(\hat T)$; places of $s$ in $\hat T$ within $m$ of the best
+\State $\hat T\gets T$; groupings outside $\hat T$ whose swap (\ref{eq:local}) is within $m$ are open
+\State with a load: its path, its places within $m$, its evidence (\ref{eq:evidence})
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph*{Explanation} Lines 1--3 build a first tree from cheap candidate lines. Lines 4--8 are the core: the decided
-lines become anchors; the anchored universe offers every line compatible with them at the nodes that are small enough, which
-is exact by Proposition~\ref{prop:anchor}; node pricing searches the larger nodes and checks the result against any single
-line, proposed or not. Lines 9--11 label what remains, and line 12 reports the load. Anchors and labels are one computation:
-an anchor is a decided line of the tree. The load is a leaf throughout, so every MIQP chooses the lines and the load's path
-together (Proposition~\ref{prop:path}); the free form (\ref{eq:free}) is used only for $\hat R$, before any place is known.
-Lines outside $\hat T$ that fail the screen of line 10 are not labelled, and the output says so.
+\paragraph*{Explanation} Line 1 decides whether there is a load; below the gate, the rest runs on the meters alone. Lines 2--4
+build a first tree from cheap candidate lines. Lines 5--9 are the core: decided groupings become anchors; the anchored
+universe offers every line compatible with them at the nodes that are small enough, which is exact by
+Proposition~\ref{prop:anchor}; pricing searches the wider nodes and checks the result against any single line, proposed or
+not; the loop stops by Lemma~\ref{lem:stop} or after $R$ searches, and the output says which. Lines 10--11 report what remains
+open and, with a load, where it sits and how strongly the voltages show it.
 
 % ---------------------------------------------------------------------
 \section{Probing}\label{sec:probe}
 
 The operator can buy signed active-power blocks at chosen meters from an aggregator of household batteries and EV chargers,
-each held for one market hour and sealed one hour ahead. Probing works on the pool $\Omega$, the leader and the open lines; it
-never lists whole trees. A block that changes the flows across a line's children raises that line's information $S_C$
+each held for one market hour and sealed one hour ahead. Probing works on the pool, the leader and the open groupings; it
+never lists whole trees. A block that changes the flows across a grouping's children raises its information $S_C$
 (Lemma~\ref{lem:wald}): this is what probing buys.
 
-\paragraph*{Values used in probing} For an open line $C$ with rival $F_C$, at the gate of hour $h$:
+\paragraph*{Values used in probing} For an open grouping $M$ with rival $F_M$, at the gate of hour $h$:
 \begin{itemize}
-\item the \emph{gap} $e_C$ and the \emph{deficit} $\delta_C=m-e_C$, from the flip test on all data so far (the rival's score
-gives the upper end of (\ref{eq:gap}), so $\delta_C$ is not overstated);
+\item the gap interval (\ref{eq:gap}) and the \emph{deficit} $\delta_M=m-(U_M-H(\hat L))$, from the upper end, so that the
+deficit is never overstated; unsettled groupings are not targets (probing cannot repair a solver's time limit) and are tested
+again at each gate with the new data;
 \item the fitted parameters $\hat\theta$ of the leader and the rival, and their covariances $P=\hat\sigma^2(\Phi\tp\Phi)^{-1}$
 on the coordinates not at a bound;
 \item the predicted voltage drops of hour $h+1$ under each tree, from the day-ahead forecast $\tilde x$ of the meters' load plus
-the block $u$. Since (\ref{eq:model}) is linear in the load, their difference is $d_C(u)=d_C(0)+G_Cu$, and
+the block $u$. Since (\ref{eq:model}) is linear in the load, their difference is $d_M(u)=d_M(0)+G_Mu$, and
 \begin{equation}\label{eq:sep}
-q_C(u)=d_C(u)\tp\Sigma_C^{-1}d_C(u),\qquad \Sigma_C=\hat\sigma^2I+\tfrac12\Phi_{\hat L}P_{\hat L}\Phi_{\hat L}\tp+\tfrac12\Phi_{F_C}P_{F_C}\Phi_{F_C}\tp,
+q_M(u)=d_M(u)\tp\Sigma_M^{-1}d_M(u),\qquad \Sigma_M=\hat\sigma^2I+\tfrac12\Phi_{\hat L}P_{\hat L}\Phi_{\hat L}\tp+\tfrac12\Phi_{F_M}P_{F_M}\Phi_{F_M}\tp,
 \end{equation}
-with $\Sigma_C$ evaluated at $\tilde x$, so that $q_C$ is quadratic in $u$;
-\item the feasible blocks $\Uset_{h+1}$: battery and EV headroom from the tracked state of charge, the voltage band with a
-chance margin for the leader \emph{and every rival}, the transformer rating, and the hourly and daily price caps; the price
-$c(u)=c^\uparrow\sum_i\max(u_i,0)+c^\downarrow\sum_i\max(-u_i,0)$ from the contract.
+with $\Sigma_M$ evaluated at $\tilde x$;
+\item the feasible blocks $\Uset_{h+1}$: battery and EV headroom, the voltage band with a chance margin for the leader
+\emph{and every rival}, the transformer rating, and the price caps; the price
+$c(u)=c^\uparrow\sum_i\max(u_i,0)+c^\downarrow\sum_i\max(-u_i,0)$.
 \end{itemize}
 \begin{lemma}[Expected evidence]\label{lem:evidence}
-If the next hour's data are Gaussian with covariance $\Sigma_C$ and mean given by the leader (or the rival), the expected
-change of $H(F_C)-H(\hat L)$ over that hour is $+\tfrac12q_C(u)$ (or $-\tfrac12q_C(u)$).
+If the next hour's data are Gaussian with covariance $\Sigma_M$ and mean given by the leader (or the rival), the expected
+change of $H(F_M)-H(\hat L)$ over that hour is $+\tfrac12q_M(u)$ (or $-\tfrac12q_M(u)$).
 \end{lemma}
 \begin{lemma}[Reach]\label{lem:reach}
-If $G_C=0$, no block changes $q_C$: line $C$ cannot be decided by probing, only by passive data. (i) If the two trees differ
-only in $C$, $G_C=0$ exactly when no meter with a controllable battery or EV lies below $C$. (ii) If they differ only in
-whether a line carries the load ($C$ against $C^1$), $G_C=0$: lines of the load's path are decided by the natural variation
-of the load, not by probing.
+If $G_M=0$, no block changes $q_M$. (i) If the two trees differ only in grouping $M$, $G_M=0$ exactly when no meter with a
+controllable battery or EV lies below $M$. (ii) Trees that differ only in where the load sits have $G=0$: the load's place
+is decided by the natural variation of the load, never by probing.
 \end{lemma}
 
-\paragraph*{Target set} At the start of the day, $\Tset$ is the set of open lines with $G_C\ne0$. It stays fixed during the
-day; lines that cannot be reached are reported, not dropped from the output.
-
-\paragraph*{Cost-aware evidence objective} The block for hour $h+1$ is
+\paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings with $G_M\ne0$; it stays
+fixed during the day. The block for hour $h+1$ is
 \begin{equation}\label{eq:block}
 u^\ast=\arg\max_{u\in\Uset_{h+1}}\ J_h(u),\qquad
-J_h(u)=\psi\sum_{C\in\Tset\ \text{open}}\Big[\min\big(\delta_C,\tfrac12q_C(u)\big)-\min\big(\delta_C,\tfrac12q_C(0)\big)\Big]-c(u),
+J_h(u)=\psi\sum_{M\in\Tset\ \text{open}}\Big[\min\big(\delta_M,\tfrac12q_M(u)\big)-\min\big(\delta_M,\tfrac12q_M(0)\big)\Big]-c(u),
 \end{equation}
-and it is bought only if $J_h(u^\ast)>0$. The bracket is the expected evidence the block adds beyond the natural load
-variation, counted only up to what each line still needs; $\psi$ prices one unit of evidence, so deciding a line from
-scratch is worth $\psi m$. The search covers the single-meter blocks and the rival-difference blocks at a grid of sizes.
-
-\paragraph*{Choice of $\psi$} On the development cases, Algorithm~\ref{alg:probe} runs for every $\psi$ on a grid
-$\psi_1<\dots<\psi_G$, which gives the mean cost per day $\bar c(\psi)$ and the coverage $\bar d(\psi)$, the share of target
-lines decided by the end of the day. With both scaled to $[0,1]$ over the grid, the default $\psi^\circ$ is the grid point
-farthest above the straight line from the first point to the last: the knee of the cost--coverage curve, beyond which each
-further share of coverage costs more than the average. The grid and $\psi^\circ$ are fixed before any test of probing runs,
-and the whole curve is reported.
-
-\paragraph*{Greedy, in plain words} Each hour the rule buys the one block that is worth most for the next hour alone. It does
-not plan the rest of the day and never revises a block; it chooses again when the next hour's data arrive, and stops buying
-when no block is worth its price.
-
-\paragraph*{Stopping and trust gate} The day ends when every line of $\Tset$ is decided at two consecutive gates. Blocks are
-bought only when the leader fits as well as the meter noise allows, $s^2_{\hat L}/\sigma^2_y\le\kappa_A$; each gate also
-prices the leader with (\ref{eq:price}), and a line it finds enters $\Omega$, which is the check for a true line the pool
-misses.
+bought only if $J_h(u^\ast)>0$: the expected evidence beyond the natural load variation, counted up to what each grouping
+still needs, against the price. \emph{Choice of $\psi$:} on the development cases, Algorithm~\ref{alg:probe} runs for every
+$\psi$ on a grid; with mean cost and coverage scaled to $[0,1]$, the default is the grid point farthest above the straight line
+from the first point to the last (the knee). Grid and default are fixed before any probing test; the whole curve is reported.
+\emph{Greedy, in plain words:} each hour the rule buys the one block worth most for the next hour alone; it chooses again
+when the next hour's data arrive. \emph{Stopping and trust gate:} the day ends when every target is decided at two
+consecutive gates; blocks are bought only when the leader fits as well as the meter noise allows,
+$s^2_{\hat L}/\sigma^2_y\le\kappa_A$.
 
 \begin{algorithm}[t]
 \caption{\textsc{Probe}: one day of cost-aware probing (proposed)}\label{alg:probe}
 \begin{algorithmic}[1]
-\Require $\hat T$, $\Omega$, anchors, labels and rivals from Algorithm~\ref{alg:identify}; history; contract; $\psi$, $m$, $\kappa_A$
-\Ensure the leader, with every line decided, open or unsettled
-\State $\Tset\gets$ open lines with $G_C\ne0$ \Comment{fixed for the day; Lemma~\ref{lem:reach}}
+\Require the output of Algorithm~\ref{alg:identify}; history; contract; $\psi$, $m$, $\kappa_A$
+\Ensure the leader, with every grouping decided, open or unsettled
+\State $\Tset\gets$ open groupings with $G_M\ne0$ \Comment{fixed for the day; Lemma~\ref{lem:reach}}
 \For{$h=0,1,\dots,23$} \Comment{gate at the start of hour $h$; block for $h+1$ sealed now}
-  \State $\hat L\gets$ Algorithm~\ref{alg:identify}, lines 4--8, on all data so far
-  \State label the lines of $\Tset$ that are still open (Algorithm~\ref{alg:identify}, line 11): $e_C$, $\delta_C$, $F_C$
-  \State \textbf{if} every line of $\Tset$ is decided at two consecutive gates: \Return $\hat L$ with its labels
+  \State $\hat L\gets$ Algorithm~\ref{alg:identify}, lines 5--9, on all data so far
+  \State relabel the groupings of $\Tset$ that are still open: their gap intervals, deficits and rivals
+  \State \textbf{if} every grouping of $\Tset$ is decided at two consecutive gates: \Return $\hat L$ with its labels
   \State $u_{h+1}\gets u^\ast$ of (\ref{eq:block}) if $s^2_{\hat L}/\sigma^2_y\le\kappa_A$ and $J_h(u^\ast)>0$, else $0$
   \State hour $h$ runs with $u_h$; add its readings to the data
 \EndFor
-\State \Return $\hat L$ with its labels \Comment{some target lines still open}
+\State \Return $\hat L$ with its labels \Comment{some targets still open}
 \end{algorithmic}
 \end{algorithm}
 
 % ---------------------------------------------------------------------
 \section{How the outputs are valued}\label{sec:value}
 
-\paragraph*{What the output says} For each line: whether it is in the tree; whether it is an anchor; its label; the
-interval of its gap; and, if open, the rival tree that disagrees. For each tree: the fitted parameters with their covariance,
-the pricing certificate and its coverage, the unit counts $k_A$ of its anchors, and the solver status of every number. With
-the PCC power: the load's path, its evidence, and the places whose score is within $m$ of the best.
+\paragraph*{What the output says} Three parts, kept apart. \emph{The load:} the gate's statistic and decision; with a load,
+its path, its places within $m$, and the evidence interval. \emph{The structure:} the groupings of $\hat T$, the anchors, and
+for every grouping its label, gap interval and rival. \emph{The computation:} the certificate's scope, the nodes priced by
+enumeration and by MIQP, the share of unsettled labels, the solver status of every number, and why the loop stopped.
 
-\paragraph*{How it is scored against the truth} Identification: precision, recall and F1 over lines; recall of the lines
-near the root; exact trees; the share of anchors that are not true lines (false anchors); and for the labels, the share of
-lines decided (coverage), the share of decided lines that are wrong (false decisions), the share of open lines that are true,
-and the share unsettled. The load: whether the true place is within $m$ of the best, and how often the evidence exceeds $m$
-when there is no load. Probing: the share of the target set decided by the end of the day, false decisions against passive
-operation, cost, energy, probed hours, and time per gate; over a range of $\psi$, as a cost--coverage curve. A method that
-never decides anything has no false decisions, so coverage and false decisions are always reported together.
-
-\paragraph*{How identification feeds probing} Anchors and other decided lines need no probing; open lines with reach form
-$\Tset$; each open line brings its rival and its deficit $\delta_C$, which set what the next block is worth.
+\paragraph*{How it is scored against the truth} The gate: loads missed and no-load feeders given a load, by share and kind.
+The structure: precision, recall and F1 over groupings; recall near the root; exact trees; false anchors; label coverage,
+false decisions, the share of open groupings that are true, and the share unsettled under each time limit. The load: whether
+its true place is within $m$ of the best. Probing: the share of targets decided by the end of the day, false decisions
+against passive operation, cost, energy and time; over $\psi$, as a cost--coverage curve. Coverage and false decisions are
+always reported together.
 
 % ---------------------------------------------------------------------
 \section{Contributions, limits and tests}\label{sec:tests}
 
-\paragraph*{Contributions} (i) One MIQP over laminar families of leaves in which the unmetered load is a leaf without a
-voltage, so its path costs no constraint and no product (Proposition~\ref{prop:path}). (ii) The evidence for one line: only
-the couplings across its children count, and the evidence grows linearly with the data for a true line and stays bounded
-for a false one (Lemmas~\ref{lem:glue}--\ref{lem:wald}, Theorem~\ref{thm:gap}). (iii) Anchors: decided lines, certified by
-flipped solves of the same MIQP, which reduce the exact search to unions of a few units per anchor
-(Proposition~\ref{prop:anchor}). (iv) Labels valid under time limits. (v) Probing targeted at the open lines that the
-available batteries and EVs can reach, with a cost-aware evidence objective and a stopping rule on a fixed target set.
+\paragraph*{Contributions} (i) A separation of three questions: whether there is an unmetered load (a gate on the PCC
+balance), which meter groupings the data decide (labels and anchors), and how certain the computation is (intervals and
+certificate scopes), all feeding probing. (ii) One MIQP over laminar families in which the load is a leaf without voltage,
+so its path costs no constraint and no product (Proposition~\ref{prop:path}). (iii) The evidence for one line: only the
+couplings across its children count, and it grows linearly with the data for a true line and stays bounded for a false one
+(Lemmas~\ref{lem:glue}--\ref{lem:wald}, Theorem~\ref{thm:gap}). (iv) Anchors, certified by flipped solves of the same MIQP,
+that reduce the exact search to unions of a few units per anchor (Proposition~\ref{prop:anchor}). (v) Probing targeted at
+the open groupings that the available batteries and EVs can reach.
 
-\paragraph*{Limits} Theorem~\ref{thm:gap} is asymptotic and assumes the model. In a finite sample, labels and anchors are
-relative to the pool, and their error rates are measured. The certificate is local (single lines, pairs under one node).
-Nodes that hold the load are priced by enumeration until the $n\times(n+1)$ node MIQP exists. The objective (\ref{eq:block})
-is a surrogate based on Lemma~\ref{lem:evidence} with fixed parameters; a rival may refit, so the realised evidence is
-smaller.
+\paragraph*{Limits} The gate is a prior: loads under 1\% of the metered power are ignored, and its threshold is calibrated
+for one meter class. Theorem~\ref{thm:gap} is asymptotic and assumes the model. Labels and anchors are relative to the pool;
+certificates have the scopes above; the evidence interval holds over the pools searched; thresholds are calibrated on data,
+since the topology is discrete and, without a load, the load's place is not identified, so standard likelihood-ratio
+asymptotics do not apply. The probing objective is a surrogate with fixed parameters.
 
-\paragraph*{Relation to the registered test} The registered sealed test evaluates the predecessor of
-Algorithm~\ref{alg:identify} (final.py at commit 71684ff). It differs in five ways: (1) the load is removed with
-(\ref{eq:free}) during the whole tree search and placed only at the end (over $n+1$ leaves, completed by enumeration); (2) its
-blocks are the top-level lines of the first tree with $m_C\ge m$, without flip tests; (3) one root step searches the unions
-of these blocks when there are at most 9; (4) node pricing runs over the meters only; (5) there are no labels. In the
-development records of WZZT-C (130 inputs, $\lambda=0$) that root step changed the first tree in 2 inputs, both with single
-meters as blocks (8 and 10 meters), and pricing added lines in 13. The sealed result will be reported as it is.
-Algorithm~\ref{alg:identify} needs a development check against it (F1, anchors, labels, time) and its own registered test on
-fresh cases.
+\paragraph*{Relation to the registered test} The registered sealed test evaluates the predecessor (final.py at 71684ff). It
+has no gate (with the PCC power it always models a load), removes the load with (\ref{eq:free}) during the search and places
+it at the end, takes blocks from the top-level lines of the first tree without flip tests, searches the unions of at most 9
+such blocks once, prices nodes with an MIQP over the meters only, has no labels, and computes the evidence at
+$\pi(\hat T)$. Its result will be reported as it is; it does not carry over to Algorithm~\ref{alg:identify}.
 
-\paragraph*{Tests of probing} P0 on the development cases (label coverage and time, the target set, whether the true tree can
-be built from $\Omega$); P1, Algorithm~\ref{alg:probe} against passive operation, random blocks of matched cost and the
-earlier selector, with a true line removed from $\Omega$ for the safety test; P2, the main probing test, registered before it
-runs; P3, sensitivities (adoption, delivery shortfall, history length, impedance).
+\paragraph*{Development checks before a registered test} (V1) Structure: do meter-level labels separate grouping
+uncertainty from the load's place? (V2) The gate and the load: error rates by share and kind; the evidence at $\pi(\hat T)$
+against the two-model evidence, on no-load feeders in particular. (V3) Scale: feeders of growing size and branching; time
+per case. (V4) Pricing: how often nodes are wide, how often a node MIQP stops unproved, and the effect on F1. (V5) Formulation:
+with and without the per-meter bounds (root gap, nodes, time, final gap, share of unsettled flip tests at fixed time). (V6)
+Certification: decided, open and unsettled shares under several time limits. (V7) Probing: whether better gap intervals give
+better probing. (V8) Calibration: whether decided groupings are wrong at a rate consistent with the margin. Results are
+reported as recovery and certification, not only as scores.
 
 % ---------------------------------------------------------------------
 \appendices
@@ -491,141 +532,141 @@ the root has one parent, so $\sum_vc_v=n^++k(F)$, $\sum_v(c_v-2)=n^+-k(F)-2$ and
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Proposition~\ref{prop:label}]
-If $L_C>H(T)+m$, every flipped tree $F$ has $H(F)\ge L_C>H(T)+m\ge H^*+m$, so $F\notin\Sset_m$. If $H(T)=H^*$ and a flipped
-tree has $H\le H(T)+m$, it lies in $\Sset_m$.
+If $L_M>H(T)+m$, every flipped tree $F$ has $H(F)\ge L_M>H(T)+m\ge H^*+m$, so $F\notin\Sset_m$: every tree of $\Sset_m$ decides
+$M$ as $T$ does. If $H(T)=H^*$ and a flipped tree has $H\le H(T)+m$, it lies in $\Sset_m$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:local}]
-The trees in (\ref{eq:local}) are laminar and decide the line the other way, so their scores bound $H^{\rm f}$ from above:
-$H^{\rm f}_C(T)\le H(T)+m_C(T)$ and $H^{\rm f}_D(T)\le H(T)-\ell_D(T)$. An upper bound on a gap below $m$ shows a flipped tree
-within $m$; it cannot show that none exists.
+The trees in (\ref{eq:local}) are laminar. Removing every line of grouping $M$ leaves no support with $\pi=M$; swapping in $D$
+with $\pi(D)\cross M$ removes every line of $T$ that crosses $D$, among them all lines of grouping $M$ (their meters cross
+$\pi(D)$), and adds no support of grouping $M$. Both decide $M$ the other way, so their scores bound $H^{\rm f}_M$ from above;
+likewise the swap of $D$ for $\pi(D)\notin\Gset(T)$. An upper bound on a gap below $m$ shows a flipped tree within $m$; it
+cannot show that none exists.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:glue}]
 The children partition $C$, so $z_Cz_C^{+\top}=\sum_{a,b}z_{A_a}z_{A_b}^{+\top}$; the terms $a=b$ give the sum in
-(\ref{eq:glue}) and the terms $a\ne b$ give $Z^\times_C$. Every child is still a support of $T\setminus\{C\}$ (a line, a
-meter's cable, or $\{s\}$ with $z_{\{s\}}=0$), so adding $r_C$ to its parameter reproduces the sum exactly, and likewise for
-$x_C$. In $T\setminus\{C\}$, the supports that contain a pair of $\times(C)$ are those strictly above $C$; each adds the same
-value to every entry of $C\times C$, including the entries inside one child, so none can change the cross-child entries
-alone. A meter's cable $\{i\}$ has only the entry $(i,i)$, which lies in no $\times(C)$.
+(\ref{eq:glue}) and the terms $a\ne b$ give $Z^\times_C$. Every child is still a support of $T\setminus\{C\}$, so adding $r_C$
+to its parameter reproduces the sum exactly, and likewise for $x_C$. In $T\setminus\{C\}$ the supports that contain a pair of
+$\times(C)$ are those strictly above $C$; each adds the same value to every entry of $C\times C$, so none can change the
+cross-child entries alone. A meter's cable $\{i\}$ has only the entry $(i,i)$, which lies in no $\times(C)$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:wald}]
-Write $\Phi_C$ for the two columns of $C$ under $M$ and $\hat\theta_C$ for their coefficients in the fit of $T$. By the
-Frisch--Waugh--Lovell theorem, $\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)=\hat\theta_C\tp\Phi_C\tp(I-\Pi_{T\setminus\{C\}})
-\Phi_C\hat\theta_C$. By (\ref{eq:glue}), $\Phi_C=\sum_a\Phi_{A_a}+\Phi^\times_C$ with every $\Phi_{A_a}$ in the column space
-of $T\setminus\{C\}$, so $(I-\Pi_{T\setminus\{C\}})\Phi_C=(I-\Pi_{T\setminus\{C\}})\Phi^\times_C$. Divide by $2\hat\sigma^2$
-and subtract the price $\beta$ of one line.
+By the Frisch--Waugh--Lovell theorem, $\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)=\hat\theta_C\tp\Phi_C\tp(I-\Pi_{T\setminus
+\{C\}})\Phi_C\hat\theta_C$. By (\ref{eq:glue}), $\Phi_C=\sum_a\Phi_{A_a}+\Phi^\times_C$ with every $\Phi_{A_a}$ in the column
+space of $T\setminus\{C\}$. Divide by $2\hat\sigma^2$ and subtract the price $\beta$ of one line.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Theorem~\ref{thm:gap}]
 Let $\mu=M\Phi_{T^0}\theta^0$, so the data under $M$ are $\mu+\tilde\varepsilon$ with $\tilde\varepsilon$ white (A1). By
-(A2), with probability tending to one the bounded fits of $T^0$ and of every family containing it coincide with the unbounded
-ones, and a bounded fit never has a smaller residual than the unbounded one. (a) For $F\not\ni C$,
+(A2), with probability tending to one the bounded fits of $T^0$ and of every family containing it are unbounded fits, and a
+bounded fit never has a smaller residual than the unbounded one. (a) For $F\not\ni C$,
 $\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ge\|(I-\Pi_F)\mu\|^2+2\langle(I-\Pi_F)\mu,\tilde\varepsilon\rangle+\|\Pi_{T^0}\tilde\varepsilon
-\|^2-\|\Pi_F\tilde\varepsilon\|^2$. The first term is at least $N\sigma^2\kappa_C$ for large $N$ (A3); the second has mean
-zero and variance $4\sigma^2\|(I-\Pi_F)\mu\|^2=O(N)$, so it is $O_p(\sqrt N)$; the last is $\sigma^2$ times a $\chi^2$ with at
-most $\dim F$ degrees of freedom, $O_p(1)$. The penalties differ by at most $\beta n^+=O(\ln N)$. Dividing by $2\hat\sigma^2$
-gives the bound, uniformly because there are finitely many $F$. Every flipped family of $C$ omits $C$, so $e_C(T^0)\to\infty$,
-and $m_C(T^0)\ge e_C(T^0)$ by Lemma~\ref{lem:local}. (b) $T$ and $T\setminus\{C\}$ both contain $T^0$, so $\mu$ lies in both
-column spaces and the unbounded difference $\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)$ is $\sigma^2$ times a $\chi^2$
-with $p_s$ degrees of freedom; the bounded difference is no larger. Hence $H(T\setminus\{C\})-H(T)\le O_p(1)-\beta$ with
-$\beta=\tfrac12p_s\ln N-\lambda\to\infty$, and $m_C(T)$ is at most this removal gap.
+\|^2-\|\Pi_F\tilde\varepsilon\|^2$. The first term is at least $N\sigma^2\kappa_C$ for large $N$; the second has mean zero and
+variance $O(N)$; the last is $O_p(1)$. The penalties differ by at most $\beta n^+=O(\ln N)$. There are finitely many $F$. Every
+flipped family of $C$ omits $C$, and $m_C\ge e_C$ by Lemma~\ref{lem:local}. (b) $T$ and $T\setminus\{C\}$ contain $T^0$, so
+$\mu$ lies in both column spaces and the difference of residuals is $\sigma^2$ times a $\chi^2$ with $p_s$ degrees of freedom
+(the bounded one is no larger), while $\beta\to\infty$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Corollary~\ref{cor:true}]
-Let $F\ne T^0$ be laminar in $\Omega\cup\Bset$. If $F$ omits a line of $T^0$, $H(F)-H(T^0)\to\infty$ by part (a). Otherwise
-$F\supsetneq T^0$; as in part (b), $\mathrm{RSS}(T^0)-\mathrm{RSS}(F)=O_p(1)$ while the penalty grows by at least $\beta\to
-\infty$. With finitely many $F$, $T^0$ is the unique best tree with probability tending to one. Every flipped family of a line
-of $T^0$ omits it, so by (a) its score exceeds $H(T^0)+m$, and a solve to optimality proves $L_C>H(T^0)+m$.
+A family $F\ne T^0$ either omits a line of $T^0$, and then $H(F)-H(T^0)\to\infty$ by (a), or strictly contains $T^0$, and then
+its residual is lower by $O_p(1)$ while its penalty is higher by at least $\beta\to\infty$. With finitely many $F$, $T^0$ is
+the unique best tree with probability tending to one, and every flipped family of a grouping of $T^0$ scores above
+$H(T^0)+m$, which a solve to optimality proves.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Proposition~\ref{prop:path}]
 $C^1$ and $D^1$ both contain $s$, so they are nested or cross, and nested exactly when $C\subseteq D$ or $D\subseteq C$. For
 $C^1$ and $D$ with $s\notin D$: $C^1\subseteq D$ is impossible, $D\subseteq C^1$ holds exactly when $D\subseteq C$, and they
-are disjoint exactly when $C\cap D=\emptyset$; so they cross exactly when $C\cap D\ne\emptyset$ and $D\not\subseteq C$, that
-is when $C\subsetneq D$ or $C\cross D$. Pairs without $s$ cross as meter sets. With $b^0_C=b_C-h_C$ the indicator of $C$ and
-$b^1_C=h_C$ that of $C^1$, the indicator formulation's constraints become (ii) and (iii), and $r_Ch_C$ becomes the coefficient
-of $C^1$: one coefficient per support and no product. The leaf form also admits $C$ and $C^1$ together, the load joining the
-line above $C$.
+are disjoint exactly when $C\cap D=\emptyset$; so they cross exactly when $C\subsetneq D$ or $C\cross D$. With $b^0_C=b_C-h_C$
+and $b^1_C=h_C$, the indicator formulation's constraints become (ii) and (iii), and $r_Ch_C$ becomes the coefficient of $C^1$.
+The leaf form also admits $C$ and $C^1$ together.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:node}]
 If $C=\bigcup_{j\in S}A_j$ with $2\le|S|<c_v$, $C$ is nested with or disjoint from every support of $T$ and equals none of
 them. Conversely, let $v$ be the smallest support of $T$ containing a compatible $C\notin T$; no child contains $C$, so every
-child is inside $C$ or disjoint from it, the children partition $v$, and $C=\bigcup_{j\in S}A_j$ with $2\le|S|<c_v$; $C$ fixes
-$v$.
+child is inside $C$ or disjoint from it, the children partition $v$, and $C=\bigcup_{j\in S}A_j$ with $2\le|S|<c_v$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Proposition~\ref{prop:anchor}]
-Let $F\supseteq\Aset$ be laminar, $L\in\Lin(F)\setminus\Aset$, and $A$ the smallest member of $\Aset\cup\{\Nset^+\}$ that
-contains $L$. A unit $B\in\Kset_A$ that is an anchor lies in $F$ with $L$, so they are nested or disjoint, and $L\subsetneq B$
-would make $B$ a smaller anchor containing $L$; so $B\subseteq L$ or $B\cap L=\emptyset$. A unit that is a leaf is inside $L$
-or not. Hence $L$ is a union of units of $A$; one unit would make $L$ an anchor or a single leaf, and all of them would make
-$L=A$. If every $k_A\le K$, every such union is in $\Omega_K(\Aset)$, so the laminar families in $\Omega_K(\Aset)\cup\Bset$
-that contain $\Aset$ are all the families that contain it. A node with $k_A$ units has $2^{k_A}-k_A-2$ unions of 2 to $k_A-1$
-units.
+If two supports are nested or disjoint, so are their meter sets: removing $s$ keeps inclusions and disjointness. Every anchor
+$A$ is $\pi$ of a support of $F$, so for every $C\in\Lin(F)$ the meter set $\pi(C)$ is compatible with every anchor. If
+$2\le|\pi(C)|\le n-1$, let $A$ be the smallest member of $\Aset\cup\{\Nset\}$ containing $\pi(C)$. A unit of $A$ that is an
+anchor $B$ satisfies $B\subseteq\pi(C)$ or $B\cap\pi(C)=\emptyset$, since $\pi(C)\subsetneq B$ would contradict the choice of
+$A$; a unit that is a meter is inside $\pi(C)$ or not. So $\pi(C)$ is a union of units of $A$; one unit makes it an anchor,
+all units make it $A$, which is then an anchor. Otherwise $|\pi(C)|\le1$, where $C=\{i,s\}$, or $\pi(C)=\Nset$, where $C=\Nset$.
+Since $C$ is $\pi(C)$ or $\pi(C)\cup\{s\}$, $C\in\Omega^+_K(\Aset)$ when every $k_A\le K$. The required groups keep every
+anchor, so the MIQP's feasible set is exactly the families over $\Omega^+_K(\Aset)$ that keep the anchors, which contains every
+such family over all supports.
+\end{IEEEproof}
+
+\begin{IEEEproof}[Proof of Lemma~\ref{lem:stop}]
+(i) The re-solve's universe contains the tree's lines, and the better of the two trees is kept. (ii) The next round would
+search $\Omega^+_K(\Aset)\cup\Lin(T)$ with the same anchors: the unions are the same, and the pool has grown only by the last
+universe and the tree's lines, which were all in the last solve, since pricing added nothing. So the next universe is
+contained in the last one and contains $T$, which is optimal over the last one; no tree of the next universe scores lower.
+\end{IEEEproof}
+
+\begin{IEEEproof}[Proof of Proposition~\ref{prop:evidence}]
+$\min H_0\le H_0(\pi(\hat T))$ because $\pi(\hat T)$ is one meter topology. For the interval, $\min H_0\ge L_0$ and
+$\min H\le U_1$ give $D^*\ge L_0-U_1$, and $\min H_0\le U_0$ and $\min H\ge L_1$ give $D^*\le U_0-L_1$.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:evidence}]
-$H(F_C)-H(\hat L)$ changes by the log-likelihood ratio of the new data, the penalties being unchanged. For two Gaussians with
+$H(F_M)-H(\hat L)$ changes by the log-likelihood ratio of the new data, the penalties being unchanged. For two Gaussians with
 common covariance its expectation under the leader is the Kullback--Leibler divergence $\tfrac12d\tp\Sigma^{-1}d$, and minus
 that under the rival.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Lemma~\ref{lem:reach}]
-$d_C(u)=d_C(0)+G_Cu$, so $G_C=0$ gives $q_C(u)=q_C(0)$ for all $u$. (i) If the trees differ only in $C$ with the same other
-parameters, the block's part of the difference is $r_Cz_C(z_C\tp B)u$ in the active-power response, with $B$ selecting the
-meters with a controllable device; it vanishes for all $u$ exactly when $z_C\tp B=0$. (ii) If they differ only in $C$ against
-$C^1$ with the same parameters, the predicted drops differ by $z_C(r_Cu^P_t+x_Cu^Q_t)$, which contains no block.
+$d_M(u)=d_M(0)+G_Mu$, so $G_M=0$ gives $q_M(u)=q_M(0)$. (i) With the same other parameters, the block's part of the
+difference is $r_Mz_M(z_M\tp B)u$, $B$ selecting the meters with a controllable device; it vanishes exactly when $z_M\tp B=0$.
+(ii) Trees that differ only in whether lines carry the load predict drops that differ by terms in $u^P$ and $u^Q$ only.
 \end{IEEEproof}
 
 \section{Initial candidate lines used in this work}\label{app:pool}
 
-Any tree builders can supply $\Omega_0$. This work uses nine, in four steps. (1) A sensitivity matrix without tree
-structure, fitted to the active-power part of (\ref{eq:model}) with the free load term (\ref{eq:free}), by a convex QP solved
-with Gurobi:
+Any tree builders can supply $\Omega_0$; this work uses nine. (1) A sensitivity matrix without tree structure, fitted to the
+active-power part of (\ref{eq:model}) by a convex QP solved with Gurobi, with the free load term (\ref{eq:free}) when a load
+is modelled ($D_1=D$ otherwise):
 \begin{equation}\label{eq:rhat}
 \hat R=\arg\min_R\ \big\|(D_1\otimes S_\gamma)\,\mathrm{vec}(Y-PR)\big\|^2\quad\text{s.t.}\quad R=R\tp\ge0,\quad
-R_{ij}\le\min(R_{ii},R_{jj}),
+R_{ij}\le\min(R_{ii},R_{jj}).
 \end{equation}
-where for a tree $R_{ij}$ is the resistance shared by the paths of meters $i$ and $j$; the free term absorbs the load, so
-$\hat R$ needs no place for it. (2) Nine hierarchies over the meters: recursive neighbour joining, neighbour joining and
-recursive grouping on $\hat R$; average linkage (UPGMA) on the path distance $d_{ij}=\hat R_{ii}+\hat R_{jj}-2\hat R_{ij}$ and
-Ward linkage on $\sqrt d$; average-linkage clusterings on the correlation distance between meters of the rows of $\hat R$, the
-voltage drops $y$, the drops $(D_1\otimes S_\gamma)y$, and the residuals after fitting the service cables alone. (3) In each
-of the nine trees, $s$ is placed at the node whose bounded least-squares fit with $s$ attached there is best; these trees
-start the first solve. (4) $\Omega_0$ is every cluster with 2 to $n-1$ meters in any hierarchy, each with and without $s$,
-plus $\{i,s\}$ for every meter, without duplicates, so $|\Omega_0|\le18(n-2)+n$. Without the PCC power, step (3) and the
-copies with $s$ are dropped and $D_1=D$.
+(2) Nine hierarchies over the meters: recursive neighbour joining, neighbour joining and recursive grouping on $\hat R$;
+UPGMA on the path distance $d_{ij}=\hat R_{ii}+\hat R_{jj}-2\hat R_{ij}$ and Ward linkage on $\sqrt d$; average-linkage
+clusterings on the correlation distance between meters of the rows of $\hat R$, the drops $y$, the drops
+$(D_1\otimes S_\gamma)y$, and the residuals after fitting the service cables alone. (3) With a load, it is placed in each of
+the nine trees at its best admissible place (below a line, below the trunk, or at the PCC); these trees start the first
+solve. (4) $\Omega_0$ is every cluster with 2 to $n-1$ meters in any hierarchy, and with a load each such cluster with and
+without $s$, the supports $\{i,s\}$ and $\Nset$, so $|\Omega_0|\le18(n-2)+n+1$.
 
 \section{Settings}
 
 \begin{table}[h]
-\caption{Settings of Algorithm~\ref{alg:identify} (proposed; values carried over from the registered predecessor where it
-has them) and of probing}\label{tab:settings}
+\caption{Settings of Algorithm~\ref{alg:identify} (development; values from the registered predecessor where it has them)
+and of probing}\label{tab:settings}
 \centering
 \begin{tabular}{@{}p{0.36\textwidth}p{0.56\textwidth}@{}}
 \toprule
 Setting & Value\\
 \midrule
-$\lambda$; $m$ & 1.96; 4.6 (half-BIC units)\\
-$K$ & 9 units: larger nodes are searched by node pricing\\
-Anchor loop & at most two rounds\\
-Flip test & (\ref{eq:master}) with cutoff $H(T)+m$; local flips first; stops as soon as the label is settled; time limit
-at least that of the free tree MIQP (120 s up to 35 meters, 240 s beyond), raised if development cases leave lines
-unsettled at the limit; the share that reaches the limit is reported\\
-Local-search incumbent & starts from the empty tree and the first three builders' trees; 20 s per start (40 s beyond 35
-meters); polish 20 s\\
-Tree MIQP limits & 120 s up to 35 meters (warm start and cutoff); 240 s beyond (cold start; the tree at $\lambda=0$ is an
-extra start)\\
-Pricing & 60 s per node MIQP; at most 10 single additions; at most 3 pair rounds; enumeration up to 12 children at nodes that
-hold the load\\
-Solver & Gurobi, one thread per case; a failed convex QP is repeated with SLSQP\\
+Gate $\varsigma_0$ & 1\% of the metered mean power (prior setting; Table~\ref{tab:gate})\\
+$\lambda$; $m$; $\bar\theta$ & 1.96; 4.6 (half-BIC units); 2 pu\\
+$K$; anchored searches $R$ & 9 units; at most 2, then the stopping rule of Lemma~\ref{lem:stop} or the limit\\
+Tree MIQP & 120 s up to 35 meters (warm start from the incumbent), 240 s beyond (cold); per-meter bounds on, at a quarter
+of the limit at most (off in the ablation)\\
+Flip test & cutoff $H(T)+m$, local flips first; limit at least that of the tree MIQP; the share at the limit is reported\\
+Local search & from the empty tree and the builder trees; 20 s per start (40 s beyond 35 meters); polish 20 s\\
+Pricing & enumeration up to 12 children; node MIQP beyond, 60 s; at most 10 additions per round\\
+Load evidence & the no-load model solved over the meter groupings of the pool, same limits\\
+Solver & Gurobi, one thread per case\\
 \midrule
 Probing & $c^\downarrow=4$, $c^\uparrow=1.2$ CNY/kWh; caps 20 CNY/h, 100 CNY/day; band $[0.96,1.035]$, $z=2.33$;
-$\kappa_A=1.2$; $\psi$ swept over a grid, default $\psi^\circ$ at the knee of the development cost--coverage curve
-(Section~\ref{sec:probe})\\
+$\kappa_A=1.2$; $\psi$ at the knee of the development cost--coverage curve\\
 \bottomrule
 \end{tabular}
 \end{table}

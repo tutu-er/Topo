@@ -120,8 +120,41 @@ def test_matches_registered_code(name="dev_small_003_head"):
     assert close(Fitter(model, truth).crit(truth), want, 1e-6)
 
 
+def test_gate_bounds_and_node_miqp(group="dev_small_003"):
+    """On one development feeder: the gate separates its no-load twin from its head-load twin; the per-meter bounds
+    leave the MIQP optimum unchanged; the node MIQP finds the same best line as enumeration."""
+    from .identify import load_dev_case
+    from .miqp import tree_miqp
+    from .model import GATE, Fitter, Model, balance, load_share
+    from .search import best_addition, node_miqp
+    from .sets import basis, children
+    shares = {}
+    for twin in ("none", "head"):
+        rec, inp = load_dev_case(f"{group}_{twin}")
+        h = inp.hist
+        shares[twin] = load_share(h["P"], balance(h["P"], h["Q"], h["Y"], h["V0sq"], h["Ppcc"], h["Qpcc"]))
+    assert shares["none"] < GATE <= shares["head"], shares
+    rec, inp = load_dev_case(f"{group}_none")
+    h, n = inp.hist, inp.n
+    model = Model(h["P"], h["Q"], h["Y"], h["V0sq"])
+    truth = canonical(C for C in rec["truth"] if 1 < len(C) < n)
+    pool = canonical([*truth, *random_lines(n, random.Random(4)), *random_lines(n, random.Random(5))])
+    level = Fitter(model, truth).crit(truth)                       # attained, so a valid level for the bounds
+    plain = tree_miqp(model, pool, 60., gap=1e-6)
+    tight = tree_miqp(model, pool, 60., gap=1e-6, tighten_at=level)
+    assert abs(plain["crit"]-tight["crit"]) <= 1e-6*max(1., abs(plain["crit"])), (plain["crit"], tight["crit"])
+    tree = ()                                                     # every meter a child of the root: n children
+    enum_line, info = best_addition(model, tree, max_children=n)
+    kids = children(basis(n), n)[tuple(range(n))]
+    miqp_line, _, status = node_miqp(model, tree, kids, 120.)
+    assert info["enumerated"] == 1 and status == 2
+    f = Fitter(model, [enum_line, miqp_line])
+    assert abs(f.crit([enum_line])-f.crit([miqp_line])) <= 1e-7, (enum_line, miqp_line)
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
-        if name.startswith("test_") and (name != "test_matches_registered_code" or "--data" in sys.argv):
+        needs_data = name in ("test_matches_registered_code", "test_gate_bounds_and_node_miqp")
+        if name.startswith("test_") and (not needs_data or "--data" in sys.argv):
             fn()
             print("ok", name, flush=True)
