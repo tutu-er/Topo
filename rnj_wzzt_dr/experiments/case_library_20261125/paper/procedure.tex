@@ -1,0 +1,530 @@
+% =====================================================================
+%  Certified, evidence-calibrated topology identification and
+%  value-of-information probing for low-voltage feeders
+%  Method and algorithms (paper-style draft v4), 2026-11-26
+%
+%  Status of the parts (read before quoting anything from this file):
+%   * Sections II-III describe the identifier of the registered sealed
+%     test (identification/final.py at commit 71684ff) step by step.
+%     The search engines and limits are moved to Table V; nothing in the
+%     algorithm is changed. Its sealed result is not known yet.
+%   * Section IV is a PROPOSED revision of the probing selector locked on
+%     2026-11-23. It is not implemented and not tested. Table IV lists
+%     what it replaces and the runs it needs before it can be claimed.
+%
+%  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
+% =====================================================================
+\documentclass[journal,onecolumn,11pt]{IEEEtran}
+
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\tp}{^{\top}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\Lin}{\mathcal{L}}
+\newcommand{\Nset}{\mathcal{N}}
+\newcommand{\Bset}{\mathcal{B}}
+\newcommand{\Hset}{\mathcal{H}}
+\newcommand{\Rset}{\mathcal{R}}
+\newcommand{\Uset}{\mathcal{U}}
+\newcommand{\cross}{\pitchfork}
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+
+\begin{document}
+
+\title{Certified, Evidence-Calibrated Topology Identification and\\ Value-of-Information Probing for Low-Voltage Feeders}
+\author{Method draft v4 of 26~November~2026 (authors to be added)}
+\maketitle
+
+\begin{abstract}
+We identify the topology of a low-voltage feeder from smart-meter data and, when the data leave some lines undecided, buy
+demand-response probes to decide them. Every decision uses one currency, the log Bayes factor of a penalised likelihood with
+an empirical structural prior, and one threshold. The identifier follows a \emph{propose--decide--certify} pattern. Standard
+tree builders propose candidate lines; an exact mixed-integer quadratic program (MIQP) selects the best laminar family among
+them; lines whose evidence passes the threshold are contracted into blocks, so that the structure near the root is searched
+over every union of blocks; and a pricing MIQP at each node proves that no further line, or pair of lines within one node,
+would improve the score. A line found by the pricing step is added and the selection repeated, which is column generation
+over laminar families. An unmetered load is first projected out of the data using the balance at the point of common
+coupling (PCC) and then placed as a leaf without a voltage reading by the same machinery. For probing we propose three
+changes to our earlier selector. The candidate topologies become the exact set of trees within a score gap of the optimum
+of the same MIQP, so that the completeness of the set is proved instead of assumed. Per-line posterior probabilities and a
+resolvability test replace rules about voltage twins. Each hour's demand-response block minimises its price plus the value
+of identification times a Bhattacharyya bound on the probability of a line error, solved globally over the feasible blocks.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Topology identification, smart meters, laminar families, mixed-integer quadratic programming, column generation, Bayesian
+model selection, active probing, demand response, optimal experimental design.
+\end{IEEEkeywords}
+
+\noindent\textbf{Status of each part.} Sections~\ref{sec:model}--\ref{sec:id} describe the identifier of the registered
+sealed test exactly; its search engines and limits are listed in Table~\ref{tab:settings}. Section~\ref{sec:probe} is a
+proposed revision of the probing selector; it has not been implemented or tested, and Table~\ref{tab:changes} lists what it
+replaces and the runs it needs.
+
+% ---------------------------------------------------------------------
+\section*{Nomenclature}
+\begin{tabular}{@{}p{0.27\textwidth}p{0.68\textwidth}@{}}
+\toprule
+$\Nset=\{1,\dots,n\}$, $t=1,\dots,T$, $N=nT$ & Metered customers, time slots, rows of data\\
+$p_{i,t}$, $q_{i,t}$, $V_{i,t}$; $V_{0,t}$ & Metered active and reactive power and voltage; voltage at the PCC (pu)\\
+$y_{i,t}=V_{0,t}^2-V_{i,t}^2$ & Squared-voltage drop\\
+$u^P_t$, $u^Q_t$ & Unmetered power from the PCC balance, eq.~(\ref{eq:balance})\\
+$C\subseteq\Nset$, $z_C\in\{0,1\}^n$ & Support of a line (the meters it feeds) and its indicator\\
+$C\cross D$ & $C$ and $D$ cross: neither nested nor disjoint\\
+$\Bset=\{\{1\},\dots,\{n\},\Nset\}$ & Service cables and feeder head, present in every topology\\
+$F\supseteq\Bset$, $\Lin(F)=F\setminus\Bset$, $k(F)$ & Topology as a laminar family; its lines; their number\\
+$\theta_F=(r_C,x_C)_{C\in F}\in\Theta_F$ & Line parameters (nuisance), box with $r_C\ge r_{\min}$ on lines\\
+$H(F)$ & Score, eq.~(\ref{eq:score}), in half-BIC units (approximate negative log posterior)\\
+$m=\ln 100\approx4.6$ & Evidence threshold (Bayes factor 100)\\
+$\lambda=\ln(1/\rho)$ & Structural prior per line, Proposition~\ref{prop:prior}\\
+$\Omega$ & Pool of candidate lines\\
+$\Hset$, $w_F$, $\pi_C$ & Candidate topologies for probing, their posterior weights, posterior of line $C$\\
+$u\in\Uset_h$, $c(u)$, $V$ & Demand-response block for hour $h$, its price, value of a correct identification\\
+\bottomrule
+\end{tabular}
+
+% ---------------------------------------------------------------------
+\section{Setting and model}\label{sec:model}
+
+A feeder has a root, the PCC, and $n$ metered customers. In every slot $t$ meter $i$ reports $p_{i,t}$, $q_{i,t}$ and
+$V_{i,t}$, and the PCC reports $V_{0,t}$ and, where it is metered, its power $P^{\rm pcc}_t$, $Q^{\rm pcc}_t$.
+
+\paragraph*{Topology as a laminar family} Every line of a radial feeder feeds a set of meters, its \emph{support}. The
+supports of a tree are laminar (any two are nested or disjoint), and a laminar family that contains $\Bset$ fixes the tree up
+to internal nodes without meters, which voltages cannot see. A topology is therefore a laminar family $F\supseteq\Bset$;
+$\Lin(F)$ are its lines and $k(F)=|\Lin(F)|$.
+
+\paragraph*{Voltage model} With the linearised DistFlow equations,
+\begin{equation}\label{eq:model}
+y_t=\sum_{C\in F} z_C\big[r_C\,(z_C\tp p_t+h_C u^P_t)+x_C\,(z_C\tp q_t+h_C u^Q_t)\big]+\varepsilon_{0,t}\one+o+e_t ,
+\end{equation}
+where $r_C$, $x_C$ are twice the line's resistance and reactance in pu, $\varepsilon_{0,t}$ is the error of the PCC voltage
+reading (shared by every $y_{i,t}$), $o$ are fixed meter offsets and $e_t$ is meter noise. The unmetered power is the PCC
+balance minus the line losses estimated from the meters' own voltages, which needs no topology:
+\begin{equation}\label{eq:balance}
+u^P_t=P^{\rm pcc}_t-\sum_i p_{i,t}-\sum_i p_{i,t}\frac{V_{0,t}-V_{i,t}}{V_{i,t}},\qquad
+u^Q_t=Q^{\rm pcc}_t-\sum_i q_{i,t}-\sum_i q_{i,t}\frac{V_{0,t}-V_{i,t}}{V_{i,t}} .
+\end{equation}
+$h_C=1$ when $C$ lies on the path from the PCC to the unmetered load, and $h\equiv0$ without one. The data of our cases come
+from AC power flow; (\ref{eq:model}) is used inside the identifier only.
+
+\begin{remark}[Why one fit of the whole map]\label{rem:metric}
+Stacked over slots, (\ref{eq:model}) is linear in the sensitivity map $\Theta_F=\sum_{C\in F}z_Cz_C\tp(r_C,x_C)$. With
+$\hat\Theta$ the unconstrained best fit, the residual of any map is
+$\mathrm{SSE}(\Theta)=\mathrm{SSE}(\hat\Theta)+\|\Theta-\hat\Theta\|^2_{\mathbf H}$, where $\mathbf H$ is the information
+matrix of the map. Choosing $F$ by the score below projects $\hat\Theta$ onto tree-structured maps in this metric, so a line
+is weighed by its total effect on the meters it feeds: its resistance times the flow it carries times the number of meters
+below it. Distance-based builders read single entries of $\hat\Theta$ and treat them alike, so a short line near the root
+(small entries, large total effect) is the case they miss and the projection keeps. This is the mechanism the design relies
+on.
+\end{remark}
+
+% ---------------------------------------------------------------------
+\section{One evidence currency}\label{sec:evidence}
+
+\paragraph*{Nuisance projection} One linear operator removes the offsets, the shared PCC error and, when the PCC power is
+metered, the unmetered load:
+\begin{equation}\label{eq:proj}
+M=D\otimes S_\gamma,\qquad D=I_T-\Pi_{[\one,\,u^P,\,u^Q]},\qquad S_\gamma=I_n-\gamma\,\one\one\tp/n ,
+\end{equation}
+where $\Pi$ projects onto the listed time series ($\one$ alone without the PCC power) and $\gamma$ is the generalised least
+squares weight of the shared error. Whatever the path of the unmetered load, (\ref{eq:model}) adds
+$\rho\,u^P_t+\chi\,u^Q_t$ with free vectors $\rho,\chi$, which $D$ removes; this is the source-robust step S1. Every column
+of $M\Phi_F$ is a Kronecker product of a projected flow and a support pattern, so all Gram matrices come from $T\times|\Omega|$
+flow statistics.
+
+\paragraph*{Score} For a laminar family $F$,
+\begin{equation}\label{eq:score}
+H(F)=\min_{\theta\in\Theta_F}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad
+\beta=\tfrac12 p_s\ln N-\lambda ,
+\end{equation}
+with $\hat\sigma^2$ from the saturated model (any symmetric map) under $M$, and $p_s$ the number of identifiable parameters
+per line: $1$ when reactive power follows active power (constant power factor), $2$ otherwise.
+
+\begin{proposition}[Structural prior]\label{prop:prior}
+If the number of children $c_v$ of each internal node follows $P(c_v=2+j)\propto\rho^j$, $j\ge0$, then
+$-\ln P(F)=\mathrm{const}-\lambda\,k(F)$ with $\lambda=\ln(1/\rho)$.
+\end{proposition}
+Hence $H(F)$ equals $-\ln P(F\mid\text{data})$ up to a constant and the BIC approximation, and differences of $H$ are log
+Bayes factors. On 84 real LV feeders $\rho=0.141$, so $\lambda=1.96$. The prior lowers the price of every line by the same
+amount, so all MIQPs and certificates below keep their form.
+
+\begin{definition}[Evidence and decided statements]
+The evidence for $F'$ against $F$ is $e(F':F)=H(F)-H(F')$. A statement is \emph{decided} when its evidence is at least
+$m=\ln100$.
+\end{definition}
+
+\paragraph*{Line margin and likely lines} For a tree $T$ and a candidate pool $\Omega$, write
+$T_{|D}=\{E\in T:\neg(E\cross D)\}$. The margin of a line $C\in\Lin(T)$ is its evidence against removal and against every
+crossing candidate,
+\begin{equation}\label{eq:margin}
+m_C(T)=\min\Big\{H(T\setminus\{C\})-H(T),\ \min_{D\in\Omega,\ D\cross C}H(T_{|D}\cup\{D\})-H(T)\Big\},
+\end{equation}
+and the evidence of a left-out candidate $D\in\Omega\setminus T$ is
+\begin{equation}\label{eq:likely}
+\ell_D(T)=H(T)-H(T_{|D}\cup\{D\}) .
+\end{equation}
+$D$ is a \emph{likely line} when $\ell_D(T)>-m$. Likely lines are reported only; they never change $T$.
+
+% ---------------------------------------------------------------------
+\section{Identification: propose, decide, certify}\label{sec:id}
+
+\paragraph*{Master problem} For a pool $\Omega$ of candidate lines, with binaries $b_C$,
+\begin{equation}\label{eq:master}
+\begin{aligned}
+\min_{b\in\{0,1\}^{\Omega},\ \theta}\ & \frac{\|M(y-\Phi\theta)\|^2}{2\hat\sigma^2}+\beta\sum_{C\in\Omega}b_C\\
+\text{s.t.}\ & b_C+b_D\le1\quad \forall\,C,D\in\Omega,\ C\cross D,\\
+& r_{\min}b_C\le r_C\le\bar r_Cb_C,\quad 0\le x_C\le\bar x_Cb_C\quad\forall C\in\Omega ,
+\end{aligned}
+\end{equation}
+with the basis $\Bset$ always on. The bounds $\bar r_C$, $\bar x_C$ come from a convex response bound per meter. We solve
+(\ref{eq:master}) with Gurobi, started from a local-search incumbent whose value is passed as a cutoff.
+
+\paragraph*{Pricing problem} Let $T$ be laminar, $v$ an internal node with children $A_1,\dots,A_{c_v}$ (lines or single
+meters).
+\begin{lemma}[Node decomposition]\label{lem:node}
+A support $C\notin T$, $|C|\ge2$, is compatible with every support of $T$ if and only if $C=\bigcup_{j\in S}A_j$ for a
+unique internal node $v$ and a set $S$ of its children with $2\le|S|<c_v$.
+\end{lemma}
+The pricing problem at $v$ is
+\begin{equation}\label{eq:price}
+g_v(T)=\max_{S\subseteq\{1,\dots,c_v\},\ 2\le|S|<c_v}\ H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big),
+\end{equation}
+an MIQP with $c_v$ binaries (time-free form from $\Phi\tp\Phi$). The two-line version $g^{(2)}_v$ chooses two disjoint
+sets $S,S'$. By Lemma~\ref{lem:node}, $\max_v g_v(T)\le0$ is a \emph{certificate} that no line compatible with $T$, out of
+all $2^n-n-2$ possible supports and not only the proposed ones, would improve the score.
+
+\begin{algorithm}[t]
+\caption{\textsc{Identify}: propose, decide, certify}\label{alg:identify}
+\begin{algorithmic}[1]
+\Require meter data $(p,q,V)$, PCC voltage, optional PCC power; prior $\lambda$; threshold $m$
+\Ensure tree $\hat T$; margins; likely lines; certificate; with the PCC power, the unmetered load's place set
+\State build $M$ (\ref{eq:proj}); estimate $\hat\sigma^2$, $p_s$; set $\beta$ \Comment{with the PCC power: step S1}
+\State $\hat R\gets$ ordered sensitivity fit (convex QP) \Comment{guidance}
+\State $\Omega\gets$ lines of the trees of the builders on $\hat R$ and on voltage correlations \Comment{propose}
+\State $T_0\gets$ better of local search on $\Omega$ and the master (\ref{eq:master}) started from it; polish \Comment{decide}
+\State compute $m_C(T_0)$ for $C\in\Lin(T_0)$ by (\ref{eq:margin})
+\State $\mathcal K\gets$ maximal lines of $T_0$ with $m_C\ge m$, top-down; each meter outside them is a block \Comment{contract}
+\If{$|\mathcal K|\le k_{\max}$}
+  \State $\Omega_r\gets\{C\in\Omega:\ C\text{ crosses no block}\}\cup\{\bigcup S:\ S\subset\mathcal K,\ 2\le|S|<|\mathcal K|\}$
+  \State $T_1\gets$ master (\ref{eq:master}) over $\Omega_r$, started from $T_0$ \Comment{root structure}
+\Else
+  \State $T_1\gets T_0$
+\EndIf
+\State $(\hat T,\text{cert})\gets\textsc{PriceAndCertify}(T_1,\Omega)$ \Comment{certify, Alg.~\ref{alg:price}}
+\If{the PCC power is metered}
+  \State $(\hat T_s,\text{path},\mathcal A)\gets\textsc{PlaceSource}(\hat T,\Omega)$ \Comment{step S2, Alg.~\ref{alg:source}}
+\EndIf
+\State likely lines $\gets\{D\in\Omega\setminus\hat T:\ \ell_D(\hat T)>-m\}$
+\State \Return $\hat T$, the margins of step 5, likely lines, cert, and $(\hat T_s,\text{path},\mathcal A)$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+\caption{\textsc{PriceAndCertify}$(T,\Omega)$: column generation over laminar families}\label{alg:price}
+\begin{algorithmic}[1]
+\Procedure{AddSingles}{$T$}
+  \Repeat \Comment{at most $R_1$ additions}
+    \State $(g,C)\gets\max_v g_v(T)$ by (\ref{eq:price}), one node MIQP per internal node
+    \If{$g>0$}
+      \State $T\gets T\cup\{C\}$
+    \EndIf
+  \Until{$g\le0$}
+  \State \Return $T$
+\EndProcedure
+\State $T\gets\textsc{AddSingles}(T)$
+\For{at most $R_2$ rounds} \Comment{lines that pay only together}
+  \State $(g^{(2)},C,C')\gets\max_v g^{(2)}_v(T)$ over nodes with at least 4 children
+  \If{$g^{(2)}\le0$}
+    \State \textbf{break}
+  \EndIf
+  \State $T\gets\textsc{AddSingles}(T\cup\{C,C'\})$
+\EndFor
+\If{$\Lin(T)\not\subseteq\Omega$} \Comment{new columns entered: decide again}
+  \State $T'\gets$ master (\ref{eq:master}) over $\Omega\cup\Lin(T)$, started from $T$
+  \If{$H(T')<H(T)$}
+    \State $T\gets\textsc{AddSingles}(T')$
+  \EndIf
+\EndIf
+\State cert $\gets$ (the last pricing step proved $\max_v g_v(T)\le0$)
+\State \Return $T$, cert
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+\caption{\textsc{PlaceSource}$(T,\Omega)$: the unmetered load as a leaf without a voltage reading (S2)}\label{alg:source}
+\begin{algorithmic}[1]
+\State add leaf $n+1$: its power $u_t$ is known (\ref{eq:balance}), its voltage is not; a line carries $h_Cu_t$ exactly when it contains $n+1$
+\State $a_0\gets$ the node of $T$ (or the feeder head) at which the leaf fits best
+\State $\Omega_s\gets$ every line of $\Omega\cup\Lin(T)$, with and without leaf $n+1$
+\State $F\gets$ master (\ref{eq:master}) over $n+1$ leaves and $\Omega_s$, started from $T$ with the leaf at $a_0$ \Comment{lines and path together}
+\Repeat \Comment{at most $R_3$ rounds}
+  \State $(g,C)\gets\max_v g_v(F)$; \textbf{if} $g>0$ \textbf{then} $\Omega_s\gets\Omega_s\cup\{C\}$; $F\gets$ better of $F\cup\{C\}$ and the master over $\Omega_s$
+\Until{$g\le0$}
+\State $\hat T_s\gets F$ restricted to the meters; path $\gets$ the lines of $F$ that contain $n+1$
+\State $\mathcal A\gets$ the places $a$ whose score is within $m$ of the best; source evidence $\gets H(F\text{ without the source})-H(F)$
+\State \Return $\hat T_s$, path, $\mathcal A$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph*{Explanation} Algorithm~\ref{alg:identify} has three roles.
+\begin{itemize}
+\item \emph{Propose.} Distance builders (recursive neighbour joining, neighbour joining, recursive grouping and clustering
+of voltage correlations) are good at the terminal lines, where the entries of $\hat R$ are large. They only supply
+candidate lines, so a wrong builder can cost time but cannot put a line into the result.
+\item \emph{Decide.} The master (\ref{eq:master}) compares whole trees by the score, which is the projection of
+Remark~\ref{rem:metric}. Lines decided by a Bayes factor of 100 become blocks, and the structure above the blocks, which
+holds the root-side lines that the builders miss, is searched over \emph{every} union of blocks.
+\item \emph{Certify.} The pricing MIQPs (\ref{eq:price}) search the space of all supports, not the pool. A line they find
+is added as a new column and the master decides again; when they prove that no line pays, the tree carries a certificate.
+Pairs are priced too, because the shared slot term in (\ref{eq:model}) can make two lines pay together when neither pays
+alone.
+\end{itemize}
+Step S1 makes the tree robust to an unmetered load anywhere in the feeder; step S2 then finds the load's path with the same
+master, because laminarity over $n+1$ leaves is all it needs (the path costs no parameter).
+
+\paragraph*{What the heuristics do and do not do} The builders and the local search are the only heuristic parts. They
+produce candidates and incumbents; every returned tree is accepted by an exact comparison, the master or a pricing problem.
+Time limits (Table~\ref{tab:settings}) mean that the master does not always prove optimality over its pool, and the
+certificate is reported per case. On the development cases the master and a multi-start local search returned trees of
+equal score in most cases, so we claim for the MIQP a decision with a bound and a certificate, not a better search. The
+certificate covers single lines everywhere and pairs within one node; it does not cover changes that remove lines.
+
+% ---------------------------------------------------------------------
+\section{Probing: exact hypothesis sets and value-of-information blocks (proposed)}\label{sec:probe}
+
+When the identification leaves lines undecided, the operator can buy signed active-power blocks at chosen meters from an
+aggregator of household batteries and EV chargers, observe the response and choose the next block. This section is a
+proposed revision of our locked selector; Table~\ref{tab:changes} lists the changes.
+
+\paragraph*{A. Hypothesis set} The candidate topologies are the near-optimal solutions of the same master,
+\begin{equation}\label{eq:hyp}
+\Hset=\big\{F\subseteq\Omega^+\text{ laminar}:\ H(F)\le H(\hat T)+\Delta\big\},
+\end{equation}
+over the enlarged pool $\Omega^+=\Omega\cup\Lin(\hat T)\cup\{D:\ D\text{ one edit from }\hat T,\ \ell_D(\hat T)>-\Delta\}$,
+where one edit adds or removes one meter from a line of $\hat T$ or joins two children of a node. With an unmetered load,
+each hypothesis is a pair (tree, place). Gurobi's solution pool returns all solutions of (\ref{eq:master}) within the
+absolute gap $\Delta$ (at most $K$). The set is \emph{complete} when the pool search ends with a proof, $|\Hset|<K$ and
+$\hat T$ is certified. We propose $\Delta=2m$: each tree beyond it has posterior odds below $10^{-4}$ against $\hat T$.
+
+\paragraph*{B. Hourly posterior} At the start of hour $h$, every $F\in\Hset$ is refitted to all data so far (history,
+today's hours and the executed blocks, with the line-loss term), giving $H_h(F)$, weights $w_F\propto e^{-H_h(F)}$, the
+leader $\hat L_h=\arg\min H_h$ and line posteriors
+\begin{equation}\label{eq:linepost}
+\pi_C=\sum_{F\in\Hset:\ C\in F}w_F .
+\end{equation}
+
+\paragraph*{C. Separation and resolvability} For a line $C$ on which the hypotheses disagree, let $F_C^+$ and $F_C^-$ be the
+heaviest hypotheses with and without $C$. For a block $u$ held during hour $h'$ their predicted responses differ by
+$d_C(u)$, and
+\begin{equation}\label{eq:sep}
+q_{C,h'}(u)=d_C(u)\tp\Sigma_C^{-1}d_C(u)=a_C+2b_C\tp u+u\tp K_Cu,\qquad
+\Sigma_C=\hat\sigma^2I+\tfrac12\Phi^+P^+\Phi^{+\top}+\tfrac12\Phi^-P^-\Phi^{-\top},
+\end{equation}
+with $P^\pm$ the parameter covariances. Line $C$ is \emph{resolvable} today when the most informative feasible blocks for
+the rest of the day could decide it,
+\begin{equation}\label{eq:reach}
+\rho_C=\sum_{h'=h+1}^{24}\max_{u\in\Uset_{h'}}q_{C,h'}(u)\ \ge\ q^\ast=8\ln(1/\alpha),
+\end{equation}
+and $\Rset_h$ is the set of resolvable lines. An upper bound on $\rho_C$ is enough, since an overestimate only leads to more
+probing. Two hypotheses that differ only in lines that are not resolvable are \emph{twins}: no feasible probe can separate
+their voltages at meter accuracy.
+
+\paragraph*{D. Confirmation and output} The leader's class is the set of hypotheses that agree with it on every resolvable
+line, with weight
+\begin{equation}\label{eq:confirm}
+W_h=\sum_{F\in\Hset:\ F\cap\Rset_h=\hat L_h\cap\Rset_h}w_F .
+\end{equation}
+The topology is confirmed when $W_h\ge1-\alpha$ at $r$ consecutive gates with the same leader. The output is $\hat L_h$
+together with a label for each of its lines and left-out candidates: \emph{decided} ($\pi_C\ge1-\alpha$ or
+$\pi_C\le\alpha$), \emph{undecided} (resolvable, not decided) or \emph{not resolvable}. Between twins the output is the
+leader, which is the twin with the fewest lines unless the data favour another; the lines on which twins differ are labelled
+not resolvable rather than hidden.
+
+\paragraph*{E. Value-of-information block} The block for hour $h+1$ is
+\begin{equation}\label{eq:block}
+u^\ast_{h+1}=\arg\min_{u\in\Uset_{h+1}}\ c(u)+V\,U_h(u),\qquad
+U_h(u)=\sum_{C\in\Rset_h}\sqrt{\pi_C(1-\pi_C)}\;e^{-q_{C,h+1}(u)/8},
+\end{equation}
+with the linear settlement price $c(u)=c^{\uparrow}\sum_i\max(u_i,0)+c^{\downarrow}\sum_i\max(-u_i,0)$. The feasible set
+$\Uset_{h+1}$ is a polytope: the battery and EV headroom of each meter; the voltage band with a chance margin,
+$v^{\min}+z\sigma_v\le\hat v_i(u)\le v^{\max}-z\sigma_v$, linear in $u$ through the leader's sensitivities; the
+transformer rating; and the hourly and daily price caps. Problem (\ref{eq:block}) is solved with Gurobi as a nonconvex
+mixed-integer nonlinear program (exponential general constraints over the quadratic forms (\ref{eq:sep})), started from the
+best block of a simple menu (one meter up or down, or the meters that differ between the leader and a rival), so its result
+is never worse than the menu. If no block lowers $c(u)+VU_h(u)$ below $VU_h(0)$, nothing is bought that hour.
+
+\begin{proposition}[Risk bound]\label{prop:risk}
+If, for each line, the predictive distributions of the next hour's data under $F_C^+$ and $F_C^-$ are Gaussian with
+common covariance $\Sigma_C$, the probability that, after hour $h+1$, the per-line MAP decisions on $\Rset_h$ contain an error
+is at most $U_h(u)$.
+\end{proposition}
+
+\paragraph*{Greedy, in plain words} The block for each hour is the best block for that hour alone, given everything observed
+so far. The selector does not plan the rest of the day and never revises an executed block; it chooses again when the next
+hour's data arrive. It stops buying when no block's expected risk reduction is worth its price.
+
+\paragraph*{Trust gate} Blocks are bought only when $\Hset$ is complete and the leader fits as well as the meter noise allows,
+$s^2_{\hat L}/\sigma_y^2\le\kappa_A$. At every gate the leader is certified again on the new data: if a pricing problem
+(\ref{eq:price}) finds a line outside $\Omega^+$ that improves $\hat L_h$, the line enters $\Omega^+$ and $\Hset$ is
+recomputed. This is the check for a true topology that the set misses.
+
+\begin{algorithm}[t]
+\caption{\textsc{Hypotheses}$(\hat T,\Omega)$ (proposed)}\label{alg:hyp}
+\begin{algorithmic}[1]
+\Require certified tree $\hat T$, pool $\Omega$, data; gap $\Delta$, size limit $K$
+\Ensure hypothesis set $\Hset$, completeness flag
+\State $\Omega^+\gets\Omega\cup\Lin(\hat T)\cup\{D\text{ one edit from }\hat T:\ \ell_D(\hat T)>-\Delta\}$
+\State $\Hset\gets$ all solutions of (\ref{eq:master}) over $\Omega^+$ within $\Delta$ of the optimum (solution pool, at most $K$)
+\State complete $\gets$ (the pool search ended with a proof) $\wedge$ $(|\Hset|<K)$ $\wedge$ ($\hat T$ certified)
+\State with an unmetered load: each $F\in\Hset$ carries its places within $\Delta$
+\State \Return $\Hset$, complete
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+\caption{\textsc{ProbeDay} (proposed)}\label{alg:probe}
+\begin{algorithmic}[1]
+\Require $\Hset$, complete; history $\mathcal D_0$; contract (prices, caps, headroom); $V$, $\alpha$, $r$, $\kappa_A$
+\Ensure confirmed or final leader, with decided, undecided and not resolvable lines
+\For{$h=0,1,\dots,23$} \Comment{gate at the start of hour $h$; the block for hour $h+1$ is sealed now}
+  \State refit every $F\in\Hset$ on $\mathcal D_h$; $w_F\propto e^{-H_h(F)}$; $\hat L_h\gets\arg\min_F H_h(F)$
+  \If{a pricing problem finds a line that improves $\hat L_h$} \Comment{missing-truth check}
+    \State add it to $\Omega^+$; $\Hset\gets\textsc{Hypotheses}$; repeat line 2
+  \EndIf
+  \State $\pi_C$ by (\ref{eq:linepost}); $\Rset_h\gets\{C:\rho_C\ge q^\ast\}$ by (\ref{eq:reach})
+  \State $W_h$ by (\ref{eq:confirm})
+  \If{$W_h\ge1-\alpha$ at $r$ consecutive gates with the same leader}
+    \State \Return $\hat L_h$ with its line labels \Comment{confirmed}
+  \EndIf
+  \If{complete $\wedge$ $s^2_{\hat L_h}/\sigma_y^2\le\kappa_A$}
+    \State $u_{h+1}\gets$ solution of (\ref{eq:block}) \Comment{Gurobi; zero when no block pays}
+  \Else
+    \State $u_{h+1}\gets0$ \Comment{trust gate closed: passive}
+  \EndIf
+  \State hour $h$ runs with $u_h$; $\mathcal D_{h+1}\gets\mathcal D_h\cup\{\text{readings of hour }h\}$
+\EndFor
+\State \Return $\hat L_{24}$ with its line labels \Comment{not confirmed}
+\end{algorithmic}
+\end{algorithm}
+
+% ---------------------------------------------------------------------
+\section{What is simplified, what is new, and what must be tested}\label{sec:changes}
+
+\begin{table}[t]
+\caption{Probing: the locked selector of 2026-11-23 and this proposal}\label{tab:changes}
+\centering
+\begin{tabular}{@{}p{0.17\textwidth}p{0.31\textwidth}p{0.31\textwidth}p{0.13\textwidth}@{}}
+\toprule
+Part & Locked selector & This proposal & Test\\
+\midrule
+Candidate set & identifier output plus one-edit closure (margin 6; 12 seeds, 4 rounds, 1,500 trees; prune 30, keep 150) & exact set within $\Delta$ of the master (\ref{eq:hyp}) & P0\\
+Completeness & closure finished & proof of the pool search and certificate, re-proved every hour & P0, P1\\
+Twins & same forecast-day voltages within $5\cdot10^{-4}$ pu, gap below 25 & lines no feasible block can resolve today (\ref{eq:reach}) & P1\\
+Hypotheses in the risk & at most 10 classes grouped by voltage & every resolvable line, two representatives each & P1\\
+Blocks & $2n$ single-meter shapes and 6 group shapes, 24 sizes & every feasible block, solved globally, menu as start & P1\\
+Risk & Bhattacharyya bound over pairs of classes & union bound over lines (Prop.~\ref{prop:risk}) & P1\\
+Confirmation & leader's twin class $\ge0.95$, twice & agreement on resolvable lines $\ge0.95$, twice & P1, T1\\
+When stuck & stop after 6 probed hours without 1 unit of progress & dropped: buy only when worth the price, within caps & P1\\
+Output & leader & leader with decided, undecided and not resolvable lines & P1\\
+Unmetered load & not modelled & hypotheses are (tree, place) pairs & P0\\
+Kept & \multicolumn{3}{p{0.75\textwidth}@{}}{$V=2{,}000$ CNY; prices 4 and 1.2 CNY/kWh; caps 20 CNY/h and 100 CNY/day; band $[0.96,1.035]$ with $z=2.33$; adequacy $\kappa_A=1.2$; $\alpha=0.05$; $r=2$}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph*{What is new} We state the contributions with their limits.
+\begin{enumerate}
+\item \emph{Selection as projection.} Topology selection is a projection of the whole fitted map onto tree-structured maps
+in its information metric (Remark~\ref{rem:metric}), with an empirical structural prior (Proposition~\ref{prop:prior}).
+\item \emph{Column generation with a certificate.} Exact node pricing (Lemma~\ref{lem:node}) turns the identifier into column
+generation over laminar families and gives a certificate over all supports, not only the proposed ones.
+\item \emph{Evidence contraction.} Lines decided by a Bayes factor of 100 become blocks, which makes the search near the root
+exhaustive over block unions; the same threshold labels the margins and the likely lines.
+\item \emph{Unmetered load.} It is projected out without any knowledge of its place (S1) and then placed as a leaf without a
+voltage reading by the same MIQP (S2).
+\item \emph{Proposed for probing:} the exact hypothesis set with an hourly certificate, line-level and resolution-aware
+confirmation and output, and a globally solved value-of-information block under demand-response constraints.
+\end{enumerate}
+We do not claim that the MIQP searches better than local search, that the certificate covers changes which remove lines, or
+anything about items in point 5 before they are tested.
+
+\paragraph*{What must be tested} P0 compares the hypothesis set (\ref{eq:hyp}) with the current closure on the same inputs:
+truth in the set, size, completeness, inputs where probing could help, and inputs where the truth is missing while the gate is
+open. P1 runs Algorithm~\ref{alg:probe} against the locked selector, passive operation and random blocks of matched cost,
+with truth-removed copies for the safety test T1, and reports the solve time per gate. A new lock, which departs from the
+one of 2026-11-23, is needed before the main probing test (Stage~M).
+
+% ---------------------------------------------------------------------
+\appendices
+\section{Proofs}
+
+\begin{IEEEproof}[Proof of Proposition~\ref{prop:prior}]
+A laminar family $F\supseteq\Bset$ is a rooted tree with $n$ leaves and $k(F)+1$ internal nodes (its lines and the root),
+none of them with fewer than two children. Every node except the root has one parent, so
+$\sum_v c_v=n+k(F)$ over the internal nodes and $\sum_v(c_v-2)=n-k(F)-2$. Under the prior,
+$P(F)\propto\prod_v\rho^{c_v-2}=\rho^{\,n-2}\,\rho^{-k(F)}$, hence $-\ln P(F)=\mathrm{const}-k(F)\ln(1/\rho)$.
+\end{IEEEproof}
+
+\begin{IEEEproof}[Proof of Lemma~\ref{lem:node}]
+If $C=\bigcup_{j\in S}A_j$ with $2\le|S|<c_v$, then $C$ contains or is disjoint from every child of $v$ and its
+descendants, lies inside $v$ and its ancestors, and is disjoint from every other support, so it is compatible with $T$; it
+is not in $T$, since it equals neither a child nor $v$. Conversely, let $C\notin T$ be compatible with $T$ and let $v$ be the
+smallest support of $T$ that contains $C$ ($\Nset$ is one). A child $A$ of $v$ with $A\supseteq C$ would contradict
+minimality or equal $C$, so every child is inside $C$ or disjoint from it. The children partition $v$, hence
+$C=\bigcup_{j\in S}A_j$; $|S|\ge2$ because $C$ is not a child and $|S|<c_v$ because $C\ne v$. $v$ is fixed by $C$, so
+$(v,S)$ is unique.
+\end{IEEEproof}
+
+\begin{IEEEproof}[Proof of Proposition~\ref{prop:risk}]
+For two hypotheses with prior weights $\pi$, $1-\pi$ and densities $f$, $g$, the Bayes error is
+$\int\min(\pi f,(1-\pi)g)\le\sqrt{\pi(1-\pi)}\int\sqrt{fg}=\sqrt{\pi(1-\pi)}\,e^{-B}$, and for two Gaussians with means
+$\mu_\pm$ and common covariance $\Sigma$ the Bhattacharyya distance is $B=\tfrac18(\mu_+-\mu_-)\tp\Sigma^{-1}(\mu_+-\mu_-)$.
+With $\mu_+-\mu_-=d_C(u)$ this gives the term of line $C$; the union bound over $\Rset_h$ gives $U_h(u)$. The bound is
+evaluated at the heaviest hypothesis on each side, with parameters fixed at their current fits and their uncertainty in
+$\Sigma_C$; mixtures over the other hypotheses are not included, so in that sense the bound is an approximation.
+\end{IEEEproof}
+
+\section{Settings}
+
+\begin{table}[h]
+\caption{Settings. Identification: the registered values (final.py at commit 71684ff). Probing: the locked values, plus the
+three new ones of Section~\ref{sec:probe}}\label{tab:settings}
+\centering
+\begin{tabular}{@{}p{0.45\textwidth}p{0.45\textwidth}@{}}
+\toprule
+Setting & Value\\
+\midrule
+Structural prior $\lambda$; threshold $m$ & 1.96; 4.6 (half-BIC units)\\
+Builders & recursive neighbour joining, neighbour joining, recursive grouping, two voltage-correlation trees, residual and row
+clusterings, UPGMA, Ward\\
+Local search & multi-start (empty tree and the first three builders' trees), 20 s per start (40 s beyond 35 meters); polish 20 s\\
+Master time limits & 120 s up to 35 meters (warm start and cutoff); 240 s beyond (cold start)\\
+Price continuation & beyond 35 meters the tree at $\lambda=0$ is an extra start\\
+Root search & up to $k_{\max}=9$ blocks; local search 30 s; master 120 s (240 s beyond 35 meters)\\
+Pricing & 60 s per node MIQP; $R_1=10$ single additions; $R_2=3$ pair rounds\\
+Source placement (S2) & master 120 s; $R_3=10$ completion rounds; at most 12 blocks per node\\
+Solver & Gurobi, one thread per case; failed convex QP repeated with SLSQP\\
+\midrule
+Probing, kept & $V=2{,}000$ CNY; $c^\downarrow=4$, $c^\uparrow=1.2$ CNY/kWh; caps 20 CNY/h, 100 CNY/day; band
+$[0.96,1.035]$, $z=2.33$; $\kappa_A=1.2$; $\alpha=0.05$; $r=2$\\
+Probing, new & $\Delta=2m$; $K=200$; $q^\ast=8\ln(1/\alpha)$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
