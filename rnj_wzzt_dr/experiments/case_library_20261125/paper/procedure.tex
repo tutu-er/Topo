@@ -14,7 +14,10 @@
 %     what it replaces and the runs it needs.
 %  v4 (commit f5299d4) had five algorithms; v5 merges the identifier's
 %  three into Algorithm 1 and replaces the hypothesis-set algorithm by
-%  the line evidence (5), computed with the same MIQP.
+%  the line evidence (5), computed with the same MIQP. v6 makes the
+%  initial candidate lines an input of Algorithm 1 (Appendix B lists the
+%  nine builders used now), states each MIQP's pool exactly as the code
+%  uses it, and defines the probing pool Omega_P.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -48,16 +51,16 @@
 \begin{document}
 
 \title{Topology Identification and Value-of-Information Probing\\ for Low-Voltage Feeders}
-\author{Method draft v5 of 26~November~2026 (authors to be added)}
+\author{Method draft v6 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
 We identify the topology of a low-voltage feeder from smart-meter data and, when the data leave lines undecided, buy
 demand-response probes to decide them. One score, a penalised likelihood with an empirical structural prior, compares
 topologies, and one mixed-integer quadratic program (MIQP) finds the best tree whose lines come from a pool of candidate
-lines. Identification grows that pool from three sources: distance-based tree builders for the terminal lines, unions of
-evidence-decided blocks for the lines near the root, and a node-wise pricing MIQP for lines that no builder proposed, which
-also certifies that no single line is missing. An unmetered load is projected out using the balance at the point of common
+lines. Identification starts from candidate lines given by fast tree builders, which find the terminal lines, and grows the
+pool with unions of evidence-decided blocks, for the lines near the root, and with a node-wise pricing MIQP, for lines that no
+builder proposed; the last pricing also certifies that no single line is missing. An unmetered load is projected out using the balance at the point of common
 coupling (PCC) and then placed as an extra leaf by the same MIQP. For probing we propose to reuse the same MIQP with one
 line forced in or out: the difference of the two optima is the evidence for that line, which gives its posterior, the
 stopping rule and a labelled output. Each hour's demand-response block minimises its price plus the value of identification
@@ -84,7 +87,7 @@ $C\subseteq\Nset$, $z_C$ & Support of a line (the meters it feeds) and its indic
 $C\cross D$ & $C$ and $D$ cross: neither nested nor disjoint\\
 $\Bset=\{\{1\},\dots,\{n\},\Nset\}$ & Service cables and feeder head, present in every topology\\
 $F\supseteq\Bset$, $\Lin(F)=F\setminus\Bset$, $k(F)$ & Topology as a laminar family; its lines; their number\\
-$\Omega$ & Pool of candidate lines\\
+$\Omega_0$; $\Omega$; $\Omega_P$ & Initial candidate lines (Appendix~\ref{app:pool}); pool after identification; pool for probing\\
 $H(F)$ & Score (\ref{eq:score}), in half-BIC units\\
 $e_C$, $\pi_C$ & Evidence for line $C$ (\ref{eq:evidence}) and its posterior (\ref{eq:post})\\
 $m=\ln100\approx4.6$ & Threshold for fixing a line during identification\\
@@ -188,34 +191,35 @@ $\max_vg_v(T)\le0$ certifies that no line compatible with $T$, among all support
 score.
 
 \begin{algorithm}[t]
-\caption{\textsc{Identify}: grow the line pool and solve the tree MIQP}\label{alg:identify}
+\caption{\textsc{Identify}: the tree MIQP over a growing line pool}\label{alg:identify}
 \begin{algorithmic}[1]
-\Require meter data, PCC voltage and, if metered, PCC power; $\lambda$, $m$
-\Ensure tree $\hat T$ with certificate; line pool $\Omega$; with the PCC power, the unmetered load's path
-\State $\Omega\gets$ lines of the builders' trees \Comment{terminal lines}
-\State $T\gets$ solution of (\ref{eq:master}) over $\Omega$
+\Require data (meters, PCC voltage and, if metered, PCC power); initial candidate lines $\Omega_0$ (Appendix~\ref{app:pool}); $\lambda$, $m$
+\Ensure tree $\hat T$ with certificate; pool $\Omega=\Omega_0\cup\Lin(\hat T)$; with the PCC power, the unmetered load's path
+\State $T\gets$ solution of (\ref{eq:master}) over $\Omega_0$
 \State $\mathcal K\gets$ lines of $T$ with $m_C(T)\ge m$, taken top-down; meters outside them are single blocks
 \If{$|\mathcal K|\le k_{\max}$} \Comment{lines near the root}
-  \State $T\gets$ solution of (\ref{eq:master}) over the lines that cross no block and all unions of 2 to $|\mathcal K|-1$ blocks
+  \State $T\gets$ solution of (\ref{eq:master}) over $\{C\in\Omega_0:\ C\text{ crosses no block}\}\cup\{\text{unions of 2 to }|\mathcal K|-1\text{ blocks}\}$
 \EndIf
 \While{(\ref{eq:price}) finds a line, or a pair in one node, that improves $T$} \Comment{lines nobody proposed}
-  \State add it to $T$ and to $\Omega$
+  \State add it to $T$
 \EndWhile
-\If{$\Omega$ grew}
-  \State $T\gets$ solution of (\ref{eq:master}) over the builders' lines and the lines of $T$; repeat lines 6--7
+\If{$T$ has lines outside $\Omega_0$}
+  \State $T\gets$ solution of (\ref{eq:master}) over $\Omega_0\cup\Lin(T)$; repeat lines 5--6
 \EndIf
 \If{the PCC power is metered} \Comment{unmetered load as leaf $n+1$}
-  \State solve (\ref{eq:master}) over $n+1$ leaves on the lines of $\Omega$ and $T$, each with and without the leaf, starting from $T$; then lines 6--9
+  \State solve (\ref{eq:master}) over $n+1$ leaves on $\Omega_0\cup\Lin(T)$, each line with and without the leaf, from $T$; then price, add and re-solve until no line pays
 \EndIf
-\State \Return $\hat T\gets T$, certificate $\gets$ (the last pricing proved $\max_vg_v\le0$), $\Omega$
+\State \Return $\hat T\gets T$; certificate $\gets$ (the last pricing proved $\max_vg_v\le0$)
 \end{algorithmic}
 \end{algorithm}
 
 \paragraph*{Explanation} Algorithm~\ref{alg:identify} solves one problem, the tree MIQP (\ref{eq:master}), on a pool of lines
 that grows from three sources.
 \begin{itemize}
-\item \emph{Builders} (recursive neighbour joining, neighbour joining, recursive grouping, clusterings of voltage
-correlations) find the terminal lines well, where the entries of $\hat\Theta$ are large.
+\item \emph{Initial candidate lines} $\Omega_0$ are an input. They come from fast tree builders, which find the terminal
+lines well, where the entries of $\hat\Theta$ are large. Any builders can be used: they decide what the first MIQP can
+choose and how fast the algorithm ends, not what the final certificate states. Appendix~\ref{app:pool} gives the nine
+used in this work.
 \item \emph{Unions of decided blocks} supply the lines near the root that builders miss (Remark~\ref{rem:metric}). Lines
 decided by a Bayes factor of 100 are fixed, so the MIQP searches every union of the remaining blocks.
 \item \emph{Node pricing} adds any line that improves the tree, proposed or not, and its last run is the certificate.
@@ -232,12 +236,13 @@ better search.
 \section{Probing (proposed)}\label{sec:probe}
 
 When lines remain undecided, the operator can buy signed active-power blocks at chosen meters from an aggregator of
-household batteries and EV chargers, observe the response and choose the next block. Probing reuses the pool $\Omega$ and the
-tree MIQP; it never lists whole trees.
+household batteries and EV chargers, observe the response and choose the next block. Probing reuses the tree MIQP on the pool
+$\Omega_P=\Omega\cup\{\text{unions of the blocks of line 2 of Algorithm~\ref{alg:identify}}\}$, so the alternatives near the
+root stay available even when $\hat T$ does not use them. It never lists whole trees.
 
 \paragraph*{Line posteriors} At the start of hour $h$, with all data so far (history, today's hours, executed blocks), the
 leader $\hat L_h$ is the solution of (\ref{eq:master}). The lines in question are
-$\Cset_h=\Lin(\hat L_h)\cup\{D\in\Omega\setminus\hat L_h:\ \ell_D(\hat L_h)>-m\}$. For each, (\ref{eq:evidence}) gives
+$\Cset_h=\Lin(\hat L_h)\cup\{D\in\Omega_P\setminus\hat L_h:\ \ell_D(\hat L_h)>-m\}$. For each, (\ref{eq:evidence}) gives
 $e_C$ with one solve of (\ref{eq:master}) (the other minimum is $H(\hat L_h)$), and
 \begin{equation}\label{eq:post}
 \pi_C=\frac{1}{1+e^{-e_C}} .
@@ -290,15 +295,15 @@ plan the rest of the day and never revises a block; it chooses again when the ne
 
 \paragraph*{Trust gate} Blocks are bought only when the leader fits as well as the meter noise allows,
 $s^2_{\hat L}/\sigma^2_y\le\kappa_A$. Each hour the leader is also priced with (\ref{eq:price}) on the new data; a line that
-improves it enters $\Omega$, which is the check for a true line that the pool misses.
+improves it enters $\Omega_P$, which is the check for a true line that the pool misses.
 
 \begin{algorithm}[t]
 \caption{\textsc{Probe}: one day of value-of-information probing (proposed)}\label{alg:probe}
 \begin{algorithmic}[1]
-\Require $\hat T$, $\Omega$ from Algorithm~\ref{alg:identify}; history; contract (prices, caps, headroom); $V$, $\alpha$, $r$, $\kappa_A$
+\Require $\hat T$ and $\Omega_P$ from Algorithm~\ref{alg:identify}; history; contract (prices, caps, headroom); $V$, $\alpha$, $r$, $\kappa_A$
 \Ensure the leader, confirmed or not, with its lines labelled
 \For{$h=0,1,\dots,23$} \Comment{gate at the start of hour $h$; the block for $h+1$ is sealed now}
-  \State $\hat L_h\gets$ (\ref{eq:master}) on all data so far; add to $\Omega$ and $\hat L_h$ any line that pricing (\ref{eq:price}) finds
+  \State $\hat L_h\gets$ (\ref{eq:master}) over $\Omega_P$ on all data so far; add to $\Omega_P$ and $\hat L_h$ any line that pricing (\ref{eq:price}) finds
   \State for $C\in\Cset_h$: $e_C$ by (\ref{eq:evidence}), $\pi_C$ by (\ref{eq:post}); $\Rset_h$ by (\ref{eq:reach}); $P_h$ by (\ref{eq:perr})
   \If{$P_h\le\alpha$ at $r$ consecutive gates with the same leader}
     \State \Return $\hat L_h$ with its labels \Comment{confirmed}
@@ -320,7 +325,7 @@ improves it enters $\Omega$, which is the check for a true line that the pool mi
 \toprule
 Part & Locked selector & This proposal & Test\\
 \midrule
-Candidates & list of up to 150 trees from a one-edit closure with caps & line pool $\Omega$ and the tree MIQP with one line fixed & P0\\
+Candidates & list of up to 150 trees from a one-edit closure with caps & line pool $\Omega_P$ and the tree MIQP with one line fixed & P0\\
 Missing truth & closure finished & pricing of the leader every hour & P0, T1\\
 Twins & same forecast-day voltages within $5\cdot10^{-4}$ pu & lines no feasible block can resolve today (\ref{eq:reach}) & P1\\
 Risk & Bhattacharyya bound over at most 10 classes & Bhattacharyya bound per line (\ref{eq:block}) & P1\\
@@ -341,7 +346,8 @@ probing, its stopping rule and a labelled output, without listing trees. (iv) Pr
 under demand-response constraints. Not claimed: that the MIQP searches better than local search, that the certificate
 covers changes which remove lines, or anything in (iii)--(iv) before it is tested.
 
-\paragraph*{What must be tested} P0, on the development inputs: whether the true tree is feasible in $\Omega$; whether
+\paragraph*{What must be tested} P0, on the development inputs: whether the true tree can be built from $\Omega_P$ (and from
+$\Omega$ alone, to see what the kept unions add); whether
 $\pi_C$ is calibrated (share of true lines by posterior class); the time per gate (one MIQP per line in $\Cset_h$). P1:
 Algorithm~\ref{alg:probe} against the locked selector, passive operation and random blocks of matched cost, with a true line
 removed from $\Omega$ for the safety test T1; whether the line-loss term of the locked selector is needed under probing. A
@@ -374,6 +380,32 @@ $\Rset_h$ gives $U_h(u)$. The bound uses the two representatives with parameters
 included, so it is an approximation in that sense.
 \end{IEEEproof}
 
+\section{Initial candidate lines used in this work}\label{app:pool}
+
+Any tree builders can supply $\Omega_0$. This work uses nine, in three steps.
+
+\paragraph*{1. A sensitivity matrix without tree structure} With $Y$ and $P$ the $T\times n$ matrices of voltage drops and
+active powers,
+\begin{equation}\label{eq:rhat}
+\hat R=\arg\min_{R}\ \big\|M\,\mathrm{vec}(Y-PR)\big\|^2\quad\text{s.t.}\quad R=R\tp\ge0,\quad R_{ij}\le\min(R_{ii},R_{jj}),
+\end{equation}
+a convex QP solved with Gurobi. For a tree, $R_{ij}$ is the resistance shared by the paths of meters $i$ and $j$, which is
+why the order constraint holds. Only active power is used: with a fixed power factor, reactive power carries no separate
+information.
+
+\paragraph*{2. Nine hierarchies}
+\begin{itemize}
+\item Three tree-reconstruction methods that read $\hat R$ as shared path lengths: recursive neighbour joining (RNJ),
+neighbour joining (NJ) and recursive grouping (RG).
+\item Two linkage clusterings on the path distance $d_{ij}=\hat R_{ii}+\hat R_{jj}-2\hat R_{ij}$: average linkage (UPGMA) on
+$d$ and Ward linkage on $\sqrt d$.
+\item Four average-linkage clusterings on the correlation distance $1-\mathrm{corr}$ between meters: of the rows of
+$\hat R$; of the voltage drops $y$; of the projected drops $My$; and of the residuals after fitting the service cables alone.
+\end{itemize}
+
+\paragraph*{3. The pool} $\Omega_0$ is every cluster with 2 to $n-1$ meters in any of the nine hierarchies, without
+duplicates. The hierarchies are binary, so $|\Omega_0|\le9(n-2)$.
+
 \section{Settings}
 
 \begin{table}[h]
@@ -385,15 +417,14 @@ $q^\ast$}\label{tab:settings}
 Setting & Value\\
 \midrule
 $\lambda$; $m$ & 1.96; 4.6 (half-BIC units)\\
-Builders & recursive neighbour joining, neighbour joining, recursive grouping, two voltage-correlation trees, residual and row
-clusterings, UPGMA, Ward\\
+Initial candidate lines & the nine builders of Appendix~\ref{app:pool}; $\hat R$ by (\ref{eq:rhat})\\
 Local-search incumbent & starts from the empty tree and the first three builders' trees; 20 s per start (40 s beyond 35
 meters); polish 20 s\\
 Tree MIQP limits & 120 s up to 35 meters (warm start and cutoff); 240 s beyond (cold start; the tree at $\lambda=0$ is an
 extra start)\\
 Root step & at most $k_{\max}=9$ blocks; local search 30 s; MIQP 120 s (240 s beyond 35 meters)\\
 Pricing & 60 s per node MIQP; at most 10 single additions; at most 3 pair rounds\\
-Unmetered load (line 11) & MIQP 120 s; at most 10 pricing rounds; at most 12 blocks per node\\
+Unmetered load (line 10) & MIQP 120 s; at most 10 pricing rounds; at most 12 blocks per node\\
 Solver & Gurobi, one thread per case; a failed convex QP is repeated with SLSQP\\
 \midrule
 Probing & $V=2{,}000$ CNY; $c^\downarrow=4$, $c^\uparrow=1.2$ CNY/kWh; caps 20 CNY/h, 100 CNY/day; band
