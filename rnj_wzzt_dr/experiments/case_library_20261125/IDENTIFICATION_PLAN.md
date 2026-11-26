@@ -311,7 +311,7 @@ missing were recomputed on their final S1 trees.
 | I4 | Size: 26 to 60 meters, time, certified share | **complete** (blind and S2; time 1,913 s median at 41-59 meters with the bonus) | the scaling claim |
 | I5 | Resolution and data: hourly against quarter-hourly, history 2/4/8 days, meter classes | **complete** (840 runs; section above) | robustness |
 | I6 | Source size: 2, 5, 10%; kind; place (in I3) | **complete** (in I3) | when is a source locatable |
-| I7 | **Registered test on the sealed set** (`test`, 240 cases, 60 new feeders), opened once | **registered; running** | the paper's numbers |
+| I7 | **Registered test on the sealed set** (`test`, 240 cases, 60 new feeders), opened once | **complete** (2026-11-26; 0 failures; H1 +26.9, H2 +29.3, H3 +8.7 F1 points, H4 coverage 96.7% with 0% false alarms; all four hold; `RESULTS_SEALED.md`) | the paper's numbers |
 
 ### What I7 will contain (to be registered before the sealed set is opened)
 

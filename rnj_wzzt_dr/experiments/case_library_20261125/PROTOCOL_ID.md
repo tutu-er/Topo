@@ -195,3 +195,12 @@ its numbers go into the study record.
   - The runner and analysis are `sealed_test.py` at this commit.
   - The tests of the study pass (33 of 33).
   - The sealed run starts after this commit is pushed: `sealed_test run --stream test --workers 9`, once.
+- 2026-11-25 22:02 to 2026-11-26 12:14, **run** once (14 h 12 min, nine workers).
+  - 240 of 240 cases, 0 unreadable, 0 method failures.
+  - No commits to the method, the runner or the builder after 71684ff.
+  - A few short development scripts ran beside it (each under a minute on one core).
+- 2026-11-26, **analysed** once (`sealed_test analyse --stream test`). Full printout and summary: `RESULTS_SEALED.md`.
+  - H1 +26.9 [23.4, 30.4], H2 +29.3 [26.0, 32.7], H3 +8.7 [6.9, 10.7] F1 points.
+  - H4: coverage 96.7% [93.9, 98.9], false alarms 0.0%.
+  - Holm p 0.0002 each. All four hold; the paper's claim and the location claim hold.
+  - The sealed set is now spent: no other identifier is run on it.
