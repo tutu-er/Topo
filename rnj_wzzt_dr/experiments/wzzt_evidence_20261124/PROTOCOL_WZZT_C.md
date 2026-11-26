@@ -137,3 +137,11 @@ Amendment D's HR1 on the large networks); every builder setting and the after-th
   (ordered QP, Gurobi status 12 NUMERIC), called by `combo.fit`, i.e. by WZZT-C's own set-up. By the rule of section 4 it counts
   as a failure of WZZT-C (empty output) after the comparators are rerun on it. It is outside the decision's real part (13
   clean inputs) and enters only the descriptive 46-input figures and C2b/C2c as written there. No result was read.
+- 2026-11-25, **the large run is complete** (46 rows; 42 inputs with results). Two more failed jobs were found when the
+  file was checked for failures (not logged during the run): `eulv_td400291_all_s0` (`revised.extend_miqp`, Gurobi returned
+  no MIPGap, as the first) and `eulv_td400079_all_s0` (`revised.fit`, SVD of the bounded least squares did not converge);
+  both inside WZZT-R, neither among the 13 clean inputs. The four failed jobs are treated alike, by the rule of section 4 as
+  the user applied it to the first: WZZT-C empty, the comparators rerun alone (`rerun_failed_c.py`, each method in its own
+  try block, so a crash in the rerun empties only that method; the builders need `combo.setup`'s matrix and are empty if
+  that set-up fails). The analysis reads the rerun rows in place of the failed jobs and leaves the failed jobs out of the
+  secondary score comparison (a mechanical change, made before any result was read; the decision formulas are unchanged).

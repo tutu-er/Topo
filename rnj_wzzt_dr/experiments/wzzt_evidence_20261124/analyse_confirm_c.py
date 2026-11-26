@@ -16,11 +16,20 @@ BOOT, SEED, MARGIN, ALPHA = 10_000, 20261125, -.05, .05
 
 
 def load(which):
+    """(rows, failed jobs). A failed job with a row in <which>_failed_rerun.jsonl (the comparators rerun alone, WZZT-C
+    empty: section 4) is replaced by that row; failed jobs without one stay failed."""
     path = OUTC/f"{which}.jsonl"
     if not path.exists():
         return [], []
     rows = [json.loads(l) for l in path.read_text().splitlines()]
-    return [r for r in rows if "error" not in r], [r for r in rows if "error" in r]
+    ok = [r for r in rows if "error" not in r]
+    names = {r["name"] for r in ok}
+    rerun_path = OUTC/f"{which}_failed_rerun.jsonl"
+    rerun = {} if not rerun_path.exists() else {
+        r["name"]: r for r in map(json.loads, rerun_path.read_text().splitlines()) if "error" not in r}
+    failed = {r["name"]: r for r in rows if "error" in r and r["name"] not in names}
+    ok += [rerun[k] for k in sorted(failed) if k in rerun]
+    return ok, [r for k, r in sorted(failed.items()) if k not in rerun]
 
 
 def found(r, m):
@@ -64,9 +73,12 @@ def main():
     print(f"synthetic: {len(syn)} inputs ({len(syn_err)} failed jobs); large: {len(big)} inputs ({len(big_err)} failed jobs)")
     for e in syn_err+big_err:
         print("  failed:", e["cond"], e["name"], e["error"][:160])
-    # failed jobs: WZZT-C empty, every other method keeps nothing either (registered: counts against WZZT-C)
-    # (a failed job has no stored results; for C1 it is added as an input WZZT-C misses and WZZT-R would need
-    #  to be rerun; we report the count and, conservatively, score it as WZZT-C wrong, WZZT-R right)
+    for r in syn+big:
+        if r.get("rerun"):
+            print(f"  failed job, comparators rerun alone, WZZT-C empty: {r['name']}; crashes in the rerun: "
+                  f"{sorted(r.get('errors', {})) or 'none'}")
+    # failed jobs (section 4): with a rerun row the comparators keep their rerun results and WZZT-C is empty; a failed
+    # synthetic job without one is scored, conservatively, as WZZT-C wrong and WZZT-R right in C1a
 
     print("\n## C1, non-inferiority to WZZT-R")
     a = np.array([exact(r, "wzzt_c") for r in syn]+[False]*len(syn_err), float)
@@ -180,11 +192,13 @@ def main():
                   f"precision {100*tru/max(out, 1):5.1f}% {tm}")
         cert = sum(bool(r["methods"]["wzzt_c"].get("certified")) for r in rows)
         better = worse = tie = 0
-        for r in rows:
+        scored = [r for r in rows if not r.get("rerun") and r["methods"]["wzzt_r"].get("criterion") is not None]
+        for r in scored:
             x, y = r["methods"]["wzzt_c"]["criterion_same_design"], r["methods"]["wzzt_r"]["criterion"]
             tol = 1e-7*max(1., abs(y))
             better += x < y-tol; worse += x > y+tol; tie += abs(x-y) <= tol
-        print(f"  WZZT-C certified {cert}/{len(rows)}; score against WZZT-R: better {better}, worse {worse}, tie {tie}")
+        print(f"  WZZT-C certified {cert}/{len(rows)}; score against WZZT-R ({len(scored)} inputs with both scores; failed "
+              f"jobs left out): better {better}, worse {worse}, tie {tie}")
         for m in ("rnj", "nj", "rg"):
             def f1pool(key):
                 h = sum(sum(found(r, key)[0]) for r in rows); o = sum(found(r, key)[1] for r in rows)
