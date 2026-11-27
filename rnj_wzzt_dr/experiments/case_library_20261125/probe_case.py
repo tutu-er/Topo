@@ -23,11 +23,12 @@ from dataclasses import replace
 
 import numpy as np
 
-from rnj_wzzt_dr.identification_v8.identify import Settings, f1, identify, load_dev_case
+from rnj_wzzt_dr.identification_v8.identify import Settings, identify
 from rnj_wzzt_dr.identification_v8.labels import DECIDED, grouping
 from rnj_wzzt_dr.identification_v8.probe import ProbeSettings, probe_day
 
 from . import build, physics
+from .dev_cases import f1, load_dev_case
 
 ENROLLED, BATTERY, EV = .25, (.25, 5., 13.5), (.20, 7.)     # share enrolled; (share, kW, kWh); (share, kW)
 SOC, ETA, EV_HOURS, EV_PAUSE = (.2, .8), .95, (18, 8), .5

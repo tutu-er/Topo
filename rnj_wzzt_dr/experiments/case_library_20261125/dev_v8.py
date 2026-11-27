@@ -30,7 +30,9 @@ from pathlib import Path
 import numpy as np
 from scipy import stats
 
-from rnj_wzzt_dr.identification_v8.identify import Settings, identify, load_dev_case, f1
+from rnj_wzzt_dr.identification_v8.identify import Settings, identify
+
+from .dev_cases import f1, load_dev_case
 from rnj_wzzt_dr.identification_v8.labels import grouping
 from rnj_wzzt_dr.identification_v8.model import balance, gls_gamma, time_basis
 from rnj_wzzt_dr.identification_v8.sets import basis, compatible

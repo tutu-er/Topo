@@ -20,7 +20,7 @@ import random
 
 import numpy as np
 
-from rnj_wzzt_dr.identification_v8 import identify as I
+from rnj_wzzt_dr.experiments.case_library_20261125.dev_cases import load_dev_case
 from rnj_wzzt_dr.identification_v8.model import Model, Fitter
 from rnj_wzzt_dr.identification_v8.sets import lines_of, children, canonical
 
@@ -61,7 +61,7 @@ def main():
     names = sorted({os.path.basename(f)[:-4] for f in glob.glob("outputs/case_library_20261125/dev/*.pkl")})
     rows, smallest, done = [], [], 0
     for name in names:
-        rec, inp = I.load_dev_case(name)
+        rec, inp = load_dev_case(name)
         if rec["source"] or inp.n > MAX_N:
             continue
         h = inp.hist

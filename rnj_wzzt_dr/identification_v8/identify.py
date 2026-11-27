@@ -1,11 +1,9 @@
 """Algorithm 1 of method draft v12 (Identify): load gate, tree, anchors and labels. Development only.
 
-    python -m rnj_wzzt_dr.identification_v8.identify --names dev_small_003_head [--blind] [--out FILE]
-
 Lines of Algorithm 1 and where they are:
   0     the load gate: a load is modelled only when its mean power is at least 1% of the metered power   model.load_share
   1     the model: balance, M, noise variance, price                                             model.Model
-  2     initial lines: the nine builder trees (candidates.py); with a load, every grouping with and without it, and the
+  2     initial lines: the nine builder trees (builders.py); with a load, every grouping with and without it, and the
         load placed in each builder tree at its best place                                       with_load, place_load
   3     first tree: local search, then the tree MIQP                                             solve
   4-8   anchors = decided groupings (labels.py); the anchored universe (anchors.py); the tree MIQP over it with every
@@ -20,16 +18,14 @@ import os
 for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
     os.environ.setdefault(_v, "1")
 
-import argparse
 from collections import Counter
 from dataclasses import asdict, dataclass
-import json
 import time
 
 import numpy as np
 
 from .anchors import anchored_universe
-from .candidates import builder_trees
+from .builders import builder_trees
 from .labels import DECIDED, grouping, label_groupings
 from .miqp import tree_miqp
 from .model import GATE, Fitter, Model, balance, load_share
@@ -250,59 +246,3 @@ def place_costs(model, meter_tree):
     fit = Fitter(model, [C for _, o in options for C in o])
     costs = sorted((fit.crit(o), str(D), o) for D, o in options)
     return [(model.N/2*(c-costs[0][0]), D, o) for c, D, o in costs]
-
-
-# ------------------------------------------------------------------ development runs (never the sealed set)
-def f1(est, truth):
-    tp = len(est & truth)
-    p = tp/len(est) if est else 0.
-    r = tp/len(truth) if truth else 1.
-    return dict(tp=tp, est=len(est), truth=len(truth), precision=p, recall=r, f1=2*p*r/(p+r) if p+r else 0.)
-
-
-def load_dev_case(name):
-    """A development case's readings and truth, checked against its manifest hash. The sealed set is never opened."""
-    import hashlib
-    import pickle
-    from rnj_wzzt_dr.experiments.case_library_20261125 import build
-    manifest = {r["name"]: r["sha256"] for r in json.loads((build.HERE/"manifest_dev.json").read_text(encoding="utf-8"))}
-    if name not in manifest:
-        raise SystemExit(f"{name} is not a development case")
-    data = (build.OUT/"dev"/f"{name}.pkl").read_bytes()
-    if hashlib.sha256(data).hexdigest() != manifest[name]:
-        raise SystemExit(f"{name}: the case file does not match its manifest hash")
-    rec = pickle.loads(data)
-    return rec, build.to_input(rec)
-
-
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--names", required=True, help="development case names, comma-separated")
-    ap.add_argument("--blind", action="store_true", help="without the PCC power")
-    ap.add_argument("--no-tighten", action="store_true", help="ablation: no per-meter bounds in the MIQPs")
-    ap.add_argument("--out", default=None, help="jsonl file to append to")
-    args = ap.parse_args()
-    st = Settings(tighten=not args.no_tighten)
-    for name in args.names.split(","):
-        rec, inp = load_dev_case(name)
-        h, n = inp.hist, inp.n
-        print(f"{name}: n={n}, load={rec['source'] and rec['source']['where']}", flush=True)
-        pcc = () if args.blind else (h["Ppcc"], h["Qpcc"])
-        r = identify(h["P"], h["Q"], h["Y"], h["V0sq"], *pcc, st=st, log=lambda s: print(s, flush=True))
-        inner = lambda f: {tuple(sorted(C)) for C in f if 1 < len(C) < n}
-        truth = inner(rec["truth"])
-        score = f1(inner(r["tree"]), truth)
-        false_anchors = sum(1 for A in r["anchors"] if tuple(A) not in truth)
-        print(f"  F1 {score['f1']:.3f} (P {score['precision']:.2f}, R {score['recall']:.2f}), anchors {len(r['anchors'])} "
-              f"({false_anchors} not true), evidence {r.get('evidence', {}).get('estimate')}, "
-              f"{r['timing']['total']:.0f} s", flush=True)
-        if args.out:
-            row = dict(name=name, n=n, load=rec["source"] and rec["source"]["where"], blind=args.blind, score=score,
-                       false_anchors=false_anchors, truth=[list(C) for C in sorted(truth)],
-                       **{k: v for k, v in r.items() if k != "lines"})
-            with open(args.out, "a", encoding="utf-8") as fh:
-                fh.write(json.dumps(row, default=str)+"\n")
-
-
-if __name__ == "__main__":
-    main()

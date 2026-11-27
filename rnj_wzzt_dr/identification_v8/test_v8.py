@@ -10,6 +10,8 @@ from itertools import combinations
 import random
 import sys
 
+import numpy as np
+
 from . import anchors as an
 from .sets import canonical, compatible
 
@@ -85,7 +87,8 @@ def test_matches_registered_code(name="dev_small_003_head"):
     optimum, on one development case (with and without the load)."""
     import numpy as np
     from rnj_wzzt_dr.identification import combo, final, revised as rv, source as src
-    from .identify import load_dev_case, load_options
+    from rnj_wzzt_dr.experiments.case_library_20261125.dev_cases import load_dev_case
+    from .identify import load_options
     from .miqp import tree_miqp
     from .model import Fitter, Model, balance
     rec, inp = load_dev_case(name)
@@ -123,7 +126,7 @@ def test_matches_registered_code(name="dev_small_003_head"):
 def test_gate_bounds_and_node_miqp(group="dev_small_003"):
     """On one development feeder: the gate separates its no-load twin from its head-load twin; the per-meter bounds
     leave the MIQP optimum unchanged; the node MIQP finds the same best line as enumeration."""
-    from .identify import load_dev_case
+    from rnj_wzzt_dr.experiments.case_library_20261125.dev_cases import load_dev_case
     from .miqp import tree_miqp
     from .model import GATE, Fitter, Model, balance, load_share
     from .search import best_addition, node_miqp
@@ -153,8 +156,8 @@ def test_gate_bounds_and_node_miqp(group="dev_small_003"):
 
 
 def test_kappa():
-    """Eq. 15: kappa(delta, q) = E min(delta, Z), Z ~ N(q/2, q): the draft's example (q = 2, delta = 1 gives 0.436) and a
-    Monte Carlo estimate."""
+    """Eq. 15: kappa(delta, q) = E min(delta, Z), Z ~ N(q/2, q): the draft's example (q = 2, delta = 1 gives 0.436) and
+    a Monte Carlo estimate."""
     import math
     import numpy as np
     from .probe import kappa
@@ -169,7 +172,8 @@ def test_block_gradients(name="dev_small_003_head"):
     """probe.prediction: a block of size eps at meter i moves the S-weighted prediction by eps ds[:, i] and the
     predicted V0^2 - V^2 by eps dy[:, i] (both are linear in the meters' flows), with the load modelled."""
     import numpy as np
-    from .identify import load_dev_case, with_load
+    from rnj_wzzt_dr.experiments.case_library_20261125.dev_cases import load_dev_case
+    from .identify import with_load
     from .probe import forecast, prediction, setup
     rec, inp = load_dev_case(name)
     data = {k: np.asarray(inp.hist[k], float) for k in ("P", "Q", "Y", "V0sq", "Ppcc", "Qpcc")}
@@ -185,9 +189,89 @@ def test_block_gradients(name="dev_small_003_head"):
         assert np.allclose(after["y"]-base["y"], 1e-3*base["dy"][:, i], atol=1e-13)
 
 
+SYNTHETIC_LINES = [(0, 1), (0, 1, 2), (3, 4), (5, 6, 7), (3, 4, 5, 6, 7)]
+
+
+def synthetic_hour(rng, hours, n=8, load=False, block=None):
+    """Readings of the linear model (eq. 1) of the tree SYNTHETIC_LINES (n = 8 meters, its trunk and service cables),
+    with small meter noise; with load, an unmetered load below the line {5, 6, 7}. Fixed impedances, so that
+    successive calls continue one feeder."""
+    family = [*SYNTHETIC_LINES, *[(i,) for i in range(n)], tuple(range(n))]
+    r = {C: .01+.04*k/len(family) for k, C in enumerate(family)}
+    shape = 1+.6*np.sin(2*np.pi*(np.asarray(hours)-7)/24)
+    P = .004*shape[:, None]*np.linspace(.5, 1.5, n)+.002*rng.random((len(shape), n))+(0 if block is None else block)
+    Q = .3*P+.0005*rng.random(P.shape)
+    up = .01*shape+.002*rng.random(len(shape)) if load else np.zeros(len(shape))
+    Y = np.zeros(P.shape)
+    for C in family:
+        below = load and set(C) >= {5, 6, 7}
+        Y[:, list(C)] += 2*r[C]*(P[:, list(C)].sum(1)+.5*Q[:, list(C)].sum(1)+(1.15*up if below else 0))[:, None]
+    V0sq = 1.04+1e-4*rng.normal(size=len(shape))
+    Y = Y+1e-5*rng.normal(size=Y.shape)
+    rise = (np.sqrt(V0sq)[:, None]-np.sqrt(V0sq[:, None]-Y))/np.sqrt(V0sq[:, None]-Y)
+    return dict(P=P, Q=Q, Y=Y, V0sq=V0sq, Ppcc=(P*(1+rise)).sum(1)+up, Qpcc=(Q*(1+rise)).sum(1)+.3*up)
+
+
+QUICK = dict(short_seconds=10, long_seconds=10, start_seconds=2, polish_seconds=2, node_seconds=10, rounds=1)
+
+
+def test_identify_synthetic():
+    """Algorithm 1 recovers a known tree from synthetic readings, without and with an unmetered load (the load gate
+    and the load's path included). Needs no case library: it runs with the folder alone."""
+    from .identify import Settings, identify
+    for load in (False, True):
+        data = synthetic_hour(np.random.default_rng(3), np.arange(192), load=load)
+        out = identify(**data, st=Settings(**QUICK))
+        assert out["gate"]["load"] == load
+        assert set(out["tree"]) == set(SYNTHETIC_LINES), (load, out["tree"])
+        if load:
+            assert [tuple(p) for p in out["path"]] == [(3, 4, 5, 6, 7), (5, 6, 7)], out["path"]
+
+
+def test_probe_synthetic():
+    """Algorithm 2 runs a short day on the synthetic feeder (a linear world with fixed headroom) and keeps its caps."""
+    from .identify import Settings, identify
+    from .probe import ProbeSettings, probe_day
+    rng = np.random.default_rng(4)
+    data = synthetic_hour(rng, np.arange(192), load=True)
+
+    class World:
+        base_kw = 200.
+
+        def headroom(self, hour, pending=None):
+            return np.full(8, .01), np.full(8, .01)
+
+        def run_hour(self, hour, u):
+            return {k: v[0] for k, v in synthetic_hour(rng, [hour], load=True, block=u).items()}
+    st = Settings(**QUICK)
+    day = probe_day(data, identify(**data, st=st), World(), st, ProbeSettings(hours=3, psi=50.))
+    assert day["stop"] in ("no target", "every target decided at two consecutive gates", "end of day")
+    assert day["cost"] <= ProbeSettings().cap_day and len(day["gates"]) <= 4
+
+
+def test_builders_match_registered(names=("soumalas11_star_l5_middle", "dev_small_003_none")):
+    """builders.py gives the registered predecessor's nine trees (identification/), with and without the load. The full
+    check over the development twins is in paper/DEV_RESULTS_V12.md."""
+    from rnj_wzzt_dr.experiments.case_library_20261125.dev_cases import load_dev_case
+    from rnj_wzzt_dr.identification import combo, final, revised as rv, source as src
+    from .builders import builder_trees
+    from .model import GATE, balance, load_share
+    for name in names:
+        rec, inp = load_dev_case(name)
+        h, n = inp.hist, inp.n
+        u = balance(h["P"], h["Q"], h["Y"], h["V0sq"], h["Ppcc"], h["Qpcc"])
+        u = u if load_share(h["P"], u) >= GATE else None
+        data, config = rv.Series(h["P"], h["Q"], h["Y"], h["V0sq"]), rv.RevisedConfig()
+        S = final.guarded(combo.setup, data, None, config) if u is None else \
+            final.guarded(src.setup_projected, data, None, u[0], u[1], config)
+        old = [{C for C in combo.source_family(S, k) if 1 < len(C) < n} for k in combo.SOURCES]
+        assert [set(t) for t in builder_trees(h["P"], h["Q"], h["Y"], h["V0sq"], u)] == old, name
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
-        needs_data = name in ("test_matches_registered_code", "test_gate_bounds_and_node_miqp", "test_block_gradients")
+        needs_data = name in ("test_matches_registered_code", "test_gate_bounds_and_node_miqp", "test_block_gradients",
+                              "test_builders_match_registered")
         if name.startswith("test_") and (not needs_data or "--data" in sys.argv):
             fn()
             print("ok", name, flush=True)

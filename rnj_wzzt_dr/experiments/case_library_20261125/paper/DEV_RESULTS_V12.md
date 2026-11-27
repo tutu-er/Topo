@@ -55,3 +55,14 @@ The predecessor's numbers are S2 of `final_source.jsonl`. The truth is the ident
   - The TR4 criterion for T1 ("at most 1 such line per 50 cases") fails by far. So T1 would drop the targets most
     worth probing, unless probing cannot recover them under T0 or T2 either. That needs probing runs.
   - The simulated day on `dev_small_003_head` already showed one: (8, 9), true and nested, was T0's first target.
+
+## The rewritten builders (`identification_v8/builders.py`, 2026-11-26)
+
+The nine starting trees were rewritten inside the package, replacing `candidates.py` and its use of `identification/`.
+On all 240 twins with at most 25 meters, with the load modelled exactly when the gate says so, every one of the nine
+trees is identical to the predecessor's.
+
+- One recursive-grouping tree differed at first, from a rounding difference of 1e-16 in how the load's profiles were
+  projected out. The rewrite now does those operations in the predecessor's order.
+- Algorithm 1's whole output on two cases is identical to the frozen ef9ec75.
+- The 48 larger twins are being checked.
