@@ -118,7 +118,7 @@ def relabel_outside(model, tree, pool, rows, keys, st):
     (eq. 6), since local swaps can show a grouping open but never decided (Lemma 1). Returns the rows with theirs."""
     have = {tuple(x["grouping"]) for x in rows}
     s0, half = Fitter(model, tree).crit(tree), model.N/2
-    seconds = st.flip_seconds or (st.short_seconds if model.n <= st.warm_n else st.long_seconds)
+    seconds = st.flip_seconds or (st.short_seconds if model.n <= st.large_n else st.long_seconds)
     out = list(rows)
     for M in keys:
         if M != "place" and M not in have:

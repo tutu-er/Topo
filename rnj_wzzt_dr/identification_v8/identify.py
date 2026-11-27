@@ -5,7 +5,7 @@ Lines of Algorithm 1 and where they are:
   1     the model: balance, M, noise variance, price                                             model.Model
   2     initial lines: the nine builder trees (builders.py); with a load, every grouping with and without it, and the
         load placed in each builder tree at its best place                                       with_load, place_load
-  3     first tree: local search, then the tree MIQP                                             solve
+  3     first tree: local search to convergence, the tree MIQP from it, its claims checked        solve
   4-8   anchors = decided groupings (labels.py); the anchored universe (anchors.py); the tree MIQP over it with every
         anchor required; pricing and a re-solve (price); until the stopping rule holds or `rounds` searches were
         made (refine, which Algorithm 2 also calls at every gate)
@@ -20,8 +20,10 @@ for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
 
 from collections import Counter
 from dataclasses import asdict, dataclass
+import math
 import time
 
+import gurobipy as gp
 import numpy as np
 
 from .anchors import anchored_universe
@@ -41,13 +43,13 @@ class Settings:
     K: int = 9                   # nodes with at most K units (children in pricing) are searched by all their unions;
                                  # wider tree nodes are priced by the node MIQP
     rounds: int = 2              # anchored searches at most (lines 4-8)
-    warm_n: int = 35             # up to this many meters the MIQP starts from the local-search tree
-    short_seconds: float = 120.  # tree MIQP limit up to warm_n meters
-    long_seconds: float = 240.   # beyond warm_n meters
+    large_n: int = 35            # beyond this many meters the time limits are doubled
+    short_seconds: float = 120.  # tree MIQP limit up to large_n meters
+    long_seconds: float = 240.   # beyond large_n meters
     flip_seconds: float = 0.     # 0: the tree MIQP's limit (the user's choice of 2026-11-26: at least that)
     tighten: bool = True         # per-meter response bounds in every MIQP (False: the ablation)
-    start_seconds: float = 20.   # local search per start (doubled beyond warm_n meters)
-    polish_seconds: float = 20.
+    start_seconds: float = 20.   # first pass of the local search per start (doubled beyond large_n meters); the best
+                                 # start is then searched to convergence
     repairs: int = 10            # lines added by pricing per round
     node_seconds: float = 60.    # node MIQP limit
     evidence: bool = True        # with a load: solve the no-load model too, for the evidence and its bounds
@@ -84,24 +86,31 @@ def place_load(model, meter_tree):
 
 # ------------------------------------------------------------------ the searches
 def solve(model, pool, starts, seconds, st, require=()):
-    """Lines 3 and 6: local search from the empty tree and every start, the tree MIQP (warm-started up to warm_n
-    meters, tightened at the incumbent's level), the better tree, a polish. Every tree keeps a line of each `require`
-    group. Returns (lines, info); info["bound"] is the MIQP's lower bound over this pool."""
+    """Lines 3 and 6: a first pass of local search from the empty tree and every start; the best of them searched to
+    convergence (no single removal or swap of a pool line lowers the score); the tree MIQP started from it and
+    tightened at its level; the MIQP's tree, when better, searched to convergence too. The MIQP's claims are checked:
+    a bound above the converged tree's score, or an "optimum" that the local search still improves, is a numerical
+    failure (status NUMERIC, no bound). Every tree keeps a line of each `require` group. Returns (lines, info);
+    info["bound"] is the MIQP's lower bound over this pool, None when there is none to trust."""
     lines = lines_of(pool, model.leaves)
     fitter, crosses = Fitter(model, lines), crossing_map(lines)
     ok = lambda S: all(any(C in S for C in group) for group in require)
-    per = st.start_seconds*(1 if model.n <= st.warm_n else 2)
+    per = st.start_seconds*(1 if model.n <= st.large_n else 2)
     tried = [local_search(fitter, crosses, s, time.perf_counter()+per, require)
              for s in [frozenset(), *starts] if ok(s)]
-    incumbent, value = min(tried, key=lambda x: x[1])
-    r = tree_miqp(model, lines, seconds, require=require, seed=st.seed,
-                  warm=incumbent if model.n <= st.warm_n else None, tighten_at=value if st.tighten else None)
-    chosen = incumbent
-    if r["family"] is not None and fitter.crit(lines_of(r["family"], model.leaves)) < value:
-        chosen = frozenset(lines_of(r["family"], model.leaves))
-    chosen, value = local_search(fitter, crosses, chosen, time.perf_counter()+st.polish_seconds, require)
-    return lines_of(chosen, model.leaves), dict(status=r["status"], miqp_seconds=r["seconds"], pool=len(lines),
-                                                crit=value, bound=r["bound"])
+    chosen, value = local_search(fitter, crosses, min(tried, key=lambda x: x[1])[0], math.inf, require)
+    r = tree_miqp(model, lines, seconds, require=require, seed=st.seed, warm=chosen, known=value,
+                  tighten_at=value if st.tighten else None)
+    status, bound = r["status"], r["bound"]
+    if r["family"] is not None:
+        found = frozenset(lines_of(r["family"], model.leaves))
+        found_value = fitter.crit(found)
+        if found_value < value:
+            chosen, value = local_search(fitter, crosses, found, math.inf, require)
+            if status == gp.GRB.OPTIMAL and value < found_value-1e-4*abs(found_value):
+                status, bound = gp.GRB.NUMERIC, None       # the claimed optimum is improved by one move
+    return lines_of(chosen, model.leaves), dict(status=status, miqp_seconds=r["seconds"], pool=len(lines),
+                                                crit=value, bound=bound)
 
 
 def price(model, tree, universe, require, seconds, st):
@@ -176,7 +185,7 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     say(f"  gate: share {gate['share']}, load modelled: {gate['load']}")
     model = Model(P, Q, Y, V0sq, u, st.lam)                                   # line 1
     load = u is not None
-    seconds = st.short_seconds if n <= st.warm_n else st.long_seconds
+    seconds = st.short_seconds if n <= st.large_n else st.long_seconds
     timing = dict(model=time.perf_counter()-started)
 
     trees = builder_trees(P, Q, Y, V0sq, u)                                  # line 2
@@ -214,7 +223,7 @@ def refine(model, tree, pool, st, say=lambda *_: None):
     with every anchor required, price; until the stopping rule (Lemma 3) holds or `rounds` searches were made.
     Algorithm 2 calls it at every gate on all data so far. Returns dict(tree, pool, labels, anchors, rounds, stop)."""
     n, load = model.n, model.leaves > model.n
-    seconds = st.short_seconds if n <= st.warm_n else st.long_seconds
+    seconds = st.short_seconds if n <= st.large_n else st.long_seconds
     rounds, previous, stop = [], None, None
     for rnd in range(st.rounds+1):
         t0 = time.perf_counter()

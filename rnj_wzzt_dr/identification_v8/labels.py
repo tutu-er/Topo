@@ -56,11 +56,12 @@ def local_flips(fitter, tree, pool, n):
     return inside, outside, s0
 
 
-def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True, inside=True):
+def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True, inside=True, known=None):
     """Definition 1 for grouping M (eq. 6): the best tree that decides M the other way, by the tree MIQP with the
     threshold as its cutoff (and as the level of the per-meter bounds). For M in the tree (inside), no line of grouping
     M is allowed; for M outside the tree, a line of grouping M is required. Decided when nothing is found below the
-    threshold, open when a tree is found (the rival), unsettled when the time runs out first."""
+    threshold, open when a tree is found (the rival), unsettled when the time runs out first or when the solve
+    contradicts `known`, the score of a flipped tree already found (a local flip): then it is a numerical failure."""
     n = model.n
     if inside:
         universe, require = [C for C in canonical(pool) if grouping(C, n) != M], ()
@@ -70,7 +71,7 @@ def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True, inside=T
         if not require[0]:
             raise ValueError(f"no line of grouping {M} in the pool")
     r = tree_miqp(model, universe, seconds, require=require, cutoff=threshold,
-                  tighten_at=threshold if tighten else None, seed=seed)
+                  tighten_at=threshold if tighten else None, known=known, seed=seed)
     out = dict(status=r["status"], seconds=r["seconds"], low=r["bound"], high=None, rival=None)
     if r["family"] is not None:
         value = Fitter(model, r["family"]).crit(r["family"])
@@ -97,7 +98,7 @@ def label_groupings(model, tree, pool, m, seconds, seed=7, log=None, tighten=Tru
             labels[M] = dict(inside=True, label=OPEN, gap=(None, mm*half), rival=rival, status=None, seconds=0.)
     tests = sorted((M for M in inside if M not in labels), key=lambda M: inside[M][0])
     for k, M in enumerate(tests):
-        r = flip_test(model, pool, M, threshold, seconds, seed, tighten)
+        r = flip_test(model, pool, M, threshold, seconds, seed, tighten, known=s0+inside[M][0])
         low = None if r["low"] is None else (r["low"]-s0)*half
         high = inside[M][0]*half if r["high"] is None else (r["high"]-s0)*half
         labels[M] = dict(inside=True, label=r["label"], gap=(low, high), rival=r["rival"], status=r["status"],

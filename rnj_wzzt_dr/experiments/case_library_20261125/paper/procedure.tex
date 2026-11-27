@@ -1,7 +1,7 @@
 % =====================================================================
 %  Partial topology identification and cost-aware probing for
 %  low-voltage feeders: method and algorithms
-%  Paper-style draft v14, 2026-11-26
+%  Paper-style draft v15, 2026-11-26
 %
 %  Status of the parts (read before quoting anything from this file):
 %   * Both algorithms are implemented in rnj_wzzt_dr/identification_v8
@@ -39,6 +39,13 @@
 %  Corollary 1's condition (B) could almost never hold), with the BIC
 %  reason stated. Pricing enumerates nodes up to K children and uses the
 %  node MIQP beyond (was 12), and Algorithm 1 names it.
+%  v15 (solver fix, 2026-11-26): on 47-60 meter feeders the tree MIQP at
+%  forced 1e-9 tolerances declared feasible relaxations infeasible and
+%  claimed false optima, and the local search stopped at its time limit far
+%  from a local optimum. Now: default tolerances; local search to
+%  convergence (every candidate line's value checked) before and after the
+%  MIQP; every solver claim checked against the trees known; the MIQP's
+%  coefficients scaled to the size of their columns (unit-diagonal Gram).
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -77,7 +84,7 @@
 \begin{document}
 
 \title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v14 of 26~November~2026 (authors to be added)}
+\author{Method draft v15 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
@@ -234,7 +241,7 @@ with $L_M$ the solver's lower bound and $U_M$ the score of the best flipped tree
 \begin{definition}[Labels]
 Relative to $T$, grouping $M$ is \emph{decided} if $L_M>H(T)+m$, \emph{open} if a flipped tree with $H\le H(T)+m$ is found,
 and \emph{unsettled} otherwise. The \emph{flip test} solves (\ref{eq:flip}) with the threshold $H(T)+m$ as the solver's
-cutoff; it stops as soon as ``decided'' is proved, and otherwise runs to its limit to find the best rival.
+cutoff; it stops as soon as ``decided'' is proved, and otherwise runs to its limit to find the best rival. A flip test whose bound exceeds the score of a flipped tree already found (a local flip) is a numerical failure and leaves $M$ unsettled.
 \end{definition}
 \begin{proposition}[What a label certifies]\label{prop:label}
 If $M$ is decided, every tree in $\Sset_m$ agrees with $T$ on whether $M$ is a grouping. If $T$ is a proven optimum and $M$
@@ -316,7 +323,13 @@ reaches (an incumbent's score, or a flip test's threshold), $\bar R_i$ and $\bar
 coefficients whose residual fits under $\ell$ (one convex program per meter, binaries dropped), and
 $\bar r_C=\min(\bar\theta,\min_{i\in\pi(C)}\bar R_i)$. Every tree with $H\le\ell$ satisfies these bounds, so they change
 neither the optimum nor a flip test's verdict; they only make the solver faster, and an ablation measures by how much. Each
-solve starts from a local-search incumbent and keeps the better tree.
+solve first runs the local search to convergence: no removal of one line, and no swap of one pool line in (the lines it
+crosses removed), lowers the score, so the value of every candidate line has been checked. The MIQP starts from that tree,
+and its tree, when better, is searched to convergence too. Its claims are checked against the trees known: a bound above
+a known tree's score, or an optimum that one move still improves, is a numerical failure, and such a solve gives no bound
+and decides nothing. Each coefficient enters the solver in units of its column's size, so that the quadratic has a unit
+diagonal, and the solver runs at its default tolerances: unscaled, with the tolerances forced to $10^{-9}$, it declared
+feasible relaxations infeasible, and claimed false optima, on feeders of 47 to 60 meters.
 \begin{proposition}[The load's path needs no constraints]\label{prop:path}
 For a set of meters $C$ write $C^1=C\cup\{s\}$. Over $\Nset^+$ the crossing constraints of (\ref{eq:master}) are exactly:
 (i) the crossings of the meter sets; (ii) one place: $b_{C^1}+b_{D^1}\le1$ unless $C\subseteq D$ or $D\subseteq C$; (iii) a
@@ -401,7 +414,7 @@ labels with gap intervals and rivals; with a load, its places and evidence inter
 \State \textbf{if} the PCC power is metered: $\varsigma$ by (\ref{eq:gate}); a load is modelled iff $\varsigma\ge\varsigma_0$ \Comment{gate}
 \State $M$, $\hat\sigma^2$, $\beta$; $\hat R$ by (\ref{eq:rhat}) \Comment{set-up}
 \State $\Omega\gets\Omega_0$ and nine starting trees \Comment{Appendix~\ref{app:pool}}
-\State $T\gets$ (\ref{eq:master}) over $\Omega$, from a local-search incumbent
+\State $T\gets$ (\ref{eq:master}) over $\Omega$, from the converged local-search tree
 \For{$r=0,1,\dots,R$}
   \State label the groupings of $T$: local flips (\ref{eq:local}), then flip tests (\ref{eq:flip}); $\Aset\gets$ the decided ones
   \State \textbf{if} the stopping rule of Lemma~\ref{lem:stop} holds, or $r=R$: \textbf{break}
@@ -684,10 +697,11 @@ Setting & Value\\
 Gate $\varsigma_0$ & 1\% of the metered mean power (prior setting; Table~\ref{tab:gate})\\
 $\lambda$; $m$; $\bar\theta$ & 1.96; 4.6 (half-BIC units); 2 pu\\
 $K$; anchored searches $R$ & 9 units (children in pricing); at most 2, then the stopping rule of Lemma~\ref{lem:stop} or the limit\\
-Tree MIQP & 120 s up to 35 meters (warm start from the incumbent), 240 s beyond (cold); per-meter bounds on, at a quarter
-of the limit at most (off in the ablation)\\
+Tree MIQP & 120 s up to 35 meters, 240 s beyond, always started from the converged local-search tree; coefficients
+scaled to their columns; Gurobi's default tolerances; per-meter bounds on, at a quarter of the limit at most (off in the ablation)\\
 Flip test & cutoff $H(T)+m$, local flips first; limit at least that of the tree MIQP; the share at the limit is reported\\
-Local search & from the empty tree and the builder trees; 20 s per start (40 s beyond 35 meters); polish 20 s\\
+Local search & a first pass of 20 s per start (40 s beyond 35 meters) from the empty tree and the builder trees; the
+best start, and the MIQP's tree when better, to convergence\\
 Pricing & enumeration up to $K$ children; node MIQP beyond, 60 s; at most 10 additions per round\\
 Load evidence & the no-load model over the meter groupings of the pool and the load model over the pool, same limits\\
 Solver & Gurobi, one thread per case\\

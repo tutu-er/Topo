@@ -90,3 +90,77 @@ of the two huge twins with an 11-child node (`check_wide_nodes.py`; pricing only
 
 Both are exact, so results change only if a node MIQP stops at its 60 s limit, which is reported as an unproved node.
 The running large-twin dev run uses the frozen checkout with the old switch.
+
+## Solver fix (draft v15, 2026-11-26)
+
+The run of the 48 larger twins was stopped at 10 of 48. Huge twins (47 to 60 meters) took 2.6 to 3.6 hours each, about
+80% of it in flip tests that ended at their limit. Looking into why showed three problems.
+
+**1. False solver claims.**
+- All 11 anchored MIQPs that reported "optimal" on the huge twins had a bound above a tree in their own search space,
+  by up to 82,000 score units.
+- The Gurobi log of `dev_huge_004_head`'s first tree shows the root relaxation declared "infeasible" while Gurobi held a
+  feasible solution, which it then called optimal.
+- Cause: tolerances forced to 1e-9 (NumericFocus 2) on a badly scaled problem. The matrix coefficients spanned 1e-13 to
+  2e3. The per-meter bounds are valid: the run's own tree satisfies all 120 of them.
+- On the huge twins (old code), 4 of 35 decided groupings were wrong, against 3 of 1,478 below 26 meters. Whether these
+  came from false proofs or from pools that lack the true lines is not separated.
+
+First-tree MIQP on `dev_huge_006_none`, 240 s, started from the 40 s local-search tree. A claim is false if its bound is
+above the best tree known (the converged local search, score 5,661.4):
+
+| Setting | Outcome | Bound below the best known tree |
+|---|---|---|
+| tolerances forced to 1e-9 (the old code) | "optimal" in 10 s: false | none (bound above it by 69) |
+| forced 1e-9 with NumericFocus 3 | consistent | 241.5 |
+| Gurobi's defaults | consistent | 222.4 |
+| defaults, coefficients scaled to their columns | consistent | 171.5 |
+| forced 1e-9, coefficients scaled | consistent | 165.4 |
+
+With scaled coefficients, `dev_huge_004_head`'s root relaxation solved in 19 to 79 s (unscaled: "infeasible" or
+"numerical trouble"). Its claims were consistent at both tolerance settings, with bounds 518 to 525 units below the best
+known tree.
+
+Other formulations, not adopted:
+- **Residual per meter and hour** (eq. 9 written directly; range 3e-7 to 1e2): also a false optimum at forced
+  tolerances on `dev_huge_004_head`, and its root relaxation did not finish in 240 s on `dev_huge_006_none`.
+- **MILP with cuts below the same quadratic:** not built. Its relaxation cannot be tighter than the quadratic's own.
+
+**2. Local search stopped by its time limit.** At 40 s per start, the search made one or two steps. On the first pool,
+the local-search tree was far from a local optimum:
+
+| Twin | Paying single swaps left | Useless lines in the tree | To convergence | Score gained |
+|---|---|---|---|---|
+| dev_huge_006_none | 28 | 0 | 8 steps, 52 s | 69 |
+| dev_huge_004_head | 104 | 35 (each saves its price) | 25 steps, 346 s | 398 |
+
+In 240 s the MIQP did not find even the 69-unit improvement.
+
+**3. No proof is possible at this size.** Even when consistent, the MIQP's bound stays 158 to 525 score units below the
+best tree, so flip tests on 47-60 meter feeders can rarely decide a grouping. There, the trees rest on the local search.
+
+**The fix:**
+- Gurobi's default tolerances;
+- coefficients scaled to the size of their columns;
+- local search to convergence before and after the MIQP, so every candidate line's value is checked and no single
+  removal or swap pays;
+- every MIQP always started from the converged tree;
+- every claim checked against the trees known. A bound above a known tree's score, or an "optimum" that one move still
+  improves, is a numerical failure: no bound, nothing decided.
+
+First-tree step with the fix (local search, MIQP, local search again):
+
+| Twin | Score (run's 40 s pass, then fixed) | MIQP | Bound below the tree | Time |
+|---|---|---|---|---|
+| dev_huge_006_none | 5,730.4, then 5,661.4 | time limit, consistent | 158 | 687 s |
+| dev_huge_004_head | 7,332.3, then 6,934.7 | time limit, consistent | 506 | 980 s |
+
+Those two rows are without the scaling. With the scaling too (the committed code):
+
+| Twin | Score | MIQP | Root relaxation | Bound below the tree | Time |
+|---|---|---|---|---|---|
+| dev_huge_006_none | 5,661.4 | time limit, consistent | solved in 8 s | 177 | 680 s |
+| dev_huge_004_head | 6,934.7 | time limit, consistent | solved in 26 s | 525 | 943 s |
+
+The scaling does not reliably tighten the bound (177 here against 158 unscaled, both with the per-meter bounds). Its value
+is robustness: no false claims even at forced tolerances, and a root relaxation that always solves.

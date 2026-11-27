@@ -212,7 +212,7 @@ def synthetic_hour(rng, hours, n=8, load=False, block=None):
     return dict(P=P, Q=Q, Y=Y, V0sq=V0sq, Ppcc=(P*(1+rise)).sum(1)+up, Qpcc=(Q*(1+rise)).sum(1)+.3*up)
 
 
-QUICK = dict(short_seconds=10, long_seconds=10, start_seconds=2, polish_seconds=2, node_seconds=10, rounds=1)
+QUICK = dict(short_seconds=10, long_seconds=10, start_seconds=2, node_seconds=10, rounds=1)
 
 
 def test_identify_synthetic():

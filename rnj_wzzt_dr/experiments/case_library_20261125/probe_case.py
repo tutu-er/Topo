@@ -32,7 +32,7 @@ from .dev_cases import f1, load_dev_case
 
 ENROLLED, BATTERY, EV = .25, (.25, 5., 13.5), (.20, 7.)     # share enrolled; (share, kW, kWh); (share, kW)
 SOC, ETA, EV_HOURS, EV_PAUSE = (.2, .8), .95, (18, 8), .5
-QUICK = dict(short_seconds=5, long_seconds=5, start_seconds=2, polish_seconds=2, node_seconds=5, rounds=1)
+QUICK = dict(short_seconds=5, long_seconds=5, start_seconds=2, node_seconds=5, rounds=1)
 
 
 class World:

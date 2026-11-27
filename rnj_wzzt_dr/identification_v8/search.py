@@ -19,7 +19,9 @@ from .sets import basis, canonical, children, lines_of, unions
 
 def local_search(fitter, crosses, start, deadline, require=()):
     """Best-improvement search over trees made of the lines in `crosses` (a crossing_map). A move removes one line, or
-    adds one and removes the lines it crosses; it must keep a line of every `require` group. Returns (lines, crit)."""
+    adds one and removes the lines it crosses; it must keep a line of every `require` group. With deadline = inf it
+    runs until no move lowers the score: the value of every candidate line is checked (converged). Returns (lines,
+    crit)."""
     ok = lambda S: all(any(C in S for C in group) for group in require)
     S = frozenset(C for C in start if C in crosses)
     best = fitter.crit(S)
@@ -75,8 +77,8 @@ def node_miqp(model, tree, kids, seconds, seed=7):
     A, cvec, const = factor(F.T@F, F.T@y, model.yy)
     P = len(pairs)
     with gp.Model(env=env()) as m:
-        for key, value in dict(Threads=1, TimeLimit=max(.01, seconds), MIPGap=1e-4, Seed=seed, NumericFocus=2,
-                               FeasibilityTol=1e-9, IntFeasTol=1e-9).items():
+        for key, value in dict(Threads=1, TimeLimit=max(.01, seconds), MIPGap=1e-4, Seed=seed).items():  # defaults
+
             m.setParam(key, value)
         theta = m.addMVar(2*K, lb=0., ub=BOUND)            # the tree's r and x
         rx = m.addMVar(2, lb=0., ub=BOUND)                 # the new line's r and x
