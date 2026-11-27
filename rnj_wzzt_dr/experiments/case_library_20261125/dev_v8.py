@@ -4,6 +4,9 @@ the development manifest, and the sealed set is never opened.
 
     python -m rnj_wzzt_dr.experiments.case_library_20261125.dev_v8 run --workers 8 [--blind] [--names a,b] [--max-n 25]
     python -m rnj_wzzt_dr.experiments.case_library_20261125.dev_v8 summary [--blind]
+    ... run --real / summary --real: the 66 real-feeder development inputs instead (33 EU LV feeders, real topologies,
+        start days 0 and 6, 8 days hourly; outputs/hourly_probing_dev_20261120/eulv). They have no PCC power, so no
+        unmetered load is modelled; the truth is their identifiable truth (truth_key).
 
 `run` is resumable: cases already in the output file are skipped. Each row is the identifier's output plus
   truth        the true meter groupings
@@ -94,7 +97,12 @@ def run_one(task):
     started = time.perf_counter()
     try:
         st = Settings(**settings) if settings else Settings()
-        rec, inp = load_dev_case(name)
+        if name.startswith("eulv_"):                       # a real feeder (no PCC power)
+            from rnj_wzzt_dr.experiments.wzzt_evidence_20261124 import capture
+            inp = capture.load_input("eulv", name)
+            rec, blind = dict(truth=[tuple(C) for C in inp.truth_key], source=None), True
+        else:
+            rec, inp = load_dev_case(name)
         h, n = inp.hist, inp.n
         pcc = () if blind else (h["Ppcc"], h["Qpcc"])
         r = identify(h["P"], h["Q"], h["Y"], h["V0sq"], *pcc, st=st)
@@ -122,17 +130,23 @@ def run_one(task):
         return name, None, traceback.format_exc(), time.perf_counter()-started
 
 
-def out_path(blind):
-    return OUT/("dev_v8_blind.jsonl" if blind else "dev_v8.jsonl")
+def out_path(blind, real=False):
+    return OUT/("real_v8.jsonl" if real else "dev_v8_blind.jsonl" if blind else "dev_v8.jsonl")
+
+
+def real_names():
+    return sorted(f.stem for f in (HERE.parents[2]/"outputs"/"hourly_probing_dev_20261120"/"eulv"/"inputs").glob("*.pkl"))
 
 
 def run(args):
     manifest = json.loads((HERE/"manifest_dev.json").read_text(encoding="utf-8"))
     names = [r["name"] for r in sorted(manifest, key=lambda r: -r["n"])            # largest first
              if args.max_n is None or r["n"] <= args.max_n]
+    if args.real:
+        names = real_names()
     if args.names:
         names = [x for x in names if x in set(args.names.split(","))]
-    path = out_path(args.blind)
+    path = out_path(args.blind, args.real)
     done = set()
     if path.exists():
         done = {json.loads(line)["name"] for line in path.read_text(encoding="utf-8").splitlines() if line.strip()}
@@ -155,7 +169,8 @@ def run(args):
 
 # ------------------------------------------------------------------ summary
 def summary(args):
-    rows = [json.loads(line) for line in out_path(args.blind).read_text(encoding="utf-8").splitlines() if line.strip()]
+    rows = [json.loads(line) for line in out_path(args.blind, args.real).read_text(encoding="utf-8").splitlines()
+            if line.strip()]
     print(f"{len(rows)} cases")
     by_load = Counter(r["load"] or "none" for r in rows)
     for load in sorted(by_load):
@@ -182,6 +197,7 @@ def main():
     ap.add_argument("--blind", action="store_true", help="without the PCC power")
     ap.add_argument("--names", default=None, help="only these development cases, comma-separated")
     ap.add_argument("--max-n", type=int, default=None, help="only cases with at most this many meters")
+    ap.add_argument("--real", action="store_true", help="the 66 real-feeder development inputs instead")
     args = ap.parse_args()
     run(args) if args.command == "run" else summary(args)
 
