@@ -182,8 +182,10 @@ is robustness: no false claims even at forced tolerances, and a root relaxation 
 code (c5c4aae, `identification_v8`) and `ptid` finished, the tree, every label and the stopping reason are identical in
 20 of 20. Of the two refinements of CHANGES.md §3, probing's check is never used by identification, and the node MIQP's
 scaling is an exact change of variables that gave the same line as enumeration wherever it was compared (section 5.1).
-So the development run made with c5c4aae is taken as a run of `ptid`; any case where a node MIQP would decide
-differently would show up as a difference in the comparison above, and none did.
+So the development run made with c5c4aae is taken as a run of `ptid`, with one gap: on its huge twins the unscaled
+node MIQP may price nodes wider than 9 children, and there the two codes could differ through a numerical failure of
+the unscaled one. When the run ends, its wide nodes are rechecked with `ptid` (`ptid.runs.checks wide-nodes`), as in
+section 5.1.
 
 **First real-feeder numbers (20 of 66 inputs, interim):** F1 0.669; 54 groupings decided, **4 of them wrong (7.4%)**,
 far above the 2% criterion of PROTOCOL.md §4. On the first real feeder the adequacy test (S1) flagged the TRUE tree:
