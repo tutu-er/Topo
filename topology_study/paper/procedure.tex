@@ -113,8 +113,11 @@ unmetered load, active probing, demand response.
 
 \noindent\textbf{Status of each part.} Both algorithms are implemented. Before the solver fix of Section~\ref{sec:id},
 Algorithm~\ref{alg:identify} returned the same trees as its registered predecessor in 234 of 240 development cases with at
-most 25 meters, and 0.2\% of its decided groupings were wrong; with the fix it is being rerun on one twin of each
-development feeder and on 66 inputs of real feeders (development results, not a registered test).
+most 25 meters, and 0.2\% of its decided groupings were wrong. With the fix, on one twin of each of the 72
+development feeders none of its 367 decided groupings is wrong, and on 66 inputs of 33 real feeders none of its 162
+decided groupings fails to be a line of the network (four are lines shorter than the 3 milliohm floor of the scoring
+truth). On feeders of 26 to 60 meters few groupings are decided, because flip tests over large pools reach their time
+limits. These are development results, not a registered test.
 Algorithm~\ref{alg:probe} ran on simulated days only and is not yet evaluated. A registered sealed test evaluates the
 predecessor of Algorithm~\ref{alg:identify}; Section~\ref{sec:tests} lists the differences and the runs this version needs.
 

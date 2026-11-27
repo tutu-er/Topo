@@ -171,21 +171,20 @@ is robustness: no false claims even at forced tolerances, and a root relaxation 
 
 ## 4. Algorithm 1 with the fix (code c5c4aae = ptid, 2026-11-27)
 
-**Status:** the real-feeder run is complete (4.1); the development run is still going (4.2).
+**Status:** both runs are complete.
 
 | Run | Code | Cases | State |
 | --- | --- | --- | --- |
-| development, one twin per feeder | c5c4aae (frozen checkout) | 72 (PROTOCOL.md §2.2) | started 2026-11-27 00:50; the six huge twins first |
-| real feeders | `ptid` | 66 (PROTOCOL.md §2.3) | complete, 2026-11-27 00:55 to 02:00 |
+| development, one twin per feeder | c5c4aae (frozen checkout) | 72 (PROTOCOL.md §2.2) | complete, 2026-11-27 00:50 to 05:25, 0 errors |
+| real feeders | `ptid` | 66 (PROTOCOL.md §2.3) | complete, 2026-11-27 00:55 to 02:00, 0 errors |
 
 **The package gives the same results as the code it was moved from.** On the first 20 real inputs that both the old
 code (c5c4aae, `identification_v8`) and `ptid` finished, the tree, every label and the stopping reason are identical in
 20 of 20. Of the two refinements of CHANGES.md §3, probing's check is never used by identification, and the node MIQP's
 scaling is an exact change of variables that gave the same line as enumeration wherever it was compared (section 5.1).
-So the development run made with c5c4aae is taken as a run of `ptid`, with one gap: on its huge twins the unscaled
-node MIQP may price nodes wider than 9 children, and there the two codes could differ through a numerical failure of
-the unscaled one. When the run ends, its wide nodes are rechecked with `ptid` (`ptid.runs.checks wide-nodes`), as in
-section 5.1.
+So the development run made with c5c4aae is taken as a run of `ptid`. The one place the two codes could differ is a
+node MIQP on a node wider than 9 children: in the 72 cases that happened twice, both on `dev_huge_004_end`, and the
+recheck with `ptid` gives the same line and gain there (section 5.1).
 
 ### 4.1 Real feeders (66 inputs, complete; `ptid`, 0 errors; equal to c5c4aae on the 25 inputs both ran)
 
@@ -227,13 +226,69 @@ now on (`identify_cases summary`: columns `wrong` and `not a line`). This was de
 For comparison: on the same 66 inputs the earlier study's method got F1 62.5 with the plain BIC price and 66.7 with
 the structural prior, and RNJ 41 at its best tolerance (`rnj_wzzt_dr/experiments/case_library_20261125/IDENTIFICATION_PLAN.md`).
 
-### 4.2 Development twins, one per feeder (72 cases)
+### 4.2 Development twins, one per feeder (72 cases, complete)
 
-Running (the six huge twins first).
+| Kind | Cases | F1 | Precision | Recall | Decided | Wrong | Not a line | Open | Unsettled | Median time | Largest |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| star | 24 | 1.000 | 1.000 | 1.000 | 138 | 0 | 0 | 0 | 0 | 41 s | 114 s |
+| street | 24 | 0.856 | 0.985 | 0.761 | 188 | 0 | 0 | 26 | 0 | 68 s | 298 s |
+| small | 6 | 0.776 | 0.944 | 0.664 | 21 | 0 | 0 | 7 | 0 | 31 s | 104 s |
+| medium | 6 | 0.678 | 0.831 | 0.593 | 15 | 0 | 0 | 13 | 27 | 43 min | 77 min |
+| large | 6 | 0.681 | 0.924 | 0.542 | 2 | 0 | 0 | 9 | 73 | 1.5 h | 3.3 h |
+| huge | 6 | 0.684 | 0.892 | 0.559 | 3 | 0 | 0 | 13 | 107 | 4.0 h | 5.1 h |
+| all | 72 | 0.854 | 0.961 | 0.784 | 367 | **0** | **0** | 68 | 207 | 75 s | 5.1 h |
 
-**The old run, measured both ways** (code ef9ec75 for the 240 twins up to 25 meters; the 10 huge twins of the stopped
-run, under the faulty solver): of 1,513 decided groupings, 7 are not in the identifiable truth and 6 are not physical
-lines: 2 on `dev_medium_003` (head and end twins) and 4 on huge twins. The rerun shows whether they remain.
+- **Solver:** 0 numerical failures. Anchored MIQPs: 60 optimal, 30 at the time limit. Flip tests of the final labels:
+  351 cut off and 16 infeasible (decided), 12 optimal, 207 at the time limit (unsettled), 56 settled by local flips.
+- **S1:** the true tree is flagged in 0 of 72; the found tree in 0. **S2:** pricing complete in 71 of 72.
+- **Stop:** 56 by the stopping rule (Lemma 3), 16 at the round limit (every medium, large and huge case but two).
+- Times are upper bounds: the real-feeder run and checks shared the machine for the first hour.
+
+**Against the old run, on the 63 cases both ran** (old: ef9ec75 for the twins up to 25 meters, before the fix; the
+stopped run for 3 huge twins, under the faulty solver):
+
+| Kind | Cases | Same tree | F1 old → new | Decided not a line, old → new |
+| --- | --- | --- | --- | --- |
+| star, street, small | 54 | 54 | unchanged (1.000, 0.856, 0.776) | 0/347 → 0/347 |
+| medium | 6 | 5 | 0.699 → 0.678 | 0/20 → 0/15 |
+| huge | 3 | 0 | 0.681 → 0.638 | 1/15 → 0/0 |
+
+Where the tree changed, the method's own score tells which search did better:
+
+| Case | H new − H old | H(true tree) − H new | F1 old → new |
+| --- | --- | --- | --- |
+| dev_medium_003_middle | −0.4 (new better) | +31.0 | 0.375 → 0.250 |
+| dev_huge_001_none | −2.0 (new better) | +51.7 | 0.776 → 0.735 |
+| dev_huge_006_head | −1.2 (new better) | +67.5 | 0.706 → 0.680 |
+| dev_huge_004_end | **+70.5 (new worse)** | **−40.0** | 0.563 → 0.500 |
+
+In three of the four the new tree scores better and the true tree scores clearly worse than either: the lower F1 is
+the model's preference, not a search failure. **`dev_huge_004_end` is a search regression**, explained below.
+
+**Criteria of PROTOCOL.md §4:**
+- no contradicted claim used: **met** (0 numerical failures);
+- decided labels wrong at most 2%: **met** (0 of 367 are not physical lines; 0 are outside the identifiable truth either);
+- F1 below 26 meters not lower by more than 0.01: **met** (mean change −0.002 over the 60 comparable cases; the medium
+  kind alone −0.021, from the one case above).
+
+**What the honest solver shows on feeders of 26 to 60 meters:**
+1. **Few decided labels.** Over the 12 large and huge twins, 5 groupings are decided, and 180 are unsettled: their
+   flip tests reach the time limit.
+2. **Anchors appear, then vanish.** Round 0 often decides a few groupings (13 on `dev_large_004_end`, 11 on
+   `dev_huge_001_none`), but the anchored search adds hundreds of candidate lines. In the next round the same flip
+   tests, now over the larger pool, reach their limit. Before the fix, false proofs kept the anchors.
+3. **So the anchored search rarely widens the pool.** On `dev_huge_004_end` round 0 decided nothing, so no unions were
+   offered. The old run's anchors, from false proofs, had opened 550 unions, and its tree scores 70.5 units better. The
+   new final tree still has a paying single line (17.6 units): pricing adds at most 10 lines per round, and the round
+   limit came first.
+4. Time per huge case is about 4 hours, most of it in flip tests that end unsettled.
+
+These are limits of the method at this size, not faults: every claim it makes is correct. PLAN.md (step 4) lists ways
+to improve the search there without weakening the labels.
+
+**The old run's 6 decided groupings that are not lines:** 4 were on huge twins under the faulty solver, and on the
+huge twins rerun nothing is decided now. The other 2, on `dev_medium_003_head` and `_end`, are not in the 72 (that
+feeder's twin here is `_middle`).
 
 ## 5. Checks
 
@@ -268,6 +323,11 @@ huge twins of the stopped run; 8 of 10 trees have no node wider than K = 9 and a
 | dev_huge_004_none | no line pays, 67 s | no line pays, proved, 12 s |
 
 (The machine was shared with two runs, so the times are upper bounds.)
+
+**In the 72-case run** (c5c4aae, unscaled node MIQP) the node MIQP ran twice, both on `dev_huge_004_end`, and proved
+both. Rechecked with `ptid` on that case's final tree (a node of 10 children): enumeration and the scaled node MIQP
+give the same best line (55 leaves) and gain (3.05e-3 in crit, 17.6 score units: the paying line left), the MIQP
+proved it, 6 s against 23 s. The other five huge trees have no node wider than 9 children.
 
 ### 5.2 The nested-pair cap on true trees
 

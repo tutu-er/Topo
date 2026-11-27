@@ -9,7 +9,7 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 | Part | Status |
 | --- | --- |
 | Method (draft v16) | Algorithm 1 (identification with labels) and Algorithm 2 (probing) implemented |
-| Identification | Development results only. A solver fault on 47-60 meter feeders was found and fixed on 2026-11-26/27 (RESULTS.md §3); the runs with the fix are in RESULTS.md §4 |
+| Identification | Development results only. A solver fault on 47-60 meter feeders was found and fixed on 2026-11-26/27 (RESULTS.md §3). With the fix: 0 of 367 decided labels wrong on 72 development twins and 0 of 162 on 66 real-feeder inputs; on 26-60 meter feeders few labels are decided and the search needs work (RESULTS.md §4, PLAN.md step 4) |
 | Probing | Simulated days only; ψ is a placeholder; not evaluated |
 | Registered result | Only the predecessor's sealed test (holds; RESULTS.md §1). Its test set is spent |
 | Decisions needed | PLAN.md §3 |
