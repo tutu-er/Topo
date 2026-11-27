@@ -275,6 +275,7 @@ def build_report(rows, candidates, traces, arms):
 
 
 def print_summary(report):
+    print("Original comparison (4 s per solve, 120 s per random feeder)")
     print("series scope | true / either misses / joint misses | final recoveries / joint misses having a final tree")
     for series, scopes in report["totals"].items():
         for scope,c in scopes.items():
@@ -311,6 +312,14 @@ def main():
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report,ensure_ascii=False,indent=1,allow_nan=False)+"\n",encoding="utf-8")
     print_summary(report)
+    if not args.rebuild:
+        extended = PUBLISHED.parents[1] / "four_feeders" / "random_time_limits.json"
+        panel = json.loads(extended.read_text(encoding="utf-8"))
+        print("\nExtended random comparison (30 s per solve)")
+        print("scope | completed feeders | joint NJ/RNJ misses | recovered | already in first warm tree")
+        for scope, counts in panel["root_side_joint_misses"].items():
+            print(scope, counts["paired_feeders"], counts["joint_baseline_misses"],
+                  counts["recovered_final"], counts["already_in_first_warm"])
     return 0
 
 

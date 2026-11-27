@@ -53,6 +53,26 @@ python -B -m ptid.runs.random_dev_recovery --cases-root $caseRoot --groups all-r
 python -B -m ptid.runs.random_dev_compare --cases-root $caseRoot --cache "$caseRoot/outputs/comparison/arms" --out "$caseRoot/outputs/random-local.json" --wall 120
 ```
 
+### 同一批输入放宽时间后再比较
+
+保留原八天端表量测、九种初值、评分、节点触发规则、锚定轮数和增线次数。只将每次 Tree MIQP、Node MIQP 和线路翻转求解的上限从 4 秒提高到 30 秒，并放宽每个馈线的整作业上限。原来超时的 12 网和虽返回最终树但整树求解间隙尚未闭合的 5 网组成 17 网复查组。另将此前闭合的 4 个 small 馈线按同样的新设置各跑一次，以便在同一批输入上进行五法比较。对仍需诊断的案例，在保存的同一候选域中保留最佳可行树，单独增加时间。单域复解的结果与完整流程分别记录。[逐网输出、分组精度和求解界](random_time_limits.json)
+
+| 已验证的随机开发网 | 网数 | 完整方法 | RG | NJ | RNJ | Park |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| small | 4 | 0.757 | 0.236 | 0.549 | 0.778 | 0.098 |
+| medium | 5 | 0.557 | 0.156 | 0.316 | 0.320 | 0.060 |
+| large | 6 | 0.577 | 0.105 | 0.304 | 0.320 | 0.033 |
+| huge | 6 | 0.630 | 0.061 | 0.257 | 0.293 | 0.013 |
+| **全部** | **21** | **0.622** | **0.129** | **0.340** | **0.399** | **0.046** |
+
+表中是按馈线等权的分组 F1。五种方法均在 21/21 网交付了树，各法整树完全匹配均为 0/21。逐网与该网得分最高的外部方法相比，完整方法在 18 网更高、2 网相同、1 网更低。原 120 秒内完成的 9 网在放宽时限后均得到相同 F1。其余 12 网现在均有实际结果。
+
+同一批 21 网中，首次 Tree MIQP 的局部搜索热启动平均 F1 已为 0.608，完整流程达到 0.622。逐网有 8 网改善、11 网持平、2 网下降。完整流程仅在 2 网调用了宽节点 MIQP，共 10 次，两网均未由该步骤提出真分组。自然运行中的近根漏线、整数解首次找回深层真线的实例，以及受控起点上发现候选池以外真实共享线段的实例分别列在[自然误判归因](../root_ablation/README.md)和[宽节点配对消融](../wide_feeders/README.md)。
+
+21 个最终整树候选域中，6 个在 30 秒内达到规定间隙。另选 5 个保存的候选域，以 180 至 600 秒单独复解，2 个达到容差，其余 3 个仍有间隙。比如 `medium_004_end` 的首次候选域增至 600 秒上限，在约 49 秒达到容差，仍漏掉全部 12 个真组。`huge_004_end` 的首次候选域运行 600 秒后可行目标有所下降，F1 仍为 0.296，残余相对间隙约 0.97%。上下界对应当次限定的候选域。所有最终树的评分均用相同量测独立重算。
+
+已有原始对照回执的工作区可从研究目录运行 `python -B experiments/run.py random-budget --all-verified --seconds 30 --wall 1800`。中断后重跑相同命令可复用已完成且输入、设置、候选和初值相同的子问题。单网诊断可用 `--jobs` 选择网名、`--stage` 选择整树调用编号（从 0 开始）、`--fixed-seconds` 指定该候选域的新时限。
+
 ## 调度在什么条件下起作用
 
 在 28 条实际执行的政策轨迹中，成交和实际支出均为零。主设置下局部滚动策略有 74 个时点既有未决目标又通过模型检查，每次都有可行报价。按预设每单位辨识得分值 5 元折算，所有非零动作的预计收益都低于采购费。四网中最接近成交的是 Paper15，按其实际观测路径，最便宜的正增益报价每单位得分仍需 43.04 元。它解释了本次停购决策。实际采购对辨识的增量还需要有成交且有被动对照的实验来衡量。[逐政策结果与报价示例](probe_results.md)
@@ -67,7 +87,7 @@ python -B -m ptid.runs.random_dev_compare --cases-root $caseRoot --cache "$caseR
 | [evidence.json](evidence.json) | 91 份逐次结果，键为原文件名。包括 32 份八天被动辨识、20 份日终辨识、28 份 Probe 轨迹、7 份节点记录及 4 份数据复核。3 份固定节点记录各含两种解法 |
 | [offline_audit.json](offline_audit.json)、[baselines_check.json](baselines_check.json)、[sensitivity.json](sensitivity.json) | 独立目标复核、外部方法自检、各敏感性条件的原始比较 |
 | [probe_summary.json](probe_summary.json)、[probe_offer_trajectory.json](probe_offer_trajectory.json)、[probe_offer_trajectory.png](probe_offer_trajectory.png) | 配对轨迹核验、报价图数据及成图 |
-| [random_recovery.json](random_recovery.json)、[random_comparison.json](random_comparison.json) | 随机开发库输入校验、规模比较及超时记录 |
+| [random_recovery.json](random_recovery.json)、[random_comparison.json](random_comparison.json)、[random_time_limits.json](random_time_limits.json) | 随机开发库输入校验、原 120 秒五法对照，以及在相同已核验输入上放宽时间后的五法对照和逐阶段归因 |
 
 从 `topology_study` 目录可直接读取任意一份已发表的结果，例如：
 
