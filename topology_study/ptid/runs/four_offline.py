@@ -29,11 +29,11 @@ from ptid.method.identify import Settings, identify, place_load
 from ptid.method.labels import grouping
 from ptid.method.model import BOUND, Fitter, Model, balance
 from ptid.method.sets import basis, children, lines_of
-from ptid.runs.four_feeders import CASES, data_root, history, load_feeder, meter_stream, sha256, validate_replay
+from ptid.runs.four_feeders import CASES, history, load_feeder, meter_stream, sha256, validate_replay
+from ptid.runs.four_records import cache_root, input_records, read_record
 from ptid.runs.identify_cases import f1
 from ptid.runs.passive_baselines import run_baseline
 
-OUT = Path(__file__).resolve().parents[2]/"experiments"/"four_feeders"
 JOBS = ("C", "rg", "nj", "rnj", "park", "blind", "A", "B")
 
 
@@ -43,7 +43,7 @@ def settings():
 
 
 def cache_file(name):
-    return data_root().parent/"outputs"/"topology_study_four_feeders"/"first"/f"{name}.pkl"
+    return cache_root()/"first"/f"{name}.pkl"
 
 
 def digest(data):
@@ -192,7 +192,7 @@ def independent_H(data, row):
     return float(fit.cost/m["sigma2"] + m["N"]*m["alpha"]*len(lines)/2)
 
 
-def audit():
+def audit(source, out):
     summaries = {job: [] for job in JOBS}
     independent = []
     for name in CASES:
@@ -200,7 +200,7 @@ def audit():
         data = history(rec)
         hashes, rows = digest(data), {}
         for job in JOBS:
-            row = json.loads((OUT/f"offline_{name}_{job}.json").read_text(encoding="utf-8"))
+            row = read_record(source, f"offline_{name}_{job}.json")
             if row["status"] != "ok" or any(hashes[k] != v for k, v in row["input_sha256"].items()):
                 raise ValueError(f"Job failed or inputs differ: {name}/{job}")
             if metrics(row["tree"], rec["truth"]) != row["score"]:
@@ -221,14 +221,14 @@ def audit():
         per_method[job] = dict(completed=len(scores), mean_feeder_f1=float(np.mean([r["f1"] for r in scores])),
                                exact_trees=sum(r["exact_match"] for r in scores),
                                tp=sum(r["tp"] for r in scores), fp=sum(r["fp"] for r in scores), fn=sum(r["fn"] for r in scores))
-    save(OUT/"offline_audit.json", dict(summaries=per_method, independent_objectives=independent,
+    save(out/"offline_audit.json", dict(summaries=per_method, independent_objectives=independent,
                                         all_common_initial_states_equal=True, objective_tolerance_H=1e-5))
 
 
-def endday_data(rec, data):
+def endday_data(rec, data, source):
     """Use the delivered P0 measurements at hour 24, independently verified against the archived zero-action world."""
     name = rec["name"]
-    receipt = json.loads((OUT/f"probe_{name}_2024-01-31_100_P0.json").read_text(encoding="utf-8"))
+    receipt = read_record(source, f"probe_{name}_2024-01-31_100_P0.json")
     if (receipt["start_day"] != rec["start_day"] or receipt["policy"] != "P0"
             or receipt["hours_delivered"] != 24 or receipt["orders"] or receipt["paid"] != 0):
         raise ValueError("Expected the one-day zero-procurement trajectory")
@@ -259,14 +259,17 @@ def endday_data(rec, data):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", type=Path, help="Working result directory (default: local cache/runs)")
+    ap.add_argument("--records", type=Path, help="Saved runs to audit or P0 receipts for --endday")
     ap.add_argument("--cases", default=",".join(CASES))
     ap.add_argument("--jobs", default=",".join(JOBS))
     ap.add_argument("--reuse-initial", action="store_true", help="Read an already verified C solve for scoring")
     ap.add_argument("--audit", action="store_true", help="audit all 32 saved jobs")
     ap.add_argument("--endday", action="store_true", help="20 end-of-day same-channel refits on verified P0 trajectories")
     args = ap.parse_args()
+    out = args.out or cache_root()/"runs"
     if args.audit:
-        audit()
+        audit(args.records or args.out or input_records(out, "offline_*_*.json"), out)
         return 0
     env = dict(python=platform.python_version(), numpy=np.__version__, scipy=scipy.__version__,
                gurobi=gp.gurobi.version(), platform=platform.platform())
@@ -275,7 +278,8 @@ def main():
         rec = load_feeder(name)
         data = history(rec)
         if args.endday:
-            data, trajectory = endday_data(rec, data)
+            source = args.records or args.out or input_records(out, "probe_*_2024-*.json")
+            data, trajectory = endday_data(rec, data, source)
             for job in ("rg", "nj", "rnj", "park", "blind"):
                 row = run_one(rec, data, name, job)
                 row.update(trajectory=trajectory, environment=env)
@@ -283,11 +287,11 @@ def main():
                     row["independent_H"] = independent_H(data, row)
                     if abs(row["independent_H"]-row["stages"]["final"]["H"]) > 1e-5:
                         raise ValueError(f"End-day explicit score differs on {name}")
-                save(OUT/f"endday_{name}_{job}.json", row)
+                save(out/f"endday_{name}_{job}.json", row)
                 print(name, "endday", job, row["status"], row.get("score",{}).get("f1"), flush=True)
                 success &= row["status"]=="ok"
             continue
-        save(OUT/f"data_check_{name}.json", dict(**validate_replay(rec), environment=env, history_days=8,
+        save(out/f"data_check_{name}.json", dict(**validate_replay(rec), environment=env, history_days=8,
                                                  start_day=rec["start_day"], meter_key=rec["key"]))
         for job in args.jobs.split(","):
             if job not in JOBS:
@@ -297,7 +301,7 @@ def main():
             except Exception:
                 row = dict(case=name, method=job, status="failed", error=traceback.format_exc())
             row["environment"] = env
-            save(OUT/f"offline_{name}_{job}.json", row)
+            save(out/f"offline_{name}_{job}.json", row)
             print(name, job, row["status"], row.get("score",{}).get("f1"), row.get("seconds"), row.get("error",""), flush=True)
             success &= row["status"]=="ok"
     return 0 if success else 1

@@ -23,7 +23,7 @@
 
 选取训练目标最低的原始构树结果时，四网 F1 分别为 0.727、0.706、0.600、0.778。多起点局部搜索后均达到 1。四份热启动没有给宽节点留下真实漏线，完整流程实际调用宽节点 MIQP 零次。四网的首次与锚定 Tree MIQP 均在各自的候选集合内求解到设定容差。日初开关节点搜索的 A、B、C 组给出了相同的树。
 
-为单独检验节点步骤，在同一十子节点热启动中保留星形接法，剔除初始候选中的共享线段。两组使用相同观测、相同窄节点枚举和同一整树求解预算，C 额外搜索宽节点。含一段 0.064 Ω 共享线路时，C 找回表计 1 和 8 的共同父节点，归一化目标从 1.198228 降到 0.988483，翻转评分将该组列为已判定。无该共享线路时，C 查完所有单条新增线段后保留原树。这两份人为控制的输入验证了覆盖初始池以外的能力。此前另一个有噪声的宽节点实验中，目标改善伴随一条误增，仍需用独立馈线估计找回和误增的实际频率。[共享线路](node_controlled_1_C.json) · [无共享对照](node_controlled_0_C.json) · [此前的宽节点配对结果](../node_pairs/README.md)
+为单独检验节点步骤，在同一十子节点热启动中保留星形接法，剔除初始候选中的共享线段。两组使用相同观测、相同窄节点枚举和同一整树求解预算，C 额外搜索宽节点。含一段 0.064 Ω 共享线路时，C 找回表计 1 和 8 的共同父节点，归一化目标从 1.198228 降到 0.988483，翻转评分将该组列为已判定。无该共享线路时，C 查完所有单条新增线段后保留原树。这两份人为控制的输入验证了覆盖初始池以外的能力。此前另一个有噪声的宽节点实验中，目标改善伴随一条误增，仍需用独立馈线估计找回和误增的实际频率。[共享线路及无共享对照的逐例记录](evidence.json) · [此前的宽节点配对结果](../node_pairs/README.md)
 
 | 节点的子树数 | 合法子集数 | 穷举耗时，秒 | Node MIQP 耗时，秒 |
 | ---: | ---: | ---: | ---: |
@@ -31,7 +31,7 @@
 | 10 | 1,012 | 0.916 | 0.379 |
 | 11 | 2,035 | 2.609 | 0.626 |
 
-这里的最优性针对固定接点、固定其余树结构以及单条新增共享线段。对 3,293 个合法子集逐一重拟合，三种宽度的 MIQP 最优解和目标均与穷举一致，界也闭合到容差。耗时为本机各一次，可从 `topology_study` 目录运行 `python -B -m ptid.runs.node_mechanism --out experiments/four_feeders`。[8 子树](node_fixed_8.json) · [10 子树](node_fixed_10.json) · [11 子树](node_fixed_11.json)
+这里的最优性针对固定接点、固定其余树结构以及单条新增共享线段。对 3,293 个合法子集逐一重拟合，三种宽度的 MIQP 最优解和目标均与穷举一致，界也闭合到容差。耗时为本机各一次，可从 `topology_study` 目录运行 `python -B -m ptid.runs.node_mechanism`。[三种宽度的目标、界和选中分组](evidence.json)
 
 ## small 至 huge 的随机开发馈线
 
@@ -49,8 +49,8 @@
 使用原负荷目录生成 `customers.npz` 后，在 `topology_study` 目录运行下列入口。`$caseRoot` 为存放该缓存和 `dev` 子目录的本地开发库路径。恢复程序对不匹配的文件逐项记录并以非零状态退出，比较程序检查本地开发库的已恢复输入。
 
 ```powershell
-python -B -m ptid.runs.random_dev_recovery --cases-root $caseRoot --groups all-random --report recovery-local.json
-python -B -m ptid.runs.random_dev_compare --cases-root $caseRoot --cache ./random-local/arms --out random-local.json --wall 120
+python -B -m ptid.runs.random_dev_recovery --cases-root $caseRoot --groups all-random --report "$caseRoot/outputs/recovery-local.json"
+python -B -m ptid.runs.random_dev_compare --cases-root $caseRoot --cache "$caseRoot/outputs/comparison/arms" --out "$caseRoot/outputs/random-local.json" --wall 120
 ```
 
 ## 调度在什么条件下起作用
@@ -58,3 +58,21 @@ python -B -m ptid.runs.random_dev_compare --cases-root $caseRoot --cache ./rando
 在 28 条实际执行的政策轨迹中，成交和实际支出均为零。主设置下局部滚动策略有 74 个时点既有未决目标又通过模型检查，每次都有可行报价。按预设每单位辨识得分值 5 元折算，所有非零动作的预计收益都低于采购费。四网中最接近成交的是 Paper15，按其实际观测路径，最便宜的正增益报价每单位得分仍需 43.04 元。它解释了本次停购决策。实际采购对辨识的增量还需要有成交且有被动对照的实验来衡量。[逐政策结果与报价示例](probe_results.md)
 
 连续两日运行也显示了停购规则的影响。Pengwah18 的目标在第 38、39 小时连续得到正确判定，政策在第 39 小时停止采购。第 40 小时新的被动观测又使它转为待定，直至第 48 小时。对于这类目标，论文可同时报告首次正确时间和日终状态，区分暂时判定与持续判定。[逐小时评价](probe_summary.json)
+
+## 保留文件与重跑位置
+
+| 文件 | 用途 |
+| --- | --- |
+| 本页、[offline.md](offline.md)、[sensitivity.md](sensitivity.md)、[probe_results.md](probe_results.md) | 主结论、方法对照、敏感性和主动调度的分项说明 |
+| [evidence.json](evidence.json) | 91 份逐次结果，键为原文件名。包括 32 份八天被动辨识、20 份日终辨识、28 份 Probe 轨迹、7 份节点记录及 4 份数据复核。3 份固定节点记录各含两种解法 |
+| [offline_audit.json](offline_audit.json)、[baselines_check.json](baselines_check.json)、[sensitivity.json](sensitivity.json) | 独立目标复核、外部方法自检、各敏感性条件的原始比较 |
+| [probe_summary.json](probe_summary.json)、[probe_offer_trajectory.json](probe_offer_trajectory.json)、[probe_offer_trajectory.png](probe_offer_trajectory.png) | 配对轨迹核验、报价图数据及成图 |
+| [random_recovery.json](random_recovery.json)、[random_comparison.json](random_comparison.json) | 随机开发库输入校验、规模比较及超时记录 |
+
+从 `topology_study` 目录可直接读取任意一份已发表的结果，例如：
+
+```powershell
+python -c "from ptid.runs.four_records import read_published; print(read_published('offline_paper15_C.json')['score'])"
+```
+
+四网重跑的逐次 JSON、求解状态、原始轨迹和中间缓存默认存入项目本地的 `outputs/topology_study_four_feeders/`，其中 `runs/` 为本次计算结果。可用 `PTID_FOUR_CACHE` 指定缓存目录。核查与 Probe 汇总优先读取本地同类作业；尚无本地作业时，从本目录的归档读取。复核目标和重建轨迹还需相应的原始数据和潮流缓存。

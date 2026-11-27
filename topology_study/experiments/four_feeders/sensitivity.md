@@ -16,4 +16,4 @@
 
 Park 基线的矩估计使用各表的二维有功/无功协方差，拓扑通过电阻距离和有限样本递归分组恢复。12 个条件中，馈线内最大跨表 P/Q 相关系数绝对值为 .818–.918，各条件最病态的单表协方差矩阵条件数为 327–465，均可求逆。跨节点不相关是论文公式的推导前提。这里的表现应与该前提的偏离一起解释。在另一个满足假设的已知拓扑小例上，四个基线都恢复了全部三个非平凡分组。[Park 等原文，§III–IV](https://arxiv.org/pdf/1710.10727) · [基线核验](baselines_check.json)
 
-所提法采用主表相同的开发运行预算，每次整树与翻转求解限时 4 秒，最多一轮锚定搜索。完整输入摘要、物理源哈希、测量频率、噪声设置、种子来源、树、每例分数、求解状态、界及耗时见[逐作业结果](sensitivity.json)和[数据加载器](../../ptid/runs/four_feeders.py)。在 `topology_study` 目录可用 `python -B -m ptid.runs.four_sensitivity --workers 2 --out sensitivity_rerun.json` 复算。
+所提法采用主表相同的开发运行预算，每次整树与翻转求解限时 4 秒，最多一轮锚定搜索。完整输入摘要、物理源哈希、测量频率、噪声设置、种子来源、树、每例分数、求解状态、界及耗时见[逐作业结果](sensitivity.json)和[数据加载器](../../ptid/runs/four_feeders.py)。在 `topology_study` 目录可用 `python -B -m ptid.runs.four_sensitivity --workers 2` 复算。

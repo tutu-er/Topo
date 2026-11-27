@@ -8,7 +8,8 @@ import pickle
 from collections import Counter
 from pathlib import Path
 
-from ptid.runs.four_probe import PUBLIC, DeviceSchedule, ST, cache_root, load_feeder, np, pr, views, write_json
+from ptid.runs.four_probe import DeviceSchedule, ST, cache_root, load_feeder, np, pr, views, write_json
+from ptid.runs.four_records import input_records, read_record, record_names
 from ptid.method.labels import DECIDED
 from ptid.runs.four_feeders import history
 from ptid.runs.four_offline import digest
@@ -91,12 +92,12 @@ def bid_check(row, rec, cache, hourly=None):
                 highest_nonzero_offer=max(best_offers,key=lambda r:r["net_cny"]) if best_offers else None)
 
 
-def illustrate(case, public, cache):
+def illustrate(case, public, cache, source):
     """An observed P3 trajectory, using hypothetical offers and their actual clearance result."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    row = json.loads((public/f"probe_{case}_2024-01-31_100_P3.json").read_text(encoding="utf-8"))
+    row = read_record(source, f"probe_{case}_2024-01-31_100_P3.json")
     rec = load_feeder(case)
     row["load_model"] = pickle.loads((cache/"first"/f"{case}.pkl").read_bytes())["gate"]["load"]
     hourly = []
@@ -143,9 +144,10 @@ def illustrate(case, public, cache):
         hourly_lowest_cost_per_positive_information=hourly,decision_check=qc))
 
 
-def summarise(public, cache):
-    paths = sorted(public.glob("probe_*_2024-*.json"))
-    results = [json.loads(p.read_text(encoding="utf-8")) for p in paths]
+def summarise(source, cache):
+    results = [read_record(source, name) for name in record_names(source, "probe_*_2024-*.json")]
+    if not results:
+        raise FileNotFoundError(f"No probe trajectories in {source}")
     detail = []
     counter = Counter()
     records = {}
@@ -245,13 +247,16 @@ def summarise(public, cache):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--public",type=Path,default=PUBLIC)
+    parser.add_argument("--out", "--public", dest="out", type=Path, help="Working result directory (default: local cache/runs)")
+    parser.add_argument("--records", type=Path, help="Trajectory records to summarise (default: working results or published evidence)")
     parser.add_argument("--cache",type=Path)
     parser.add_argument("--illustrate", choices=("soumalas11","paper15","flynn16","pengwah18"))
     args = parser.parse_args()
     args.cache = args.cache or cache_root()
-    report = summarise(args.public,args.cache)
-    write_json(args.public/"probe_summary.json",report)
+    out = args.out or args.cache/"runs"
+    source = args.records or args.out or input_records(out, "probe_*_2024-*.json")
+    report = summarise(source,args.cache)
+    write_json(out/"probe_summary.json",report)
     if args.illustrate:
-        illustrate(args.illustrate,args.public,args.cache)
+        illustrate(args.illustrate,out,args.cache,source)
     print("Completed",report["completed"],"paired checks",report["equal_action_pairs_verified"])

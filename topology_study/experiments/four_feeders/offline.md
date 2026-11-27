@@ -47,4 +47,4 @@ python -m unittest ptid.tests.test_pool_pricing ptid.tests.test_score_bounds -q
 | Park | 0.087 | 0.127 | 3 / 24 / 20 | 0/4 |
 | 所提方法，共同端表通道 | 1.000 | 1.000 | 23 / 0 / 0 | 4/4 |
 
-四个日终所提法目标的独立重拟合误差均小于 2e−11 H。逐例结果为本目录的 endday 文件。在四网对应 P0 轨迹完成后运行 `python -m ptid.runs.four_offline --endday` 即可复现。
+四个日终所提法目标的独立重拟合误差均小于 2e−11 H。[逐例记录](evidence.json)以原文件名为键，endday 对应这 20 项评价。在四网对应 P0 轨迹完成后运行 `python -m ptid.runs.four_offline --endday` 即可复现。

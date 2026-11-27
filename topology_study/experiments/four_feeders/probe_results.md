@@ -38,7 +38,7 @@ An order placed at the start of hour h is delivered in hour h+1. For each delive
 
 ## Reproduction
 
-From `topology_study`, run the offline PCC initialisation first. The day files below use those same initial trees. The input location is discovered from the project data or `PTID_FOUR_DATA`; `PTID_FOUR_CACHE` can point to the local results and gate cache. The public JSON gives source and trajectory hashes. The private AC archive retains six raw observation arrays, ordered bus voltages and transformer powers every 15 minutes, and hourly action and state-of-charge arrays. The gate records give available witnesses and their upper gaps. The summary replays the P3 action scores, checks the initial targets and compares measurement arrays, actions and outcomes across policies.
+From `topology_study`, run the offline PCC initialisation first. The day files below use those same initial trees. The input location is discovered from the project data or `PTID_FOUR_DATA`; `PTID_FOUR_CACHE` can point to the local results and gate cache. The [archived run records](evidence.json) give source and trajectory hashes. The private AC archive retains six raw observation arrays, ordered bus voltages and transformer powers every 15 minutes, and hourly action and state-of-charge arrays. The gate records give available witnesses and their upper gaps. The summary replays the P3 action scores, checks the initial targets and compares measurement arrays, actions and outcomes across policies.
 
 ```powershell
 foreach ($name in 'soumalas11','paper15','flynn16','pengwah18') {

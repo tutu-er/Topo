@@ -28,20 +28,12 @@ from ptid.method.identify import identify, label_rows, refine
 from ptid.method.labels import DECIDED, OPEN, grouping
 from ptid.method.model import Fitter
 from ptid.method.sets import canonical
-from ptid.runs.four_feeders import CASES, data_root, history, load_feeder, meter_stream
+from ptid.runs.four_feeders import CASES, history, load_feeder, meter_stream
+from ptid.runs.four_records import cache_root
 from ptid.runs.four_offline import digest, settings
 from ptid.runs.identify_cases import f1
 
 ST = settings()
-STUDY = Path(__file__).resolve().parents[2]
-PUBLIC = STUDY/"experiments"/"four_feeders"
-
-
-def cache_root():
-    if configured := os.environ.get("PTID_FOUR_CACHE"):
-        return Path(configured)
-    return data_root().parent/"outputs"/"topology_study_four_feeders"
-
 
 def write_json(path, value):
     def encode(x):
@@ -379,9 +371,10 @@ def main():
     ap.add_argument("--budget", type=float, default=100.)
     ap.add_argument("--policies", nargs="+", choices=("P0","P1","P2","P3","last24"))
     ap.add_argument("--cache", type=Path)
-    ap.add_argument("--public", type=Path, default=PUBLIC)
+    ap.add_argument("--out", "--public", dest="out", type=Path, help="Working result directory (default: local cache/runs)")
     args = ap.parse_args()
     args.cache = args.cache or cache_root()
+    args.out = args.out or args.cache/"runs"
     date = "2024-01-31" if args.days == 1 else "2024-01-30"
     policies = args.policies or (["P0","P1","P2","P3"] if args.days == 1 else ["P0","last24","P3"])
     rec = load_feeder(args.case, start_day=date, execution_days=args.days)
@@ -409,7 +402,7 @@ def main():
         token.update(path.read_bytes())
     token.update(pickle.dumps(first))
     for policy in policies:
-        out = args.public/f"probe_{args.case}_{date}_{args.budget:g}_{policy}.json"
+        out = args.out/f"probe_{args.case}_{date}_{args.budget:g}_{policy}.json"
         identify_day(rec, data, first, policy, ps, args.cache, args.case, date, out, token.hexdigest()[:16])
 
 

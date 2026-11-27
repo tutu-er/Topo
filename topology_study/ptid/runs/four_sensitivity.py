@@ -1,7 +1,7 @@
 """Paired history length, noise and sampling experiments on the two preselected feeders.
 
 Run from topology_study:
-python -B -m ptid.runs.four_sensitivity --workers 2 --out experiments/four_feeders/sensitivity.json
+python -B -m ptid.runs.four_sensitivity --workers 2
 The nominal 8-day hourly and 1x-noise rows are reused from the primary passive experiment.
 The 60-minute sampling arm explicitly averages the same noisy 15-minute raw channels.
 """
@@ -27,6 +27,7 @@ import scipy
 from ptid.method.identify import identify
 from ptid.runs.four_feeders import history, load_feeder
 from ptid.runs.four_offline import settings
+from ptid.runs.four_records import cache_root
 from ptid.runs.identify_cases import f1
 from ptid.runs.passive_baselines import run_baseline
 
@@ -100,8 +101,9 @@ def save(path, results, workers):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=2)
-    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--out", type=Path, help="Summary file (default: local cache/runs/sensitivity.json)")
     args = parser.parse_args()
+    args.out = args.out or cache_root()/"runs"/"sensitivity.json"
     results = []
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         pending = {pool.submit(run_condition, case, variant): (case, variant)

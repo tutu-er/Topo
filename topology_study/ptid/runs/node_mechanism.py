@@ -1,6 +1,6 @@
 """Fixed-node exhaustive reference and paired AC missing-line experiment.
 
-Run from topology_study with python -m ptid.runs.node_mechanism --out DIR.
+Run from topology_study with python -m ptid.runs.node_mechanism.
 """
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ from ptid.method.identify import Settings, refine
 from ptid.method.model import BOUND, Model
 from ptid.method.search import PRICING_TOL, node_miqp
 from ptid.method.sets import basis, canonical, children, unions
+from ptid.runs.four_records import cache_root
 
 
 SEED = 20261128
@@ -163,9 +164,10 @@ def controlled(shared, wide):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--out", type=Path, help="Working result directory (default: local cache/runs)")
     ap.add_argument("--part", choices=["fixed","controlled","all"], default="all")
     args = ap.parse_args()
+    args.out = args.out or cache_root()/"runs"
     args.out.mkdir(parents=True, exist_ok=True)
     cases = []
     if args.part in ("fixed", "all"):
