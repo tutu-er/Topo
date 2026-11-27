@@ -55,7 +55,9 @@ In all: no load 20, head 20, middle 16, end 16. The other 216 twins can be added
 same physics and meters, 8 days hourly, **start days 0 and 6**. They have **no PCC power**, so no unmetered load is
 modelled. The truth is their identifiable truth. (The same 33 feeders on start days 1-5 and 7-11, 330 inputs, served as
 a confirmation set in the earlier study; they are not used here.) The 84 real feeders that set λ and the generator
-include these 33, so the real set is not independent of the method's settings.
+include these 33. Each pair of eight-day windows shares 48 hours of underlying customer loads. Report 33 feeders and
+66 development inputs. For a new independent assessment, hold out whole physical feeders from calibration and keep
+all windows and load variants of a feeder in the same split.
 
 ### 2.4 Not used
 
@@ -94,7 +96,8 @@ Reported (`summary`), by kind:
 | S1, S2 | true and found trees flagged by the adequacy F test; pricing complete |
 | time | median and largest per case |
 
-`compare OLD NEW` gives, on the common cases: same tree, F1 old → new, wrong decided old → new, median time.
+`compare OLD NEW` reports both wrong-decision counts on the same decided-group denominator, alongside tree agreement,
+F1 and median time.
 
 **Criteria for the v15/v16 solver fix** (written 2026-11-27, after the runs had started and before any of their results
 were read):
@@ -105,19 +108,30 @@ were read):
 **Two truths** (added 2026-11-27, after the real-feeder results): the scoring truth merges lines shorter than
 3 milliohm, but the data can see some of them (RESULTS.md §4.1). From now on both are reported:
 - the **identifiable truth** (the 3 milliohm floor) for F1, precision and recall, as before;
-- the **exact truth** for whether a grouping is a physical line at all. A decided label counts as **wrong** in the
-  criterion above when its grouping is **not a physical line**; decided labels on sub-floor lines are reported
-  separately.
+- the **exact truth** for whether a grouping is a physical line at all.
 
-This changes how the criterion is measured after results were seen. Both counts are always shown, so the change hides
-nothing.
+Apply the original 2% criterion using the 3 milliohm reference. In the 66 EU-LV inputs, 4/162 decided groups
+disagreed with that reference (2.47%). All four were shorter physical lines, giving 0/162 against exact truth.
+The exact-reference rate is a secondary, retrospective measurement on these inputs. Fix both definitions before
+opening any new evaluation feeders.
+
+### Small node-refinement comparison
+
+Use one synthetic 11-meter feeder with a ten-child physical junction, two preselected excitation levels and
+shared noise draws. For each input and each fixed line price parameter (`p_s=1` and `2`), compare the same first
+tree and builder pool with node refinement on and off. Keep the round limit, per-solve limits and overall time
+cap equal. Record timeouts and incomplete bounds. Determine the cases and excitation levels before looking at
+topology errors. Use the generating topology only to score outputs. For any added line report initial and current
+pool membership, survival in the returned tree and agreement with truth. Record first-round anchors and any that
+are false or later released. This checks attribution on one constructed branching pattern.
 
 ## 5. Probing runs (`ptid.runs.probe_cases`)
 
 A simulated day 9 on a development case: Algorithm 1 on the 8-day history, then Algorithm 2 with the case's world
 (`ptid/cases/world.py`: the case's true loads and unmetered load, AC power flow, the same meters with new noise;
 batteries and EV chargers of scenario R1). Reported per day: F1 before and after, blocks bought, money spent, targets
-and their final labels, wrong decided targets, stop reason. Variants T0, T1, T2 of the target rule and the start rule
+and their final labels, wrong decided meter groups out of all decided meter groups, and stop reason. Load placement
+is marked unassessed in the absence of a verified reference path. Variants T0, T1, T2 of the target rule and the start rule
 are tested as PROPOSALS.md describes. ψ is chosen at the knee of the development cost-coverage curve (PLAN.md).
 
 ## 6. Toward a registered test
