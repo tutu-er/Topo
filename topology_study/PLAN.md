@@ -6,7 +6,7 @@
 | --- | --- |
 | Method | Draft v16 (`paper/procedure.tex`), code `ptid/method/`. Algorithm 1 implemented and run on development cases; Algorithm 2 implemented, run on simulated days only. |
 | Solver | Fixed 2026-11-26/27: on 47-60 meter feeders the MIQP gave false proofs and the local search stopped far from a local optimum (RESULTS.md, section 3). Now: converged local search, scaled coefficients, default tolerances, every claim checked against known trees. |
-| Development runs | Running with the fixed code: one twin per feeder (72 cases) and the 66 real-feeder inputs. The code that runs them equals `ptid` except two refinements that cannot change Algorithm 1's results on these cases (CHANGES.md, section 3; RESULTS.md, section 4). |
+| Development runs | Running with the fixed code: one twin per feeder (72 cases) and the 66 real-feeder inputs. The 72-case run uses c5c4aae, which equals `ptid` except two refinements (CHANGES.md, section 3): probing's check, which identification never uses, and the node MIQP's scaling, an exact change of variables that gave the same results wherever it was compared (RESULTS.md, sections 4 and 5.1). The real-feeder run uses `ptid` itself. |
 | Registered result | The predecessor's sealed test holds (RESULTS.md, section 1); its set is spent. Nothing here is registered. |
 | Proposals | Start rule, target rule, stop rules, κ alternative: recorded, not adopted (PROPOSALS.md). |
 
