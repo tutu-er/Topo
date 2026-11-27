@@ -207,26 +207,37 @@ def band_interval(trees, i, sign, fc, sigma2, ps):
     return low, high
 
 
+def feasible_ranges(model, lead, rivals, fc, up, down, budget, base_kw, ps):
+    """Continuous intervals from the common offer, forecast, voltage and purchase limits."""
+    for i in range(model.n):
+        for sign, room, price in ((1., up[i], ps.price_up), (-1., down[i], ps.price_down)):
+            low, high = band_interval([lead, *rivals.values()], i, sign, fc, model.sigma2, ps)
+            high = min(high, room, budget/(base_kw*price), ps.transformer-fc["pcc"] if sign > 0 else math.inf)
+            if high > low:
+                yield i, sign, price, low, high
+
+
+def feasible_blocks(model, lead, rivals, fc, up, down, budget, base_kw, ps):
+    """The four one-hour offers at each feasible meter and sign."""
+    for i, sign, price, low, high in feasible_ranges(model, lead, rivals, fc, up, down, budget, base_kw, ps):
+        for k in range(1, ps.sizes+1):
+            a = low+(high-low)*k/ps.sizes
+            if a > 1e-12:
+                yield i, sign*a, base_kw*price*a
+
+
 def choose_block(model, lead, rivals, now, fc, up, down, budget, base_kw, ps, m):
     """Eq. 15 over the feasible one-meter blocks: (J, u in pu per meter, cost in CNY) of the best, or (0, None, 0).
     rivals: {target: its rival's prediction}; now: the targets' states."""
     seps = {k: (now[k], *separation(lead, rivals[k], model.sigma2)) for k in rivals}
     passive = sum(term(s, d0@S@d0, m, ps.variant) for s, d0, _, S in seps.values())
     best = (0., None, 0.)
-    for i in range(model.n):
-        for sign, room, price in ((1., up[i], ps.price_up), (-1., down[i], ps.price_down)):
-            low, high = band_interval([lead, *rivals.values()], i, sign, fc, model.sigma2, ps)
-            high = min(high, room, budget/(base_kw*price), ps.transformer-fc["pcc"] if sign > 0 else math.inf)
-            if high <= low:
-                continue
-            for a in (low+(high-low)*k/ps.sizes for k in range(1, ps.sizes+1)):
-                if a <= 1e-12:
-                    continue
-                value = sum(term(s, (d0+G[:, i]*sign*a)@S@(d0+G[:, i]*sign*a), m, ps.variant)
-                            for s, d0, G, S in seps.values())
-                J = ps.psi*(value-passive)-base_kw*price*a
-                if J > best[0]:
-                    best = (J, sign*a*np.eye(model.n)[i], base_kw*price*a)
+    for i, signed, cost in feasible_blocks(model, lead, rivals, fc, up, down, budget, base_kw, ps):
+        value = sum(term(s, (d0+G[:, i]*signed)@S@(d0+G[:, i]*signed), m, ps.variant)
+                    for s, d0, G, S in seps.values())
+        J = ps.psi*(value-passive)-cost
+        if J > best[0]:
+            best = (J, signed*np.eye(model.n)[i], cost)
     return best
 
 
