@@ -212,7 +212,15 @@ of the two huge twins with an 11-child node (`ptid.runs.checks wide-nodes`; pric
 
 Both are exact, so results change only if a node MIQP stops at its 60 s limit, which is reported as an unproved node.
 
-**With the node MIQP's coefficients scaled (ptid, 2026-11-27):** the check is running on the same trees.
+**With the node MIQP's coefficients scaled (ptid, 2026-11-27),** on the same trees (`ptid.runs.checks wide-nodes` on the
+huge twins of the stopped run; 8 of 10 trees have no node wider than K = 9 and are enumerated):
+
+| Twin | Enumeration | Scaled node MIQP |
+|---|---|---|
+| dev_huge_004_head | best line of 20 meters, gain 3.04e-3 (crit), 90 s | the same line and gain, proved, 13 s |
+| dev_huge_004_none | no line pays, 67 s | no line pays, proved, 12 s |
+
+(The machine was shared with two runs, so the times are upper bounds.)
 
 ### 5.2 The nested-pair cap on true trees
 
