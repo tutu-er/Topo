@@ -95,14 +95,15 @@
 \maketitle
 
 \begin{abstract}
-A topology estimated from smart meters can attach several customer groups to the same junction even when some share
-an additional length of feeder. We formulate two mixed-integer quadratic programs (MIQPs) to identify such segments
-from voltage and power measurements. The tree MIQP chooses compatible downstream customer sets from a candidate pool
-and fits their line impedances. At a junction of the current tree, the node MIQP selects which child subtrees share one
-additional upstream segment and refits the impedances of the entire tree. One binary variable per child represents
-all ways to group two or more, but fewer than all, of the children behind that segment. A subsequent tree solve
-evaluates the new segment alongside the existing candidates. Grouping flips identify anchors for the next solve and give the final tree
-a score interval for each tested grouping. In a development comparison on two inputs from one feeder with an
+We identify the topology of a radial low-voltage feeder from smart-meter voltage and power measurements by
+estimating which customers share each line. The combined power flow of customers downstream of a line produces
+a voltage drop common to those customers. We fit this response with two mixed-integer quadratic programs (MIQPs).
+The tree MIQP selects compatible customer groups from an initial pool and estimates their line impedances.
+The node MIQP selects which child subtrees at a junction share an additional upstream line and refits all line
+impedances. This step can propose a line absent from every starting tree. The tree MIQP then evaluates that
+line alongside the other candidates in the round. Grouping flips assess support for each tested branch by
+comparing the fitted tree with alternatives that reverse the grouping.
+In a development comparison on two inputs from one feeder with an
 11-child junction, the node formulation matched exhaustive enumeration: one input favoured adding a line serving 20
 meters and the other admitted no improving addition. The respective node-search times were 13 and 12 seconds,
 compared with 90 and 67 seconds for enumeration.
@@ -116,9 +117,10 @@ line impedance estimation.
 \section{Introduction}
 Voltage changes shared by several customers carry information about the lines upstream of them. Consider a provisional
 tree with a single junction serving three streets. If two streets share another segment before they separate, changes
-in either street's power contribute to the voltage drop in both. Fitting any number of candidate trees will miss that
-segment if its downstream customer set never appears in the search. The identification problem is therefore both to
-select among the available lines and to discover a line that the current candidate pool may have missed.
+in either street's power contribute to the voltage drop in both. The meter readings let us ask whether the
+improvement in fit justifies adding a segment that carries both streets' power. Applying this principle across
+the feeder gives an estimated tree and identifies the branchings
+for which a different customer grouping fits the readings nearly as well.
 
 Existing integer formulations identify branch states from weighted measurement residuals~\cite{tian} or select
 candidate bus-to-bus connections and estimate line resistances from inverter probing~\cite{taheri}.
@@ -126,13 +128,19 @@ Liang et al.\ start with an MIQP tree and use power flow to evaluate neighbourin
 Pengwah et al.\ estimate topology and locate interval meters under partial smart-meter coverage~\cite{pengwah}.
 Here each line is represented by its downstream leaves, so the junctions joining those lines can be unmetered.
 
-Our main contribution is a node MIQP for identifying a shared line at a junction of a provisional feeder tree.
-With $d$ children, $d$ binary variables encode all $2^d-d-2$ possible single-line additions. The model groups
-the selected subtrees under the new line and jointly fits its impedance and those of the existing lines to the
-meter readings. Nine tree constructions supply an initial pool and feasible starting trees. The tree MIQP selects
-compatible lines from that pool and reconsiders them together with additions from the node MIQP. Both models
-use the same penalised voltage residual. Grouping flips score the fitted branches and identify anchors for the
-next round. An optional probing policy uses competing fits to select a new measurement action (Section~\ref{sec:probe}).
+Our main contribution is a node MIQP that infers the downstream customer set of a shared line directly at a
+junction of the current tree. With $d$ children, $d$ binary variables encode all $2^d-d-2$ ways to add one
+line at that junction. Each choice assigns the combined power of the selected subtrees to the new line.
+The model fits the new and existing line impedances jointly and compares the resulting voltage residuals,
+including the penalty for the extra line.
+
+Nine tree constructions supply candidate lines and feasible starts for the tree MIQP. The node MIQP expands
+the candidate pool, and the tree MIQP reselects compatible lines under the same score. When the power balance
+at the point of common coupling (PCC)
+indicates an unmetered load, it enters the tree as a leaf with estimated power and no voltage reading.
+Flipping a tested grouping measures how much the score must change to reverse it; the resulting scores guide
+the next round and accompany the final tree. For groups with competing explanations, an optional probing
+policy uses the predicted voltage responses to select a demand-response action (Section~\ref{sec:probe}).
 
 \section*{Nomenclature}
 \begin{tabular}{@{}p{0.27\textwidth}p{0.68\textwidth}@{}}
