@@ -1,0 +1,337 @@
+<meta charset="utf-8">
+<title>Feeder Topology Method v5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: one reading column (about 70 characters); algorithm boxes and tables scroll sideways on phones. */
+:root {
+  --bg: #f5f7f9; --surface: #ffffff; --fg: #17212b; --muted: #566473; --rule: #d6dee6;
+  --accent: #1c5d9f; --tested: #1d7650; --tested-bg: #e3f2ea; --proposed: #9a5a09; --proposed-bg: #fbefdc;
+  --box: #eef2f6;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #161d25; --fg: #e2e8ee; --muted: #9babb9; --rule: #2a3643;
+    --accent: #72aef0; --tested: #67c99a; --tested-bg: #15302a; --proposed: #e9a94f; --proposed-bg: #33270f;
+    --box: #1b2430; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #161d25; --fg: #e2e8ee; --muted: #9babb9; --rule: #2a3643;
+  --accent: #72aef0; --tested: #67c99a; --tested-bg: #15302a; --proposed: #e9a94f; --proposed-bg: #33270f;
+  --box: #1b2430; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.6; }
+.page { max-width: 820px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { display: grid; gap: 12px; margin-bottom: 28px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 4.4vw, 36px); line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 23px; line-height: 1.25; margin: 48px 0 12px; text-wrap: balance;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+h3 { font-family: var(--f-display); font-weight: 500; font-size: 18px; margin: 28px 0 8px; }
+p, li { max-width: 70ch; }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.chip.tested { color: var(--tested); background: var(--tested-bg); }
+.chip.proposed { color: var(--proposed); background: var(--proposed-bg); }
+.status { display: grid; gap: 10px; margin: 8px 0; }
+.status div { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.status p { margin: 0; flex: 1 1 280px; min-width: 0; }
+.abstract { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 18px 20px; }
+.abstract p:last-child { margin: 0; }
+.map { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 18px 0 8px; }
+.map div { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+.map .lab { font-family: var(--f-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.map .big { font-family: var(--f-display); font-size: 19px; font-weight: 600; }
+.map p { margin: 4px 0 0; font-size: 14.5px; }
+nav.toc ol { margin: 0; padding-left: 20px; columns: 2 220px; column-gap: 32px; }
+nav.toc li { margin: 2px 0; }
+.eq { overflow-x: auto; margin: 10px 0 16px; }
+.eqrow { display: flex; align-items: center; gap: 12px; min-width: min-content; }
+.eqrow .m { flex: 1 1 auto; }
+.eqrow .num { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+.formal { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin: 16px 0; }
+.formal .lab { font-family: var(--f-display); font-weight: 600; }
+.formal .eq { margin: 8px 0; }
+.proof { border-left: 3px solid var(--rule); padding: 2px 0 2px 16px; margin: 12px 0 20px; }
+.proof .lab { font-style: italic; }
+.qed { float: right; color: var(--muted); }
+.alg { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; margin: 20px 0 26px; overflow-x: auto; }
+.alg .cap { font-family: var(--f-display); font-weight: 600; padding: 10px 16px; border-bottom: 1px solid var(--rule);
+  display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+.alg .cap .no { color: var(--accent); }
+.alg ol { list-style: none; margin: 0; padding: 10px 16px 12px; counter-reset: ln; font-size: 14.5px; min-width: 600px; }
+.alg li { counter-increment: ln; position: relative; padding-left: 34px; max-width: none; display: flex; gap: 16px; justify-content: space-between; align-items: baseline; }
+.alg li::before { content: counter(ln); position: absolute; left: 0; width: 22px; text-align: right; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.alg li.io { counter-increment: none; padding-left: 0; }
+.alg li.io::before { content: none; }
+.alg li .s { min-width: 0; }
+.alg .d1 { padding-left: 58px; }
+.alg .k { font-weight: 600; }
+.alg .c { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.alg .c::before { content: "\25B7\00A0"; }
+.sc { font-variant: small-caps; letter-spacing: .02em; }
+.explain { background: var(--box); border-radius: 6px; padding: 14px 18px; margin: 14px 0 22px; }
+.explain h3 { margin-top: 0; }
+.explain p:last-child { margin-bottom: 0; }
+.tablewrap { overflow-x: auto; margin: 14px 0 22px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 560px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+th { font-family: var(--f-display); font-weight: 600; font-size: 13.5px; }
+caption { caption-side: top; text-align: left; font-family: var(--f-display); font-weight: 600; padding: 0 0 8px; }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 14px; }
+mjx-container { color: inherit; }
+mjx-container[display="true"] { margin: 0 !important; }
+</style>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]],
+    macros: {
+      tp: "^{\\top}", one: "\\mathbf{1}", Lin: "\\mathcal{L}", Nset: "\\mathcal{N}", Bset: "\\mathcal{B}",
+      Sset: "\\mathcal{S}", Tset: "\\mathcal{T}", Uset: "\\mathcal{U}", Aset: "\\mathcal{A}", Kset: "\\mathcal{K}",
+      Gset: "\\mathcal{G}", cross: "\\pitchfork"
+    }
+  },
+  svg: { fontCache: "global" }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+
+<div class="page">
+
+<header class="top">
+  <div class="eyebrow">Method draft v16 · 27 November 2026 · LaTeX source: case_library_20261125/paper/procedure.tex</div>
+  <h1>Partial topology identification and cost-aware probing for low-voltage feeders</h1>
+  <div class="status">
+    <div><span class="chip tested">Implemented, development</span><p>Algorithm 1 in topology_study/ptid (self-contained: numpy, scipy, gurobipy). Before the solver fix: the same trees as its registered predecessor in 234 of 240 development cases, 0.2% of decided groupings wrong. With the fix: rerun on one twin per feeder and 66 real-feeder inputs (topology_study/RESULTS.md).</p></div>
+    <div><span class="chip proposed">Implemented, not evaluated</span><p>Algorithm 2 (probing, probe.py): ran on simulated days only, with a placeholder \(\psi\).</p></div>
+    <div><span class="chip tested">Registered test</span><p>The sealed test evaluates the predecessor (final.py at 71684ff); its result does not carry over (Section VII).</p></div>
+  </div>
+  <div class="map" aria-label="Three questions">
+    <div><div class="lab">1 · The load</div><div class="big">gate \(\varsigma\ge1\%\)</div><p>Is there an unmetered load? Decided by the PCC balance before any fit.</p></div>
+    <div><div class="lab">2 · The structure</div><div class="big">groupings</div><p>Which meter groupings does the data decide? Labels and anchors.</p></div>
+    <div><div class="lab">3 · The computation</div><div class="big">intervals, scopes</div><p>How certain is the solver? Gap intervals and certificate scopes, carried into probing.</p></div>
+  </div>
+</header>
+
+<section class="abstract" aria-label="Abstract">
+<p><strong>Abstract.</strong> Smart meters at the customers of a low-voltage feeder rarely determine its whole topology: some lines are fixed by the data, others are not. We separate three questions. Is there an unmetered load? The balance at the point of common coupling decides this before any topology is fitted. Which groupings of meters does the data decide? A penalised likelihood with a structural prior scores laminar families of meter sets, with the unmetered load as one more leaf, and one MIQP finds the best tree over a pool of candidate lines. A grouping is <em>decided</em> when a solve of the same MIQP without it proves that no tree within a fixed score margin exists, and <em>open</em> when such a tree is found. How certain is the computation? Every label carries the solver's interval, and every certificate its scope. We show that removing a true line costs the part of the true voltage signal that the remaining tree cannot reproduce, which grows with the data, while a redundant line gains only noise; under stated conditions the search therefore finds the true tree, decides its groupings, and the anchored search, which reduces the exact search to unions of a few units per decided grouping, keeps it. Probing buys demand-response blocks for the open alternatives that a feasible block can separate, each hour the block whose expected capped predictive log-likelihood ratio is worth its price.</p>
+</section>
+
+<nav class="toc" aria-label="Contents">
+<h2>Contents</h2>
+<ol>
+  <li><a href="#model">Model</a></li>
+  <li><a href="#gate">Is there an unmetered load?</a></li>
+  <li><a href="#score">Score and labels</a></li>
+  <li><a href="#identification">Identification (Algorithm 1)</a></li>
+  <li><a href="#probing">Probing (Algorithm 2)</a></li>
+  <li><a href="#value">How the outputs are valued</a></li>
+  <li><a href="#tests">Contributions, limits, tests</a></li>
+  <li><a href="#proofs">Proofs</a></li>
+  <li><a href="#pool">Candidate lines</a></li>
+  <li><a href="#settings">Settings</a></li>
+</ol>
+</nav>
+
+<h2 id="model">I. Model</h2>
+<p>A feeder has a root, the point of common coupling (PCC), and \(n\) metered customers. Meter \(i\) reports \(p_{i,t}\), \(q_{i,t}\), \(V_{i,t}\); the PCC reports \(V_{0,t}\) and, where metered, \(P^{\rm pcc}_t\), \(Q^{\rm pcc}_t\). Every line feeds a set of leaves, its <em>support</em>; the supports of a tree are laminar (any two are nested or disjoint), and a laminar family containing \(\Bset=\{\{1\},\dots,\{n\},\Nset^+\}\) fixes the tree up to internal nodes without leaves, which voltages cannot see. A topology is a laminar family \(F\supseteq\Bset\) over \(\Nset^+\) with lines \(\Lin(F)=F\setminus\Bset\). With the linearised DistFlow equations,</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ y_t=\sum_{C\in F} z_C\big[r_C\,(z_C\tp p_t+h_C u^P_t)+x_C\,(z_C\tp q_t+h_C u^Q_t)\big]+\varepsilon_{0,t}\one+o+e_t \]</div><span class="num">(1)</span></div></div>
+<p>with \(z_C\in\{0,1\}^n\) the meters of \(C\), \(h_C=1\) if \(s\in C\), \(0\le r_C,x_C\le\bar\theta\) twice the line's resistance and reactance in pu (\(\bar\theta=2\) never binds), \(\varepsilon_{0,t}\) the PCC voltage error, \(o\) fixed meter offsets and \(e_t\) meter noise. One unmetered load is allowed; its power is the PCC balance minus the losses estimated from the meters' own voltages,</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ u^P_t=P^{\rm pcc}_t-\sum_i p_{i,t}\Big(1+\frac{V_{0,t}-V_{i,t}}{V_{i,t}}\Big),\qquad u^Q_t\ \text{likewise}. \]</div><span class="num">(2)</span></div></div>
+<p>When the gate of Section II finds a load, it is one more leaf \(s\), with known power and no voltage reading; otherwise there is no leaf \(s\). The supports that carry the load all contain \(s\), so in a laminar family they are nested: they are the load's path (Proposition 3). The load can sit below any line, below the trunk, or at the PCC (beside the trunk; the meters' trunk is then the line \(\Nset\) without \(s\)). Its own branch \(\{s\}\) affects no voltage: its columns are zero and it carries no price. A line is supported by how the loads on one side of its branching point move the voltages on the other side; a meter's own cable has no such branching evidence, so only lines with at least two leaves are topology decisions. The data come from AC power flow; (1) is used inside the method only. <em>Assumptions stated, not modelled:</em> the loss estimate is approximate, several unmetered loads are not one aggregate, and errors in the measured \(p,q\) enter the regressors.</p>
+
+<h2 id="gate">II. Is there an unmetered load?</h2>
+<p>Before any topology is fitted, the PCC balance decides whether a load is modelled at all:</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ \varsigma=\frac{\sum_tu^P_t}{\sum_t\sum_ip_{i,t}},\qquad\text{a load is modelled if and only if }\varsigma\ge\varsigma_0=1\%. \]</div><span class="num">(3)</span></div></div>
+<p>This is a prior setting: a load below 1% of the metered power is treated as absent. Fitting a load of about zero would be wrong, not merely useless: a line \(M\) and the same line carrying the load would fit equally well, and the load's path would be chosen by noise. On the 288 development cases the statistic separates cleanly (Table 1). The threshold is fixed from these cases before any test, and the gate's error rates are reported by load share and kind. The spread without a load comes from the meters' gain errors (0.3%, 0.2% at the PCC) and the loss estimate, so other meter classes need their own calibration.</p>
+<div class="tablewrap">
+<table>
+<caption>Table 1. Unmetered share \(\varsigma\) on the development cases (no identifier involved)</caption>
+<thead><tr><th>Cases</th><th class="r">Number</th><th class="r">Min</th><th class="r">Median</th><th class="r">Max</th></tr></thead>
+<tbody>
+<tr><td>No load</td><td class="r">72</td><td class="r">−0.49%</td><td class="r">0.03%</td><td class="r">0.66%</td></tr>
+<tr><td>Load of 2% (three kinds)</td><td class="r">72</td><td class="r">1.53%</td><td class="r">2.0%</td><td class="r">2.61%</td></tr>
+<tr><td>Load of 5%</td><td class="r">72</td><td class="r">4.59%</td><td class="r">5.0%</td><td class="r">5.81%</td></tr>
+<tr><td>Load of 10%</td><td class="r">72</td><td class="r">9.51%</td><td class="r">10.2%</td><td class="r">11.68%</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="score">III. Score and labels</h2>
+<p><strong>Score.</strong> The meter offsets \(o\) are unrestricted constants, removed by \(D=I_T-\Pi_{[\one]}\) (subtracting each meter's time mean). The PCC error is random and shared by all meters in a slot: with variance \(\sigma_0^2\) against \(\sigma_e^2\) for a meter, a slot's error covariance is \(\Sigma=\sigma_e^2(I_n+\rho\one\one\tp)\), \(\rho=\sigma_0^2/\sigma_e^2\), taken as the ratio of the means of \(V_0^4\) and \(V^4\). The weighting \(S_\gamma=I_n-\gamma\one\one\tp/n\) with \(\gamma=1-(1+n\rho)^{-1/2}\) satisfies \(S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}\) (generalised least squares), and \(M=D\otimes S_\gamma\). The score is</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ H(F)=\min_{\theta}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda \]</div><span class="num">(4)</span></div></div>
+<p>with \(p_s\in\{1,2\}\) identifiable parameters per line (2 when most meters' \(q\) is not a fixed multiple of their \(p\)). <em>Noise variance.</em> \(\hat\sigma^2\) is the residual variance under \(M\) of the saturated model, in which every meter sees every leaf's flow with its own coefficient,</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ y_{i,t}=\sum_{j\in\Nset}\big(R_{ij}\,p_{j,t}+X_{ij}\,q_{j,t}\big)+R_{is}\,u^P_t+X_{is}\,u^Q_t+\varepsilon_{0,t}+o_i+e_{i,t},\qquad R=R\tp,\ X=X\tp\ \text{over the meters} \]</div><span class="num">(5)</span></div></div>
+<p>with every coefficient free and the load's two terms only when a load is modelled. Every tree's prediction has this form, and with the load's terms free \(\hat\sigma^2\) does not depend on the load's place. Its degrees of freedom are the rank of \(M\) minus the numerical rank of the saturated design. It is computed once, at set-up, like the starting trees (Appendix B); the score, the searches, the labels and probing keep the load as a leaf of known power. Unequal or correlated meter errors are not modelled, so thresholds are calibrated on data.</p>
+<div class="formal"><span class="lab">Proposition 1 (structural prior).</span> Under the prior \(P(F)\propto\prod_v\rho^{c_v-2}\) over trees (\(c_v\) the children of internal node \(v\)), \(-\ln P(F)=\mathrm{const}-\lambda\,k(F)\) with \(\lambda=\ln(1/\rho)\).</div>
+<p>So score differences approximate log posterior odds. We set \(\rho=0.141\), the odds of a branching point having more than two children on 84 real LV feeders (\(\lambda=1.96\)); the same feeders set the statistics of our case generator, so results with \(\lambda=0\) are reported alongside.</p>
+<p><strong>Groupings.</strong> With a load, one grouping of meters can appear as two supports, \(M\) and \(M\cup\{s\}\): the same statement about the meters, with the load inside the line or not. Write \(\pi(C)=C\cap\Nset\) and call \(\Gset(F)=\{\pi(C):C\in F,\ 2\le|\pi(C)|\le n-1\}\) the <em>groupings</em> of \(F\). Labels, anchors and probing concern groupings; the load's place is reported separately. Without a load, groupings are lines.</p>
+<p><strong>Labels.</strong> For a pool \(\Omega\) and \(H^*=\min_F H(F)\), let \(\Sset_m=\{F\subseteq\Omega\cup\Bset\ \text{laminar}:\ H(F)\le H^*+m\}\). For a tree \(T\) and a grouping \(M\), the <em>flip problem</em> asks for the best tree that decides \(M\) the other way,</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ H^{\rm f}_M(T)=\min\{H(F):\ F\subseteq\Omega\cup\Bset\ \text{laminar},\ [M\in\Gset(F)]\neq[M\in\Gset(T)]\} \]</div><span class="num">(6)</span></div></div>
+<p>which for \(M\in\Gset(T)\) is the tree MIQP (9) with every support of grouping \(M\) removed from the pool, and for \(M\notin\Gset(T)\) the same MIQP with a support of grouping \(M\) required. Its <em>gap</em> is</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ e_M(T)=H^{\rm f}_M(T)-H(T)\ \in\ \big[\,L_M-H(T),\ U_M-H(T)\,\big] \]</div><span class="num">(7)</span></div></div>
+<p>with \(L_M\) the solver's lower bound and \(U_M\) the score of the best flipped tree found, the <em>rival</em> \(F_M\).</p>
+<div class="formal"><span class="lab">Definition 1 (labels).</span> Relative to \(T\), grouping \(M\) is <em>decided</em> if \(L_M\gt H(T)+m\), <em>open</em> if a flipped tree with \(H\le H(T)+m\) is found, and <em>unsettled</em> otherwise. The <em>flip test</em> solves (6) with the threshold \(H(T)+m\) as the solver's cutoff; it stops as soon as "decided" is proved, and otherwise runs to its limit to find the best rival. A flip test whose bound exceeds the score of a flipped tree already found (a local flip) is a numerical failure and leaves \(M\) unsettled.</div>
+<div class="formal"><span class="lab">Proposition 2 (what a label certifies).</span> If \(M\) is decided, every tree in \(\Sset_m\) agrees with \(T\) on whether \(M\) is a grouping. If \(T\) is a proven optimum and \(M\) is open, \(\Sset_m\) contains trees that disagree.</div>
+<p>A decided label holds for any feasible \(T\); an open label always shows a flipped tree within \(m\) of \(T\), and disagreement within \(\Sset_m\) only when \(T\) is proven optimal. Labels concern the model, the data and the pool, not the truth, and are recomputed when the data or the pool change. In the solver, "decided" needs the bound to exceed \(H(T)+m\) beyond its tolerances (the cutoff is set slightly above the threshold).</p>
+<p><strong>Local flips.</strong> Removing the lines of grouping \(M\) from \(T\), or swapping in a pool line \(D\) whose grouping crosses \(M\) (the lines of \(T\) that cross \(D\) removed), gives flipped trees without solving an MIQP. With \(T_{|D}=\{E\in T:\neg(E\cross D)\}\):</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ m_M(T)=\min\Big\{H(T\setminus\pi^{-1}(M)),\ \min_{D:\ \pi(D)\cross M}H(T_{|D}\cup\{D\})\Big\}-H(T),\qquad \ell_D(T)=H(T)-H(T_{|D}\cup\{D\}) \]</div><span class="num">(8)</span></div></div>
+<div class="formal"><span class="lab">Lemma 1 (local flips give upper bounds only).</span> \(e_M(T)\le m_M(T)\) for \(M\in\Gset(T)\), and \(e_{\pi(D)}(T)\le-\ell_D(T)\) for \(\pi(D)\notin\Gset(T)\). Local flips can prove a grouping open, never decided.</div>
+<p><strong>Why a true line is decided.</strong> Labels and anchors are useful only if removing a true line costs a lot. Let the data follow (1) with the true tree \(T^0\) and coefficients inside the bounds. After \(M\), write the data as \(\tilde y=\mu+\varepsilon\): \(\mu\) is the true voltage signal and \(\varepsilon\) the noise. For a tree \(F\), let \(P_F\) project onto everything \(F\) can predict (the span of its columns), and let \(d_F=\|\mu-P_F\mu\|\): the part of the true signal that \(F\) cannot reproduce with any coefficients. \(\mathrm{RSS}(F)\) is the residual of \(F\)'s bounded fit, the numerator of (4).</p>
+<div class="formal"><span class="lab">Theorem 1 (removing a true line costs a lot).</span> (a) If \(F\) lacks a line of \(T^0\), then, with \(\xi_F=\langle\mu-P_F\mu,\ \varepsilon\rangle/d_F\),
+<div class="eq"><div class="eqrow"><div class="m">\[ \mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ \ge\ d_F^2-2\,d_F\,|\xi_F|-\|P_F\varepsilon\|^2 . \]</div></div></div>
+(b) If \(F\) contains every line of \(T^0\) and the unbounded least-squares fit of \(T^0\) lies within the bounds, then \(0\le\mathrm{RSS}(T^0)-\mathrm{RSS}(F)\le\|(P_F-P_{T^0})\varepsilon\|^2\).</div>
+<p>In words: removing a true line costs at least the true signal that the remaining lines cannot reproduce, \(d_F^2\), minus two noise terms; redundant lines gain at most the noise along the directions they add. The sizes decide everything. If the noise after \(M\) is white with variance \(\sigma^2\), then \(\xi_F\) is the noise along one direction, with standard deviation \(\sigma\); \(\|P_F\varepsilon\|^2\) is the noise along as many directions as \(F\) has coefficients, with mean \(\sigma^2\) times that number; and \(\|(P_F-P_{T^0})\varepsilon\|^2\) is \(\sigma^2\) times a \(\chi^2\) variable with at most \(p_s\) degrees of freedom per extra line. None of them grows with the number of slots. \(d_F^2\) is a sum over slots: it grows in proportion to their number as long as the loads on the two sides of the missing line's branching point keep varying differently, and probing makes it grow faster. So the cost of removing a true line, about \(d_F^2/(2\sigma^2)\) in score units, grows with the data, while one redundant line gains \(\sigma^2\chi^2_{p_s}\) in RSS and pays \(\beta\): it lowers the score only if \(\chi^2_{p_s}\gt p_s\ln N-2\lambda\), which for \(p_s=2\) has probability \(e^{\lambda}/N\) (below \(10^{-3}\) once \(N\gt7{,}100\)). This is the classical reason why a BIC price selects the true model in linear regression (underfitting loses signal that grows with the data, overfitting gains noise that does not; R. Nishii, Ann. Statist. 1984; C. R. Rao and Y. Wu, Biometrika 1989), here for one data set at a time and for bounded fits. When the loads on the two sides move together, \(d_F\) stays small and the line stays open: the data cannot decide it.</p>
+<div class="formal"><span class="lab">Corollary 1 (when the search finds the true tree).</span> Suppose the pool contains \(T^0\), the unbounded least-squares fit of \(T^0\) lies within the bounds, and (A) every tree \(F\) of the pool that lacks a line of \(T^0\) has \(\big(d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2\big)/(2\hat\sigma^2)\gt m+\beta\,\big(k(T^0)-k(F)\big)\), and (B) every tree \(F\supsetneq T^0\) of the pool has \(\|(P_F-P_{T^0})\varepsilon\|^2\lt2\hat\sigma^2\beta\,\big(k(F)-k(T^0)\big)\). Then \(T^0\) is the unique best tree over the pool; when the flip tests finish, every grouping of \(T^0\) is decided; and since these anchors are groupings of \(T^0\), the anchored search of Proposition 4 still contains \(T^0\), so restricting the search to it loses nothing.</div>
+<p>Condition (A) involves the unknown true signal and (B) the unknown noise, so neither can be checked on a given feeder; for \(p_s=2\), a tree with one extra line breaks (B) with probability about \(e^{\lambda}/N\). They say when the labels and the anchored search are right, and how often they hold is measured on data (V8).</p>
+
+<h2 id="identification">IV. Identification <span class="chip tested">Implemented, development</span></h2>
+<p><strong>Tree MIQP.</strong> For a pool \(\Omega\) of supports, with a binary \(b_C\) per support,</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ \begin{aligned} \min_{b,r,x}\ &amp;\frac{\|M(y-\Phi(r,x))\|^2}{2\hat\sigma^2}+\beta\sum_{C\in\Omega}b_C\\ \text{s.t.}\ \ &amp;0\le r_C\le\bar r_Cb_C,\quad0\le x_C\le\bar x_Cb_C\quad(C\in\Omega),\qquad b_C+b_D\le1\quad(C\cross D),\\ &amp;\textstyle\sum_{C\in\Omega,\,C\subsetneq W}b_C\le|W|-2\quad(W\in\Omega\cup\{\Nset^+\}),\qquad \sum_{C\in\Omega,\ \pi(C)=A}b_C\ge1\quad(A\in\Aset),\\ &amp;\textstyle\sum_{C\ni i}r_C\le\bar R_i,\quad\sum_{C\ni i}x_C\le\bar X_i\quad(i\in\Nset;\ \text{optional}) \end{aligned} \]</div><span class="num">(9)</span></div></div>
+<p>with \(\Bset\) always on. The count cut holds for every tree (a tree on \(|W|\) leaves has at most \(|W|-2\) lines strictly inside \(W\)). The fourth constraint keeps every anchor's grouping, with the load inside or not. Given a level \(\ell\) that some tree reaches (an incumbent's score, or a flip test's threshold), \(\bar R_i\) and \(\bar X_i\) are the largest path sums of any coefficients whose residual fits under \(\ell\) (one convex program per meter, binaries dropped), and \(\bar r_C=\min(\bar\theta,\min_{i\in\pi(C)}\bar R_i)\). Every tree with \(H\le\ell\) satisfies these bounds, so they change neither the optimum nor a flip test's verdict; they only make the solver faster, and an ablation measures by how much. Each solve first runs the local search to convergence: no removal of one line, and no swap of one pool line in (the lines it crosses removed), lowers the score, so the value of every candidate line has been checked. The MIQP starts from that tree, and its tree, when better, is searched to convergence too. Its claims are checked against the trees known: a bound above a known tree's score, or an optimum that one move still improves, is a numerical failure, and such a solve gives no bound and decides nothing. Each coefficient enters the solver in units of its column's size, so that the quadratic has a unit diagonal, and the solver runs at its default tolerances: unscaled, with the tolerances forced to \(10^{-9}\), it declared feasible relaxations infeasible, and claimed false optima, on feeders of 47 to 60 meters.</p>
+<div class="formal"><span class="lab">Proposition 3 (the load's path needs no constraints).</span> For a set of meters \(C\) write \(C^1=C\cup\{s\}\). Over \(\Nset^+\) the crossing constraints of (9) are exactly: (i) the crossings of the meter sets; (ii) one place: \(b_{C^1}+b_{D^1}\le1\) unless \(C\subseteq D\) or \(D\subseteq C\); (iii) a line above a line that carries the load carries it too: \(b_{C^1}+b_D\le1\) for meter sets \(C\subsetneq D\). So the load's path needs neither extra constraints nor products of binaries and coefficients.</div>
+<p><strong>Node pricing.</strong> Let \(v\) be an internal node of \(T\) with children \(A_1,\dots,A_{c_v}\) (supports or leaves).</p>
+<div class="formal"><span class="lab">Lemma 2 (node decomposition).</span> A support \(C\notin T\) with at least two leaves is compatible with \(T\) if and only if \(C=\bigcup_{j\in S}A_j\) for a unique internal node \(v\) and a set \(S\) of its children with \(2\le|S|\lt c_v\).</div>
+<div class="eq"><div class="eqrow"><div class="m">\[ g_v(T)=\max_{S:\ 2\le|S|\lt c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big) \]</div><span class="num">(10)</span></div></div>
+<p>A node with at most \(K\) children is priced by fitting every union, as in the anchored universe below. A wider node is priced by a node MIQP with a binary \(z_a\) per child; the new line's coefficient enters as \(u_{ab}=rz_az_b\), written exactly by the linear inequalities \(u_{ab}\le r\), \(u_{ab}\le\bar\theta z_a\), \(u_{ab}\le\bar\theta z_b\), \(u_{ab}\ge r-\bar\theta(2-z_a-z_b)\); every coefficient of \(T\) is refitted, with the coefficients scaled to their columns as in the tree MIQP. Both are exact; the node MIQP replaces the \(2^{c_v}-c_v-2\) fits by one solve. A node of a found tree that is wider than the feeder's branching points is where lines are most likely missing, so it is priced exactly too. Pricing certifies single lines only, since two lines can pay together when neither pays alone (Remark 1). The <em>certificate scopes</em> are: (a) <em>single-line, complete</em>: every node was enumerated or its MIQP proved optimal, and no line pays; (b) <em>restricted</em>: when the anchored MIQP below is solved to optimality, no combination of lines inside anchor nodes with at most \(K\) units, given the anchors, lowers the score; (c) <em>incomplete</em>: a node was skipped or its MIQP stopped at its time limit; such nodes are not certified. No certificate shows that no line is missing: a wrong tree may need lines removed.</p>
+<div class="formal"><span class="lab">Remark 1.</span> Four meters, fit term \(\tfrac12\|R_{\rm obs}-R\|_F^2\) and price \(0.6\); \(R_{\rm obs}\) has diagonal \(100\) and off-diagonal \(1\), except \(2\) for the pairs \(\{1,2\}\) and \(\{3,4\}\). The star scores \(4/3\), the best single line \(1.4\), and the lines \(\{1,2\}\) and \(\{3,4\}\) together \(1.2\).</div>
+<p><strong>Anchors.</strong></p>
+<div class="formal"><span class="lab">Definition 2 (anchors and units).</span> An <em>anchor</em> is a decided grouping of \(T\). For a laminar set of anchors \(\Aset\) and each \(A\in\Aset\cup\{\Nset\}\), the <em>units</em> \(\Kset_A\) are the largest anchors strictly inside \(A\) and the meters of \(A\) outside them; \(k_A=|\Kset_A|\). For \(K\ge2\) the <em>anchored universe</em> is the set of meter lines
+<div class="eq"><div class="eqrow"><div class="m">\[ \Omega_K(\Aset)=\Aset\ \cup\bigcup_{A:\,k_A\le K}\Big\{\textstyle\bigcup_{B\in S}B:\ S\subseteq\Kset_A,\ 2\le|S|\le k_A-1\Big\}\ \cup\ \Omega_{\gt K}(\Aset) \]</div><span class="num">(11)</span></div></div>
+with \(\Omega_{\gt K}(\Aset)\) the groupings of the pool compatible with \(\Aset\) whose smallest enclosing member of \(\Aset\cup\{\Nset\}\) has more than \(K\) units. With a load, \(\Omega^+_K(\Aset)\) is every line of \(\Omega_K(\Aset)\) with and without \(s\), the supports \(\{i,s\}\), and \(\Nset\); without a load, \(\Omega^+_K=\Omega_K\).</div>
+<div class="formal"><span class="lab">Proposition 4 (anchored universe).</span> Let \(F\) be a tree over \(\Nset^+\) that keeps every anchor (\(\Aset\subseteq\Gset(F)\)). Every line \(C\) of \(F\) has \(\pi(C)\) equal to an anchor, to a union of 2 to \(k_A-1\) units of one \(A\in\Aset\cup\{\Nset\}\), to a single meter, or to \(\Nset\). Hence, if every \(k_A\le K\), (9) over \(\Omega^+_K(\Aset)\) with the anchors required, solved to optimality, returns the best tree that keeps every anchor, among all supports and every place of the load; it has \(\sum_A(2^{k_A}-k_A-2)\) union binaries (twice that with a load) instead of \(2^n-n-2\).</div>
+<p>The result is conditional: exact over the trees that keep the anchors, at nodes with at most \(K\) units, for a solve that finishes. The anchors themselves are re-tested, and may be flipped, in every round on the current data and pool. A node with more than \(K\) units keeps the pool's lines inside it and is priced by (10).</p>
+<p><strong>Pricing, re-solve and stopping.</strong> Pricing adds a paying line to the tree and to the pool; when it has added any, (9) is solved again over the universe and the tree, and the better tree is kept.</p>
+<div class="formal"><span class="lab">Lemma 3 (re-solve and stopping).</span> (i) The score never rises in a round. (ii) If a round leaves the anchors unchanged, its pricing adds no line and finds none that pays, and its MIQP ends optimal, then a further round cannot lower the score.</div>
+<p><strong>Load evidence.</strong> Whether a load is modelled is decided by the gate (3). The fit reports, as a diagnostic, how strongly the voltages show the load: with \(H_0\) the score of the same data and \(\hat\sigma^2\) with \(u\equiv0\), minimised over meter topologies, and \(H\) minimised with the load,</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ D^*=\min H_0-\min H,\qquad L_0-U_1\ \le\ D^*\ \le\ U_0-L_1 \]</div><span class="num">(12)</span></div></div>
+<p>where \([L_0,U_0]\) and \([L_1,U_1]\) bracket the two minima (solver bounds and incumbents): \(\min H_0\ge L_0\) and \(\min H\le U_1\) give the lower end, and likewise the upper. Both brackets come from the tree MIQP over the final pool (over its meter groupings for \(H_0\)), started from \(\hat T\); \(U_1\) is the better of that solve and \(H(\hat T)\). Evaluating \(H_0\) at the load tree's own meter topology instead could only overstate \(D^*\), since that topology is one of those minimised over. The places of the load are the admissible places in \(\hat T\)'s meter topology whose score is within \(m\) of the best.</p>
+
+<div class="alg" role="group" aria-label="Algorithm 1">
+<div class="cap"><span class="no">Algorithm 1</span><span><span class="sc">Identify</span>: gate, tree, anchors and labels</span><span class="chip tested">Implemented, development</span></div>
+<ol>
+<li class="io"><span class="s"><span class="k">Input:</span> data; \(\varsigma_0\), \(\lambda\), \(m\), \(K\), \(R\)</span></li>
+<li class="io"><span class="s"><span class="k">Output:</span> the gate's decision; tree \(\hat T\) (groupings, and with a load its path); certificate and scope; anchors; pool; labels with gap intervals and rivals; with a load, its places and evidence interval</span></li>
+<li><span class="s"><span class="k">if</span> the PCC power is metered: \(\varsigma\) by (3); a load is modelled iff \(\varsigma\ge\varsigma_0\)</span><span class="c">gate</span></li>
+<li><span class="s">\(M\), \(\hat\sigma^2\), \(\beta\); \(\hat R\) by (B1)</span><span class="c">set-up</span></li>
+<li><span class="s">\(\Omega\gets\Omega_0\) and nine starting trees</span><span class="c">Appendix B</span></li>
+<li><span class="s">\(T\gets\) (9) over \(\Omega\), from the converged local-search tree</span></li>
+<li><span class="s"><span class="k">for</span> \(r=0,1,\dots,R\) <span class="k">do</span></span></li>
+<li class="d1"><span class="s">label the groupings of \(T\): local flips (8), then flip tests (6); \(\Aset\gets\) the decided ones</span></li>
+<li class="d1"><span class="s"><span class="k">if</span> the stopping rule of Lemma 3 holds, or \(r=R\): <span class="k">break</span></span></li>
+<li class="d1"><span class="s">\(T\gets\) (9) over \(\Omega^+_K(\Aset)\cup\Lin(T)\), anchors required; \(\Omega\gets\Omega\cup\Omega^+_K(\Aset)\)</span></li>
+<li class="d1"><span class="s">pricing (10), by enumeration or the node MIQP: add paying lines to \(T\) and \(\Omega\); if any, (9) again; keep the better tree</span></li>
+<li><span class="s">\(\hat T\gets T\); groupings outside \(\hat T\) whose swap (8) is within \(m\) are open</span></li>
+<li><span class="s">with a load: its path, its places within \(m\), its evidence (12)</span></li>
+</ol>
+</div>
+
+<div class="explain">
+<h3>Explanation</h3>
+<p>Line 1 decides whether there is a load; below the gate the rest runs on the meters alone. Lines 2–4 build a first tree from cheap candidate lines. Lines 5–9 are the core: decided groupings become anchors; the anchored universe offers every line compatible with them at nodes that are small enough (Proposition 4); pricing searches the wider nodes and checks the result against any single line, enumerating nodes with at most \(K\) children and solving the node MIQP at wider ones; the loop stops by Lemma 3 or after \(R\) searches, and the output says which. Every round labels all groupings of the current tree on the current pool, anchors included, so the final labels are those of the final tree and pool. Lines 10–11 report what remains open and, with a load, where it sits and how strongly the voltages show it.</p>
+</div>
+
+<h2 id="probing">V. Probing <span class="chip proposed">Implemented, not evaluated</span></h2>
+<p>The operator can buy signed active-power blocks at chosen meters from an aggregator of household batteries and EV chargers, each held for one market hour and sealed one hour ahead. Probing works on the pool, the leader and the open alternatives; it never lists whole trees. A block that changes the flows on one side of a branching point makes the leader's and the rival's predictions differ more: this is what probing buys.</p>
+<h3>Values used in probing</h3>
+<p>For an open alternative \(M\) with rival \(F_M\), at the gate of hour \(h\):</p>
+<ul>
+<li>the gap interval (7) and the <em>deficit</em> \(\underline\delta_M=m-\bar e_M\) with \(\bar e_M=U_M-H(\hat L)\ge e_M\): a lower estimate of what the alternative still needs; unsettled groupings are not targets (probing cannot repair a solver's time limit) and are labelled again at each gate;</li>
+<li>the fitted parameters of the leader and the rival and their covariances \(P=\hat\sigma^2(\Phi\tp\Phi)^{-1}\) on the coordinates not at a bound;</li>
+<li>the predicted voltage drops of hour \(h+1\) under each tree after \(M\), so that \(\hat\sigma^2I\) is their noise covariance, from the day-ahead forecast of the meters' load (the mean of the same hour over the data) plus the block \(u\); their difference is \(d_M(u)=d_M(0)+G_Mu\), and
+<div class="eq"><div class="eqrow"><div class="m">\[ q_M(u)=d_M(u)\tp\Sigma_M^{-1}d_M(u),\qquad \Sigma_M=\hat\sigma^2I+\tfrac12\Phi_{\hat L}P_{\hat L}\Phi_{\hat L}\tp+\tfrac12\Phi_{F_M}P_{F_M}\Phi_{F_M}\tp \]</div><span class="num">(13)</span></div></div>
+with \(\Sigma_M\) held fixed at the forecast;</li>
+<li>the feasible blocks \(\Uset_{h+1}\) (battery and EV headroom, the voltage band for the leader <em>and every rival</em>, the transformer rating, the price caps) and the price \(c(u)=c^\uparrow\sum_i\max(u_i,0)+c^\downarrow\sum_i\max(-u_i,0)\). A block acts at one meter with one sign, at a quarter, a half, three quarters or all of the largest size these allow; the band keeps \(z\hat\sigma/2\) of margin (one reading of \(V\)).</li>
+</ul>
+<div class="formal"><span class="lab">Lemma 4 (expected predictive log-likelihood ratio).</span> With the two fitted predictive means \(\mu_{\hat L}(u)\), \(\mu_{F_M}(u)\) and the covariance \(\Sigma_M\) held fixed, let
+<div class="eq"><div class="eqrow"><div class="m">\[ \ell_M(Y;u)=\ln\frac{\mathcal N\big(Y;\mu_{\hat L}(u),\Sigma_M\big)}{\mathcal N\big(Y;\mu_{F_M}(u),\Sigma_M\big)} . \]</div><span class="num">(14)</span></div></div>
+If the next hour's data are \(\mathcal N(\mu_{\hat L},\Sigma_M)\), then \(\ell_M\sim\mathcal N(\tfrac12q_M,q_M)\).</div>
+<p>\(\tfrac12q_M\) is a forecast of the evidence, not of the refitted score's change: the score refits both trees, its price grows with \(N\), and refitting can move it either way.</p>
+<div class="formal"><span class="lab">Lemma 5 (reach).</span> If \(G_Mv=0\) for every feasible block direction \(v\), no feasible block changes \(q_M\).</div>
+<p>\(G_M\) must be computed from the two fitted trees, not from their structure alone. For example, two trees that differ only in whether the line \(\{1,2\}\) carries the load can fit the history equally when the load's profile equals \(p_1+p_2\) (the first with \(r=2\) and no load, the second with \(r=1\) and the load); a block \(a\) at meter 1 then gives \(2a\) against \(a\), so a block does separate them.</p>
+<p><strong>Target set and objective.</strong> At the start of the day, \(\Tset\) is the set of open groupings, and the load's place when the second-best admissible place is within \(m\) of the best (that place is its rival), whose \(G\) moves on some feasible block direction; it stays fixed during the day. At every gate each target is relabelled on the current data and pool; a target outside the tree that no local swap shows open gets the flip test (6) with its grouping required, since a local swap cannot decide it (Lemma 1); its best swap is the known tree that the test's claim is checked against. With \(\kappa(\delta,q)=\mathbb E\min(\delta,Z)\) for \(Z\sim\mathcal N(q/2,q)\), that is \(\kappa=\tfrac q2-(\tfrac q2-\delta)\,\mathrm F_0\big(\tfrac{q/2-\delta}{\sqrt q}\big)-\sqrt q\,\mathrm f_0\big(\tfrac{q/2-\delta}{\sqrt q}\big)\) with \(\mathrm F_0\) and \(\mathrm f_0\) the standard normal distribution and density (\(\kappa=\min(\delta,0)\) at \(q=0\)), the block for hour \(h+1\) is</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ u^\ast=\arg\max_{u\in\Uset_{h+1}} J_h(u),\qquad J_h(u)=\psi\sum_{M\in\Tset\ \text{open}}\Big[\kappa\big(\underline\delta_M,q_M(u)\big)-\kappa\big(\underline\delta_M,q_M(0)\big)\Big]-c(u) \]</div><span class="num">(15)</span></div></div>
+<p>bought only if \(J_h(u^\ast)\gt0\): the expected capped log-likelihood ratio (14) gained over passive operation, counted up to what each target still needs, against the price. It is a forecast that assumes the leader generates the data, with both fits and the covariance held fixed. (Capping the mean, \(\min(\delta,q/2)\), would overstate it: at \(q=2\), \(\delta=1\) it gives \(1\) against \(0.436\).) <em>Choice of \(\psi\):</em> on the development cases, Algorithm 2 runs for every \(\psi\) on a grid; with mean cost and coverage scaled to \([0,1]\), the default is the grid point farthest above the straight line from the first point to the last (the knee). Grid and default are fixed before any probing test. <em>Greedy, in plain words:</em> each hour the rule buys the one block worth most for the next hour alone. <em>Stopping and trust gate:</em> the day ends when every target holds a fresh decided label, on that gate's data and pool, at two consecutive gates; blocks are bought only when the leader fits as well as the meter noise allows, \(s^2_{\hat L}/\sigma^2_y\le\kappa_A\), with \(s^2_{\hat L}\) the leader's residual variance after \(M\) and \(\sigma^2_y=4\sigma_v^2\,1.02^4\) for the meter class \(\sigma_v=0.05\%\). A last gate after hour 23 relabels on the whole day, so that the readings of the last block are used.</p>
+
+<div class="alg" role="group" aria-label="Algorithm 2">
+<div class="cap"><span class="no">Algorithm 2</span><span><span class="sc">Probe</span>: one day of cost-aware probing</span><span class="chip proposed">Implemented, not evaluated</span></div>
+<ol>
+<li class="io"><span class="s"><span class="k">Input:</span> the output of Algorithm 1; history; contract; \(\psi\), \(m\), \(\kappa_A\)</span></li>
+<li class="io"><span class="s"><span class="k">Output:</span> the leader, with every grouping decided, open or unsettled</span></li>
+<li><span class="s">\(\Tset\gets\) open alternatives whose \(G\) moves on a feasible block direction</span><span class="c">fixed for the day; Lemma 5</span></li>
+<li><span class="s"><span class="k">for</span> \(h=0,1,\dots,23\) <span class="k">do</span></span><span class="c">gate at the start of hour \(h\)</span></li>
+<li class="d1"><span class="s">\(\hat L\gets\) Algorithm 1, lines 5–9, on all data so far</span></li>
+<li class="d1"><span class="s">relabel every target on the current data and pool (an outside target by its flip test): intervals, deficits, rivals</span></li>
+<li class="d1"><span class="s"><span class="k">if</span> every target has a fresh decided label at this gate and the previous one: <span class="k">return</span> \(\hat L\) with its labels</span></li>
+<li class="d1"><span class="s">\(u_{h+1}\gets u^\ast\) of (15) if \(s^2_{\hat L}/\sigma^2_y\le\kappa_A\) and \(J_h(u^\ast)\gt0\), else \(0\)</span></li>
+<li class="d1"><span class="s">hour \(h\) runs with \(u_h\); add its readings to the data</span></li>
+<li><span class="s">lines 3–4 once more on the whole day (the last gate); <span class="k">return</span> \(\hat L\) with its labels</span><span class="c">some may stay open</span></li>
+</ol>
+</div>
+
+<h2 id="value">VI. How the outputs are valued</h2>
+<p><strong>What the output says.</strong> Three parts, kept apart. <em>The load:</em> the gate's statistic and decision; with a load, its path, places within \(m\) and evidence interval. <em>The structure:</em> the groupings of \(\hat T\), the anchors, and for every grouping its label, gap interval and rival. <em>The computation:</em> the certificate's scope (single-line pricing complete, a paying line left at the repair limit, or incomplete; and whether the restricted scope holds), the nodes priced each way, the share of unsettled labels, the solver status of every number, and why the loop stopped.</p>
+<p><strong>How it is scored against the truth.</strong> The gate: loads missed and no-load feeders given a load, by share and kind. The structure: precision, recall and F1 over groupings; recall near the root; exact trees; false anchors; label coverage, false decisions, the share of open groupings that are true, and the share unsettled under each time limit. The load: whether its true place is within \(m\) of the best. Probing: the share of targets decided by the end of the day, false decisions against passive operation, cost, energy and time; over \(\psi\), as a cost–coverage curve. Coverage and false decisions are always reported together.</p>
+
+<h2 id="tests">VII. Contributions, limits and tests</h2>
+<p><strong>Contributions.</strong> Organised by three separate questions (is there a load, which groupings are decided, how certain is the computation): (i) a guarantee that removing a true line costs the true signal the remaining tree cannot reproduce, while a redundant line gains only noise, so that the search finds the true tree, decides its groupings and the anchored search keeps it (Theorem 1, Corollary 1); (ii) a representation in which the load is a leaf whose path the laminar constraints encode (Proposition 3), with search spaces that are exact given the anchors (Proposition 4); (iii) labels that state agreement within a competitive set, valid under time limits, with intervals and scopes (Proposition 2); (iv) a predictive likelihood-ratio criterion for choosing probes (Lemma 4).</p>
+<p><strong>Limits.</strong> The gate is a prior: loads under 1% of the metered power are ignored, and its threshold is calibrated for one meter class. Theorem 1 assumes the model; its conditions involve the unknown true signal, so how often decided groupings are right is measured on data (V8 below). Labels and anchors are relative to the data and the pool; certificates have the scopes above and price single lines only; the evidence interval holds over the pools searched. The probing objective is a forecast with fits and covariance held fixed.</p>
+<p><strong>Relation to the registered test.</strong> The registered sealed test evaluates the predecessor (final.py at 71684ff). It has no gate, removes the load during the search by projecting out its profiles (\(D_1\), Appendix B) and places it at the end, takes blocks from the top-level lines of the first tree without flip tests, searches the unions of at most 9 blocks once, prices nodes with an MIQP over the meters only, has no labels, and computes the evidence at the load tree's meter topology. Its result does not carry over to Algorithm 1.</p>
+<p><strong>Development checks before a registered test.</strong> (V1) Do meter-level labels separate grouping uncertainty from the load's place? (V2) The gate's error rates; the evidence at the load tree's topology against the two-model evidence. (V3) Scale and time per case. (V4) How often nodes are wide or unproved, and the effect on F1. (V5) With and without the per-meter bounds. (V6) Decided, open and unsettled shares under several time limits. (V7) Whether better gap intervals give better probing. (V8) Whether decided groupings are wrong at a rate consistent with the margin.</p>
+
+<h2 id="proofs">Appendix A. Proofs</h2>
+<p>Theorem 1 and Corollary 1 are the statistical guarantee. The other results are bookkeeping: they make sure that the searches cover what they claim and that the labels mean what they say. All proofs are elementary: two facts about least squares, Pythagoras' theorem for projections, counting, set inclusions, and one Gaussian calculation.</p>
+<div class="proof"><span class="lab">Proof of Theorem 1.</span> Two facts about least squares. (F1) A tree that contains every line of \(T^0\) can use the true coefficients (and zero on its other lines), which leave the residual \(\tilde y-\mu=\varepsilon\); its best fit is no worse, so its RSS is at most \(\|\varepsilon\|^2\). (F2) No fit of \(F\), bounded or not, beats the unbounded least-squares fit, whose residual is \(Q_F\tilde y\) with \(Q_F=I-P_F\); so \(\mathrm{RSS}(F)\ge\|Q_F\tilde y\|^2\). (a) By (F1) for \(T^0\) and (F2) for \(F\), \(\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ge\|Q_F(\mu+\varepsilon)\|^2-\|\varepsilon\|^2\). Expanding the square, and using \(\|Q_F\varepsilon\|^2=\|\varepsilon\|^2-\|P_F\varepsilon\|^2\) (Pythagoras),
+<div class="eq"><div class="eqrow"><div class="m">\[ \|Q_F(\mu+\varepsilon)\|^2-\|\varepsilon\|^2=\|Q_F\mu\|^2+2\langle Q_F\mu,\varepsilon\rangle-\|P_F\varepsilon\|^2=d_F^2+2d_F\xi_F-\|P_F\varepsilon\|^2\ \ge\ d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2 , \]</div></div></div>
+since \(Q_F\) is symmetric and \(Q_F^2=Q_F\), so that \(\langle Q_F\mu,Q_F\varepsilon\rangle=\langle Q_F\mu,\varepsilon\rangle\). (b) \(F\) can reproduce any fit of \(T^0\) by setting its extra lines' coefficients to zero, so the difference is at least \(0\). The unbounded fit of \(T^0\) lies within the bounds, so it is also its bounded fit; \(\mu\) lies in the span of \(T^0\)'s columns, so \(\mathrm{RSS}(T^0)=\|Q_{T^0}\tilde y\|^2=\|Q_{T^0}\varepsilon\|^2\). \(\mu\) lies in the span of \(F\)'s columns too, so (F2) gives \(\mathrm{RSS}(F)\ge\|Q_F\varepsilon\|^2\). Subtracting, and using Pythagoras twice, \(\|Q_{T^0}\varepsilon\|^2-\|Q_F\varepsilon\|^2=\|P_F\varepsilon\|^2-\|P_{T^0}\varepsilon\|^2=\|(P_F-P_{T^0})\varepsilon\|^2\): the span of \(T^0\)'s columns lies in that of \(F\)'s, so \(P_F-P_{T^0}\) projects onto the part of \(F\)'s span orthogonal to \(T^0\)'s. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Corollary 1.</span> The score is \(H=\mathrm{RSS}/(2\hat\sigma^2)+\beta k\). Take a tree \(F\ne T^0\) of the pool. If \(F\) lacks a line of \(T^0\), Theorem 1(a) and (A) give \(H(F)-H(T^0)\gt m\). Otherwise \(F\) contains every line of \(T^0\) and \(k(F)-k(T^0)\ge1\) more, and Theorem 1(b) and (B) give \(H(T^0)-H(F)\le\|(P_F-P_{T^0})\varepsilon\|^2/(2\hat\sigma^2)-\beta\,\big(k(F)-k(T^0)\big)\lt0\). So \(T^0\) is the unique best tree. Every tree that flips a grouping of \(T^0\) lacks the line of that grouping, so it scores more than \(H(T^0)+m\), and a finished flip test proves the grouping decided. The anchors are groupings of \(T^0\), so \(T^0\) keeps them, and by Proposition 4 it lies in the anchored universe. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Proposition 1.</span> A tree with \(n^+\) leaves (the load counts as one) and \(k+1\) internal nodes has \(n^++k\) edges, one from each node except the root to its parent, so \(\sum_vc_v=n^++k\) and \(\sum_v(c_v-2)=n^++k-2(k+1)=n^+-k-2\). Hence \(P(F)\propto\rho^{n^+-2}\rho^{-k}\), and \(-\ln P(F)=\mathrm{const}-k\ln(1/\rho)\). <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Proposition 2.</span> Every flipped tree \(F\) satisfies \(H(F)\ge L_M\). If \(L_M\gt H(T)+m\), then \(H(F)\gt H(T)+m\ge H^*+m\), so \(F\notin\Sset_m\). If \(H(T)=H^*\) and a flipped tree has \(H\le H(T)+m=H^*+m\), it is in \(\Sset_m\). <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Lemma 1.</span> Each tree in (8) is laminar and decides the grouping the other way (a swapped-in \(D\) whose meters cross \(M\) removes every line of grouping \(M\), since those lines cross \(D\)), so it is a feasible point of (6), and the minimum is at most its score. A feasible point bounds a minimum from above, never from below. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Proposition 3.</span> \(C^1\) and \(D^1\) both contain \(s\), so they are never disjoint: they are compatible exactly when one contains the other, that is when \(C\subseteq D\) or \(D\subseteq C\). For \(C^1\) and \(D\) (without \(s\)): \(C^1\subseteq D\) is impossible, \(D\subseteq C^1\) holds exactly when \(D\subseteq C\), and they are disjoint exactly when \(C\cap D=\emptyset\); so they cross exactly when \(C\subsetneq D\) or \(C\) and \(D\) cross. Supports without \(s\) cross as meter sets. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Lemma 2.</span> If \(C\) is a union of 2 to \(c_v-1\) children of \(v\), it is nested with or disjoint from every support of \(T\), and equals none. Conversely, let \(v\) be the smallest support of \(T\) containing \(C\). No child of \(v\) contains \(C\), so each child is inside \(C\) or disjoint from it; the children partition \(v\), so \(C\) is a union of children, at least two and not all. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Proposition 4.</span> Removing \(s\) keeps inclusions and disjointness, so \(\pi(C)\) is compatible with every anchor. If \(2\le|\pi(C)|\le n-1\), let \(A\) be the smallest member of \(\Aset\cup\{\Nset\}\) containing \(\pi(C)\). Each unit of \(A\) is inside \(\pi(C)\) or disjoint from it: a meter trivially, and an anchor unit \(B\) because \(\pi(C)\subsetneq B\) would contradict the choice of \(A\). So \(\pi(C)\) is a union of units of \(A\): one unit makes it an anchor, all of them make it \(A\). Otherwise \(\pi(C)\) is a single meter (\(C\) is \(\{i,s\}\)) or \(\Nset\). In every case \(C\) is \(\pi(C)\) or \(\pi(C)\cup\{s\}\), which is in \(\Omega^+_K(\Aset)\) when every \(k_A\le K\). A node with \(k\) units has \(2^k-k-2\) unions of 2 to \(k-1\) units. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Lemma 3.</span> (i) The re-solve's pool contains the tree's lines, and the better of the two trees is kept. (ii) With the same anchors the next universe has the same unions, and the pool has grown only by lines that were in the last solve, because pricing added nothing. So the next search is over a subset of the last one that still contains \(T\), and \(T\) was optimal over the last one. <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Lemma 4.</span> Both densities have covariance \(\Sigma_M\), so the terms quadratic in \(Y\) cancel and, with \(d=\mu_{\hat L}-\mu_{F_M}\), \(\ell_M=d\tp\Sigma_M^{-1}\big(Y-\tfrac12(\mu_{\hat L}+\mu_{F_M})\big)\). If \(Y\sim\mathcal N(\mu_{\hat L},\Sigma_M)\), the bracket has mean \(\tfrac12d\) and covariance \(\Sigma_M\), so \(\ell_M\) is Gaussian with mean \(\tfrac12d\tp\Sigma_M^{-1}d=\tfrac12q_M\) and variance \(d\tp\Sigma_M^{-1}\Sigma_M\Sigma_M^{-1}d=q_M\). <span class="qed">∎</span></div>
+<div class="proof"><span class="lab">Proof of Lemma 5.</span> \(d_M(u)=d_M(0)+G_Mu\) and \(\Sigma_M\) is fixed, so \(q_M(u)\) depends on \(u\) only through \(G_Mu\), which is zero for every feasible block. <span class="qed">∎</span></div>
+
+<h2 id="pool">Appendix B. Initial candidate lines used in this work</h2>
+<p>Any tree builders can supply \(\Omega_0\); this work uses nine. (1) A sensitivity matrix over the meters without tree structure, fitted to the active-power part of (1) by a convex QP solved with Gurobi. With a load, its terms \(R_{is}u^P_t+X_{is}u^Q_t\) are free for each meter, as in (5); minimising over them first replaces \(D\) by \(D_1=I_T-\Pi_{[\one,\,u^P,\,u^Q]}\) (least squares in two steps), and \(D_1=D\) without a load. \(D_1\) is used only here and in \(\hat\sigma^2\):</p>
+<div class="eq"><div class="eqrow"><div class="m">\[ \hat R=\arg\min_R\ \big\|(D_1\otimes S_\gamma)\,\mathrm{vec}(Y-PR)\big\|^2\quad\text{s.t.}\quad R=R\tp\ge0,\quad R_{ii}-R_{ij}\ge\epsilon\ \ (i\ne j) \]</div><span class="num">(B1)</span></div></div>
+<p>with \(\epsilon\) a strict order margin, \(10^{-6}\) of the median diagonal of the unconstrained fit.</p>
+<p>(2) Nine hierarchies over the meters: recursive neighbour joining, neighbour joining (with the PCC as an observed leaf) and recursive grouping (equalities to \(10^{-9}\) of the median depth) on the shared paths \(\hat R/\bar d\), \(\bar d\) the mean positive path distance; UPGMA on the path distance \(d_{ij}=\hat R_{ii}+\hat R_{jj}-2\hat R_{ij}\) and Ward linkage on \(\sqrt d\); average-linkage clusterings on the correlation distance between meters of the rows of \(\hat R\), the drops \(y\), the drops \((D_1\otimes S_\gamma)y\), and the residuals after fitting the service cables and the trunk alone. (3) With a load, it is placed in each of the nine trees at its best admissible place; these trees start the first solve. (4) \(\Omega_0\) is every cluster with 2 to \(n-1\) meters in any hierarchy, and with a load each such cluster with and without \(s\), the supports \(\{i,s\}\) and \(\Nset\), so \(|\Omega_0|\le18(n-2)+n+1\).</p>
+
+<h2 id="settings">Appendix C. Settings</h2>
+<div class="tablewrap">
+<table>
+<caption>Algorithm 1 (development; values from the registered predecessor where it has them) and probing</caption>
+<thead><tr><th>Setting</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Gate \(\varsigma_0\)</td><td>1% of the metered mean power (prior setting; Table 1)</td></tr>
+<tr><td>\(\lambda\); \(m\); \(\bar\theta\)</td><td>1.96; 4.6 (half-BIC units); 2 pu</td></tr>
+<tr><td>\(K\); anchored searches \(R\)</td><td>9 units (children in pricing); at most 2, then the stopping rule of Lemma 3 or the limit</td></tr>
+<tr><td>Tree MIQP</td><td>120 s up to 35 meters, 240 s beyond, always started from the converged local-search tree; coefficients scaled to their columns; Gurobi's default tolerances; per-meter bounds on, at a quarter of the limit at most (off in the ablation)</td></tr>
+<tr><td>Flip test</td><td>cutoff \(H(T)+m\), local flips first; limit at least that of the tree MIQP; the share at the limit is reported</td></tr>
+<tr><td>Local search</td><td>a first pass of 20 s per start (40 s beyond 35 meters) from the empty tree and the builder trees; the best start, and the MIQP's tree when better, to convergence</td></tr>
+<tr><td>Pricing</td><td>enumeration up to \(K\) children; node MIQP beyond, 60 s; at most 10 additions per round</td></tr>
+<tr><td>Load evidence</td><td>the no-load model over the meter groupings of the pool and the load model over the pool, same limits</td></tr>
+<tr><td>Solver</td><td>Gurobi, one thread per case</td></tr>
+<tr><td>Probing</td><td>\(c^\downarrow=4\), \(c^\uparrow=1.2\) CNY/kWh; caps 20 CNY/h, 100 CNY/day; band \([0.96,1.035]\), \(z=2.33\); \(\kappa_A=1.2\), \(\sigma_v=0.05\%\); blocks at one meter, \(\frac14\) to all of the largest feasible size; forecast: the mean of the same hour; \(\psi\) at the knee of the development cost–coverage curve</td></tr>
+</tbody>
+</table>
+</div>
+
+<footer>Draft for the authors. The LaTeX source in the repository is the version to edit; this page is a rendered reading copy of it. Code: rnj_wzzt_dr/identification_v8.</footer>
+</div>
