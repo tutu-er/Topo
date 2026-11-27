@@ -1,4 +1,4 @@
-"""Labels of meter groupings (draft v11: Definition 1, Lemma 1, eqs 6-8).
+"""Labels of meter groupings (draft v12: Definition 1, Lemma 1, eqs 6-8).
 
 With the load as a leaf, one meter grouping M can appear as the line M or as M + load: the same grouping of meters,
 with the load inside it or not. Labels and anchors are about groupings: flipping M means a tree with neither of the two.
@@ -56,13 +56,21 @@ def local_flips(fitter, tree, pool, n):
     return inside, outside, s0
 
 
-def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True):
-    """Definition 1 for grouping M of the tree: the tree MIQP without any line of grouping M, with the threshold as its
-    cutoff (and as the level of the per-meter bounds). Decided when nothing is found below it, open when a tree is
-    found (the rival), unsettled when the time runs out first."""
+def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True, inside=True):
+    """Definition 1 for grouping M (eq. 6): the best tree that decides M the other way, by the tree MIQP with the
+    threshold as its cutoff (and as the level of the per-meter bounds). For M in the tree (inside), no line of grouping
+    M is allowed; for M outside the tree, a line of grouping M is required. Decided when nothing is found below the
+    threshold, open when a tree is found (the rival), unsettled when the time runs out first."""
     n = model.n
-    universe = [C for C in canonical(pool) if grouping(C, n) != M]
-    r = tree_miqp(model, universe, seconds, cutoff=threshold, tighten_at=threshold if tighten else None, seed=seed)
+    if inside:
+        universe, require = [C for C in canonical(pool) if grouping(C, n) != M], ()
+    else:
+        universe = canonical(pool)
+        require = ([C for C in universe if grouping(C, n) == M],)
+        if not require[0]:
+            raise ValueError(f"no line of grouping {M} in the pool")
+    r = tree_miqp(model, universe, seconds, require=require, cutoff=threshold,
+                  tighten_at=threshold if tighten else None, seed=seed)
     out = dict(status=r["status"], seconds=r["seconds"], low=r["bound"], high=None, rival=None)
     if r["family"] is not None:
         value = Fitter(model, r["family"]).crit(r["family"])

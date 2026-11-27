@@ -1,4 +1,4 @@
-"""Local search, and node pricing (draft v11: the incumbent of eq. (9), and eq. (10) with Lemma 2).
+"""Local search, and node pricing (draft v12: the incumbent of eq. (9), and eq. (10) with Lemma 2).
 
 Pricing asks, at every node of a tree, for the best new line: a union of 2 to c-1 of its c children. Nodes with at most
 `max_children` children are enumerated (every union fitted); wider nodes are solved by `node_miqp`. The certificate is

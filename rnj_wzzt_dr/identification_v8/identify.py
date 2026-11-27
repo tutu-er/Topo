@@ -124,27 +124,45 @@ def price(model, tree, universe, require, seconds, st):
                       unproved=info["unproved"])
 
 
-def evidence(model, tree, meter_pool, seconds, st):
-    """Line 12: the load's evidence D = H0* - H1* (half-BIC units), with the no-load model (same data, same sigma2,
-    u = 0) solved over the meter groupings. Returns dict(estimate = U0 - U1, lower = L0 - U1): H0* >= L0 (the MIQP's
-    bound over the meter pool) and H1* <= U1 = H(tree), so D >= L0 - U1 over the pools searched."""
+def evidence(model, tree, pool, seconds, st):
+    """Line 12, eq. (12): the load's evidence D = min H0 - min H (half-BIC units), with L0 - U1 <= D <= U0 - L1 over
+    the pools searched. H0 is the no-load model (same data, same sigma2, u = 0), solved over the meter groupings of
+    the pool; H is the load model, solved again over the whole pool from the tree. [L, U]: the MIQP's bound and the best
+    tree found (the tree itself, when it is better)."""
     half = model.N/2
     off = model.without_load()
     meter_tree = canonical(g for g in (grouping(C, model.n) for C in tree) if g)
-    tree0, info = solve(off, meter_pool, [frozenset(meter_tree)], seconds, st)
-    U1 = Fitter(model, tree).crit(tree)
-    U0 = min(info["crit"], Fitter(off, meter_tree).crit(meter_tree))
-    return dict(estimate=half*(U0-U1), lower=None if info["bound"] is None else half*(info["bound"]-U1),
-                no_load_tree=[list(C) for C in tree0], status=info["status"])
+    meter_pool = [g for g in (grouping(C, model.n) for C in pool) if g]
+    tree0, info0 = solve(off, meter_pool, [frozenset(meter_tree)], seconds, st)
+    _, info1 = solve(model, pool, [frozenset(tree)], seconds, st)
+    U0 = min(info0["crit"], Fitter(off, meter_tree).crit(meter_tree))
+    U1 = min(info1["crit"], Fitter(model, tree).crit(tree))
+    L0, L1 = info0["bound"], info1["bound"]
+    return dict(estimate=half*(U0-U1), lower=None if L0 is None else half*(L0-U1),
+                upper=None if L1 is None else half*(U0-L1), no_load_tree=[list(C) for C in tree0],
+                status=(info0["status"], info1["status"]))
+
+
+def scope(rounds):
+    """The certificate's scope after the last search round: single-line pricing complete, a paying line left (repair
+    limit), or incomplete (a node unproved); restricted: the last anchored MIQP ended optimal."""
+    priced = [x["price"] for x in rounds if "price" in x]
+    solved = [x["solve"] for x in rounds if "solve" in x]
+    if not priced:
+        single = "not priced"
+    elif priced[-1]["still_paying"] is not None:
+        single = "paying line left"
+    else:
+        single = "complete" if priced[-1]["certified"] else "incomplete"
+    return dict(single_line=single, restricted=bool(solved) and solved[-1]["status"] == 2)
 
 
 # ------------------------------------------------------------------ Algorithm 1
 def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     """Algorithm 1 on all slots of one feeder (P, Q, Y = V0^2 - V^2: T x n; V0sq: T; Ppcc, Qpcc: T or None).
 
-    Returns dict(gate, tree (meter groupings), lines and pool (over all leaves), anchors, labels, rounds, stop,
-    model) and,
-    with a load, dict(path, places, evidence) as well."""
+    Returns dict(gate, tree (meter groupings), lines and pool (over all leaves), anchors, labels, rounds, stop, scope,
+    model) and, with a load, dict(path, places, evidence) as well."""
     say = log or (lambda *_: None)
     started = time.perf_counter()
     P, Q, Y, V0sq = (np.asarray(a, float) for a in (P, Q, Y, V0sq))
@@ -178,14 +196,14 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     tree, pool, labels, anchors = r["tree"], r["pool"], r["labels"], r["anchors"]
     meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
     out = dict(gate=gate, tree=meter_tree, lines=tree, pool=pool, anchors=anchors, rounds=r["rounds"], stop=r["stop"],
-               labels=label_rows(labels, anchors),
+               scope=scope(r["rounds"]), labels=label_rows(labels, anchors),
                model=dict(sigma2=model.sigma2, alpha=model.alpha, gamma=model.gamma, p_s=model.p_s, N=model.N,
                           crit=Fitter(model, tree).crit(tree)), settings=asdict(st))
     if load:                                                                 # line 12
         out["places"] = [(gap, str(D)) for gap, D, _ in place_costs(model, meter_tree)]
         out["path"] = [list(tuple(i for i in C if i < n)) for C in sorted(tree, key=len, reverse=True) if n in C]
         if st.evidence:
-            out["evidence"] = evidence(model, tree, [g for g in (grouping(C, n) for C in pool) if g], seconds, st)
+            out["evidence"] = evidence(model, tree, pool, seconds, st)
     timing["total"] = time.perf_counter()-started
     out["timing"] = timing
     return out

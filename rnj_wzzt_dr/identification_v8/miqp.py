@@ -1,4 +1,4 @@
-"""The tree MIQP of draft v11, eq. (9), and its flip-test use (eq. 6).
+"""The tree MIQP of draft v12, eq. (9), and its flip-test use (eq. 6).
 
     min  RSS(r, x) / N + alpha sum_C b_C
     s.t. 0 <= r_C <= rbar_C b_C, 0 <= x_C <= xbar_C b_C         a line has parameters only when chosen

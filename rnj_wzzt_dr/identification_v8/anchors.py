@@ -1,4 +1,4 @@
-"""Anchors, their units and the anchored universe (draft v11, Definition 2 and Proposition 4).
+"""Anchors, their units and the anchored universe (draft v12, Definition 2 and Proposition 4).
 
 Here everything is over the meters: anchors are meter groupings (sets of 2 to n-1 meters) that are pairwise compatible.
 With the load, identify.with_load turns the meter lines into lines with and without the load leaf.

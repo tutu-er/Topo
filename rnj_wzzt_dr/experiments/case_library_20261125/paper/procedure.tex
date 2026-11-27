@@ -1,13 +1,14 @@
 % =====================================================================
 %  Partial topology identification and cost-aware probing for
 %  low-voltage feeders: method and algorithms
-%  Paper-style draft v12 (the true-line guarantee restored), 2026-11-26
+%  Paper-style draft v13 (aligned with the code), 2026-11-26
 %
 %  Status of the parts (read before quoting anything from this file):
-%   * Algorithm 1 is implemented in rnj_wzzt_dr/identification_v8 (self-
-%     contained; development only) and smoke-tested on two small
-%     development cases; it has NOT been run at scale. Algorithm 2
-%     (probing) is PROPOSED and not implemented.
+%   * Both algorithms are implemented in rnj_wzzt_dr/identification_v8
+%     (self-contained: numpy, scipy and gurobipy; development only).
+%     Algorithm 1 ran on 240 development twins (paper/DEV_RESULTS_V12.md;
+%     the 48 twins with 26 to 60 meters are running). Algorithm 2 (probe.py)
+%     ran on simulated days only, with a placeholder psi: NOT evaluated.
 %   * The registered sealed test evaluates the predecessor of Algorithm 1
 %     (identification/final.py at commit 71684ff); Section VII lists the
 %     differences. Its result does not carry over to this method.
@@ -26,6 +27,11 @@
 %  these hold, the true tree is the best, its groupings are decided, and the
 %  anchored search keeps it). Proof: two facts about least squares and
 %  Pythagoras for projections. The other results are labelled bookkeeping.
+%  v13 (2026-11-26): aligned with the code (identification_v8): the flip
+%  test of a grouping outside the tree (a support of it required), the
+%  evidence interval's upper end from a re-solve over the pool, the
+%  certificate scope in the output, the planner choices of probing and a
+%  last gate after hour 23, and the wording of rho and of Appendix B.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -64,7 +70,7 @@
 \begin{document}
 
 \title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v12 of 26~November~2026 (authors to be added)}
+\author{Method draft v13 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
@@ -87,9 +93,10 @@ Topology identification, smart meters, partial identification, laminar families,
 unmetered load, active probing, demand response.
 \end{IEEEkeywords}
 
-\noindent\textbf{Status of each part.} Algorithm~\ref{alg:identify} is implemented for development and checked on two small
-cases only; Algorithm~\ref{alg:probe} is proposed. A registered sealed test evaluates the predecessor of
-Algorithm~\ref{alg:identify}; Section~\ref{sec:tests} lists the differences and the runs this version needs.
+\noindent\textbf{Status of each part.} Both algorithms are implemented. Algorithm~\ref{alg:identify} ran on 240 development
+cases: it returns the same trees as its registered predecessor in 234 of them, and 0.2\% of its decided groupings are wrong.
+Algorithm~\ref{alg:probe} ran on simulated days only and is not yet evaluated. A registered sealed test evaluates the
+predecessor of Algorithm~\ref{alg:identify}; Section~\ref{sec:tests} lists the differences and the runs this version needs.
 
 % ---------------------------------------------------------------------
 \section*{Nomenclature}
@@ -174,7 +181,7 @@ Load of 10\% & 72 & $9.51\%$ / $10.2\%$ / $11.68\%$\\
 \paragraph*{Score} The meter offsets $o$ are unrestricted constants, removed by $D=I_T-\Pi_{[\one]}$ (subtracting each
 meter's time mean). The PCC error is random and shared by all meters in a slot: with variance $\sigma_0^2$ against
 $\sigma_e^2$ for a meter, a slot's error covariance is $\Sigma=\sigma_e^2(I_n+\rho\one\one\tp)$, $\rho=\sigma_0^2/\sigma_e^2$,
-taken as the mean of $V_0^4/V^4$. The weighting $S_\gamma=I_n-\gamma\one\one\tp/n$ with $\gamma=1-(1+n\rho)^{-1/2}$ satisfies
+taken as the ratio of the means of $V_0^4$ and $V^4$. The weighting $S_\gamma=I_n-\gamma\one\one\tp/n$ with $\gamma=1-(1+n\rho)^{-1/2}$ satisfies
 $S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}$ (generalised least squares), and $M=D\otimes S_\gamma$. The score is
 \begin{equation}\label{eq:score}
 H(F)=\min_{\theta}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
@@ -208,7 +215,8 @@ problem} asks for the best tree that decides $M$ the other way,
 \begin{equation}\label{eq:flip}
 H^{\rm f}_M(T)=\min\{H(F):\ F\subseteq\Omega\cup\Bset\ \text{laminar},\ [M\in\Gset(F)]\neq[M\in\Gset(T)]\},
 \end{equation}
-which for $M\in\Gset(T)$ is the tree MIQP (\ref{eq:master}) with every support of grouping $M$ removed from the pool. Its
+which for $M\in\Gset(T)$ is the tree MIQP (\ref{eq:master}) with every support of grouping $M$ removed from the pool, and
+for $M\notin\Gset(T)$ the same MIQP with a support of grouping $M$ required. Its
 \emph{gap} is
 \begin{equation}\label{eq:gap}
 e_M(T)=H^{\rm f}_M(T)-H(T)\ \in\ \big[\,L_M-H(T),\ U_M-H(T)\,\big],
@@ -361,7 +369,8 @@ $u\equiv0$, minimised over meter topologies, and $H$ minimised with the load,
 D^*=\min H_0-\min H,\qquad L_0-U_1\ \le\ D^*\ \le\ U_0-L_1,
 \end{equation}
 where $[L_0,U_0]$ and $[L_1,U_1]$ bracket the two minima (solver bounds and incumbents): $\min H_0\ge L_0$ and $\min H\le U_1$
-give the lower end, and likewise the upper. Evaluating $H_0$ at the load tree's own meter topology instead could only
+give the lower end, and likewise the upper. Both brackets come from the tree MIQP over the final pool (over its meter
+groupings for $H_0$), started from $\hat T$; $U_1$ is the better of that solve and $H(\hat T)$. Evaluating $H_0$ at the load tree's own meter topology instead could only
 overstate $D^*$, since that topology is one of those minimised over. The places of the load are the admissible places in
 $\hat T$'s meter topology whose score is within $m$ of the best.
 
@@ -409,14 +418,17 @@ e_M$: a lower estimate of what the alternative still needs; unsettled groupings 
 solver's time limit) and are labelled again at each gate;
 \item the fitted parameters of the leader and the rival and their covariances $P=\hat\sigma^2(\Phi\tp\Phi)^{-1}$ on the
 coordinates not at a bound;
-\item the predicted voltage drops of hour $h+1$ under each tree, from the day-ahead forecast of the meters' load plus the
-block $u$; their difference is $d_M(u)=d_M(0)+G_Mu$, and
+\item the predicted voltage drops of hour $h+1$ under each tree after $M$, so that $\hat\sigma^2I$ is their noise
+covariance, from the day-ahead forecast of the meters' load (the mean of the same hour over the data) plus the block $u$;
+their difference is $d_M(u)=d_M(0)+G_Mu$, and
 \begin{equation}\label{eq:sep}
 q_M(u)=d_M(u)\tp\Sigma_M^{-1}d_M(u),\qquad \Sigma_M=\hat\sigma^2I+\tfrac12\Phi_{\hat L}P_{\hat L}\Phi_{\hat L}\tp+\tfrac12\Phi_{F_M}P_{F_M}\Phi_{F_M}\tp,
 \end{equation}
 with $\Sigma_M$ held fixed at the forecast;
 \item the feasible blocks $\Uset_{h+1}$ (battery and EV headroom, the voltage band for the leader \emph{and every rival}, the
-transformer rating, the price caps) and the price $c(u)=c^\uparrow\sum_i\max(u_i,0)+c^\downarrow\sum_i\max(-u_i,0)$.
+transformer rating, the price caps) and the price $c(u)=c^\uparrow\sum_i\max(u_i,0)+c^\downarrow\sum_i\max(-u_i,0)$. A block
+acts at one meter with one sign, at a quarter, a half, three quarters or all of the largest size these allow; the band keeps
+$z\hat\sigma/2$ of margin (one reading of $V$).
 \end{itemize}
 \begin{lemma}[Expected predictive log-likelihood ratio]\label{lem:evidence}
 With the two fitted predictive means $\mu_{\hat L}(u)$, $\mu_{F_M}(u)$ and the covariance $\Sigma_M$ held fixed, let
@@ -435,8 +447,11 @@ whether the line $\{1,2\}$ carries the load can fit the history equally when the
 with $r=2$ and no load, the second with $r=1$ and the load); a block $a$ at meter 1 then gives $2a$ against $a$, so a block
 does separate them.
 
-\paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings, and of load places
-within $m$ of the best, whose $G$ moves on some feasible block direction; it stays fixed during the day. With
+\paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings, and the load's place
+when the second-best admissible place is within $m$ of the best (that place is its rival), whose $G$ moves on some feasible
+block direction; it stays fixed during the day. At every gate each target is relabelled on the current data and pool; a
+target outside the tree that no local swap shows open gets the flip test (\ref{eq:flip}) with its grouping required, since a
+local swap cannot decide it (Lemma~\ref{lem:local}). With
 $\kappa(\delta,q)=\mathbb E\min(\delta,Z)$ for $Z\sim\mathcal N(q/2,q)$, that is
 $\kappa=\tfrac q2-(\tfrac q2-\delta)\,\mathrm F_0\big(\tfrac{q/2-\delta}{\sqrt q}\big)-\sqrt q\,\mathrm f_0\big(\tfrac{q/2-\delta}{\sqrt q}\big)$
 with $\mathrm F_0$ and $\mathrm f_0$ the standard normal distribution and density ($\kappa=\min(\delta,0)$ at $q=0$), the
@@ -453,7 +468,9 @@ $\psi$ on a grid; with mean cost and coverage scaled to $[0,1]$, the default is 
 line from the first point to the last (the knee). Grid and default are fixed before any probing test. \emph{Greedy, in plain
 words:} each hour the rule buys the one block worth most for the next hour alone. \emph{Stopping and trust gate:} the day
 ends when every target holds a fresh decided label, on that gate's data and pool, at two consecutive gates; blocks are
-bought only when the leader fits as well as the meter noise allows, $s^2_{\hat L}/\sigma^2_y\le\kappa_A$.
+bought only when the leader fits as well as the meter noise allows, $s^2_{\hat L}/\sigma^2_y\le\kappa_A$, with $s^2_{\hat L}$ the
+leader's residual variance after $M$ and $\sigma^2_y=4\sigma_v^2\,1.02^4$ for the meter class $\sigma_v=0.05\%$. A last gate after
+hour 23 relabels on the whole day, so that the readings of the last block are used.
 
 \begin{algorithm}[t]
 \caption{\textsc{Probe}: one day of cost-aware probing (proposed)}\label{alg:probe}
@@ -463,12 +480,12 @@ bought only when the leader fits as well as the meter noise allows, $s^2_{\hat L
 \State $\Tset\gets$ open alternatives whose $G$ moves on a feasible block direction \Comment{fixed for the day; Lemma~\ref{lem:reach}}
 \For{$h=0,1,\dots,23$} \Comment{gate at the start of hour $h$; block for $h+1$ sealed now}
   \State $\hat L\gets$ Algorithm~\ref{alg:identify}, lines 5--9, on all data so far
-  \State relabel every target on the current data and pool: intervals, deficits, rivals
+  \State relabel every target on the current data and pool (an outside target by its flip test): intervals, deficits, rivals
   \State \textbf{if} every target has a fresh decided label at this gate and the previous one: \Return $\hat L$ with its labels
   \State $u_{h+1}\gets u^\ast$ of (\ref{eq:block}) if $s^2_{\hat L}/\sigma^2_y\le\kappa_A$ and $J_h(u^\ast)>0$, else $0$
   \State hour $h$ runs with $u_h$; add its readings to the data
 \EndFor
-\State \Return $\hat L$ with its labels \Comment{some targets still open}
+\State lines 3--4 once more on the whole day (the last gate); \Return $\hat L$ with its labels \Comment{some may stay open}
 \end{algorithmic}
 \end{algorithm}
 
@@ -477,7 +494,8 @@ bought only when the leader fits as well as the meter noise allows, $s^2_{\hat L
 
 \paragraph*{What the output says} Three parts, kept apart. \emph{The load:} the gate's statistic and decision; with a load,
 its path, places within $m$ and evidence interval. \emph{The structure:} the groupings of $\hat T$, the anchors, and for every
-grouping its label, gap interval and rival. \emph{The computation:} the certificate's scope, the nodes priced each way, the
+grouping its label, gap interval and rival. \emph{The computation:} the certificate's scope (single-line pricing complete, a paying line left at the repair limit, or
+incomplete; and whether the restricted scope holds), the nodes priced each way, the
 share of unsettled labels, the solver status of every number, and why the loop stopped.
 
 \paragraph*{How it is scored against the truth} The gate: loads missed and no-load feeders given a load, by share and kind.
@@ -618,12 +636,15 @@ active-power part of (\ref{eq:model}) by a convex QP solved with Gurobi, with th
 is modelled ($D_1=D$ otherwise):
 \begin{equation}\label{eq:rhat}
 \hat R=\arg\min_R\ \big\|(D_1\otimes S_\gamma)\,\mathrm{vec}(Y-PR)\big\|^2\quad\text{s.t.}\quad R=R\tp\ge0,\quad
-R_{ij}\le\min(R_{ii},R_{jj}).
+R_{ii}-R_{ij}\ge\epsilon\ \ (i\ne j),
 \end{equation}
-(2) Nine hierarchies over the meters: recursive neighbour joining, neighbour joining and recursive grouping on $\hat R$;
+with $\epsilon$ a strict order margin, $10^{-6}$ of the median diagonal of the unconstrained fit.
+(2) Nine hierarchies over the meters: recursive neighbour joining, neighbour joining (with the PCC as an observed leaf) and
+recursive grouping (equalities to $10^{-9}$ of the median depth) on the shared paths $\hat R/\bar d$, $\bar d$ the mean
+positive path distance;
 UPGMA on the path distance $d_{ij}=\hat R_{ii}+\hat R_{jj}-2\hat R_{ij}$ and Ward linkage on $\sqrt d$; average-linkage
 clusterings on the correlation distance between meters of the rows of $\hat R$, the drops $y$, the drops
-$(D_1\otimes S_\gamma)y$, and the residuals after fitting the service cables alone. (3) With a load, it is placed in each of
+$(D_1\otimes S_\gamma)y$, and the residuals after fitting the service cables and the trunk alone. (3) With a load, it is placed in each of
 the nine trees at its best admissible place; these trees start the first solve. (4) $\Omega_0$ is every cluster with 2 to
 $n-1$ meters in any hierarchy, and with a load each such cluster with and without $s$, the supports $\{i,s\}$ and $\Nset$,
 so $|\Omega_0|\le18(n-2)+n+1$.
@@ -646,11 +667,12 @@ of the limit at most (off in the ablation)\\
 Flip test & cutoff $H(T)+m$, local flips first; limit at least that of the tree MIQP; the share at the limit is reported\\
 Local search & from the empty tree and the builder trees; 20 s per start (40 s beyond 35 meters); polish 20 s\\
 Pricing & enumeration up to 12 children; node MIQP beyond, 60 s; at most 10 additions per round\\
-Load evidence & the no-load model solved over the meter groupings of the pool, same limits\\
+Load evidence & the no-load model over the meter groupings of the pool and the load model over the pool, same limits\\
 Solver & Gurobi, one thread per case\\
 \midrule
 Probing & $c^\downarrow=4$, $c^\uparrow=1.2$ CNY/kWh; caps 20 CNY/h, 100 CNY/day; band $[0.96,1.035]$, $z=2.33$;
-$\kappa_A=1.2$; $\psi$ at the knee of the development cost--coverage curve\\
+$\kappa_A=1.2$, $\sigma_v=0.05\%$; blocks at one meter, $\frac14$ to all of the largest feasible size; forecast: the mean of the
+same hour; $\psi$ at the knee of the development cost--coverage curve\\
 \bottomrule
 \end{tabular}
 \end{table}

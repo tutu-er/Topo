@@ -1,4 +1,4 @@
-"""Supports and families (draft v11, Section I).
+"""Supports and families (draft v12, Section I).
 
 A support is a sorted tuple of leaf numbers. Leaves 0..n-1 are the meters; with the PCC power, leaf n is the unmetered
 load. A family is a collection of supports; a tree is a laminar family that contains the basis (every leaf alone and the

@@ -2,18 +2,20 @@
 
 Gate h, at the start of hour h, with data up to the end of hour h-1:
   1. refresh the leader and its labels: Algorithm 1, lines 4-11, on all data so far (identify.refine);
-  2. relabel every target; stop when every target is decided at this gate and at the previous one;
+  2. relabel every target (one outside the tree that no local swap shows open gets the flip test with its grouping
+     required); stop when every target is decided at this gate and at the previous one;
   3. if the leader passes the trust gate s2_L / sigma2_y <= kappa_A, buy for hour h+1 the feasible block with the
      largest J(u) = psi sum_M [kappa(delta_M, q_M(u)) - kappa(delta_M, q_M(0))] - c(u)   (eq. 15), when J > 0;
   4. hour h runs with the block sealed at the previous gate, and its readings join the data.
 A last gate after hour 23 relabels on the whole day, so the last block's readings are used.
 
-Choices the draft leaves open, stated here so that they can be checked:
+Planner choices (stated in the draft's Section V since v13):
   - a block acts at one meter with one sign; its size is 1/4, 2/4, 3/4 or all of the largest feasible size;
   - the forecast of an hour is the mean of the same hour over the data (24 rows a day, from midnight);
   - sigma2_y = 4 sigma_v^2 1.02^4, the meter class, as in the earlier probing study's trust gate;
   - the load's places are one target, open while the second-best place is within m, with that place as its rival;
-  - the voltage band keeps z sigma_V of margin, sigma_V = sigma / 2 (one reading of V).
+  - the voltage band keeps z sigma_V of margin, sigma_V = sigma / 2 (one reading of V);
+  - the separation q compares the S-weighted predictions, whose noise covariance is sigma^2 I.
 Target variants (paper/PROPOSALS_UNDER_TEST.md, section 3): T0 is the draft; T1 drops groupings outside the leader that
 are nested in it; T2 values those in the rival-true world, w kappa(m + e, q) with w = 1 / (1 + exp(e)).
 
@@ -32,7 +34,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .identify import Settings, label_rows, place_costs, refine
-from .labels import DECIDED, OPEN, grouping
+from .labels import DECIDED, OPEN, flip_test, grouping
 from .model import BOUND, Fitter, Model, balance
 from .sets import basis, canonical, compatible
 
@@ -111,6 +113,22 @@ def separation(lead, rival, sigma2):
 
 
 # ------------------------------------------------------------------ targets and blocks
+def relabel_outside(model, tree, pool, rows, keys, st):
+    """Line 4 for the targets outside the tree that no local swap shows open: the flip test with their grouping required
+    (eq. 6), since local swaps can show a grouping open but never decided (Lemma 1). Returns the rows with theirs."""
+    have = {tuple(x["grouping"]) for x in rows}
+    s0, half = Fitter(model, tree).crit(tree), model.N/2
+    seconds = st.flip_seconds or (st.short_seconds if model.n <= st.warm_n else st.long_seconds)
+    out = list(rows)
+    for M in keys:
+        if M != "place" and M not in have:
+            r = flip_test(model, pool, M, s0+st.m/half, seconds, st.seed, st.tighten, inside=False)
+            gap = [None if v is None else (v-s0)*half for v in (r["low"], r["high"])]
+            out.append(dict(grouping=list(M), inside=False, anchor=False, label=r["label"], gap=gap, status=r["status"],
+                            seconds=r["seconds"], rival=None if r["rival"] is None else [list(C) for C in r["rival"]]))
+    return out
+
+
 def states(model, tree, rows, places, keys, m):
     """Each target's state at a gate: dict(label, high end of its gap, rival lines, kind), where kind is inside,
     nested (outside the tree, compatible with it), crossing, or place (the load's place)."""
@@ -121,8 +139,6 @@ def states(model, tree, rows, places, keys, m):
         if M == "place":
             gap, _, rival = places[1] if len(places) > 1 else (math.inf, None, None)
             out[M] = dict(label=OPEN if gap <= m else DECIDED, high=gap, rival=rival, kind="place")
-        elif M not in labels:                  # outside the tree, and swapping it in costs more than m
-            out[M] = dict(label=DECIDED, high=None, rival=None, kind="outside")
         else:
             x = labels[M]
             kind = "inside" if x["inside"] else "nested" if all(compatible(M, C) for C in meter_tree) else "crossing"
@@ -215,7 +231,8 @@ def probe_day(data, first, world, st=Settings(), ps=ProbeSettings(), say=None):
         lead = prediction(model, tree, fc)
         if keys is None:
             keys = day_targets(model, tree, rows, places, lead, fc, room, ps, m)
-        now = states(model, tree, rows, places, keys, m)                 # line 4
+        rows = relabel_outside(model, tree, pool, rows, keys, st)        # line 4
+        now = states(model, tree, rows, places, keys, m)
         decided = all(s["label"] == DECIDED for s in now.values())
         gate = dict(hour=h, tree=[list(g) for g in (grouping(C, n) for C in tree) if g], trust=None, block=None,
                     targets={str(k): [s["label"], s["high"]] for k, s in now.items()})

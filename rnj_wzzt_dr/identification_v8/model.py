@@ -1,4 +1,4 @@
-"""The model and the score of draft v11 (eqs 1-5; the load gate is eq. 3).
+"""The model and the score of draft v12 (eqs 1-5; the load gate is eq. 3).
 
 Data, all slots (hourly, pu): P, Q and Y = V0^2 - V^2 (T x n), V0sq (T); with the PCC power, the unmetered power
 u = (uP, uQ) from the balance (eq. 2). Leaf n is then the load: its flow is u and it has no voltage row.

@@ -228,6 +228,24 @@ def test_identify_synthetic():
             assert [tuple(p) for p in out["path"]] == [(3, 4, 5, 6, 7), (5, 6, 7)], out["path"]
 
 
+def test_flip_tests_synthetic():
+    """Eq. 6 both ways on the synthetic feeder (true tree, pool with one nested and one crossing extra line): removing
+    a true grouping and forcing in a crossing one are both decided; so is an outside target in probing, which needs
+    the flip test with its grouping required (a local swap could only show it open, Lemma 1)."""
+    from .identify import Settings
+    from .labels import DECIDED, flip_test
+    from .model import Fitter, Model
+    from .probe import relabel_outside
+    data = synthetic_hour(np.random.default_rng(3), np.arange(192))
+    model = Model(data["P"], data["Q"], data["Y"], data["V0sq"])
+    tree, pool = canonical(SYNTHETIC_LINES), canonical([*SYNTHETIC_LINES, (1, 2), (2, 3)])
+    threshold = Fitter(model, tree).crit(tree)+4.6/(model.N/2)
+    assert flip_test(model, pool, (0, 1, 2), threshold, 10.)["label"] == DECIDED
+    assert flip_test(model, pool, (2, 3), threshold, 10., inside=False)["label"] == DECIDED
+    row = relabel_outside(model, tree, pool, [], [(2, 3)], Settings(**QUICK))[0]
+    assert row["label"] == DECIDED and not row["inside"] and row["gap"][0] > 4.6
+
+
 def test_probe_synthetic():
     """Algorithm 2 runs a short day on the synthetic feeder (a linear world with fixed headroom) and keeps its caps."""
     from .identify import Settings, identify
