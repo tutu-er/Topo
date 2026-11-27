@@ -4,6 +4,7 @@ Run: python -m rnj_wzzt_dr.experiments.case_library_20261125.check_wide_nodes"""
 import json
 import time
 
+from rnj_wzzt_dr.experiments.case_library_20261125.build import OUT
 from rnj_wzzt_dr.experiments.case_library_20261125.dev_cases import load_dev_case
 from rnj_wzzt_dr.identification_v8.identify import place_load
 from rnj_wzzt_dr.identification_v8.model import Model, balance, load_share, GATE
@@ -11,7 +12,7 @@ from rnj_wzzt_dr.identification_v8.search import best_addition, node_miqp
 from rnj_wzzt_dr.identification_v8.sets import basis, canonical, children, lines_of
 
 rows = list({json.loads(l)["name"]: json.loads(l)
-             for l in open("C:/0-workspace/Topo/repo/outputs/case_library_20261125/dev_v8.jsonl", encoding="utf-8")}.values())
+             for l in open(OUT/"dev_v8.jsonl", encoding="utf-8")}.values())
 for r in rows:
     rec, inp = load_dev_case(r["name"]) if r["name"].startswith("dev_huge") else (None, None)
     if inp is None:
