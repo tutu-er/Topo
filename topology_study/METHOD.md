@@ -1,18 +1,18 @@
 # The method in plain words
 
 This explains what the code does and why, without the proofs. The formal version is `paper/procedure.tex` (draft
-v16); the section and equation numbers below are the draft's. The code is in `ptid/method/`.
+v17). The section and equation numbers below follow the draft. The code is in `ptid/method/`.
 
 ## 1. The task
 
 A low-voltage feeder runs from a transformer (the point of common coupling, PCC) to n customers with smart meters.
 Every hour each meter reports its active and reactive power (p, q) and its voltage V; the PCC reports its voltage and,
-where metered, its power. We want the feeder's topology: which customers share which line. Some of it the data decide,
-some they do not. The method says which part is decided, how sure it is, and, optionally, buys small demand-response
-"blocks" (probing) to decide more.
+where metered, its power. We want to know which customers share which line. Given the measurements, scoring model
+and a pool of possible lines, the method tests whether
+competitive trees agree on a grouping. The optional probing policy buys one-hour demand-response blocks.
 
-There may be one load without a meter (street lights, a pump, unmetered homes). Its power is known from the PCC
-balance (PCC power minus the meters and the losses), but it has no voltage reading.
+There may be one load without a meter (street lights, a pump, unmetered homes). Its power is estimated from the PCC
+balance using the measured loads and an approximation of feeder losses. The load has no voltage reading.
 
 ## 2. Topology as sets of meters
 
@@ -38,24 +38,26 @@ The **score** of a tree F is
 - RSS(F): the residual of F's best fit (coefficients bounded to [0, 2] pu);
 - σ̂²: the noise variance, from the **saturated model** (every pair of meters, and every meter with the load, gets its
   own free coefficient; every tree is a special case of it, so σ̂² does not depend on any tree);
-- k(F): the number of lines; β: the price of a line. ½ p_s ln N is the BIC price (p_s = 2 parameters per line, N = hours
-  × meters); λ = 1.96 is a structural prior: real LV feeders rarely have nodes with more than two children
-  (odds 0.141 on 84 real feeders, λ = ln(1/0.141)).
+- k(F) counts optional internal lines. Each costs β score units. The number of observations is N = hours × meters.
+  The code sets the penalty parameter p_s to 2 when reactive power varies sufficiently independently of active power
+  at a majority of the meters, and to 1 otherwise. Each line still has two fitted coefficients.
+- λ = 1.96 is an empirical structural weight derived from branching counts on 84 feeders.
 
-Score differences are log posterior odds. A margin of **m = ln 100 ≈ 4.6** score units means odds of 100 to 1.
+The preselected margin **m = 4.6** compares tree scores. Within a candidate pool a flip changes the grouping under
+test and allows the rest of the tree to change. Its evidence is a feasible competing tree or a valid bound on the best
+competing score. The empirical error rate among decided groupings is measured separately against reference topologies.
 
-**Why the score finds true lines (Theorem 1).** Removing a true line costs the part of the true voltage signal that the
-remaining lines cannot reproduce; that cost grows with the number of hours. Adding a line that is not there gains only
-the noise along the directions it adds (about one χ² unit per parameter) and pays β, so it lowers the score only with
-probability about e^λ / N (with 8 days of hourly data: about 1 in 430 for 16 meters, 1 in 1,600 for 60). This is the classical reason BIC selects the true model, stated for
-one data set and bounded fits.
+**How a missing line affects fit (Theorem 1).** Under the linear model, a rival that omits a true line loses the part
+of the noiseless signal that its remaining predictors cannot represent. Distinct variations in customer demand can
+make that loss grow across hours. If the rival reproduces the signal, the bound gives no positive separation.
+For a redundant line the theorem bounds the potential fit improvement by noise in the added directions under its
+stated coefficient conditions. The score also charges β for the line.
 
 ## 4. Is there an unmetered load? (Section II)
 
-Before any fitting, the PCC balance decides it: the unmetered share ς = (mean unmetered power) / (mean metered power).
-A load is modelled only if ς ≥ 1%. Below that, the load is too small to place (a line with and without it would fit
-equally), so it is treated as absent. On the development cases the statistic separates cleanly (no load: at most
-0.66%; a 2% load: at least 1.53%).
+Before fitting, calculate the estimated share ς = (mean unmetered power) / (mean metered power).
+The identification model includes the load when ς ≥ 1%. This modelling rule was chosen for the study's meter class.
+The largest share in the no-load development cases was 0.66%, and the smallest in the 2% load cases was 1.53%.
 
 ## 5. Algorithm 1: the tree and its labels (Section IV)
 
@@ -66,37 +68,45 @@ equally), so it is treated as absent. On the development cases the statistic sep
    - *Local search:* from the empty tree and from each builder tree, repeatedly make the best single move: remove a
      line, or add a pool line and drop the lines it crosses. The best start is searched **to convergence**: at the end,
      no single removal or swap of any candidate line improves the score. (Every candidate line's value is checked.)
-   - *Tree MIQP:* a mixed-integer quadratic program picks the best tree over the whole pool: one yes/no variable per
-     candidate line, crossing lines exclusive, a line's r and x zero unless chosen. It starts from the local-search tree.
+   - A mixed-integer quadratic program (MIQP) searches the pool from the local-search tree. It uses one yes/no variable
+     per candidate line, excludes crossings and sets a line's r and x to zero unless it is chosen.
      Its coefficients are scaled to the size of their columns, and Gurobi runs at its default tolerances (see
      RESULTS.md, "Solver fix", for why).
-   - *Checked claims:* every result is compared with the trees already known. A lower bound above a known tree's score,
-     or an "optimum" that one move still improves, is impossible: the solve is recorded as a **numerical failure**,
-     gives no bound and decides nothing.
+   - *Checked claims.* A lower bound has to be consistent with known feasible trees in the domain it covers.
+     A conflicting bound or a claimed optimum improved by a feasible move makes the solver claim unusable.
    - The better tree is searched to convergence again.
 3. **Labels.** For each grouping M of the current tree, ask: what is the best tree that decides M the other way?
    - *Local flips* (cheap): remove M's lines, or swap in a crossing candidate. A flipped tree within m of the tree makes
      M **open**. Local flips can never prove M decided (they only give upper bounds).
-   - *Flip test* (the MIQP with M's lines removed from the pool, and the tree's score plus m as cutoff): if the solver
-     proves no flipped tree within m exists, M is **decided**; if it finds one, M is **open** (that tree is the rival);
-     if the time runs out first, M is **unsettled**.
+   - The flip MIQP excludes all lines expressing M and compares the best remaining score to H(T) + m for the current
+     tree T. A valid exclusion gives **decided**, a feasible rival within the margin gives **open**, and an unresolved
+     comparison gives **unsettled**. A time-limited solve can still supply a witness or a sufficient lower bound.
+   - Per-meter tightening and an objective cutoff can restrict the solve to low-scoring solutions. The reported
+     lower bound is valid over the original pool with the flip imposed. If a restricted search proves no flip
+     reaches the threshold, it establishes threshold exclusion. A larger lower bound from that search is capped
+     at the score level its restrictions protect.
 4. **Anchors and the anchored search.** Decided groupings are **anchors**. Given the anchors, every tree that keeps them
    uses only unions of a few "units" inside each anchor (Proposition 4). When an anchor has at most K = 9 units, all
    those unions are offered; larger nodes keep the pool's own lines. The tree MIQP then searches this anchored universe
    with every anchor required.
-5. **Pricing.** At each node of the tree, is there a single new line (a union of some of the node's children) that
-   lowers the score? Nodes with at most K children are checked by fitting every union; wider nodes by a small MIQP (the
-   node MIQP), which is exact too. Paying lines are added and the tree is re-solved.
-6. **Rounds.** Steps 3 to 5 repeat (at most R = 2 anchored searches) until the stopping rule of Lemma 3 holds (same
-   anchors, nothing added by pricing, the last MIQP proved optimal) or the round limit is reached. The last labels are
-   those of the final tree and pool.
-7. **Outputs.** The tree; each grouping's label with its gap interval and rival; the certificate's scope (single-line
-   pricing complete, a paying line left, or incomplete; whether the anchored search was solved to optimality); with a
-   load: its path, its admissible places within m, and how strongly the voltages show it (the evidence interval).
+5. **Pricing.** Each node offers lines formed by joining a proper subset of its children. At most K children permits
+   enumeration. At a wider node, a feasible improving union can be added immediately. A valid lower bound can rule
+   out any improvement exceeding the pricing tolerance. If neither is available, that node is unproved. Every added
+   line is retained in the cumulative pool, including those removed from the tree by a subsequent solve.
+6. **Rounds.** The convergence rule requires unchanged anchors, no added line, completed single-line pricing with
+   no outstanding improvement, and a closed gap for the preceding anchored solve at the stated tolerance. Otherwise
+   the method continues to the configured limit (default R = 2). The final labels use the final tree and cumulative
+   pool. A bound from the anchored search applies to its recorded domain with those anchors required.
+7. **Outputs.** The result contains the feasible tree, the cumulative pool, the evaluated groupings' labels and
+   gap intervals, and any recorded rival. It identifies the final restricted solve, whether its gap closed to
+   tolerance, and the status of single-line pricing. For an unmetered load it also reports its path and the
+   score of each placement relative to the best on the same meter tree. The optional evidence interval
+   compares the best fits with and without a load in their specified search domains.
 
-**What a label promises (Proposition 2).** "Decided" means: every tree within m of the best (over this pool and model)
-agrees with the tree on M. "Open" means a flipped tree within m was found. Labels are about the model, the data and the
-pool, not the truth; how often decided labels are wrong is measured on the development cases.
+**What a label promises (Proposition 2).** Every tree within m of the best score in the pool agrees with a decided
+grouping of T. An open grouping has a rival within m of T. To establish disagreement in the near-optimal set itself,
+both trees must lie in it. For example, a valid lower bound L for the same pool without anchors certifies this if
+both trees score at most L + m.
 
 ## 6. Algorithm 2: one day of probing (Section V)
 
@@ -105,9 +115,10 @@ an aggregator), within price, budget and voltage-band limits.
 
 - **Targets.** At the start of the day: the open groupings, and the load's place when its second-best place is within
   m, whose rival tree responds differently from the leader to some feasible block.
-- **Value of a block.** For each target, a block changes how differently the leader and its rival predict the next
-  hour's voltages: the separation q. If the leader is true, the evidence the hour adds is Gaussian with mean q/2 and
-  variance q (Lemma 4). The value counts the expected evidence up to the target's remaining deficit:
+- **Value of a block.** For each target, q measures how far apart the two fitted predictions are for the next hour.
+  Holding both fits and their common covariance fixed, if observations follow the leading tree's assumed Gaussian
+  distribution, the predictive log-likelihood ratio has mean q/2 and variance q (Lemma 4). This calculation ranks
+  actions before the next observation. The value counts the predicted evidence up to the target's remaining deficit:
   κ(δ, q) = E min(δ, Z). The block bought maximises J = ψ Σ [κ(with block) − κ(without)] − cost, if J > 0.
 - **Trust gate.** Blocks are bought only when the leader fits about as well as the meters allow.
 - **Gates.** Every hour: refit (Algorithm 1, steps 3 to 6, on all data so far), relabel every target (targets outside
@@ -132,9 +143,10 @@ an aggregator), within price, budget and voltage-band limits.
 
 ## 8. Known limits
 
-- On feeders of 47 to 60 meters the MIQP's bound stays far below the best tree (hundreds of score units), so flip tests
-  there end unsettled and the trees rest on the converged local search. The output says so.
+- In historical 47–60 meter cases, MIQP bounds remained hundreds of score units below the best feasible tree.
+  Many flip tests reached their time limit and left the grouping unsettled.
 - Labels hold for the model; the model is linear, balanced and single-phase, with one unmetered load at most.
-- Certificates cover single-line additions only: two lines can pay together when neither pays alone (Remark 1).
+- Single-line pricing checks additions to the current tree. Two lines can pay together when neither pays alone
+  (Remark 1). The anchored master and the grouping flips have their own candidate domains.
 - The gate ignores loads below 1% of the metered power; its threshold fits one meter class.
 - ψ and the trust gate's level are not yet calibrated; κ is not monotone in q for small deficits (PROPOSALS.md, §7).

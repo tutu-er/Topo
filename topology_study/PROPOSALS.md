@@ -1,9 +1,7 @@
 # Proposals under test (revised 2026-11-27)
 
-When probing starts, what it targets, and three smaller items. **Status: recorded, NOT adopted.** Neither the draft
-(`paper/procedure.tex`, v16) nor the code (`ptid/method/`) uses these rules. We want the final method to follow from the score or from a proof, not from tuned thresholds. So each rule
-below says what is proved, what is only assumed, and which tests decide it. All tests use development cases only; the
-sealed set is never used for them.
+This file records proposed start and target rules for probing. Draft v17 uses T0 by default. T1 and T2 are
+implemented comparison variants. The cases and pass criteria below are for development evaluation.
 
 ## 1. The fact both rules rest on (proved)
 
@@ -17,19 +15,16 @@ pays beta for its one extra line. QED.
 Consequences:
 
 - (a) On any data, the smaller tree beats the bigger one by at most beta. "M is absent" can be decided (gap > m) only
-  if beta > m. On the development cases beta = 5.6 to 7.4 and m = ln 100 = 4.6, so the margin left is only 1.0 to 2.8.
-- (b) If A is true, gain is noise: about chi-bar-square, whatever the design. Probing does not raise the cap or shift
-  the distribution. Evidence against M cannot build up; only beta grows, like ln N. One probing day of 24 hourly rows
-  adds about 0.12 to beta.
-  A strong probe can still help, but only by replacing the history's unlucky noise with fresh noise. That is a one-off
-  draw, and with dev values it decides at most about 94% of the time (P(gain/2 < beta - m)).
-- (c) If B is true (A lacks a true line), gain grows with the excitation of M's flow (Theorem 1a). Probing confirms M.
-- (d) The draft's forecast (Lemma 4, the q/2 in eq. 15) assumes the leader generates the data. It is wrong exactly
-  when the rival contains the leader: there the refit absorbs whatever the probe shows, yet the formula still credits
-  q/2.
-
-For contrast, the user's guarantee (Theorem 1a) concerns a rival that lacks a true line. Its cost grows with the data,
-so presence can be decided firmly, while absence of an extra line is capped by (a).
+  if beta > m. On the development cases beta = 5.6 to 7.4 and the prespecified margin m = 4.6 score units,
+  leaving 1.0 to 2.8 score units.
+- (b) If A generates the observations under the fitted linear model, adding a redundant line can absorb noise.
+  How much it absorbs depends on the design and on active coefficient bounds. The deterministic cap is beta.
+  In the development configuration, adding 24 hourly rows increases beta by about 0.12 with the penalty settings held fixed.
+- (c) If B is true, the rival A can be separated when it cannot represent the response of the omitted line.
+  Excitation changes the distinguishable signal defined in Theorem 1a.
+- (d) The forecast in Lemma 4 holds the fitted predictions fixed for the next hour and assumes the leader's
+  observation model. The next gate refits the trees. In a nested pair the larger tree can reproduce the smaller
+  tree's fitted signal. The predicted q/2 and the realised change in their refitted score gap can differ.
 
 ## 2. Start rule (proposal S)
 
@@ -43,27 +38,27 @@ On a given day, probe only if all four hold:
 | S4 | J > 0 for the best block | eq. 15 | a forecast; see 1(d) |
 
 Outcomes:
-- If S1 fails, report **low belief** and do not probe, because probing between wrong trees wastes money.
-- If S3 finds no target, every grouping of the leader is decided. Report the labels and do not probe; this is the
-  "high confidence, no need to probe" case.
+- If S1 fails, report that the leader failed the fit check and skip probing under this proposal.
+- If S3 finds no reachable target, report that outcome with the grouping labels. Unsettled groupings and
+  open groupings that feasible blocks cannot distinguish can both remain.
 
-**Open question:** m = ln 100 is per grouping. For a whole tree with G groupings, the chance that some decision is wrong
-is up to about G/100. A whole-tree level would use m = ln(100 G), but that can exceed beta (see 1a).
+**Open question.** The 4.6-unit margin applies to a grouping flip in its specified candidate pool. Measure
+the fraction of decided groupings that disagree with physical lines and the fraction of feeders with at least
+one such disagreement. Deriving a whole-tree error bound would require separately validated individual error
+bounds or a joint analysis.
 
 ## 3. Target rule (proposal T)
 
 Three variants, to be compared:
 
 - **T0 (the draft).** Every open grouping is a target, together with every open load place, valued by eq. 15.
-- **T1 (exclude).** A grouping outside the leader and nested in it (a "one more line" rival) is not a target. It is
-  reported as "a further line here is not worth its price (margin x)". This applies 1(b) and 1(d): in the world the
-  planner assumes (leader true), such a target has no value that can build up.
+- **T1 (exclude).** Omit a grouping outside the leader and nested in it from the target list. Report its score
+  margin. Section 1(a) caps the score advantage of the smaller tree for a single nested addition.
   **Risk:** a weak true line missing from the leader is also nested and outside, so T1 would never probe for it,
   although 1(c) says probing could confirm it.
-- **T2 (two-world value).** Keep nested rivals as targets, but value them correctly:
-  - in the leader-true world, 0 (or at most the one-off draw of 1b);
-  - in the rival-true world, kappa(m + gap, q), weighted by the rival's probability 1/(1 + e^gap).
-  T2 uses the same objective as eq. 15, with no new threshold, and keeps the route to weak missing true lines.
+- **T2 (two-world value).** Keep nested rivals as targets. T2 assigns zero to their leader-side contribution
+  and uses kappa(m + gap, q) for the rival side, multiplied by the heuristic score weight 1/(1 + exp(gap)).
+  Its value for recovering weak lines is an experimental question (TR3 and TR4).
 
 Groupings of the leader and rivals that cross the leader stay targets in all variants.
 
@@ -106,7 +101,7 @@ The pass criteria are written here before the tests run.
 | --- | --- | --- | --- |
 | SR1 | Does S1 flag true trees? | F of the true tree on all 288 dev twins | Pass if at most 2% are flagged (nominal 1%). If it fails, model error is visible at this N: S1 needs a model-error term or is dropped |
 | SR2 | Does S1 catch real failures? | the leader's F when a true line is removed from the pool; a second unmetered load; a load at 0.5-1% just under the gate; a biased meter | S1 is useful if it flags at least half of the cases whose decided labels are wrong |
-| SR3 | Is "no target, so no probing" safe? | v8 on dev twins; in the cases where S says do not probe, count wrong decided groupings | Pass if at most 2% per grouping (nominal about 1%); also report the whole-tree rate against G/100 |
+| SR3 | How often does a decided grouping disagree with the reference when probing is skipped? | v8 on dev twins, restricted to cases where S skips probing | Development criterion of at most 2% among decided groupings. Also report the fraction of these cases with at least one disagreement. |
 | SR4 | Does S2 add anything? | the wrong-label rate in complete against incomplete cases | keep S2 only if incomplete cases are clearly worse |
 | TR1 | The cap holds in code | as in section 4 | **done:** held |
 | TR2 | How often are nested rivals open? | as section 4, on all 288 twins (with loads, larger n) and with the real candidate pool | descriptive |
@@ -119,12 +114,10 @@ psi knee (PLAN.md).
 
 ## 6. Related items, also not adopted
 
-- **Stop identification when a round changes nothing** (proposed 2026-11-26). Today Algorithm 1 stops early only when
-  the last anchored MIQP proved optimality (Lemma 3). On large feeders it never does, so every case runs both anchored
-  rounds and three labelling passes; when the anchors are unchanged and pricing added nothing, the next round repeats
-  the same search with the same limits. Stopping there would save about a third of the time on 47-60 meter feeders. It
-  is a stop by "nothing changed", not by proof, and the output would have to say so. Test: the v16 runs give, per case,
-  whether the second round changed anything.
+- **Stop identification when a round changes nothing** (proposed 2026-11-26). The cheaper stop would use
+  unchanged anchors and an empty set of priced additions. Draft v17 also requires complete single-line pricing
+  and a closed gap to tolerance for the preceding anchored solve. The v16 logs can be used to count cases in
+  which a second round changed the result and to estimate the time saved by the proposed stop.
 - **Stop rule for probing:** stop probing after 6 hours without progress (the old planner's `no_progress_hours = 6`).
 - **Operational equivalence** (5e-4 pu) for near-twin crossing rivals, so that they do not become targets. Section 4
   shows it cannot be used to call a line absent.

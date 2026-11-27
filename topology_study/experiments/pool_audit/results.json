@@ -1,0 +1,3358 @@
+{
+  "seed": 20261127,
+  "hours": 96,
+  "settings": {
+    "gate": 0.01,
+    "lam": 1.96,
+    "m": 4.6,
+    "K": 9,
+    "rounds": 2,
+    "large_n": 35,
+    "short_seconds": 10,
+    "long_seconds": 10,
+    "flip_seconds": 0.0,
+    "tighten": true,
+    "start_seconds": 2,
+    "repairs": 10,
+    "node_seconds": 10,
+    "evidence": false,
+    "seed": 7
+  },
+  "score_tolerance_H": 1e-06,
+  "versions": {
+    "python": "3.10.20",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "gurobi": [
+      13,
+      0,
+      1
+    ]
+  },
+  "source_sha256": {
+    "__init__.py": "28e7fec7627f2b4689d9ceb157ebf4aa389f82c301a4695f37b16afef743ef78",
+    "anchors.py": "f50ef68fea41d7a6be8a4452aae73e2404ad47530af00f026bfced1e5b2facba",
+    "builders.py": "c2d0edc79b7de37515cc942d9dd14beae84142efb64650600aa3a96c7da411ea",
+    "identify.py": "6bbf2702ca696976e4877570c658e7fd04007d94a8f372af6798ddaa50abeeef",
+    "labels.py": "331ca6b48f091e532b762af545a6684bddb8071823ec22364c0ca693837c8316",
+    "miqp.py": "07323353f3115f01a5ca91aa64e3713a0615f9dc0101115c036a3613f700c592",
+    "model.py": "27cb3f5d99b4c837d232b53ca3294cfa23217b31cbfc054b7e25e7c1b495b85b",
+    "probe.py": "d33cfc920bf6efd1d4c668db8dda72212ac1ba26ae45c43eb27a6901705b8836",
+    "search.py": "fdbca1102e47221a98ada48ef203144f5cdfe95de2970e46bd30d008e8b192d0",
+    "sets.py": "35ddc1fc9cb048cfcf82ff97ea53bd32c3752e477477dc259a7ed25eb2726266",
+    "pool_audit.py": "5975c415705f1f55776734471dc3a7ea96fc95bcda6c61b9a65403cb10c165f2"
+  },
+  "cases": [
+    {
+      "excitation": 1.0,
+      "hidden": false,
+      "truth": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "true_tree_H": [
+        188.93036971149908,
+        188.93036971169005
+      ],
+      "first_tree": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "reference_H": [
+        188.93036971149908,
+        188.93036971169005
+      ],
+      "final_tree": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "gate": {
+        "share": -3.2427332950710603e-17,
+        "threshold": 0.01,
+        "load": false
+      },
+      "input_sha256": {
+        "P": "95cae964385e5d4b8b44d1152c4d54f3bc33b3ddb7bbff9695bd73948f9961a2",
+        "Q": "7aa0608a2b6745cf7bd4d5a005c27d31721a959747b0d1c29afa6ce05809b0e3",
+        "Y": "d28a7a922c1a802a342f1c452e169909c1750fcf0c04a1fc1223d7ea59876735",
+        "V0sq": "7bdfa3233ec88f2360affda6cbaec39614bf72c3b1d86285f2275e6deea1e42f",
+        "Ppcc": "72b63aa1573fe9db70de637725f02e15634e24cda88b57d753fb7b438aac5349",
+        "Qpcc": "72110444c171ad9d36f6b10b4152aa53fe41faffce77a1df05eb8936ed28a339"
+      },
+      "first_status": 2,
+      "first_bound_crit": 0.98401234224837,
+      "scope": {
+        "single_line": "complete",
+        "restricted": true,
+        "restricted_round": 0,
+        "restricted_solve": "solve"
+      },
+      "stop": "converged: same anchors, single-line pricing complete, restricted gap closed to tolerance",
+      "round_statuses": [
+        {
+          "anchored": 2,
+          "pricing_complete": true,
+          "unproved_nodes": 0
+        }
+      ],
+      "final_labels_checked": 2,
+      "final_labels_unsettled": 0,
+      "initial_inside_decided_to_full_open": [],
+      "domains": {
+        "initial": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "families": 4,
+          "best_tree": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "best_H": [
+            188.93036971149908,
+            188.93036971169005
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 2,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "absent_H": [
+                266.1229904562605,
+                266.1229904563147
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "absent_H": [
+                250.47752327010676,
+                250.47752327015817
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            }
+          ]
+        },
+        "cumulative": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "families": 4,
+          "best_tree": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "best_H": [
+            188.93036971149908,
+            188.93036971169005
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 2,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "absent_H": [
+                266.1229904562605,
+                266.1229904563147
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "absent_H": [
+                250.47752327010676,
+                250.47752327015817
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "not_covered"
+            }
+          ]
+        },
+        "all": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "families": 26,
+          "best_tree": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "best_H": [
+            188.93036971149908,
+            188.93036971169005
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 2,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "absent_H": [
+                266.1229904562605,
+                266.1229904563147
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                287.8863964107368,
+                287.8863964107752
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                287.8863964107368,
+                287.8863964107752
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                287.8863964107368,
+                287.8863964107752
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                287.8863964107368,
+                287.8863964107752
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "absent_H": [
+                250.47752327010676,
+                250.47752327015817
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                254.4681658226945,
+                254.4681658227459
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                254.4681658226945,
+                254.4681658227459
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                270.11363300884824,
+                270.11363300890247
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                270.11363300884824,
+                270.11363300890247
+              ],
+              "absent_H": [
+                188.93036971149908,
+                188.93036971169005
+              ],
+              "verdict": "decided"
+            }
+          ]
+        }
+      },
+      "full_near_optimal": {
+        "trees_within": 1,
+        "trees_outside": 25,
+        "trees_on_numerical_boundary": 0,
+        "distinct_meter_group_sets_within": 1,
+        "distinct_hidden_internal_support_paths_within": null
+      },
+      "largest_fit_interval_width_H": 1.9096546566288453e-10,
+      "largest_difference_vs_identifier_H": 6.252776074688882e-13,
+      "identify_seconds": 0.09817639994435012,
+      "seconds": 0.10446009994484484
+    },
+    {
+      "excitation": 1.0,
+      "hidden": true,
+      "truth": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "true_tree_H": [
+        188.64061672771828,
+        188.64061672776953
+      ],
+      "first_tree": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "reference_H": [
+        188.64061672771828,
+        188.64061672776953
+      ],
+      "final_tree": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "gate": {
+        "share": 0.050497389497097256,
+        "threshold": 0.01,
+        "load": true
+      },
+      "input_sha256": {
+        "P": "95cae964385e5d4b8b44d1152c4d54f3bc33b3ddb7bbff9695bd73948f9961a2",
+        "Q": "7aa0608a2b6745cf7bd4d5a005c27d31721a959747b0d1c29afa6ce05809b0e3",
+        "Y": "e05ac2c1b9e1f33d404c4a564036d4e0677e5384968606aa4d0165ee09fed3e3",
+        "V0sq": "7bdfa3233ec88f2360affda6cbaec39614bf72c3b1d86285f2275e6deea1e42f",
+        "Ppcc": "3f41db9fa33efcc3510aa165dd23a2a5fbf50842007ef0b060da57db75b258de",
+        "Qpcc": "96b15af40360a414a50924a9304c405a174015817ded2ce3afa770db5b09215f"
+      },
+      "first_status": 2,
+      "first_bound_crit": 0.9825032121237897,
+      "scope": {
+        "single_line": "complete",
+        "restricted": true,
+        "restricted_round": 0,
+        "restricted_solve": "solve"
+      },
+      "stop": "converged: same anchors, single-line pricing complete, restricted gap closed to tolerance",
+      "round_statuses": [
+        {
+          "anchored": 2,
+          "pricing_complete": true,
+          "unproved_nodes": 0
+        }
+      ],
+      "final_labels_checked": 2,
+      "final_labels_unsettled": 0,
+      "initial_inside_decided_to_full_open": [],
+      "domains": {
+        "initial": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2,
+              3
+            ]
+          ],
+          "families": 32,
+          "best_tree": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3,
+              4
+            ]
+          ],
+          "best_H": [
+            188.64061672771828,
+            188.64061672776953
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 2,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "absent_H": [
+                264.25729156977934,
+                264.25729156978326
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "absent_H": [
+                257.73021554255826,
+                257.73021554256326
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            }
+          ]
+        },
+        "cumulative": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2,
+              3
+            ]
+          ],
+          "families": 32,
+          "best_tree": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3,
+              4
+            ]
+          ],
+          "best_H": [
+            188.64061672771828,
+            188.64061672776953
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 2,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "absent_H": [
+                264.25729156977934,
+                264.25729156978326
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "absent_H": [
+                257.73021554255826,
+                257.73021554256326
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "not_covered"
+            }
+          ]
+        },
+        "all": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              0,
+              2,
+              4
+            ],
+            [
+              0,
+              3,
+              4
+            ],
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              4
+            ],
+            [
+              1,
+              3,
+              4
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2,
+              4
+            ],
+            [
+              0,
+              1,
+              3,
+              4
+            ],
+            [
+              0,
+              2,
+              3,
+              4
+            ],
+            [
+              1,
+              2,
+              3,
+              4
+            ]
+          ],
+          "families": 236,
+          "best_tree": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3,
+              4
+            ]
+          ],
+          "best_H": [
+            188.64061672771828,
+            188.64061672776953
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 2,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "absent_H": [
+                264.25729156977934,
+                264.25729156978326
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                291.34460879970976,
+                291.34460879972715
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                291.34460879970976,
+                291.34460879972715
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                291.3446087997194,
+                291.34460879972715
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                291.34460879970976,
+                291.34460879972715
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": true,
+              "true": true,
+              "present_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "absent_H": [
+                257.73021554255826,
+                257.73021554256326
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                261.720858095146,
+                261.720858095151
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                261.720858095146,
+                261.720858095151
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                268.2479341223667,
+                268.247934122371
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                268.2479341223667,
+                268.247934122371
+              ],
+              "absent_H": [
+                188.64061672771828,
+                188.64061672776953
+              ],
+              "verdict": "decided"
+            }
+          ]
+        }
+      },
+      "full_near_optimal": {
+        "trees_within": 5,
+        "trees_outside": 231,
+        "trees_on_numerical_boundary": 0,
+        "distinct_meter_group_sets_within": 1,
+        "distinct_hidden_internal_support_paths_within": 4,
+        "same_meter_groups_different_paths": [
+          {
+            "tree": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3,
+                4
+              ]
+            ],
+            "meter_groups": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "internal_support_path": [
+              [
+                2,
+                3
+              ]
+            ],
+            "H": [
+              188.64061672771828,
+              188.64061672776953
+            ],
+            "H_minus_best": [
+              0.0,
+              5.1244342103018425e-11
+            ]
+          },
+          {
+            "tree": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "meter_groups": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "internal_support_path": [],
+            "H": [
+              191.46781105107027,
+              191.46781105141184
+            ],
+            "H_minus_best": [
+              2.827194323300745,
+              2.8271943236935613
+            ]
+          }
+        ]
+      },
+      "largest_fit_interval_width_H": 3.590230335248634e-10,
+      "largest_difference_vs_identifier_H": 1.9042545318370685e-12,
+      "identify_seconds": 0.21236779994796962,
+      "seconds": 0.2918036999180913
+    },
+    {
+      "excitation": 0.15,
+      "hidden": false,
+      "truth": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "true_tree_H": [
+        189.5167395479844,
+        189.51673954800484
+      ],
+      "first_tree": [],
+      "reference_H": [
+        184.92253504821588,
+        184.92253504822406
+      ],
+      "final_tree": [],
+      "gate": {
+        "share": -3.6123574478253e-18,
+        "threshold": 0.01,
+        "load": false
+      },
+      "input_sha256": {
+        "P": "2b9ac952dec3d1c779a98452e3b81d41a4026232cea7cae70d6a940f7464e506",
+        "Q": "4d7822599b4b92bbf3935c59976c10d8b9f5b951f014c3ae4c0c7b962f16f4e7",
+        "Y": "624997c68a451fe5b840b7695da8e0c051ddcdd1785215f34e9c6e009b07e26b",
+        "V0sq": "7bdfa3233ec88f2360affda6cbaec39614bf72c3b1d86285f2275e6deea1e42f",
+        "Ppcc": "fb10f974fde4d4a550b34221d45095bdd10f641bf14a6bc1af2207737938f14f",
+        "Qpcc": "cbd42b2b29e6ce4569ea003c4b15ad240035e0ec60e021044c8dbbbf4885eb8b"
+      },
+      "first_status": 2,
+      "first_bound_crit": 0.9630684731578838,
+      "scope": {
+        "single_line": "complete",
+        "restricted": true,
+        "restricted_round": 0,
+        "restricted_solve": "solve"
+      },
+      "stop": "converged: same anchors, single-line pricing complete, restricted gap closed to tolerance",
+      "round_statuses": [
+        {
+          "anchored": 2,
+          "pricing_complete": true,
+          "unproved_nodes": 0
+        }
+      ],
+      "final_labels_checked": 10,
+      "final_labels_unsettled": 0,
+      "initial_inside_decided_to_full_open": [],
+      "domains": {
+        "initial": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "families": 13,
+          "best_tree": [],
+          "best_H": [
+            184.92253504821588,
+            184.92253504822406
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 0,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                187.322048500058,
+                187.3220485000635
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                188.7545146455199,
+                188.75451464563645
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.62947724348115,
+                188.62947724351014
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.88880878823505,
+                188.88880878824168
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            }
+          ]
+        },
+        "cumulative": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "families": 26,
+          "best_tree": [],
+          "best_H": [
+            184.92253504821588,
+            184.92253504822406
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 0,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                187.322048500058,
+                187.3220485000635
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91249857918544,
+                188.91249857918896
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                188.7545146455199,
+                188.75451464563645
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.62947724348115,
+                188.62947724351014
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.88880878823505,
+                188.88880878824168
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.90089133703287,
+                188.90089133712686
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            }
+          ]
+        },
+        "all": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "families": 26,
+          "best_tree": [],
+          "best_H": [
+            184.92253504821588,
+            184.92253504822406
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 0,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                187.322048500058,
+                187.3220485000635
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91249857918544,
+                188.91249857918896
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                188.7545146455199,
+                188.75451464563645
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.62947724348115,
+                188.62947724351014
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.88880878823505,
+                188.88880878824168
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.90089133703287,
+                188.90089133712686
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.91317760080372,
+                188.9131776008118
+              ],
+              "absent_H": [
+                184.92253504821588,
+                184.92253504822406
+              ],
+              "verdict": "open"
+            }
+          ]
+        }
+      },
+      "full_near_optimal": {
+        "trees_within": 12,
+        "trees_outside": 14,
+        "trees_on_numerical_boundary": 0,
+        "distinct_meter_group_sets_within": 12,
+        "distinct_hidden_internal_support_paths_within": null
+      },
+      "largest_fit_interval_width_H": 1.1655743037408683e-10,
+      "largest_difference_vs_identifier_H": 4.831690603168681e-13,
+      "identify_seconds": 0.18624569999519736,
+      "seconds": 0.19456089998129755
+    },
+    {
+      "excitation": 0.15,
+      "hidden": true,
+      "truth": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "true_tree_H": [
+        189.4182131925784,
+        189.4182131926533
+      ],
+      "first_tree": [],
+      "reference_H": [
+        184.62840163241694,
+        184.62840163248467
+      ],
+      "final_tree": [],
+      "gate": {
+        "share": 0.050074801424064196,
+        "threshold": 0.01,
+        "load": true
+      },
+      "input_sha256": {
+        "P": "2b9ac952dec3d1c779a98452e3b81d41a4026232cea7cae70d6a940f7464e506",
+        "Q": "4d7822599b4b92bbf3935c59976c10d8b9f5b951f014c3ae4c0c7b962f16f4e7",
+        "Y": "8e471cc946ce2541ac5f7e78f3dae3b4a4d538cbaa493b1104c58b16489c3208",
+        "V0sq": "7bdfa3233ec88f2360affda6cbaec39614bf72c3b1d86285f2275e6deea1e42f",
+        "Ppcc": "d0fde4c238e0cdd8c8f07bec306cb3cd5b09422e24365b99f4cc5af37f4cbc44",
+        "Qpcc": "ff5dcba0f6faf767364dbd43c4da099dac696c2cf846af72ee25cb1c40005823"
+      },
+      "first_status": 2,
+      "first_bound_crit": 0.9616062585025116,
+      "scope": {
+        "single_line": "complete",
+        "restricted": true,
+        "restricted_round": 0,
+        "restricted_solve": "solve"
+      },
+      "stop": "converged: same anchors, single-line pricing complete, restricted gap closed to tolerance",
+      "round_statuses": [
+        {
+          "anchored": 2,
+          "pricing_complete": true,
+          "unproved_nodes": 0
+        }
+      ],
+      "final_labels_checked": 10,
+      "final_labels_unsettled": 0,
+      "initial_inside_decided_to_full_open": [],
+      "domains": {
+        "initial": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              4
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2,
+              4
+            ],
+            [
+              1,
+              2,
+              3,
+              4
+            ]
+          ],
+          "families": 96,
+          "best_tree": [],
+          "best_H": [
+            184.62840163241694,
+            184.62840163248467
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 0,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                187.27993103525486,
+                187.2799310352685
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418503332,
+                188.61904418507243
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                188.361700216512,
+                188.36170021655832
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.37883939921474,
+                188.37883939924447
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": null,
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "not_covered"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418503332,
+                188.61904418507243
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            }
+          ]
+        },
+        "cumulative": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              0,
+              2,
+              4
+            ],
+            [
+              0,
+              3,
+              4
+            ],
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              4
+            ],
+            [
+              1,
+              3,
+              4
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2,
+              4
+            ],
+            [
+              0,
+              1,
+              3,
+              4
+            ],
+            [
+              0,
+              2,
+              3,
+              4
+            ],
+            [
+              1,
+              2,
+              3,
+              4
+            ]
+          ],
+          "families": 236,
+          "best_tree": [],
+          "best_H": [
+            184.62840163241694,
+            184.62840163248467
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 0,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                187.27993103525486,
+                187.2799310352685
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418500467,
+                188.6190441850724
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.59264343475758,
+                188.59264343476127
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418503332,
+                188.61904418507243
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418500467,
+                188.6190441850724
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                188.361700216512,
+                188.36170021655832
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.37883939921474,
+                188.37883939924447
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.59092398746947,
+                188.59092398748916
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.59476009781343,
+                188.59476009785485
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418503332,
+                188.61904418507243
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            }
+          ]
+        },
+        "all": {
+          "pool": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2
+            ],
+            [
+              0,
+              1,
+              3
+            ],
+            [
+              0,
+              1,
+              4
+            ],
+            [
+              0,
+              2,
+              3
+            ],
+            [
+              0,
+              2,
+              4
+            ],
+            [
+              0,
+              3,
+              4
+            ],
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              4
+            ],
+            [
+              1,
+              3,
+              4
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2,
+              4
+            ],
+            [
+              0,
+              1,
+              3,
+              4
+            ],
+            [
+              0,
+              2,
+              3,
+              4
+            ],
+            [
+              1,
+              2,
+              3,
+              4
+            ]
+          ],
+          "families": 236,
+          "best_tree": [],
+          "best_H": [
+            184.62840163241694,
+            184.62840163248467
+          ],
+          "truth_groups_covered": 2,
+          "inside_decided": 0,
+          "inside_open": 0,
+          "rows": [
+            {
+              "group": [
+                0,
+                1
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                187.27993103525486,
+                187.2799310352685
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418500467,
+                188.6190441850724
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.59264343475758,
+                188.59264343476127
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418503332,
+                188.61904418507243
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418500467,
+                188.6190441850724
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": true,
+              "present_H": [
+                188.361700216512,
+                188.36170021655832
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                2
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.37883939921474,
+                188.37883939924447
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                1,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.59092398746947,
+                188.59092398748916
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                0,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.59476009781343,
+                188.59476009785485
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            },
+            {
+              "group": [
+                1,
+                2,
+                3
+              ],
+              "in_reference": false,
+              "true": false,
+              "present_H": [
+                188.61904418503332,
+                188.61904418507243
+              ],
+              "absent_H": [
+                184.62840163241694,
+                184.62840163248467
+              ],
+              "verdict": "open"
+            }
+          ]
+        }
+      },
+      "full_near_optimal": {
+        "trees_within": 27,
+        "trees_outside": 209,
+        "trees_on_numerical_boundary": 0,
+        "distinct_meter_group_sets_within": 12,
+        "distinct_hidden_internal_support_paths_within": 15,
+        "same_meter_groups_different_paths": [
+          {
+            "tree": [],
+            "meter_groups": [],
+            "internal_support_path": [],
+            "H": [
+              184.62840163241694,
+              184.62840163248467
+            ],
+            "H_minus_best": [
+              0.0,
+              6.772893357265275e-11
+            ]
+          },
+          {
+            "tree": [
+              [
+                3,
+                4
+              ]
+            ],
+            "meter_groups": [],
+            "internal_support_path": [
+              [
+                3
+              ]
+            ],
+            "H": [
+              188.28018237209153,
+              188.28018237210043
+            ],
+            "H_minus_best": [
+              3.6517807396068633,
+              3.6517807396834883
+            ]
+          }
+        ]
+      },
+      "largest_fit_interval_width_H": 1.4989609553595074e-10,
+      "largest_difference_vs_identifier_H": 1.5631940186722204e-12,
+      "identify_seconds": 0.4436802000273019,
+      "seconds": 0.533267299993895
+    }
+  ]
+}

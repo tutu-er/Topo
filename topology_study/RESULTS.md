@@ -1,7 +1,10 @@
-# Development results (to 2026-11-27)
+# Identification and probing results through 2026-11-27
 
-Everything here is development: no registered claim. Each section says which code produced it. The truth is the
-identifiable truth (lines of at least 3 milliohm); F1, precision and recall are of the tree's meter groupings.
+Section 1 records the registered test of the predecessor. Sections 2–5 report historical development runs and
+solver checks. Topology F1 uses the meter groupings of the feeder after filtering lines below 3 milliohms.
+Section 4 also compares decided labels with the exact physical topology. Section 6 checks draft v17's labels
+against independent enumeration on four synthetic inputs with known generating trees. This is the only new
+experiment reported here.
 
 ## 1. The registered test of the predecessor (2026-11-26; the set is spent)
 
@@ -60,10 +63,9 @@ The predecessor's numbers are S2 of `final_source.jsonl`. The truth is the ident
 | nested in the tree (one more line) | 235 | 350 |
 | crossing the tree | 0 | 9 |
 
-- **Decided labels are reliable:** 0.2% of them are wrong, against about 1% if read as a Bayes factor of 100. This is
-  much better than the predecessor's local margins on the sealed set: only 78% of lines with a margin of 4.6 to 10
-  were true (section 1).
-- **Open is not a "no":** 80% of the open groupings inside the tree are true lines.
+- In this run, 3 of the 1,478 decided groupings inside the returned trees disagreed with the filtered feeder
+  reference (0.2%). A decided label tests agreement among competitive trees in its pool at the score margin.
+- Of the 172 open groupings inside the trees, 137 (80%) were present in the filtered feeder reference.
 - **The trees miss 434 true groupings.** 235 of them (54%) are labelled open, as lines nested in the tree.
 
 ### What this says for the proposals (PROPOSALS.md)
@@ -140,8 +142,9 @@ the local-search tree was far from a local optimum:
 
 In 240 s the MIQP did not find even the 69-unit improvement.
 
-**3. No proof is possible at this size.** Even when consistent, the MIQP's bound stays 158 to 525 score units below the
-best tree, so flip tests on 47-60 meter feeders can rarely decide a grouping. There, the trees rest on the local search.
+**3. The tested large cases had loose bounds.** In the examples below, the MIQP's bound remained 158 to 525
+score units below the best tree. Many flip tests on the 47–60 meter feeders reached their time limit, leaving
+the grouping unsettled. Local search supplied the best feasible tree in the two examples.
 
 **The fix:**
 - Gurobi's default tolerances;
@@ -169,23 +172,20 @@ Those two rows are without the scaling. With the scaling too (the committed code
 The scaling does not reliably tighten the bound (177 here against 158 unscaled, both with the per-meter bounds). Its value
 is robustness: no false claims even at forced tolerances, and a root relaxation that always solves.
 
-## 4. Algorithm 1 with the fix (code c5c4aae = ptid, 2026-11-27)
+## 4. Historical v16 runs after the solver fix (2026-11-27)
 
-**Status:** the real-feeder run is complete (4.1); the development run is still going (4.2).
+The historical report records completion of all 66 real inputs (§4.1) and an ongoing development run (§4.2).
+Both batches precede v17's changes to pool retention, stopping and flip bounds.
 
 | Run | Code | Cases | State |
 | --- | --- | --- | --- |
 | development, one twin per feeder | c5c4aae (frozen checkout) | 72 (PROTOCOL.md §2.2) | started 2026-11-27 00:50; the six huge twins first |
 | real feeders | `ptid` | 66 (PROTOCOL.md §2.3) | complete, 2026-11-27 00:55 to 02:00 |
 
-**The package gives the same results as the code it was moved from.** On the first 20 real inputs that both the old
-code (c5c4aae, `identification_v8`) and `ptid` finished, the tree, every label and the stopping reason are identical in
-20 of 20. Of the two refinements of CHANGES.md §3, probing's check is never used by identification, and the node MIQP's
-scaling is an exact change of variables that gave the same line as enumeration wherever it was compared (section 5.1).
-So the development run made with c5c4aae is taken as a run of `ptid`, with one gap: on its huge twins the unscaled
-node MIQP may price nodes wider than 9 children, and there the two codes could differ through a numerical failure of
-the unscaled one. When the run ends, its wide nodes are rechecked with `ptid` (`ptid.runs.checks wide-nodes`), as in
-section 5.1.
+On the first 20 real inputs completed by both c5c4aae (`identification_v8`) and the historical `ptid` package,
+the tree, every label and the stopping reason matched in 20 of 20. The final comparison covers all 25 common
+inputs (§4.1). A relevant difference for the development twins is the scaling of the node MIQP's coefficients on
+nodes wider than 9 children. Section 5.1 compares two such solves with enumeration.
 
 ### 4.1 Real feeders (66 inputs, complete; `ptid`, 0 errors; equal to c5c4aae on the 25 inputs both ran)
 
@@ -229,7 +229,7 @@ the structural prior, and RNJ 41 at its best tolerance (`rnj_wzzt_dr/experiments
 
 ### 4.2 Development twins, one per feeder (72 cases)
 
-Running (the six huge twins first).
+The historical snapshot records this batch in progress, with the six huge twins first.
 
 **The old run, measured both ways** (code ef9ec75 for the 240 twins up to 25 meters; the 10 huge twins of the stopped
 run, under the faulty solver): of 1,513 decided groupings, 7 are not in the identifiable truth and 6 are not physical
@@ -257,7 +257,9 @@ of the two huge twins with an 11-child node (`ptid.runs.checks wide-nodes`; pric
 | dev_huge_004_head | 73 s | 11 s, same best line and gain | optimal in 8 s |
 | dev_huge_004_none | 63 s, no line pays | 13 s, no line pays | optimal in 9 s |
 
-Both are exact, so results change only if a node MIQP stops at its 60 s limit, which is reported as an unproved node.
+Enumeration and the node MIQP seek the same single-line improvement. These two examples agreed. At a time
+limit, the incumbent shows the value of a feasible line, while a valid bound determines which larger
+improvements can still be excluded.
 
 **With the node MIQP's coefficients scaled (ptid, 2026-11-27),** on the same trees (`ptid.runs.checks wide-nodes` on the
 huge twins of the stopped run; 8 of 10 trees have no node wider than K = 9 and are enumerated):
@@ -273,3 +275,30 @@ huge twins of the stopped run; 8 of 10 trees have no node wider than K = 9 and a
 
 See PROPOSALS.md, section 4 (438 extra lines on 24 no-load cases: the cap held for every line; none beat the true tree;
 6.2% were labelled open).
+
+## 6. Draft v17 candidate pools and grouping labels
+
+The four new inputs share one four-meter topology, one noise draw and 96 hourly readings. They vary the strength
+of independent power fluctuations and the presence of an unmetered leaf. For each input, the audit enumerates
+every compatible tree over the four or five leaves. It fits every tree using a separately constructed design
+matrix and bounded least squares. The threshold for comparing pools is the first feasible tree's score plus 4.6
+in every pool. The final labels are checked separately at the final tree's score plus 4.6.
+
+| Fluctuation scale | Unmetered leaf | Candidate supports, initial / final / full | Compatible trees, initial / final / full |
+| --- | --- | --- | --- |
+| 1 | no | 2 / 2 / 10 | 4 / 4 / 26 |
+| 1 | yes | 9 / 9 / 25 | 32 / 32 / 236 |
+| 0.15 | no | 6 / 10 / 10 | 13 / 26 / 26 |
+| 0.15 | yes | 15 / 25 / 25 | 96 / 236 / 236 |
+
+At scale 1, the two inside groupings per input stayed decided in the full domain (4 of 4). At scale 0.15, the
+star attained the lowest score even over the full domain. Nine meter groupings across the two weak inputs were
+absent from the initial pools. Each had a supporting tree within the margin in the full pool. Both physical
+groupings were present in all four starting pools. The nine newly covered groupings therefore measure sensitivity
+to alternative explanations.
+
+The audit completed 524 tree fits. All 24 conclusive final labels agreed with independent enumeration inside
+their respective final pools. The largest fixed-tree score interval was below 4 × 10⁻¹⁰. These counts test label
+computation and pool coverage on one feeder under controlled excitation. A population error rate and the marginal
+benefit of individual builders require different experiments. See the [audit report](experiments/pool_audit/README.md)
+and [recorded bounds and tree scores](experiments/pool_audit/results.json).
