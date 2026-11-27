@@ -124,7 +124,7 @@ def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False):
         return line, value, status, bound
 
 
-def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200):
+def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200, *, wide_node_miqp=True):
     """Find an improving line compatible with the tree. A wide-node time limit can leave better lines untested.
     info["certified"] means all nodes exclude any single-line improvement larger than PRICING_TOL in crit."""
     leaves = model.leaves
@@ -138,6 +138,11 @@ def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200):
         if len(kids) < 3:
             continue
         if len(kids) > max_children:                       # too wide to enumerate: the node MIQP
+            if not wide_node_miqp:
+                info["unproved"] += 1
+                info["wide_nodes"].append(dict(node=node, children=len(kids), status="skipped",
+                                               upper=None, bound=None, no_improvement=False))
+                continue
             line, _, status, bound = node_miqp(model, tree, kids, node_seconds, return_bound=True)
             info["by_miqp"] += 1
             # Any child union with both new coefficients set to zero attains this upper bound.
@@ -155,7 +160,7 @@ def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200):
                 bound = min(bound, upper)
             ruled_out = bound is not None and bound >= current-PRICING_TOL and not improves
             info["unproved"] += not (improves or ruled_out)
-            info["wide_nodes"].append(dict(node=node, status=status, upper=upper, bound=bound,
+            info["wide_nodes"].append(dict(node=node, children=len(kids), status=status, upper=upper, bound=bound,
                                            no_improvement=ruled_out))
             continue
         info["enumerated"] += 1

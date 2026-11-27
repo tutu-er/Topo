@@ -56,6 +56,7 @@ class Settings:
     seed: int = 7
     node_refinement: bool = True  # disable node pricing for the paired tree-only comparison
     p_s: int | None = None       # None uses the measured P/Q rule; 1 or 2 fixes the penalty dimension
+    wide_node_miqp: bool = True  # False keeps narrow pricing and records wide nodes as untested
 
 
 # ------------------------------------------------------------------ the load as a leaf
@@ -105,9 +106,11 @@ def solve(model, pool, starts, seconds, st, require=()):
     r = tree_miqp(model, lines, seconds, require=require, seed=st.seed, warm=chosen, known=value,
                   tighten_at=value if st.tighten else None)
     status, bound = r["status"], r["bound"]
+    solver_tree, solver_crit = None, None
     if r["family"] is not None:
         found = frozenset(lines_of(r["family"], model.leaves))
         found_value = fitter.crit(found)
+        solver_tree, solver_crit = lines_of(found, model.leaves), found_value
         if found_value < value:
             chosen, value = local_search(fitter, crosses, found, math.inf, require)
             if status == gp.GRB.OPTIMAL and value < found_value-1e-4*abs(found_value):
@@ -121,7 +124,8 @@ def solve(model, pool, starts, seconds, st, require=()):
     closed = status in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) and bound is not None and value-bound <= tolerance
     tree = lines_of(chosen, model.leaves)
     return tree, dict(status=status, miqp_seconds=r["seconds"], pool=len(lines), tree=tree, crit=value, bound=bound,
-                      warm_tree=warm_tree, warm_crit=warm_crit, gap_tolerance=tolerance, gap_closed=closed,
+                      warm_tree=warm_tree, warm_crit=warm_crit, solver_tree=solver_tree, solver_crit=solver_crit,
+                      gap_tolerance=tolerance, gap_closed=closed,
                       domain=dict(lines=lines, require=require))
 
 
@@ -132,18 +136,21 @@ def price(model, tree, universe, require, seconds, st):
         return tree, dict(disabled=True, certified=False, added=[], still_paying=None, re_solve=None,
                           enumerated=0, by_miqp=0, evaluated=0, unproved=0, wide_nodes=[])
     added, re_solve = [], None
-    best, info = best_addition(model, tree, st.K, st.node_seconds)
+    best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp)
+    scans = [info]
     while best is not None and len(added) < st.repairs:
         tree = lines_of([*tree, best], model.leaves)
         added.append(best)
-        best, info = best_addition(model, tree, st.K, st.node_seconds)
+        best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp)
+        scans.append(info)
     if added:
         again, re_solve = solve(model, [*universe, *tree], [frozenset(tree)], seconds, st, require)
         fit = Fitter(model, [*again, *tree])
         if fit.crit(again) < fit.crit(tree)-1e-12:
             tree = again
-            best, info = best_addition(model, tree, st.K, st.node_seconds)
-    return tree, dict(info, added=[list(C) for C in added], still_paying=None if best is None else list(best),
+            best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp)
+            scans.append(info)
+    return tree, dict(info, scans=scans, added=[list(C) for C in added], still_paying=None if best is None else list(best),
                       re_solve=re_solve)
 
 
@@ -212,7 +219,7 @@ def scope(rounds):
 
 
 # ------------------------------------------------------------------ Algorithm 1
-def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
+def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None, *, paired_first=None):
     """Algorithm 1 on all slots of one feeder (P, Q, Y = V0^2 - V^2: T x n; V0sq: T; Ppcc, Qpcc: T or None).
 
     Returns dict(gate, tree (meter groupings), lines and pool (over all leaves), anchors, labels, rounds, stop, scope,
@@ -242,7 +249,18 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
         pool, starts = groupings, [frozenset(t) for t in trees]
 
     t0 = time.perf_counter()
-    tree, first = solve(model, pool, list(dict.fromkeys(starts)), seconds, st)  # line 3
+    if paired_first is None:
+        tree, first = solve(model, pool, list(dict.fromkeys(starts)), seconds, st)  # line 3
+    else:
+        # Experimental branch from a common first solve on the same input and settings.
+        # Copy the record because later numerical checks can invalidate its bound.
+        from copy import deepcopy
+        first = deepcopy(paired_first)
+        tree = lines_of(first["tree"], model.leaves)
+        fit = Fitter(model, pool)
+        if set(first["domain"]["lines"]) != set(lines_of(pool, model.leaves)) or not np.isclose(
+                fit.crit(tree), first["crit"], rtol=1e-10, atol=1e-12):
+            raise ValueError("Paired initial solve fails the domain or fitted-objective check")
     timing["first_tree"] = time.perf_counter()-t0
     say(f"  first tree: {len(tree)} lines over {first['pool']} candidates, MIQP status {first['status']}")
 
