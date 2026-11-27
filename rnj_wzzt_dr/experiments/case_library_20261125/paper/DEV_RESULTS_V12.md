@@ -65,4 +65,5 @@ trees is identical to the predecessor's.
 - One recursive-grouping tree differed at first, from a rounding difference of 1e-16 in how the load's profiles were
   projected out. The rewrite now does those operations in the predecessor's order.
 - Algorithm 1's whole output on two cases is identical to the frozen ef9ec75.
-- The 48 larger twins are being checked.
+- The 48 larger twins (26 to 60 meters) give identical trees too, so all nine builders match the predecessor on all
+  288 twins. The rewrite is also faster there: 441 s against 788 s in total.
