@@ -1,0 +1,162 @@
+{
+  "passed": true,
+  "source": "https://arxiv.org/pdf/1710.10727",
+  "samples": 192,
+  "seed": 20261128,
+  "known_groups": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      3,
+      4
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "max_R_error": 4.0389678347315795e-16,
+  "max_X_error": 5.273559366969494e-16,
+  "conditions": {
+    "pq_condition": [
+      1.0000000000000024,
+      1.0000000000000004,
+      1.0000000000000009,
+      1.000000000000002,
+      1.0000000000000029
+    ],
+    "max_pq_condition": 1.0000000000000029,
+    "max_abs_cross_meter_pq_corr": 1.6233419521353168e-15,
+    "max_raw_resistance_asymmetry": 4.718447854656915e-16
+  },
+  "methods": [
+    {
+      "method": "rnj",
+      "status": "ok",
+      "tree": [
+        [
+          0,
+          1
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "diagnostics": {
+        "tolerance_fraction": 0.04,
+        "gls_gamma": 0.5919872251612175
+      },
+      "seconds": 0.014936599996872246
+    },
+    {
+      "method": "nj",
+      "status": "ok",
+      "tree": [
+        [
+          0,
+          1
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "diagnostics": {
+        "tolerance_fraction": 0.04,
+        "gls_gamma": 0.5919872251612175
+      },
+      "seconds": 0.002275100094266236
+    },
+    {
+      "method": "rg",
+      "status": "ok",
+      "tree": [
+        [
+          0,
+          1
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "diagnostics": {
+        "tolerance_fraction": 0.16,
+        "gls_gamma": 0.5919872251612175
+      },
+      "seconds": 0.0024013000074774027
+    },
+    {
+      "method": "park",
+      "status": "ok",
+      "tree": [
+        [
+          0,
+          1
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          2,
+          3,
+          4
+        ]
+      ],
+      "diagnostics": {
+        "pq_condition": [
+          1.0000000000000024,
+          1.0000000000000004,
+          1.0000000000000009,
+          1.000000000000002,
+          1.0000000000000029
+        ],
+        "max_pq_condition": 1.0000000000000029,
+        "max_abs_cross_meter_pq_corr": 1.6233419521353168e-15,
+        "max_raw_resistance_asymmetry": 9.076517152225135e-13,
+        "negative_input_distances": 0,
+        "epsilon_start_pu": 0.0001,
+        "witness_cutoff": "all",
+        "tolerance_by_round": [
+          0.0001,
+          0.0001
+        ],
+        "negative_fitted_edges": 0
+      },
+      "seconds": 0.0006852999795228243
+    }
+  ],
+  "fixed_power_factor_control": {
+    "method": "park",
+    "status": "failed",
+    "tree": null,
+    "error": "unidentifiable P/Q covariance at meter 0",
+    "diagnostics": {
+      "singular_meter": 0,
+      "pq_condition": [
+        1.4122831735454614e+17
+      ]
+    },
+    "seconds": 8.000002708286047e-05
+  }
+}
