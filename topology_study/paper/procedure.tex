@@ -1,7 +1,6 @@
 % =====================================================================
-%  Partial topology identification and cost-aware probing for
-%  low-voltage feeders: method and algorithms
-%  Paper-style draft v17, 2026-11-27
+%  Low-voltage feeder identification by tree selection and node refinement
+%  Paper-style draft v18, 2026-11-27
 %
 %  Status of the parts (read before quoting anything from this file):
 %   * Both algorithms are implemented in topology_study/ptid/method
@@ -10,7 +9,7 @@
 %     (probe.py) ran on simulated days only, with a placeholder psi: NOT
 %     evaluated.
 %   * The registered sealed test evaluates the predecessor of Algorithm 1
-%     (identification/final.py at commit 71684ff); Section VII lists the
+%     (identification/final.py at commit 71684ff); the identification results section lists the
 %     differences. Its result does not carry over to this method.
 %  History: v4 f5299d4, v5 5e36b4c, v6 4881a92, v7 dd8cd4a, v8 52313c3 and
 %  b1c5e4d, v9 7bbe494 (load gate, meter-level labels), v10 91e80a0
@@ -51,6 +50,9 @@
 %  tree MIQP's; probing checks an outside target's flip test against its
 %  best local swap; the status paragraph follows the development runs.
 %
+%  v18: tree and node MIQPs form the identification mainline; the probing
+%  policy uses the same identification interface as v17.
+%
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
 \documentclass[journal,onecolumn,11pt]{IEEEtran}
@@ -87,44 +89,63 @@
 
 \begin{document}
 
-\title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v17 of 27~November~2026 (authors to be added)}
+\title{Identifying Low-Voltage Feeder Topology\\ with Tree and Node Mixed-Integer Quadratic Programs}
+\author{Method draft v18 of 27~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
-Smart-meter voltage and power records can support a group of downstream customers even when several feeder trees fit the
-data. We fit bounded linearised power-flow models over laminar families of downstream sets. When the measured power
-balance indicates an unmetered load, its estimated profile enters the fit as an additional leaf whose location varies
-across candidate trees. For each grouping in a reference tree, we ask whether a rival without that grouping can match the
-reference within a specified score margin. A feasible rival demonstrates ambiguity relative to the reference. A valid
-exclusion certifies agreement among all near-optimal trees in the specified pool. Unresolved searches retain a separate
-label. Candidate generation uses starting trees, conditional enumeration under stable groupings, and single-line pricing.
-An exhaustive check on four small inputs examines sensitivity to the pool. A separate probing procedure ranks feasible
-demand-response actions by their forecast ability to distinguish rivals and their cost.
+A topology estimated from smart meters can attach several customer groups to the same junction even when some share
+an additional length of feeder. We formulate two mixed-integer quadratic programs (MIQPs) to identify such segments
+from voltage and power measurements. The tree MIQP chooses compatible downstream customer sets from a candidate pool
+and fits their line impedances. At a junction of the current tree, the node MIQP selects which child subtrees share one
+additional upstream segment and refits the impedances of the entire tree. Its binary variables select children
+directly, so the new segment can enter the pool even when the initial trees omitted it. A subsequent tree solve can
+retain, replace or discard that segment. Grouping flips identify anchors for the next solve and give the final tree
+a score interval for each tested grouping. In a development comparison on two inputs from one feeder with an
+11-child junction, the node formulation matched exhaustive enumeration: one input favoured adding a line serving 20
+meters and the other admitted no improving addition. The respective node-search times were 13 and 12 seconds,
+compared with 90 and 67 seconds for enumeration.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Topology identification, smart meters, partial identification, laminar families, mixed-integer quadratic programming,
-unmetered load, active probing, demand response.
+Distribution network topology identification, mixed-integer quadratic programming, smart meters, radial feeders,
+line impedance estimation.
 \end{IEEEkeywords}
 
-\noindent\textbf{Evaluation status.} The four-input audit in Section~\ref{sec:tests} checks the present identification
-implementation. An earlier version returned the registered predecessor's tree in 234 of 240 development cases with at
-most 25 meters. The larger historical runs and the predecessor's sealed test are described separately in the project
-results. Probing has been exercised on simulated days; its cost--coverage benefit remains to be evaluated.
+\section{Introduction}
+Voltage changes shared by several customers carry information about the lines upstream of them. Consider a provisional
+tree with a single junction serving three streets. If two streets share another segment before they separate, changes
+in either street's power contribute to the voltage drop in both. Fitting any number of candidate trees will miss that
+segment if its downstream customer set never appears in the search. The identification problem is therefore both to
+select among the available lines and to discover a line that the current candidate pool may have missed.
 
-% ---------------------------------------------------------------------
+Existing integer formulations identify branch states from weighted measurement residuals~\cite{tian} or select
+candidate bus-to-bus connections and estimate line resistances from inverter probing~\cite{taheri}.
+Liang et al.\ start with an MIQP tree and use power flow to evaluate neighbouring spanning trees~\cite{liang}.
+Pengwah et al.\ estimate topology and locate interval meters under partial smart-meter coverage~\cite{pengwah}.
+Here each optional line is described by its downstream leaves. Its endpoints may include an unmetered junction.
+This representation allows an optimisation over the children of a current junction to propose the customer set of an
+additional line directly from the measured voltage responses.
+
+The tree MIQP selects a compatible combination of lines in a specified pool. The node MIQP searches all ways to add
+one compatible line at a given junction with the other lines retained and their impedances free to change.
+The two solves minimise the same penalised voltage residual. Nine initial tree constructions supply candidate lines
+and feasible starting trees. During refinement, the grouping scores determine which parts of the current tree to
+retain as anchors. An optional demand-response application uses the final tree and its fitted rivals to choose a new
+measurement action (Section~\ref{sec:probe}).
+
 \section*{Nomenclature}
 \begin{tabular}{@{}p{0.27\textwidth}p{0.68\textwidth}@{}}
 \toprule
-$\Nset=\{1,\dots,n\}$, $t$, $N$ & Metered customers, time slots, rows of data ($N=Tn$)\\
+$\Nset=\{1,\dots,n\}$, $t$, $N$ & Metered customers, time index, number of readings ($N=n\tau$ for $\tau$ slots)\\
 $s$; $\Nset^+$ & Unmetered load, a leaf with estimated power and no voltage; all leaves ($\Nset\cup\{s\}$ or $\Nset$)\\
 $\varsigma$, $\varsigma_0$ & Unmetered share of the metered power (\ref{eq:gate}); gate threshold (1\%)\\
 $y_{i,t}=V_{0,t}^2-V_{i,t}^2$ & Squared-voltage drop at meter $i$\\
 $C\subseteq\Nset^+$; $z_C$, $h_C$; $C\cross D$ & Support of a line; its meters, whether it carries the load; $C$ and $D$ cross\\
 $\pi(C)=C\cap\Nset$; $\Gset(F)$ & Meters of a support; the groupings of a family\\
 $F\supseteq\Bset$, $\Lin(F)$, $k(F)$ & Topology as a laminar family; its lines; their number\\
-$\Omega_0$; $\Omega$ & Initial candidate lines (Appendix~\ref{app:pool}); current pool\\
+$\Omega_0$; $\Omega$ & Initial candidate lines (Appendix~\ref{app:pool}); cumulative candidate pool\\
+$\eta_a$; $P_{a,t},Q_{a,t}$ & Whether child $a$ is selected in a node refinement; its total active and reactive power\\
 $H(F)$; $H^{\rm f}_M$ & Score (\ref{eq:score}), half-BIC units; flip problem (\ref{eq:flip})\\
 $m=4.6$ & Score margin of labels and anchors\\
 $e_M$, $F_M$ & Gap of grouping $M$ (\ref{eq:gap}) and its rival tree\\
@@ -134,19 +155,19 @@ $\Tset$; $u$, $\Uset_h$, $c(u)$; $\psi$ & Probing target set; block, feasible bl
 \end{tabular}
 
 % ---------------------------------------------------------------------
-\section{Model}\label{sec:model}
+\section{Feeder measurements and line score}\label{sec:model}
 
 A feeder has a root, the point of common coupling (PCC), and $n$ metered customers. Meter $i$ reports $p_{i,t}$,
 $q_{i,t}$, $V_{i,t}$; the PCC reports $V_{0,t}$ and, where metered, $P^{\rm pcc}_t$, $Q^{\rm pcc}_t$. Every line feeds a set
 of leaves, its \emph{support}; the supports of a tree are laminar (any two are nested or disjoint), and a laminar family
-containing $\Bset=\{\{1\},\dots,\{n\},\Nset^+\}$ fixes the tree up to internal nodes without leaves, which voltages cannot
-see. A topology is a laminar family $F\supseteq\Bset$ over $\Nset^+$ with lines $\Lin(F)=F\setminus\Bset$. With the
+containing $\Bset=\{\{j\}:j\in\Nset^+\}\cup\{\Nset^+\}$ determines the branching tree. Consecutive
+segments with the same downstream leaves have identical flow regressors and enter the fit through their combined impedance. A topology is a laminar family $F\supseteq\Bset$ over $\Nset^+$ with lines $\Lin(F)=F\setminus\Bset$. With the
 linearised DistFlow equations,
 \begin{equation}\label{eq:model}
 y_t=\sum_{C\in F} z_C\big[r_C\,(z_C\tp p_t+h_C u^P_t)+x_C\,(z_C\tp q_t+h_C u^Q_t)\big]+\varepsilon_{0,t}\one+o+e_t ,
 \end{equation}
 with $z_C\in\{0,1\}^n$ the meters of $C$, $h_C=1$ if $s\in C$, $0\le r_C,x_C\le\bar\theta$ twice the line's resistance and
-reactance in pu ($\bar\theta=2$ never binds), $\varepsilon_{0,t}$ the PCC voltage error, $o$ fixed meter offsets and $e_t$
+reactance in pu ($\bar\theta=2$ in the implementation), $\varepsilon_{0,t}$ the PCC voltage error, $o$ fixed meter offsets and $e_t$
 meter noise. One unmetered load is allowed; its power is the PCC balance minus the losses estimated from the meters' own
 voltages,
 \begin{equation}\label{eq:balance}
@@ -158,12 +179,12 @@ they are the load's path (Proposition~\ref{prop:path}). The load can sit below a
 (beside the trunk; the meters' trunk is then the line $\Nset$ without $s$). Its own branch $\{s\}$ affects no voltage: its
 columns are zero and it carries no price. A line is supported by how the loads on one side of its branching point move the
 voltages on the other side; a meter's own cable has no such branching evidence, so only lines with at least two leaves are
-topology decisions. The data come from AC power flow; (\ref{eq:model}) is used inside the method only. \emph{Assumptions
-stated, not modelled:} the loss estimate is approximate, several unmetered loads are not one aggregate, and errors in the
-measured $p,q$ enter the regressors.
+topology decisions. The historical feeder simulations use AC power flow; the four-input exhaustive audit in
+Section~\ref{sec:tests} uses synthetic readings from the linear model. The balance is an estimate, measured $p,q$
+enter the regressors, and several spatially separated unmetered loads can have distinct voltage effects.
 
 % ---------------------------------------------------------------------
-\section{Is there an unmetered load?}\label{sec:gate}
+\subsection{Balance-derived load profile}\label{sec:gate}
 
 Before any topology is fitted, the PCC balance decides whether a load is modelled at all:
 \begin{equation}\label{eq:gate}
@@ -174,7 +195,7 @@ the extra leaf similar, so small measurement errors can change its fitted positi
 fixed from these cases before any test, and the gate's error rates are reported by load share and kind. The spread without a
 load comes from the meters' gain errors (0.3\%, 0.2\% at the PCC) and the loss estimate, so other meter classes need their
 own calibration.
-\begin{table}[h]
+\begin{table}[htbp]
 \caption{Unmetered share $\varsigma$ on the development cases (no identifier involved)}\label{tab:gate}
 \centering
 \begin{tabular}{@{}lrr@{}}
@@ -190,47 +211,159 @@ Load of 10\% & 72 & $9.51\%$ / $10.2\%$ / $11.68\%$\\
 \end{table}
 
 % ---------------------------------------------------------------------
-\section{Score and labels}\label{sec:score}
+\subsection{Voltage fit and line penalty}\label{sec:score}
 
-\paragraph*{Score} The meter offsets $o$ are unrestricted constants, removed by $D=I_T-\Pi_{[\one]}$ (subtracting each
+The meter offsets $o$ are unrestricted constants, removed by $D=I_\tau-\Pi_{[\one]}$ (subtracting each
 meter's time mean). The PCC error is random and shared by all meters in a slot: with variance $\sigma_0^2$ against
 $\sigma_e^2$ for a meter, a slot's error covariance is $\Sigma=\sigma_e^2(I_n+\rho\one\one\tp)$, $\rho=\sigma_0^2/\sigma_e^2$,
 taken as the ratio of the means of $V_0^4$ and $V^4$. The weighting $S_\gamma=I_n-\gamma\one\one\tp/n$ with $\gamma=1-(1+n\rho)^{-1/2}$ satisfies
-$S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}$ (generalised least squares), and $M=D\otimes S_\gamma$. The score is
+$S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}$ (generalised least squares), and $W=D\otimes S_\gamma$. The score is
 \begin{equation}\label{eq:score}
-H(F)=\min_{\theta}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
+H(F)=\min_{\theta}\frac{\|W(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
 \end{equation}
 with $p_s\in\{1,2\}$ selected by an empirical check on reactive-power variation relative to active power.
 This common penalty setting approximates the number of distinguishable coefficients per line.
-\emph{Noise variance.} $\hat\sigma^2$ is the residual variance under $M$ of the saturated model, in which every meter sees
+\emph{Noise variance.} $\hat\sigma^2$ is the residual variance under $W$ of the saturated model, in which every meter sees
 every leaf's flow with its own coefficient,
 \begin{equation}\label{eq:sat}
 y_{i,t}=\sum_{j\in\Nset}\big(R_{ij}\,p_{j,t}+X_{ij}\,q_{j,t}\big)+R_{is}\,u^P_t+X_{is}\,u^Q_t+\varepsilon_{0,t}+o_i+e_{i,t},
 \qquad R=R\tp,\ X=X\tp\ \text{over the meters},
 \end{equation}
 with every coefficient free and the load's two terms only when a load is modelled. Every tree's prediction has this form, and
-with the load's terms free $\hat\sigma^2$ does not depend on the load's place. Its degrees of freedom are the rank of $M$ minus
+with the load's terms free $\hat\sigma^2$ does not depend on the load's place. Its degrees of freedom are the rank of $W$ minus
 the numerical rank of the saturated design. It is computed once, at set-up, like the starting trees
 (Appendix~\ref{app:pool}); the score, the searches and the labels hold the estimated load profile fixed. The working covariance accounts for the shared PCC error; other dependencies may affect the scores.
 \begin{proposition}[Structural penalty]\label{prop:prior}
 For fixed leaf count, the branching penalty $-\ln(a)\sum_v(c_v-2)$ equals a constant minus $\lambda k(F)$,
 where $c_v$ is the number of children of internal node $v$ and $\lambda=\ln(1/a)$.
 \end{proposition}
-The default $a=0.141$ comes from branching statistics on 84 LV feeders and gives $\lambda=1.96$.
-The same feeders informed the case generator. A paired comparison with $\lambda=0$ would isolate this empirical
-adjustment. We use $m=4.6$ as a tolerance in score units. Its effect on coverage and errors requires measurements
-against known groupings.
+Among the branching points in the 84 reference low-voltage feeders, two-child junctions were common. The reported
+ratio of multifurcations to two-child junctions, $a=0.141$, gives $\lambda=1.96$. Resolving a three-child junction
+into two two-child junctions adds one internal segment. This empirical weight reduces the pure BIC charge for
+that segment by 1.96 score units. The reference feeders also informed the case generator.
+A new segment improves the score if refitting it saves more than $2\beta$ in residual sum of squares measured in
+units of $\hat\sigma^2$. The separate margin $m=4.6$ describes competitive fits. At equal line counts it permits
+an increase of $2m=9.2$ in the same residual units. In the identification loop $m$ also influences the choice of anchors.
 
 \paragraph*{Groupings} With a load, one grouping of meters can appear as two supports, $M$ and $M\cup\{s\}$: the same
 statement about the meters, with the load inside the line or not. Write $\pi(C)=C\cap\Nset$ and call
 $\Gset(F)=\{\pi(C):C\in F,\ 2\le|\pi(C)|\le n-1\}$ the \emph{groupings} of $F$. Labels, anchors and probing concern
 groupings; the load's place is reported separately. Without a load, groupings are lines.
 
+\section{Tree selection and node refinement}\label{sec:id}
+
+\subsection{Initial candidate pool and warm start}
+Each builder returns a feasible meter tree. The union of their optional supports defines the initial pool
+$\Omega_0$ (Appendix~\ref{app:pool}). With an unmetered load, each initial meter group contributes variants with and
+without the extra leaf. Initial supports also allow the load beside an individual meter or at the PCC.
+The empty set of optional lines and the distinct builder trees start local searches in this common pool.
+The lowest-scoring result is searched to local convergence and supplied as a single feasible start to the tree MIQP.
+The union of the lines supplies the search domain; the selected start supplies an upper bound.
+
+\subsection{Tree MIQP for a specified pool}
+Let $\Omega_{\rm t}$ denote the optional lines available to this solve and $\Aset$ its required meter groupings
+(empty in the first solve). A binary $b_C$ selects line $C$. Any two lines whose leaf sets overlap without
+containment cross, so a tree can include at most one of them. With the voltage model of (\ref{eq:model}), the
+restricted tree problem is
+\begin{equation}\label{eq:master}
+\begin{aligned}
+\min_{b,r,x}\ &\frac{\|W(y-\Phi(r,x))\|^2}{2\hat\sigma^2}+\beta\sum_{C\in\Omega_{\rm t}}b_C\\
+\text{s.t.}\ \ &0\le r_C\le\bar r_Cb_C,\quad0\le x_C\le\bar x_Cb_C\quad(C\in\Omega_{\rm t}),\qquad b_C+b_D\le1\quad(C\cross D),\\
+&\textstyle\sum_{C\in\Omega_{\rm t},\,C\subsetneq B}b_C\le|B|-2\quad(B\in\Omega_{\rm t}\cup\{\Nset^+\}),\qquad
+\sum_{C\in\Omega_{\rm t},\ \pi(C)=A}b_C\ge1\quad(A\in\Aset),\\
+&\textstyle\sum_{C\ni i}r_C\le\bar R_i,\quad\sum_{C\ni i}x_C\le\bar X_i\quad(i\in\Nset;\ \text{optional}),
+\end{aligned}
+\end{equation}
+The basis lines $\Bset$ are always present with coefficients in $[0,\bar\theta]$.
+The count cut follows because a tree on $|B|$ leaves has at most $|B|-2$ optional lines strictly inside $B$.
+The anchor inequality requires at least one support for each grouping $A$. The optimal objective is the best
+score in $\Omega_{\rm t}$ subject to these anchors. A time-limited solve can return a feasible tree and a lower
+bound on this same restricted minimum.
+
+The optional path limits $\bar R_i,\bar X_i$ are obtained from continuous relaxations at a score level $\ell$.
+For nonnegative line prices they preserve fits at or below $\ell$. The corresponding coefficient limits are capped
+at $\bar\theta$. In a threshold-only flip test a restricted lower bound $b$ yields the conservative original-domain
+bound $\min(b,\ell)$; threshold exclusion is recorded separately. The implementation scales each coefficient
+by its design-column norm, checks solver bounds against known feasible fits, and further improves a better solver
+incumbent by local search. It retains the best feasible tree when a solve times out.
+
+\begin{proposition}[The load's path needs no constraints]\label{prop:path}
+For a set of meters $C$ write $C^1=C\cup\{s\}$. Over $\Nset^+$ the crossing constraints of (\ref{eq:master}) are exactly:
+(i) the crossings of the meter sets; (ii) one place: $b_{C^1}+b_{D^1}\le1$ unless $C\subseteq D$ or $D\subseteq C$; (iii) a
+line above a line that carries the load carries it too: $b_{C^1}+b_D\le1$ for meter sets $C\subsetneq D$. So the load's path
+needs neither extra constraints nor products of binaries and coefficients.
+\end{proposition}
+
+\subsection{Node MIQP for generating a missing candidate}\label{sec:node}
+Consider an internal node $v$ of the current tree $T$ with $d=c_v$ children $A_1,\dots,A_d$.
+Selecting two or more, but fewer than all, of its children creates an upstream segment common to precisely those
+subtrees. This operation retains every line of $T$. The following decomposition specifies which candidate
+supports a scan of the nodes can generate.
+\begin{lemma}[Node decomposition]\label{lem:node}
+A support $C\notin T$ with at least two leaves is compatible with $T$ if and only if $C=\bigcup_{j\in S}A_j$ for a unique
+internal node $v$ and a set $S$ of its children with $2\le|S|<c_v$.
+\end{lemma}
+\begin{equation}\label{eq:price}
+g_v(T)=\max_{S:\ 2\le|S|<c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big).
+\end{equation}
+For child $a$, write $P_{a,t},Q_{a,t}$ for the total active and reactive power of its leaves at slot $t$,
+including the estimated profile if it contains $s$. Write $z_{A_a}$ for its meter-incidence vector as in
+(\ref{eq:model}). Let $\eta_a$ select the children of the new segment. A meter in a selected child sees the
+voltage drop caused by the summed power of \emph{all} selected children. Thus, for the new segment with
+coefficients $r,x$, the additional squared-voltage drop vector is
+\begin{equation}\label{eq:node-drop}
+\Delta_t=\sum_{a=1}^d z_{A_a}\sum_{b=1}^d
+           \bigl(w^P_{ab}P_{b,t}+w^Q_{ab}Q_{b,t}\bigr).
+\end{equation}
+The auxiliary coefficients represent $w^P_{ab}=r\eta_a\eta_b$ and $w^Q_{ab}=x\eta_a\eta_b$.
+They are symmetric in $a,b$, so only pairs $a\le b$ need variables. For either
+$(w,c)=(w^P,r)$ or $(w^Q,x)$, impose the linear constraints
+\begin{equation}\label{eq:node-product}
+\begin{aligned}
+0\le w_{ab}&\le c,\quad w_{ab}\le\bar\theta\eta_a,\quad w_{ab}\le\bar\theta\eta_b &&(a\le b),\\
+w_{ab}&\ge c-\bar\theta(2-\eta_a-\eta_b) &&(a<b),\\
+w_{aa}&\ge c-\bar\theta(1-\eta_a) &&(a=b).
+\end{aligned}
+\end{equation}
+For binary selections, these bounds set $w_{ab}$ to $c$ when both children are selected and to zero otherwise.
+Stacking $\Delta_t$ over all slots gives $\Delta$. With $\theta_T$ the coefficients of the retained tree, the node MIQP is
+\begin{equation}\label{eq:node-miqp}
+\begin{aligned}
+J_v^\star=\min_{\eta,\theta_T,r,x,w^P,w^Q}\quad&
+  \frac{\|W(y-\Phi_T\theta_T-\Delta)\|^2}{2\hat\sigma^2}+\beta\,[k(T)+1]\\
+\text{s.t.}\quad&
+  \eta_a\in\{0,1\},\quad 2\le\textstyle\sum_a\eta_a\le d-1,\quad
+  0\le r,x,\theta_T\le\bar\theta,\qquad
+  \text{(\ref{eq:node-drop})--(\ref{eq:node-product})}.
+\end{aligned}
+\end{equation}
+Here (\ref{eq:node-drop}) defines $\Delta$ linearly from the auxiliary variables; (\ref{eq:node-product}) enforces
+their product values. Refitting $\theta_T$ lets the original lines explain as much of the data as their coefficients
+allow. The remaining improvement is attributed to the new segment, after paying for one additional line.
+The $d$ binary variables and $d(d+1)$ continuous product variables represent $2^d-d-2$ eligible unions.
+By Lemma~\ref{lem:node}, $H(T)-J_v^\star$ is exactly the best single-line gain at $v$ under this model.
+
+For $3\le d\le K$ the implementation enumerates the unions directly; for $d>K$ it runs the node MIQP
+($K=9$ by default). A feasible insertion is eligible when its refitted score improves by more than the numerical tolerance.
+A valid lower bound $L_v$ on $J_v^\star$ gives an upper bound $H(T)-L_v$ on the improvement still possible
+at that node. A scan certifies single-line completion when every eligible node excludes improvement
+above the numerical tolerance ($10^{-7}$ in $\mathrm{crit}=2H/N$ units). At a time limit a node can
+remain unresolved. Two new lines can pay together even when each single addition raises the score.
+\begin{remark}\label{rem:pairs}
+Four meters, fit term $\tfrac12\|R_{\rm obs}-R\|_F^2$ and price $0.6$; $R_{\rm obs}$ has diagonal $100$ and off-diagonal
+$1$, except $2$ for the pairs $\{1,2\}$ and $\{3,4\}$. The star scores $4/3$, the best single line $1.4$, and the lines
+$\{1,2\}$ and $\{3,4\}$ together $1.2$.
+\end{remark}
+
+\subsection{Grouping flips, anchors and the next tree solve}
+The node and tree objectives rank feasible configurations. To decide which groups to retain during the next
+restricted search, the algorithm explicitly tests groupings on the current cumulative pool.
+
 \paragraph*{Labels} For a pool $\Omega$ and $H^*=\min_FH(F)$, let
-$\Sset_m=\{F\subseteq\Omega\cup\Bset\ \text{laminar}:\ H(F)\le H^*+m\}$. For a tree $T$ and a grouping $M$, the \emph{flip
+$\Sset_m=\{\Bset\subseteq F\subseteq\Omega\cup\Bset\ \text{laminar}:\ H(F)\le H^*+m\}$. For a tree $T$ and a grouping $M$, the \emph{flip
 problem} asks for the best tree that decides $M$ the other way,
 \begin{equation}\label{eq:flip}
-H^{\rm f}_M(T)=\min\{H(F):\ F\subseteq\Omega\cup\Bset\ \text{laminar},\ [M\in\Gset(F)]\neq[M\in\Gset(T)]\},
+H^{\rm f}_M(T)=\min\{H(F):\ \Bset\subseteq F\subseteq\Omega\cup\Bset\ \text{laminar},\ [M\in\Gset(F)]\neq[M\in\Gset(T)]\},
 \end{equation}
 which for $M\in\Gset(T)$ is the tree MIQP (\ref{eq:master}) with every support of grouping $M$ removed from the pool, and
 for $M\notin\Gset(T)$ the same MIQP with a support of grouping $M$ required. Its
@@ -265,93 +398,6 @@ with $T_{|D}=\{E\in T:\neg(E\cross D)\}$.
 $e_M(T)\le m_M(T)$ for $M\in\Gset(T)$, and $e_{\pi(D)}(T)\le-\ell_D(T)$ for $\pi(D)\notin\Gset(T)$. Local flips can prove a
 grouping open, never decided.
 \end{lemma}
-
-\paragraph*{Why a true line is decided} Labels and anchors are useful only if removing a true line costs a lot. Let the data
-follow (\ref{eq:model}) with the true tree $T^0$ and coefficients inside the bounds. After $M$, write the data as
-$\tilde y=\mu+\varepsilon$: $\mu$ is the true voltage signal and $\varepsilon$ the noise. For a tree $F$, let $P_F$ project
-onto everything $F$ can predict (the span of its columns), and let $d_F=\|\mu-P_F\mu\|$: the part of the true signal that $F$
-cannot reproduce with any coefficients. $\mathrm{RSS}(F)$ is the residual of $F$'s bounded fit, the numerator of
-(\ref{eq:score}).
-\begin{theorem}[Removing a true line costs a lot]\label{thm:cost}
-(a) If $F$ lacks a line of $T^0$, then, with $\xi_F=\langle\mu-P_F\mu,\ \varepsilon\rangle/d_F$ for $d_F>0$ and $\xi_F=0$ otherwise,
-\[
-\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ \ge\ d_F^2-2\,d_F\,|\xi_F|-\|P_F\varepsilon\|^2 .
-\]
-(b) If $F$ contains every line of $T^0$ and the unbounded least-squares fit of $T^0$ lies within the bounds, then
-$0\le\mathrm{RSS}(T^0)-\mathrm{RSS}(F)\le\|(P_F-P_{T^0})\varepsilon\|^2$.
-\end{theorem}
-The first bound measures the part of the voltage response a rival cannot reproduce. The second bounds the benefit of
-adding redundant lines by the noise projected onto their additional directions. If different branch loads vary together,
-$d_F$ may be small even over a long record. More slots strengthen separation when they add distinguishable signal.
-
-\begin{corollary}[When the search finds the true tree]\label{cor:truth}
-Suppose the pool contains $T^0$, the unbounded least-squares fit of $T^0$ lies within the bounds, and (A) every tree $F$ of
-the pool that lacks a line of $T^0$ has
-$\big(d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2\big)/(2\hat\sigma^2)>m+\beta\,\big(k(T^0)-k(F)\big)$, and (B) every tree
-$F\supsetneq T^0$ of the pool has $\|(P_F-P_{T^0})\varepsilon\|^2<2\hat\sigma^2\beta\,\big(k(F)-k(T^0)\big)$. Then $T^0$ is the unique best tree over the pool;
-when the flip tests finish, every grouping of $T^0$ is decided; and if every anchor node (including the root) has at most $K$ units, the anchored
-search of Proposition~\ref{prop:anchor} still contains $T^0$, so restricting the search to it loses nothing.
-\end{corollary}
-These sufficient conditions concern all competing trees in the specified pool and involve the unknown true signal and
-disturbance. Development checks instead measure errors and coverage against known topology.
-
-% ---------------------------------------------------------------------
-\section{Identification}\label{sec:id}
-
-\paragraph*{Tree MIQP} For a pool $\Omega$ of supports, with a binary $b_C$ per support,
-\begin{equation}\label{eq:master}
-\begin{aligned}
-\min_{b,r,x}\ &\frac{\|M(y-\Phi(r,x))\|^2}{2\hat\sigma^2}+\beta\sum_{C\in\Omega}b_C\\
-\text{s.t.}\ \ &0\le r_C\le\bar r_Cb_C,\quad0\le x_C\le\bar x_Cb_C\quad(C\in\Omega),\qquad b_C+b_D\le1\quad(C\cross D),\\
-&\textstyle\sum_{C\in\Omega,\,C\subsetneq W}b_C\le|W|-2\quad(W\in\Omega\cup\{\Nset^+\}),\qquad
-\sum_{C\in\Omega,\ \pi(C)=A}b_C\ge1\quad(A\in\Aset),\\
-&\textstyle\sum_{C\ni i}r_C\le\bar R_i,\quad\sum_{C\ni i}x_C\le\bar X_i\quad(i\in\Nset;\ \text{optional}),
-\end{aligned}
-\end{equation}
-with $\Bset$ always on. The count cut holds for every tree (a tree on $|W|$ leaves has at most $|W|-2$ lines strictly inside
-$W$). The fourth constraint keeps every anchor's grouping, with the load inside or not. At a score level $\ell$, the optional bounds $\bar R_i,\bar X_i$ come from a continuous relaxation of the
-per-meter path sums; $\bar r_C=\min(\bar\theta,\min_{i\in\pi(C)}\bar R_i)$ and similarly for $x$.
-For nonnegative line prices they preserve every tree at or below $\ell$. An incumbent in this range also preserves
-the original minimum. In a threshold-only flip test, a restricted dual bound $b$ gives the conservative original-domain
-bound $\min(b,\ell)$; exclusion of the threshold is recorded separately. At residual equality the implementation retains
-the original bounds. Each main tree
-solve first runs the local search to convergence: no removal of one line, and no swap of one pool line in (the lines it
-crosses removed), lowers the score, so the value of every candidate line has been checked. The MIQP starts from that tree,
-and its tree, when better, is searched to convergence too. Its claims are checked against the trees known: a bound above
-a known tree's score, or an optimum that one move still improves, is a numerical failure, and such a solve gives no bound
-and decides nothing. Each coefficient enters the solver in units of its column's size, so that the quadratic has a unit
-diagonal, and the solver runs at its default tolerances: unscaled, with the tolerances forced to $10^{-9}$, it declared
-feasible relaxations infeasible, and claimed false optima, on feeders of 47 to 60 meters.
-\begin{proposition}[The load's path needs no constraints]\label{prop:path}
-For a set of meters $C$ write $C^1=C\cup\{s\}$. Over $\Nset^+$ the crossing constraints of (\ref{eq:master}) are exactly:
-(i) the crossings of the meter sets; (ii) one place: $b_{C^1}+b_{D^1}\le1$ unless $C\subseteq D$ or $D\subseteq C$; (iii) a
-line above a line that carries the load carries it too: $b_{C^1}+b_D\le1$ for meter sets $C\subsetneq D$. So the load's path
-needs neither extra constraints nor products of binaries and coefficients.
-\end{proposition}
-
-\paragraph*{Node pricing} Let $v$ be an internal node of $T$ with children $A_1,\dots,A_{c_v}$ (supports or leaves).
-\begin{lemma}[Node decomposition]\label{lem:node}
-A support $C\notin T$ with at least two leaves is compatible with $T$ if and only if $C=\bigcup_{j\in S}A_j$ for a unique
-internal node $v$ and a set $S$ of its children with $2\le|S|<c_v$.
-\end{lemma}
-\begin{equation}\label{eq:price}
-g_v(T)=\max_{S:\ 2\le|S|<c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big).
-\end{equation}
-A node with at most $K$ children is priced by fitting every union, as in the anchored universe below. A wider node is
-priced by a node MIQP with a binary $z_a$
-per child; the new line's coefficient enters as $u_{ab}=rz_az_b$, written exactly by the linear inequalities $u_{ab}\le r$,
-$u_{ab}\le\bar\theta z_a$, $u_{ab}\le\bar\theta z_b$, $u_{ab}\ge r-\bar\theta(2-z_a-z_b)$; every coefficient of $T$ is
-refitted, with the coefficients scaled to their columns as in the tree MIQP. Enumeration covers all eligible unions; a completed node MIQP can cover the same domain with one solve. A single-line
-certificate requires every node to exclude a gain exceeding $10^{-7}$ in the implementation's objective
-$\mathrm{crit}=2H/N$. For a wide node this requires a valid lower bound on its best augmented score. A feasible
-paying line, a complete exclusion, and an unresolved node are recorded separately. The restricted tree solve has its
-own domain, required anchors, incumbent, bound and gap tolerance. Two lines can improve together when neither pays
-alone (Remark~\ref{rem:pairs}).
-\begin{remark}\label{rem:pairs}
-Four meters, fit term $\tfrac12\|R_{\rm obs}-R\|_F^2$ and price $0.6$; $R_{\rm obs}$ has diagonal $100$ and off-diagonal
-$1$, except $2$ for the pairs $\{1,2\}$ and $\{3,4\}$. The star scores $4/3$, the best single line $1.4$, and the lines
-$\{1,2\}$ and $\{3,4\}$ together $1.2$.
-\end{remark}
 
 \paragraph*{Anchors}
 \begin{definition}[Anchors and units]
@@ -396,56 +442,137 @@ D^*=\min H_0-\min H,\qquad L_0-U_1\ \le\ D^*\ \le\ U_0-L_1,
 where $[L_0,U_0]$ and $[L_1,U_1]$ bracket the two minima (solver bounds and incumbents): $\min H_0\ge L_0$ and $\min H\le U_1$
 give the lower end, and likewise the upper. Both brackets come from the tree MIQP over the final pool (over its meter
 groupings for $H_0$), started from $\hat T$; $U_1$ is the better of that solve and $H(\hat T)$. Evaluating $H_0$ at the load tree's own meter topology instead could only
-overstate $D^*$, since that topology is one of those minimised over. The places of the load are the admissible places in
-$\hat T$'s meter topology whose score is within $m$ of the best.
+overstate $D^*$, since that topology is one of those minimised over. For its separate placement diagnostic the implementation fixes the meter tree and scores its
+nontrivial meter groups as attachment choices, plus trunk and PCC placements. The reported list gives the score
+gap for each of those choices. The augmented tree MIQP also admits supports such as $\{i,s\}$ beside a single
+meter. The fitted augmented path is reported directly from the selected tree.
 
 \begin{algorithm}[t]
-\caption{\textsc{Identify}: gate, tree, anchors and labels}\label{alg:identify}
+\caption{\textsc{Identify}: tree selection, node refinement and grouping scores}\label{alg:identify}
 \begin{algorithmic}[1]
 \Require data; $\varsigma_0$, $\lambda$, $m$, $K$, $R$
 \Ensure the gate's decision; tree $\hat T$ (groupings, and with a load its path); certificate and scope; anchors; pool;
-labels with gap intervals and rivals; with a load, its places and evidence interval
+labels with gap intervals and rivals; with a load, placement scores and evidence interval
 \State \textbf{if} the PCC power is metered: $\varsigma$ by (\ref{eq:gate}); a load is modelled iff $\varsigma\ge\varsigma_0$ \Comment{gate}
-\State $M$, $\hat\sigma^2$, $\beta$; $\hat R$ by (\ref{eq:rhat}) \Comment{set-up}
+\State $W$, $\hat\sigma^2$, $\beta$; $\hat R$ by (\ref{eq:rhat}) \Comment{set-up}
 \State $\Omega\gets\Omega_0$ and nine starting trees \Comment{Appendix~\ref{app:pool}}
 \State $T\gets$ (\ref{eq:master}) over $\Omega$, from the converged local-search tree
 \For{$r=0,1,\dots,R$}
   \State label the groupings of $T$: local flips (\ref{eq:local}), then flip tests (\ref{eq:flip}); $\Aset\gets$ the decided ones
   \State \textbf{if} the stopping rule of Lemma~\ref{lem:stop} holds, or $r=R$: \textbf{break}
   \State $T\gets$ (\ref{eq:master}) over $\Omega^+_K(\Aset)\cup\Lin(T)$, anchors required; $\Omega\gets\Omega\cup\Omega^+_K(\Aset)$
-  \State pricing (\ref{eq:price}), by enumeration or the node MIQP: add paying lines to $T$ and $\Omega$; if any, (\ref{eq:master}) again; keep the better tree
+  \State search nodes by enumeration or (\ref{eq:node-miqp}); add improving lines to $T$ and $\Omega$
+  \State if any line was added, re-solve (\ref{eq:master}) on the round's enlarged domain with the same anchors; retain the better tree
 \EndFor
 \State $\hat T\gets T$; groupings outside $\hat T$ whose swap (\ref{eq:local}) is within $m$ are open
-\State with a load: its path, its places within $m$, its evidence (\ref{eq:evidence})
+\State with a load: return the fitted path, candidate placement scores and evidence interval (\ref{eq:evidence})
 \end{algorithmic}
 \end{algorithm}
 
-\paragraph*{Explanation} Line 1 decides whether there is a load; below the gate the rest runs on the meters alone. Lines 2--4
-build a first tree from cheap candidate lines. Lines 5--9 are the core: decided groupings become anchors; the anchored
-universe offers every line compatible with them at nodes that are small enough (Proposition~\ref{prop:anchor}); pricing
-searches the wider nodes and checks the result against any single line, enumerating nodes with at most $K$ children and
-solving the node MIQP at wider ones; the loop stops by Lemma~\ref{lem:stop} or after $R$
-searches, and the output says which. Every round labels all groupings of the current tree on the current pool, anchors
-included, so the final labels are those of the final tree and pool. Lines 10--11 report what remains open and, with a load,
-where it sits and how strongly the voltages show it.
+\paragraph*{Handoff between solves}
+The first tree solve uses the builder pool. In each refinement round the flip tests use the cumulative pool with
+the anchors free, and their decided in-tree groupings define the anchors for the next restricted solve.
+Node searches then refine the resulting tree. After one or more accepted insertions, the tree MIQP reconsiders
+the round's supports and additions together, with those anchors required. A new line can leave the selected tree
+at this step and still remain available for later flip tests. The last grouping scores refer to the final tree and
+cumulative pool. These distinct domains determine what each lower bound certifies.
 
 % ---------------------------------------------------------------------
-\section{Probing}\label{sec:probe}
+\section{Identification results and scope}\label{sec:tests}\label{sec:value}
 
-The operator can buy signed active-power blocks at chosen meters from an aggregator of household batteries and EV chargers,
-each held for one market hour and sealed one hour ahead. Probing works on the pool, the leader and the open alternatives; it
-never lists whole trees. A block that changes the flows on one side of a branching point makes the leader's and the rival's
-predictions differ more: this is what probing buys.
+\subsection{Computational evidence}
+A historical development comparison replayed the node search on the final trees of ten large inputs. Eight trees
+had no node wider than nine children. The other two were different load conditions on the same feeder, each
+with an 11-child junction. Direct enumeration compared 2,035 possible insertions at that junction.
+Table~\ref{tab:wide} gives the wall time for the \emph{whole node-search stage} on each fixed tree.
+One input favoured an additional segment serving 20 meters. On the other, both methods ruled out an improving
+insertion. The machine was shared during these runs.
+
+\begin{table}[htbp]
+\caption{Two 11-child inputs from one feeder: fixed-tree node search}\label{tab:wide}
+\centering
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Input & Enumerate & Node MIQP at wide node & Best single addition\\
+\midrule
+\texttt{dev\_huge\_004\_head} & 90 s & 13 s & Same 20-meter support; gain $0.00304$ in $\mathrm{crit}$\\
+\texttt{dev\_huge\_004\_none} & 67 s & 12 s & No improving support in either search\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Earlier first-pool tree solves on two 47--60-meter development inputs reached the 240-second MIQP limit.
+The local search supplied the best feasible trees, with lower bounds 177 score units below the incumbent on
+\texttt{dev\_huge\_006\_none} and 525 below on \texttt{dev\_huge\_004\_head} in the scaled formulation. In these cases the tree solve quantified the remaining optimisation gap.
+The timing comparison in Table~\ref{tab:wide} measures a different task: finding or excluding a single insertion
+on an already specified tree.
+
+\paragraph*{Small exhaustive audit} Four paired inputs use four meters, 96 hourly observations, two excitation
+levels and either zero or one extra leaf. The complete domains contain 26 and 236 trees, respectively. Using the same
+reference and score threshold within each input, the two strongly excited cases retained all four initially decided
+groupings across them. In the weakly excited cases the full domains admitted competitive trees for four and five
+meter groups respectively that had no support in the initial pools. The full-domain optimum in each weak case was
+the star. The strong input with the extra leaf illustrates the distinction between an identified group and a load location.
+Five of the 236 trees lay within 4.6 of the full-domain optimum. All five had exactly the meter groups
+$\{0,1\}$ and $\{2,3\}$ (zero-based indices), with four distinct sets of internal lines carrying the extra leaf.
+Two such trees place it below group $\{2,3\}$ and outside both groups, with respective score increments 0
+and 2.83. Across all four inputs, 24 of 24 reported final labels agreed with independent enumeration in their
+respective pools. All nodes here fell within the default enumeration limit. In interpreting the weak cases,
+$N=384$ implies $\beta\le\ln(384)-1.96<4.6$. From a star, setting the coefficients of any one new line to zero
+preserves the fit, so all legal single additions are automatically competitive at this margin.
+
+\paragraph*{Outputs and evaluation}
+For each tested meter group the procedure returns its label, score interval and any feasible rival. It also records
+the gate decision, any fitted load path and competitive placements, the final tree, anchors, solver statuses,
+certificate domains and stopping reason. Evaluation against known topology should report grouping precision,
+recall and F1, near-root recall and exact-tree recovery. The grouping assessment pairs decision coverage with
+false decisions and false anchors. The load assessment counts missed and spurious loads and checks whether
+the true placement scores within $m$ of the best tested placement.
+
+\paragraph*{Scope of grouping scores}
+The flip gap measures the extra score needed to reverse a projected meter group while allowing the other
+lines and the modelled load position to change. Related stability measures include the additional tree length
+needed to lose a branch~\cite{bremer} and the classification loss incurred by flipping one prediction~\cite{marx}.
+Here a certificate refers to the measured feeder data, its score and the pool used for the test.
+The sufficient signal-separation conditions are in Appendix~\ref{app:separation}.
+
+\paragraph*{Limits} Labels depend on the gate, fit, penalty, margin, data and candidate pool. Multiple unmetered
+loads and errors in measured regressors can change the fitted groups. The gate was calibrated for one meter class.
+The signal-separation conditions involve the unknown true response.
+
+\paragraph*{Relation to the registered test} The registered sealed test evaluates the predecessor (final.py at 71684ff). It
+has no gate, removes the load during the search by projecting out its profiles ($D_1$, Appendix~\ref{app:pool}) and places it at the end, takes blocks from the top-level
+lines of the first tree without flip tests, searches the unions of at most 9 blocks once, prices nodes with an MIQP over the
+meters only, has no labels, and computes the evidence at the load tree's meter topology. Its result does not carry over to
+Algorithm~\ref{alg:identify}.
+
+\paragraph*{End-to-end evaluation}
+The outstanding attribution question is whether a segment proposed at a node was absent from the round's search
+domain and remains in the final tree after re-optimisation. A paired comparison should record the warm-start score,
+tree-solve incumbent and bound, membership of the proposed line in the initial pool and current domain, and the final
+physical meter grouping with and without node refinement. A future independent test would use a new set of feeders.
+
+% ---------------------------------------------------------------------
+\section{Extension to cost-aware probing}\label{sec:probe}
+
+The identification routine supplies the fitted augmented tree, cumulative pool, grouping labels and feasible
+rivals. The first hourly decision reads these outputs. At later hours the routine updates the fits and reruns the
+refinement loop on all readings acquired so far, starting from the previous tree and pool. The operator can buy a
+signed active-power block from an aggregator for delivery one hour ahead. The value of a block depends on how
+differently the current tree and its rivals predict the induced voltage response.
 
 \paragraph*{Values used in probing} For an open alternative $M$ with rival $F_M$, at the gate of hour $h$:
 \begin{itemize}
 \item the gap interval (\ref{eq:gap}) and the \emph{deficit} $\underline\delta_M=m-\bar e_M$ with $\bar e_M=U_M-H(\hat L)\ge
 e_M$: a lower estimate of what the alternative still needs; unsettled groupings are not targets (probing cannot repair a
 solver's time limit) and are labelled again at each gate;
-\item the fitted parameters of the leader and the rival and their covariances $P=\hat\sigma^2(\Phi\tp\Phi)^{-1}$ on the
-coordinates not at a bound;
-\item the predicted voltage drops of hour $h+1$ under each tree after $M$, so that $\hat\sigma^2I$ is their noise
-covariance, from the day-ahead forecast of the meters' load (the mean of the same hour over the data) plus the block $u$;
+\item the fitted parameters of each tree and their covariance $P$. With $\tilde\Phi_f$ the weighted training design
+on the coordinates free of their bounds, $P_{ff}=\hat\sigma^2(\tilde\Phi_f\tp\tilde\Phi_f)^\dagger$ uses the
+Moore--Penrose inverse. Coordinates at a bound are held fixed;
+\item the predicted voltage drops for hour $h+1$ under each tree. The forecast centres the historical mean active
+and reactive powers for that hour by their respective means over all readings. The active block $u$ changes the
+forecast, and $S_\gamma$ weights the resulting voltage predictions across meters. Under the working noise model
+their measurement-noise covariance is $\hat\sigma^2 I$;
 their difference is $d_M(u)=d_M(0)+G_Mu$, and
 \begin{equation}\label{eq:sep}
 q_M(u)=d_M(u)\tp\Sigma_M^{-1}d_M(u),\qquad \Sigma_M=\hat\sigma^2I+\tfrac12\Phi_{\hat L}P_{\hat L}\Phi_{\hat L}\tp+\tfrac12\Phi_{F_M}P_{F_M}\Phi_{F_M}\tp,
@@ -474,7 +601,7 @@ with $r=2$ and no load, the second with $r=1$ and the load); a block $a$ at mete
 does separate them.
 
 \paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings, and the load's place
-when the second-best admissible place is within $m$ of the best (that place is its rival), whose $G$ moves on some feasible
+when the second-best tested placement is within $m$ of the best (that place is its rival), whose $G$ moves on some feasible
 block direction; it stays fixed during the day. At every gate each target is relabelled on the current data and pool; a
 target outside the tree that no local swap shows open gets the flip test (\ref{eq:flip}) with its grouping required, since a
 local swap cannot decide it (Lemma~\ref{lem:local}); its best swap is the known tree that the test's claim is checked
@@ -490,23 +617,25 @@ J_h(u)=\psi\sum_{M\in\Tset\ \text{open}}\Big[\kappa\big(\underline\delta_M,q_M(u
 bought only if $J_h(u^\ast)>0$: the expected capped log-likelihood ratio (\ref{eq:llr}) gained over passive operation,
 counted up to what each target still needs, against the price. It is a forecast that assumes the leader generates the data,
 with both fits and the covariance held fixed. (Capping the mean, $\min(\delta,q/2)$, would overstate it: at $q=2$, $\delta=1$
-it gives $1$ against $0.436$.) \emph{Choice of $\psi$:} on the development cases, Algorithm~\ref{alg:probe} runs for every
+it gives $1$ against $0.436$.) \emph{Proposed calibration of $\psi$.} The development comparison would run Algorithm~\ref{alg:probe} for every
 $\psi$ on a grid; with mean cost and coverage scaled to $[0,1]$, the default is the grid point farthest above the straight
-line from the first point to the last (the knee). Grid and default are fixed before any probing test. \emph{Greedy, in plain
+line from the first point to the last (the knee). The existing simulated-day runs used a placeholder $\psi$.
+The cost--coverage comparison against passive operation, including false decisions and energy purchased, remains open.
+\emph{Greedy, in plain
 words:} each hour the rule buys the one block worth most for the next hour alone. \emph{Stopping and trust gate:} the day
 ends when every target holds a fresh decided label, on that gate's data and pool, at two consecutive gates; blocks are
 bought only when the leader fits as well as the meter noise allows, $s^2_{\hat L}/\sigma^2_y\le\kappa_A$, with $s^2_{\hat L}$ the
-leader's residual variance after $M$ and $\sigma^2_y=4\sigma_v^2\,1.02^4$ for the meter class $\sigma_v=0.05\%$. A last gate after
+leader's residual variance after applying $W$ and $\sigma^2_y=4\sigma_v^2\,1.02^4$ for the meter class $\sigma_v=0.05\%$. A last gate after
 hour 23 relabels on the whole day, so that the readings of the last block are used.
 
 \begin{algorithm}[t]
 \caption{\textsc{Probe}: one day of cost-aware probing (proposed)}\label{alg:probe}
 \begin{algorithmic}[1]
 \Require the output of Algorithm~\ref{alg:identify}; history; contract; $\psi$, $m$, $\kappa_A$
-\Ensure the leader, with every grouping decided, open or unsettled
+\Ensure the final leader and its tested grouping labels
 \State $\Tset\gets$ open alternatives whose $G$ moves on a feasible block direction \Comment{fixed for the day; Lemma~\ref{lem:reach}}
 \For{$h=0,1,\dots,23$} \Comment{gate at the start of hour $h$; block for $h+1$ sealed now}
-  \State $\hat L\gets$ Algorithm~\ref{alg:identify}, lines 5--9, on all data so far
+  \State at $h=0$ use the identification output; at later gates refine the previous tree and pool on all data so far
   \State relabel every target on the current data and pool (an outside target by its flip test): intervals, deficits, rivals
   \State \textbf{if} every target has a fresh decided label at this gate and the previous one: \Return $\hat L$ with its labels
   \State $u_{h+1}\gets u^\ast$ of (\ref{eq:block}) if $s^2_{\hat L}/\sigma^2_y\le\kappa_A$ and $J_h(u^\ast)>0$, else $0$
@@ -517,70 +646,37 @@ hour 23 relabels on the whole day, so that the readings of the last block are us
 \end{algorithm}
 
 % ---------------------------------------------------------------------
-\section{How the outputs are valued}\label{sec:value}
-
-\paragraph*{What the output says} Three parts, kept apart. \emph{The load:} the gate's statistic and decision; with a load,
-its path, places within $m$ and evidence interval. \emph{The structure:} the groupings of $\hat T$, the anchors, and for every
-tested grouping its label, gap interval and any available rival. \emph{The computation:} the certificate's scope (single-line pricing complete, a paying line left at the repair limit, or
-incomplete; and whether the restricted scope holds), the nodes priced each way, the
-share of unsettled labels, the solver status of every number, and why the loop stopped.
-
-\paragraph*{How it is scored against the truth} The gate: loads missed and no-load feeders given a load, by share and kind.
-The structure: precision, recall and F1 over groupings; recall near the root; exact trees; false anchors; label coverage,
-false decisions, the share of open groupings that are true, and the share unsettled under each time limit. The load: whether
-its true place is within $m$ of the best. Probing: the share of targets decided by the end of the day, false decisions
-against passive operation, cost, energy and time; over $\psi$, as a cost--coverage curve. Coverage and false decisions are
-always reported together.
-
-% ---------------------------------------------------------------------
-\section{Contributions, limits and tests}\label{sec:tests}
-
-\paragraph*{Contributions} The identification target is agreement on downstream meter groups when both the feeder
-and one balance-derived load location may vary. A group flip removes all supports with that meter projection
-(Proposition~\ref{prop:path}). Decided groups define anchor units; when every unit count is at most $K$, unions
-cover all anchor-preserving trees and admissible load paths (Proposition~\ref{prop:anchor}). For larger nodes,
-the implementation reports the smaller scope it searched. Theorem~\ref{thm:cost} explains which part of the
-physical response separates a rival. Probing uses the remaining alternatives to rank feasible actions; its
-experimental assessment is separate.
-
-\paragraph*{Relation to earlier work} Bremer measured the additional tree length needed to lose a branch in
-near-most-parsimonious trees~\cite{bremer}. Marx, Calmon and Ustun minimised classification error with one prediction
-flipped to study disagreement between near-optimal models~\cite{marx}. Pengwah et al.\ studied topology recovery with
-partial smart-meter coverage through impedance estimation followed by meter placement~\cite{pengwah}. Here the score uses measured
-voltage and power, the tested object is a meter projection that can span several load placements, and the search
-reports its coverage of alternative feeder structures.
-
-\paragraph*{Limits} Labels depend on the gate, fit, penalty, margin, data and candidate pool. Multiple unmetered
-loads and errors in measured regressors can change the fitted groups. The gate was calibrated for one meter class.
-The signal-separation conditions involve the unknown true response. Probing uses fixed fits and a conditional
-forecast model. The proposed assessments report coverage, errors and unresolved cases together.
-
-\paragraph*{Relation to the registered test} The registered sealed test evaluates the predecessor (final.py at 71684ff). It
-has no gate, removes the load during the search by projecting out its profiles ($D_1$, Appendix~\ref{app:pool}) and places it at the end, takes blocks from the top-level
-lines of the first tree without flip tests, searches the unions of at most 9 blocks once, prices nodes with an MIQP over the
-meters only, has no labels, and computes the evidence at the load tree's meter topology. Its result does not carry over to
-Algorithm~\ref{alg:identify}.
-
-\paragraph*{Development checks before a registered test} (V1) Do meter-level labels separate grouping uncertainty from the
-load's place? (V2) The gate's error rates; the evidence at the load tree's topology against the two-model evidence. (V3) Scale
-and time per case. (V4) How often nodes are wide or unproved, and the effect on F1. (V5) With and without the per-meter
-bounds. (V6) Decided, open and unsettled shares under several time limits. (V7) Whether better gap intervals give better
-probing. (V8) How grouping coverage, disagreement with truth and the unsettled share vary with the margin and candidate pool.
-
-\paragraph*{Small exhaustive audit} Four paired inputs use four meters, 96 hourly observations, two excitation
-levels and either zero or one extra leaf. The complete domains contain 26 and 236 trees, respectively. Using the same
-reference and score threshold within each input, the two strongly excited cases retained all four initially decided
-groupings across them. In the weakly excited cases the full domains admitted competitive trees for four and five
-meter groups respectively that had no support in the initial pools. The full-domain optimum in each weak case was
-the star. The strong input with the extra leaf illustrates the distinction between an identified group and a load location.
-Five of the 236 trees lay within 4.6 of the full-domain optimum. All five had exactly the meter groups
-$\{0,1\}$ and $\{2,3\}$ (zero-based indices), with four distinct sets of internal lines carrying the extra leaf.
-Two such trees place it below group $\{2,3\}$ and outside both groups, with respective score increments 0
-and 2.83. These cases check implementation and candidate coverage at this scale.
-
-% ---------------------------------------------------------------------
 \appendices
-\section{Proofs}
+\section{Signal separation and proofs}\label{app:separation}
+\paragraph*{Signal loss on removing a line} Let the data
+follow (\ref{eq:model}) with the true tree $T^0$ and coefficients inside the bounds. After applying $W$, write the data as
+$\tilde y=\mu+\varepsilon$: $\mu$ is the true voltage signal and $\varepsilon$ the noise. For a tree $F$, let $P_F$ project
+onto everything $F$ can predict (the span of its columns), and let $d_F=\|\mu-P_F\mu\|$: the part of the true signal that $F$
+cannot reproduce with any coefficients. $\mathrm{RSS}(F)$ is the residual of $F$'s bounded fit, the numerator of
+(\ref{eq:score}).
+\begin{theorem}[Residual separation]\label{thm:cost}
+(a) If $F$ lacks a line of $T^0$, then, with $\xi_F=\langle\mu-P_F\mu,\ \varepsilon\rangle/d_F$ for $d_F>0$ and $\xi_F=0$ otherwise,
+\[
+\mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ \ge\ d_F^2-2\,d_F\,|\xi_F|-\|P_F\varepsilon\|^2 .
+\]
+(b) If $F$ contains every line of $T^0$ and the unbounded least-squares fit of $T^0$ lies within the bounds, then
+$0\le\mathrm{RSS}(T^0)-\mathrm{RSS}(F)\le\|(P_F-P_{T^0})\varepsilon\|^2$.
+\end{theorem}
+The first bound measures the part of the voltage response a rival cannot reproduce. The second bounds the benefit of
+adding redundant lines by the noise projected onto their additional directions. If different branch loads vary together,
+$d_F$ may be small even over a long record. More slots strengthen separation when they add distinguishable signal.
+
+\begin{corollary}[When the search finds the true tree]\label{cor:truth}
+Suppose the pool contains $T^0$, the unbounded least-squares fit of $T^0$ lies within the bounds, and (A) every tree $F$ of
+the pool that lacks a line of $T^0$ has
+$\big(d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2\big)/(2\hat\sigma^2)>m+\beta\,\big(k(T^0)-k(F)\big)$, and (B) every tree
+$F\supsetneq T^0$ of the pool has $\|(P_F-P_{T^0})\varepsilon\|^2<2\hat\sigma^2\beta\,\big(k(F)-k(T^0)\big)$. Then $T^0$ is the unique best tree over the pool;
+when the flip tests finish, every grouping of $T^0$ is decided; and if every anchor node (including the root) has at most $K$ units, the anchored
+search of Proposition~\ref{prop:anchor} still contains $T^0$, so restricting the search to it loses nothing.
+\end{corollary}
+These sufficient conditions concern all competing trees in the specified pool and involve the unknown true signal and
+disturbance. Development checks instead measure errors and coverage against known topology.
+
 
 The signal-separation result is deterministic conditional on the linearised model. The other proofs specify search
 domains, label semantics and the forecast used for probing.
@@ -676,7 +772,7 @@ feasible block.
 
 Any tree builders can supply $\Omega_0$; this work uses nine. (1) A sensitivity matrix over the meters without tree structure, fitted to the
 active-power part of (\ref{eq:model}) by a convex QP solved with Gurobi. With a load, its terms $R_{is}u^P_t+X_{is}u^Q_t$ are
-free for each meter, as in (\ref{eq:sat}); minimising over them first replaces $D$ by $D_1=I_T-\Pi_{[\one,\,u^P,\,u^Q]}$
+free for each meter, as in (\ref{eq:sat}); minimising over them first replaces $D$ by $D_1=I_\tau-\Pi_{[\one,\,u^P,\,u^Q]}$
 (least squares in two steps), and $D_1=D$ without a load. $D_1$ is used only here and in $\hat\sigma^2$:
 \begin{equation}\label{eq:rhat}
 \hat R=\arg\min_R\ \big\|(D_1\otimes S_\gamma)\,\mathrm{vec}(Y-PR)\big\|^2\quad\text{s.t.}\quad R=R\tp\ge0,\quad
@@ -689,13 +785,14 @@ positive path distance;
 UPGMA on the path distance $d_{ij}=\hat R_{ii}+\hat R_{jj}-2\hat R_{ij}$ and Ward linkage on $\sqrt d$; average-linkage
 clusterings on the correlation distance between meters of the rows of $\hat R$, the drops $y$, the drops
 $(D_1\otimes S_\gamma)y$, and the residuals after fitting the service cables and the trunk alone. (3) With a load, it is placed in each of
-the nine trees at its best admissible place; these trees start the first solve. (4) $\Omega_0$ is every cluster with 2 to
+the nine trees at its lowest-scoring tested placement; these trees start the initial local searches. (4) $\Omega_0$ is every cluster with 2 to
 $n-1$ meters in any hierarchy, and with a load each such cluster with and without $s$, the supports $\{i,s\}$ and $\Nset$,
 so $|\Omega_0|\le18(n-2)+n+1$.
 
+\clearpage
 \section{Settings}
 
-\begin{table}[h]
+\begin{table}[htbp]
 \caption{Settings of Algorithm~\ref{alg:identify} (development; values from the registered predecessor where it has them)
 and of probing}\label{tab:settings}
 \centering
@@ -717,12 +814,21 @@ Solver & Gurobi, one thread per case\\
 \midrule
 Probing & $c^\downarrow=4$, $c^\uparrow=1.2$ CNY/kWh; caps 20 CNY/h, 100 CNY/day; band $[0.96,1.035]$, $z=2.33$;
 $\kappa_A=1.2$, $\sigma_v=0.05\%$; blocks at one meter, $\frac14$ to all of the largest feasible size; forecast: the mean of the
-same hour; $\psi$ at the knee of the development cost--coverage curve\\
+same hour; $\psi=5$ in simulated-day runs, pending cost--coverage calibration\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{thebibliography}{3}
+\begin{thebibliography}{6}
+\bibitem{tian} Z.~Tian, W.~Wu and B.~Zhang, A mixed integer quadratic programming model for topology
+identification in distribution network, \emph{IEEE Trans. Power Systems}, vol.~31, no.~1, pp.~823--824, 2016.
+\href{https://doi.org/10.1109/TPWRS.2015.2394454}{Publisher record}.
+\bibitem{taheri} S.~Taheri, V.~Kekatos and G.~Cavraro, An MILP approach for distribution grid topology
+identification using inverter probing, \emph{2019 IEEE Milan PowerTech}, 2019.
+\href{https://doi.org/10.1109/PTC.2019.8810900}{Publisher record}.
+\bibitem{liang} D.~Liang, L.~Zeng, H.-D.~Chiang and S.~Wang, Power flow matching-based topology identification
+of medium-voltage distribution networks via AMI measurements, \emph{Int. J. Electrical Power \& Energy Systems},
+vol.~130, art.~106938, 2021. \href{https://doi.org/10.1016/j.ijepes.2021.106938}{Publisher record}.
 \bibitem{bremer} K.~Bremer, Branch support and tree stability, \emph{Cladistics}, vol.~10, pp.~295--304, 1994.
 \href{https://doi.org/10.1111/j.1096-0031.1994.tb00179.x}{Publisher record}.
 \bibitem{marx} C.~Marx, F.~Calmon and B.~Ustun, Predictive multiplicity in classification, \emph{Proc. ICML},
