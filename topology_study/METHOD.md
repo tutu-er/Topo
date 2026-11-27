@@ -1,7 +1,7 @@
 # The method in plain words
 
-This explains what the code does and why, without the proofs. The formal version is `paper/procedure.tex` (draft
-v17). The section and equation numbers below follow the draft. The code is in `ptid/method/`.
+The formal version is [paper/procedure.tex](paper/procedure.tex). The equation numbers in this overview refer to
+the v17 derivation. The code is in `ptid/method/`.
 
 ## 1. The task
 
@@ -88,7 +88,8 @@ The largest share in the no-load development cases was 0.66%, and the smallest i
 4. **Anchors and the anchored search.** Decided groupings are **anchors**. Given the anchors, every tree that keeps them
    uses only unions of a few "units" inside each anchor (Proposition 4). When an anchor has at most K = 9 units, all
    those unions are offered; larger nodes keep the pool's own lines. The tree MIQP then searches this anchored universe
-   with every anchor required.
+   with every anchor required. A better refitted flip rival within this domain that respects all its anchors supplies
+   an extra starting tree. A competing line that crosses an anchor and is absent from the pool can remain undiscovered.
 5. **Pricing.** Each node offers lines formed by joining a proper subset of its children. At most K children permits
    enumeration. At a wider node, a feasible improving union can be added immediately. A valid lower bound can rule
    out any improvement exceeding the pricing tolerance. If neither is available, that node is unproved. Every added
@@ -96,7 +97,8 @@ The largest share in the no-load development cases was 0.66%, and the smallest i
 6. **Rounds.** The convergence rule requires unchanged anchors, no added line, completed single-line pricing with
    no outstanding improvement, and a closed gap for the preceding anchored solve at the stated tolerance. Otherwise
    the method continues to the configured limit (default R = 2). The final labels use the final tree and cumulative
-   pool. A bound from the anchored search applies to its recorded domain with those anchors required.
+   pool. At termination an eligible lower-scoring flip rival may replace the tree once. The procedure relabels
+   that tree, records any further improving rivals and retires the old single-line certificate.
 7. **Outputs.** The result contains the feasible tree, the cumulative pool, the evaluated groupings' labels and
    gap intervals, and any recorded rival. It identifies the final restricted solve, whether its gap closed to
    tolerance, and the status of single-line pricing. For an unmetered load it also reports its path and the
@@ -113,8 +115,9 @@ both trees score at most L + m.
 The operator can buy signed active-power blocks at chosen meters for an hour (from batteries and EV chargers through
 an aggregator), within price, budget and voltage-band limits.
 
-- **Targets.** At the start of the day: the open groupings, and the load's place when its second-best place is within
-  m, whose rival tree responds differently from the leader to some feasible block.
+- **Targets.** Use open groupings and, where applicable, the lowest-scoring tested load path distinct from the
+  fitted path. That placement is open if its score is at most the fitted tree's score plus m. A target's rival
+  must respond differently from the leader to an available block.
 - **Value of a block.** For each target, q measures how far apart the two fitted predictions are for the next hour.
   Holding both fits and their common covariance fixed, if observations follow the leading tree's assumed Gaussian
   distribution, the predictive log-likelihood ratio has mean q/2 and variance q (Lemma 4). This calculation ranks

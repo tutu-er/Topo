@@ -1,6 +1,6 @@
 % =====================================================================
 %  Low-voltage feeder identification by tree selection and node refinement
-%  Paper-style draft v18, 2026-11-27
+%  Paper-style draft v19, 2026-11-27
 %
 %  Status of the parts (read before quoting anything from this file):
 %   * Both algorithms are implemented in topology_study/ptid/method
@@ -52,6 +52,7 @@
 %
 %  v18: tree and node MIQPs form the identification mainline; the probing
 %  policy uses the same identification interface as v17.
+%  v19: reuse feasible flip rivals and compare distinct probing placements.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -90,7 +91,7 @@
 \begin{document}
 
 \title{Identifying Low-Voltage Feeder Topology\\ with Tree and Node Mixed-Integer Quadratic Programs}
-\author{Method draft v18 of 27~November~2026 (authors to be added)}
+\author{Method draft v19 of 27~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
@@ -104,7 +105,8 @@ retain, replace or discard that segment. Grouping flips identify anchors for the
 a score interval for each tested grouping. In a development comparison on two inputs from one feeder with an
 11-child junction, the node formulation matched exhaustive enumeration: one input favoured adding a line serving 20
 meters and the other admitted no improving addition. The respective node-search times were 13 and 12 seconds,
-compared with 90 and 67 seconds for enumeration.
+compared with 90 and 67 seconds for enumeration. In a matched 11-meter simulation, refinement also found
+a pool-external group that improved the score and was retained, although it was absent from the generating feeder.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -221,8 +223,9 @@ $S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}$ (generalised least squares), and $W
 \begin{equation}\label{eq:score}
 H(F)=\min_{\theta}\frac{\|W(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
 \end{equation}
-with $p_s\in\{1,2\}$ selected by an empirical check on reactive-power variation relative to active power.
-This common penalty setting approximates the number of distinguishable coefficients per line.
+The default sets $p_s=2$ when independent reactive-power variation exceeds the meter-noise threshold at a
+majority of meters, and $p_s=1$ otherwise. Changing from 1 to 2 raises the price of each added segment by
+$\tfrac12\ln N$. Both settings fit resistance and reactance.
 \emph{Noise variance.} $\hat\sigma^2$ is the residual variance under $W$ of the saturated model, in which every meter sees
 every leaf's flow with its own coefficient,
 \begin{equation}\label{eq:sat}
@@ -232,7 +235,9 @@ y_{i,t}=\sum_{j\in\Nset}\big(R_{ij}\,p_{j,t}+X_{ij}\,q_{j,t}\big)+R_{is}\,u^P_t+
 with every coefficient free and the load's two terms only when a load is modelled. Every tree's prediction has this form, and
 with the load's terms free $\hat\sigma^2$ does not depend on the load's place. Its degrees of freedom are the rank of $W$ minus
 the numerical rank of the saturated design. It is computed once, at set-up, like the starting trees
-(Appendix~\ref{app:pool}); the score, the searches and the labels hold the estimated load profile fixed. The working covariance accounts for the shared PCC error; other dependencies may affect the scores.
+(Appendix~\ref{app:pool}). The score and all searches hold the estimated load profile fixed. Measured voltages
+enter both its loss correction and the fitted voltage response, so their errors can be correlated. The working
+covariance accounts for the common PCC voltage error.
 \begin{proposition}[Structural penalty]\label{prop:prior}
 For fixed leaf count, the branching penalty $-\ln(a)\sum_v(c_v-2)$ equals a constant minus $\lambda k(F)$,
 where $c_v$ is the number of children of internal node $v$ and $\lambda=\ln(1/a)$.
@@ -420,7 +425,8 @@ best tree that keeps every anchor, among all supports and every place of the loa
 binaries (twice that with a load) instead of $2^n-n-2$.
 \end{proposition}
 The result is conditional: exact over the trees that keep the anchors, at nodes with at most $K$ units, for a solve that
-finishes. The anchors themselves are re-tested, and may be flipped, in every round on the current data and pool. A node with
+finishes. The anchors are re-tested in every round on the current pool. If the pool omits a competing group
+that crosses an early anchor, the restricted tree solve and single-line insertions can keep missing it. A node with
 more than $K$ units keeps the pool's lines inside it and is priced by (\ref{eq:price}).
 
 \paragraph*{Pricing, re-solve and stopping} Every line added by pricing stays in the pool used by subsequent
@@ -464,6 +470,7 @@ labels with gap intervals and rivals; with a load, placement scores and evidence
   \State search nodes by enumeration or (\ref{eq:node-miqp}); add improving lines to $T$ and $\Omega$
   \State if any line was added, re-solve (\ref{eq:master}) on the round's enlarged domain with the same anchors; retain the better tree
 \EndFor
+\State if an eligible flip rival improves $T$, adopt the best such rival once and relabel on the cumulative pool
 \State $\hat T\gets T$; groupings outside $\hat T$ whose swap (\ref{eq:local}) is within $m$ are open
 \State with a load: return the fitted path, candidate placement scores and evidence interval (\ref{eq:evidence})
 \end{algorithmic}
@@ -475,7 +482,10 @@ the anchors free, and their decided in-tree groupings define the anchors for the
 Node searches then refine the resulting tree. After one or more accepted insertions, the tree MIQP reconsiders
 the round's supports and additions together, with those anchors required. A new line can leave the selected tree
 at this step and still remain available for later flip tests. The last grouping scores refer to the final tree and
-cumulative pool. These distinct domains determine what each lower bound certifies.
+cumulative pool. A refitted flip rival that improves the score beyond the numerical tolerance and satisfies the
+next solve's domain and anchors supplies an extra starting tree. At termination the best such rival within the
+last solve's domain and both the last and current anchors may replace the tree once. The procedure then recomputes
+its labels, records remaining improving rivals and reports that the replacement tree has yet to undergo a single-line search.
 
 % ---------------------------------------------------------------------
 \section{Identification results and scope}\label{sec:tests}\label{sec:value}
@@ -529,6 +539,12 @@ recall and F1, near-root recall and exact-tree recovery. The grouping assessment
 false decisions and false anchors. The load assessment counts missed and spurious loads and checks whether
 the true placement scores within $m$ of the best tested placement.
 
+The 33 EU-LV development feeders also occur in the 84-feeder sample used for $\lambda$. The two eight-day
+windows per feeder share 48 hours of customer load. On these 66 historical inputs, 4 of 162 decided groups
+disagreed with the prespecified 3~m$\Omega$ reference (2.47\%, above the 2\% target). Each of the four was a
+short physical line, giving 0 of 162 against the full topology in a secondary analysis added after inspection.
+Independent assessment requires holding out entire feeders from calibration.
+
 \paragraph*{Scope of grouping scores}
 The flip gap measures the extra score needed to reverse a projected meter group while allowing the other
 lines and the modelled load position to change. Related stability measures include the additional tree length
@@ -546,11 +562,21 @@ lines of the first tree without flip tests, searches the unions of at most 9 blo
 meters only, has no labels, and computes the evidence at the load tree's meter topology. Its result does not carry over to
 Algorithm~\ref{alg:identify}.
 
-\paragraph*{End-to-end evaluation}
-The outstanding attribution question is whether a segment proposed at a node was absent from the round's search
-domain and remains in the final tree after re-optimisation. A paired comparison should record the warm-start score,
-tree-solve incumbent and bound, membership of the proposed line in the initial pool and current domain, and the final
-physical meter grouping with and without node refinement. A future independent test would use a new set of feeders.
+\paragraph*{Paired node-refinement test}
+A synthetic 11-meter feeder had one true internal group and a ten-child junction. We compared refinement on
+and off at two excitation levels and at $p_s=1$ and $2$. Each pair shared the observations, builder pool, warm
+start, first tree and time limits. All eight runs finished. The true group was in both initial pools.
+With the stronger excitation and $p_s=2$ (the automatic setting on both inputs), the node MIQP introduced a
+six-meter group outside both the initial and current search domains. The next tree solve retained it.
+The score fell from 515.6148 to 515.5510, but this extra group was absent from the generating tree:
+grouping F1 fell from 1 to $2/3$. Its flip label was open. The other three pairs returned identical trees within
+each pair. At $p_s=1$, all four runs retained the true group and three extra groups (F1 $=0.4$).
+
+On the stronger input, removing the initial anchor and testing one crossing line at its parent gave 6 and
+1,022 alternatives under the two penalty settings. The best pool-external alternatives were 108.44 and 132.06
+score units above the respective reference trees, beyond $m=4.6$. The weaker input had no initial anchor.
+The experiment verifies expansion beyond the builder pool and illustrates how a better fit can introduce a
+spurious group. Recovery of true lines missed by the builders remains to be measured on independent feeders.
 
 % ---------------------------------------------------------------------
 \section{Extension to cost-aware probing}\label{sec:probe}
@@ -601,8 +627,10 @@ with $r=2$ and no load, the second with $r=1$ and the load); a block $a$ at mete
 does separate them.
 
 \paragraph*{Target set and objective} At the start of the day, $\Tset$ is the set of open groupings, and the load's place
-when the second-best tested placement is within $m$ of the best (that place is its rival), whose $G$ moves on some feasible
-block direction; it stays fixed during the day. At every gate each target is relabelled on the current data and pool; a
+when the lowest score among tested paths distinct from the fitted load path is at most $H(\hat L)+m$.
+The rival is indexed by the internal supports carrying the load, distinguishing a PCC attachment from one below
+the common trunk. Only targets whose $G$ moves on some feasible
+block direction enter $\Tset$, which stays fixed during the day. At every gate each target is relabelled on the current data and pool; a
 target outside the tree that no local swap shows open gets the flip test (\ref{eq:flip}) with its grouping required, since a
 local swap cannot decide it (Lemma~\ref{lem:local}); its best swap is the known tree that the test's claim is checked
 against. With
@@ -789,7 +817,6 @@ the nine trees at its lowest-scoring tested placement; these trees start the ini
 $n-1$ meters in any hierarchy, and with a load each such cluster with and without $s$, the supports $\{i,s\}$ and $\Nset$,
 so $|\Omega_0|\le18(n-2)+n+1$.
 
-\clearpage
 \section{Settings}
 
 \begin{table}[htbp]

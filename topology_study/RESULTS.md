@@ -3,8 +3,9 @@
 Section 1 records the registered test of the predecessor. Sections 2–5 report historical development runs and
 solver checks. Topology F1 uses the meter groupings of the feeder after filtering lines below 3 milliohms.
 Section 4 also compares decided labels with the exact physical topology. Section 6 checks draft v17's labels
-against independent enumeration on four synthetic inputs with known generating trees. This is the only new
-experiment reported here.
+against independent enumeration on four synthetic inputs with known generating trees. The
+[paired node-refinement experiment](experiments/node_pairs/README.md) compares eight runs on one synthetic
+11-meter feeder with fixed penalties and matched starting trees.
 
 ## 1. The registered test of the predecessor (2026-11-26; the set is spent)
 
@@ -219,10 +220,9 @@ The same explains test S1's two flags: both are `feeder15`, whose identifiable t
 5 that the data see. Its exact truth passes (p = 0.86 and 0.62), and on day 0 the found tree is the exact truth. So
 the flags came from the scoring truth, not from the model's fit to real feeders, as first suspected.
 
-**Consequence for the measurements.** A decided label is wrong only if its grouping is not a physical line; the
-3 milliohm floor stays the scoring truth for recall (lines the data cannot be expected to see). Both are reported from
-now on (`identify_cases summary`: columns `wrong` and `not a line`). This was decided after seeing these results
-(PROTOCOL.md §4 says so).
+On these 66 development inputs the original 3 milliohm reference gives 4/162 wrong decisions (2.47%), above
+the 2% development target. The full physical reference, added after inspecting these cases, gives 0/162.
+Both rates use the same decided groupings. Each feeder contributes two overlapping measurement windows.
 
 For comparison: on the same 66 inputs the earlier study's method got F1 62.5 with the plain BIC price and 66.7 with
 the structural prior, and RNJ 41 at its best tolerance (`rnj_wzzt_dr/experiments/case_library_20261125/IDENTIFICATION_PLAN.md`).

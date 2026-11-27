@@ -8,8 +8,9 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 
 | Part | Status |
 | --- | --- |
-| Method (draft v17) | Algorithm 1 reports a feasible tree and grouping labels relative to an explicit candidate pool and score margin. Algorithm 2 ranks candidate probing actions. |
+| Method (draft v19) | Tree MIQP selects lines in the pool. Node MIQP searches for a line at a wide junction. Flip tests score groupings and supply feasible rivals. |
 | Identification, current code | Four synthetic inputs with four metered leaves. All 24 conclusive final labels agreed with independent enumeration within the corresponding final pool. See [the audit](experiments/pool_audit/README.md). |
+| Node refinement | Paired runs with node refinement on and off, at two fixed line penalties, on one synthetic feeder. See [the per-pair results](experiments/node_pairs/README.md). |
 | Identification, historical code | The 240-case run predates the large-feeder solver fix. The later development and real-feeder runs used an earlier implementation of pricing and stopping. See [historical results](RESULTS.md). |
 | Probing | Simulated days only. The monetary conversion ψ and the policy's cost–coverage tradeoff await evaluation. |
 | Registered result | Only the predecessor's sealed test (holds; RESULTS.md §1). Its test set is spent |
@@ -22,7 +23,7 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 3. **RESULTS.md**: what the development runs show so far.
 4. **PLAN.md**: next steps and the decisions needed.
 5. **PROPOSALS.md**: rules under test, not adopted (when probing starts, what it targets, stop rules).
-6. [Paper draft v17](paper/procedure.tex) gives the formal claims and algorithms.
+6. [Paper draft v19](paper/procedure.tex) gives the formal claims and algorithms.
 7. **CHANGES.md**: what moved here from where, and what changed in the code.
 8. The code: `ptid/`.
 
@@ -31,13 +32,13 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 ```
 topology_study/
   README.md  METHOD.md  PROTOCOL.md  RESULTS.md  PLAN.md  PROPOSALS.md  CHANGES.md
-  paper/       procedure.tex (draft v17), procedure_preview.html
+  paper/       procedure.tex (current draft), procedure_preview.html (historical snapshot)
   experiments/pool_audit/    four synthetic inputs, audit report and recorded JSON
   ptid/        the Python package (numpy, scipy, gurobipy only)
     method/    sets, model, builders, miqp, search, labels, anchors, identify (Algorithm 1), probe (Algorithm 2)
     cases/     paths, physics, library (development cases), real (real feeders), world (probing day), manifest_dev.json
-    runs/      identify_cases (runs, summary, compare), probe_cases, checks, pool_audit
-    tests/     test_method, test_score_bounds, test_pool_pricing
+    runs/      identify_cases (runs, summary, compare), probe_cases, checks, pool_audit, node_pairs
+    tests/     test_method, test_score_bounds, test_pool_pricing, test_probe_rivals
 ```
 
 ## Running
