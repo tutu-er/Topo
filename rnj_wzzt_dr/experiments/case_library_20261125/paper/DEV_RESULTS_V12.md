@@ -81,7 +81,7 @@ far (the 240 small to medium twins and the first 8 huge ones). Widest node per t
 
 A found tree with a node wider than any branching point of the feeder is missing lines there. Pricing now enumerates
 nodes up to K = 9 children, the same K as the anchored universe, and uses the node MIQP beyond. Checked on the final trees
-of the two huge twins with an 11-child node (`check_wide.py` in the session scratchpad; pricing only):
+of the two huge twins with an 11-child node (`check_wide_nodes.py`; pricing only):
 
 | Twin | Pricing by enumeration | Pricing with the node MIQP | Node MIQP at the 11-child node |
 |---|---|---|---|
