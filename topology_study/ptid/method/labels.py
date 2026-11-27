@@ -1,4 +1,4 @@
-"""Labels of meter groupings (draft v16: Definition 1, Lemma 1, eqs 6-8).
+"""Labels of meter groupings (draft v17, Definition 1, Lemma 1, eqs 6-8).
 
 With the load as a leaf, one meter grouping M can appear as the line M or as M + load: the same grouping of meters,
 with the load inside it or not. Labels and anchors are about groupings: flipping M means a tree with neither of the two.
@@ -8,11 +8,15 @@ Units: crit (see model.py); the draft's H = crit N / 2, so the margin m (half-BI
 """
 from __future__ import annotations
 
+from itertools import combinations
+import math
 import time
+
+import gurobipy as gp
 
 from .miqp import tree_miqp
 from .model import Fitter
-from .sets import canonical, compatible, lines_of
+from .sets import basis, canonical, compatible, lines_of
 
 DECIDED, OPEN, UNSETTLED = "decided", "open", "unsettled"
 
@@ -59,9 +63,10 @@ def local_flips(fitter, tree, pool, n):
 def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True, inside=True, known=None):
     """Definition 1 for grouping M (eq. 6): the best tree that decides M the other way, by the tree MIQP with the
     threshold as its cutoff (and as the level of the per-meter bounds). For M in the tree (inside), no line of grouping
-    M is allowed; for M outside the tree, a line of grouping M is required. Decided when nothing is found below the
-    threshold, open when a tree is found (the rival), unsettled when the time runs out first or when the solve
-    contradicts `known`, the score of a flipped tree already found (a local flip): then it is a numerical failure."""
+    M is allowed; for M outside the tree, a line of grouping M is required. Decided needs threshold exclusion;
+    open needs a verified rival at or below the threshold. Other comparisons remain unsettled.
+    low is a lower bound on the original flip problem in crit units; threshold_excluded records the
+    cutoff proof independently. A feasible local flip above the cutoff can coexist with a cutoff proof."""
     n = model.n
     if inside:
         universe, require = [C for C in canonical(pool) if grouping(C, n) != M], ()
@@ -72,13 +77,29 @@ def flip_test(model, pool, M, threshold, seconds, seed=7, tighten=True, inside=T
             raise ValueError(f"no line of grouping {M} in the pool")
     r = tree_miqp(model, universe, seconds, require=require, cutoff=threshold,
                   tighten_at=threshold if tighten else None, known=known, seed=seed)
-    out = dict(status=r["status"], seconds=r["seconds"], low=r["bound"], high=None, rival=None)
+    out = dict(status=r["status"], seconds=r["seconds"], low=r["bound"], high=None, rival=None,
+               threshold_excluded=r["threshold_excluded"])
     if r["family"] is not None:
-        value = Fitter(model, r["family"]).crit(r["family"])
-        if value <= threshold+1e-9*(1.+abs(threshold)):
-            return dict(out, label=OPEN, high=value, rival=lines_of(r["family"], model.leaves))
-    if r["status"] in (3, 6) or (r["bound"] is not None and r["bound"] > threshold):   # 3 infeasible, 6 cut off
-        return dict(out, label=DECIDED, low=max(threshold, r["bound"] or threshold))
+        family, base = set(r["family"]), set(basis(model.leaves))
+        rival = canonical(family-base)
+        has_group = any(grouping(C, n) == M for C in rival)
+        if (not base <= family or not set(rival).issubset(universe) or has_group == inside
+                or any(not compatible(C, D) for C, D in combinations(rival, 2))):
+            return dict(out, label=UNSETTLED, status=gp.GRB.NUMERIC, low=None, threshold_excluded=False)
+        value = Fitter(model, rival).crit(rival)
+        if not math.isfinite(value):
+            return dict(out, label=UNSETTLED, status=gp.GRB.NUMERIC, low=None, threshold_excluded=False)
+        out.update(high=value, rival=rival)
+        within = value <= threshold+1e-9*(1.+abs(threshold))
+        bound_conflict = out["low"] is not None and out["low"] > value+1e-5*(1.+abs(value))
+        if (within and out["threshold_excluded"]) or bound_conflict:
+            out.update(status=gp.GRB.NUMERIC, low=None, threshold_excluded=False)
+        elif out["low"] is not None:
+            out["low"] = min(out["low"], value)
+        if within:
+            return dict(out, label=OPEN)
+    if out["threshold_excluded"]:
+        return dict(out, label=DECIDED)
     return dict(out, label=UNSETTLED)
 
 
@@ -95,19 +116,23 @@ def label_groupings(model, tree, pool, m, seconds, seed=7, log=None, tighten=Tru
     labels = {}
     for M, (mm, rival) in inside.items():
         if mm*half <= m:
-            labels[M] = dict(inside=True, label=OPEN, gap=(None, mm*half), rival=rival, status=None, seconds=0.)
+            labels[M] = dict(inside=True, label=OPEN, gap=(None, mm*half), rival=rival, status=None, seconds=0.,
+                             threshold_excluded=False)
     tests = sorted((M for M in inside if M not in labels), key=lambda M: inside[M][0])
     for k, M in enumerate(tests):
         r = flip_test(model, pool, M, threshold, seconds, seed, tighten, known=s0+inside[M][0])
         low = None if r["low"] is None else (r["low"]-s0)*half
-        high = inside[M][0]*half if r["high"] is None else (r["high"]-s0)*half
-        labels[M] = dict(inside=True, label=r["label"], gap=(low, high), rival=r["rival"], status=r["status"],
-                         seconds=r["seconds"])
+        high_gap, rival = inside[M]
+        if r["high"] is not None and r["high"]-s0 < high_gap:
+            high_gap, rival = r["high"]-s0, r["rival"]
+        labels[M] = dict(inside=True, label=r["label"], gap=(low, high_gap*half), rival=rival, status=r["status"],
+                         seconds=r["seconds"], threshold_excluded=r["threshold_excluded"])
         if log:
             log(f"    flip {k+1}/{len(tests)} |M|={len(M)} local {inside[M][0]*half:.1f}: {r['label']} "
                 f"(status {r['status']}, {r['seconds']:.1f} s)")
     for M, (ell, rival) in outside.items():
         if -ell*half <= m:
-            labels[M] = dict(inside=False, label=OPEN, gap=(None, -ell*half), rival=rival, status=None, seconds=0.)
+            labels[M] = dict(inside=False, label=OPEN, gap=(None, -ell*half), rival=rival, status=None, seconds=0.,
+                             threshold_excluded=False)
     info = dict(crit=s0, tested=len(tests), outside=len(outside), seconds=time.perf_counter()-started)
     return labels, info

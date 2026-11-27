@@ -1,4 +1,4 @@
-"""Algorithm 1 of method draft v16 (Identify): load gate, tree, anchors and labels. Development only.
+"""Algorithm 1 of method draft v17 (Identify): load gate, tree, anchors and labels. Development only.
 
 Lines of Algorithm 1 and where they are:
   0     the load gate: a load is modelled only when its mean power is at least 1% of the metered power   model.load_share
@@ -39,7 +39,7 @@ from .sets import canonical, crossing_map, lines_of
 class Settings:
     gate: float = GATE           # load modelled only above this share of the metered power (prior setting)
     lam: float = 1.96            # structural prior, half-BIC units (ln(1/rho), rho = 0.141 on 84 real feeders)
-    m: float = 4.6               # margin of labels and anchors, half-BIC units (ln 100)
+    m: float = 4.6               # margin for labels and anchors in score units
     K: int = 9                   # nodes with at most K units (children in pricing) are searched by all their unions;
                                  # wider tree nodes are priced by the node MIQP
     rounds: int = 2              # anchored searches at most (lines 4-8)
@@ -109,28 +109,35 @@ def solve(model, pool, starts, seconds, st, require=()):
             chosen, value = local_search(fitter, crosses, found, math.inf, require)
             if status == gp.GRB.OPTIMAL and value < found_value-1e-4*abs(found_value):
                 status, bound = gp.GRB.NUMERIC, None       # the claimed optimum is improved by one move
-    return lines_of(chosen, model.leaves), dict(status=status, miqp_seconds=r["seconds"], pool=len(lines),
-                                                crit=value, bound=bound)
+    if bound is not None and bound > value+1e-5*(1.+abs(value)):
+        status, bound = gp.GRB.NUMERIC, None
+    if bound is not None:
+        bound = min(bound, value)
+    # Tree MIQP uses a relative gap of 1e-4 and an absolute gap of 1e-7 (crit units).
+    tolerance = max(1e-7, 1e-4*abs(value))
+    closed = status in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) and bound is not None and value-bound <= tolerance
+    tree = lines_of(chosen, model.leaves)
+    return tree, dict(status=status, miqp_seconds=r["seconds"], pool=len(lines), tree=tree, crit=value, bound=bound,
+                      gap_tolerance=tolerance, gap_closed=closed, domain=dict(lines=lines, require=require))
 
 
 def price(model, tree, universe, require, seconds, st):
     """Line 7: add the best paying line while one exists; after additions, solve again over the universe and the new
     lines and keep the better tree (the score never rises). Returns (tree, info)."""
-    added = []
+    added, re_solve = [], None
     best, info = best_addition(model, tree, st.K, st.node_seconds)
     while best is not None and len(added) < st.repairs:
         tree = lines_of([*tree, best], model.leaves)
         added.append(best)
         best, info = best_addition(model, tree, st.K, st.node_seconds)
     if added:
-        again, _ = solve(model, [*universe, *tree], [frozenset(tree)], seconds, st, require)
+        again, re_solve = solve(model, [*universe, *tree], [frozenset(tree)], seconds, st, require)
         fit = Fitter(model, [*again, *tree])
         if fit.crit(again) < fit.crit(tree)-1e-12:
             tree = again
             best, info = best_addition(model, tree, st.K, st.node_seconds)
-    return tree, dict(added=[list(C) for C in added], still_paying=None if best is None else list(best),
-                      certified=info["certified"], enumerated=info["enumerated"], by_miqp=info["by_miqp"],
-                      unproved=info["unproved"])
+    return tree, dict(info, added=[list(C) for C in added], still_paying=None if best is None else list(best),
+                      re_solve=re_solve)
 
 
 def evidence(model, tree, pool, seconds, st):
@@ -154,16 +161,25 @@ def evidence(model, tree, pool, seconds, st):
 
 def scope(rounds):
     """The certificate's scope after the last search round: single-line pricing complete, a paying line left (repair
-    limit), or incomplete (a node unproved); restricted: the last anchored MIQP ended optimal."""
-    priced = [x["price"] for x in rounds if "price" in x]
-    solved = [x["solve"] for x in rounds if "solve" in x]
-    if not priced:
-        single = "not priced"
-    elif priced[-1]["still_paying"] is not None:
+    limit), or incomplete (a node unproved). restricted refers to the recorded domain and gap tolerance of
+    the final restricted solve, including a re-solve on the pool enlarged by pricing when one occurred."""
+    last = next((x for x in reversed(rounds) if "price" in x), None)
+    if last is None:
+        return dict(single_line="not priced", restricted=False, restricted_round=None, restricted_solve=None)
+    price_info = last["price"]
+    single = "complete" if price_info["certified"] else "incomplete"
+    if price_info["still_paying"] is not None:
         single = "paying line left"
-    else:
-        single = "complete" if priced[-1]["certified"] else "incomplete"
-    return dict(single_line=single, restricted=bool(solved) and solved[-1]["status"] == 2)
+    # Older saved rounds have no post-pricing solve record; their only available domain is the earlier solve.
+    repeated = price_info.get("re_solve") is not None
+    final_solve = price_info["re_solve"] if repeated else last["solve"]
+    closed = final_solve.get("gap_closed")
+    if closed is None:
+        value, bound = final_solve.get("crit"), final_solve.get("bound")
+        closed = (final_solve.get("status") == gp.GRB.OPTIMAL and value is not None and bound is not None
+                  and 0. <= value-bound <= max(1e-7, 1e-4*abs(value)))
+    return dict(single_line=single, restricted=closed, restricted_round=last["round"],
+                restricted_solve="price.re_solve" if repeated else "solve")
 
 
 # ------------------------------------------------------------------ Algorithm 1
@@ -204,7 +220,8 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     r = refine(model, tree, pool, st, say)                                   # lines 4-11
     tree, pool, labels, anchors = r["tree"], r["pool"], r["labels"], r["anchors"]
     meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
-    out = dict(gate=gate, tree=meter_tree, lines=tree, pool=pool, anchors=anchors, rounds=r["rounds"], stop=r["stop"],
+    out = dict(gate=gate, tree=meter_tree, lines=tree, pool=pool, first=first, anchors=anchors,
+               rounds=r["rounds"], stop=r["stop"],
                scope=scope(r["rounds"]), labels=label_rows(labels, anchors),
                model=dict(sigma2=model.sigma2, alpha=model.alpha, gamma=model.gamma, p_s=model.p_s, N=model.N,
                           crit=Fitter(model, tree).crit(tree)), settings=asdict(st))
@@ -235,8 +252,8 @@ def refine(model, tree, pool, st, say=lambda *_: None):
             f"{time.perf_counter()-t0:.0f} s")
         last = rounds[-1] if rounds else None
         if last is not None and anchors == previous and not last["price"]["added"] \
-                and last["price"]["still_paying"] is None and last["solve"]["status"] == 2:
-            stop = "converged: same anchors, pricing added nothing, last MIQP optimal (Lemma 3)"
+                and last["price"]["certified"] and last["solve"]["gap_closed"]:
+            stop = "converged: same anchors, single-line pricing complete, restricted gap closed to tolerance"
         elif rnd == st.rounds:
             stop = "round limit"
         if stop:
@@ -249,7 +266,7 @@ def refine(model, tree, pool, st, say=lambda *_: None):
         require = [[M, (*M, n)] if load else [M] for M in anchors]
         tree, sinfo = solve(model, universe, [frozenset(tree)], seconds, st, require)
         tree, pinfo = price(model, tree, universe, require, seconds, st)
-        pool = lines_of([*pool, *universe, *tree], model.leaves)
+        pool = lines_of([*pool, *universe, *pinfo["added"], *tree], model.leaves)
         record.update(universe=uinfo, solve=sinfo, price=pinfo, search_seconds=time.perf_counter()-t0)
         say(f"  anchored search: {uinfo['lines']} meter lines (k {uinfo['k'][:6]}, {uinfo['big_nodes']} nodes over K), "
             f"MIQP status {sinfo['status']}, priced +{len(pinfo['added'])}, {record['search_seconds']:.0f} s")
@@ -262,6 +279,7 @@ def refine(model, tree, pool, st, say=lambda *_: None):
 def label_rows(labels, anchors):
     """The labels as plain rows (lists, floats), smallest groupings first."""
     return [dict(grouping=list(M), inside=l["inside"], anchor=M in set(anchors), label=l["label"],
+                 threshold_excluded=l["threshold_excluded"],
                  gap=[None if g is None else float(g) for g in l["gap"]], status=l["status"],
                  seconds=l["seconds"], rival=None if l["rival"] is None else [list(C) for C in l["rival"]])
             for M, l in sorted(labels.items(), key=lambda kv: (len(kv[0]), kv[0]))]

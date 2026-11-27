@@ -1,10 +1,10 @@
-"""Local search, and node pricing (draft v16: the incumbent of eq. (9), and eq. (10) with Lemma 2).
+"""Local search, and node pricing (draft v17: the incumbent of eq. (9), and eq. (10) with Lemma 2).
 
 Pricing asks, at every node of a tree, for the best new line: a union of 2 to c-1 of its c children. Nodes with at most
 `max_children` children (K = 9 in identify.Settings) are enumerated (every union fitted); wider nodes are solved by
-`node_miqp`, which is exact as well and much faster there. The certificate is
+`node_miqp`, which uses the same feasible lines. The certificate is
 for single lines only (two lines can pay together when neither pays alone: draft Remark 1), and it is complete only when
-every node was enumerated or its MIQP proved optimal; skipped or unproved nodes are not certified.
+every node was enumerated or its lower bound excludes an improvement larger than the stated tolerance.
 """
 from __future__ import annotations
 
@@ -15,6 +15,9 @@ import numpy as np
 
 from .model import BOUND, Fitter, env, factor_scaled
 from .sets import basis, canonical, children, lines_of, unions
+
+
+PRICING_TOL = 1e-7     # absolute improvement in crit; H improves by N/2 times this amount
 
 
 def local_search(fitter, crosses, start, deadline, require=()):
@@ -52,14 +55,15 @@ def columns(model, family):
     return np.column_stack(cols["p"]+cols["q"])/np.sqrt(model.sigma2)
 
 
-def node_miqp(model, tree, kids, seconds, seed=7):
+def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False):
     """Eq. (10) at one node as an MIQP: the best union of 2 to c-1 of the node's children `kids`, with every
     coefficient of the tree refitted. z_a = 1 when child a is in the new line. The new line's coefficient r enters as
     u_ab = r z_a z_b (a <= b): meter rows of child a see the flow of child b and vice versa. McCormick inequalities make
     u_ab equal to r z_a z_b at binary z, so the fit stays linear; x likewise with v_ab. The columns enter scaled
     (model.factor_scaled), as in the tree MIQP: phi = d theta, and u_ab, v_ab likewise, so each McCormick inequality
     carries its column's d.
-    Returns (line or None, crit of the tree with it, status)."""
+    Returns (line or None, objective or None, status). With return_bound=True, append the
+    lower bound for the best single addition at this node, also when no incumbent was found."""
     leaves, c = model.leaves, len(kids)
     family = canonical([*basis(leaves), *lines_of(tree, leaves)])
     K = len(family)
@@ -102,32 +106,57 @@ def node_miqp(model, tree, kids, seconds, seed=7):
         lines = sum(1 for C in family if 1 < len(C) < leaves)
         m.setObjective((res@res+const)/model.N+model.alpha*(lines+1))
         m.optimize()
-        if m.SolCount == 0:
-            return None, None, int(m.Status)
-        line = tuple(sorted(i for a in range(c) if z.X[a] > .5 for i in kids[a]))
-        return line, float(m.ObjVal), int(m.Status)
+        status = int(m.Status)
+        line, value = None, None
+        if m.SolCount:
+            line = tuple(sorted(i for a in range(c) if z.X[a] > .5 for i in kids[a]))
+            value = float(m.ObjVal)
+        if not return_bound:
+            return line, value, status
+        bound = None
+        if status in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT):
+            try:
+                raw_bound = float(m.ObjBound)
+                if abs(raw_bound) < gp.GRB.INFINITY:
+                    bound = raw_bound
+            except (gp.GurobiError, AttributeError):
+                pass
+        return line, value, status, bound
 
 
 def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200):
-    """Lemma 2 and eq. (10): the line that lowers crit most among all lines compatible with the tree, or None.
-    Returns (line, info); info["certified"]: no single line pays and every node was priced exactly."""
+    """Find an improving line compatible with the tree. A wide-node time limit can leave better lines untested.
+    info["certified"] means all nodes exclude any single-line improvement larger than PRICING_TOL in crit."""
     leaves = model.leaves
     tree = lines_of(tree, leaves)
     family = canonical([*basis(leaves), *tree])
     current = Fitter(model, family).crit(tree)
     best, gain = None, 0.
-    info = dict(enumerated=0, by_miqp=0, unproved=0, evaluated=0)
+    info = dict(enumerated=0, by_miqp=0, unproved=0, evaluated=0, tolerance=PRICING_TOL,
+                wide_nodes=[], tree_crit=current)
     for node, kids in children(family, leaves).items():
         if len(kids) < 3:
             continue
         if len(kids) > max_children:                       # too wide to enumerate: the node MIQP
-            line, value, status = node_miqp(model, tree, kids, node_seconds)
+            line, _, status, bound = node_miqp(model, tree, kids, node_seconds, return_bound=True)
             info["by_miqp"] += 1
-            info["unproved"] += status != gp.GRB.OPTIMAL
+            # Any child union with both new coefficients set to zero attains this upper bound.
+            upper = current+model.alpha
+            improves = False
             if line is not None:
                 value = Fitter(model, [*family, line]).crit([*tree, line])
-                if current-value > gain+1e-12:
+                upper = min(upper, value)
+                improves = current-value > PRICING_TOL
+                if current-value > max(gain, PRICING_TOL):
                     best, gain = line, current-value
+            if bound is not None and bound > upper+PRICING_TOL:
+                status, bound = gp.GRB.NUMERIC, None
+            if bound is not None:
+                bound = min(bound, upper)
+            ruled_out = bound is not None and bound >= current-PRICING_TOL and not improves
+            info["unproved"] += not (improves or ruled_out)
+            info["wide_nodes"].append(dict(node=node, status=status, upper=upper, bound=bound,
+                                           no_improvement=ruled_out))
             continue
         info["enumerated"] += 1
         new = [U for U in unions(kids) if U not in set(family)]
@@ -137,7 +166,7 @@ def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200):
             for U in part:
                 info["evaluated"] += 1
                 g = current-fit.crit([*tree, U])
-                if g > gain+1e-12:
+                if g > max(gain, PRICING_TOL):
                     best, gain = U, g
     info.update(gain=gain, certified=best is None and info["unproved"] == 0)
     return best, info

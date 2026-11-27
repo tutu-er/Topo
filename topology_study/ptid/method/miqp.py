@@ -1,4 +1,4 @@
-"""The tree MIQP of draft v16, eq. (9), and its flip-test use (eq. 6).
+"""The tree MIQP of draft v17, eq. (9), and its flip-test use (eq. 6).
 
     min  RSS(r, x) / N + alpha sum_C b_C
     s.t. 0 <= r_C <= rbar_C b_C, 0 <= x_C <= xbar_C b_C         a line has parameters only when chosen
@@ -34,12 +34,16 @@ def response_bounds(model, supports, A, c, const, d, level, seconds):
     QCQP per meter with the binaries dropped. 5% safety margin; meters not reached within `seconds` keep the trivial
     bound. A, c, const, d: the scaled factor (scaled_factor). Returns (Rbar, Xbar) in unscaled units, or None when no
     coefficients fit under the level at all."""
-    rhs = model.N*level-const
-    if rhs <= 0:
-        return None
     K, n = len(supports), model.n
     member = np.array([[i in C for i in range(n)] for C in supports], float)       # K x n
     out = np.tile(BOUND*member.sum(0), (2, 1))
+    rhs = model.N*level-const
+    roundoff = 1e-9*(1.+abs(model.N*level)+abs(const))
+    if rhs < -roundoff:
+        return None
+    if rhs <= roundoff:
+        # At equality A phi = c may be feasible. Keep the original path bounds.
+        return out[0], out[1]
     deadline = time.perf_counter()+seconds
     with gp.Model(env=env()) as m:
         for key, value in dict(Threads=1, OutputFlag=0, NumericFocus=2).items():
@@ -61,8 +65,41 @@ def response_bounds(model, supports, A, c, const, d, level, seconds):
                 if m.Status == gp.GRB.INFEASIBLE:
                     return None
                 if m.Status == gp.GRB.OPTIMAL:
-                    out[block, i] = min(out[block, i], 1.05*m.ObjVal+1e-9)
+                    # Maximization: the dual bound is an upper bound on a path sum.
+                    try:
+                        upper = m.ObjBound
+                    except gp.GurobiError:
+                        continue
+                    if np.isfinite(upper) and upper >= 0.:
+                        out[block, i] = min(out[block, i], 1.05*upper+1e-9)
     return out[0], out[1]
+
+
+def _pool_claim(status, raw_bound, known, protected, cutoff_limit):
+    """Translate a restricted solve's claim into a lower bound over the original pool.
+
+    All original solutions with score up to protected survive the level bounds and
+    cutoff (allowing ties at the solver cutoff). A larger raw dual bound may only
+    apply to the restricted problem. A known score above protected is not a witness
+    against infeasibility of that restricted problem.
+    """
+    if status == gp.GRB.NUMERIC:
+        return status, None, False
+    no_solution = status in (gp.GRB.INFEASIBLE, gp.GRB.CUTOFF)
+    known_in_scope = known is not None and (protected is None or known <= protected)
+    bound_conflict = raw_bound is not None and known_in_scope and raw_bound > known+1e-5*(1.+abs(known))
+    if (no_solution and known_in_scope) or bound_conflict:
+        return gp.GRB.NUMERIC, None, False
+    if no_solution:
+        bound = protected
+    else:
+        bound = raw_bound
+        if bound is not None and protected is not None:
+            bound = min(bound, protected)
+        if bound is not None and known is not None:
+            bound = min(bound, known)
+    excluded = cutoff_limit is not None and bound is not None and bound >= cutoff_limit
+    return status, bound, excluded
 
 
 def tree_miqp(model, pool, seconds, *, require=(), warm=None, cutoff=None, tighten_at=None, known=None, seed=7,
@@ -75,21 +112,41 @@ def tree_miqp(model, pool, seconds, *, require=(), warm=None, cutoff=None, tight
     numerical failure (status NUMERIC, bound None) and its claims are not used.
     Gurobi's default tolerances: forcing them to 1e-9 made it declare feasible relaxations infeasible and claim false
     optima on 47-60 meter feeders (development note of 2026-11-26).
-    Returns dict(status, crit, bound, family, seconds, lines, tightened)."""
+    bound is a lower bound in crit units over the original pool with require in force.
+    threshold_excluded records a proof that this pool contains no solution at or below
+    cutoff. A solve restricted to low scores does not supply a larger full-pool bound."""
     started = time.perf_counter()
     leaves = model.leaves
     lines = list(lines_of(pool, leaves))
+    require = tuple(tuple(group) for group in require)
     supports = canonical([*basis(leaves), *lines])
     pos = {C: k for k, C in enumerate(supports)}
     K = len(supports)
     A, c, const, d = scaled_factor(model, supports)
     inv = np.where(d > 0, 1./np.where(d > 0, d, 1.), 0.)
+    cutoff_limit = None if cutoff is None else cutoff+1e-9*(1.+abs(cutoff))
+    level = None if tighten_at is None else tighten_at+1e-9*(1.+abs(tighten_at))
+    # Use the same padded level as the cutoff so threshold-equality witnesses survive.
+    protected = min((x for x in (cutoff_limit, level) if x is not None), default=None)
+    if warm is not None:
+        chosen = set(lines_of(warm, leaves)) & set(lines)
+        fam = canonical([*basis(leaves), *chosen])
+        fit = Fitter(model, fam)
+        _, th = fit.rss(fam)
+        if all(any(C in chosen for C in group) for group in require) and all(
+                compatible(C, D) for C, D in combinations(chosen, 2)):
+            value = fit.crit(chosen)
+            known = value if known is None else min(known, value)
     rbar, xbar, sums = np.full(K, BOUND), np.full(K, BOUND), None
-    if tighten_at is not None:
-        sums = response_bounds(model, supports, A, c, const, d, tighten_at, .25*seconds)
-        if sums is None:                                   # nothing fits under the level: no tree is below it
-            return dict(status=gp.GRB.INFEASIBLE, crit=None, bound=tighten_at, family=None, lines=len(lines),
+    if level is not None:
+        sums = response_bounds(model, supports, A, c, const, d, level, .25*seconds)
+        if sums is None and (known is None or known > level):
+            return dict(status=gp.GRB.CUTOFF, crit=None, bound=level, family=None, lines=len(lines),
+                        threshold_excluded=cutoff_limit is not None and level >= cutoff_limit,
                         seconds=time.perf_counter()-started, tightened=True)
+        if sums is None:                                    # an original feasible witness contradicts tightening
+            protected = cutoff_limit                       # retry the tree problem without the suspect bounds
+    if sums is not None:
         for k, C in enumerate(supports):
             meters = [i for i in C if i < model.n]
             if meters:
@@ -99,7 +156,7 @@ def tree_miqp(model, pool, seconds, *, require=(), warm=None, cutoff=None, tight
                                MIPGapAbs=1e-7, Seed=seed).items():
             m.setParam(key, value)
         if cutoff is not None:
-            m.setParam("Cutoff", cutoff+1e-9*(1.+abs(cutoff)))
+            m.setParam("Cutoff", cutoff_limit)
         ub = np.r_[rbar, xbar]*d                                    # scaled r of every support, then x
         phi = m.addMVar(2*K, lb=0., ub=ub)
         on = {C: m.addVar(vtype=gp.GRB.BINARY) for C in lines}
@@ -124,9 +181,6 @@ def tree_miqp(model, pool, seconds, *, require=(), warm=None, cutoff=None, tight
         m.addConstr(res == A@phi-c)
         m.setObjective((res@res+const)/model.N+model.alpha*gp.quicksum(on.values()))
         if warm is not None:                                        # start from a known tree and its fit
-            chosen = set(lines_of(warm, leaves)) & set(on)
-            fam = canonical([*basis(leaves), *chosen])
-            _, th = Fitter(model, fam).rss(fam)                    # theta in the order of fam: r's, then x's
             start = np.zeros(2*K)
             for k, C in enumerate(fam):
                 start[pos[C]], start[K+pos[C]] = th[k], th[len(fam)+k]
@@ -139,8 +193,10 @@ def tree_miqp(model, pool, seconds, *, require=(), warm=None, cutoff=None, tight
             bound = float(m.ObjBound)
         except gp.GurobiError:
             bound = None
-        if known is not None and bound is not None and bound > known+1e-5*(1.+abs(known)):
-            status, bound = gp.GRB.NUMERIC, None
+        if bound is not None and (not np.isfinite(bound) or abs(bound) >= gp.GRB.INFINITY):
+            bound = None
+        status, bound, excluded = _pool_claim(status, bound, known, protected, cutoff_limit)
         return dict(status=status, crit=float(m.ObjVal) if found else None, bound=bound, lines=len(lines),
+                    threshold_excluded=excluded,
                     family=canonical([*basis(leaves), *(C for C in lines if on[C].X > .5)]) if found else None,
                     seconds=time.perf_counter()-started, tightened=sums is not None)
