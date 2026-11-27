@@ -69,7 +69,8 @@ def parameters_per_line(P, Q, pq_sigma=.005, k=2.):
 
 
 def time_basis(T, u=None):
-    """Orthonormal time directions that M removes: the constant; with u, also the load's profiles (eq. 4)."""
+    """Orthonormal time directions removed at set-up: the constant; with u, also the load's profiles (D1, draft v14
+    Appendix B; the score itself removes only the constant)."""
     X = np.ones((T, 1)) if u is None else np.column_stack([np.ones(T), *u])
     U, s, _ = np.linalg.svd(X/np.linalg.norm(X, axis=0), full_matrices=False)
     return U[:, s > 1e-8]
@@ -77,7 +78,8 @@ def time_basis(T, u=None):
 
 def saturated_sigma2(P, Q, Y, gamma, u=None):
     """Noise variance: residual of the saturated model (every R_ij, X_ij free, symmetric) under M; with u the load's
-    term is free as well (eq. 4), so the estimate does not depend on where the load is."""
+    terms R_is, X_is are free as well (the saturated model, draft v14 eq. 5), so the estimate does not depend on where
+    the load is. Projecting out the load's profiles (D1) is the same as fitting those free terms first."""
     T, n = P.shape
     E = time_basis(T, u)
     drop = lambda A: A-E@(E.T@A)

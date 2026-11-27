@@ -1,7 +1,7 @@
 % =====================================================================
 %  Partial topology identification and cost-aware probing for
 %  low-voltage feeders: method and algorithms
-%  Paper-style draft v13 (aligned with the code), 2026-11-26
+%  Paper-style draft v14, 2026-11-26
 %
 %  Status of the parts (read before quoting anything from this file):
 %   * Both algorithms are implemented in rnj_wzzt_dr/identification_v8
@@ -32,6 +32,13 @@
 %  evidence interval's upper end from a re-solve over the pool, the
 %  certificate scope in the output, the planner choices of probing and a
 %  last gate after hour 23, and the wording of rho and of Appendix B.
+%  v14 (user questions, 2026-11-26): the load-profile projection D1 is a
+%  set-up step only (sigma^2 and Appendix B); eq. (5) is now the saturated
+%  model. Theorem 1(b) bounds the gain of extra lines by the noise along the
+%  directions they add (the old bound used all of the tree's directions, so
+%  Corollary 1's condition (B) could almost never hold), with the BIC
+%  reason stated. Pricing enumerates nodes up to K children and uses the
+%  node MIQP beyond (was 12), and Algorithm 1 names it.
 %
 %  Compile with pdfLaTeX (e.g. on Overleaf). No external .bib needed.
 % =====================================================================
@@ -70,7 +77,7 @@
 \begin{document}
 
 \title{Partial Topology Identification and Cost-Aware Probing\\ for Low-Voltage Feeders}
-\author{Method draft v13 of 26~November~2026 (authors to be added)}
+\author{Method draft v14 of 26~November~2026 (authors to be added)}
 \maketitle
 
 \begin{abstract}
@@ -187,14 +194,16 @@ $S_\gamma\tp S_\gamma=\sigma_e^2\Sigma^{-1}$ (generalised least squares), and $M
 H(F)=\min_{\theta}\frac{\|M(y-\Phi_F\theta)\|^2}{2\hat\sigma^2}+\beta\,k(F),\qquad\beta=\tfrac12p_s\ln N-\lambda,
 \end{equation}
 with $p_s\in\{1,2\}$ identifiable parameters per line (2 when most meters' $q$ is not a fixed multiple of their $p$).
-\emph{Free load term.} If the load's term is replaced by $\rho_iu^P_t+\chi_iu^Q_t$ with free $\rho,\chi\in\mathbb R^n$,
-minimising over them replaces $D$ by
-\begin{equation}\label{eq:free}
-D_1=I_T-\Pi_{[\one,\,u^P,\,u^Q]}
+\emph{Noise variance.} $\hat\sigma^2$ is the residual variance under $M$ of the saturated model, in which every meter sees
+every leaf's flow with its own coefficient,
+\begin{equation}\label{eq:sat}
+y_{i,t}=\sum_{j\in\Nset}\big(R_{ij}\,p_{j,t}+X_{ij}\,q_{j,t}\big)+R_{is}\,u^P_t+X_{is}\,u^Q_t+\varepsilon_{0,t}+o_i+e_{i,t},
+\qquad R=R\tp,\ X=X\tp\ \text{over the meters},
 \end{equation}
-for every family at once. \emph{Noise variance.} $\hat\sigma^2$ is the residual variance of the saturated model (every
-$R_{ij}$, $X_{ij}$ free) under $M$, and under (\ref{eq:free}) when a load is modelled, so that it does not depend on the
-load's place; its degrees of freedom are the operator's rank minus the numerical rank of the saturated design. Unequal or
+with every coefficient free and the load's two terms only when a load is modelled. Every tree's prediction has this form, and
+with the load's terms free $\hat\sigma^2$ does not depend on the load's place. Its degrees of freedom are the rank of $M$ minus
+the numerical rank of the saturated design. It is computed once, at set-up, like the starting trees
+(Appendix~\ref{app:pool}); the score, the searches, the labels and probing keep the load as a leaf of known power. Unequal or
 correlated meter errors are not modelled, so thresholds are calibrated on data.
 \begin{proposition}[Structural prior]\label{prop:prior}
 Under the prior $P(F)\propto\prod_v\rho^{c_v-2}$ over trees ($c_v$ the children of internal node $v$),
@@ -259,27 +268,34 @@ cannot reproduce with any coefficients. $\mathrm{RSS}(F)$ is the residual of $F$
 \[
 \mathrm{RSS}(F)-\mathrm{RSS}(T^0)\ \ge\ d_F^2-2\,d_F\,|\xi_F|-\|P_F\varepsilon\|^2 .
 \]
-(b) If $T$ contains every line of $T^0$ and one more line $C$, then
-$0\le\mathrm{RSS}(T\setminus\{C\})-\mathrm{RSS}(T)\le\|P_T\varepsilon\|^2$.
+(b) If $F$ contains every line of $T^0$ and the unbounded least-squares fit of $T^0$ lies within the bounds, then
+$0\le\mathrm{RSS}(T^0)-\mathrm{RSS}(F)\le\|(P_F-P_{T^0})\varepsilon\|^2$.
 \end{theorem}
 In words: removing a true line costs at least the true signal that the remaining lines cannot reproduce, $d_F^2$, minus two
-noise terms; adding a redundant line gains at most noise. The sizes decide everything. If the noise after $M$ is white with
-variance $\sigma^2$, then $\xi_F$ is the noise along one direction, with standard deviation $\sigma$, and
+noise terms; redundant lines gain at most the noise along the directions they add. The sizes decide everything. If the noise
+after $M$ is white with variance $\sigma^2$, then $\xi_F$ is the noise along one direction, with standard deviation $\sigma$;
 $\|P_F\varepsilon\|^2$ is the noise along as many directions as $F$ has coefficients, with mean $\sigma^2$ times that number;
-neither grows with the number of slots. $d_F^2$ is a sum over slots: it grows in proportion to their number as long as the
-loads on the two sides of the missing line's branching point keep varying differently, and probing makes it grow faster. So
-the cost of removing a true line, about $d_F^2/(2\sigma^2)$ in score units, grows with the data, while a redundant line gains
-a few units of noise and pays the price $\beta$. When the loads on the two sides move together, $d_F$ stays small and the line
+and $\|(P_F-P_{T^0})\varepsilon\|^2$ is $\sigma^2$ times a $\chi^2$ variable with at most $p_s$ degrees of freedom per extra
+line. None of them grows with the number of slots. $d_F^2$ is a sum over slots: it grows in proportion to their number as long
+as the loads on the two sides of the missing line's branching point keep varying differently, and probing makes it grow
+faster. So the cost of removing a true line, about $d_F^2/(2\sigma^2)$ in score units, grows with the data, while one redundant
+line gains $\sigma^2\chi^2_{p_s}$ in RSS and pays $\beta$: it lowers the score only if $\chi^2_{p_s}>p_s\ln N-2\lambda$, which
+for $p_s=2$ has probability $e^{\lambda}/N$ (below $10^{-3}$ once $N>7{,}100$). This is the classical reason why a BIC price
+selects the true model in linear regression (underfitting loses signal that grows with the data, overfitting gains noise that
+does not; R.~Nishii, Ann.\ Statist.\ 1984; C.~R.~Rao and Y.~Wu, Biometrika 1989), here for one data set at a time and for
+bounded fits. When the loads on the two sides move together, $d_F$ stays small and the line
 stays open: the data cannot decide it.
 \begin{corollary}[When the search finds the true tree]\label{cor:truth}
-Suppose the pool contains $T^0$, and (A) every tree $F$ of the pool that lacks a line of $T^0$ has
+Suppose the pool contains $T^0$, the unbounded least-squares fit of $T^0$ lies within the bounds, and (A) every tree $F$ of
+the pool that lacks a line of $T^0$ has
 $\big(d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2\big)/(2\hat\sigma^2)>m+\beta\,\big(k(T^0)-k(F)\big)$, and (B) every tree
-$T\supseteq T^0$ of the pool has $\|P_T\varepsilon\|^2<2\hat\sigma^2\beta$. Then $T^0$ is the unique best tree over the pool;
+$F\supsetneq T^0$ of the pool has $\|(P_F-P_{T^0})\varepsilon\|^2<2\hat\sigma^2\beta\,\big(k(F)-k(T^0)\big)$. Then $T^0$ is the unique best tree over the pool;
 when the flip tests finish, every grouping of $T^0$ is decided; and since these anchors are groupings of $T^0$, the anchored
 search of Proposition~\ref{prop:anchor} still contains $T^0$, so restricting the search to it loses nothing.
 \end{corollary}
-Conditions (A) and (B) involve the unknown true signal, so they cannot be checked on a given feeder; they say when the labels
-and the anchored search are right, and how often they hold is measured on data (V8).
+Condition (A) involves the unknown true signal and (B) the unknown noise, so neither can be checked on a given feeder; for
+$p_s=2$, a tree with one extra line breaks (B) with probability about $e^{\lambda}/N$. They say when the labels and the
+anchored search are right, and how often they hold is measured on data (V8).
 
 % ---------------------------------------------------------------------
 \section{Identification}\label{sec:id}
@@ -316,10 +332,12 @@ internal node $v$ and a set $S$ of its children with $2\le|S|<c_v$.
 \begin{equation}\label{eq:price}
 g_v(T)=\max_{S:\ 2\le|S|<c_v}H(T)-H\Big(T\cup\Big\{\textstyle\bigcup_{j\in S}A_j\Big\}\Big).
 \end{equation}
-A node with at most 12 children is priced by fitting every union. A wider node is priced by a node MIQP with a binary $z_a$
+A node with at most $K$ children is priced by fitting every union, as in the anchored universe below. A wider node is
+priced by a node MIQP with a binary $z_a$
 per child; the new line's coefficient enters as $u_{ab}=rz_az_b$, written exactly by the linear inequalities $u_{ab}\le r$,
 $u_{ab}\le\bar\theta z_a$, $u_{ab}\le\bar\theta z_b$, $u_{ab}\ge r-\bar\theta(2-z_a-z_b)$; every coefficient of $T$ is
-refitted. Pricing certifies single lines only, since two lines can pay together when neither pays alone
+refitted. Both are exact; the node MIQP replaces the $2^{c_v}-c_v-2$ fits by one solve. A node of a found tree that is wider
+than the feeder's branching points is where lines are most likely missing, so it is priced exactly too. Pricing certifies single lines only, since two lines can pay together when neither pays alone
 (Remark~\ref{rem:pairs}). The \emph{certificate scopes} are: (a) \emph{single-line, complete}: every node was enumerated or
 its MIQP proved optimal, and no line pays; (b) \emph{restricted}: when the anchored MIQP below is solved to optimality, no
 combination of lines inside anchor nodes with at most $K$ units, given the anchors, lowers the score; (c)
@@ -388,7 +406,7 @@ labels with gap intervals and rivals; with a load, its places and evidence inter
   \State label the groupings of $T$: local flips (\ref{eq:local}), then flip tests (\ref{eq:flip}); $\Aset\gets$ the decided ones
   \State \textbf{if} the stopping rule of Lemma~\ref{lem:stop} holds, or $r=R$: \textbf{break}
   \State $T\gets$ (\ref{eq:master}) over $\Omega^+_K(\Aset)\cup\Lin(T)$, anchors required; $\Omega\gets\Omega\cup\Omega^+_K(\Aset)$
-  \State pricing (\ref{eq:price}): add paying lines to $T$ and $\Omega$; if any, (\ref{eq:master}) again; keep the better tree
+  \State pricing (\ref{eq:price}), by enumeration or the node MIQP: add paying lines to $T$ and $\Omega$; if any, (\ref{eq:master}) again; keep the better tree
 \EndFor
 \State $\hat T\gets T$; groupings outside $\hat T$ whose swap (\ref{eq:local}) is within $m$ are open
 \State with a load: its path, its places within $m$, its evidence (\ref{eq:evidence})
@@ -398,7 +416,8 @@ labels with gap intervals and rivals; with a load, its places and evidence inter
 \paragraph*{Explanation} Line 1 decides whether there is a load; below the gate the rest runs on the meters alone. Lines 2--4
 build a first tree from cheap candidate lines. Lines 5--9 are the core: decided groupings become anchors; the anchored
 universe offers every line compatible with them at nodes that are small enough (Proposition~\ref{prop:anchor}); pricing
-searches the wider nodes and checks the result against any single line; the loop stops by Lemma~\ref{lem:stop} or after $R$
+searches the wider nodes and checks the result against any single line, enumerating nodes with at most $K$ children and
+solving the node MIQP at wider ones; the loop stops by Lemma~\ref{lem:stop} or after $R$
 searches, and the output says which. Every round labels all groupings of the current tree on the current pool, anchors
 included, so the final labels are those of the final tree and pool. Lines 10--11 report what remains open and, with a load,
 where it sits and how strongly the voltages show it.
@@ -525,7 +544,7 @@ the evidence interval holds over the pools searched. The probing objective is a 
 fixed.
 
 \paragraph*{Relation to the registered test} The registered sealed test evaluates the predecessor (final.py at 71684ff). It
-has no gate, removes the load with (\ref{eq:free}) during the search and places it at the end, takes blocks from the top-level
+has no gate, removes the load during the search by projecting out its profiles ($D_1$, Appendix~\ref{app:pool}) and places it at the end, takes blocks from the top-level
 lines of the first tree without flip tests, searches the unions of at most 9 blocks once, prices nodes with an MIQP over the
 meters only, has no labels, and computes the evidence at the load tree's meter topology. Its result does not carry over to
 Algorithm~\ref{alg:identify}.
@@ -556,17 +575,19 @@ Expanding the square, and using $\|Q_F\varepsilon\|^2=\|\varepsilon\|^2-\|P_F\va
 =d_F^2+2d_F\xi_F-\|P_F\varepsilon\|^2\ \ge\ d_F^2-2d_F|\xi_F|-\|P_F\varepsilon\|^2 ,
 \]
 since $Q_F$ is symmetric and $Q_F^2=Q_F$, so that $\langle Q_F\mu,Q_F\varepsilon\rangle=\langle Q_F\mu,\varepsilon\rangle$.
-(b) $T$ can reproduce any fit of $T\setminus\{C\}$ by setting $C$'s coefficients to zero, so the difference is at least $0$.
-$T\setminus\{C\}$ contains every line of $T^0$, so (F1) gives $\mathrm{RSS}(T\setminus\{C\})\le\|\varepsilon\|^2$. $\mu$ lies
-in the span of $T$'s columns, so $Q_T\mu=0$ and (F2) gives $\mathrm{RSS}(T)\ge\|Q_T\varepsilon\|^2=\|\varepsilon\|^2-
-\|P_T\varepsilon\|^2$. Subtracting gives the upper bound.
+(b) $F$ can reproduce any fit of $T^0$ by setting its extra lines' coefficients to zero, so the difference is at least $0$.
+The unbounded fit of $T^0$ lies within the bounds, so it is also its bounded fit; $\mu$ lies in the span of $T^0$'s columns, so
+$\mathrm{RSS}(T^0)=\|Q_{T^0}\tilde y\|^2=\|Q_{T^0}\varepsilon\|^2$. $\mu$ lies in the span of $F$'s columns too, so (F2) gives
+$\mathrm{RSS}(F)\ge\|Q_F\varepsilon\|^2$. Subtracting, and using Pythagoras twice,
+$\|Q_{T^0}\varepsilon\|^2-\|Q_F\varepsilon\|^2=\|P_F\varepsilon\|^2-\|P_{T^0}\varepsilon\|^2=\|(P_F-P_{T^0})\varepsilon\|^2$:
+the span of $T^0$'s columns lies in that of $F$'s, so $P_F-P_{T^0}$ projects onto the part of $F$'s span orthogonal to
+$T^0$'s.
 \end{IEEEproof}
 
 \begin{IEEEproof}[Proof of Corollary~\ref{cor:truth}]
 The score is $H=\mathrm{RSS}/(2\hat\sigma^2)+\beta k$. Take a tree $F\ne T^0$ of the pool. If $F$ lacks a line of $T^0$,
-Theorem~\ref{thm:cost}(a) and (A) give $H(F)-H(T^0)>m$. Otherwise $F$ contains every line of $T^0$ and more; removing one of
-the extra lines changes $H$ by at most $\|P_F\varepsilon\|^2/(2\hat\sigma^2)-\beta<0$ by Theorem~\ref{thm:cost}(b) and (B),
-and the smaller tree still contains $T^0$; repeating until $T^0$ is reached shows $H(F)>H(T^0)$. So $T^0$ is the unique best
+Theorem~\ref{thm:cost}(a) and (A) give $H(F)-H(T^0)>m$. Otherwise $F$ contains every line of $T^0$ and $k(F)-k(T^0)\ge1$ more, and Theorem~\ref{thm:cost}(b) and (B) give
+$H(T^0)-H(F)\le\|(P_F-P_{T^0})\varepsilon\|^2/(2\hat\sigma^2)-\beta\,\big(k(F)-k(T^0)\big)<0$. So $T^0$ is the unique best
 tree. Every tree that flips a grouping of $T^0$ lacks the line of that grouping, so it scores more than $H(T^0)+m$, and a
 finished flip test proves the grouping decided. The anchors are groupings of $T^0$, so $T^0$ keeps them, and by
 Proposition~\ref{prop:anchor} it lies in the anchored universe.
@@ -631,9 +652,10 @@ feasible block.
 
 \section{Initial candidate lines used in this work}\label{app:pool}
 
-Any tree builders can supply $\Omega_0$; this work uses nine. (1) A sensitivity matrix without tree structure, fitted to the
-active-power part of (\ref{eq:model}) by a convex QP solved with Gurobi, with the free load term (\ref{eq:free}) when a load
-is modelled ($D_1=D$ otherwise):
+Any tree builders can supply $\Omega_0$; this work uses nine. (1) A sensitivity matrix over the meters without tree structure, fitted to the
+active-power part of (\ref{eq:model}) by a convex QP solved with Gurobi. With a load, its terms $R_{is}u^P_t+X_{is}u^Q_t$ are
+free for each meter, as in (\ref{eq:sat}); minimising over them first replaces $D$ by $D_1=I_T-\Pi_{[\one,\,u^P,\,u^Q]}$
+(least squares in two steps), and $D_1=D$ without a load. $D_1$ is used only here and in $\hat\sigma^2$:
 \begin{equation}\label{eq:rhat}
 \hat R=\arg\min_R\ \big\|(D_1\otimes S_\gamma)\,\mathrm{vec}(Y-PR)\big\|^2\quad\text{s.t.}\quad R=R\tp\ge0,\quad
 R_{ii}-R_{ij}\ge\epsilon\ \ (i\ne j),
@@ -661,12 +683,12 @@ Setting & Value\\
 \midrule
 Gate $\varsigma_0$ & 1\% of the metered mean power (prior setting; Table~\ref{tab:gate})\\
 $\lambda$; $m$; $\bar\theta$ & 1.96; 4.6 (half-BIC units); 2 pu\\
-$K$; anchored searches $R$ & 9 units; at most 2, then the stopping rule of Lemma~\ref{lem:stop} or the limit\\
+$K$; anchored searches $R$ & 9 units (children in pricing); at most 2, then the stopping rule of Lemma~\ref{lem:stop} or the limit\\
 Tree MIQP & 120 s up to 35 meters (warm start from the incumbent), 240 s beyond (cold); per-meter bounds on, at a quarter
 of the limit at most (off in the ablation)\\
 Flip test & cutoff $H(T)+m$, local flips first; limit at least that of the tree MIQP; the share at the limit is reported\\
 Local search & from the empty tree and the builder trees; 20 s per start (40 s beyond 35 meters); polish 20 s\\
-Pricing & enumeration up to 12 children; node MIQP beyond, 60 s; at most 10 additions per round\\
+Pricing & enumeration up to $K$ children; node MIQP beyond, 60 s; at most 10 additions per round\\
 Load evidence & the no-load model over the meter groupings of the pool and the load model over the pool, same limits\\
 Solver & Gurobi, one thread per case\\
 \midrule

@@ -1,7 +1,8 @@
 """Local search, and node pricing (draft v12: the incumbent of eq. (9), and eq. (10) with Lemma 2).
 
 Pricing asks, at every node of a tree, for the best new line: a union of 2 to c-1 of its c children. Nodes with at most
-`max_children` children are enumerated (every union fitted); wider nodes are solved by `node_miqp`. The certificate is
+`max_children` children (K = 9 in identify.Settings) are enumerated (every union fitted); wider nodes are solved by
+`node_miqp`, which is exact as well and much faster there. The certificate is
 for single lines only (two lines can pay together when neither pays alone: draft Remark 1), and it is complete only when
 every node was enumerated or its MIQP proved optimal; skipped or unproved nodes are not certified.
 """
@@ -103,7 +104,7 @@ def node_miqp(model, tree, kids, seconds, seed=7):
         return line, float(m.ObjVal), int(m.Status)
 
 
-def best_addition(model, tree, max_children=12, node_seconds=60., chunk=200):
+def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200):
     """Lemma 2 and eq. (10): the line that lowers crit most among all lines compatible with the tree, or None.
     Returns (line, info); info["certified"]: no single line pays and every node was priced exactly."""
     leaves = model.leaves

@@ -38,7 +38,8 @@ class Settings:
     gate: float = GATE           # load modelled only above this share of the metered power (prior setting)
     lam: float = 1.96            # structural prior, half-BIC units (ln(1/rho), rho = 0.141 on 84 real feeders)
     m: float = 4.6               # margin of labels and anchors, half-BIC units (ln 100)
-    K: int = 9                   # nodes with at most K units are searched by all their unions
+    K: int = 9                   # nodes with at most K units (children in pricing) are searched by all their unions;
+                                 # wider tree nodes are priced by the node MIQP
     rounds: int = 2              # anchored searches at most (lines 4-8)
     warm_n: int = 35             # up to this many meters the MIQP starts from the local-search tree
     short_seconds: float = 120.  # tree MIQP limit up to warm_n meters
@@ -48,7 +49,6 @@ class Settings:
     start_seconds: float = 20.   # local search per start (doubled beyond warm_n meters)
     polish_seconds: float = 20.
     repairs: int = 10            # lines added by pricing per round
-    max_children: int = 12       # wider nodes are priced by the node MIQP
     node_seconds: float = 60.    # node MIQP limit
     evidence: bool = True        # with a load: solve the no-load model too, for the evidence and its bounds
     seed: int = 7
@@ -108,17 +108,17 @@ def price(model, tree, universe, require, seconds, st):
     """Line 7: add the best paying line while one exists; after additions, solve again over the universe and the new
     lines and keep the better tree (the score never rises). Returns (tree, info)."""
     added = []
-    best, info = best_addition(model, tree, st.max_children, st.node_seconds)
+    best, info = best_addition(model, tree, st.K, st.node_seconds)
     while best is not None and len(added) < st.repairs:
         tree = lines_of([*tree, best], model.leaves)
         added.append(best)
-        best, info = best_addition(model, tree, st.max_children, st.node_seconds)
+        best, info = best_addition(model, tree, st.K, st.node_seconds)
     if added:
         again, _ = solve(model, [*universe, *tree], [frozenset(tree)], seconds, st, require)
         fit = Fitter(model, [*again, *tree])
         if fit.crit(again) < fit.crit(tree)-1e-12:
             tree = again
-            best, info = best_addition(model, tree, st.max_children, st.node_seconds)
+            best, info = best_addition(model, tree, st.K, st.node_seconds)
     return tree, dict(added=[list(C) for C in added], still_paying=None if best is None else list(best),
                       certified=info["certified"], enumerated=info["enumerated"], by_miqp=info["by_miqp"],
                       unproved=info["unproved"])

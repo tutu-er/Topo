@@ -67,3 +67,26 @@ trees is identical to the predecessor's.
 - Algorithm 1's whole output on two cases is identical to the frozen ef9ec75.
 - The 48 larger twins (26 to 60 meters) give identical trees too, so all nine builders match the predecessor on all
   288 twins. The rewrite is also faster there: 441 s against 788 s in total.
+
+## Wide nodes and the node MIQP (draft v14, 2026-11-26)
+
+With the old switch (enumerate up to 12 children, node MIQP beyond), the node MIQP never ran on the 248 twins finished so
+far (the 240 small to medium twins and the first 8 huge ones). Widest node per tree:
+
+| Twins | Found trees | True trees |
+|---|---|---|
+| star, street (192) | 3 to 4 children | 2 to 4 |
+| small, medium (48) | 3 to 8 | 3 to 7 |
+| huge, first 8 | 7 to 11 (two trees with 11) | 5 to 6 |
+
+A found tree with a node wider than any branching point of the feeder is missing lines there. Pricing now enumerates
+nodes up to K = 9 children, the same K as the anchored universe, and uses the node MIQP beyond. Checked on the final trees
+of the two huge twins with an 11-child node (`check_wide.py` in the session scratchpad; pricing only):
+
+| Twin | Pricing by enumeration | Pricing with the node MIQP | Node MIQP at the 11-child node |
+|---|---|---|---|
+| dev_huge_004_head | 73 s | 11 s, same best line and gain | optimal in 8 s |
+| dev_huge_004_none | 63 s, no line pays | 13 s, no line pays | optimal in 9 s |
+
+Both are exact, so results change only if a node MIQP stops at its 60 s limit, which is reported as an unproved node.
+The running large-twin dev run uses the frozen checkout with the old switch.
