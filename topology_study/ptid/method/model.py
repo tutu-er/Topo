@@ -103,7 +103,9 @@ def saturated_sigma2(P, Q, Y, gamma, u=None):
 class Model:
     """Transformed data of one feeder. `leaves` = n, or n + 1 with the load as leaf n."""
 
-    def __init__(self, P, Q, Y, V0sq, u=None, lam=1.96, pq_sigma=.005):
+    def __init__(self, P, Q, Y, V0sq, u=None, lam=1.96, pq_sigma=.005, *, p_s=None):
+        if p_s is not None and (isinstance(p_s, (bool, np.bool_)) or p_s not in (1, 2)):
+            raise ValueError("p_s must be 1, 2 or None (automatic)")
         P, Q, Y, V0sq = (np.asarray(a, float) for a in (P, Q, Y, V0sq))
         T, n = P.shape
         self.T, self.n, self.N = T, n, T*n
@@ -116,7 +118,7 @@ class Model:
         Yt = Y-self.gamma*Y.mean(1, keepdims=True)                              # S on the meters, then offsets
         self.Yt = Yt-Yt.mean(0)
         self.yy = float(np.sum(self.Yt**2))/self.sigma2
-        self.p_s = parameters_per_line(P, Q, pq_sigma)
+        self.p_s = parameters_per_line(P, Q, pq_sigma) if p_s is None else int(p_s)
         self.lam = lam
         self.alpha = (self.p_s*math.log(self.N)-2*lam)/self.N
         if self.alpha <= 0:

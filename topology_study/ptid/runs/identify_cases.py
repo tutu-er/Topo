@@ -133,12 +133,11 @@ def run_one(task):
         u = balance(h["P"], h["Q"], h["Y"], h["V0sq"], h["Ppcc"], h["Qpcc"]) if r["gate"]["load"] else None
         fits, sigma2 = adequacy(h["P"], h["Q"], h["Y"], h["V0sq"], u, dict(leader=sorted(tree), truth=sorted(truth)))
         assert abs(sigma2/r["model"]["sigma2"]-1) < 1e-6, "the saturated fit differs from the identifier's"
-        priced = [x["price"] for x in r["rounds"] if "price" in x]
         row = dict(name=name, kind="real" if name.startswith("eulv_") else library.kind(name), n=n, load=where,
                    blind=blind, score=f1(tree, truth), score_exact=f1(tree, exact), truth=[list(M) for M in sorted(truth)],
                    exact_truth=[list(M) for M in sorted(exact)], label_truth=label_truth,
                    adequacy=fits,
-                   complete=bool(priced) and priced[-1]["still_paying"] is None and bool(priced[-1]["certified"]),
+                   complete=r["scope"]["single_line"] == "complete",
                    **{k: v for k, v in r.items() if k not in ("lines", "pool")})
         return name, row, None, time.perf_counter()-started
     except Exception:
@@ -251,14 +250,15 @@ def compare(args):
         if not sel:
             continue
         same = sum({tuple(g) for g in a[x]["tree"]} == {tuple(g) for g in b[x]["tree"]} for x in sel)
-        wrong = lambda r: sum(x["label"] == "decided" and x["relation"] == "inside" and not x["exact"]
-                              for x in r["label_truth"])
-        decided = lambda r: sum(x["label"] == "decided" and x["relation"] == "inside" for x in r["label_truth"])
+        def errors(rows):
+            decided = [label for name in sel for label in rows[name]["label_truth"]
+                       if label["label"] == "decided" and label["relation"] == "inside"]
+            return (f"{sum(not label['true'] for label in decided)}/{len(decided)} at 3 mOhm, "
+                    f"{sum(not label['exact'] for label in decided)}/{len(decided)} against physical lines")
         f1m = lambda d: statistics.mean(d[x]["score"]["f1"] for x in sel)
         t = lambda d: statistics.median(d[x]["timing"]["total"] for x in sel)
         print(f"{k:8s} {len(sel):3d} cases: same tree {same:3d}; F1 {f1m(a):.3f} -> {f1m(b):.3f}; "
-              f"decided not a line {sum(wrong(a[x]) for x in sel)}/{sum(decided(a[x]) for x in sel)} -> "
-              f"{sum(wrong(b[x]) for x in sel)}/{sum(decided(b[x]) for x in sel)}; median s {t(a):.0f} -> {t(b):.0f}")
+              f"wrong decided ({errors(a)}) -> ({errors(b)}); median s {t(a):.0f} -> {t(b):.0f}")
 
 
 def main():

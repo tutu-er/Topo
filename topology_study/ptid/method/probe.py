@@ -13,7 +13,7 @@ Planner choices (stated in the draft's Section V since v13):
   - a block acts at one meter with one sign; its size is 1/4, 2/4, 3/4 or all of the largest feasible size;
   - the forecast of an hour is the mean of the same hour over the data (24 rows a day, from midnight);
   - sigma2_y = 4 sigma_v^2 1.02^4, the meter class, as in the earlier probing study's trust gate;
-  - the load's places are one target, open while the second-best place is within m, with that place as its rival;
+  - the load's place is open when a different tested attachment scores within m of the current fitted tree;
   - the voltage band keeps z sigma_V of margin, sigma_V = sigma / 2 (one reading of V);
   - the separation q compares the S-weighted predictions, whose noise covariance is sigma^2 I.
 Target variants (PROPOSALS.md, section 3): T0 is the draft; T1 drops groupings outside the leader that
@@ -33,8 +33,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .identify import Settings, label_rows, place_costs, refine
-from .labels import DECIDED, OPEN, flip_test, grouping, local_flips
+from .identify import Settings, label_rows, load_options, refine
+from .labels import DECIDED, OPEN, UNSETTLED, flip_test, grouping, local_flips
 from .model import BOUND, Fitter, Model, balance
 from .sets import basis, canonical, compatible
 
@@ -70,7 +70,7 @@ def kappa(delta, q):
 def setup(data, load, st):
     """The model on all data so far, and the flows of the leaves (the load's last when it is modelled)."""
     u = balance(data["P"], data["Q"], data["Y"], data["V0sq"], data["Ppcc"], data["Qpcc"]) if load else None
-    model = Model(data["P"], data["Q"], data["Y"], data["V0sq"], u, st.lam)
+    model = Model(data["P"], data["Q"], data["Y"], data["V0sq"], u, st.lam, p_s=st.p_s)
     if u is None:
         return model, data["P"], data["Q"]
     return model, np.column_stack([data["P"], u[0]]), np.column_stack([data["Q"], u[1]])
@@ -133,7 +133,26 @@ def relabel_outside(model, tree, pool, rows, keys, st):
     return out
 
 
-def states(model, tree, rows, places, keys, m):
+def placement_rival(model, tree):
+    """Best tested alternative load path, scored relative to the actual augmented tree."""
+    tree = canonical(tree)
+    meter_tree = canonical(g for g in (grouping(C, model.n) for C in tree) if g)
+    all_meters = tuple(range(model.n))
+
+    def load_path(lines):
+        # At the PCC the meters have their own trunk. Below the common trunk they do not.
+        return all_meters in lines, tuple(C for C in lines if model.n in C)
+
+    current = load_path(tree)
+    rivals = [lines for _, lines in load_options(meter_tree, model.n) if load_path(lines) != current]
+    if not rivals:
+        return None
+    fit = Fitter(model, [*tree, *(C for lines in rivals for C in lines)])
+    rival = min(rivals, key=fit.crit)
+    return model.N/2*(fit.crit(rival)-fit.crit(tree)), rival
+
+
+def states(model, tree, rows, place, keys, m):
     """Each target's state at a gate: dict(label, high end of its gap, rival lines, kind), where kind is inside,
     nested (outside the tree, compatible with it), crossing, or place (the load's place)."""
     meter_tree = [g for g in (grouping(C, model.n) for C in tree) if g]
@@ -141,8 +160,11 @@ def states(model, tree, rows, places, keys, m):
     out = {}
     for M in keys:
         if M == "place":
-            gap, _, rival = places[1] if len(places) > 1 else (math.inf, None, None)
-            out[M] = dict(label=OPEN if gap <= m else DECIDED, high=gap, rival=rival, kind="place")
+            if place is None:
+                out[M] = dict(label=UNSETTLED, high=None, rival=None, kind="place")
+            else:
+                gap, rival = place
+                out[M] = dict(label=OPEN if gap <= m else DECIDED, high=gap, rival=rival, kind="place")
         else:
             x = labels[M]
             kind = "inside" if x["inside"] else "nested" if all(compatible(M, C) for C in meter_tree) else "crossing"
@@ -171,10 +193,15 @@ def band_interval(trees, i, sign, fc, sigma2, ps):
     of margin: [low, high]. Each tree's V0^2 - V^2 moves linearly in a."""
     sv = math.sqrt(sigma2)/2
     y_low, y_high = fc["v0sq"]-(ps.band[1]-ps.z*sv)**2, fc["v0sq"]-(ps.band[0]+ps.z*sv)**2
+    if y_low > y_high:
+        return math.inf, 0.
     low, high = 0., math.inf
     for t in trees:
         g = sign*t["dy"][:, i]
         moved = np.abs(g) > 1e-15
+        fixed = t["y"][~moved]
+        if np.any((fixed < y_low) | (fixed > y_high)):
+            return math.inf, 0.
         a, b = (y_low-t["y"][moved])/g[moved], (y_high-t["y"][moved])/g[moved]
         low, high = max(low, np.minimum(a, b).max(initial=0.)), min(high, np.maximum(a, b).min(initial=math.inf))
     return low, high
@@ -190,8 +217,10 @@ def choose_block(model, lead, rivals, now, fc, up, down, budget, base_kw, ps, m)
         for sign, room, price in ((1., up[i], ps.price_up), (-1., down[i], ps.price_down)):
             low, high = band_interval([lead, *rivals.values()], i, sign, fc, model.sigma2, ps)
             high = min(high, room, budget/(base_kw*price), ps.transformer-fc["pcc"] if sign > 0 else math.inf)
+            if high <= low:
+                continue
             for a in (low+(high-low)*k/ps.sizes for k in range(1, ps.sizes+1)):
-                if high <= low or a <= 1e-12:
+                if a <= 1e-12:
                     continue
                 value = sum(term(s, (d0+G[:, i]*sign*a)@S@(d0+G[:, i]*sign*a), m, ps.variant)
                             for s, d0, G, S in seps.values())
@@ -201,12 +230,12 @@ def choose_block(model, lead, rivals, now, fc, up, down, budget, base_kw, ps, m)
     return best
 
 
-def day_targets(model, tree, rows, places, lead, fc, room, ps, m):
+def day_targets(model, tree, rows, place, lead, fc, room, ps, m):
     """Line 1: the open alternatives whose rival responds differently from the leader to a block at some meter that
     has headroom during the day (Lemma 5); T1 leaves out the groupings nested in the leader."""
-    keys = [tuple(x["grouping"]) for x in rows]+(["place"] if places else [])
+    keys = [tuple(x["grouping"]) for x in rows]+(["place"] if place is not None else [])
     out = []
-    for k, s in states(model, tree, rows, places, keys, m).items():
+    for k, s in states(model, tree, rows, place, keys, m).items():
         if s["label"] != OPEN or s["rival"] is None or (ps.variant == "T1" and s["kind"] == "nested"):
             continue
         if np.abs(lead["ds"]-prediction(model, s["rival"], fc)["ds"])[:, room].max(initial=0.) > 1e-12:
@@ -230,15 +259,16 @@ def probe_day(data, first, world, st=Settings(), ps=ProbeSettings(), say=None):
         if h > 0:                                        # line 3: Algorithm 1, lines 4-11, on all data so far
             r = refine(model, tree, pool, st, say)
             tree, pool, rows = r["tree"], r["pool"], label_rows(r["labels"], r["anchors"])
-        places = place_costs(model, [g for g in (grouping(C, n) for C in tree) if g]) if load else []
+        place = placement_rival(model, tree) if load else None
         fc = forecast(data, fp, fq, h+1)
         lead = prediction(model, tree, fc)
         if keys is None:
-            keys = day_targets(model, tree, rows, places, lead, fc, room, ps, m)
+            keys = day_targets(model, tree, rows, place, lead, fc, room, ps, m)
         rows = relabel_outside(model, tree, pool, rows, keys, st)        # line 4
-        now = states(model, tree, rows, places, keys, m)
+        now = states(model, tree, rows, place, keys, m)
         decided = all(s["label"] == DECIDED for s in now.values())
-        gate = dict(hour=h, tree=[list(g) for g in (grouping(C, n) for C in tree) if g], trust=None, block=None,
+        meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
+        gate = dict(hour=h, tree=[list(g) for g in meter_tree], trust=None, block=None,
                     targets={str(k): [s["label"], s["high"]] for k, s in now.items()})
         gates.append(gate)
         if not keys or (decided and decided_before):     # line 5

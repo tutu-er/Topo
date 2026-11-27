@@ -34,14 +34,19 @@ def run_case(name, variant, st, ps, say=print):
     targets = []
     for M in day["targets"]:                                    # a meter grouping, or "place"
         label = day["gates"][-1]["targets"][str(M)][0]
-        is_grouping = M != "place"
-        targets.append(dict(target=str(M), label=label, inside=is_grouping and M in tree,
-                            true=is_grouping and M in truth,
-                            wrong=is_grouping and label == DECIDED and (M in tree) != (M in truth)))
+        if M == "place":
+            # Location truth has no matching rule here. Only meter groupings enter the error count.
+            targets.append(dict(target="place", label=label, inside=None, true=None, wrong=None))
+        else:
+            targets.append(dict(target=str(M), label=label, inside=M in tree, true=M in truth,
+                                wrong=label == DECIDED and (M in tree) != (M in truth)))
+    decided_groups = [target for target in targets if target["target"] != "place" and target["label"] == DECIDED]
     return dict(name=name, n=rec["n"], load=library.load_where(rec), variant=variant,
                 f1_before=f1({tuple(g) for g in first["tree"]}, truth)["f1"], f1_after=f1(tree, truth)["f1"],
                 cost=day["cost"], blocks=sum(g["block"] is not None for g in day["gates"]), gates=len(day["gates"]),
-                stop=day["stop"], targets=targets, seconds=[g["seconds"] for g in day["gates"]], day=day["gates"])
+                stop=day["stop"], targets=targets, decided_groupings=len(decided_groups),
+                wrong_decided_groupings=sum(t["wrong"] for t in decided_groups),
+                seconds=[g["seconds"] for g in day["gates"]], day=day["gates"])
 
 
 def main():

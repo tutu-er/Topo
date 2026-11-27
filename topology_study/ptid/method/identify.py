@@ -31,7 +31,7 @@ from .builders import builder_trees
 from .labels import DECIDED, grouping, label_groupings
 from .miqp import tree_miqp
 from .model import GATE, Fitter, Model, balance, load_share
-from .search import best_addition, local_search
+from .search import PRICING_TOL, best_addition, local_search
 from .sets import canonical, crossing_map, lines_of
 
 
@@ -54,6 +54,8 @@ class Settings:
     node_seconds: float = 60.    # node MIQP limit
     evidence: bool = True        # with a load: solve the no-load model too, for the evidence and its bounds
     seed: int = 7
+    node_refinement: bool = True  # disable node pricing for the paired tree-only comparison
+    p_s: int | None = None       # None uses the measured P/Q rule; 1 or 2 fixes the penalty dimension
 
 
 # ------------------------------------------------------------------ the load as a leaf
@@ -99,6 +101,7 @@ def solve(model, pool, starts, seconds, st, require=()):
     tried = [local_search(fitter, crosses, s, time.perf_counter()+per, require)
              for s in [frozenset(), *starts] if ok(s)]
     chosen, value = local_search(fitter, crosses, min(tried, key=lambda x: x[1])[0], math.inf, require)
+    warm_tree, warm_crit = lines_of(chosen, model.leaves), value
     r = tree_miqp(model, lines, seconds, require=require, seed=st.seed, warm=chosen, known=value,
                   tighten_at=value if st.tighten else None)
     status, bound = r["status"], r["bound"]
@@ -118,12 +121,16 @@ def solve(model, pool, starts, seconds, st, require=()):
     closed = status in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) and bound is not None and value-bound <= tolerance
     tree = lines_of(chosen, model.leaves)
     return tree, dict(status=status, miqp_seconds=r["seconds"], pool=len(lines), tree=tree, crit=value, bound=bound,
-                      gap_tolerance=tolerance, gap_closed=closed, domain=dict(lines=lines, require=require))
+                      warm_tree=warm_tree, warm_crit=warm_crit, gap_tolerance=tolerance, gap_closed=closed,
+                      domain=dict(lines=lines, require=require))
 
 
 def price(model, tree, universe, require, seconds, st):
     """Line 7: add the best paying line while one exists; after additions, solve again over the universe and the new
     lines and keep the better tree (the score never rises). Returns (tree, info)."""
+    if not st.node_refinement:
+        return tree, dict(disabled=True, certified=False, added=[], still_paying=None, re_solve=None,
+                          enumerated=0, by_miqp=0, evaluated=0, unproved=0, wide_nodes=[])
     added, re_solve = [], None
     best, info = best_addition(model, tree, st.K, st.node_seconds)
     while best is not None and len(added) < st.repairs:
@@ -138,6 +145,23 @@ def price(model, tree, universe, require, seconds, st):
             best, info = best_addition(model, tree, st.K, st.node_seconds)
     return tree, dict(info, added=[list(C) for C in added], still_paying=None if best is None else list(best),
                       re_solve=re_solve)
+
+
+def improving_flip(labels, domain, require, model):
+    """Deduplicate already refitted flip witnesses, then select one feasible in this solve's domain.
+    The recorded gains are in H units. Adoption uses the single-addition tolerance in crit units."""
+    gains = {}
+    for label in labels.values():
+        high = label["gap"][1]
+        if high is not None and high < 0 and label["rival"] is not None:
+            candidate = canonical(label["rival"])
+            gains[candidate] = max(gains.get(candidate, 0.), -high)
+    allowed = set(domain)
+    eligible = {c: g for c, g in gains.items() if g > PRICING_TOL*model.N/2 and allowed.issuperset(c)
+                and all(any(line in c for line in group) for group in require)}
+    best = max(eligible, key=eligible.get, default=None)
+    return best, dict(count=len(gains), eligible=len(eligible), best_gain_H=max(gains.values(), default=0.),
+                      eligible_gain_H=eligible.get(best, 0.))
 
 
 def evidence(model, tree, pool, seconds, st):
@@ -167,16 +191,21 @@ def scope(rounds):
     if last is None:
         return dict(single_line="not priced", restricted=False, restricted_round=None, restricted_solve=None)
     price_info = last["price"]
+    final_adoption = rounds[-1].get("flip_witness", {}).get("action") == "adopted"
     single = "complete" if price_info["certified"] else "incomplete"
-    if price_info["still_paying"] is not None:
+    if final_adoption or price_info.get("disabled"):
+        single = "not priced"
+    elif price_info["still_paying"] is not None:
         single = "paying line left"
     # Older saved rounds have no post-pricing solve record; their only available domain is the earlier solve.
     repeated = price_info.get("re_solve") is not None
     final_solve = price_info["re_solve"] if repeated else last["solve"]
     closed = final_solve.get("gap_closed")
-    if closed is None:
-        value, bound = final_solve.get("crit"), final_solve.get("bound")
-        closed = (final_solve.get("status") == gp.GRB.OPTIMAL and value is not None and bound is not None
+    if closed is None or final_adoption:
+        value = rounds[-1]["label_info"]["crit"] if final_adoption else final_solve.get("crit")
+        bound = final_solve.get("bound")
+        statuses = (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT) if final_adoption else (gp.GRB.OPTIMAL,)
+        closed = (final_solve.get("status") in statuses and value is not None and bound is not None
                   and 0. <= value-bound <= max(1e-7, 1e-4*abs(value)))
     return dict(single_line=single, restricted=closed, restricted_round=last["round"],
                 restricted_solve="price.re_solve" if repeated else "solve")
@@ -199,7 +228,7 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
         if not gate["load"]:
             u = None
     say(f"  gate: share {gate['share']}, load modelled: {gate['load']}")
-    model = Model(P, Q, Y, V0sq, u, st.lam)                                   # line 1
+    model = Model(P, Q, Y, V0sq, u, st.lam, p_s=st.p_s)                     # line 1
     load = u is not None
     seconds = st.short_seconds if n <= st.large_n else st.long_seconds
     timing = dict(model=time.perf_counter()-started)
@@ -217,7 +246,7 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     timing["first_tree"] = time.perf_counter()-t0
     say(f"  first tree: {len(tree)} lines over {first['pool']} candidates, MIQP status {first['status']}")
 
-    r = refine(model, tree, pool, st, say)                                   # lines 4-11
+    r = refine(model, tree, pool, st, say, initial_solve=first)               # lines 4-11
     tree, pool, labels, anchors = r["tree"], r["pool"], r["labels"], r["anchors"]
     meter_tree = canonical(g for g in (grouping(C, n) for C in tree) if g)
     out = dict(gate=gate, tree=meter_tree, lines=tree, pool=pool, first=first, anchors=anchors,
@@ -235,19 +264,34 @@ def identify(P, Q, Y, V0sq, Ppcc=None, Qpcc=None, st=Settings(), log=None):
     return out
 
 
-def refine(model, tree, pool, st, say=lambda *_: None):
+def refine(model, tree, pool, st, say=lambda *_: None, *, initial_solve=None):
     """Lines 4-11 from a tree and a pool: label, take the decided groupings as anchors, solve over the anchored universe
     with every anchor required, price; until the stopping rule (Lemma 3) holds or `rounds` searches were made.
     Algorithm 2 calls it at every gate on all data so far. Returns dict(tree, pool, labels, anchors, rounds, stop)."""
     n, load = model.n, model.leaves > model.n
     seconds = st.short_seconds if n <= st.large_n else st.long_seconds
     rounds, previous, stop = [], None, None
+    last_domain, last_require, last_solve = pool, (), initial_solve
+
+    def label_current(tree, pool):
+        labels, linfo = label_groupings(model, tree, pool, st.m, st.flip_seconds or seconds, st.seed, say, st.tighten)
+        if last_solve is not None and last_solve.get("bound") is not None:
+            rival, info = improving_flip(labels, last_domain, last_require, model)
+            if rival is not None:
+                value = linfo["crit"]-info["eligible_gain_H"]/(model.N/2)
+                if last_solve["bound"] > value+1e-5*(1.+abs(value)):
+                    last_solve["flip_bound_conflict"] = dict(bound=last_solve["bound"], witness_crit=value)
+                    last_solve.update(status=gp.GRB.NUMERIC, bound=None, gap_closed=False)
+        anchors = canonical(M for M, l in labels.items() if l["inside"] and l["label"] == DECIDED)
+        details = dict(lines=len(tree), anchors=len(anchors), pool=len(pool), label_info=linfo,
+                      labels=dict(Counter(l["label"] for l in labels.values() if l["inside"])))
+        return labels, anchors, details
+
     for rnd in range(st.rounds+1):
         t0 = time.perf_counter()
-        labels, linfo = label_groupings(model, tree, pool, st.m, st.flip_seconds or seconds, st.seed, say, st.tighten)
-        anchors = canonical(M for M, l in labels.items() if l["inside"] and l["label"] == DECIDED)
-        record = dict(round=rnd, lines=len(tree), anchors=len(anchors), pool=len(pool), label_info=linfo,
-                      labels=dict(Counter(l["label"] for l in labels.values() if l["inside"])))
+        labels, anchors, details = label_current(tree, pool)
+        record = dict(round=rnd, **details)
+        require = [[M, (*M, n)] if load else [M] for M in anchors]
         say(f"  round {rnd}: {len(tree)} lines, {len(anchors)} anchors, labels {record['labels']}, "
             f"{time.perf_counter()-t0:.0f} s")
         last = rounds[-1] if rounds else None
@@ -257,15 +301,36 @@ def refine(model, tree, pool, st, say=lambda *_: None):
         elif rnd == st.rounds:
             stop = "round limit"
         if stop:
+            # The last search's lower bound only applies within its saved domain and requirements.
+            candidate, witness = improving_flip(labels, last_domain, [*last_require, *require], model)
+            record["flip_witness"] = witness
+            if candidate is not None:
+                record["before_flip_label_info"] = record["label_info"]
+                tree = candidate
+                labels, anchors, details = label_current(tree, pool)
+                record.update(details)
+                witness["action"] = "adopted"
+                new_require = [[M, (*M, n)] if load else [M] for M in anchors]
+                _, remaining = improving_flip(labels, last_domain, [*last_require, *new_require], model)
+                record["after_flip_witness"] = remaining
+                stop = f"final flip witness adopted and relabelled ({'round limit' if rnd == st.rounds else 'stopping check'})"
             rounds.append(record)
             break
         t0 = time.perf_counter()
         meter_pool = [g for g in (grouping(C, n) for C in pool) if g]
         meter_universe, uinfo = anchored_universe(anchors, n, meter_pool, st.K)
         universe = lines_of([*(with_load(meter_universe, n) if load else meter_universe), *tree], model.leaves)
-        require = [[M, (*M, n)] if load else [M] for M in anchors]
-        tree, sinfo = solve(model, universe, [frozenset(tree)], seconds, st, require)
+        candidate, witness = improving_flip(labels, universe, require, model)
+        record["flip_witness"] = witness
+        starts = [frozenset(tree)]
+        if candidate is not None:
+            starts.append(frozenset(candidate))
+            witness["action"] = "warm_start"
+        tree, sinfo = solve(model, universe, starts, seconds, st, require)
         tree, pinfo = price(model, tree, universe, require, seconds, st)
+        last_domain = lines_of([*universe, *pinfo["added"]], model.leaves)
+        last_require = require
+        last_solve = pinfo["re_solve"] or sinfo
         pool = lines_of([*pool, *universe, *pinfo["added"], *tree], model.leaves)
         record.update(universe=uinfo, solve=sinfo, price=pinfo, search_seconds=time.perf_counter()-t0)
         say(f"  anchored search: {uinfo['lines']} meter lines (k {uinfo['k'][:6]}, {uinfo['big_nodes']} nodes over K), "

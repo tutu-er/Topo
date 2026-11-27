@@ -44,6 +44,20 @@ class ScoreBoundsTest(unittest.TestCase):
         self.assertAlmostEqual(result["crit"], best)
         self.assertLessEqual(result["bound"], best+1e-8)
 
+    def test_fixed_price_changes_only_penalty(self):
+        rng = np.random.default_rng(8)
+        p, q, y = (rng.normal(0., .01, (48, 4)) for _ in range(3))
+        args = (p, q, y, np.ones(len(p)))
+        auto = Model(*args)
+        low, high = (Model(*args, p_s=count) for count in (1, 2))
+        line = ((0, 1),)
+        def score(model):
+            return Fitter(model, line).crit(line)*model.N/2
+        self.assertAlmostEqual(score(high)-score(low), .5*np.log(low.N))
+        self.assertAlmostEqual(score(auto), score(high if auto.p_s == 2 else low))
+        with self.assertRaises(ValueError):
+            Model(*args, p_s=0)
+
     def test_tightening_contradicted_by_warm_tree_is_skipped(self):
         tree = min(self.scores, key=self.scores.get)
         best = self.scores[tree]
