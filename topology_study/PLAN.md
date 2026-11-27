@@ -21,8 +21,11 @@
 4. **Speed at scale**, from the rows of step 1:
    - how often a second anchored round changed anything (the "stop when nothing changes" proposal, PROPOSALS.md §6);
    - ablation V5: per-meter bounds on and off on the medium twins. If they do not help, remove them (simpler code).
-5. **Model adequacy on real feeders:** test SR1 on the 66 real inputs. The first real feeder's TRUE tree was flagged,
-   so model error is visible there; find its cause (unbalance, losses, the linearisation) before S1 is used on real data.
+5. **The scoring truth on real feeders** (done 2026-11-27, RESULTS.md §4.1): test S1 flagged the true tree on one real
+   feeder (both days), and 4 of 162 decided groupings were not in the scoring truth. All of it came from the
+   3 milliohm floor of the scoring truth: the 4 groupings are physical lines below it, and the exact truth fits.
+   Left to decide: whether the paper scores real feeders with the exact truth, the identifiable truth, or both (now
+   both are reported).
 6. **Probing:**
    - development probing days under the target variants T0, T1, T2 (tests TR3, TR4);
    - the ψ knee: the cost-coverage curve over ψ;

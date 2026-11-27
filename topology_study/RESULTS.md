@@ -171,12 +171,12 @@ is robustness: no false claims even at forced tolerances, and a root relaxation 
 
 ## 4. Algorithm 1 with the fix (code c5c4aae = ptid, 2026-11-27)
 
-**Status: running** (this section is completed when the runs finish).
+**Status:** the real-feeder run is complete (4.1); the development run is still going (4.2).
 
 | Run | Code | Cases | State |
 | --- | --- | --- | --- |
 | development, one twin per feeder | c5c4aae (frozen checkout) | 72 (PROTOCOL.md §2.2) | started 2026-11-27 00:50; the six huge twins first |
-| real feeders | `ptid` | 66 (PROTOCOL.md §2.3) | started 2026-11-27 00:55 |
+| real feeders | `ptid` | 66 (PROTOCOL.md §2.3) | complete, 2026-11-27 00:55 to 02:00 |
 
 **The package gives the same results as the code it was moved from.** On the first 20 real inputs that both the old
 code (c5c4aae, `identification_v8`) and `ptid` finished, the tree, every label and the stopping reason are identical in
@@ -187,10 +187,53 @@ node MIQP may price nodes wider than 9 children, and there the two codes could d
 the unscaled one. When the run ends, its wide nodes are rechecked with `ptid` (`ptid.runs.checks wide-nodes`), as in
 section 5.1.
 
-**First real-feeder numbers (20 of 66 inputs, interim):** F1 0.669; 54 groupings decided, **4 of them wrong (7.4%)**,
-far above the 2% criterion of PROTOCOL.md §4. On the first real feeder the adequacy test (S1) flagged the TRUE tree:
-the model does not fit real feeders as well as the generated ones, and decided labels are less reliable there. This is
-step 5 of PLAN.md.
+### 4.1 Real feeders (66 inputs, complete; `ptid`, 0 errors; equal to c5c4aae on the 25 inputs both ran)
+
+| Measure | Value |
+| --- | --- |
+| F1 / precision / recall (identifiable truth) | 0.669 / 0.760 / 0.625 (case means) |
+| precision against the exact truth (is every grouping found a physical line?) | 0.826 |
+| groupings of the trees: decided / open / unsettled | 162 / 192 / 29 |
+| decided groupings not in the identifiable truth | 4 (2.5%) |
+| decided groupings that are not physical lines at all | **0 of 162** |
+| solver outcomes, anchored MIQPs | 74 optimal, 12 at the time limit, 0 numerical failures |
+| solver outcomes, flip tests of the final labels | 155 cut off (decided), 7 infeasible (decided), 44 optimal, 36 at the time limit, 141 settled by local flips; 0 numerical failures |
+| stop | 56 converged (Lemma 3), 10 at the round limit |
+| S1 adequacy (1% level) | identifiable truth flagged in 2 of 66, exact truth in 0, found tree in 0 |
+| S2 pricing complete | 66 of 66 |
+| time per input | median 33 s, largest 2,075 s |
+
+**The four "wrong" decided labels are physical lines.** Each of the four groupings is a line of the network: it is in
+the exact truth, but its segment is shorter than the 3 milliohm floor below which the scoring truth merges lines. The
+data see these lines anyway: the true (identifiable) tree scores 14 to 38 units worse than the found tree under the
+method's own score in all four cases.
+
+| Input | Grouping | H(identifiable truth) - H(found tree) |
+| --- | --- | --- |
+| eulv_td000653_feeder15_s0 | meters 2-7 | 38.1 |
+| eulv_td000653_feeder15_s6 | meters 2-7 | 34.9 |
+| eulv_td004454_feeder159_s0 | meters 12-14 | 14.5 |
+| eulv_td008690_feeder19_s0 | meters 1-11 | 14.8 |
+
+The same explains test S1's two flags: both are `feeder15`, whose identifiable truth has 2 lines where the network has
+5 that the data see. Its exact truth passes (p = 0.86 and 0.62), and on day 0 the found tree is the exact truth. So
+the flags came from the scoring truth, not from the model's fit to real feeders, as first suspected.
+
+**Consequence for the measurements.** A decided label is wrong only if its grouping is not a physical line; the
+3 milliohm floor stays the scoring truth for recall (lines the data cannot be expected to see). Both are reported from
+now on (`identify_cases summary`: columns `wrong` and `not a line`). This was decided after seeing these results
+(PROTOCOL.md §4 says so).
+
+For comparison: on the same 66 inputs the earlier study's method got F1 62.5 with the plain BIC price and 66.7 with
+the structural prior, and RNJ 41 at its best tolerance (`rnj_wzzt_dr/experiments/case_library_20261125/IDENTIFICATION_PLAN.md`).
+
+### 4.2 Development twins, one per feeder (72 cases)
+
+Running (the six huge twins first).
+
+**The old run, measured both ways** (code ef9ec75 for the 240 twins up to 25 meters; the 10 huge twins of the stopped
+run, under the faulty solver): of 1,513 decided groupings, 7 are not in the identifiable truth and 6 are not physical
+lines: 2 on `dev_medium_003` (head and end twins) and 4 on huge twins. The rerun shows whether they remain.
 
 ## 5. Checks
 

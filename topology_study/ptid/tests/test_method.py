@@ -263,6 +263,7 @@ def data_test_cases_and_selection():
     assert len(names) == 66
     r = real.open_real(names[0])
     assert r["hist"]["Y"].shape == (192, r["n"]) and r["truth"]
+    assert library.truth(rec) <= library.exact_truth(rec) and r["truth"] <= r["exact"]     # merging only removes lines
 
 
 def data_test_gate_bounds_and_node_miqp(group="dev_small_003"):

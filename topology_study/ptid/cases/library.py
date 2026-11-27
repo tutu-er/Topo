@@ -7,6 +7,7 @@ manifest_dev.json (a copy of the case library's committed manifest). The sealed 
     open_case(name)            the case record (hash-checked)
     readings(rec)              8 days of hourly meter readings: P, Q, Y = V0^2 - V^2 (T x n), V0sq, Ppcc, Qpcc (T)
     truth(rec)                 the identifiable true meter groupings (lines of at least 3 milliohm; 2 to n-1 meters)
+    exact_truth(rec)           every true meter grouping, also of lines below 3 milliohm
     kind(name)                 star, street, small, medium, large or huge
     one_twin_per_feeder()      72 names: one twin per feeder, the load's location in rotation within each kind
                                (no load 20, head 20, middle 16, end 16)
@@ -53,6 +54,12 @@ def truth(rec):
     """The identifiable true meter groupings."""
     n = rec["n"]
     return {tuple(sorted(int(i) for i in C)) for C in rec["truth"] if 1 < len(C) < n}
+
+
+def exact_truth(rec):
+    """Every true meter grouping, before lines shorter than 3 milliohm are merged."""
+    n = rec["n"]
+    return {M for M in (tuple(sorted(int(i) for i in C if i < n)) for C in rec["exact_truth"]) if 1 < len(M) < n}
 
 
 def load_where(rec):

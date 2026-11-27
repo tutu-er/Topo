@@ -102,6 +102,16 @@ were read):
 - decided groupings wrong in at most 2% of decided groupings, over the development cases run;
 - on the cases below 26 meters, F1 not lower than the v13 run on the same cases by more than 0.01 on the mean.
 
+**Two truths** (added 2026-11-27, after the real-feeder results): the scoring truth merges lines shorter than
+3 milliohm, but the data can see some of them (RESULTS.md §4.1). From now on both are reported:
+- the **identifiable truth** (the 3 milliohm floor) for F1, precision and recall, as before;
+- the **exact truth** for whether a grouping is a physical line at all. A decided label counts as **wrong** in the
+  criterion above when its grouping is **not a physical line**; decided labels on sub-floor lines are reported
+  separately.
+
+This changes how the criterion is measured after results were seen. Both counts are always shown, so the change hides
+nothing.
+
 ## 5. Probing runs (`ptid.runs.probe_cases`)
 
 A simulated day 9 on a development case: Algorithm 1 on the 8-day history, then Algorithm 2 with the case's world

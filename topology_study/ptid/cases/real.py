@@ -6,7 +6,8 @@ The input files were written by the earlier probing study as objects of its own 
 that code: every class from rnj_wzzt_dr is replaced by a plain record that keeps the attributes.
 
     names()           the 66 input names
-    open_real(name)   dict(name, group, n, hist (P, Q, Y, V0sq), truth (meter groupings))
+    open_real(name)   dict(name, group, n, hist (P, Q, Y, V0sq), truth (meter groupings), exact (also lines below the
+                      3 milliohm floor))
 """
 import pickle
 
@@ -34,4 +35,5 @@ def open_real(name):
     n = int(inp.n)
     hist = {k: inp.hist[k] for k in ("P", "Q", "Y", "V0sq")}
     truth = {tuple(sorted(int(i) for i in C)) for C in inp.truth_key if 1 < len(C) < n}
-    return dict(name=name, group=inp.case, n=n, hist=hist, truth=truth)
+    exact = {tuple(sorted(int(i) for i in C)) for C in inp.meta["exact_truth_key"] if 1 < len(C) < n}
+    return dict(name=name, group=inp.case, n=n, hist=hist, truth=truth, exact=exact)

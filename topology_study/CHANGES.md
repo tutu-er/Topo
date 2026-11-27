@@ -53,6 +53,9 @@ exactly (development and real cases). RESULTS.md, section 4, records the equalit
   and a comparison of two runs on their common cases.
 - The real inputs are read without the earlier study's code.
 - `one_twin_per_feeder()`: the 72-case selection of the 2026-11-27 run.
+- Two truths in the measurements (2026-11-27): besides the identifiable truth (3 milliohm floor), each run records
+  the exact truth, and the summary counts decided labels that are not physical lines. Older run files get the exact
+  truth when they are read. The method's output is untouched (RESULTS.md §4.1 says why).
 - New tests:
   - the tree MIQP against enumeration of every laminar subset, with and without the per-meter bounds and with a
     required grouping;

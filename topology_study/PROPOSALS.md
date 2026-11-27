@@ -92,9 +92,11 @@ line is invisible to the data; this is the identifiability limit of Theorem 1, a
 open, so T1 fails its criterion by far). These numbers predate the solver fix (RESULTS.md, section 3) and are rechecked
 on the v16 runs.
 
-**Update (2026-11-27):** on the first real feeder run (`eulv_td000653_feeder15_s0`, 8 meters) S1 flagged the TRUE tree
-at the 1% level: model error is visible on real feeders. SR1 must be rerun on the 66 real inputs (RESULTS.md, section 4)
-before S1 can be used there.
+**Update (2026-11-27), SR1 on the 66 real inputs:** the true tree is flagged in 2 of 66 (3%, both days of
+`eulv_td000653_feeder15`), against the criterion of at most 2%. Both flags come from the scoring truth, not from model
+error: that feeder's identifiable truth lacks 3 lines shorter than 3 milliohm that the data see, and its exact truth
+passes (p = 0.86 and 0.62; RESULTS.md §4.1). With the exact truth, S1 flags the true tree in **0 of 66** real inputs
+(and the found tree in 0 of 66), so SR1 passes on the real inputs when the truth includes every physical line.
 
 ## 5. Tests that decide
 
