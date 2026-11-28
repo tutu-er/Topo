@@ -167,6 +167,26 @@ class NodeStudyTest(unittest.TestCase):
         edges = {(e["from_bus"], e["to_bus"]) for e in network(f)[0]["branches"]}
         self.assertTrue({(1, 200), (200, 201)} <= edges)
 
+    def test_node_swap_corrects_a_near_miss(self):
+        """A root line one lateral too narrow is swapped for the true one: by the node MIQP at a node of 10
+        children, and by enumeration of its 1013 unions when K allows; both make the same swap."""
+        from ptid.method.search import node_swap
+        from ptid.runs.node_study import root_feeder, root_lines
+        f = root_feeder(1, 6, 4, 2, .008, hours=96, seed=3)          # 10 laterals of 2 homes, a root line over 6
+        model, _ = model_of(Simulator(f).history())
+        true, _, _ = truth(f)
+        (rl,) = root_lines(f)
+        near = tuple(sorted(set(rl)-set(rl[:2])))                   # one lateral left out
+        tree = [C for C in true if C != rl]+[near]
+        by_miqp, a = node_swap(model, tree, 9, 60.)
+        by_enum, b = node_swap(model, tree, 10, 60.)
+        self.assertEqual((a["by_miqp"] > 0, b["by_miqp"]), (True, 0))
+        self.assertIn(rl, by_miqp)
+        self.assertEqual(set(by_miqp), set(by_enum))
+        self.assertEqual(set(by_miqp), set(true))
+        skipped, c = node_swap(model, tree, 9, 60., wide_node_miqp=False)   # the root node is skipped (other
+        self.assertEqual((rl in skipped, c["skipped"] > 0, c["by_miqp"]), (False, True, 0))   # lines may still move)
+
     def test_verdicts(self):
         scan = dict(decision="present", line=[0, 1, 2, 3], gain=9.)
         self.assertEqual(node_probe.verdict(scan, (0, 1, 2, 3)), "right")

@@ -19,7 +19,8 @@ PARTS = (("N1 exactness and scaling", node_exact, "exact.jsonl"),
          ("N3 Algorithm 1 end to end", node_pipeline, "pipeline.jsonl"),
          ("N4 probing an open node question", node_probe, "probe.jsonl"),
          ("N5 root lines", node_roots, "roots.jsonl"),
-         ("N7 root lines end to end", node_roots_e2e, "roots_e2e.jsonl"),
+         ("N7 version 1: root lines end to end, the draft's Algorithm 1", node_roots_e2e, "roots_e2e_v1.jsonl"),
+         ("N7 version 2: root lines end to end with the line swap", node_roots_e2e, "roots_e2e.jsonl"),
          ("N6 probing an open root line", node_probe_roots, "probe_roots.jsonl"))
 
 

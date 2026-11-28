@@ -283,3 +283,49 @@ def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200, *, w
                     best, gain = U, g
     info.update(gain=gain, certified=best is None and info["unproved"] == 0)
     return best, info
+
+
+def node_swap(model, tree, max_children=9, node_seconds=60., chunk=200, *, wide_node_miqp=True, keep=()):
+    """One pass of line swaps at their own nodes, largest lines first. Line L leaves the tree; its parent's children
+    (L's children among them) are searched for the best union, which takes L's place when it lowers crit by more than
+    PRICING_TOL. The number of lines and the node stay the same, so no price enters (node_price cancels). Pricing only
+    adds lines: without this move a line one lateral too wide or too narrow stays whenever adding the right line does
+    not pay its price. Nodes of at most max_children children are enumerated, wider ones solved by the node MIQP
+    (started at L), or skipped without wide_node_miqp. Lines in `keep` (the anchors) stay.
+    Returns (tree, info); info["swaps"] lists dict(old, new, gain in crit, children, by)."""
+    leaves = model.leaves
+    tree = list(lines_of(tree, leaves))
+    keep = set(map(tuple, keep))
+    info = dict(swaps=[], enumerated=0, by_miqp=0, skipped=0)
+    current = Fitter(model, tree).crit(tree)
+    for L in sorted(tree, key=lambda C: (-len(C), C)):
+        if L not in tree or L in keep:
+            continue
+        rest = [C for C in tree if C != L]
+        family = canonical([*basis(leaves), *rest])
+        parent = min((v for v in family if set(L) < set(v)), key=len)
+        kids = children(family, leaves)[parent]
+        if len(kids) > max_children and not wide_node_miqp:
+            info["skipped"] += 1
+            continue
+        if len(kids) > max_children:
+            start = {a for a, kid in enumerate(kids) if set(kid) <= set(L)}
+            line, _, _ = node_miqp(model, rest, kids, node_seconds, start=start)
+            info["by_miqp"] += 1
+            candidates, by = ([] if line is None else [line]), "miqp"
+        else:
+            info["enumerated"] += 1
+            candidates, by = unions(kids), "enumeration"
+        best, value = L, current
+        for k in range(0, len(candidates), chunk):
+            part = candidates[k:k+chunk]
+            fit = Fitter(model, [*family, *part])
+            for U in part:
+                v = fit.crit([*rest, U])
+                if v < value-PRICING_TOL:
+                    best, value = U, v
+        if best != L:
+            tree = [*rest, best]
+            info["swaps"].append(dict(old=list(L), new=list(best), gain=current-value, children=len(kids), by=by))
+            current = value
+    return lines_of(tree, leaves), info

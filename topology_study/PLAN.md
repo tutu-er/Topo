@@ -53,7 +53,9 @@
     development twins with junctions wider than nine children.
 14. **Root lines as the main case** (N5, N6; your direction of 2026-11-28): the node MIQP against the builders and a
     local search on feeders whose near-substation lines carry many homes, then probing of the root lines left open,
-    under noisier meters, more load variation and raised caps.
+    under noisier meters, more load variation and raised caps. N7 runs Algorithm 1 end to end on these feeders; its
+    first version showed that Algorithm 1 needs a line swap at a node (near misses at the root), and version 2 tests
+    it with and without the node MIQP. If it holds, the swap goes into the method draft as part of line 7.
 
 ## 3. Decisions needed from you
 

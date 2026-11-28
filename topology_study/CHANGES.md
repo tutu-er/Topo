@@ -80,13 +80,19 @@ Method code, all backward compatible (defaults keep earlier results):
   symmetry breaking). For root lines that pay only together (draft Remark 1); used by N5's multi arms only.
   `exclude=[[S1, S2]]` forbids a set of lines (one no-good cut): with two sibling lines excluded, the solve is their
   two-line flip test (`node_study.pair_test`), which sees a lateral swapped between them.
+- `search.node_swap` and `identify.Settings.node_swap` (default False), `swap_passes`: after pricing, each tree line
+  is removed and the best union of its parent's children put in its place when that lowers the score (same number of
+  lines, same node, so no price enters); enumeration up to K children, the node MIQP beyond (skipped with
+  `wide_node_miqp=False`); anchors stay. Added after N7 version 1, where every missed root line was a near miss
+  (one lateral too wide or too narrow) that pricing, which only adds lines, cannot correct.
 
 Runners `ptid/runs/node_study.py` (feeders with one wide junction, AC simulation, node scan with flip test, enumeration),
 `node_exact.py` (N1), `node_recovery.py` (N2), `node_price.py` (N2b), `node_pipeline.py` (N3), `node_probe.py` (N4),
 `node_roots.py` (N5, root lines: one root line or two nested ones at 12 to 20 laterals; builders, local search and
 the node MIQP),
+`node_roots_e2e.py` (N7, Algorithm 1 with and without the node MIQP on root lines, EU LV table form),
 `node_probe_roots.py` (N6, N4's probing on open root lines in three settings, with raised caps as extra arms),
-`node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (11 checks:
+`node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (12 checks:
 the flip test and runner-up against enumeration, the exclusion cut, warm start changes nothing, the extra price, the
-multi-line solve and the two-line flip test against enumeration, the chain layout, one-home orders equal the draft's block rule, paired meter
+multi-line solve and the two-line flip test against enumeration, the chain layout, the line swap of a near miss by the node MIQP and by enumeration, one-home orders equal the draft's block rule, paired meter
 noise, verdicts).

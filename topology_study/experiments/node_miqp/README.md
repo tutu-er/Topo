@@ -12,13 +12,13 @@ line. It can propose a line that no candidate pool contains. These tests ask fou
 | N3 | What does it change in Algorithm 1, end to end? | `node_pipeline.py` | `pipeline.jsonl` |
 | N4 | When the node question stays open, can probing settle it? | `node_probe.py` | `probe.jsonl` |
 | N5 | Root lines (short lines near the substation that carry many homes): does the node MIQP find them where the builders and a local search do not? | `node_roots.py` | `roots.jsonl` |
-| N7 | End to end on short root lines: does Algorithm 1 with the node MIQP recover the root lines that every builder misses, and without it not? (the EU LV comparison with a known truth) | `node_roots_e2e.py` | `roots_e2e.jsonl` |
+| N7 | End to end on short root lines: does Algorithm 1 with the node MIQP recover the root lines that every builder misses, and without it not? (the EU LV comparison with a known truth) | `node_roots_e2e.py` | `roots_e2e.jsonl` (version 1: `roots_e2e_v1.jsonl`) |
 | N6 | When a root line stays open, does probing settle it, under noisier meters, other loads and higher caps? | `node_probe_roots.py` | `probe_roots.jsonl` |
 
 Shared pieces (feeder generator, AC simulation, meters, node scan, enumeration) are in `ptid/runs/node_study.py`;
 checks of them in `ptid/tests/test_node_study.py`.
 
-## Three additions to the method tested here
+## Four additions to the method tested here
 
 1. **The node flip test.** `node_miqp(..., exclude=[S])` adds a no-good cut that forbids the union S. Solved with the
    best union S* excluded, it returns the best *other* union S2 and a lower bound on every other union at the node. A
@@ -39,6 +39,12 @@ checks of them in `ptid/tests/test_node_study.py`.
    `Settings.node_gamma` (`search.node_price`): a line found at a node with c children must improve the score by more
    than gamma ln(2^c - c - 2), and lines are ranked net of it. Default 0 (the draft's price, so nothing else
    changes); N2b measures gamma = 0.5 and 1 post hoc and N3 runs gamma = 0.5 end to end (arm D).
+4. **The line swap at a node** (added after N7 version 1). Pricing only adds lines, so a line of the tree that is one
+   lateral too wide or too narrow stays whenever adding the right line does not pay its price. `search.node_swap`
+   removes each tree line in turn and puts the best union of its parent's children in its place when that lowers the
+   score; the number of lines and the node stay the same, so no price enters. Without a root line the root has all
+   its laterals as children (10 to 15 here), beyond K = 9: the node MIQP solves those nodes, enumeration the others.
+   Option `Settings.node_swap` (default False); N7 version 2 runs it with and without the node MIQP.
 
 ## What the results support (for the paper's claim)
 
@@ -106,7 +112,7 @@ a junction wider than nine children.
 From `topology_study` (Python 3.10, numpy, scipy, gurobipy; on this machine `conda run -n Topo310`):
 
 ```
-python -m unittest ptid.tests.test_node_study          # 11 checks, about a minute
+python -m unittest ptid.tests.test_node_study          # 12 checks, about a minute
 python -m ptid.runs.node_exact run --workers 8          # N1, about 1.5 hours on 8 cores
 python -m ptid.runs.node_recovery run --workers 8       # N2, about 1 hour
 python -m ptid.runs.node_pipeline run --workers 8       # N3, several hours
@@ -267,3 +273,28 @@ discordant on 550 hard runs), the gain here is larger (exact line 9% to 32%, 11 
 probing added no wrong confirmation; the sample is smaller (59 open inputs, one feeder layout). Two differences from
 the draft's Algorithm 2 produce it: psi = 2000 CNY / 4.6 per score unit (the earlier study's value per resolved
 question) instead of the placeholder 5, and orders of up to three homes ranked by evidence per CNY.
+
+### N7: root lines end to end (version 1: the draft's Algorithm 1)
+
+40 feeders (seeds 51-54; 12 or 16 laterals of 3 homes; one root line or a nested chain at 0.002 and 0.003 ohm; 8
+controls), `node_pipeline.SHORT` limits, arms B (enumeration up to 9 children) and D (node MIQP beyond, gamma 0.5)
+from one common first solve. Root lines with positive true evidence (46; 31 of them feeding more than half of the
+meters, the EU LV class):
+
+| | rnj | nj | rg | volt | volt_m | resid | rrows | upgma | ward | pool | first solve | B final | D final |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| all 46 | 13% | 4% | 0% | 24% | 41% | 0% | 7% | 0% | 2% | 57% | 48% | 48% | 48% |
+| over half the meters (31) | 19% | 3% | 0% | 29% | 55% | 0% | 0% | 0% | 0% | 68% | 65% | 65% | 65% |
+
+- Algorithm 1 found many more root lines than any builder's tree (48% against 0 to 41%; F1 0.92 against 0.51 for the
+  best builder), but B and D found the same 22: every one was already in the first tree solve, and no line decided
+  by the pool's flip test was wrong.
+- The node MIQP added nothing because it was never asked about the root: the first solve always put *some* line
+  there, so the root kept 3 to 9 children. Every one of the 24 missed root lines was a **near miss**, a line of the
+  final tree one lateral (3 homes) too wide or too narrow. In 17 of the 24 the true tree scores better than the final
+  tree (by up to 15.8), and in 16 swapping the near miss for the true line lowers the score; adding the true line
+  never pays its price (the near miss already takes most of its evidence), and pricing only adds lines.
+- Hence the fourth addition, the line swap at a node (above). Removing the near miss leaves the root with 10 to 15
+  children, which only the node MIQP solves exactly. Version 2 runs both arms with the swap (B skips nodes over 9
+  children, D solves them) on fresh seeds 55-58 and then on the diagnosed seeds 51-54. Its predictions were written
+  in `node_roots_e2e.py` before it ran.

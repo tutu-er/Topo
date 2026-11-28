@@ -8,7 +8,8 @@ Lines of Algorithm 1 and where they are:
   3     first tree: local search to convergence, the tree MIQP from it, its claims checked        solve
   4-8   anchors = decided groupings (labels.py); the anchored universe (anchors.py); the tree MIQP over it with every
         anchor required; pricing and a re-solve (price); until the stopping rule holds or `rounds` searches were
-        made (refine, which Algorithm 2 also calls at every gate)
+        made (refine, which Algorithm 2 also calls at every gate); with Settings.node_swap, line swaps at their own
+        nodes after pricing (swaps, search.node_swap)
   9-11  labels of the last tree
   12    with a load: its path, its places (place_costs), and its evidence with bounds (evidence)
 """
@@ -31,7 +32,7 @@ from .builders import builder_trees
 from .labels import DECIDED, grouping, label_groupings
 from .miqp import tree_miqp
 from .model import GATE, Fitter, Model, balance, load_share
-from .search import PRICING_TOL, best_addition, local_search
+from .search import PRICING_TOL, best_addition, local_search, node_swap
 from .sets import canonical, crossing_map, lines_of
 
 
@@ -59,6 +60,10 @@ class Settings:
     wide_node_miqp: bool = True  # False keeps narrow pricing and records wide nodes as untested
     node_gamma: float = 0.       # > 0: a line found at a node with c children pays gamma ln(2^c - c - 2) more
                                  # (extended BIC; search.node_price). 0 keeps the draft's price.
+    node_swap: bool = False      # True: after pricing, swap each tree line for the best union at its own node while
+                                 # one lowers the score (search.node_swap; node MIQP beyond K children unless
+                                 # wide_node_miqp is False). False keeps the draft's Algorithm 1.
+    swap_passes: int = 3         # swap passes per round at most (each pass visits every line once)
 
 
 # ------------------------------------------------------------------ the load as a leaf
@@ -157,6 +162,20 @@ def price(model, tree, universe, require, seconds, st):
             scans.append(info)
     return tree, dict(info, scans=scans, added=[list(C) for C in added], still_paying=None if best is None else list(best),
                       re_solve=re_solve)
+
+
+def swaps(model, tree, require, st):
+    """Line swaps at their own nodes (search.node_swap), pass after pass until none lowers the score or swap_passes
+    passes were made; the anchors stay. Returns (tree, info) with every swap made."""
+    made, passes = [], 0
+    keep = [C for group in require for C in group]
+    for passes in range(1, st.swap_passes+1):
+        tree, info = node_swap(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp, keep=keep)
+        made += info["swaps"]
+        if not info["swaps"]:
+            break
+    return tree, dict(swaps=made, passes=passes, enumerated=info["enumerated"], by_miqp=info["by_miqp"],
+                      skipped=info["skipped"])
 
 
 def improving_flip(labels, domain, require, model):
@@ -319,7 +338,8 @@ def refine(model, tree, pool, st, say=lambda *_: None, *, initial_solve=None):
             f"{time.perf_counter()-t0:.0f} s")
         last = rounds[-1] if rounds else None
         if last is not None and anchors == previous and not last["price"]["added"] \
-                and last["price"]["certified"] and last["solve"]["gap_closed"]:
+                and last["price"]["certified"] and last["solve"]["gap_closed"] \
+                and not last.get("swap", {}).get("swaps"):
             stop = "converged: same anchors, single-line pricing complete, restricted gap closed to tolerance"
         elif rnd == st.rounds:
             stop = "round limit"
@@ -351,7 +371,10 @@ def refine(model, tree, pool, st, say=lambda *_: None, *, initial_solve=None):
             witness["action"] = "warm_start"
         tree, sinfo = solve(model, universe, starts, seconds, st, require)
         tree, pinfo = price(model, tree, universe, require, seconds, st)
-        last_domain = lines_of([*universe, *pinfo["added"]], model.leaves)
+        if st.node_swap:
+            tree, record["swap"] = swaps(model, tree, require, st)
+        last_domain = lines_of([*universe, *pinfo["added"]], model.leaves)   # the swapped-in lines lie outside the
+        # last solve's domain, so its bound does not cover them (improving_flip checks the domain)
         last_require = require
         last_solve = pinfo["re_solve"] or sinfo
         pool = lines_of([*pool, *universe, *pinfo["added"], *tree], model.leaves)
