@@ -91,8 +91,8 @@ homes), and its junction is **wider than 9 children** (a missed root line leaves
 that case with a known truth; its first rows (chain layout, 12 laterals, r = 0.003 ohm, relative length about 0.04)
 look like the EU LV short near-root row: the builders' pool held 4 of 8 root lines and the best builder's tree 3,
 the local search found 6 and the node MIQP all 8. From 0.005 ohm on the builders propose almost every root line, so
-shorter lines (0.0015 and 0.002 ohm) were added. The end-to-end form of the EU LV comparison (Algorithm 1 with and
-without the node MIQP against each builder's tree, on near-root lines) follows on the same feeders.
+shorter lines (0.0015 and 0.002 ohm) were added. The full N5 results and the end-to-end form of the EU LV comparison
+(N7: Algorithm 1 with and without the node MIQP against each builder's tree) are below.
 
 ## Feeders
 
@@ -273,6 +273,40 @@ discordant on 550 hard runs), the gain here is larger (exact line 9% to 32%, 11 
 probing added no wrong confirmation; the sample is smaller (59 open inputs, one feeder layout). Two differences from
 the draft's Algorithm 2 produce it: psi = 2000 CNY / 4.6 per score unit (the earlier study's value per resolved
 question) instead of the placeholder 5, and orders of up to three homes ranked by evidence per CNY.
+
+### N5: root lines, node refinement from the laterals alone
+
+132 feeders: 12, 16 or 20 laterals of 3 homes; one root line feeding 70% of the laterals, or a nested chain (80% and
+40%), at r = 0.0015 to 0.008 ohm; 12 controls; seeds 51-54. Each arm starts from the true laterals with the root lines
+removed, so the root junction holds all of them (12 to 20 children), and adds the best paying line while one exists:
+by a local search over the junction's unions (best pair, then one-child moves), or by the node MIQP (gamma 0, or 0.5).
+Root lines with positive true evidence, all widths and both layouts:
+
+| r (ohm) | root lines | evidence (median) | in builder pool | in the best builder's tree (volt_m) | local search | node MIQP (gamma 0.5) | node MIQP, in no builder's tree | decided right by its flip test |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.0015 | 28 | 9.4 | 6 (21%) | 4 (14%) | 8 (29%) | 8 (29%) | 4 | 1 (4%) |
+| 0.002 | 34 | 17.7 | 14 (41%) | 11 (32%) | 16 (47%) | 17 (50%) | 11 | 4 (12%) |
+| 0.003 | 36 | 43.6 | 29 (81%) | 25 (69%) | 33 (92%) | 35 (97%) | 7 | 17 (47%) |
+| 0.005 | 36 | 148.3 | 35 (97%) | 33 (92%) | 35 (97%) | 36 (100%) | 1 | 33 (92%) |
+| 0.008 | 36 | 395.3 | 36 (100%) | 36 (100%) | 36 (100%) | 36 (100%) | 0 | 32 (89%) |
+| all | 170 | 61.0 | 120 (71%) | 109 (64%) | 128 (75%) | 132 (78%) | 23 | 87 (51%) |
+
+Paired on the same root lines (found by one only; two-sided sign test): node MIQP against the best builder's tree 32
+to 9 (p < 0.001; at r <= 0.003, 29 to 9, p = 0.002); against any builder's tree (the pool) 23 to 11 (p = 0.058);
+against the local search 8 to 4 (p = 0.39); gamma 0.5 against gamma 0, 0 to 4.
+
+- Against its predictions: the node MIQP finds more root lines than any builder's tree (78% against 64%), 23 of them
+  in no builder's tree, mostly at 0.002 and 0.003 ohm, the short near-root lines of the EU LV study; no decided line
+  is wrong; with gamma 0.5 the controls get no line (gamma 0: 0.25 per control). Not confirmed: it finds only a few
+  more than the local search over the same unions (8 to 4), and the gap does not grow with the junction's width (at
+  20 laterals they tie). From the flat junction, a local search over unions finds most root lines too.
+- What only the node MIQP gives here is the bound: 87 of the 170 lines decided right by its flip test, none wrong.
+  A local search finds a line but cannot certify it against the other 2^c - c - 2 unions.
+- Wrong additions in feeders with root lines: about 0.2 to 0.3 per feeder in every arm, up to 1 per feeder at
+  16 laterals and 0.0015 to 0.002 ohm (the root line's evidence spread over a near miss and a noise line); none is
+  decided.
+- At 0.0015 ohm (evidence median 9) every method finds under a third; at 0.005 ohm and above the builders propose
+  almost every root line themselves.
 
 ### N7: root lines end to end (version 1: the draft's Algorithm 1)
 
