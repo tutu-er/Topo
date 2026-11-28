@@ -80,14 +80,14 @@ python -m ptid.runs.node_exact run --workers 8          # N1, about 1.5 hours on
 python -m ptid.runs.node_recovery run --workers 8       # N2, about 1 hour
 python -m ptid.runs.node_pipeline run --workers 8       # N3, several hours
 python -m ptid.runs.node_probe run --workers 8          # N4, about 1.5 hours
-python -m ptid.runs.node_roots run --workers 8          # N5, about 2.5 hours
+python -m ptid.runs.node_roots run --workers 8          # N5, about 2 hours
 python -m ptid.runs.node_probe_roots run --workers 8    # N6, several hours (only open inputs are probed)
 python -m ptid.runs.node_exact summary                  # and likewise for the others: the tables below
 ```
 
 Each `run` is resumable and appends to the `.jsonl` file named above (in this directory; `--out` changes it). Quick
 versions: `--widths 6,8 --seeds 1` (N1), `--widths 10 --seeds 11` (N2), `--seeds 21 --r 0.014` (N4),
-`--per 3 --seeds 51 --r 0.004` (N5), `--settings base --r 0.005 --seeds 61` (N6).
+`--widths 12 --seeds 51 --r 0.005` (N5), `--settings base --r 0.005 --seeds 61` (N6).
 `python experiments/run.py node-exact run` and so on work as well.
 
 ## Results (development runs, 2026-11-28; every number below is rebuilt by `python -m ptid.runs.node_report`)

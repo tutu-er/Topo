@@ -83,7 +83,8 @@ Method code, all backward compatible (defaults keep earlier results):
 
 Runners `ptid/runs/node_study.py` (feeders with one wide junction, AC simulation, node scan with flip test, enumeration),
 `node_exact.py` (N1), `node_recovery.py` (N2), `node_price.py` (N2b), `node_pipeline.py` (N3), `node_probe.py` (N4),
-`node_roots.py` (N5, root lines: chain and sibling layouts; local search, single-line and multi-line node refinement),
+`node_roots.py` (N5, root lines: one root line or two nested ones at 12 to 20 laterals; builders, local search and
+the node MIQP),
 `node_probe_roots.py` (N6, N4's probing on open root lines in three settings, with raised caps as extra arms),
 `node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (11 checks:
 the flip test and runner-up against enumeration, the exclusion cut, warm start changes nothing, the extra price, the
