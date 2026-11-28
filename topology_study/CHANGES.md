@@ -92,6 +92,7 @@ Runners `ptid/runs/node_study.py` (feeders with one wide junction, AC simulation
 the node MIQP),
 `node_roots_e2e.py` (N7, Algorithm 1 with and without the node MIQP on root lines, EU LV table form),
 `node_probe_roots.py` (N6, N4's probing on open root lines in three settings, with raised caps as extra arms),
+`node_confirm.py` (N8, N7 version 2 with the method frozen and predictions registered, new seeds and a second layout),
 `node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (12 checks:
 the flip test and runner-up against enumeration, the exclusion cut, warm start changes nothing, the extra price, the
 multi-line solve and the two-line flip test against enumeration, the chain layout, the line swap of a near miss by the node MIQP and by enumeration, one-home orders equal the draft's block rule, paired meter

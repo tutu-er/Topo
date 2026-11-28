@@ -13,6 +13,7 @@ line. It can propose a line that no candidate pool contains. These tests ask fou
 | N4 | When the node question stays open, can probing settle it? | `node_probe.py` | `probe.jsonl` |
 | N5 | Root lines (short lines near the substation that carry many homes): does the node MIQP find them where the builders and a local search do not? | `node_roots.py` | `roots.jsonl` |
 | N7 | End to end on short root lines: does Algorithm 1 with the node MIQP recover the root lines that every builder misses, and without it not? (the EU LV comparison with a known truth; version 2 with the line swap) | `node_roots_e2e.py` | `roots_e2e.jsonl` (version 1: `roots_e2e_v1.jsonl`) |
+| N8 | Confirmation: does N7 version 2 hold, with the method frozen and the predictions registered, on new seeds and a second feeder layout? | `node_confirm.py` | `confirm.jsonl` |
 | N6 | When a root line stays open, does probing settle it, under noisier meters, other loads and higher caps? | `node_probe_roots.py` | `probe_roots.jsonl` |
 
 Shared pieces (feeder generator, AC simulation, meters, node scan, enumeration) are in `ptid/runs/node_study.py`;
@@ -455,3 +456,15 @@ minutes per feeder (D) and 11.5 (B). Controls (16): 0.19 extra lines per feeder 
   better by 5.7 to 21. Both nested lines are off at once, and the swap moves one line at a time.
 - **B's 3 lines that D missed.** In each, D's tree scores at least as well as B's; in two it scores better than the
   true tree (by 0.9 and 3.0). They are near-equivalents, and the flip test leaves them open.
+
+### N8: confirmation of the frozen method (registered before the run)
+
+Registered on 2026-11-28, after N7 version 2 and before any N8 row: the method is Algorithm 1 with the line swap
+(`Settings.node_swap`, 3 passes) and the extended-BIC price gamma = 0.5 at nodes wider than 9 children, which the node
+MIQP solves (arm D); arm B is the same without the node MIQP. Limits `node_pipeline.SHORT`; the per-feeder code is
+N7's, unchanged. Seeds 71-74, used by no earlier test. Layout A is N7's; layout B is a second one: 14 or 18 laterals
+of 2 homes, a root line feeding 60% of them or a chain (75% and 35%), r = 0.003 and 0.0045 ohm (1.5 times A's, so
+the root line's voltage drop is about A's). 80 feeders, 16 of them controls. The five predictions are in
+`node_confirm.py`: D finds more root lines than B pooled (p < 0.05), mostly by node MIQP swaps; D beats every
+builder's tree and the pool in each layout; no decided line is wrong; no control tree of D has more lines than B's;
+layout A repeats N7 (D at least 60%) and D finds more than B in each layout. Every row is reported, whatever it shows.

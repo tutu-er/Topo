@@ -9,7 +9,7 @@ import contextlib
 import io
 from pathlib import Path
 
-from ptid.runs import (node_exact, node_pipeline, node_price, node_probe, node_probe_roots, node_recovery, node_roots,
+from ptid.runs import (node_confirm, node_exact, node_pipeline, node_price, node_probe, node_probe_roots, node_recovery, node_roots,
                        node_roots_e2e)
 
 HERE = Path(__file__).resolve().parents[2]/"experiments"/"node_miqp"
@@ -21,7 +21,8 @@ PARTS = (("N1 exactness and scaling", node_exact, "exact.jsonl"),
          ("N5 root lines", node_roots, "roots.jsonl"),
          ("N7 version 1: root lines end to end, the draft's Algorithm 1", node_roots_e2e, "roots_e2e_v1.jsonl"),
          ("N7 version 2: root lines end to end with the line swap", node_roots_e2e, "roots_e2e.jsonl"),
-         ("N6 probing an open root line", node_probe_roots, "probe_roots.jsonl"))
+         ("N6 probing an open root line", node_probe_roots, "probe_roots.jsonl"),
+         ("N8 confirmation of the frozen method", node_confirm, "confirm.jsonl"))
 
 
 def main():
