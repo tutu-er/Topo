@@ -58,7 +58,10 @@ checks of them in `ptid/tests/test_node_study.py`.
    unions pay; the extended BIC (gamma = 0.5) removes the noise additions in the controls at almost no loss (N2b, N3).
    To be registered before it is adopted.
 5. **Probing completes it.** When a node question stays open, aggregated orders chosen by eq. (15) decide the exact
-   hidden line in 15 of 47 open segments against 4 passively, with no wrong decision (N4).
+   hidden line in 15 of 47 open segments against 4 passively, with no wrong decision (N4). On root lines feeding
+   more than half the homes they decide 9 of 47 against 2, and 14 of 47 with raised caps, at about 1000 CNY per
+   extra decided line against the 2000 CNY value, with no wrong decision; with meters twice as noisy one day of
+   orders is not enough (N6).
 
 Limits: one feeder layout (one wide junction, two meters per block); synthetic loads; the flat tree around the
 junction is given in N1, N2 and N4; at 20 or more children the node MIQP often stops at its limit; "absent" cannot be
@@ -307,6 +310,67 @@ against the local search 8 to 4 (p = 0.39); gamma 0.5 against gamma 0, 0 to 4.
   decided.
 - At 0.0015 ohm (evidence median 9) every method finds under a third; at 0.005 ohm and above the builders propose
   almost every root line themselves.
+
+### N6: probing a root line
+
+96 inputs: 12 laterals of 3 homes; a root line of 0.004, 0.006 or 0.008 ohm from the trunk end feeding 7 to 10 of
+them (more than half, the EU LV class), or none (24 controls); seeds 61-68; three settings: base (voltage noise 0.05%
+per reading, own load variation 0.10), noisy (0.10%, a lower meter class) and varied (load variation 0.20). After an
+8-day history the node MIQP at the root (12 children, 4082 unions) proposes the best union and its flip test decides
+it or leaves it open; only open questions are probed, for one day. The r levels were set after a 6-input pilot (seeds
+61-62, not in the results); the predictions were written in `node_probe_roots.py` before the full run.
+
+After the history the flip test decided 25 of the 72 root lines, all right (base 7 of 24, noisy 0 of 24, varied 18
+of 24); every control stayed open. Open after the history: 71 inputs, 47 with a root line and 24 controls.
+
+All 71 open inputs (the 47 root lines; controls apart):
+
+| arm | exact line decided right (of 47) | decided in the 24 controls | wrong decisions | existence decided right | leader right (of 71) | overlap with the line | homes per day | kWh per day | CNY per day | CNY per extra decided line |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| passive | 2 | 0 | 0 | 26 | 35 | 0.69 | 0 | 0 | 0 | - |
+| greedy1 (draft: one home per hour) | 6 | 0 | 0 | 31 | 45 | 0.78 | 15.0 | 41.9 | 89.6 | 1590 |
+| greedy3 (up to 3 homes, per CNY) | 9 | 1 (absent, right) | 0 | 32 | 48 | 0.80 | 26.7 | 66.6 | 92.1 | 817 |
+| random3 (same hours and homes) | 1 | 1 (absent, right) | 0 | 31 | 42 | 0.70 | 23.8 | 38.1 | 92.1 | - |
+| greedy6 (up to 6 homes, caps 40/200 CNY) | 14 | 0 | 0 | 37 | 54 | 0.86 | 40.4 | 100.6 | 174.2 | 1030 |
+| random6 (same hours and homes) | 3 | 0 | 0 | 33 | 47 | 0.83 | 36.4 | 63.0 | 163.7 | 11622 |
+
+CNY per extra decided line = the arm's cost on all 71 open inputs divided by its right decisions beyond passive
+operation's (as in N4, where it was about 450).
+
+Paired on the same inputs (exact line, right with one arm only; two-sided sign test): greedy3 against passive 8 to 0
+(p = 0.008); greedy3 against random3 9 to 1 (p = 0.021); greedy1 against passive 5 to 1 (p = 0.22); greedy6 against
+passive 12 to 0 (p < 0.001); greedy6 against random6 11 to 0 (p = 0.001); greedy6 against greedy3 6 to 2 (p = 0.29).
+
+Root lines decided right, by setting and by r (open root lines only):
+
+| | open root lines | passive | greedy1 | greedy3 | random3 | greedy6 | random6 | CNY per extra decided line, greedy3 / greedy6 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| base | 17 | 1 | 3 | 4 | 0 | 8 | 1 | 724 / 570 |
+| noisy | 24 | 0 | 0 | 1 | 0 | 1 | 0 | 1600 / 6247 |
+| varied | 6 | 1 | 3 | 4 | 1 | 5 | 2 | 388 / 533 |
+| r = 0.004 ohm | 22 | 1 | 3 | 4 | 1 | 6 | 2 | 669 / 763 |
+| r = 0.006 ohm | 14 | 0 | 2 | 2 | 0 | 4 | 0 | 617 / 569 |
+| r = 0.008 ohm | 11 | 1 | 1 | 3 | 0 | 4 | 1 | 484 / 577 |
+
+(In the noisy row, greedy3's cost per line counts its right "absent" in a control.)
+
+- **N4 holds on root lines.** With N4's caps, aggregated orders decide 9 of the 47 open root lines against 2
+  passively and 1 with random orders bought in the same hours (8 to 0, p = 0.008), with no wrong decision. N4 had 15
+  of 47 against 4 (11 to 0, p = 0.001). Raising the caps to 6 homes and 200 CNY a day decides 14 of 47 (12 to 0
+  against passive, p < 0.001; 11 to 0 against random orders of the same cost), about the N4 count.
+- **The cost is higher than in N4 but below the value.** About 820 CNY (greedy3) and 1030 CNY (greedy6) per extra
+  decided line, against 450 in N4 and the 2000 CNY value per resolved question. A likely reason (not tested): one
+  lateral more or less among 7 to 10 changes the fit little, so each membership needs its own share of orders.
+- **Predictions:** aggregated orders decide more root lines than passive operation and than random orders in every
+  setting (confirmed, though only base and varied have more than one decision); raised caps decide more again where
+  the base caps run out (confirmed in base, 8 against 4, and varied, 5 against 4; in noisy, 1 each); no wrong decision
+  in any arm (confirmed); noisy meters leave more open and varied loads fewer (confirmed: 24, 17 and 6 of 24 open
+  after the history).
+- **Not reproduced with the noisier meters.** At 0.10% voltage noise probing decided 1 of 24 open root lines in a
+  day, at 1600 to 6250 CNY per line, above the value. Doubling the noise divides each hour's evidence by about four;
+  the true evidence after the history was -3.7, 0.5 and 7.7 (medians at 0.004, 0.006, 0.008 ohm). With that meter
+  class one probing day is not enough. Longer probing was not tested.
+- In the controls no arm named a line; greedy3 and random3 each certified "no root line" once.
 
 ### N7: root lines end to end (version 1: the draft's Algorithm 1)
 
