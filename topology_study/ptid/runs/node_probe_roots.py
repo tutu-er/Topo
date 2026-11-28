@@ -16,12 +16,17 @@ Arms (paired: same loads and meter noise in every hour):
 Homes that can respond: 40%, up to 3 kW either way (a battery or an EV charger through an aggregator); prices 1.2
 CNY/kWh up, 4 CNY/kWh down; every tree's predicted voltages must stay in [0.96, 1.035] pu.
 
-Settings varied (each with segments of r = 0.003, 0.005, 0.008 ohm and controls):
+Settings varied (each with root lines of r = 0.004, 0.006, 0.008 ohm and controls):
   base         voltage noise 0.05% per reading, own load variation 0.10 (loads that move together);
   noisy        voltage noise 0.10% (a lower meter class);
   varied       own load variation 0.20 (more passive excitation).
 
-Predictions written before the full run (after a 6-input pilot of the base setting): aggregated orders decide more
+Pilot (6 inputs, base setting, r = 0.003, 0.005, 0.008, seeds 61-62; not part of the results): at 0.003 ohm the root
+line's true evidence was below zero (-2: with loads that move together there is nothing to find), at 0.005 about 7
+and at 0.008 about 35; 5 of 6 were open after the history; greedy6 decided 2, greedy1 1, greedy3, random and passive
+none. The levels were therefore moved to 0.004, 0.006 and 0.008 ohm.
+
+Predictions written before the full run (after the pilot): aggregated orders decide more
 root lines than passive operation and than random orders of the same cost, in every setting; raised caps decide more
 again where the base caps run out; no arm decides a wrong line; noisy meters leave more open, varied loads fewer.
 
@@ -48,7 +53,7 @@ LATERALS, PER, HISTORY = 12, 3, 192
 SETTINGS = {"base": dict(v_noise=5e-4, excitation=.10),
             "noisy": dict(v_noise=1e-3, excitation=.10),
             "varied": dict(v_noise=5e-4, excitation=.20)}
-R_LEVELS = (0., .003, .005, .008)
+R_LEVELS = (0., .004, .006, .008)       # after the pilot (see the docstring)
 SEEDS = tuple(range(61, 69))
 ARMS = ("passive", "greedy1", "greedy3", "random3", "greedy6", "random6")
 CAPS = {"greedy6": (40., 200.), "random6": (40., 200.)}

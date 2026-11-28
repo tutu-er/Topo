@@ -12,6 +12,7 @@ line. It can propose a line that no candidate pool contains. These tests ask fou
 | N3 | What does it change in Algorithm 1, end to end? | `node_pipeline.py` | `pipeline.jsonl` |
 | N4 | When the node question stays open, can probing settle it? | `node_probe.py` | `probe.jsonl` |
 | N5 | Root lines (short lines near the substation that carry many homes): does the node MIQP find them where the builders and a local search do not? | `node_roots.py` | `roots.jsonl` |
+| N7 | End to end on short root lines: does Algorithm 1 with the node MIQP recover the root lines that every builder misses, and without it not? (the EU LV comparison with a known truth) | `node_roots_e2e.py` | `roots_e2e.jsonl` |
 | N6 | When a root line stays open, does probing settle it, under noisier meters, other loads and higher caps? | `node_probe_roots.py` | `probe_roots.jsonl` |
 
 Shared pieces (feeder generator, AC simulation, meters, node scan, enumeration) are in `ptid/runs/node_study.py`;
@@ -111,6 +112,7 @@ python -m ptid.runs.node_recovery run --workers 8       # N2, about 1 hour
 python -m ptid.runs.node_pipeline run --workers 8       # N3, several hours
 python -m ptid.runs.node_probe run --workers 8          # N4, about 1.5 hours
 python -m ptid.runs.node_roots run --workers 8          # N5, about 2 hours
+python -m ptid.runs.node_roots_e2e run --workers 8      # N7, several hours
 python -m ptid.runs.node_probe_roots run --workers 8    # N6, several hours (only open inputs are probed)
 python -m ptid.runs.node_exact summary                  # and likewise for the others: the tables below
 ```

@@ -32,6 +32,7 @@ EXPERIMENTS = {
     "node-pipeline": ("node_pipeline", "N3: Algorithm 1 with and without node search, from one first solve"),
     "node-probe": ("node_probe", "N4: probing an open node question (one-meter, aggregated and random orders)"),
     "node-roots": ("node_roots", "N5: root lines (chain and siblings) found by the node MIQP, local search, builders"),
+    "node-roots-e2e": ("node_roots_e2e", "N7: Algorithm 1 with and without the node MIQP on short root lines"),
     "node-probe-roots": ("node_probe_roots", "N6: probing an open root line, three settings, raised caps"),
     "node-price": ("node_price", "N2b: extended-BIC price for lines found at wide nodes (post hoc, saved rows)"),
     "node-report": ("node_report", "Rebuild all node MIQP tables into experiments/node_miqp/TABLES.md"),
