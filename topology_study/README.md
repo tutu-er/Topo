@@ -14,6 +14,7 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 | small 至 huge 开发库恢复、五法比较与放宽求解时间 | `random-restore`、`random`、`random-budget` | [逐网比较及原始限时记录](experiments/four_feeders/random_comparison.json)、[延时复算说明](experiments/four_feeders/README.md) |
 | 根侧漏线的逐阶段归因与相邻负荷变体复查 | `root-ablation`、`root-variants` | [根侧消融](experiments/root_ablation/README.md) |
 | 24 与 36 表计的宽分叉算例 | `wide-feeders` | [生成参数和消融结果](experiments/wide_feeders/README.md) |
+| 固定锚点后的单条加线或换线，含 60 表固定接点穷举 | `line-exchange`、`exchange-reference` | [21 网配对与固定接点核验](experiments/line_exchange/README.md) |
 | 小例穷举、节点对照、基线自检 | `pool-audit`、`node-pairs`、`node`、`baselines-check` | [候选池核验](experiments/pool_audit/README.md)、[节点对照](experiments/node_pairs/README.md)、[固定节点结果](experiments/four_feeders/README.md) |
 
 例如，`python -B experiments/run.py root-ablation` 查看根侧漏线归因。`python -B experiments/run.py offline --cases paper15 --jobs C` 生成日初辨识，再运行 `python -B experiments/run.py probe --case paper15 --policies P0 P3` 可比较被动和滚动调度。已发布的记录存于 `experiments/` 的各实验目录。新运行的四网回执、缓存和详细轨迹默认写入本地 `outputs/`。

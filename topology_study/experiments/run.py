@@ -17,6 +17,8 @@ EXPERIMENTS = {
     "root-variants": ("root_variants", "Check the same failure mode on alternate hidden-load variants"),
     "baselines-check": ("passive_baselines", "Verify the passive baselines on a known topology"),
     "wide-feeders": ("wide_feeders", "Compare identification stages on larger feeders with wide junctions"),
+    "line-exchange": ("exchange_cases", "Compare adding or replacing one line on the same anchored tree"),
+    "exchange-reference": ("exchange_reference", "Verify a ten-child line replacement against exhaustive enumeration"),
     "random-restore": ("random_dev_recovery", "Rebuild development feeders and verify the original file hashes"),
     "random": ("random_dev_compare", "Compare five methods on verified small to huge development feeders"),
     "random-budget": ("random_budget", "Repeat time-limited random-feeder solves with a larger budget"),
