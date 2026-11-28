@@ -73,7 +73,8 @@ checks of them in `ptid/tests/test_node_study.py`.
 The two claims for the paper, with their evidence: **the node MIQP finds root lines** that no builder's tree holds
 (N5, N7 version 2), and **it proves them** against every other union at junctions beyond enumeration (N1; 0 wrong
 decisions in N2, N5, N7), with probing for those it leaves open (N4, N6). Their limits: at 0.002 ohm it finds lines
-it cannot yet certify; nested chains with both lines off are still missed; at 20 or more children it often stops at
+it cannot yet certify; in some chains Algorithm 1 misses lateral lines, and the root lines with them, within its
+2 rounds; at 20 or more children it often stops at
 its time limit; every feeder here is synthetic.
 
 Limits: one feeder layout (one wide junction, two meters per block); synthetic loads; the flat tree around the
@@ -453,7 +454,10 @@ minutes per feeder (D) and 11.5 (B). Controls (16): 0.19 extra lines per feeder 
 - **D's 27 misses.** In 14, D's tree scores better than the true tree (by up to 3.0), so an exact search on this score
   would not return the truth either. In 5, the true tree scores better by less than the margin (0.8 to 4.0), so the
   line would stay open even if found. The other 8 (6 feeders, all chains) are search failures: the true tree scores
-  better by 5.7 to 21. Both nested lines are off at once, and the swap moves one line at a time.
+  better by 5.7 to 21. The gap is not at the root lines (checked after the run): with the true root lines put in,
+  D's tree still scores 6 to 72 worse than the truth, because it lacks 1 to 3 lateral lines. Most of those laterals
+  do not pay when added alone, only together with the right root lines, so a two-line swap at the root would not
+  recover them. Algorithm 1 stopped at its limit of 2 rounds in every feeder, in both arms.
 - **B's 3 lines that D missed.** In each, D's tree scores at least as well as B's; in two it scores better than the
   true tree (by 0.9 and 3.0). They are near-equivalents, and the flip test leaves them open.
 
