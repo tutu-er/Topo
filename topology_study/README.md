@@ -16,6 +16,7 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 | 24 与 36 表计的宽分叉算例 | `wide-feeders` | [生成参数和消融结果](experiments/wide_feeders/README.md) |
 | 固定锚点后的单条加线或换线，含 60 表固定接点穷举 | `line-exchange`、`exchange-reference` | [21 网配对与固定接点核验](experiments/line_exchange/README.md) |
 | 小例穷举、节点对照、基线自检 | `pool-audit`、`node-pairs`、`node`、`baselines-check` | [候选池核验](experiments/pool_audit/README.md)、[节点对照](experiments/node_pairs/README.md)、[固定节点结果](experiments/four_feeders/README.md) |
+| Node MIQP 专项检验：与穷举的精确性和规模（N1）、构树遗漏线路的找回（N2）、宽节点加线的扩展 BIC 价格（N2b）、算法 1 端到端（N3）、开放节点问题的探测（N4） | `node-exact`、`node-recovery`、`node-price`、`node-pipeline`、`node-probe`、`node-report` | [设计、命令与结果](experiments/node_miqp/README.md)、[由逐行记录重建的全部表格](experiments/node_miqp/TABLES.md) |
 
 例如，`python -B experiments/run.py root-ablation` 查看根侧漏线归因。`python -B experiments/run.py offline --cases paper15 --jobs C` 生成日初辨识，再运行 `python -B experiments/run.py probe --case paper15 --policies P0 P3` 可比较被动和滚动调度。已发布的记录存于 `experiments/` 的各实验目录。新运行的四网回执、缓存和详细轨迹默认写入本地 `outputs/`。
 
@@ -33,7 +34,8 @@ pieces under `rnj_wzzt_dr/` for review; those stay unchanged (CHANGES.md).
 | Identification, current code | The passive method recovered all 23 identifiable groups on the four named feeders. Increasing the time limits raised coverage on the verified random feeders from 9/21 to 21/21. Mean grouping F1 was 0.622 on all 21, compared with 0.608 for the first Tree MIQP warm start and 0.399 for RNJ. See [the paired comparison](experiments/four_feeders/README.md). |
 | Node refinement | Local search had already recovered the four named trees. With a controlled missing shared line, Node MIQP recovered the target at junctions with 16 and 22 estimated children. See [the paired experiment](experiments/wide_feeders/README.md). |
 | Identification, historical code | The 240-case run predates the large-feeder solver fix. The later development and real-feeder runs used an earlier implementation of pricing and stopping. See [historical results](RESULTS.md). |
-| Probing | All 28 simulated policy trajectories had zero orders at the registered prices. See [the dispatch results](experiments/four_feeders/probe_results.md). |
+| Node MIQP tests (2026-11-28) | Exact against enumeration up to 16 children (54/54, best and runner-up union), faster from about 10 children. With its flip test, 0 of 240 node decisions named a wrong union (30 without it); it added 11 true lines that no builder proposed. A line found among 2^d unions needs a higher price (extended BIC, option `node_gamma`; development finding). See [the node MIQP tests](experiments/node_miqp/README.md). |
+| Probing | All 28 simulated policy trajectories had zero orders at the registered prices (psi = 5 CNY per unit). With psi = 2000 CNY per resolved question and aggregated orders, probing open node questions decided more without any wrong decision (N4 in [the node MIQP tests](experiments/node_miqp/README.md)). See also [the dispatch results](experiments/four_feeders/probe_results.md). |
 | Registered result | Only the predecessor's sealed test (holds; RESULTS.md §1). Its test set is spent |
 | Decisions needed | PLAN.md §3 |
 

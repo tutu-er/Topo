@@ -27,6 +27,12 @@ EXPERIMENTS = {
     "identify-cases": ("identify_cases", "Run, summarize or compare development and EU-LV identification"),
     "probe-cases": ("probe_cases", "Run the earlier simulated-day probing protocol"),
     "checks": ("checks", "Inspect extra lines and wide nodes in saved identification runs"),
+    "node-exact": ("node_exact", "N1: node MIQP and its flip test against enumeration, 6 to 24 children"),
+    "node-recovery": ("node_recovery", "N2: hidden shared lines the builders miss, found by the node MIQP"),
+    "node-pipeline": ("node_pipeline", "N3: Algorithm 1 with and without node search, from one first solve"),
+    "node-probe": ("node_probe", "N4: probing an open node question (one-meter, aggregated and random orders)"),
+    "node-price": ("node_price", "N2b: extended-BIC price for lines found at wide nodes (post hoc, saved rows)"),
+    "node-report": ("node_report", "Rebuild all node MIQP tables into experiments/node_miqp/TABLES.md"),
 }
 
 

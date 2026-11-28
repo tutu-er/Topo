@@ -8,6 +8,7 @@ every node was enumerated or its lower bound excludes an improvement larger than
 """
 from __future__ import annotations
 
+import math
 import time
 
 import gurobipy as gp
@@ -55,13 +56,16 @@ def columns(model, family):
     return np.column_stack(cols["p"]+cols["q"])/np.sqrt(model.sigma2)
 
 
-def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False):
+def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False, exclude=(), start=None):
     """Eq. (10) at one node as an MIQP: the best union of 2 to c-1 of the node's children `kids`, with every
     coefficient of the tree refitted. z_a = 1 when child a is in the new line. The new line's coefficient r enters as
     u_ab = r z_a z_b (a <= b): meter rows of child a see the flow of child b and vice versa. McCormick inequalities make
     u_ab equal to r z_a z_b at binary z, so the fit stays linear; x likewise with v_ab. The columns enter scaled
     (model.factor_scaled), as in the tree MIQP: phi = d theta, and u_ab, v_ab likewise, so each McCormick inequality
     carries its column's d.
+    exclude: unions (as sets of child indices) the solve may not pick, one no-good cut each; with the best union
+    excluded, the solve is the node's flip test: the best other union and a lower bound on every other union.
+    start: a union (set of child indices) given to Gurobi as the binaries' start; it changes no result, only speed.
     Returns (line or None, objective or None, status). With return_bound=True, append the
     lower bound for the best single addition at this node, also when no incumbent was found."""
     leaves, c = model.leaves, len(kids)
@@ -92,6 +96,11 @@ def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False):
         u, v = m.addMVar(P, lb=0., ub=BOUND*du), m.addMVar(P, lb=0., ub=BOUND*dv)
         m.addConstr(z.sum() >= 2)
         m.addConstr(z.sum() <= c-1)
+        for E in exclude:                                  # no-good cut: differ from E in at least one child
+            E = set(E)
+            m.addConstr(gp.quicksum(1-z[a] for a in E)+gp.quicksum(z[a] for a in range(c) if a not in E) >= 1)
+        if start is not None:
+            z.Start = np.array([1. if a in set(start) else 0. for a in range(c)])
         for k, (a, b) in enumerate(pairs):
             for w, coef, s in ((u, rx[0], du[k]), (v, rx[1], dv[k])):     # w = s * (r z_a z_b)
                 m.addConstr(w[k] <= s*coef)
@@ -124,19 +133,31 @@ def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False):
         return line, value, status, bound
 
 
-def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200, *, wide_node_miqp=True):
+def node_price(model, children_count, gamma):
+    """The extra price (crit units) of a line chosen among the 2^c - c - 2 unions of a node with c children:
+    gamma ln(2^c - c - 2) in score units (the extended BIC of Chen and Chen, 2008). gamma = 0: no extra price."""
+    if gamma <= 0:
+        return 0.
+    c = children_count
+    return gamma*math.log(2**c-c-2)/(model.N/2)
+
+
+def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200, *, wide_node_miqp=True, node_gamma=0.):
     """Find an improving line compatible with the tree. A wide-node time limit can leave better lines untested.
-    info["certified"] means all nodes exclude any single-line improvement larger than PRICING_TOL in crit."""
+    info["certified"] means all nodes exclude any single-line improvement larger than PRICING_TOL in crit.
+    node_gamma > 0 charges a line found at a node with c children the extra price node_price(c): it must improve crit
+    by more than that, and lines are ranked by their improvement less it."""
     leaves = model.leaves
     tree = lines_of(tree, leaves)
     family = canonical([*basis(leaves), *tree])
     current = Fitter(model, family).crit(tree)
     best, gain = None, 0.
     info = dict(enumerated=0, by_miqp=0, unproved=0, evaluated=0, tolerance=PRICING_TOL,
-                wide_nodes=[], tree_crit=current)
+                wide_nodes=[], tree_crit=current, node_gamma=node_gamma)
     for node, kids in children(family, leaves).items():
         if len(kids) < 3:
             continue
+        extra = node_price(model, len(kids), node_gamma)
         if len(kids) > max_children:                       # too wide to enumerate: the node MIQP
             if not wide_node_miqp:
                 info["unproved"] += 1
@@ -151,14 +172,14 @@ def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200, *, w
             if line is not None:
                 value = Fitter(model, [*family, line]).crit([*tree, line])
                 upper = min(upper, value)
-                improves = current-value > PRICING_TOL
-                if current-value > max(gain, PRICING_TOL):
-                    best, gain = line, current-value
+                improves = current-value-extra > PRICING_TOL
+                if current-value-extra > max(gain, PRICING_TOL):
+                    best, gain = line, current-value-extra
             if bound is not None and bound > upper+PRICING_TOL:
                 status, bound = gp.GRB.NUMERIC, None
             if bound is not None:
                 bound = min(bound, upper)
-            ruled_out = bound is not None and bound >= current-PRICING_TOL and not improves
+            ruled_out = bound is not None and bound >= current-extra-PRICING_TOL and not improves
             info["unproved"] += not (improves or ruled_out)
             info["wide_nodes"].append(dict(node=node, children=len(kids), status=status, upper=upper, bound=bound,
                                            no_improvement=ruled_out))
@@ -170,7 +191,7 @@ def best_addition(model, tree, max_children=9, node_seconds=60., chunk=200, *, w
             fit = Fitter(model, [*family, *part])
             for U in part:
                 info["evaluated"] += 1
-                g = current-fit.crit([*tree, U])
+                g = current-fit.crit([*tree, U])-extra
                 if g > max(gain, PRICING_TOL):
                     best, gain = U, g
     info.update(gain=gain, certified=best is None and info["unproved"] == 0)

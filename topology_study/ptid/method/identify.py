@@ -57,6 +57,8 @@ class Settings:
     node_refinement: bool = True  # disable node pricing for the paired tree-only comparison
     p_s: int | None = None       # None uses the measured P/Q rule; 1 or 2 fixes the penalty dimension
     wide_node_miqp: bool = True  # False keeps narrow pricing and records wide nodes as untested
+    node_gamma: float = 0.       # > 0: a line found at a node with c children pays gamma ln(2^c - c - 2) more
+                                 # (extended BIC; search.node_price). 0 keeps the draft's price.
 
 
 # ------------------------------------------------------------------ the load as a leaf
@@ -136,19 +138,22 @@ def price(model, tree, universe, require, seconds, st):
         return tree, dict(disabled=True, certified=False, added=[], still_paying=None, re_solve=None,
                           enumerated=0, by_miqp=0, evaluated=0, unproved=0, wide_nodes=[])
     added, re_solve = [], None
-    best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp)
+    best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp,
+                                   node_gamma=st.node_gamma)
     scans = [info]
     while best is not None and len(added) < st.repairs:
         tree = lines_of([*tree, best], model.leaves)
         added.append(best)
-        best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp)
+        best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp,
+                                   node_gamma=st.node_gamma)
         scans.append(info)
     if added:
         again, re_solve = solve(model, [*universe, *tree], [frozenset(tree)], seconds, st, require)
         fit = Fitter(model, [*again, *tree])
         if fit.crit(again) < fit.crit(tree)-1e-12:
             tree = again
-            best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp)
+            best, info = best_addition(model, tree, st.K, st.node_seconds, wide_node_miqp=st.wide_node_miqp,
+                                   node_gamma=st.node_gamma)
             scans.append(info)
     return tree, dict(info, scans=scans, added=[list(C) for C in added], still_paying=None if best is None else list(best),
                       re_solve=re_solve)

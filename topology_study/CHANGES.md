@@ -65,3 +65,20 @@ exactly (development and real cases). RESULTS.md, section 4, records the equalit
   - the case readers and the selection.
 - The package runs with only this directory on the path: 12 tests without data pass in isolation; 3 data tests and
   2 legacy tests pass with the case files and the repository.
+
+## 5. Node MIQP tests (2026-11-28, branch `exp/node_miqp_20261128`)
+
+Method code, all backward compatible (defaults keep earlier results):
+
+- `search.node_miqp(..., exclude=[S])`: one no-good cut per excluded union. With the best union excluded, the solve is
+  the node's flip test (best other union and a bound on every other union).
+- `search.node_miqp(..., start=S)`: the binaries' MIP start; speed only.
+- `search.node_price` and `best_addition(..., node_gamma=)`, `identify.Settings.node_gamma` (default 0): a line found
+  at a node with c children must also pay gamma ln(2^c - c - 2), the extended BIC. Not adopted; tested in
+  experiments/node_miqp (N2b, N3 arm D).
+
+Runners `ptid/runs/node_study.py` (feeders with one wide junction, AC simulation, node scan with flip test, enumeration),
+`node_exact.py` (N1), `node_recovery.py` (N2), `node_price.py` (N2b), `node_pipeline.py` (N3), `node_probe.py` (N4),
+`node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (8 checks:
+the flip test and runner-up against enumeration, the exclusion cut, warm start changes nothing, the extra price, one-home
+orders equal the draft's block rule, paired meter noise, verdicts).
