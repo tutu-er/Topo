@@ -9,14 +9,16 @@ import contextlib
 import io
 from pathlib import Path
 
-from ptid.runs import node_exact, node_pipeline, node_price, node_probe, node_recovery
+from ptid.runs import node_exact, node_pipeline, node_price, node_probe, node_probe_roots, node_recovery, node_roots
 
 HERE = Path(__file__).resolve().parents[2]/"experiments"/"node_miqp"
 PARTS = (("N1 exactness and scaling", node_exact, "exact.jsonl"),
          ("N2 recovery of hidden lines", node_recovery, "recovery.jsonl"),
          ("N2b the price of a line found among many (post hoc)", node_price, "recovery.jsonl"),
          ("N3 Algorithm 1 end to end", node_pipeline, "pipeline.jsonl"),
-         ("N4 probing an open node question", node_probe, "probe.jsonl"))
+         ("N4 probing an open node question", node_probe, "probe.jsonl"),
+         ("N5 root lines", node_roots, "roots.jsonl"),
+         ("N6 probing an open root line", node_probe_roots, "probe_roots.jsonl"))
 
 
 def main():

@@ -11,6 +11,8 @@ line. It can propose a line that no candidate pool contains. These tests ask fou
 | N2b | What price should a line found among 2^d - d - 2 unions pay? (post hoc, from the N2 and N1 rows) | `node_price.py` | (none) |
 | N3 | What does it change in Algorithm 1, end to end? | `node_pipeline.py` | `pipeline.jsonl` |
 | N4 | When the node question stays open, can probing settle it? | `node_probe.py` | `probe.jsonl` |
+| N5 | Root lines (short lines near the substation that carry many homes): does the node MIQP find them where the builders and a local search do not? | `node_roots.py` | `roots.jsonl` |
+| N6 | When a root line stays open, does probing settle it, under noisier meters, other loads and higher caps? | `node_probe_roots.py` | `probe_roots.jsonl` |
 
 Shared pieces (feeder generator, AC simulation, meters, node scan, enumeration) are in `ptid/runs/node_study.py`;
 checks of them in `ptid/tests/test_node_study.py`.
@@ -37,6 +39,24 @@ checks of them in `ptid/tests/test_node_study.py`.
    than gamma ln(2^c - c - 2), and lines are ranked net of it. Default 0 (the draft's price, so nothing else
    changes); N2b measures gamma = 0.5 and 1 post hoc and N3 runs gamma = 0.5 end to end (arm D).
 
+## What the results support (for the paper's claim)
+
+1. **One solve replaces 2^d - d - 2 refits, exactly.** Same best union and runner-up as enumeration on 54 of 54
+   junctions up to 16 children, faster from about 10 children, 10 times faster at 16 (N1).
+2. **It finds lines no candidate pool holds.** 11 of the 31 paying segments that none of the nine builders proposed
+   (N2). This is the case the paper should lead with; the earlier wide-feeder test needed a hand-restricted pool.
+3. **Its decisions are reliable only with its flip test.** The excluded-union solve certifies the chosen union
+   against all other unions at the node: 0 wrong of 240, against 30 wrong on the gain alone (N2).
+4. **A line found among M candidates needs ln M more price.** The draft's price lets the best of thousands of noise
+   unions pay; the extended BIC (gamma = 0.5) removes the noise additions in the controls at almost no loss (N2b, N3).
+   To be registered before it is adopted.
+5. **Probing completes it.** When a node question stays open, aggregated orders chosen by eq. (15) decide the exact
+   hidden line in 15 of 47 open segments against 4 passively, with no wrong decision (N4).
+
+Limits: one feeder layout (one wide junction, two meters per block); synthetic loads; the flat tree around the
+junction is given in N1, N2 and N4; at 20 or more children the node MIQP often stops at its limit; "absent" cannot be
+certified at wide nodes with this margin; N3 uses shortened solver limits.
+
 ## Feeders
 
 One junction of d blocks (laterals of 0.03 to 0.05 ohm), two meters per block (service cables 0.015 to 0.025 ohm), a
@@ -55,16 +75,19 @@ a junction wider than nine children.
 From `topology_study` (Python 3.10, numpy, scipy, gurobipy; on this machine `conda run -n Topo310`):
 
 ```
-python -m unittest ptid.tests.test_node_study          # 8 checks, under a minute
+python -m unittest ptid.tests.test_node_study          # 11 checks, about a minute
 python -m ptid.runs.node_exact run --workers 8          # N1, about 1.5 hours on 8 cores
 python -m ptid.runs.node_recovery run --workers 8       # N2, about 1 hour
 python -m ptid.runs.node_pipeline run --workers 8       # N3, several hours
 python -m ptid.runs.node_probe run --workers 8          # N4, about 1.5 hours
+python -m ptid.runs.node_roots run --workers 8          # N5, about 2.5 hours
+python -m ptid.runs.node_probe_roots run --workers 8    # N6, several hours (only open inputs are probed)
 python -m ptid.runs.node_exact summary                  # and likewise for the others: the tables below
 ```
 
 Each `run` is resumable and appends to the `.jsonl` file named above (in this directory; `--out` changes it). Quick
-versions: `--widths 6,8 --seeds 1` (N1), `--widths 10 --seeds 11` (N2), `--seeds 21 --r 0.014` (N4).
+versions: `--widths 6,8 --seeds 1` (N1), `--widths 10 --seeds 11` (N2), `--seeds 21 --r 0.014` (N4),
+`--per 3 --seeds 51 --r 0.004` (N5), `--settings base --r 0.005 --seeds 61` (N6).
 `python experiments/run.py node-exact run` and so on work as well.
 
 ## Results (development runs, 2026-11-28; every number below is rebuilt by `python -m ptid.runs.node_report`)
@@ -88,10 +111,11 @@ hourly data. Times include both solves (best union, then the flip test with it e
 - Up to 16 children the node MIQP and its flip test give the same best union and the same runner-up as enumeration
   on 54 of 54 feeders, with objective differences below 4e-11. Enumeration time grows about 4 times per 2 children,
   the node MIQP's about 3 times; they cross at about 10 children (the default K = 9 is right).
-- At 20 children 5 of 9 pairs of solves are proved within 300 s each; at 24 children 1 of 9. The lower bound, not the
-  incumbent, is what is slow: a warm start from a quick local search over unions (`--warm`, file `exact_warm.jsonl`)
-  proved 6 of 9 at 20 children at the same median time and improved one time-limited incumbent; it changes no
-  result. Wider nodes need a stronger formulation (open item).
+- At 20 children 5 of 9 pairs of solves are proved within 300 s each; at 24 children 1 of 9. A warm start from a
+  quick local search over unions (`--warm`, file `exact_warm.jsonl`; it changes no result of a finished solve)
+  proved 6 of 9 at 20 children and 3 of 9 at 24, and where solves stop at the limit it finds better unions: 1 of 9 at
+  20 children, 5 of 9 at 24. It should be on for nodes beyond about 16 children. Proving optimality there needs a
+  stronger formulation (open item); the time-limited result is still a feasible union and a valid bound.
 - No "present" decision named a wrong union at any width.
 
 ### N2: it finds lines the builders miss; the flip test keeps its decisions right; it also proposes noise lines
@@ -144,26 +168,57 @@ it end to end (arm D) and it needs a registered test before it is adopted.
 
 ### N3: Algorithm 1 end to end
 
-(running; see TABLES.md when it finishes)
+12 feeders: one junction of 12 or 16 blocks, segment 0 (control), 0.006 or 0.010 ohm, load variation 0.32, seeds 41
+and 42; the shortened solver limits of `node_pipeline.SHORT` (tree MIQP 20 s, flip tests 10 s, node MIQP 30 s).
+
+| arm | mean F1, segments (8) | segment in final tree | extra lines | mean F1, controls (4) | extra lines, controls |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| A tree MIQP only | 0.806 | 6 | 12 | 0.807 | 4 |
+| B enumeration up to 9 children | 0.809 | 6 | 11 | 0.807 | 4 |
+| C node MIQP beyond 9 (the method) | 0.799 | 6 | 12 | 0.800 | 5 |
+| D C with gamma = 0.5 | 0.806 | 6 | 12 | 0.807 | 4 |
+
+- Here every segment was already in the builders' pool (8 of 8) and the first tree solve had 6 of them, so node
+  search had nothing to add: all four arms end with the same 6 segments, none decided with 10 s flip tests. The node
+  MIQP's value end to end is where the pool lacks the line (N2: 11 of 31 such segments found; N5).
+- C adds one noise line in a control that A, B and D do not; D (gamma = 0.5) removes it, as N2b predicts.
+- F1 stops near 0.81 in every arm: laterals of two homes are weakly identified and every arm merges some of them.
+  N5 and N6 therefore use 3 homes per lateral (and 2 and 4 in N5).
 
 ### N4: probing an open node question
 
-48 inputs: d = 12, 8-day history, weak load variation (0.10), segment 0 (control), 0.006, 0.010, 0.014 ohm, 12 seeds
-(21-32); one probing day. 43 were open after the history (31 with a segment, 12 controls):
+First set: 48 inputs, d = 12, 8-day history, weak load variation (0.10), segment 0 (control), 0.006, 0.010,
+0.014 ohm, 12 seeds (21-32); one probing day. Added set (after the first set's results, for power, same design):
+seeds 33-44 at 0.010 and 0.014 ohm, 24 inputs. Open after the history: 43 of the first set (31 with a segment, 12
+controls) and 16 of the added set; 59 together.
+
+All 59 open inputs:
 
 | arm | exact union decided right | existence decided right | any wrong decision | leader right | overlap with the segment | homes probed per day | kWh per day | CNY per day |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| passive | 3 | 15 | 0 | 21 | 0.53 | 0 | 0 | 0 |
-| greedy1 (draft: one home per hour) | 5 | 17 | 0 | 27 | 0.66 | 14.1 | 39.5 | 83.9 |
-| greedy3 (up to 3 homes, per CNY) | 7 | 21 | 0 | 25 | 0.69 | 23.7 | 62.9 | 86.8 |
-| random3 (same hours and homes) | 2 | 15 | 0 | 24 | 0.62 | 22.8 | 37.5 | 85.6 |
+| passive | 4 | 21 | 0 | 27 | 0.50 | 0 | 0 | 0 |
+| greedy1 (draft: one home per hour) | 10 | 26 | 0 | 36 | 0.65 | 13.6 | 38.0 | 82.8 |
+| greedy3 (up to 3 homes, per CNY) | 15 | 30 | 0 | 34 | 0.68 | 23.1 | 61.2 | 83.8 |
+| random3 (same hours and homes) | 6 | 23 | 0 | 33 | 0.61 | 21.9 | 36.4 | 84.9 |
 
 "Existence decided" means some union beats the flat junction by 4.6 (a hidden shared line is there) without naming it
-exactly; "exact union" also needs every one-block change to lose by 4.6.
+exactly; "exact union" also needs every one-block change to lose by 4.6 (the node flip test).
 
-- Paired on the same inputs, greedy3 decides existence where passive operation does not in 6 inputs and the reverse
-  in none (sign test p = 0.031); against random orders bought in the same hours, also 6 to 0 (p = 0.031). Exact
-  unions: 4 to 0 against passive (p = 0.125), 5 to 0 against random (p = 0.0625).
+Paired on the same inputs (right with one arm only; two-sided sign test):
+
+| comparison | exact union | existence |
+| --- | --- | --- |
+| greedy3 vs passive, all 59 | 11 to 0 (p = 0.001) | 9 to 0 (p = 0.004) |
+| greedy3 vs random3, all 59 | 9 to 0 (p = 0.004) | 7 to 0 (p = 0.016) |
+| greedy1 vs passive, all 59 | 6 to 0 (p = 0.031) | 5 to 0 (p = 0.063) |
+| greedy3 vs greedy1, all 59 | 5 to 0 (p = 0.063) | |
+| greedy3 vs passive, first set (43) | 4 to 0 (p = 0.125) | 6 to 0 (p = 0.031) |
+| greedy3 vs passive, added set (16) | 7 to 0 (p = 0.016) | 3 to 0 (p = 0.25) |
+
+- Among the 47 open inputs with a segment, the exact hidden line was decided by passive operation in 4 (9%), by the
+  draft's one-meter probing in 10 (21%) and by aggregated orders in 15 (32%), at about 84 CNY per day, with no wrong
+  decision in any arm. Random orders in the same hours (same cost) decided 6: where the orders go matters, not only
+  that energy is bought.
 - No arm made a wrong decision, and probing did not create one: in the controls every arm stayed open, and with
   greedy3 the best noise union's gain fell further than with passive operation in 8 of 12.
 - The limit is the budget: the 100 CNY daily cap is spent in 8 to 10 hours (about 63 kWh of mostly cheap increases),
@@ -176,6 +231,7 @@ exactly; "exact union" also needs every one-block change to lose by 4.6.
   block (a day of 3 kW at one member adds about 8 score units of evidence, three homes at once about 80).
 
 Compared with the earlier hourly-probing study (2026-11-23: strong greedy 40% against passive 29% correct, 62 to 2
-discordant on 550 hard runs), the direction and the absence of wrong confirmations are the same; the sample here is
-small (43 open inputs). 24 more inputs (seeds 33-44 at 0.010 and 0.014 ohm) were added after these results for power;
-they are reported separately below.
+discordant on 550 hard runs), the gain here is larger (exact line 9% to 32%, 11 to 0 discordant) and, as there,
+probing added no wrong confirmation; the sample is smaller (59 open inputs, one feeder layout). Two differences from
+the draft's Algorithm 2 produce it: psi = 2000 CNY / 4.6 per score unit (the earlier study's value per resolved
+question) instead of the placeholder 5, and orders of up to three homes ranked by evidence per CNY.

@@ -69,7 +69,8 @@ def arm_record(out, true, target, seconds):
                 missed=len(set(true)-set(tree)), target_in_tree=target is not None and target in set(tree),
                 target_label=None if target is None or target not in labels else labels[target]["label"],
                 added=[a for x in rounds for a in x["price"].get("added", [])],
-                node_miqp_calls=len(wide), node_miqp_status=[w["status"] for w in wide],
+                node_miqp_calls=sum(w["status"] != "skipped" for w in wide),
+                node_miqp_status=[w["status"] for w in wide],
                 stop=out["stop"], scope=out["scope"], crit=out["model"]["crit"], seconds=seconds)
 
 
@@ -130,7 +131,7 @@ def summary(args):
             a = [r["arms"][name] for r in g]
             print(f"| {name} | {np.mean([x['f1'] for x in a]):.3f} | {sum(x['target_in_tree'] for x in a)} | "
                   f"{sum(x['target_label'] == 'decided' for x in a)} | {sum(x['extra'] for x in a)} | "
-                  f"{sum(x['node_miqp_calls'] for x in a)} | {np.median([x['seconds'] for x in a])/60:.1f} |")
+                  f"{sum(sum(s != 'skipped' for s in x['node_miqp_status']) for x in a)} | {np.median([x['seconds'] for x in a])/60:.1f} |")
         if not title.startswith("controls"):
             only = sum(r["arms"]["C"]["target_in_tree"] and not r["arms"]["B"]["target_in_tree"] for r in g)
             lost = sum(not r["arms"]["C"]["target_in_tree"] and r["arms"]["B"]["target_in_tree"] for r in g)

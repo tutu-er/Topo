@@ -133,6 +133,93 @@ def node_miqp(model, tree, kids, seconds, seed=7, *, return_bound=False, exclude
         return line, value, status, bound
 
 
+def node_miqp_multi(model, tree, kids, seconds, lines=2, seed=7, *, gamma=0., exclude=()):
+    """Up to `lines` new sibling lines at one node in one solve: disjoint unions, each of 2 to c-1 of the node's
+    children (or unused), with every coefficient of the tree refitted. Lines that pay only together (draft Remark 1),
+    such as several root lines leaving one junction, are found jointly; one line at a time, the union of all of them
+    can be the best single line and block them.
+    Because the new lines are disjoint, each product column (pair of children a, b) belongs to at most one line, so the
+    columns are those of node_miqp and the response is sum_l w^l_ab with w^l_ab = r_l z^l_a z^l_b (McCormick, as there).
+    Each used line pays the line price and, with gamma > 0, node_price. Symmetry: line l+1 is used only if line l is,
+    and its smallest child comes after line l's. exclude: sets of lines (each a set of child indices) that the solve
+    may not return, one no-good cut each (the two-line flip test of node_study.pair_test).
+    Returns (list of new lines, objective in crit units, status, lower bound or None)."""
+    leaves, c, L = model.leaves, len(kids), lines
+    family = canonical([*basis(leaves), *lines_of(tree, leaves)])
+    K = len(family)
+    pairs = [(a, b) for a in range(c) for b in range(a, c)]
+    meters = [[i for i in kid if i < model.n] for kid in kids]
+    new = {"p": [], "q": []}
+    for a, b in pairs:
+        for which in ("p", "q"):
+            X = np.zeros((model.T, model.n))
+            X[:, meters[a]] += model.flow(kids[b], which)[:, None]
+            if a != b:
+                X[:, meters[b]] += model.flow(kids[a], which)[:, None]
+            X -= model.gamma*X.mean(1, keepdims=True)
+            new[which].append(X.ravel()/np.sqrt(model.sigma2))
+    F = np.column_stack([columns(model, family), *new["p"], *new["q"]])
+    y = model.Yt.ravel()/np.sqrt(model.sigma2)
+    A, cvec, const, d = factor_scaled(F.T@F, F.T@y, model.yy)
+    P = len(pairs)
+    du, dv = d[2*K:2*K+P], d[2*K+P:]
+    extra = node_price(model, c, gamma)
+    with gp.Model(env=env()) as m:
+        for key, value in dict(Threads=1, TimeLimit=max(.01, seconds), MIPGap=1e-4, Seed=seed).items():
+            m.setParam(key, value)
+        theta = m.addMVar(2*K, lb=0., ub=BOUND*d[:2*K])
+        z = m.addMVar((L, c), vtype=gp.GRB.BINARY)
+        used = m.addMVar(L, vtype=gp.GRB.BINARY)
+        rx = m.addMVar((L, 2), lb=0., ub=BOUND)
+        u, v = m.addMVar((L, P), lb=0.), m.addMVar((L, P), lb=0.)
+        m.addConstr(used.sum() >= 1)
+        for a in range(c):
+            m.addConstr(z[:, a].sum() <= 1)                                  # disjoint lines
+        for l in range(L):
+            m.addConstr(z[l, :].sum() >= 2*used[l])
+            m.addConstr(z[l, :].sum() <= (c-1)*used[l])
+            m.addConstr(rx[l, 0] <= BOUND*used[l])
+            m.addConstr(rx[l, 1] <= BOUND*used[l])
+            if l > 0:
+                m.addConstr(used[l] <= used[l-1])
+                for a in range(c):                                           # min child of line l > min of l-1
+                    m.addConstr(z[l, a] <= gp.quicksum(z[l-1, b] for b in range(a)))
+            for k, (a, b) in enumerate(pairs):
+                for w, coef, s in ((u, rx[l, 0], du[k]), (v, rx[l, 1], dv[k])):
+                    m.addConstr(w[l, k] <= s*coef)
+                    m.addConstr(w[l, k] <= s*BOUND*z[l, a])
+                    m.addConstr(w[l, k] <= s*BOUND*z[l, b])
+                    if a == b:
+                        m.addConstr(w[l, k] >= s*coef-s*BOUND*(1-z[l, a]))
+                    else:
+                        m.addConstr(w[l, k] >= s*coef-s*BOUND*(2-z[l, a]-z[l, b]))
+        for config in exclude:                       # in the solve's order (by smallest child); lines beyond it unused
+            order = sorted((set(Sx) for Sx in config), key=min)
+            m.addConstr(gp.quicksum((1-z[l, a]) if l < len(order) and a in order[l] else z[l, a]
+                                    for l in range(L) for a in range(c)) >= 1)
+        res = m.addMVar(len(cvec), lb=-gp.GRB.INFINITY)
+        Au, Av = A[:, 2*K:2*K+P], A[:, 2*K+P:]
+        m.addConstr(res == A[:, :2*K]@theta+sum(Au@u[l]+Av@v[l] for l in range(L))-cvec)
+        old = sum(1 for C in family if 1 < len(C) < leaves)
+        m.setObjective((res@res+const)/model.N+model.alpha*(old+used.sum())+extra*used.sum())
+        m.optimize()
+        status = int(m.Status)
+        found, value = [], None
+        if m.SolCount:
+            for l in range(L):
+                if used.X[l] > .5:
+                    found.append(tuple(sorted(i for a in range(c) if z.X[l, a] > .5 for i in kids[a])))
+            value = float(m.ObjVal)
+        bound = None
+        if status in (gp.GRB.OPTIMAL, gp.GRB.TIME_LIMIT):
+            try:
+                raw = float(m.ObjBound)
+                bound = raw if abs(raw) < gp.GRB.INFINITY else None
+            except (gp.GurobiError, AttributeError):
+                pass
+        return found, value, status, bound
+
+
 def node_price(model, children_count, gamma):
     """The extra price (crit units) of a line chosen among the 2^c - c - 2 unions of a node with c children:
     gamma ln(2^c - c - 2) in score units (the extended BIC of Chen and Chen, 2008). gamma = 0: no extra price."""

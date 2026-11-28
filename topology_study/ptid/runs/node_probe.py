@@ -1,6 +1,6 @@
 """N4, probing an open node question (experiments/node_miqp/README.md).
 
-After a short history (2 days), the node MIQP at the wide junction proposes the best union S*. At every hourly gate
+After the history (8 days), the node MIQP at the wide junction proposes the best union S*. At every hourly gate
 of one extra day the competing trees are the flat junction T, T + S* and T + S' for every union S' that differs from
 S* in one child: each such rival is one block's membership question. S* is kept current: one-child moves at every
 gate while one scores better, and the node MIQP again every 6 hours. The operator may buy, each hour, one block of
@@ -155,12 +155,14 @@ def random_order(model, lead, rivals, fc, up, down, budget, count, rng):
     return None, 0., []
 
 
-ARMS = {"passive": None, "greedy1": 1, "greedy3": 3, "random3": 3}
+ARMS = ("passive", "greedy1", "greedy3", "random3")     # greedy<k>: up to k homes per hour; random<k>: paired
 
 
-def day(f, sim, hist, flat, kids, S, arm, plan=None, seconds=60.):
-    """One probing day from the leading union S. plan: {hour: homes} of the paired greedy arm (for random3).
-    Returns the data with the day, and the log of the gates."""
+def day(f, sim, hist, flat, kids, S, arm, plan=None, seconds=60., caps=None):
+    """One probing day from the leading union S. arm: passive, greedy<k> (eq. 15, up to k homes per hour; k > 1 ranks
+    offers per CNY) or random<k> (random offers at as many homes, in the hours of plan = {hour: homes} of the paired
+    greedy arm). caps: (CNY per hour, CNY per day), default the draft's. Returns the data with the day, and the log."""
+    cap_hour, cap_day = caps or (PS.cap_hour, PS.cap_day)
     up, down = participants(f)
     data, spent, log, settled = hist, 0., [], 0
     rng = np.random.default_rng([20261128, 6, f.seed, f.n])
@@ -172,9 +174,9 @@ def day(f, sim, hist, flat, kids, S, arm, plan=None, seconds=60.):
         gaps = {k: H[k]-H[lead] for k in H if k != lead}
         settled = settled+1 if all(g >= M for g in gaps.values()) else 0
         entry = dict(hour=h, lead=lead, S=sorted(S), gaps=gaps, order=None, cost=0., J=None)
-        budget = min(PS.cap_hour, PS.cap_day-spent)
+        budget = min(cap_hour, cap_day-spent)
         u = None
-        wanted = ARMS[arm] if not arm.startswith("random") else len((plan or {}).get(h, []))
+        wanted = int(arm[6:]) if arm.startswith("greedy") else             len((plan or {}).get(h, [])) if arm.startswith("random") else 0
         if wanted and settled < 2 and budget > 1e-6:
             fc = probe.forecast(data, data["P"], data["Q"], f.hours+h)
             pred = {k: probe.prediction(model, t, fc) for k, t in trees.items()}
@@ -183,7 +185,7 @@ def day(f, sim, hist, flat, kids, S, arm, plan=None, seconds=60.):
                 if arm.startswith("greedy"):
                     now = {k: dict(high=gaps[k], kind="inside") for k in rivals}
                     J, u, cost, homes = choose_order(model, pred[lead], rivals, now, fc, up, down, budget, wanted,
-                                                     ratio=arm == "greedy3")
+                                                     ratio=wanted > 1)
                     entry["J"] = float(J)
                 else:
                     u, cost, homes = random_order(model, pred[lead], rivals, fc, up, down, budget, wanted, rng)
@@ -219,19 +221,27 @@ def one(f, seconds):
     row = dict(feeder=feeder_dict(f), load_modelled=load, target=target,
                true_evidence=None if target is None else score(model, flat)-score(model, true),
                start=start, start_verdict=verdict(start, target), arms={})
-    plan = None
-    for arm in ARMS:
-        data, log = day(f, sim, hist, flat, kids, S0, arm, plan, seconds)
-        if arm == "greedy3":
-            plan = {e["hour"]: list(e["order"]) for e in log if e["order"]}
-        end_model, _ = model_of(data)
-        end = node_scan(end_model, flat, seconds)
-        row["arms"][arm] = dict(end=end, verdict=verdict(end, target), leader=leader(end, target),
-                                cost=sum(e["cost"] for e in log), hours=sum(e["order"] is not None for e in log),
-                                homes=sum(len(e["order"] or {}) for e in log),
-                                kwh=sum(abs(a) for e in log for a in (e["order"] or {}).values())*BASE_KW, log=log)
+    row["arms"] = probe_arms(f, sim, hist, flat, kids, S0, target, ARMS, seconds)
     row["seconds"] = time.perf_counter()-t0
     return row
+
+
+def probe_arms(f, sim, hist, flat, kids, S0, target, arms, seconds, caps=None):
+    """Each arm's probing day from the leading union S0, then the node MIQP and its flip test on all the data.
+    random<k...> buys in the hours of greedy<k...> (run it first); caps: {arm: (CNY per hour, CNY per day)}."""
+    out, plans = {}, {}
+    for arm in arms:
+        plan = plans.get(arm[6:]) if arm.startswith("random") else None
+        data, log = day(f, sim, hist, flat, kids, S0, arm, plan, seconds, (caps or {}).get(arm))
+        if arm.startswith("greedy"):
+            plans[arm[6:]] = {e["hour"]: list(e["order"]) for e in log if e["order"]}
+        end_model, _ = model_of(data)
+        end = node_scan(end_model, flat, seconds)
+        out[arm] = dict(end=end, verdict=verdict(end, target), leader=leader(end, target),
+                        cost=sum(e["cost"] for e in log), hours=sum(e["order"] is not None for e in log),
+                        homes=sum(len(e["order"] or {}) for e in log),
+                        kwh=sum(abs(a) for e in log for a in (e["order"] or {}).values())*BASE_KW, log=log)
+    return out
 
 
 def leader(scan, target):

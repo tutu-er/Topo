@@ -76,9 +76,16 @@ Method code, all backward compatible (defaults keep earlier results):
 - `search.node_price` and `best_addition(..., node_gamma=)`, `identify.Settings.node_gamma` (default 0): a line found
   at a node with c children must also pay gamma ln(2^c - c - 2), the extended BIC. Not adopted; tested in
   experiments/node_miqp (N2b, N3 arm D).
+- `search.node_miqp_multi`: up to L disjoint new sibling lines at one node in one solve (shared product columns,
+  symmetry breaking). For root lines that pay only together (draft Remark 1); used by N5's multi arms only.
+  `exclude=[[S1, S2]]` forbids a set of lines (one no-good cut): with two sibling lines excluded, the solve is their
+  two-line flip test (`node_study.pair_test`), which sees a lateral swapped between them.
 
 Runners `ptid/runs/node_study.py` (feeders with one wide junction, AC simulation, node scan with flip test, enumeration),
 `node_exact.py` (N1), `node_recovery.py` (N2), `node_price.py` (N2b), `node_pipeline.py` (N3), `node_probe.py` (N4),
-`node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (8 checks:
-the flip test and runner-up against enumeration, the exclusion cut, warm start changes nothing, the extra price, one-home
-orders equal the draft's block rule, paired meter noise, verdicts).
+`node_roots.py` (N5, root lines: chain and sibling layouts; local search, single-line and multi-line node refinement),
+`node_probe_roots.py` (N6, N4's probing on open root lines in three settings, with raised caps as extra arms),
+`node_report.py` (all tables into experiments/node_miqp/TABLES.md). Tests `ptid/tests/test_node_study.py` (11 checks:
+the flip test and runner-up against enumeration, the exclusion cut, warm start changes nothing, the extra price, the
+multi-line solve and the two-line flip test against enumeration, the chain layout, one-home orders equal the draft's block rule, paired meter
+noise, verdicts).

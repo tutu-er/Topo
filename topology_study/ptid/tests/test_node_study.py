@@ -108,6 +108,65 @@ class NodeStudyTest(unittest.TestCase):
             self.assertEqual(kept, plain)
             self.assertAlmostEqual(info1["gain"]*model.N/2, .5*g, places=6)
 
+    def test_multi_line_node_miqp_matches_enumeration(self):
+        from itertools import combinations
+        from ptid.method.model import Fitter
+        from ptid.method.search import node_miqp_multi
+        from ptid.runs.node_study import root_feeder
+        f = root_feeder(2, 3, 1, 2, .006, hours=72, seed=4)            # 7 laterals, two root lines of 3
+        data = Simulator(f).history()
+        model, _ = model_of(data)
+        _, flat, _ = truth(f)
+        _, kids = widest(model, flat)
+        c = len(kids)
+        U = lambda S: tuple(sorted(i for a in S for i in kids[a]))
+        crit = lambda t: Fitter(model, t).crit(t)
+        singles = [frozenset(S) for k in range(2, c) for S in combinations(range(c), k)]
+        configs = [[S] for S in singles]+[[S, T] for S, T in combinations(singles, 2) if not S & T]
+        best = min(configs, key=lambda cfg: crit([*flat, *(U(S) for S in cfg)]))
+        found, value, status, bound = node_miqp_multi(model, flat, kids, 60., 2)
+        self.assertEqual(status, 2)
+        self.assertEqual(sorted(found), sorted(U(S) for S in best))
+        self.assertAlmostEqual(value, crit([*flat, *found]), delta=1e-6*(1+abs(value)))
+
+    def test_pair_test_matches_enumeration(self):
+        from itertools import combinations
+        from ptid.method.model import Fitter
+        from ptid.runs.node_study import node_label, root_feeder, root_lines
+        f = root_feeder(2, 3, 1, 2, .006, hours=72, seed=4)            # 7 laterals, two root lines of 3
+        data = Simulator(f).history()
+        model, _ = model_of(data)
+        _, flat, _ = truth(f)
+        C, D = root_lines(f)
+        tree = [*flat, C, D]
+        label = node_label(model, tree, C, 60., pairs=[C, D])
+        self.assertEqual(len(label["pairs"]), 1)
+        pair = label["pairs"][0]
+        _, kids = widest(model, flat)
+        U = lambda S: tuple(sorted(i for a in S for i in kids[a]))
+        crit = lambda t: Fitter(model, t).crit(t)
+        singles = [frozenset(S) for k in range(2, len(kids)) for S in combinations(range(len(kids)), k)]
+        configs = [[S] for S in singles]+[[S, T] for S, T in combinations(singles, 2) if not S & T]
+        others = [crit([*flat, *(U(S) for S in cfg)]) for cfg in configs if sorted(map(U, cfg)) != sorted([C, D])]
+        h = crit(tree)
+        self.assertAlmostEqual(pair["gap_other"], (min(others)-h)*model.N/2, delta=1e-4)
+        self.assertLessEqual(pair["gap_low"], pair["gap_other"]+1e-6)
+        self.assertAlmostEqual(pair["gap_none"], (crit(flat)-h)*model.N/2, delta=1e-6)
+
+    def test_chain_root_lines(self):
+        from ptid.runs.node_study import lateral_parent, network, root_feeder, root_lines
+        f = root_feeder(1, 4, 2, 2, .006, inner=2, seed=3)          # a root line over 4 laterals, one inside over 2
+        (outer, _, p0), (inner, _, p1) = f.roots
+        self.assertEqual((len(outer), len(inner), p0, p1), (4, 2, -1, 0))
+        self.assertTrue(set(inner) < set(outer))
+        self.assertEqual({lateral_parent(f, j) for j in inner}, {201})
+        self.assertEqual({lateral_parent(f, j) for j in set(outer)-set(inner)}, {200})
+        true, flat, _ = truth(f)
+        self.assertEqual(len(true), len(flat)+2)
+        self.assertTrue(all(rl in true for rl in root_lines(f)))
+        edges = {(e["from_bus"], e["to_bus"]) for e in network(f)[0]["branches"]}
+        self.assertTrue({(1, 200), (200, 201)} <= edges)
+
     def test_verdicts(self):
         scan = dict(decision="present", line=[0, 1, 2, 3], gain=9.)
         self.assertEqual(node_probe.verdict(scan, (0, 1, 2, 3)), "right")

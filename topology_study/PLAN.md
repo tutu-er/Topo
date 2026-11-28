@@ -40,6 +40,21 @@
    - a protocol whose hypotheses and analysis are written before the set is built;
    - one run.
 
+### After the node MIQP tests (2026-11-28, experiments/node_miqp/README.md)
+
+10. **Register the node claims** (D8): the node flip test as the decision rule for node insertions, the extended-BIC
+    price (gamma = 0.5) for lines found at nodes, and node-targeted probing with aggregated orders; then one run on
+    fresh seeds and on feeders with more meters per block (the two-meter blocks of N3 are weakly identified by any arm).
+11. **Wide nodes** (more than 16 children): warm start on by default; a stronger formulation so that the bound closes
+    at 20 to 24 children.
+12. **Probing campaigns of two or three days** for weak segments, where one day's 100 CNY leaves the last block
+    memberships open; and psi = V / m with V the value of a resolved question replaces the placeholder psi = 5 (D9).
+13. **Case library**: run the node tests' measures (pool coverage, node additions, flip-test decisions) on the
+    development twins with junctions wider than nine children.
+14. **Root lines as the main case** (N5, N6; your direction of 2026-11-28): the node MIQP against the builders and a
+    local search on feeders whose near-substation lines carry many homes, then probing of the root lines left open,
+    under noisier meters, more load variation and raised caps.
+
 ## 3. Decisions needed from you
 
 | | Question | Recommendation |
@@ -49,6 +64,8 @@
 | D3 | Flip tests on 47-60 meter feeders end unsettled after the full MIQP limit. Keep the limit (your choice of 2026-11-26), or shorten it there and report it? | keep until step 4 measures the effect |
 | D4 | Adopt "stop when a round changes nothing"? | decide after its measurement in step 4 |
 | D5 | Start and target rules (PROPOSALS.md)? | after their tests (step 6) |
+| D8 | Make the node flip test, the extended-BIC node price and node-targeted probing part of the method, to be registered (step 10)? | yes: they carry the node MIQP claim |
+| D9 | Value probing by psi = V / m with V = 2000 CNY per resolved question (the earlier study's value) instead of psi = 5? | yes; report the cost per decided question |
 
 ## 4. Time on this machine (8 cores, one case per core)
 
