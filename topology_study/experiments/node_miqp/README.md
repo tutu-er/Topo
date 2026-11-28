@@ -57,6 +57,36 @@ Limits: one feeder layout (one wide junction, two meters per block); synthetic l
 junction is given in N1, N2 and N4; at 20 or more children the node MIQP often stops at its limit; "absent" cannot be
 certified at wide nodes with this margin; N3 uses shortened solver limits.
 
+## The earlier EU LV root-line result: can it be the main result? (checked 2026-11-28)
+
+The figure "81% of near-root lines against 17-38% for the builders" is Amendment D of the predecessor's experiment M
+(`rnj_wzzt_dr/experiments/wzzt_evidence_20261124/RESULTS_MIQP.md`): WZZT-R against RNJ, NJ and RG on `eulv_16d`
+(33 real feeders, 16-day histories, 88 lines feeding more than half of the meters). It cannot carry the node MIQP claim:
+
+1. **The MIQP did not find those lines.** In WZZT-R's own attribution, 58 of its 82 accepted near-root lines came from
+   an RNJ pool built on its transformed matrix and the rest from a screen, sibling pairs and residual clusters; the
+   whole-map score decided which to keep. Its final MIQP check ran 32 times and never found a better line.
+2. **The builders had a weaker matrix.** On WZZT-R's own matrix (`outputs/.../builders/analysis_ponly_20261125.txt`,
+   exploratory) RNJ's and NJ's best near-root recall is 57% and 59% (RG 33%), not 17-38%; against RNJ's best the difference
+   (13.7 points) is not significant (p = 0.063); against NJ's best, 25 lines are found by WZZT-R only and 6 by NJ only.
+3. **The present pipeline shows the same split.** On the 21 verified random development feeders, NJ and RNJ both
+   missed 67 lines feeding more than half of the meters; the pipeline recovered 36, 29 of them already in its warm
+   start (local search over the nine builders' trees); in the traced cases the node MIQP added none
+   (`experiments/root_ablation/README.md`). After the tree MIQP the junctions there are rarely wider than 9 children.
+4. `eulv_16d` has been seen, and the transformer networks of `eulv_large` are the Stage M inputs (not used without
+   the user's word).
+
+What it does show is the mechanism: distance-based builders lose *short* lines even when their whole-map evidence is
+high (short minus long recall -40 to -63 points in the high-evidence tertile, for every builder), the whole-map score
+does not. The node MIQP is the exact whole-map search at a junction, so it inherits that advantage exactly where the
+two conditions meet: the line is in **no** builder's tree (short, relative length below about 0.08, yet carrying many
+homes), and its junction is **wider than 9 children** (a missed root line leaves all its laterals there). N5 builds
+that case with a known truth; its first rows (chain layout, 12 laterals, r = 0.003 ohm, relative length about 0.04)
+look like the EU LV short near-root row: the builders' pool held 4 of 8 root lines and the best builder's tree 3,
+the local search found 6 and the node MIQP all 8. From 0.005 ohm on the builders propose almost every root line, so
+shorter lines (0.0015 and 0.002 ohm) were added. The end-to-end form of the EU LV comparison (Algorithm 1 with and
+without the node MIQP against each builder's tree, on near-root lines) follows on the same feeders.
+
 ## Feeders
 
 One junction of d blocks (laterals of 0.03 to 0.05 ohm), two meters per block (service cables 0.015 to 0.025 ohm), a

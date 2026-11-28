@@ -29,6 +29,11 @@ Predictions written before the run: root lines whose evidence is positive are fo
 by the local search and than any builder's tree, and the gap grows with the junction's width; some are in no builder's
 tree; with gamma 0.5 the controls get no false line; no decided line is wrong.
 
+Added after the first 37 rows (widths 12 and 16, r = 0.003 to 0.008): r = 0.0015 and 0.002 ohm. Those rows showed the
+builders proposing almost every root line from 0.005 ohm on, and missing half of them at 0.003 ohm (relative length
+about 0.04 of the root-to-meter resistance), where the node MIQP found all of them: the short near-root lines of the
+earlier EU LV study (experiments/node_miqp/README.md, N5). The shorter levels test that regime; reported apart.
+
 (An earlier version also had two sibling root lines side by side. There one line at a time adds their union first,
 whatever the search, because the union of two lines whose loads move together stands in for both; that is a matter of
 adding lines one at a time, not of finding them, and it is left out of the main case.)
@@ -54,7 +59,7 @@ from ptid.runs.node_study import (Feeder, Simulator, feeder_dict, local_loop, mo
 OUT = Path(__file__).resolve().parents[2]/"experiments"/"node_miqp"/"roots.jsonl"
 WIDTHS = (12, 16, 20)
 PER = 3
-R_LEVELS = (.003, .005, .008)
+R_LEVELS = (.0015, .002, .003, .005, .008)    # .0015 and .002 added after the first 37 rows (see the docstring)
 SEEDS = (51, 52, 53, 54)
 ARMS = (("local0.5", local_loop, .5),             # a local search at nodes wider than 9 children
         ("single0", price_loop, 0.),              # the node MIQP there, the draft's price
