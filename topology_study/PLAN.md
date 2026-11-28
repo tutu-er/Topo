@@ -55,7 +55,9 @@
     local search on feeders whose near-substation lines carry many homes, then probing of the root lines left open,
     under noisier meters, more load variation and raised caps. N7 runs Algorithm 1 end to end on these feeders; its
     first version showed that Algorithm 1 needs a line swap at a node (near misses at the root), and version 2 tests
-    it with and without the node MIQP. If it holds, the swap goes into the method draft as part of line 7.
+    it with and without the node MIQP. Version 2 held on fresh seeds (35 of 46 root lines against 25 without the
+    node MIQP, 11 to 1; N6: probing decides 9 to 14 of 47 open root lines against 2). Next: register the swap and
+    gamma 0.5, then one confirmation on new seeds and a second layout; nested chains with both lines off stay open.
 
 ## 3. Decisions needed from you
 

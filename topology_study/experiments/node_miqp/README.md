@@ -12,7 +12,7 @@ line. It can propose a line that no candidate pool contains. These tests ask fou
 | N3 | What does it change in Algorithm 1, end to end? | `node_pipeline.py` | `pipeline.jsonl` |
 | N4 | When the node question stays open, can probing settle it? | `node_probe.py` | `probe.jsonl` |
 | N5 | Root lines (short lines near the substation that carry many homes): does the node MIQP find them where the builders and a local search do not? | `node_roots.py` | `roots.jsonl` |
-| N7 | End to end on short root lines: does Algorithm 1 with the node MIQP recover the root lines that every builder misses, and without it not? (the EU LV comparison with a known truth) | `node_roots_e2e.py` | `roots_e2e.jsonl` (version 1: `roots_e2e_v1.jsonl`) |
+| N7 | End to end on short root lines: does Algorithm 1 with the node MIQP recover the root lines that every builder misses, and without it not? (the EU LV comparison with a known truth; version 2 with the line swap) | `node_roots_e2e.py` | `roots_e2e.jsonl` (version 1: `roots_e2e_v1.jsonl`) |
 | N6 | When a root line stays open, does probing settle it, under noisier meters, other loads and higher caps? | `node_probe_roots.py` | `probe_roots.jsonl` |
 
 Shared pieces (feeder generator, AC simulation, meters, node scan, enumeration) are in `ptid/runs/node_study.py`;
@@ -51,7 +51,9 @@ checks of them in `ptid/tests/test_node_study.py`.
 1. **One solve replaces 2^d - d - 2 refits, exactly.** Same best union and runner-up as enumeration on 54 of 54
    junctions up to 16 children, faster from about 10 children, 10 times faster at 16 (N1).
 2. **It finds lines no candidate pool holds.** 11 of the 31 paying segments that none of the nine builders proposed
-   (N2). This is the case the paper should lead with; the earlier wide-feeder test needed a hand-restricted pool.
+   (N2); on root lines, 32 to 9 against the best builder's tree and 23 lines in no builder's tree (N5). From the flat
+   junction a local search over the same unions finds nearly as many (8 to 4, N5), so the claim is against the
+   builders' trees, not against every search.
 3. **Its decisions are reliable only with its flip test.** The excluded-union solve certifies the chosen union
    against all other unions at the node: 0 wrong of 240, against 30 wrong on the gain alone (N2).
 4. **A line found among M candidates needs ln M more price.** The draft's price lets the best of thousands of noise
@@ -62,6 +64,16 @@ checks of them in `ptid/tests/test_node_study.py`.
    more than half the homes they decide 9 of 47 against 2, and 14 of 47 with raised caps, at about 1000 CNY per
    extra decided line against the 2000 CNY value, with no wrong decision; with meters twice as noisy one day of
    orders is not enough (N6).
+6. **End to end, with the line swap, it recovers root lines that Algorithm 1 without it misses.** On fresh seeds 35
+   of 46 root lines against 25 (11 to 1, p = 0.006), against 46% for the best builder's tree; the gain is largest on
+   the shortest single root lines (10 of 16 against 4); no decided line is wrong; about 5% more time (N7 version 2).
+   The swap was added after N7 version 1 and is to be registered before it is adopted.
+
+The two claims for the paper, with their evidence: **the node MIQP finds root lines** that no builder's tree holds
+(N5, N7 version 2), and **it proves them** against every other union at junctions beyond enumeration (N1; 0 wrong
+decisions in N2, N5, N7), with probing for those it leaves open (N4, N6). Their limits: at 0.002 ohm it finds lines
+it cannot yet certify; nested chains with both lines off are still missed; at 20 or more children it often stops at
+its time limit; every feeder here is synthetic.
 
 Limits: one feeder layout (one wide junction, two meters per block); synthetic loads; the flat tree around the
 junction is given in N1, N2 and N4; at 20 or more children the node MIQP often stops at its limit; "absent" cannot be
@@ -94,8 +106,9 @@ homes), and its junction is **wider than 9 children** (a missed root line leaves
 that case with a known truth; its first rows (chain layout, 12 laterals, r = 0.003 ohm, relative length about 0.04)
 look like the EU LV short near-root row: the builders' pool held 4 of 8 root lines and the best builder's tree 3,
 the local search found 6 and the node MIQP all 8. From 0.005 ohm on the builders propose almost every root line, so
-shorter lines (0.0015 and 0.002 ohm) were added. The full N5 results and the end-to-end form of the EU LV comparison
-(N7: Algorithm 1 with and without the node MIQP against each builder's tree) are below.
+shorter lines (0.0015 and 0.002 ohm) were added. The full N5 results, the end-to-end form of the EU LV comparison
+(N7: Algorithm 1 with and without the node MIQP against each builder's tree) and probing of the root lines left
+open (N6) are below.
 
 ## Feeders
 
@@ -396,3 +409,49 @@ meters, the EU LV class):
   children, which only the node MIQP solves exactly. Version 2 runs both arms with the swap (B skips nodes over 9
   children, D solves them) on fresh seeds 55-58 and then on the diagnosed seeds 51-54. Its predictions were written
   in `node_roots_e2e.py` before it ran.
+
+### N7 version 2: root lines end to end with the line swap
+
+80 feeders: the fresh seeds 55-58 (40, run first) and the diagnosed seeds 51-54 (40; seeds 52-53 were run as a
+pilot after the design and before the fresh seeds, 51 and 54 after). Same layouts and limits as version 1; both arms
+with the line swap (B skips nodes over 9 children, D solves them by the node MIQP, gamma 0.5). Root lines with
+positive true evidence (every builder's own column is in `TABLES.md`; the best is volt_m):
+
+| root lines | n | best builder's tree (volt_m) | any builder's tree (pool) | first solve | B final | D final | D decided by its flip test |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| fresh seeds 55-58 | 46 | 21 (46%) | 25 (54%) | 22 (48%) | 25 (54%) | 35 (76%) | 15 (33%) |
+| diagnosed seeds 51-54 | 46 | 19 (41%) | 26 (57%) | 22 (48%) | 23 (50%) | 30 (65%) | 12 (26%) |
+| all | 92 | 40 (43%) | 51 (55%) | 44 (48%) | 48 (52%) | 65 (71%) | 27 (29%) |
+| over half the meters (EU LV class) | 62 | 36 (58%) | 43 (69%) | 40 (65%) | 43 (69%) | 49 (79%) | 27 (44%) |
+| one root line, 0.002 ohm | 16 | 3 (19%) | 4 (25%) | 4 (25%) | 4 (25%) | 10 (62%) | 0 |
+| one root line, 0.003 ohm | 16 | 11 (69%) | 13 (81%) | 13 (81%) | 14 (88%) | 15 (94%) | 10 (62%) |
+| chain, 0.002 ohm | 28 | 10 (36%) | 13 (46%) | 10 (36%) | 12 (43%) | 13 (46%) | 4 (14%) |
+| chain, 0.003 ohm | 32 | 16 (50%) | 21 (66%) | 17 (53%) | 18 (56%) | 27 (84%) | 13 (41%) |
+
+Paired (found by one arm only; two-sided sign test): fresh seeds D 11 to B 1 (p = 0.006); diagnosed seeds 9 to 2
+(p = 0.065); all 20 to 3 (p < 0.001); lines over half the meters 9 to 3 (p = 0.15). 18 of the 20 lines found by D
+only came in by a swap the node MIQP made; 21 root lines found by D are in no builder's tree.
+
+Whole trees (64 feeders with root lines): mean F1 0.957 (D), 0.934 (B), 0.52 (best builder); extra lines per feeder
+0.62 and 0.91; D's F1 higher in 24 feeders, lower in 7; no decided wrong line (pool labels), and none of D's extra
+lines over half the meters decided by the node flip test; 46 of D's 57 swaps made by the node MIQP; median 12.1
+minutes per feeder (D) and 11.5 (B). Controls (16): 0.19 extra lines per feeder (D) and 0.25 (B).
+
+- **Predictions.** On the fresh seeds D finds more root lines than B, and the lines found by D alone come from swaps
+  by the node MIQP: confirmed (11 to 1; 9 of the 11 by such swaps, 2 otherwise). D's root-line recall exceeds every
+  builder's: confirmed (76% against 46% for the best builder's tree and 54% for the pool). No line decided by the
+  node flip test is wrong: confirmed. D adds no line in controls: not met as worded; D's control trees hold 3 extra
+  lines in 16 controls, B's 4: two are the same lines in both arms, and the third is a noise line that a swap moved
+  rather than a new one; no control tree of D has more lines than B's.
+- **Where the gain is.** The shortest single root lines (0.002 ohm, feeding two thirds of the homes): D finds 10 of
+  16, against 4 for B and 4 in the pool of all nine builders. And chains at 0.003 ohm: 27 of 32 against 18. Over all
+  lines feeding more than half the meters the gain (79% against 69%) is not significant.
+- **Finding and proof.** At 0.002 ohm D finds lines it cannot yet certify (0 of 10 decided); at 0.003 ohm its flip
+  test certifies 10 of the 15 single root lines it finds. The node MIQP finds the line first, and proves it once the
+  evidence allows; probing (N6) supplies that evidence for the open ones.
+- **D's 27 misses.** In 14, D's tree scores better than the true tree (by up to 3.0), so an exact search on this score
+  would not return the truth either. In 5, the true tree scores better by less than the margin (0.8 to 4.0), so the
+  line would stay open even if found. The other 8 (6 feeders, all chains) are search failures: the true tree scores
+  better by 5.7 to 21. Both nested lines are off at once, and the swap moves one line at a time.
+- **B's 3 lines that D missed.** In each, D's tree scores at least as well as B's; in two it scores better than the
+  true tree (by 0.9 and 3.0). They are near-equivalents, and the flip test leaves them open.
